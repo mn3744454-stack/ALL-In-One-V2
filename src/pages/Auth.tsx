@@ -2,16 +2,18 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Logo from "@/components/Logo";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-horse.jpg";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">(
     searchParams.get("mode") === "signup" ? "signup" : "signin"
   );
@@ -28,19 +30,50 @@ const Auth = () => {
     setMode(searchParams.get("mode") === "signup" ? "signup" : "signin");
   }, [searchParams]);
 
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate auth - this will be replaced with real auth later
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      if (mode === "signup") {
+        const { error } = await signUp(formData.email, formData.password, formData.name);
+        
+        if (error) {
+          if (error.message.includes("already registered")) {
+            toast.error("This email is already registered. Please sign in.");
+          } else {
+            toast.error(error.message || "Failed to create account");
+          }
+          setLoading(false);
+          return;
+        }
 
-    if (mode === "signup") {
-      toast.success("Account created successfully!");
-      navigate("/select-role");
-    } else {
-      toast.success("Welcome back!");
-      navigate("/dashboard");
+        toast.success("Account created successfully!");
+        navigate("/select-role");
+      } else {
+        const { error } = await signIn(formData.email, formData.password);
+        
+        if (error) {
+          if (error.message.includes("Invalid login")) {
+            toast.error("Invalid email or password");
+          } else {
+            toast.error(error.message || "Failed to sign in");
+          }
+          setLoading(false);
+          return;
+        }
+
+        toast.success("Welcome back!");
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
     }
 
     setLoading(false);
@@ -118,6 +151,7 @@ const Auth = () => {
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="pl-10 pr-10"
                       required
+                      minLength={6}
                     />
                     <button
                       type="button"

@@ -3,6 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/Logo";
+import { TenantSwitcher } from "@/components/TenantSwitcher";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { AddHorseDialog } from "@/components/AddHorseDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
+import { useHorses } from "@/hooks/useHorses";
 import {
   Building2,
   Home,
@@ -10,21 +17,57 @@ import {
   FileText,
   Users,
   Settings,
-  Bell,
   Search,
-  Plus,
   TrendingUp,
   Heart,
   Activity,
   ChevronRight,
   Menu,
-  X,
   LogOut
 } from "lucide-react";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { signOut, profile } = useAuth();
+  const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
+  const { horses, loading: horsesLoading } = useHorses();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  // Show onboarding if no tenants
+  if (!tenantsLoading && tenants.length === 0) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <Card variant="elevated" className="max-w-md w-full text-center">
+          <CardContent className="pt-8 pb-8">
+            <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-8 h-8 text-gold" />
+            </div>
+            <h2 className="font-display text-2xl font-bold text-navy mb-2">
+              Welcome to Khail!
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Get started by creating your first organization or wait for an invitation to join one.
+            </p>
+            <div className="space-y-3">
+              <Button
+                variant="gold"
+                className="w-full"
+                onClick={() => navigate("/select-role")}
+              >
+                Create Organization
+              </Button>
+              <InvitationsPanel />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -43,10 +86,10 @@ const Dashboard = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             <NavItem icon={Home} label="Dashboard" active />
-            <NavItem icon={Heart} label="My Horses" badge={12} />
+            <NavItem icon={Heart} label="My Horses" badge={horses.length} />
             <NavItem icon={Calendar} label="Schedule" />
             <NavItem icon={FileText} label="Records" />
-            <NavItem icon={Users} label="Staff" />
+            <NavItem icon={Users} label="Team" />
             <NavItem icon={Building2} label="Facilities" />
             
             <div className="pt-4 mt-4 border-t border-navy-light">
@@ -58,17 +101,19 @@ const Dashboard = () => {
           <div className="p-4 border-t border-navy-light">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-gold flex items-center justify-center text-navy font-bold">
-                AF
+                {profile?.full_name?.[0]?.toUpperCase() || "U"}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-cream truncate">Al-Faisal Stables</p>
-                <p className="text-xs text-cream/60">Stable Owner</p>
+                <p className="text-sm font-semibold text-cream truncate">
+                  {activeTenant?.tenant.name || "No Organization"}
+                </p>
+                <p className="text-xs text-cream/60 capitalize">{activeRole || "Member"}</p>
               </div>
             </div>
             <Button
               variant="ghost"
               className="w-full justify-start text-cream/70 hover:text-cream hover:bg-navy-light"
-              onClick={() => navigate("/")}
+              onClick={handleSignOut}
             >
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
@@ -97,6 +142,17 @@ const Dashboard = () => {
               >
                 <Menu className="w-5 h-5" />
               </button>
+              
+              {/* Tenant Switcher */}
+              <TenantSwitcher />
+              
+              <div className="hidden md:block">
+                <RoleSwitcher />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Search */}
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -105,16 +161,12 @@ const Dashboard = () => {
                   className="w-64 h-10 pl-10 pr-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="relative p-2 rounded-xl hover:bg-muted transition-colors">
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
-              </button>
-              <Button variant="gold" size="sm">
-                <Plus className="w-4 h-4 mr-1" />
-                Add Horse
-              </Button>
+              
+              {/* Invitations */}
+              <InvitationsPanel />
+
+              {/* Add Horse */}
+              <AddHorseDialog />
             </div>
           </div>
         </header>
@@ -124,10 +176,12 @@ const Dashboard = () => {
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
-              Welcome back, Al-Faisal Stables
+              Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
             </h1>
             <p className="text-muted-foreground">
-              Here's what's happening with your stable today.
+              {activeTenant
+                ? `Here's what's happening at ${activeTenant.tenant.name} today.`
+                : "Get started by creating or joining an organization."}
             </p>
           </div>
 
@@ -136,35 +190,32 @@ const Dashboard = () => {
             <StatCard
               icon={Heart}
               label="Total Horses"
-              value="12"
-              change="+2 this month"
-              positive
+              value={horses.length.toString()}
+              change={horses.length > 0 ? "Active records" : "Add your first horse"}
             />
             <StatCard
               icon={Activity}
               label="Health Checkups"
-              value="3"
+              value="0"
               change="Scheduled this week"
             />
             <StatCard
               icon={Users}
-              label="Staff Members"
-              value="8"
+              label="Team Members"
+              value="1"
               change="Active"
             />
             <StatCard
               icon={TrendingUp}
-              label="Monthly Revenue"
-              value="45,200"
-              currency="SAR"
-              change="+12% vs last month"
-              positive
+              label="This Month"
+              value="—"
+              change="Stats coming soon"
             />
           </div>
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Horses */}
+            {/* Horses List */}
             <div className="lg:col-span-2">
               <Card variant="elevated">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -174,12 +225,35 @@ const Dashboard = () => {
                   </Link>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <HorseItem name="Shaheen" breed="Arabian" age="6 years" status="Healthy" />
-                    <HorseItem name="Rimal" breed="Arabian" age="4 years" status="Checkup Due" warning />
-                    <HorseItem name="Buraq" breed="Thoroughbred" age="8 years" status="Healthy" />
-                    <HorseItem name="Falak" breed="Arabian" age="3 years" status="Healthy" />
-                  </div>
+                  {horsesLoading ? (
+                    <div className="py-8 text-center text-muted-foreground">
+                      Loading horses...
+                    </div>
+                  ) : horses.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground mb-4">No horses yet</p>
+                      <AddHorseDialog
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Add Your First Horse
+                          </Button>
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {horses.slice(0, 5).map((horse) => (
+                        <HorseItem
+                          key={horse.id}
+                          name={horse.name}
+                          breed={horse.breed || "Unknown breed"}
+                          gender={horse.gender}
+                          status="Healthy"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -191,22 +265,9 @@ const Dashboard = () => {
                   <CardTitle className="text-navy">Upcoming</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <EventItem
-                      title="Vet Visit - Rimal"
-                      time="Today, 2:00 PM"
-                      type="health"
-                    />
-                    <EventItem
-                      title="Farrier - All horses"
-                      time="Tomorrow, 9:00 AM"
-                      type="maintenance"
-                    />
-                    <EventItem
-                      title="Training - Shaheen"
-                      time="Dec 20, 10:00 AM"
-                      type="training"
-                    />
+                  <div className="py-8 text-center text-muted-foreground">
+                    <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                    <p>No upcoming events</p>
                   </div>
                 </CardContent>
               </Card>
@@ -238,7 +299,7 @@ const NavItem = ({
   >
     <Icon className="w-5 h-5" />
     <span className="flex-1 text-left">{label}</span>
-    {badge && (
+    {badge !== undefined && badge > 0 && (
       <span className={`px-2 py-0.5 rounded-full text-xs ${active ? "bg-navy/20" : "bg-cream/10"}`}>
         {badge}
       </span>
@@ -285,13 +346,13 @@ const StatCard = ({
 const HorseItem = ({ 
   name, 
   breed, 
-  age, 
+  gender, 
   status,
   warning = false
 }: { 
   name: string; 
   breed: string; 
-  age: string; 
+  gender: string; 
   status: string;
   warning?: boolean;
 }) => (
@@ -301,7 +362,7 @@ const HorseItem = ({
     </div>
     <div className="flex-1 min-w-0">
       <p className="font-semibold text-navy">{name}</p>
-      <p className="text-sm text-muted-foreground">{breed} • {age}</p>
+      <p className="text-sm text-muted-foreground capitalize">{breed} • {gender}</p>
     </div>
     <span className={`px-3 py-1 rounded-full text-xs font-medium ${
       warning 
@@ -312,31 +373,5 @@ const HorseItem = ({
     </span>
   </div>
 );
-
-const EventItem = ({ 
-  title, 
-  time, 
-  type 
-}: { 
-  title: string; 
-  time: string; 
-  type: "health" | "maintenance" | "training" 
-}) => {
-  const colors = {
-    health: "bg-emerald-500",
-    maintenance: "bg-blue-500",
-    training: "bg-purple-500",
-  };
-
-  return (
-    <div className="flex items-start gap-3">
-      <div className={`w-2 h-2 rounded-full mt-2 ${colors[type]}`} />
-      <div>
-        <p className="text-sm font-medium text-navy">{title}</p>
-        <p className="text-xs text-muted-foreground">{time}</p>
-      </div>
-    </div>
-  );
-};
 
 export default Dashboard;

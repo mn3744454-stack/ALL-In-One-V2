@@ -14,16 +14,34 @@ import {
   ArrowRight,
   ArrowLeft,
   Upload,
-  Camera
+  Camera,
+  Stethoscope,
+  FlaskConical,
+  GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTenant } from "@/contexts/TenantContext";
 
-const CreateStableProfile = () => {
+type TenantType = "stable" | "clinic" | "lab" | "academy";
+
+interface CreateStableProfileProps {
+  tenantType?: TenantType;
+}
+
+const tenantTypeConfig: Record<TenantType, { title: string; description: string; icon: React.ElementType }> = {
+  stable: { title: "Stable", description: "Manage your stable and horses", icon: Building2 },
+  clinic: { title: "Clinic", description: "Veterinary clinic management", icon: Stethoscope },
+  lab: { title: "Laboratory", description: "Lab and testing management", icon: FlaskConical },
+  academy: { title: "Academy", description: "Training and education center", icon: GraduationCap },
+};
+
+const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps) => {
   const navigate = useNavigate();
+  const { createTenant } = useTenant();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    stableName: "",
+    name: "",
     description: "",
     address: "",
     city: "",
@@ -34,14 +52,29 @@ const CreateStableProfile = () => {
     website: "",
   });
 
+  const config = tenantTypeConfig[tenantType];
+  const Icon = config.icon;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const { error } = await createTenant({
+      name: formData.name,
+      type: tenantType,
+      description: formData.description,
+      address: `${formData.address}, ${formData.city}, ${formData.country}`,
+      phone: formData.phone,
+      email: formData.email,
+    });
     
-    toast.success("Stable profile created successfully!");
+    if (error) {
+      toast.error("Failed to create profile. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    toast.success(`${config.title} profile created successfully!`);
     navigate("/dashboard");
     setLoading(false);
   };
@@ -56,11 +89,14 @@ const CreateStableProfile = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <Logo className="justify-center mb-6" />
-          <h1 className="font-display text-3xl font-bold text-navy mb-2">
-            Create Your Stable Profile
-          </h1>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Icon className="w-6 h-6 text-gold" />
+            <h1 className="font-display text-3xl font-bold text-navy">
+              Create Your {config.title} Profile
+            </h1>
+          </div>
           <p className="text-muted-foreground">
-            Tell us about your stable to get started
+            {config.description}
           </p>
         </div>
 
@@ -82,8 +118,8 @@ const CreateStableProfile = () => {
               {step === 3 && "Contact Information"}
             </CardTitle>
             <CardDescription>
-              {step === 1 && "Start with your stable's name and description"}
-              {step === 2 && "Help clients find your stable"}
+              {step === 1 && `Start with your ${config.title.toLowerCase()}'s name and description`}
+              {step === 2 && `Help clients find your ${config.title.toLowerCase()}`}
               {step === 3 && "How can people reach you?"}
             </CardDescription>
           </CardHeader>
@@ -107,20 +143,20 @@ const CreateStableProfile = () => {
                     </div>
                   </div>
                   <p className="text-center text-sm text-muted-foreground">
-                    Upload your stable logo
+                    Upload your {config.title.toLowerCase()} logo
                   </p>
 
                   <div className="space-y-2">
-                    <Label htmlFor="stableName" className="text-navy font-medium">
-                      Stable Name *
+                    <Label htmlFor="name" className="text-navy font-medium">
+                      {config.title} Name *
                     </Label>
                     <div className="relative">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
-                        id="stableName"
-                        placeholder="Enter your stable name"
-                        value={formData.stableName}
-                        onChange={(e) => updateField("stableName", e.target.value)}
+                        id="name"
+                        placeholder={`Enter your ${config.title.toLowerCase()} name`}
+                        value={formData.name}
+                        onChange={(e) => updateField("name", e.target.value)}
                         className="pl-10"
                         required
                       />
@@ -133,7 +169,7 @@ const CreateStableProfile = () => {
                     </Label>
                     <Textarea
                       id="description"
-                      placeholder="Tell us about your stable, facilities, and services..."
+                      placeholder={`Tell us about your ${config.title.toLowerCase()}, facilities, and services...`}
                       value={formData.description}
                       onChange={(e) => updateField("description", e.target.value)}
                       rows={4}
@@ -141,18 +177,20 @@ const CreateStableProfile = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="capacity" className="text-navy font-medium">
-                      Horse Capacity
-                    </Label>
-                    <Input
-                      id="capacity"
-                      type="number"
-                      placeholder="Maximum number of horses"
-                      value={formData.capacity}
-                      onChange={(e) => updateField("capacity", e.target.value)}
-                    />
-                  </div>
+                  {tenantType === "stable" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="capacity" className="text-navy font-medium">
+                        Horse Capacity
+                      </Label>
+                      <Input
+                        id="capacity"
+                        type="number"
+                        placeholder="Maximum number of horses"
+                        value={formData.capacity}
+                        onChange={(e) => updateField("capacity", e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -242,7 +280,7 @@ const CreateStableProfile = () => {
                       <Input
                         id="contactEmail"
                         type="email"
-                        placeholder="stable@example.com"
+                        placeholder={`${config.title.toLowerCase()}@example.com`}
                         value={formData.email}
                         onChange={(e) => updateField("email", e.target.value)}
                         className="pl-10"
@@ -258,7 +296,7 @@ const CreateStableProfile = () => {
                     <Input
                       id="website"
                       type="url"
-                      placeholder="https://www.yourstable.com"
+                      placeholder={`https://www.your${config.title.toLowerCase()}.com`}
                       value={formData.website}
                       onChange={(e) => updateField("website", e.target.value)}
                     />
@@ -282,6 +320,7 @@ const CreateStableProfile = () => {
                     type="button"
                     variant="gold"
                     onClick={() => setStep(step + 1)}
+                    disabled={step === 1 && !formData.name}
                   >
                     Continue
                     <ArrowRight className="w-4 h-4 ml-2" />
