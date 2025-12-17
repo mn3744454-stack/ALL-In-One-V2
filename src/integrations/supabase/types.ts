@@ -14,16 +14,294 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      horses: {
+        Row: {
+          avatar_url: string | null
+          birth_date: string | null
+          breed: string | null
+          color: string | null
+          created_at: string
+          gender: string
+          id: string
+          microchip_number: string | null
+          name: string
+          notes: string | null
+          registration_number: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          gender: string
+          id?: string
+          microchip_number?: string | null
+          name: string
+          notes?: string | null
+          registration_number?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          color?: string | null
+          created_at?: string
+          gender?: string
+          id?: string
+          microchip_number?: string | null
+          name?: string
+          notes?: string | null
+          registration_number?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          assigned_horse_ids: string[] | null
+          created_at: string
+          horses_accepted: boolean | null
+          id: string
+          invitee_email: string
+          invitee_id: string | null
+          proposed_role: Database["public"]["Enums"]["tenant_role"]
+          rejection_reason: string | null
+          responded_at: string | null
+          role_accepted: boolean | null
+          sender_id: string
+          status: Database["public"]["Enums"]["invitation_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_horse_ids?: string[] | null
+          created_at?: string
+          horses_accepted?: boolean | null
+          id?: string
+          invitee_email: string
+          invitee_id?: string | null
+          proposed_role: Database["public"]["Enums"]["tenant_role"]
+          rejection_reason?: string | null
+          responded_at?: string | null
+          role_accepted?: boolean | null
+          sender_id: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_horse_ids?: string[] | null
+          created_at?: string
+          horses_accepted?: boolean | null
+          id?: string
+          invitee_email?: string
+          invitee_id?: string | null
+          proposed_role?: Database["public"]["Enums"]["tenant_role"]
+          rejection_reason?: string | null
+          responded_at?: string | null
+          role_accepted?: boolean | null
+          sender_id?: string
+          status?: Database["public"]["Enums"]["invitation_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tenant_members: {
+        Row: {
+          can_invite: boolean
+          can_manage_horses: boolean
+          created_at: string
+          id: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["tenant_role"]
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_invite?: boolean
+          can_manage_horses?: boolean
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_invite?: boolean
+          can_manage_horses?: boolean
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          role?: Database["public"]["Enums"]["tenant_role"]
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          type: Database["public"]["Enums"]["tenant_type"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          type: Database["public"]["Enums"]["tenant_type"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          type?: Database["public"]["Enums"]["tenant_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_invite_in_tenant: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_tenant_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["tenant_role"]
+          _tenant_id: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_tenant_member: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      invitation_status: "pending" | "accepted" | "rejected"
+      tenant_role:
+        | "owner"
+        | "admin"
+        | "foreman"
+        | "vet"
+        | "trainer"
+        | "employee"
+      tenant_type:
+        | "stable"
+        | "clinic"
+        | "lab"
+        | "academy"
+        | "pharmacy"
+        | "transport"
+        | "auction"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +428,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      invitation_status: ["pending", "accepted", "rejected"],
+      tenant_role: ["owner", "admin", "foreman", "vet", "trainer", "employee"],
+      tenant_type: [
+        "stable",
+        "clinic",
+        "lab",
+        "academy",
+        "pharmacy",
+        "transport",
+        "auction",
+      ],
+    },
   },
 } as const
