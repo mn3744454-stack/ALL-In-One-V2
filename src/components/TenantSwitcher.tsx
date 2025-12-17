@@ -1,0 +1,96 @@
+import { useTenant } from "@/contexts/TenantContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Building2, ChevronDown, Plus, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const tenantTypeLabels: Record<string, string> = {
+  stable: "Stable",
+  clinic: "Clinic",
+  lab: "Laboratory",
+  academy: "Academy",
+  pharmacy: "Pharmacy",
+  transport: "Transport",
+  auction: "Auction",
+};
+
+export const TenantSwitcher = () => {
+  const { tenants, activeTenant, setActiveTenant } = useTenant();
+  const navigate = useNavigate();
+
+  if (tenants.length === 0) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => navigate("/create-profile/stable")}
+        className="gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        Create Organization
+      </Button>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="gap-2 max-w-[200px]">
+          <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
+            <Building2 className="w-4 h-4 text-gold" />
+          </div>
+          <div className="flex flex-col items-start text-left min-w-0">
+            <span className="text-sm font-medium truncate max-w-[120px]">
+              {activeTenant?.tenant.name || "Select"}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {activeTenant ? tenantTypeLabels[activeTenant.tenant.type] : "Organization"}
+            </span>
+          </div>
+          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[220px]">
+        <DropdownMenuLabel>Your Organizations</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {tenants.map((membership) => (
+          <DropdownMenuItem
+            key={membership.id}
+            onClick={() => setActiveTenant(membership.tenant_id)}
+            className="gap-3 cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4 text-gold" />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-medium truncate">
+                {membership.tenant.name}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {tenantTypeLabels[membership.tenant.type]} • {membership.role}
+              </span>
+            </div>
+            {activeTenant?.tenant_id === membership.tenant_id && (
+              <Check className="w-4 h-4 text-gold shrink-0" />
+            )}
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => navigate("/create-profile/stable")}
+          className="gap-2 cursor-pointer text-gold"
+        >
+          <Plus className="w-4 h-4" />
+          Add Organization
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
