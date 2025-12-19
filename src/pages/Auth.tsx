@@ -45,10 +45,16 @@ const Auth = () => {
         const { error } = await signUp(formData.email, formData.password, formData.name);
         
         if (error) {
-          if (error.message.includes("already registered")) {
+          // Log full error for debugging (only visible in dev console)
+          console.error("Sign up error:", error);
+          
+          // Show safe, generic messages to prevent information disclosure
+          if (error.message?.includes("already registered")) {
             toast.error("This email is already registered. Please sign in.");
+          } else if (error.message?.includes("Password")) {
+            toast.error("Password does not meet requirements. Please use a stronger password.");
           } else {
-            toast.error(error.message || "Failed to create account");
+            toast.error("Unable to create account. Please try again.");
           }
           setLoading(false);
           return;
@@ -60,11 +66,11 @@ const Auth = () => {
         const { error } = await signIn(formData.email, formData.password);
         
         if (error) {
-          if (error.message.includes("Invalid login")) {
-            toast.error("Invalid email or password");
-          } else {
-            toast.error(error.message || "Failed to sign in");
-          }
+          // Log full error for debugging (only visible in dev console)
+          console.error("Sign in error:", error);
+          
+          // Generic message to prevent user enumeration attacks
+          toast.error("Invalid email or password. Please try again.");
           setLoading(false);
           return;
         }

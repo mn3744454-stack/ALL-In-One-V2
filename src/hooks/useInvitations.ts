@@ -63,6 +63,8 @@ export const useInvitations = () => {
   const fetchReceivedInvitations = async () => {
     if (!user || !profile) return;
 
+    // RLS policy handles filtering to only show invitations for the current user
+    // No need for client-side .or() filter - this prevents potential query injection
     const { data, error } = await supabase
       .from("invitations")
       .select(`
@@ -70,7 +72,6 @@ export const useInvitations = () => {
         tenant:tenants(id, name, type),
         sender:profiles!invitations_sender_id_fkey(id, full_name, email)
       `)
-      .or(`invitee_id.eq.${user.id},invitee_email.eq.${profile.email}`)
       .eq("status", "pending")
       .order("created_at", { ascending: false });
 
