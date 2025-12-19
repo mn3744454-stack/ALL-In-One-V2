@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { invitationSchema, safeValidate } from "@/lib/validations";
 
 type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
 type InvitationStatus = "pending" | "accepted" | "rejected";
@@ -95,14 +96,22 @@ export const useInvitations = () => {
       return { data: null, error: new Error("No active tenant or user") };
     }
 
+    // Validate input data
+    const validation = safeValidate(invitationSchema, data);
+    if (!validation.success) {
+      return { data: null, error: new Error(validation.errors.join(", ")) };
+    }
+
+    const validatedData = validation.data;
+
     const { data: invitation, error } = await supabase
       .from("invitations")
       .insert({
         tenant_id: activeTenant.tenant_id,
         sender_id: user.id,
-        invitee_email: data.invitee_email,
-        proposed_role: data.proposed_role,
-        assigned_horse_ids: data.assigned_horse_ids || [],
+        invitee_email: validatedData.invitee_email,
+        proposed_role: validatedData.proposed_role,
+        assigned_horse_ids: validatedData.assigned_horse_ids,
       })
       .select()
       .single();
