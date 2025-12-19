@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
+import { tenantSchema, safeValidate } from "@/lib/validations";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
@@ -116,17 +117,35 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       return { data: null, error: new Error("Not authenticated") };
     }
 
+    // Validate input data
+    const dataToValidate = {
+      name: tenantData.name || "",
+      type: tenantData.type || "stable",
+      description: tenantData.description || null,
+      address: tenantData.address || null,
+      phone: tenantData.phone || null,
+      email: tenantData.email || null,
+      logo_url: tenantData.logo_url || null,
+    };
+
+    const validation = safeValidate(tenantSchema, dataToValidate);
+    if (!validation.success) {
+      return { data: null, error: new Error(validation.errors.join(", ")) };
+    }
+
+    const validatedData = validation.data;
+
     // Create tenant
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
       .insert({
-        name: tenantData.name,
-        type: tenantData.type || "stable",
-        description: tenantData.description,
-        address: tenantData.address,
-        phone: tenantData.phone,
-        email: tenantData.email,
-        logo_url: tenantData.logo_url,
+        name: validatedData.name,
+        type: validatedData.type,
+        description: validatedData.description,
+        address: validatedData.address,
+        phone: validatedData.phone,
+        email: validatedData.email || null,
+        logo_url: validatedData.logo_url,
       })
       .select()
       .single();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { horseSchema, safeValidate } from "@/lib/validations";
 
 interface Horse {
   id: string;
@@ -62,10 +63,25 @@ export const useHorses = () => {
       return { data: null, error: new Error("No active tenant") };
     }
 
+    // Validate input data
+    const validation = safeValidate(horseSchema, horseData);
+    if (!validation.success) {
+      return { data: null, error: new Error(validation.errors.join(", ")) };
+    }
+
+    const validatedData = validation.data;
+
     const { data, error } = await supabase
       .from("horses")
       .insert({
-        ...horseData,
+        name: validatedData.name,
+        gender: validatedData.gender,
+        breed: validatedData.breed || null,
+        color: validatedData.color || null,
+        birth_date: validatedData.birth_date || null,
+        registration_number: validatedData.registration_number || null,
+        microchip_number: validatedData.microchip_number || null,
+        notes: validatedData.notes || null,
         tenant_id: activeTenant.tenant_id,
       })
       .select()
@@ -79,9 +95,16 @@ export const useHorses = () => {
   };
 
   const updateHorse = async (id: string, updates: Partial<CreateHorseData>) => {
+    // Validate partial update data
+    const partialSchema = horseSchema.partial();
+    const validation = safeValidate(partialSchema, updates);
+    if (!validation.success) {
+      return { data: null, error: new Error(validation.errors.join(", ")) };
+    }
+
     const { data, error } = await supabase
       .from("horses")
-      .update(updates)
+      .update(validation.data)
       .eq("id", id)
       .select()
       .single();
