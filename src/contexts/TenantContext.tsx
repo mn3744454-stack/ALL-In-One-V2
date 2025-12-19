@@ -135,7 +135,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
 
     const validatedData = validation.data;
 
-    // Create tenant
+    // Create tenant with owner_id set to current user
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
       .insert({
@@ -146,6 +146,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         phone: validatedData.phone,
         email: validatedData.email || null,
         logo_url: validatedData.logo_url,
+        owner_id: user.id,
       })
       .select()
       .single();

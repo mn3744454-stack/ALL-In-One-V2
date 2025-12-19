@@ -233,6 +233,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          owner_id: string
           phone: string | null
           type: Database["public"]["Enums"]["tenant_type"]
           updated_at: string
@@ -245,6 +246,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          owner_id: string
           phone?: string | null
           type: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
@@ -257,6 +259,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          owner_id?: string
           phone?: string | null
           type?: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
