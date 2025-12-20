@@ -61,7 +61,7 @@ const Auth = () => {
         }
 
         toast.success("Account created successfully!");
-        navigate("/select-role");
+        navigate("/dashboard");
       } else {
         const { error } = await signIn(formData.email, formData.password);
         
