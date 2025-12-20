@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { tenantSchema, safeValidate } from "@/lib/validations";
+import { debugLog, debugError } from "@/lib/debug";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
@@ -28,6 +29,15 @@ interface TenantMembership {
   tenant: Tenant;
 }
 
+// Structured error for createTenant operations
+export interface TenantOperationError {
+  step: "validation" | "tenant_insert" | "member_insert";
+  message: string;
+  code?: string;
+  details?: string;
+  hint?: string;
+}
+
 interface TenantContextType {
   tenants: TenantMembership[];
   activeTenant: TenantMembership | null;
@@ -36,7 +46,7 @@ interface TenantContextType {
   setActiveTenant: (tenantId: string) => void;
   setActiveRole: (role: TenantRole) => void;
   refreshTenants: () => Promise<void>;
-  createTenant: (tenant: Partial<Tenant>) => Promise<{ data: Tenant | null; error: Error | null }>;
+  createTenant: (tenant: Partial<Tenant>) => Promise<{ data: Tenant | null; error: TenantOperationError | null }>;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -112,12 +122,23 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     await fetchTenants();
   };
 
-  const createTenant = async (tenantData: Partial<Tenant>) => {
+  const createTenant = async (tenantData: Partial<Tenant>): Promise<{
+    data: Tenant | null;
+    error: TenantOperationError | null;
+  }> => {
+    debugLog("=== CREATE TENANT START ===");
+    debugLog("User ID", { user_id: user?.id });
+    debugLog("Input data", tenantData);
+
     if (!user) {
-      return { data: null, error: new Error("Not authenticated") };
+      debugError("Not authenticated");
+      return { 
+        data: null, 
+        error: { step: "validation", message: "Not authenticated" } 
+      };
     }
 
-    // Validate input data
+    // Prepare and validate input data
     const dataToValidate = {
       name: tenantData.name || "",
       type: tenantData.type || "stable",
@@ -128,14 +149,22 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       logo_url: tenantData.logo_url || null,
     };
 
+    debugLog("Data to validate", dataToValidate);
+
     const validation = safeValidate(tenantSchema, dataToValidate);
     if (!validation.success) {
-      return { data: null, error: new Error(validation.errors.join(", ")) };
+      debugError("Validation failed", validation.errors);
+      return { 
+        data: null, 
+        error: { step: "validation", message: validation.errors.join(", ") } 
+      };
     }
+    debugLog("Validation passed");
 
     const validatedData = validation.data;
 
-    // Create tenant with owner_id set to current user
+    // Step A: INSERT into tenants
+    debugLog("Step A: Inserting into tenants...");
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
       .insert({
@@ -152,10 +181,27 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       .single();
 
     if (tenantError) {
-      return { data: null, error: tenantError as Error };
+      debugError("Step A FAILED", {
+        message: tenantError.message,
+        code: tenantError.code,
+        details: tenantError.details,
+        hint: tenantError.hint,
+      });
+      return { 
+        data: null, 
+        error: {
+          step: "tenant_insert",
+          message: tenantError.message,
+          code: tenantError.code,
+          details: tenantError.details,
+          hint: tenantError.hint,
+        }
+      };
     }
+    debugLog("Step A SUCCESS", { id: tenant.id, name: tenant.name });
 
-    // Add user as owner
+    // Step B: INSERT into tenant_members
+    debugLog("Step B: Inserting into tenant_members...");
     const { error: memberError } = await supabase
       .from("tenant_members")
       .insert({
@@ -167,10 +213,47 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       });
 
     if (memberError) {
-      return { data: null, error: memberError as Error };
+      debugError("Step B FAILED", {
+        message: memberError.message,
+        code: memberError.code,
+        details: memberError.details,
+        hint: memberError.hint,
+      });
+      
+      // Rollback: Delete orphan tenant (debug-only, no user-facing toast)
+      debugLog("Rolling back: Deleting orphan tenant...", { id: tenant.id });
+      const { error: rollbackError } = await supabase
+        .from("tenants")
+        .delete()
+        .eq("id", tenant.id);
+      
+      if (rollbackError) {
+        debugError("Rollback FAILED - Orphan tenant may exist", {
+          tenant_id: tenant.id,
+          rollbackError: rollbackError.message,
+        });
+      } else {
+        debugLog("Rollback SUCCESS - Orphan tenant deleted");
+      }
+      
+      return { 
+        data: null, 
+        error: {
+          step: "member_insert",
+          message: memberError.message,
+          code: memberError.code,
+          details: memberError.details,
+          hint: memberError.hint,
+        }
+      };
     }
+    debugLog("Step B SUCCESS - Member created as owner");
 
+    // Refresh tenants and return success
+    debugLog("Refreshing tenants...");
     await refreshTenants();
+    debugLog("=== CREATE TENANT COMPLETE ===");
+    
     return { data: tenant as Tenant, error: null };
   };
 

@@ -69,7 +69,25 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     });
     
     if (error) {
-      toast.error("Failed to create profile. Please try again.");
+      // Build detailed error message from structured error
+      const stepLabels: Record<string, string> = {
+        validation: "Validation Error",
+        tenant_insert: "Failed to create organization",
+        member_insert: "Failed to assign ownership",
+      };
+      
+      const title = stepLabels[error.step] || "Error";
+      const description = [
+        error.message,
+        error.code && `Code: ${error.code}`,
+        error.hint,
+      ].filter(Boolean).join(" • ");
+      
+      toast.error(title, {
+        description: description || undefined,
+        duration: 10000,
+      });
+      
       setLoading(false);
       return;
     }
