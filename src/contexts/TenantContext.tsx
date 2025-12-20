@@ -196,38 +196,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         .single();
     };
 
-    let { data: tenant, error: tenantError } = await insertTenant(currentUserId);
-
-    // If RLS error (42501), try refreshing session and retry once
-    if (tenantError?.code === "42501") {
-      debugLog("RLS error detected, attempting session refresh and retry...");
-      
-      const { data: { session: newSession }, error: retryRefreshError } = await supabase.auth.refreshSession();
-      
-      if (retryRefreshError || !newSession?.user) {
-        debugError("Retry session refresh failed, forcing sign out");
-        await supabase.auth.signOut();
-        return { 
-          data: null, 
-          error: { step: "tenant_insert", message: "جلسة منتهية، يرجى تسجيل الدخول مجدداً" } 
-        };
-      }
-      
-      debugLog("Retrying insert with new session...", { user_id: newSession.user.id });
-      const retryResult = await insertTenant(newSession.user.id);
-      tenant = retryResult.data;
-      tenantError = retryResult.error;
-      
-      // If still RLS error after retry, force sign out
-      if (tenantError?.code === "42501") {
-        debugError("RLS error persists after retry, forcing sign out");
-        await supabase.auth.signOut();
-        return { 
-          data: null, 
-          error: { step: "tenant_insert", message: "جلسة منتهية، يرجى تسجيل الدخول مجدداً" } 
-        };
-      }
-    }
+    const { data: tenant, error: tenantError } = await insertTenant(currentUserId);
 
     if (tenantError) {
       debugError("Step A FAILED", {
