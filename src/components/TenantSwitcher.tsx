@@ -27,15 +27,15 @@ export const TenantSwitcher = () => {
 
   if (tenants.length === 0) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => navigate("/create-profile/stable")}
-        className="gap-2"
-      >
-        <Plus className="w-4 h-4" />
-        Create Organization
-      </Button>
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+          <Building2 className="w-4 h-4 text-muted-foreground" />
+        </div>
+        <div className="flex flex-col items-start text-left">
+          <span className="text-sm font-medium text-foreground">Personal Account</span>
+          <span className="text-xs text-muted-foreground">No organization yet</span>
+        </div>
+      </div>
     );
   }
 

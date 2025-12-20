@@ -38,36 +38,8 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  // Show onboarding if no tenants
-  if (!tenantsLoading && tenants.length === 0) {
-    return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-8 h-8 text-gold" />
-            </div>
-            <h2 className="font-display text-2xl font-bold text-navy mb-2">
-              Welcome to Khail!
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Get started by creating your first organization or wait for an invitation to join one.
-            </p>
-            <div className="space-y-3">
-              <Button
-                variant="gold"
-                className="w-full"
-                onClick={() => navigate("/select-role")}
-              >
-                Create Organization
-              </Button>
-              <InvitationsPanel />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Check if user has no tenants - show welcome section in dashboard instead
+  const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -176,14 +148,46 @@ const Dashboard = () => {
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
-              Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+              Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
             </h1>
             <p className="text-muted-foreground">
               {activeTenant
                 ? `Here's what's happening at ${activeTenant.tenant.name} today.`
-                : "Get started by creating or joining an organization."}
+                : "Discover our services and explore what Khail has to offer."}
             </p>
           </div>
+
+          {/* Getting Started Card - Only show when no tenants */}
+          {hasNoTenants && (
+            <Card variant="elevated" className="mb-8 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
+                    <Building2 className="w-7 h-7 text-gold" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                      Get Started with Khail
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Create your organization to manage horses, track health records, and collaborate with your team. Or explore our services first!
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Button
+                      variant="gold"
+                      onClick={() => navigate("/select-role")}
+                      className="gap-2"
+                    >
+                      <Building2 className="w-4 h-4" />
+                      Create Organization
+                    </Button>
+                    <InvitationsPanel />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
