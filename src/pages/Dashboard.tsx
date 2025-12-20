@@ -137,8 +137,8 @@ const Dashboard = () => {
               {/* Invitations */}
               <InvitationsPanel />
 
-              {/* Add Horse */}
-              <AddHorseDialog />
+              {/* Add Horse - Only show if user has a tenant */}
+              {activeTenant && <AddHorseDialog />}
             </div>
           </div>
         </header>
@@ -219,48 +219,93 @@ const Dashboard = () => {
 
           {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Horses List */}
-            <div className="lg:col-span-2">
-              <Card variant="elevated">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-navy">Your Horses</CardTitle>
-                  <Link to="#" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
-                    View All <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  {horsesLoading ? (
-                    <div className="py-8 text-center text-muted-foreground">
-                      Loading horses...
-                    </div>
-                  ) : horses.length === 0 ? (
-                    <div className="py-8 text-center">
-                      <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                      <p className="text-muted-foreground mb-4">No horses yet</p>
-                      <AddHorseDialog
-                        trigger={
-                          <Button variant="outline" size="sm">
-                            Add Your First Horse
-                          </Button>
-                        }
+            {/* Horses List - Only show if user has a tenant */}
+            {activeTenant ? (
+              <div className="lg:col-span-2">
+                <Card variant="elevated">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-navy">Your Horses</CardTitle>
+                    <Link to="#" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
+                      View All <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    {horsesLoading ? (
+                      <div className="py-8 text-center text-muted-foreground">
+                        Loading horses...
+                      </div>
+                    ) : horses.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p className="text-muted-foreground mb-4">No horses yet</p>
+                        <AddHorseDialog
+                          trigger={
+                            <Button variant="outline" size="sm">
+                              Add Your First Horse
+                            </Button>
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {horses.slice(0, 5).map((horse) => (
+                          <HorseItem
+                            key={horse.id}
+                            name={horse.name}
+                            breed={horse.breed || "Unknown breed"}
+                            gender={horse.gender}
+                            status="Healthy"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              /* Available Services - Show for users without tenant */
+              <div className="lg:col-span-2">
+                <Card variant="elevated">
+                  <CardHeader>
+                    <CardTitle className="text-navy">Available Services</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-6">
+                      Explore our services and start your 14-day free trial
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <ServiceCard
+                        icon={Building2}
+                        title="Stable Management"
+                        description="Manage your stable, horses, and team"
+                      />
+                      <ServiceCard
+                        icon={Heart}
+                        title="Horse Owner"
+                        description="Track your horses' health and records"
+                      />
+                      <ServiceCard
+                        icon={Activity}
+                        title="Veterinary Clinic"
+                        description="Manage appointments and medical records"
+                      />
+                      <ServiceCard
+                        icon={Users}
+                        title="Training Academy"
+                        description="Schedule training sessions and track progress"
                       />
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {horses.slice(0, 5).map((horse) => (
-                        <HorseItem
-                          key={horse.id}
-                          name={horse.name}
-                          breed={horse.breed || "Unknown breed"}
-                          gender={horse.gender}
-                          status="Healthy"
-                        />
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                    <Button
+                      variant="gold"
+                      className="w-full mt-6"
+                      onClick={() => navigate("/select-role")}
+                    >
+                      Start Free Trial (14 days)
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Upcoming Events */}
             <div>
@@ -375,6 +420,24 @@ const HorseItem = ({
     }`}>
       {status}
     </span>
+  </div>
+);
+
+const ServiceCard = ({ 
+  icon: Icon, 
+  title, 
+  description 
+}: { 
+  icon: any; 
+  title: string; 
+  description: string;
+}) => (
+  <div className="p-4 rounded-xl border border-border hover:border-gold/50 hover:bg-gold/5 transition-all cursor-pointer">
+    <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center mb-3">
+      <Icon className="w-5 h-5 text-gold" />
+    </div>
+    <h4 className="font-semibold text-navy mb-1">{title}</h4>
+    <p className="text-sm text-muted-foreground">{description}</p>
   </div>
 );
 
