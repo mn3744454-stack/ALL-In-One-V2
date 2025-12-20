@@ -127,16 +127,30 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     error: TenantOperationError | null;
   }> => {
     debugLog("=== CREATE TENANT START ===");
-    debugLog("User ID", { user_id: user?.id });
     debugLog("Input data", tenantData);
 
-    if (!user) {
-      debugError("Not authenticated");
+    // Refresh session to get latest JWT token (fixes stale RLS cache)
+    debugLog("Refreshing session...");
+    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (refreshError) {
+      debugError("Session refresh failed", refreshError);
+      return { 
+        data: null, 
+        error: { step: "validation", message: "Session expired, please login again" } 
+      };
+    }
+
+    if (!session?.user) {
+      debugError("Not authenticated after refresh");
       return { 
         data: null, 
         error: { step: "validation", message: "Not authenticated" } 
       };
     }
+
+    const currentUserId = session.user.id;
+    debugLog("Using fresh session", { user_id: currentUserId });
 
     // Prepare and validate input data
     const dataToValidate = {
@@ -174,8 +188,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         address: validatedData.address,
         phone: validatedData.phone,
         email: validatedData.email || null,
-        logo_url: validatedData.logo_url,
-        owner_id: user.id,
+        owner_id: currentUserId,
       })
       .select()
       .single();
@@ -206,7 +219,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       .from("tenant_members")
       .insert({
         tenant_id: tenant.id,
-        user_id: user.id,
+        user_id: currentUserId,
         role: "owner",
         can_invite: true,
         can_manage_horses: true,
