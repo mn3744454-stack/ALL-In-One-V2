@@ -649,6 +649,7 @@ export type Database = {
         | "vet"
         | "trainer"
         | "employee"
+        | "manager"
       tenant_type:
         | "stable"
         | "clinic"
@@ -786,7 +787,15 @@ export const Constants = {
     Enums: {
       invitation_status: ["pending", "accepted", "rejected"],
       post_visibility: ["public", "private", "followers"],
-      tenant_role: ["owner", "admin", "foreman", "vet", "trainer", "employee"],
+      tenant_role: [
+        "owner",
+        "admin",
+        "foreman",
+        "vet",
+        "trainer",
+        "employee",
+        "manager",
+      ],
       tenant_type: [
         "stable",
         "clinic",
