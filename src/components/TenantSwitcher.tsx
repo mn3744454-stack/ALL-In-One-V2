@@ -46,7 +46,7 @@ export const TenantSwitcher = () => {
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
             <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold" />
           </div>
-          <div className="hidden xs:flex flex-col items-start text-left min-w-0">
+          <div className="flex flex-col items-start text-left min-w-0">
             <span className="text-xs sm:text-sm font-medium truncate max-w-[80px] sm:max-w-[120px]">
               {activeTenant?.tenant.name || "Select"}
             </span>

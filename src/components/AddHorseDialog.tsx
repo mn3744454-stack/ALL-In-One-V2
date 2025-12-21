@@ -86,9 +86,9 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="gold" size="sm">
-            <Plus className="w-4 h-4 mr-1" />
-            Add Horse
+          <Button variant="gold" size="icon" className="sm:w-auto sm:px-3 sm:gap-2">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add Horse</span>
           </Button>
         )}
       </DialogTrigger>

@@ -117,21 +117,16 @@ const Dashboard = () => {
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
               <button
-                className="p-2.5 rounded-xl hover:bg-muted lg:hidden shrink-0"
+                className="p-2 rounded-xl hover:bg-muted lg:hidden shrink-0"
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Open menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
               
-              {/* Mobile Logo */}
-              <div className="lg:hidden shrink-0">
-                <Logo size="sm" />
-              </div>
-              
-              {/* Tenant Switcher */}
+              {/* Tenant Switcher - shows org name instead of logo on mobile */}
               <TenantSwitcher />
               
               <div className="hidden md:block">
@@ -139,7 +134,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {/* Search */}
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
