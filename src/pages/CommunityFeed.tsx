@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { useFeedPosts } from "@/hooks/usePosts";
 import { PostComposer, PostFeed } from "@/components/community";
 import Logo from "@/components/Logo";
@@ -12,11 +13,16 @@ import {
   Settings,
   LogOut,
   ArrowLeft,
+  Building2,
+  Globe,
 } from "lucide-react";
 
 const CommunityFeed = () => {
   const { user, profile, signOut } = useAuth();
+  const { activeTenant, activeRole } = useTenant();
   const { data: posts, isLoading } = useFeedPosts();
+  
+  const isBusinessOwner = activeRole === "owner" && activeTenant;
 
   return (
     <div className="min-h-screen w-full bg-cream overflow-x-hidden">
@@ -75,6 +81,10 @@ const CommunityFeed = () => {
               <nav className="bg-card rounded-2xl border border-border/50 p-2">
                 <NavLink icon={Home} label="Feed" active />
                 <NavLink icon={Users} label="Following" href="#" />
+                <NavLink icon={Globe} label="Directory" href="/directory" />
+                {isBusinessOwner && (
+                  <NavLink icon={Building2} label="My Business" href="/dashboard/public-profile" />
+                )}
                 <NavLink icon={Settings} label="Settings" href="/dashboard" />
                 <button
                   onClick={() => signOut()}
@@ -133,6 +143,20 @@ const CommunityFeed = () => {
                   >
                     → My Profile
                   </Link>
+                  <Link
+                    to="/directory"
+                    className="block text-muted-foreground hover:text-gold transition-colors"
+                  >
+                    → Browse Directory
+                  </Link>
+                  {isBusinessOwner && (
+                    <Link
+                      to="/dashboard/public-profile"
+                      className="block text-gold hover:text-gold/80 transition-colors font-medium"
+                    >
+                      → Manage Business Profile
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
