@@ -1,8 +1,9 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useFeedPosts } from "@/hooks/usePosts";
-import { PostComposer, PostFeed } from "@/components/community";
+import { PostComposer, PostFeed, BottomNavigation } from "@/components/community";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/community/UserAvatar";
@@ -21,11 +22,21 @@ const CommunityFeed = () => {
   const { user, profile, signOut } = useAuth();
   const { activeTenant, activeRole } = useTenant();
   const { data: posts, isLoading } = useFeedPosts();
+  const postComposerRef = useRef<HTMLDivElement>(null);
   
-  const isBusinessOwner = activeRole === "owner" && activeTenant;
+  const isBusinessOwner = activeRole === "owner" && !!activeTenant;
+
+  const scrollToComposer = () => {
+    postComposerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Focus the textarea after scrolling
+    setTimeout(() => {
+      const textarea = postComposerRef.current?.querySelector("textarea");
+      textarea?.focus();
+    }, 500);
+  };
 
   return (
-    <div className="min-h-screen w-full bg-cream overflow-x-hidden">
+    <div className="min-h-screen w-full bg-cream overflow-x-hidden pb-20 lg:pb-0">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
@@ -108,7 +119,9 @@ const CommunityFeed = () => {
               </p>
             </div>
 
-            <PostComposer />
+            <div ref={postComposerRef}>
+              <PostComposer />
+            </div>
             <PostFeed
               posts={posts}
               isLoading={isLoading}
@@ -163,6 +176,13 @@ const CommunityFeed = () => {
           </aside>
         </div>
       </div>
+
+      {/* Bottom Navigation for Mobile/Tablet */}
+      <BottomNavigation
+        userId={user?.id}
+        isBusinessOwner={isBusinessOwner}
+        onCreatePost={scrollToComposer}
+      />
     </div>
   );
 };
