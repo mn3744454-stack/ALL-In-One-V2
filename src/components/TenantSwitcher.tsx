@@ -84,7 +84,7 @@ export const TenantSwitcher = () => {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={() => navigate("/create-profile/stable")}
+          onClick={() => navigate("/select-role")}
           className="gap-2 cursor-pointer text-gold"
         >
           <Plus className="w-4 h-4" />
