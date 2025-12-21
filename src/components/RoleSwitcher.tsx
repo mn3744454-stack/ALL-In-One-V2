@@ -20,11 +20,12 @@ import {
   User
 } from "lucide-react";
 
-type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
+type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
 const roleConfig: Record<TenantRole, { label: string; icon: React.ElementType; color: string }> = {
   owner: { label: "Owner", icon: Crown, color: "text-gold" },
   admin: { label: "Administrator", icon: UserCog, color: "text-purple-500" },
+  manager: { label: "Manager", icon: UserCog, color: "text-indigo-500" },
   foreman: { label: "Foreman", icon: Hammer, color: "text-orange-500" },
   vet: { label: "Veterinarian", icon: Stethoscope, color: "text-emerald-500" },
   trainer: { label: "Trainer", icon: GraduationCap, color: "text-blue-500" },

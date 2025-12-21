@@ -20,6 +20,7 @@ export const PublicSessionCard = ({
 }: PublicSessionCardProps) => {
   const isFull = confirmedCount >= session.capacity;
   const availableSpots = session.capacity - confirmedCount;
+  const isAlmostFull = !isFull && availableSpots <= 3;
 
   return (
     <Card variant="elevated" className="hover:shadow-lg transition-shadow">
@@ -38,10 +39,10 @@ export const PublicSessionCard = ({
               )}
             </div>
             <Badge
-              variant={isFull ? "destructive" : "secondary"}
-              className="self-start shrink-0"
+              variant={isFull ? "destructive" : isAlmostFull ? "default" : "secondary"}
+              className={`self-start shrink-0 ${isAlmostFull ? "bg-orange-500 hover:bg-orange-600 animate-pulse" : ""}`}
             >
-              {isFull ? "Full" : `${availableSpots} spots left`}
+              {isFull ? "Full" : isAlmostFull ? `Only ${availableSpots} left!` : `${availableSpots} spots left`}
             </Badge>
           </div>
 
