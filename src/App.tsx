@@ -12,6 +12,7 @@ import SelectRole from "./pages/SelectRole";
 import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
 import DashboardPublicProfile from "./pages/DashboardPublicProfile";
+import DashboardServices from "./pages/DashboardServices";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
@@ -131,6 +132,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardPublicProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/services"
+        element={
+          <ProtectedRoute>
+            <DashboardServices />
           </ProtectedRoute>
         }
       />
