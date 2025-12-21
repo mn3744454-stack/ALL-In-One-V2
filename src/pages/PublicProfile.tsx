@@ -36,23 +36,23 @@ const PublicProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen w-full bg-cream overflow-x-hidden">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/community">
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button variant="ghost" size="sm" className="gap-2 px-2 sm:px-3">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Community</span>
               </Button>
             </Link>
-            <Logo className="h-8" />
+            <Logo className="h-7 sm:h-8" size="sm" />
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="container mx-auto px-4 py-4 sm:py-6 max-w-3xl">
         <ProfileHeader profile={profile} />
 
         <div className="mb-4">
