@@ -41,26 +41,28 @@ export const PostComposer = () => {
   const VisibilityIcon = visibilityIcons[visibility];
 
   return (
-    <Card variant="elevated" className="mb-6">
-      <CardContent className="p-4">
+    <Card variant="elevated" className="mb-4 sm:mb-6">
+      <CardContent className="p-3 sm:p-4">
         <form onSubmit={handleSubmit}>
-          <div className="flex gap-3">
-            <UserAvatar
-              userId={user?.id}
-              name={profile?.full_name}
-              avatarUrl={profile?.avatar_url}
-              size="md"
-              linkToProfile
-            />
-            <div className="flex-1 space-y-3">
+          <div className="flex gap-2 sm:gap-3">
+            <div className="hidden sm:block">
+              <UserAvatar
+                userId={user?.id}
+                name={profile?.full_name}
+                avatarUrl={profile?.avatar_url}
+                size="md"
+                linkToProfile
+              />
+            </div>
+            <div className="flex-1 min-w-0 space-y-3">
               <Textarea
                 placeholder="Share something with the community..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="min-h-[80px] resize-none border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-gold/30"
+                className="min-h-[70px] sm:min-h-[80px] resize-none border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-gold/30 text-sm sm:text-base"
               />
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Button
                     type="button"
                     variant="ghost"
@@ -74,9 +76,10 @@ export const PostComposer = () => {
                     value={visibility}
                     onValueChange={(v) => setVisibility(v as typeof visibility)}
                   >
-                    <SelectTrigger className="w-[130px] h-8 text-xs border-0 bg-muted/50">
-                      <VisibilityIcon className="h-3 w-3 mr-1" />
-                      <SelectValue />
+                    <SelectTrigger className="w-[100px] sm:w-[130px] h-8 text-xs border-0 bg-muted/50">
+                      <VisibilityIcon className="h-3 w-3 mr-1 shrink-0" />
+                      <span className="hidden sm:inline"><SelectValue /></span>
+                      <span className="sm:hidden capitalize">{visibility.slice(0, 3)}</span>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="public">

@@ -102,28 +102,28 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
   };
 
   return (
-    <div className="min-h-screen bg-cream pattern-arabian py-12 px-4">
+    <div className="min-h-screen w-full bg-cream pattern-arabian py-8 sm:py-12 px-4 overflow-x-hidden">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Logo className="justify-center mb-6" />
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Icon className="w-6 h-6 text-gold" />
-            <h1 className="font-display text-3xl font-bold text-navy">
+        <div className="text-center mb-6 sm:mb-8">
+          <Logo className="justify-center mb-4 sm:mb-6" />
+          <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-gold shrink-0" />
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-navy">
               Create Your {config.title} Profile
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {config.description}
           </p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+        <div className="flex items-center justify-center gap-1 sm:gap-2 mb-6 sm:mb-8">
           <StepIndicator step={1} current={step} label="Basic Info" />
-          <div className="w-12 h-0.5 bg-border" />
+          <div className="w-6 sm:w-12 h-0.5 bg-border" />
           <StepIndicator step={2} current={step} label="Location" />
-          <div className="w-12 h-0.5 bg-border" />
+          <div className="w-6 sm:w-12 h-0.5 bg-border" />
           <StepIndicator step={3} current={step} label="Contact" />
         </div>
 
@@ -232,7 +232,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city" className="text-navy font-medium">
                         City *
@@ -323,10 +323,11 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex justify-between mt-8 pt-6 border-t border-border">
+              <div className="flex flex-col-reverse sm:flex-row justify-between gap-3 mt-8 pt-6 border-t border-border">
                 <Button
                   type="button"
                   variant="ghost"
+                  className="w-full sm:w-auto"
                   onClick={() => step > 1 ? setStep(step - 1) : navigate("/select-role")}
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -337,6 +338,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   <Button
                     type="button"
                     variant="gold"
+                    className="w-full sm:w-auto"
                     onClick={() => setStep(step + 1)}
                     disabled={step === 1 && !formData.name}
                   >
@@ -344,7 +346,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button type="submit" variant="gold" disabled={loading}>
+                  <Button type="submit" variant="gold" className="w-full sm:w-auto" disabled={loading}>
                     {loading ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
@@ -368,9 +370,9 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 };
 
 const StepIndicator = ({ step, current, label }: { step: number; current: number; label: string }) => (
-  <div className="flex flex-col items-center gap-2">
+  <div className="flex flex-col items-center gap-1 sm:gap-2">
     <div
-      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold transition-all ${
         current >= step
           ? "bg-gold text-navy"
           : "bg-muted text-muted-foreground"
@@ -378,7 +380,7 @@ const StepIndicator = ({ step, current, label }: { step: number; current: number
     >
       {step}
     </div>
-    <span className={`text-xs font-medium ${current >= step ? "text-navy" : "text-muted-foreground"}`}>
+    <span className={`text-[10px] sm:text-xs font-medium hidden sm:block ${current >= step ? "text-navy" : "text-muted-foreground"}`}>
       {label}
     </span>
   </div>

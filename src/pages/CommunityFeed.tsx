@@ -19,21 +19,21 @@ const CommunityFeed = () => {
   const { data: posts, isLoading } = useFeedPosts();
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen w-full bg-cream overflow-x-hidden">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button variant="ghost" size="sm" className="gap-2 px-2 sm:px-3">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
             </Link>
-            <Logo className="h-8" />
+            <Logo className="h-7 sm:h-8" size="sm" />
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="ghost" size="icon" className="text-muted-foreground h-9 w-9">
               <Bell className="h-5 w-5" />
             </Button>
             <Link to={`/profile/${user?.id}`}>
@@ -48,7 +48,7 @@ const CommunityFeed = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Sidebar */}
           <aside className="hidden lg:block lg:col-span-3">
