@@ -7,3 +7,4 @@ export { CommentItem } from "./CommentItem";
 export { CommentForm } from "./CommentForm";
 export { FollowButton } from "./FollowButton";
 export { ProfileHeader } from "./ProfileHeader";
+export { BottomNavigation } from "./BottomNavigation";
