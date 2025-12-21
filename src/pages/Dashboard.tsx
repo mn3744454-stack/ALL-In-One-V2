@@ -26,7 +26,8 @@ import {
   LogOut,
   MessageSquare,
   Globe,
-  X
+  X,
+  Package,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -74,6 +75,11 @@ const Dashboard = () => {
             <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
+            
+            {/* Services - for owners and admins */}
+            {(activeRole === 'owner' || activeRole === 'admin') && activeTenant && (
+              <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
+            )}
             
             {/* Public Profile - only for owners */}
             {activeRole === 'owner' && activeTenant && (

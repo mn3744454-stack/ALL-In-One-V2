@@ -3,16 +3,19 @@ import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Calendar, MessageSquare, Building2 } from "lucide-react";
+import { Loader2, ArrowLeft, MessageSquare, Building2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { TenantHeader } from "@/components/directory/TenantHeader";
 import { TenantContactInfo } from "@/components/directory/TenantContactInfo";
+import { TenantServices } from "@/components/directory/TenantServices";
 import { usePublicTenant } from "@/hooks/usePublicTenant";
+import { usePublicServices } from "@/hooks/useServices";
 
 const TenantPublicProfile = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: tenant, isLoading, error } = usePublicTenant(slug);
+  const { data: services = [], isLoading: servicesLoading } = usePublicServices(tenant?.id);
 
   if (isLoading) {
     return (
@@ -129,18 +132,8 @@ const TenantPublicProfile = () => {
                   </Card>
                 )}
 
-                {/* Services Placeholder */}
-                <Card variant="elevated" className="border-dashed">
-                  <CardContent className="py-12 text-center">
-                    <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                    <h3 className="font-semibold text-navy mb-2">
-                      Services & Booking
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Service listings and online booking coming soon
-                    </p>
-                  </CardContent>
-                </Card>
+                {/* Services */}
+                <TenantServices services={services} isLoading={servicesLoading} />
 
                 {/* Posts Placeholder */}
                 <Card variant="elevated" className="border-dashed">
