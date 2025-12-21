@@ -30,6 +30,8 @@ import {
   Package,
   GraduationCap,
   Ticket,
+  ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -38,6 +40,10 @@ const Dashboard = () => {
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
+
+  // Check if public profile needs setup (owner with no slug)
+  const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
+  const hasPublicProfile = activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
 
   const handleSignOut = async () => {
     await signOut();
@@ -94,7 +100,13 @@ const Dashboard = () => {
             
             {/* Public Profile - only for owners */}
             {activeRole === 'owner' && activeTenant && (
-              <NavItem icon={Globe} label="Public Profile" href="/dashboard/public-profile" onNavigate={() => setSidebarOpen(false)} />
+              <NavItem 
+                icon={Globe} 
+                label="Public Profile" 
+                href="/dashboard/public-profile" 
+                onNavigate={() => setSidebarOpen(false)}
+                highlight={needsPublicProfileSetup}
+              />
             )}
             
             <div className="pt-4 mt-4 border-t border-navy-light">
@@ -217,6 +229,74 @@ const Dashboard = () => {
                       Create Organization
                     </Button>
                     <InvitationsPanel />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Public Profile Setup Reminder - for owners who haven't set up their public profile */}
+          {needsPublicProfileSetup && (
+            <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-7 h-7 text-orange-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                      Complete Your Public Profile
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Set up your public profile to appear in the directory and let customers find and book your services.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/dashboard/public-profile")}
+                    className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Set Up Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* View Public Profile Button - for owners with completed public profile */}
+          {hasPublicProfile && (
+            <Card variant="elevated" className="mb-8 border-success/30 bg-gradient-to-r from-success/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center shrink-0">
+                    <Globe className="w-7 h-7 text-success" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                      Your Public Profile is Live!
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Customers can now find you in the directory and book your services.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/dashboard/public-profile")}
+                      className="gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Edit Profile
+                    </Button>
+                    <Button
+                      variant="gold"
+                      onClick={() => window.open(`/tenant/${activeTenant.tenant.slug}`, '_blank')}
+                      className="gap-2"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View Public Page
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -368,7 +448,8 @@ const NavItem = ({
   active = false,
   badge,
   href,
-  onNavigate
+  onNavigate,
+  highlight = false
 }: { 
   icon: any; 
   label: string; 
@@ -376,11 +457,14 @@ const NavItem = ({
   badge?: number;
   href?: string;
   onNavigate?: () => void;
+  highlight?: boolean;
 }) => {
   const className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all ${
     active
       ? "bg-gold text-navy"
-      : "text-cream/70 hover:text-cream hover:bg-navy-light"
+      : highlight
+        ? "text-orange-400 hover:text-orange-300 hover:bg-navy-light border border-orange-500/30"
+        : "text-cream/70 hover:text-cream hover:bg-navy-light"
   }`;
 
   const content = (
