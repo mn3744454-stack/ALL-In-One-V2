@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { TenantHeader } from "@/components/directory/TenantHeader";
 import { TenantContactInfo } from "@/components/directory/TenantContactInfo";
 import { TenantServices } from "@/components/directory/TenantServices";
+import { PublicSessionsList } from "@/components/academy/PublicSessionsList";
 import { usePublicTenant } from "@/hooks/usePublicTenant";
 import { usePublicServices } from "@/hooks/useServices";
 
@@ -134,6 +135,14 @@ const TenantPublicProfile = () => {
 
                 {/* Services */}
                 <TenantServices services={services} isLoading={servicesLoading} />
+
+                {/* Academy Sessions - Only for academy tenants */}
+                {tenant.type === "academy" && (
+                  <PublicSessionsList
+                    tenantId={tenant.id}
+                    tenantName={tenant.display_name}
+                  />
+                )}
 
                 {/* Posts Placeholder */}
                 <Card variant="elevated" className="border-dashed">
