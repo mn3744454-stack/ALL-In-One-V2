@@ -101,6 +101,13 @@ export type Database = {
             foreignKeyName: "horses_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -168,6 +175,13 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
             referencedColumns: ["id"]
           },
           {
@@ -376,6 +390,13 @@ export type Database = {
             foreignKeyName: "tenant_members_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -391,40 +412,76 @@ export type Database = {
       tenants: {
         Row: {
           address: string | null
+          cover_url: string | null
           created_at: string
           description: string | null
           email: string | null
           id: string
+          is_listed: boolean | null
+          is_public: boolean | null
           logo_url: string | null
           name: string
           owner_id: string
           phone: string | null
+          public_description: string | null
+          public_email: string | null
+          public_location_text: string | null
+          public_name: string | null
+          public_phone: string | null
+          public_website: string | null
+          region: string | null
+          slug: string | null
+          tags: string[] | null
           type: Database["public"]["Enums"]["tenant_type"]
           updated_at: string
         }
         Insert: {
           address?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          is_listed?: boolean | null
+          is_public?: boolean | null
           logo_url?: string | null
           name: string
           owner_id: string
           phone?: string | null
+          public_description?: string | null
+          public_email?: string | null
+          public_location_text?: string | null
+          public_name?: string | null
+          public_phone?: string | null
+          public_website?: string | null
+          region?: string | null
+          slug?: string | null
+          tags?: string[] | null
           type: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
         }
         Update: {
           address?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          is_listed?: boolean | null
+          is_public?: boolean | null
           logo_url?: string | null
           name?: string
           owner_id?: string
           phone?: string | null
+          public_description?: string | null
+          public_email?: string | null
+          public_location_text?: string | null
+          public_name?: string | null
+          public_phone?: string | null
+          public_website?: string | null
+          region?: string | null
+          slug?: string | null
+          tags?: string[] | null
           type?: Database["public"]["Enums"]["tenant_type"]
           updated_at?: string
         }
@@ -432,12 +489,76 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_tenant_directory: {
+        Row: {
+          cover_url: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          is_listed: boolean | null
+          logo_url: string | null
+          public_description: string | null
+          public_location_text: string | null
+          region: string | null
+          slug: string | null
+          tags: string[] | null
+          type: Database["public"]["Enums"]["tenant_type"] | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string | null
+          display_name?: never
+          id?: string | null
+          is_listed?: boolean | null
+          logo_url?: string | null
+          public_description?: string | null
+          public_location_text?: string | null
+          region?: string | null
+          slug?: string | null
+          tags?: string[] | null
+          type?: Database["public"]["Enums"]["tenant_type"] | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string | null
+          display_name?: never
+          id?: string | null
+          is_listed?: boolean | null
+          logo_url?: string | null
+          public_description?: string | null
+          public_location_text?: string | null
+          region?: string | null
+          slug?: string | null
+          tags?: string[] | null
+          type?: Database["public"]["Enums"]["tenant_type"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_invite_in_tenant: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
+      }
+      generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_public_tenant: {
+        Args: { tenant_slug: string }
+        Returns: {
+          cover_url: string
+          created_at: string
+          display_name: string
+          id: string
+          logo_url: string
+          public_description: string
+          public_email: string
+          public_location_text: string
+          public_phone: string
+          public_website: string
+          region: string
+          slug: string
+          tags: string[]
+          type: Database["public"]["Enums"]["tenant_type"]
+        }[]
       }
       has_tenant_role: {
         Args: {
@@ -449,6 +570,10 @@ export type Database = {
       }
       is_following: {
         Args: { _follower_id: string; _following_id: string }
+        Returns: boolean
+      }
+      is_slug_available: {
+        Args: { check_slug: string; exclude_tenant_id?: string }
         Returns: boolean
       }
       is_tenant_member: {
