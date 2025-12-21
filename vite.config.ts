@@ -46,7 +46,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Avoid caching JS bundles aggressively to prevent mixed React/runtime versions
+        // which can cause hook dispatcher errors like "Cannot read properties of null (reading 'useEffect')".
+        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -84,5 +86,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Ensure a single React instance across dependencies
+    dedupe: ["react", "react-dom"],
   },
 }));
