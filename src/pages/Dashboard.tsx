@@ -25,6 +25,7 @@ import {
   Menu,
   LogOut,
   MessageSquare,
+  Globe,
   X
 } from "lucide-react";
 
@@ -73,6 +74,11 @@ const Dashboard = () => {
             <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
+            
+            {/* Public Profile - only for owners */}
+            {activeRole === 'owner' && activeTenant && (
+              <NavItem icon={Globe} label="Public Profile" href="/dashboard/public-profile" onNavigate={() => setSidebarOpen(false)} />
+            )}
             
             <div className="pt-4 mt-4 border-t border-navy-light">
               <NavItem icon={Settings} label="Settings" onNavigate={() => setSidebarOpen(false)} />

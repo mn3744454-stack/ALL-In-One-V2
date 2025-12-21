@@ -71,6 +71,7 @@ const NavLinks = ({
 }) => {
   const links = [
     { label: "Features", href: "#features" },
+    { label: "Directory", href: "/directory" },
     { label: "Solutions", href: "#solutions" },
     { label: "Pricing", href: "#pricing" },
   ];
