@@ -132,9 +132,7 @@ const Dashboard = () => {
               </div>
               
               {/* Tenant Switcher */}
-              <div className="hidden sm:block">
-                <TenantSwitcher />
-              </div>
+              <TenantSwitcher />
               
               <div className="hidden md:block">
                 <RoleSwitcher />

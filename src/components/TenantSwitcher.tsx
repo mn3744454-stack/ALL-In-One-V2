@@ -42,19 +42,19 @@ export const TenantSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="gap-2 max-w-[200px]">
-          <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
-            <Building2 className="w-4 h-4 text-gold" />
+        <Button variant="ghost" className="gap-1 sm:gap-2 max-w-[160px] sm:max-w-[200px] px-2 sm:px-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
+            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold" />
           </div>
-          <div className="flex flex-col items-start text-left min-w-0">
-            <span className="text-sm font-medium truncate max-w-[120px]">
+          <div className="hidden xs:flex flex-col items-start text-left min-w-0">
+            <span className="text-xs sm:text-sm font-medium truncate max-w-[80px] sm:max-w-[120px]">
               {activeTenant?.tenant.name || "Select"}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] sm:text-xs text-muted-foreground">
               {activeTenant ? tenantTypeLabels[activeTenant.tenant.type] : "Organization"}
             </span>
           </div>
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+          <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[220px]">
