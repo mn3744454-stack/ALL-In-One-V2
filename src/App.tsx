@@ -12,6 +12,8 @@ import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
+import Directory from "./pages/Directory";
+import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +58,8 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
+      <Route path="/directory" element={<Directory />} />
+      <Route path="/t/:slug" element={<TenantPublicProfile />} />
       <Route
         path="/auth"
         element={
