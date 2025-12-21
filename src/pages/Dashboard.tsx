@@ -23,7 +23,8 @@ import {
   Activity,
   ChevronRight,
   Menu,
-  LogOut
+  LogOut,
+  MessageSquare
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -58,6 +59,7 @@ const Dashboard = () => {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-1">
             <NavItem icon={Home} label="Dashboard" active />
+            <NavItem icon={MessageSquare} label="Community" href="/community" />
             <NavItem icon={Heart} label="My Horses" badge={horses.length} />
             <NavItem icon={Calendar} label="Schedule" />
             <NavItem icon={FileText} label="Records" />
@@ -332,29 +334,47 @@ const NavItem = ({
   icon: Icon, 
   label, 
   active = false,
-  badge
+  badge,
+  href
 }: { 
   icon: any; 
   label: string; 
   active?: boolean;
   badge?: number;
-}) => (
-  <button
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-      active
-        ? "bg-gold text-navy"
-        : "text-cream/70 hover:text-cream hover:bg-navy-light"
-    }`}
-  >
-    <Icon className="w-5 h-5" />
-    <span className="flex-1 text-left">{label}</span>
-    {badge !== undefined && badge > 0 && (
-      <span className={`px-2 py-0.5 rounded-full text-xs ${active ? "bg-navy/20" : "bg-cream/10"}`}>
-        {badge}
-      </span>
-    )}
-  </button>
-);
+  href?: string;
+}) => {
+  const className = `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+    active
+      ? "bg-gold text-navy"
+      : "text-cream/70 hover:text-cream hover:bg-navy-light"
+  }`;
+
+  const content = (
+    <>
+      <Icon className="w-5 h-5" />
+      <span className="flex-1 text-left">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className={`px-2 py-0.5 rounded-full text-xs ${active ? "bg-navy/20" : "bg-cream/10"}`}>
+          {badge}
+        </span>
+      )}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link to={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button className={className}>
+      {content}
+    </button>
+  );
+};
 
 const StatCard = ({ 
   icon: Icon, 

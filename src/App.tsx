@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
 import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
+import CommunityFeed from "./pages/CommunityFeed";
+import PublicProfile from "./pages/PublicProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -115,6 +117,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/community"
+        element={
+          <ProtectedRoute>
+            <CommunityFeed />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:id"
+        element={
+          <ProtectedRoute>
+            <PublicProfile />
           </ProtectedRoute>
         }
       />
