@@ -237,9 +237,9 @@ export const InvitationsPanel = () => {
       {canInvite && (
         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 sm:gap-2">
               <Send className="w-4 h-4" />
-              Invite
+              <span className="hidden sm:inline">Invite</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
