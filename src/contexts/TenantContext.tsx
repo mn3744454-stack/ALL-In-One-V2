@@ -16,6 +16,8 @@ interface Tenant {
   address: string | null;
   phone: string | null;
   email: string | null;
+  slug: string | null;
+  is_public: boolean | null;
 }
 
 interface TenantMembership {
