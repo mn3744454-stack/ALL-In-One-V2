@@ -85,7 +85,8 @@ const Dashboard = () => {
             )}
             
             {/* Academy sessions & bookings - for academy owners/managers */}
-            {(activeRole === 'owner' || activeRole === 'manager') && activeTenant?.tenant.type === 'academy' && (
+            {/* NOTE: 'manager' role was added to DB but types haven't refreshed yet */}
+            {(activeRole === 'owner' || (activeRole as string) === 'manager') && activeTenant?.tenant.type === 'academy' && (
               <>
                 <NavItem icon={GraduationCap} label="Sessions" href="/dashboard/academy/sessions" onNavigate={() => setSidebarOpen(false)} />
                 <NavItem icon={Ticket} label="Manage Bookings" href="/dashboard/academy/bookings" onNavigate={() => setSidebarOpen(false)} />
