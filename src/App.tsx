@@ -14,6 +14,9 @@ import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
 import DashboardPublicProfile from "./pages/DashboardPublicProfile";
 import DashboardServices from "./pages/DashboardServices";
+import DashboardMyBookings from "./pages/DashboardMyBookings";
+import DashboardAcademySessions from "./pages/DashboardAcademySessions";
+import DashboardAcademyBookings from "./pages/DashboardAcademyBookings";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
@@ -141,6 +144,30 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardServices />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/my-bookings"
+        element={
+          <ProtectedRoute>
+            <DashboardMyBookings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/academy/sessions"
+        element={
+          <ProtectedRoute>
+            <DashboardAcademySessions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/academy/bookings"
+        element={
+          <ProtectedRoute>
+            <DashboardAcademyBookings />
           </ProtectedRoute>
         }
       />
