@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_bookings: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          session_id: string
+          status: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_id: string
+          status?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          session_id?: string
+          status?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_bookings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "academy_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_sessions: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          end_at: string
+          id: string
+          is_active: boolean
+          is_public: boolean
+          location_text: string | null
+          price_display: string | null
+          start_at: string
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          end_at: string
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          location_text?: string | null
+          price_display?: string | null
+          start_at: string
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          end_at?: string
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          location_text?: string | null
+          price_display?: string | null
+          start_at?: string
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -543,6 +655,30 @@ export type Database = {
       }
     }
     Views: {
+      academy_booking_consumption: {
+        Row: {
+          confirmed_bookings: number | null
+          month: string | null
+          tenant_id: string | null
+          total_bookings: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academy_bookings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_tenant_directory: {
         Row: {
           cover_url: string | null
@@ -591,6 +727,10 @@ export type Database = {
     }
     Functions: {
       can_invite_in_tenant: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_manage_academy_sessions: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
