@@ -118,7 +118,28 @@ export const useInvitations = () => {
       .select()
       .single();
 
-    if (!error) {
+    if (!error && invitation) {
+      // Send invitation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+          body: {
+            invitee_email: validatedData.invitee_email,
+            tenant_name: activeTenant.tenant.name,
+            sender_name: profile?.full_name || 'A team member',
+            proposed_role: validatedData.proposed_role,
+            invitation_link: `${window.location.origin}/auth?email=${encodeURIComponent(validatedData.invitee_email)}&next=/dashboard`,
+          }
+        });
+
+        if (emailError) {
+          console.warn('Failed to send invitation email:', emailError);
+          // Don't fail the invitation creation, just log the warning
+        }
+      } catch (emailError) {
+        console.warn('Failed to send invitation email:', emailError);
+        // Don't fail the invitation creation, just log the warning
+      }
+
       await fetchSentInvitations();
     }
 
