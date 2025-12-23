@@ -19,7 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, MapPin, Users, Banknote, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Banknote, MoreVertical, Pencil, Trash2, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { AcademySession } from "@/hooks/useAcademySessions";
 
 interface SessionCardProps {
@@ -38,11 +39,22 @@ export const SessionCard = ({
   onToggleActive,
 }: SessionCardProps) => {
   const isPast = new Date(session.end_at) < new Date();
+  const isExpiredAndActive = isPast && session.is_active && session.is_public;
 
   return (
     <Card variant="elevated" className={`${!session.is_active || isPast ? "opacity-60" : ""}`}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex flex-col gap-4">
+          {/* Expired Warning Banner */}
+          {isExpiredAndActive && (
+            <Alert variant="destructive" className="bg-amber-50 border-amber-200 text-amber-800">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-700 text-sm">
+                This session has ended and is no longer visible to customers. Update the date to make it available again.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
@@ -61,7 +73,10 @@ export const SessionCard = ({
                   </Badge>
                 )}
                 {isPast && (
-                  <Badge variant="secondary">Past</Badge>
+                  <Badge variant="destructive" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Expired
+                  </Badge>
                 )}
               </div>
               {session.description && (
