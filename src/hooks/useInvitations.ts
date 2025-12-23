@@ -4,7 +4,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { invitationSchema, safeValidate } from "@/lib/validations";
 
-type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
+// Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
+type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 type InvitationStatus = "pending" | "accepted" | "rejected";
 
 interface Invitation {

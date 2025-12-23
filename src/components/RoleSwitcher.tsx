@@ -20,10 +20,12 @@ import {
   User
 } from "lucide-react";
 
-type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
+// Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
+type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
 const roleConfig: Record<TenantRole, { label: string; icon: React.ElementType; color: string }> = {
   owner: { label: "Owner", icon: Crown, color: "text-gold" },
+  admin: { label: "Administrator", icon: UserCog, color: "text-purple-500" }, // Legacy - not assignable
   manager: { label: "Manager", icon: UserCog, color: "text-indigo-500" },
   foreman: { label: "Foreman", icon: Hammer, color: "text-orange-500" },
   vet: { label: "Veterinarian", icon: Stethoscope, color: "text-emerald-500" },

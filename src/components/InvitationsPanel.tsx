@@ -44,10 +44,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
+// Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
+type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
 const roleLabels: Record<TenantRole, string> = {
   owner: "Owner",
+  admin: "Administrator", // Legacy - not assignable
   manager: "Manager",
   foreman: "Foreman",
   vet: "Veterinarian",
