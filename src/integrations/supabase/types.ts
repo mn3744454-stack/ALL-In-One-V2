@@ -305,6 +305,161 @@ export type Database = {
           },
         ]
       }
+      payment_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          owner_type: Database["public"]["Enums"]["payment_owner_type"]
+          tenant_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_type: Database["public"]["Enums"]["payment_owner_type"]
+          tenant_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_type?: Database["public"]["Enums"]["payment_owner_type"]
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_accounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_intents: {
+        Row: {
+          amount_display: string | null
+          created_at: string
+          currency: string
+          id: string
+          intent_type: Database["public"]["Enums"]["payment_intent_type"]
+          payee_account_id: string
+          payer_user_id: string
+          reference_id: string
+          reference_type: Database["public"]["Enums"]["payment_reference_type"]
+          status: Database["public"]["Enums"]["payment_status"]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_display?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          intent_type: Database["public"]["Enums"]["payment_intent_type"]
+          payee_account_id: string
+          payer_user_id: string
+          reference_id: string
+          reference_type: Database["public"]["Enums"]["payment_reference_type"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_display?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          intent_type?: Database["public"]["Enums"]["payment_intent_type"]
+          payee_account_id?: string
+          payer_user_id?: string
+          reference_id?: string
+          reference_type?: Database["public"]["Enums"]["payment_reference_type"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_intents_payee_account_id_fkey"
+            columns: ["payee_account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_intents_payer_user_id_fkey"
+            columns: ["payer_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_intents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_intents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_splits: {
+        Row: {
+          amount_display: string | null
+          created_at: string
+          id: string
+          payment_intent_id: string
+          receiver_account_id: string
+          role: Database["public"]["Enums"]["payment_split_role"]
+        }
+        Insert: {
+          amount_display?: string | null
+          created_at?: string
+          id?: string
+          payment_intent_id: string
+          receiver_account_id: string
+          role: Database["public"]["Enums"]["payment_split_role"]
+        }
+        Update: {
+          amount_display?: string | null
+          created_at?: string
+          id?: string
+          payment_intent_id?: string
+          receiver_account_id?: string
+          role?: Database["public"]["Enums"]["payment_split_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_splits_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_splits_receiver_account_id_fkey"
+            columns: ["receiver_account_id"]
+            isOneToOne: false
+            referencedRelation: "payment_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_comments: {
         Row: {
           author_id: string
@@ -738,6 +893,14 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_view_payment_account: {
+        Args: { _account_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_payment_intent: {
+        Args: { _intent_id: string; _user_id: string }
+        Returns: boolean
+      }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_public_tenant: {
         Args: { tenant_slug: string }
@@ -781,6 +944,16 @@ export type Database = {
     }
     Enums: {
       invitation_status: "pending" | "accepted" | "rejected"
+      payment_intent_type: "platform_fee" | "service_payment" | "commission"
+      payment_owner_type: "platform" | "tenant"
+      payment_reference_type:
+        | "academy_booking"
+        | "service"
+        | "order"
+        | "auction"
+        | "subscription"
+      payment_split_role: "platform" | "tenant"
+      payment_status: "draft" | "pending" | "paid" | "cancelled"
       post_visibility: "public" | "private" | "followers"
       tenant_role:
         | "owner"
@@ -926,6 +1099,17 @@ export const Constants = {
   public: {
     Enums: {
       invitation_status: ["pending", "accepted", "rejected"],
+      payment_intent_type: ["platform_fee", "service_payment", "commission"],
+      payment_owner_type: ["platform", "tenant"],
+      payment_reference_type: [
+        "academy_booking",
+        "service",
+        "order",
+        "auction",
+        "subscription",
+      ],
+      payment_split_role: ["platform", "tenant"],
+      payment_status: ["draft", "pending", "paid", "cancelled"],
       post_visibility: ["public", "private", "followers"],
       tenant_role: [
         "owner",

@@ -32,6 +32,7 @@ import {
   Ticket,
   ExternalLink,
   AlertCircle,
+  CreditCard,
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -79,19 +80,23 @@ const Dashboard = () => {
             <NavItem icon={Home} label="Dashboard" active onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={MessageSquare} label="Community" href="/community" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Ticket} label="My Bookings" href="/dashboard/my-bookings" onNavigate={() => setSidebarOpen(false)} />
+            <NavItem icon={CreditCard} label="Payments" href="/dashboard/payments" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Heart} label="My Horses" badge={horses.length} onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Calendar} label="Schedule" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
             
-            {/* Services - for owners and admins */}
-            {(activeRole === 'owner' || activeRole === 'admin') && activeTenant && (
-              <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
+            {/* Services & Revenue - for owners and admins */}
+            {['owner', 'admin'].includes(activeRole || '') && activeTenant && (
+              <>
+                <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
+                <NavItem icon={TrendingUp} label="Revenue" href="/dashboard/revenue" onNavigate={() => setSidebarOpen(false)} />
+              </>
             )}
             
             {/* Academy sessions & bookings - for academy owners/managers */}
-            {(activeRole === 'owner' || activeRole === 'manager') && activeTenant?.tenant.type === 'academy' && (
+            {['owner', 'manager'].includes(activeRole || '') && activeTenant?.tenant.type === 'academy' && (
               <>
                 <NavItem icon={GraduationCap} label="Sessions" href="/dashboard/academy/sessions" onNavigate={() => setSidebarOpen(false)} />
                 <NavItem icon={Ticket} label="Manage Bookings" href="/dashboard/academy/bookings" onNavigate={() => setSidebarOpen(false)} />

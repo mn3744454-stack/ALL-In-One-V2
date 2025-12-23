@@ -17,6 +17,8 @@ import DashboardServices from "./pages/DashboardServices";
 import DashboardMyBookings from "./pages/DashboardMyBookings";
 import DashboardAcademySessions from "./pages/DashboardAcademySessions";
 import DashboardAcademyBookings from "./pages/DashboardAcademyBookings";
+import DashboardPayments from "./pages/DashboardPayments";
+import DashboardRevenue from "./pages/DashboardRevenue";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
@@ -168,6 +170,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardAcademyBookings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/payments"
+        element={
+          <ProtectedRoute>
+            <DashboardPayments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/revenue"
+        element={
+          <ProtectedRoute>
+            <DashboardRevenue />
           </ProtectedRoute>
         }
       />
