@@ -5,7 +5,7 @@ import { tenantSchema, safeValidate } from "@/lib/validations";
 import { debugLog, debugError } from "@/lib/debug";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
-type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
+type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
 interface Tenant {
   id: string;

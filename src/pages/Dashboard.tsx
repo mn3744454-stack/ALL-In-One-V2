@@ -87,8 +87,8 @@ const Dashboard = () => {
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
             
-            {/* Services & Revenue - for owners and admins */}
-            {['owner', 'admin'].includes(activeRole || '') && activeTenant && (
+            {/* Services & Revenue - for owners and managers */}
+            {['owner', 'manager'].includes(activeRole || '') && activeTenant && (
               <>
                 <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
                 <NavItem icon={TrendingUp} label="Revenue" href="/dashboard/revenue" onNavigate={() => setSidebarOpen(false)} />

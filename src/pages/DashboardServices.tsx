@@ -67,8 +67,8 @@ const DashboardServices = () => {
     await toggleActive.mutateAsync({ id, is_active });
   };
 
-  // Can manage = owner or admin
-  const canManage = activeRole === "owner" || activeRole === "admin";
+  // Can manage = owner or manager
+  const canManage = activeRole === "owner" || activeRole === "manager";
 
   if (!activeTenant) {
     return (
@@ -101,7 +101,7 @@ const DashboardServices = () => {
               Access Restricted
             </h2>
             <p className="text-muted-foreground mb-6">
-              Only owners and admins can manage services.
+              Only owners and managers can manage services.
             </p>
             <Button variant="outline" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-4 h-4 mr-2" />

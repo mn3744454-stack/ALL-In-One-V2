@@ -48,8 +48,8 @@ const DashboardRevenue = () => {
     navigate("/");
   };
 
-  // Redirect if not owner/admin
-  const canViewRevenue = activeRole === 'owner' || activeRole === 'admin';
+  // Redirect if not owner/manager
+  const canViewRevenue = activeRole === 'owner' || activeRole === 'manager';
   if (!activeTenant || !canViewRevenue) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center p-4">
@@ -60,7 +60,7 @@ const DashboardRevenue = () => {
               Access Restricted
             </h2>
             <p className="text-muted-foreground mb-4">
-              You need to be an owner or admin of an organization to view revenue.
+              You need to be an owner or manager of an organization to view revenue.
             </p>
             <Button onClick={() => navigate("/dashboard")}>
               Go to Dashboard
@@ -115,7 +115,7 @@ const DashboardRevenue = () => {
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
             
-            {['owner', 'admin'].includes(activeRole || '') && activeTenant && (
+            {['owner', 'manager'].includes(activeRole || '') && activeTenant && (
               <>
                 <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
                 <NavItem icon={TrendingUp} label="Revenue" active onNavigate={() => setSidebarOpen(false)} />
