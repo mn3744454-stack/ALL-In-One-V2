@@ -44,11 +44,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
+type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
 const roleLabels: Record<TenantRole, string> = {
   owner: "Owner",
-  admin: "Administrator",
+  manager: "Manager",
   foreman: "Foreman",
   vet: "Veterinarian",
   trainer: "Trainer",
@@ -275,7 +275,7 @@ export const InvitationsPanel = () => {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
                     <SelectItem value="foreman">Foreman</SelectItem>
                     <SelectItem value="vet">Veterinarian</SelectItem>
                     <SelectItem value="trainer">Trainer</SelectItem>

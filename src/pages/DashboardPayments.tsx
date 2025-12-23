@@ -83,7 +83,7 @@ const DashboardPayments = () => {
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
             
-            {(activeRole === 'owner' || activeRole === 'admin') && activeTenant && (
+            {(activeRole === 'owner' || activeRole === 'manager') && activeTenant && (
               <>
                 <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
                 <NavItem icon={TrendingUp} label="Revenue" href="/dashboard/revenue" onNavigate={() => setSidebarOpen(false)} />

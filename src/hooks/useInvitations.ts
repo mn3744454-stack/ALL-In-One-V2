@@ -4,7 +4,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { invitationSchema, safeValidate } from "@/lib/validations";
 
-type TenantRole = "owner" | "admin" | "foreman" | "vet" | "trainer" | "employee";
+type TenantRole = "owner" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 type InvitationStatus = "pending" | "accepted" | "rejected";
 
 interface Invitation {
@@ -159,7 +159,7 @@ export const useInvitations = () => {
             user_id: user.id,
             role: invitation.proposed_role,
             can_invite: false,
-            can_manage_horses: invitation.proposed_role === "foreman" || invitation.proposed_role === "admin",
+            can_manage_horses: invitation.proposed_role === "foreman" || invitation.proposed_role === "manager",
           });
 
         if (memberError) {
