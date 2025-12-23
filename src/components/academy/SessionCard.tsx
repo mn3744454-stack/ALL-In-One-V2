@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Calendar, Clock, MapPin, Users, Banknote, MoreVertical, Pencil, Trash2, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Banknote, MoreVertical, Pencil, Trash2, Eye, EyeOff, AlertTriangle, Copy } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { AcademySession } from "@/hooks/useAcademySessions";
 
@@ -29,6 +29,7 @@ interface SessionCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onToggleActive: () => void;
+  onDuplicate: () => void;
 }
 
 export const SessionCard = ({
@@ -37,6 +38,7 @@ export const SessionCard = ({
   onEdit,
   onDelete,
   onToggleActive,
+  onDuplicate,
 }: SessionCardProps) => {
   const isPast = new Date(session.end_at) < new Date();
   const isExpiredAndActive = isPast && session.is_active && session.is_public;
@@ -96,6 +98,10 @@ export const SessionCard = ({
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil className="w-4 h-4 mr-2" />
                   Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onDuplicate}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={onToggleActive}>
                   {session.is_active ? (
