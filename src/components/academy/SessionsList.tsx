@@ -16,11 +16,13 @@ const SessionCardWithCount = ({
   onEdit,
   onDelete,
   onToggleActive,
+  onDuplicate,
 }: {
   session: AcademySession;
   onEdit: () => void;
   onDelete: () => void;
   onToggleActive: () => void;
+  onDuplicate: () => void;
 }) => {
   const [confirmedCount, setConfirmedCount] = useState(0);
 
@@ -44,9 +46,12 @@ const SessionCardWithCount = ({
       onEdit={onEdit}
       onDelete={onDelete}
       onToggleActive={onToggleActive}
+      onDuplicate={onDuplicate}
     />
   );
 };
+
+export type SessionFormMode = "create" | "edit" | "duplicate";
 
 export const SessionsList = ({ onEmpty }: SessionsListProps) => {
   const { data: sessions = [], isLoading } = useAcademySessions();
@@ -55,14 +60,23 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<AcademySession | undefined>();
+  const [formMode, setFormMode] = useState<SessionFormMode>("create");
 
   const handleEdit = (session: AcademySession) => {
     setEditingSession(session);
+    setFormMode("edit");
     setFormDialogOpen(true);
   };
 
   const handleCreate = () => {
     setEditingSession(undefined);
+    setFormMode("create");
+    setFormDialogOpen(true);
+  };
+
+  const handleDuplicate = (session: AcademySession) => {
+    setEditingSession(session);
+    setFormMode("duplicate");
     setFormDialogOpen(true);
   };
 
@@ -122,6 +136,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
               onEdit={() => handleEdit(session)}
               onDelete={() => handleDelete(session.id)}
               onToggleActive={() => handleToggleActive(session)}
+              onDuplicate={() => handleDuplicate(session)}
             />
           ))}
         </div>
@@ -132,6 +147,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
         session={editingSession}
+        mode={formMode}
       />
     </div>
   );

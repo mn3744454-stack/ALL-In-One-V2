@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, addWeeks, addMonths } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -13,23 +13,43 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Repeat, Info } from "lucide-react";
 import { useCreateSession, useUpdateSession, type AcademySession, type CreateSessionInput } from "@/hooks/useAcademySessions";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import type { SessionFormMode } from "./SessionsList";
 
 interface SessionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   session?: AcademySession;
+  mode?: SessionFormMode;
 }
+
+type RepeatType = "none" | "weekly" | "monthly";
 
 export const SessionFormDialog = ({
   open,
   onOpenChange,
   session,
+  mode = "create",
 }: SessionFormDialogProps) => {
-  const isEditing = !!session;
+  const isEditing = mode === "edit";
+  const isDuplicating = mode === "duplicate";
   const createSession = useCreateSession();
   const updateSession = useUpdateSession();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant.id;
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<CreateSessionInput>({
     title: "",
@@ -43,6 +63,11 @@ export const SessionFormDialog = ({
     is_active: true,
   });
 
+  // Recurring options
+  const [repeatType, setRepeatType] = useState<RepeatType>("none");
+  const [repeatCount, setRepeatCount] = useState(4);
+  const [isCreatingRecurring, setIsCreatingRecurring] = useState(false);
+
   // Format date for datetime-local input
   const formatDateForInput = (dateStr: string) => {
     if (!dateStr) return "";
@@ -52,18 +77,21 @@ export const SessionFormDialog = ({
 
   // Reset form when dialog opens/closes or session changes
   useEffect(() => {
-    if (open && session) {
+    if (open && session && (isEditing || isDuplicating)) {
       setFormData({
-        title: session.title,
+        title: isDuplicating ? `${session.title} (Copy)` : session.title,
         description: session.description || "",
         location_text: session.location_text || "",
-        start_at: formatDateForInput(session.start_at),
-        end_at: formatDateForInput(session.end_at),
+        // Clear dates when duplicating
+        start_at: isEditing ? formatDateForInput(session.start_at) : "",
+        end_at: isEditing ? formatDateForInput(session.end_at) : "",
         capacity: session.capacity,
         price_display: session.price_display || "",
         is_public: session.is_public,
         is_active: session.is_active,
       });
+      setRepeatType("none");
+      setRepeatCount(4);
     } else if (open) {
       setFormData({
         title: "",
@@ -76,40 +104,115 @@ export const SessionFormDialog = ({
         is_public: true,
         is_active: true,
       });
+      setRepeatType("none");
+      setRepeatCount(4);
     }
-  }, [open, session]);
+  }, [open, session, isEditing, isDuplicating]);
+
+  const createRecurringSessions = async () => {
+    if (!tenantId) throw new Error("No active tenant");
+    
+    const startDate = new Date(formData.start_at);
+    const endDate = new Date(formData.end_at);
+    const sessions = [];
+
+    for (let i = 0; i < repeatCount; i++) {
+      const sessionStart = repeatType === "weekly" 
+        ? addWeeks(startDate, i) 
+        : addMonths(startDate, i);
+      const sessionEnd = repeatType === "weekly" 
+        ? addWeeks(endDate, i) 
+        : addMonths(endDate, i);
+
+      sessions.push({
+        tenant_id: tenantId,
+        title: formData.title,
+        description: formData.description || null,
+        location_text: formData.location_text || null,
+        start_at: sessionStart.toISOString(),
+        end_at: sessionEnd.toISOString(),
+        capacity: formData.capacity,
+        price_display: formData.price_display || null,
+        is_public: formData.is_public ?? true,
+        is_active: formData.is_active ?? true,
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("academy_sessions")
+      .insert(sessions)
+      .select();
+
+    if (error) throw error;
+    return data;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = {
-      ...formData,
-      start_at: new Date(formData.start_at).toISOString(),
-      end_at: new Date(formData.end_at).toISOString(),
-    };
+    try {
+      if (isEditing && session) {
+        const payload = {
+          ...formData,
+          start_at: new Date(formData.start_at).toISOString(),
+          end_at: new Date(formData.end_at).toISOString(),
+        };
+        await updateSession.mutateAsync({ id: session.id, ...payload });
+      } else if (repeatType !== "none") {
+        setIsCreatingRecurring(true);
+        const created = await createRecurringSessions();
+        queryClient.invalidateQueries({ queryKey: ["academy-sessions", tenantId] });
+        toast.success(`${created.length} sessions created successfully`);
+      } else {
+        const payload = {
+          ...formData,
+          start_at: new Date(formData.start_at).toISOString(),
+          end_at: new Date(formData.end_at).toISOString(),
+        };
+        await createSession.mutateAsync(payload);
+      }
 
-    if (isEditing && session) {
-      await updateSession.mutateAsync({ id: session.id, ...payload });
-    } else {
-      await createSession.mutateAsync(payload);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to save session");
+    } finally {
+      setIsCreatingRecurring(false);
     }
-
-    onOpenChange(false);
   };
 
-  const isPending = createSession.isPending || updateSession.isPending;
+  const isPending = createSession.isPending || updateSession.isPending || isCreatingRecurring;
+
+  const getDialogTitle = () => {
+    if (isEditing) return "Edit Session";
+    if (isDuplicating) return "Duplicate Session";
+    return "Create New Session";
+  };
+
+  const getDialogDescription = () => {
+    if (isEditing) return "Update the session details below";
+    if (isDuplicating) return "Create a new session based on the existing one. Select new dates.";
+    return "Fill in the details to create a new training session";
+  };
+
+  const getSubmitButtonText = () => {
+    if (isEditing) return "Save Changes";
+    if (repeatType !== "none") return `Create ${repeatCount} Sessions`;
+    return "Create Session";
+  };
+
+  const maxRepeatCount = repeatType === "weekly" ? 12 : 6;
+  const repeatLabel = repeatType === "weekly" ? "weeks" : "months";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-navy">
-            {isEditing ? "Edit Session" : "Create New Session"}
+            {getDialogTitle()}
           </DialogTitle>
           <DialogDescription>
-            {isEditing
-              ? "Update the session details below"
-              : "Fill in the details to create a new training session"}
+            {getDialogDescription()}
           </DialogDescription>
         </DialogHeader>
 
@@ -162,6 +265,63 @@ export const SessionFormDialog = ({
               />
             </div>
           </div>
+
+          {/* Recurring Options - Only show when creating new sessions */}
+          {!isEditing && (
+            <div className="border border-border rounded-lg p-4 space-y-4 bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Repeat className="w-4 h-4 text-gold" />
+                <Label className="font-medium">Recurring Options</Label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="repeatType">Repeat</Label>
+                  <Select value={repeatType} onValueChange={(v) => setRepeatType(v as RepeatType)}>
+                    <SelectTrigger id="repeatType">
+                      <SelectValue placeholder="No repeat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No repeat</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {repeatType !== "none" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="repeatCount">Number of {repeatLabel}</Label>
+                    <Select 
+                      value={repeatCount.toString()} 
+                      onValueChange={(v) => setRepeatCount(parseInt(v))}
+                    >
+                      <SelectTrigger id="repeatCount">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: maxRepeatCount - 1 }, (_, i) => i + 2).map((num) => (
+                          <SelectItem key={num} value={num.toString()}>
+                            {num} {repeatLabel}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {repeatType !== "none" && (
+                <div className="flex items-start gap-2 text-sm text-muted-foreground bg-background p-3 rounded-md">
+                  <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>
+                    This will create {repeatCount} sessions: the first one on the selected date, 
+                    then one every {repeatType === "weekly" ? "week" : "month"} for {repeatCount - 1} more {repeatLabel}.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Capacity & Price Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -238,7 +398,7 @@ export const SessionFormDialog = ({
               className="w-full sm:w-auto"
             >
               {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {isEditing ? "Save Changes" : "Create Session"}
+              {getSubmitButtonText()}
             </Button>
           </DialogFooter>
         </form>
