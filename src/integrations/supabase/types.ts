@@ -889,6 +889,10 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_horses: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_tenant_services: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean

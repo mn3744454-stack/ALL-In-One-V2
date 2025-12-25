@@ -7,14 +7,21 @@ interface Horse {
   id: string;
   tenant_id: string;
   name: string;
+  name_ar?: string | null;
   gender: string;
-  breed: string | null;
-  color: string | null;
-  birth_date: string | null;
-  registration_number: string | null;
-  microchip_number: string | null;
-  notes: string | null;
-  avatar_url: string | null;
+  breed?: string | null;
+  color?: string | null;
+  breed_id?: string | null;
+  color_id?: string | null;
+  birth_date?: string | null;
+  registration_number?: string | null;
+  microchip_number?: string | null;
+  passport_number?: string | null;
+  ueln?: string | null;
+  age_category?: string | null;
+  status?: string | null;
+  notes?: string | null;
+  avatar_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +37,14 @@ interface CreateHorseData {
   notes?: string;
 }
 
-export const useHorses = () => {
+interface HorseFilters {
+  search?: string;
+  gender?: string;
+  status?: string;
+  breed_id?: string;
+}
+
+export const useHorses = (filters?: HorseFilters) => {
   const { activeTenant } = useTenant();
   const [horses, setHorses] = useState<Horse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,11 +56,20 @@ export const useHorses = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("horses")
       .select("*")
       .eq("tenant_id", activeTenant.tenant_id)
       .order("name");
+
+    if (filters?.status && filters.status !== "all") {
+      query = query.eq("status", filters.status);
+    }
+    if (filters?.gender && filters.gender !== "all") {
+      query = query.eq("gender", filters.gender);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setHorses(data as Horse[]);
@@ -56,14 +79,13 @@ export const useHorses = () => {
 
   useEffect(() => {
     fetchHorses();
-  }, [activeTenant?.tenant_id]);
+  }, [activeTenant?.tenant_id, filters?.status, filters?.gender]);
 
   const createHorse = async (horseData: CreateHorseData) => {
     if (!activeTenant) {
       return { data: null, error: new Error("No active tenant") };
     }
 
-    // Validate input data
     const validation = safeValidate(horseSchema, horseData);
     if (!validation.success) {
       return { data: null, error: new Error(validation.errors.join(", ")) };
@@ -95,7 +117,6 @@ export const useHorses = () => {
   };
 
   const updateHorse = async (id: string, updates: Partial<CreateHorseData>) => {
-    // Validate partial update data
     const partialSchema = horseSchema.partial();
     const validation = safeValidate(partialSchema, updates);
     if (!validation.success) {
