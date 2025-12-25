@@ -56,23 +56,21 @@ export const useHorses = (filters?: HorseFilters) => {
       return;
     }
 
-    let query = supabase
+    const { data, error } = await supabase
       .from("horses")
       .select("*")
       .eq("tenant_id", activeTenant.tenant_id)
       .order("name");
 
-    if (filters?.status && filters.status !== "all") {
-      query = query.eq("status", filters.status);
-    }
-    if (filters?.gender && filters.gender !== "all") {
-      query = query.eq("gender", filters.gender);
-    }
-
-    const { data, error } = await query;
-
     if (!error && data) {
-      setHorses(data as Horse[]);
+      let filtered = data as Horse[];
+      if (filters?.status && filters.status !== "all") {
+        filtered = filtered.filter(h => h.status === filters.status);
+      }
+      if (filters?.gender && filters.gender !== "all") {
+        filtered = filtered.filter(h => h.gender === filters.gender);
+      }
+      setHorses(filtered);
     }
     setLoading(false);
   };
