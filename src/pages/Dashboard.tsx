@@ -81,7 +81,7 @@ const Dashboard = () => {
             <NavItem icon={MessageSquare} label="Community" href="/community" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Ticket} label="My Bookings" href="/dashboard/my-bookings" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={CreditCard} label="Payments" href="/dashboard/payments" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Heart} label="My Horses" badge={horses.length} onNavigate={() => setSidebarOpen(false)} />
+            <NavItem icon={Heart} label="My Horses" href="/dashboard/horses" badge={horses.length} onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Calendar} label="Schedule" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
@@ -344,7 +344,7 @@ const Dashboard = () => {
                 <Card variant="elevated">
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-navy">Your Horses</CardTitle>
-                    <Link to="#" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
+                    <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
                       View All <ChevronRight className="w-4 h-4" />
                     </Link>
                   </CardHeader>
