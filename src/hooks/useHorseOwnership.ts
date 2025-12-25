@@ -56,7 +56,7 @@ export const useHorseOwnership = (horseId?: string) => {
     if (!error) {
       await fetchOwnerships();
     }
-    return { data: data as HorseOwnership | null, error };
+    return { data: data as unknown as HorseOwnership | null, error };
   };
 
   const updateOwnership = async (
@@ -76,7 +76,7 @@ export const useHorseOwnership = (horseId?: string) => {
     if (!error) {
       await fetchOwnerships();
     }
-    return { data: data as HorseOwnership | null, error };
+    return { data: data as unknown as HorseOwnership | null, error };
   };
 
   const removeOwnership = async (id: string) => {

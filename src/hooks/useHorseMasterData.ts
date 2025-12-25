@@ -181,7 +181,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchColors();
-    return { data: data as HorseColor | null, error };
+    return { data: data as unknown as HorseColor | null, error };
   };
 
   const createBreed = async (name: string, name_ar?: string) => {
@@ -192,7 +192,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchBreeds();
-    return { data: data as HorseBreed | null, error };
+    return { data: data as unknown as HorseBreed | null, error };
   };
 
   const createBranch = async (name: string, address?: string) => {
@@ -203,7 +203,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchBranches();
-    return { data: data as Branch | null, error };
+    return { data: data as unknown as Branch | null, error };
   };
 
   const createStable = async (name: string, branch_id?: string) => {
@@ -214,7 +214,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchStables();
-    return { data: data as Stable | null, error };
+    return { data: data as unknown as Stable | null, error };
   };
 
   const createHousingUnit = async (
@@ -236,7 +236,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchHousingUnits();
-    return { data: data as HousingUnit | null, error };
+    return { data: data as unknown as HousingUnit | null, error };
   };
 
   const createBreeder = async (
@@ -258,7 +258,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchBreeders();
-    return { data: data as Breeder | null, error };
+    return { data: data as unknown as Breeder | null, error };
   };
 
   const createOwner = async (
@@ -280,7 +280,7 @@ export const useHorseMasterData = () => {
       .select()
       .single();
     if (!error) await fetchOwners();
-    return { data: data as HorseOwner | null, error };
+    return { data: data as unknown as HorseOwner | null, error };
   };
 
   return {
