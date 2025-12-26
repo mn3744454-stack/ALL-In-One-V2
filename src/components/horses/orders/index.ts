@@ -9,3 +9,6 @@ export { OrderTimeline } from "./OrderTimeline";
 export { CreateOrderDialog } from "./CreateOrderDialog";
 export { OrderTypesManager } from "./OrderTypesManager";
 export { CapabilitiesManager } from "./CapabilitiesManager";
+export { ServiceProviderSelector } from "./ServiceProviderSelector";
+export { ClientSelector } from "./ClientSelector";
+export { FinancialCategorization } from "./FinancialCategorization";
