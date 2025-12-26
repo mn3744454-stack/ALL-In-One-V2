@@ -20,6 +20,7 @@ import DashboardAcademyBookings from "./pages/DashboardAcademyBookings";
 import DashboardPayments from "./pages/DashboardPayments";
 import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
+import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
@@ -195,6 +196,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardHorses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/horses/:id"
+        element={
+          <ProtectedRoute>
+            <HorseProfile />
           </ProtectedRoute>
         }
       />

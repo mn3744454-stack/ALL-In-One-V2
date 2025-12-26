@@ -116,16 +116,24 @@ export function formatCurrentAge(ageParts: AgeParts | null, options?: { includeH
 
 /**
  * Format age in a compact way for cards
- * Examples: "3 years", "8 months", "2 weeks"
+ * Examples: "3y 2m", "8 months", "2 weeks"
  */
 export function formatAgeCompact(ageParts: AgeParts | null): string {
   if (!ageParts) return "Unknown age";
   
   if (ageParts.years >= 1) {
+    // Show years and months for more detail
+    if (ageParts.months > 0) {
+      return `${ageParts.years}y ${ageParts.months}m`;
+    }
     return `${ageParts.years} ${ageParts.years === 1 ? 'year' : 'years'}`;
   }
   
   if (ageParts.months >= 1) {
+    // Show months and days for young horses
+    if (ageParts.days > 0 && ageParts.months < 6) {
+      return `${ageParts.months}m ${ageParts.days}d`;
+    }
     return `${ageParts.months} ${ageParts.months === 1 ? 'month' : 'months'}`;
   }
   

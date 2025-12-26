@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
@@ -83,6 +83,7 @@ const NavItem = ({
 
 const DashboardHorses = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole, loading: tenantsLoading } = useTenant();
   const { horses, loading: horsesLoading, refresh } = useHorses();
@@ -250,6 +251,7 @@ const DashboardHorses = () => {
                 horses={horses}
                 loading={horsesLoading}
                 onRefresh={refresh}
+                onHorseClick={(horse) => navigate(`/dashboard/horses/${horse.id}`)}
               />
             )}
           </div>

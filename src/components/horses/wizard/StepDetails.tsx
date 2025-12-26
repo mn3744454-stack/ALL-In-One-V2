@@ -105,8 +105,8 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         </div>
       )}
 
-      {/* Pregnancy Section - Only for Female Horses */}
-      {data.gender === "female" && (
+      {/* Pregnancy Section - Only for Broodmares */}
+      {data.gender === "female" && data.breeding_role === 'broodmare' && (
         <div className="p-4 bg-muted/50 rounded-xl border border-border/50 space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="pregnant">Is Pregnant?</Label>

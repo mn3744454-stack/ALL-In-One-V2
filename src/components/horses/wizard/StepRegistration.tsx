@@ -35,7 +35,7 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
           <RadioGroupItem value="yes" id="yes" />
           <Label htmlFor="yes" className="cursor-pointer flex-1">
             <div className="font-medium">Yes, search existing horse</div>
-            <div className="text-sm text-muted-foreground">Find by microchip, passport, or UELN</div>
+            <div className="text-sm text-muted-foreground">Find by name, microchip, passport, or UELN</div>
           </Label>
         </div>
       </RadioGroup>
@@ -45,7 +45,7 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Enter microchip, passport, or UELN number..."
+              placeholder="Search by name (EN/AR), microchip, passport, or UELN..."
               className="pl-10"
             />
           </div>

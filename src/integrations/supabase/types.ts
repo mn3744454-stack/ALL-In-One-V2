@@ -460,6 +460,7 @@ export type Database = {
           tenant_id: string
           ueln: string | null
           updated_at: string
+          videos: string[] | null
           weight: number | null
         }
         Insert: {
@@ -510,6 +511,7 @@ export type Database = {
           tenant_id: string
           ueln?: string | null
           updated_at?: string
+          videos?: string[] | null
           weight?: number | null
         }
         Update: {
@@ -560,6 +562,7 @@ export type Database = {
           tenant_id?: string
           ueln?: string | null
           updated_at?: string
+          videos?: string[] | null
           weight?: number | null
         }
         Relationships: [
