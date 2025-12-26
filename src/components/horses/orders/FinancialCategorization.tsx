@@ -57,7 +57,7 @@ export function FinancialCategorization({
 
   // Set default categorization when order category changes
   useEffect(() => {
-    if (orderCategory) {
+    if (orderCategory && ['veterinary', 'boarding', 'transportation', 'breeding', 'laboratory'].includes(orderCategory)) {
       const defaults = getDefaultCategorization(orderCategory, isExternalService);
       onCategorizationChange({
         ...categorization,
