@@ -48,6 +48,7 @@ export interface HorseWizardData {
   name_ar: string;
   gender: "male" | "female";
   birth_date: string;
+  birth_at: string; // ISO timestamp with timezone (combines date + time)
   breed_id: string;
   color_id: string;
   age_category: string;
@@ -63,6 +64,8 @@ export interface HorseWizardData {
   status: "active" | "inactive";
   is_pregnant: boolean;
   pregnancy_months: number;
+  is_gelded: boolean;
+  breeding_role: 'broodmare' | '';
   
   // Physical
   height: string;
@@ -103,6 +106,7 @@ const initialData: HorseWizardData = {
   name_ar: "",
   gender: "male",
   birth_date: "",
+  birth_at: "",
   breed_id: "",
   color_id: "",
   age_category: "",
@@ -116,6 +120,8 @@ const initialData: HorseWizardData = {
   status: "active",
   is_pregnant: false,
   pregnancy_months: 0,
+  is_gelded: false,
+  breeding_role: "",
   height: "",
   weight: "",
   mane_marks: "",
@@ -216,6 +222,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
           name_ar: data.name_ar || null,
           gender: data.gender,
           birth_date: data.birth_date || null,
+          birth_at: data.birth_at || null,
           breed_id: data.breed_id || null,
           color_id: data.color_id || null,
           age_category: data.age_category || null,
@@ -229,6 +236,8 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
           status: data.status,
           is_pregnant: data.is_pregnant,
           pregnancy_months: data.is_pregnant ? data.pregnancy_months : null,
+          is_gelded: data.is_gelded,
+          breeding_role: data.breeding_role || null,
           height: data.height ? parseFloat(data.height) : null,
           weight: data.weight ? parseFloat(data.weight) : null,
           mane_marks: data.mane_marks || null,

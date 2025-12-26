@@ -415,12 +415,14 @@ export type Database = {
         Row: {
           age_category: string | null
           avatar_url: string | null
+          birth_at: string | null
           birth_date: string | null
           body_marks: string | null
           branch_id: string | null
           breed: string | null
           breed_id: string | null
           breeder_id: string | null
+          breeding_role: string | null
           color: string | null
           color_id: string | null
           created_at: string
@@ -435,6 +437,7 @@ export type Database = {
           housing_unit_id: string | null
           id: string
           images: string[] | null
+          is_gelded: boolean
           is_pregnant: boolean
           legs_marks: string | null
           mane_marks: string | null
@@ -462,12 +465,14 @@ export type Database = {
         Insert: {
           age_category?: string | null
           avatar_url?: string | null
+          birth_at?: string | null
           birth_date?: string | null
           body_marks?: string | null
           branch_id?: string | null
           breed?: string | null
           breed_id?: string | null
           breeder_id?: string | null
+          breeding_role?: string | null
           color?: string | null
           color_id?: string | null
           created_at?: string
@@ -482,6 +487,7 @@ export type Database = {
           housing_unit_id?: string | null
           id?: string
           images?: string[] | null
+          is_gelded?: boolean
           is_pregnant?: boolean
           legs_marks?: string | null
           mane_marks?: string | null
@@ -509,12 +515,14 @@ export type Database = {
         Update: {
           age_category?: string | null
           avatar_url?: string | null
+          birth_at?: string | null
           birth_date?: string | null
           body_marks?: string | null
           branch_id?: string | null
           breed?: string | null
           breed_id?: string | null
           breeder_id?: string | null
+          breeding_role?: string | null
           color?: string | null
           color_id?: string | null
           created_at?: string
@@ -529,6 +537,7 @@ export type Database = {
           housing_unit_id?: string | null
           id?: string
           images?: string[] | null
+          is_gelded?: boolean
           is_pregnant?: boolean
           legs_marks?: string | null
           mane_marks?: string | null
