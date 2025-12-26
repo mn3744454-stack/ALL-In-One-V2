@@ -47,7 +47,7 @@ export function useCustomFinancialCategories() {
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
-      setCategories(data || []);
+      setCategories((data as CustomFinancialCategory[]) || []);
     } catch (error) {
       console.error('Error fetching custom categories:', error);
     } finally {
