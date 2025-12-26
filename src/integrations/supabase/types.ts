@@ -324,6 +324,245 @@ export type Database = {
           },
         ]
       }
+      horse_order_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_type: string
+          from_status: string | null
+          id: string
+          order_id: string
+          payload: Json | null
+          tenant_id: string
+          to_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          from_status?: string | null
+          id?: string
+          order_id: string
+          payload?: Json | null
+          tenant_id: string
+          to_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          order_id?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_order_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "horse_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_order_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_order_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_order_types: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          pin_as_tab: boolean
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          pin_as_tab?: boolean
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          pin_as_tab?: boolean
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_order_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_order_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_orders: {
+        Row: {
+          account_code: string | null
+          actual_cost: number | null
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          estimated_cost: number | null
+          external_provider_meta: Json | null
+          external_provider_name: string | null
+          financial_category: string | null
+          horse_id: string
+          id: string
+          internal_resource_ref: Json | null
+          is_income: boolean
+          notes: string | null
+          order_type_id: string
+          priority: string
+          requested_at: string
+          scheduled_for: string | null
+          service_mode: string
+          status: string
+          tax_category: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_code?: string | null
+          actual_cost?: number | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          estimated_cost?: number | null
+          external_provider_meta?: Json | null
+          external_provider_name?: string | null
+          financial_category?: string | null
+          horse_id: string
+          id?: string
+          internal_resource_ref?: Json | null
+          is_income?: boolean
+          notes?: string | null
+          order_type_id: string
+          priority?: string
+          requested_at?: string
+          scheduled_for?: string | null
+          service_mode: string
+          status?: string
+          tax_category?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string | null
+          actual_cost?: number | null
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          estimated_cost?: number | null
+          external_provider_meta?: Json | null
+          external_provider_name?: string | null
+          financial_category?: string | null
+          horse_id?: string
+          id?: string
+          internal_resource_ref?: Json | null
+          is_income?: boolean
+          notes?: string | null
+          order_type_id?: string
+          priority?: string
+          requested_at?: string
+          scheduled_for?: string | null
+          service_mode?: string
+          status?: string
+          tax_category?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_orders_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_orders_order_type_id_fkey"
+            columns: ["order_type_id"]
+            isOneToOne: false
+            referencedRelation: "horse_order_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_owners: {
         Row: {
           created_at: string
@@ -1202,6 +1441,54 @@ export type Database = {
           },
         ]
       }
+      tenant_capabilities: {
+        Row: {
+          allow_external: boolean
+          category: string
+          config: Json | null
+          created_at: string
+          has_internal: boolean
+          id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          allow_external?: boolean
+          category: string
+          config?: Json | null
+          created_at?: string
+          has_internal?: boolean
+          id?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          allow_external?: boolean
+          category?: string
+          config?: Json | null
+          created_at?: string
+          has_internal?: boolean
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_capabilities_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_capabilities_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_members: {
         Row: {
           can_invite: boolean
@@ -1474,6 +1761,10 @@ export type Database = {
         Returns: boolean
       }
       can_manage_horses: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_manage_orders: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
