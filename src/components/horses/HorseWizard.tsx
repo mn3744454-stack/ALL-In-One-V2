@@ -402,7 +402,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Add New Horse</DialogTitle>
         </DialogHeader>
