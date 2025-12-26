@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { addYears } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrderTypes } from "@/hooks/useHorseOrderTypes";
@@ -53,7 +55,7 @@ export function CreateOrderDialog({
   const [orderTypeId, setOrderTypeId] = useState("");
   const [serviceMode, setServiceMode] = useState<"internal" | "external">("external");
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
-  const [scheduledFor, setScheduledFor] = useState("");
+  const [scheduledFor, setScheduledFor] = useState<Date | undefined>(undefined);
   const [notes, setNotes] = useState("");
   const [externalProviderName, setExternalProviderName] = useState("");
   const [internalResourceLabel, setInternalResourceLabel] = useState("");
@@ -77,7 +79,7 @@ export function CreateOrderDialog({
       setOrderTypeId(editOrder.order_type_id);
       setServiceMode(editOrder.service_mode);
       setPriority(editOrder.priority);
-      setScheduledFor(editOrder.scheduled_for?.slice(0, 16) || "");
+      setScheduledFor(editOrder.scheduled_for ? new Date(editOrder.scheduled_for) : undefined);
       setNotes(editOrder.notes || "");
       setExternalProviderName(editOrder.external_provider_name || "");
       const ref = editOrder.internal_resource_ref as Record<string, unknown> | null;
@@ -89,7 +91,7 @@ export function CreateOrderDialog({
       setOrderTypeId("");
       setServiceMode("external");
       setPriority("medium");
-      setScheduledFor("");
+      setScheduledFor(undefined);
       setNotes("");
       setExternalProviderName("");
       setInternalResourceLabel("");
@@ -108,7 +110,7 @@ export function CreateOrderDialog({
         service_mode: serviceMode,
         priority,
         status: isDraft ? "draft" : "pending",
-        scheduled_for: scheduledFor ? new Date(scheduledFor).toISOString() : null,
+        scheduled_for: scheduledFor ? scheduledFor.toISOString() : null,
         notes: notes || null,
         estimated_cost: estimatedCost ? parseFloat(estimatedCost) : null,
       };
@@ -226,10 +228,12 @@ export function CreateOrderDialog({
       {/* Schedule */}
       <div className="space-y-2">
         <Label>Scheduled For</Label>
-        <Input
-          type="datetime-local"
+        <DateTimePicker
           value={scheduledFor}
-          onChange={(e) => setScheduledFor(e.target.value)}
+          onChange={setScheduledFor}
+          minDate={new Date()}
+          maxDate={addYears(new Date(), 2)}
+          placeholder="Select date and time"
         />
       </div>
 
