@@ -94,7 +94,7 @@ const DashboardHorses = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-cream flex overflow-hidden">
+    <div className="h-dvh w-full bg-cream flex overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy transform transition-transform duration-300 lg:translate-x-0 lg:static ${
@@ -192,9 +192,9 @@ const DashboardHorses = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 h-screen min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
               <button
@@ -228,28 +228,31 @@ const DashboardHorses = () => {
           </div>
         </header>
 
-        {/* Horses Content */}
-        <div className="p-4 lg:p-8">
-          {!activeTenant ? (
-            <div className="text-center py-12">
-              <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h2 className="font-display text-xl font-semibold text-navy mb-2">
-                No Organization Selected
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                Please create or join an organization to manage horses.
-              </p>
-              <Link to="/select-role">
-                <Button variant="gold">Create Organization</Button>
-              </Link>
-            </div>
-          ) : (
-            <HorsesList
-              horses={horses}
-              loading={horsesLoading}
-              onRefresh={refresh}
-            />
-          )}
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Horses Content */}
+          <div className="p-4 lg:p-8">
+            {!activeTenant ? (
+              <div className="text-center py-12">
+                <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                <h2 className="font-display text-xl font-semibold text-navy mb-2">
+                  No Organization Selected
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  Please create or join an organization to manage horses.
+                </p>
+                <Link to="/select-role">
+                  <Button variant="gold">Create Organization</Button>
+                </Link>
+              </div>
+            ) : (
+              <HorsesList
+                horses={horses}
+                loading={horsesLoading}
+                onRefresh={refresh}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>
