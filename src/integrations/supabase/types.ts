@@ -210,6 +210,78 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          credit_limit: number | null
+          email: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          notes: string | null
+          outstanding_balance: number | null
+          phone: string | null
+          preferred_payment_method: string | null
+          status: string
+          tax_number: string | null
+          tenant_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          outstanding_balance?: number | null
+          phone?: string | null
+          preferred_payment_method?: string | null
+          status?: string
+          tax_number?: string | null
+          tenant_id: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          email?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          outstanding_balance?: number | null
+          phone?: string | null
+          preferred_payment_method?: string | null
+          status?: string
+          tax_number?: string | null
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -448,11 +520,13 @@ export type Database = {
           account_code: string | null
           actual_cost: number | null
           category: string | null
+          client_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string
           currency: string
           estimated_cost: number | null
+          external_provider_id: string | null
           external_provider_meta: Json | null
           external_provider_name: string | null
           financial_category: string | null
@@ -475,11 +549,13 @@ export type Database = {
           account_code?: string | null
           actual_cost?: number | null
           category?: string | null
+          client_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by: string
           currency?: string
           estimated_cost?: number | null
+          external_provider_id?: string | null
           external_provider_meta?: Json | null
           external_provider_name?: string | null
           financial_category?: string | null
@@ -502,11 +578,13 @@ export type Database = {
           account_code?: string | null
           actual_cost?: number | null
           category?: string | null
+          client_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           currency?: string
           estimated_cost?: number | null
+          external_provider_id?: string | null
           external_provider_meta?: Json | null
           external_provider_name?: string | null
           financial_category?: string | null
@@ -527,10 +605,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "horse_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "horse_orders_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_orders_external_provider_id_fkey"
+            columns: ["external_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
           {
@@ -1394,6 +1486,102 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      service_providers: {
+        Row: {
+          address: string | null
+          average_cost: number | null
+          business_hours: Json | null
+          certifications: string[] | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          emergency_phone: string | null
+          estimated_response_time: string | null
+          id: string
+          is_emergency_provider: boolean
+          name: string
+          name_ar: string | null
+          notes: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          specializations: string[] | null
+          status: string
+          tenant_id: string
+          type: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          average_cost?: number | null
+          business_hours?: Json | null
+          certifications?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          emergency_phone?: string | null
+          estimated_response_time?: string | null
+          id?: string
+          is_emergency_provider?: boolean
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          specializations?: string[] | null
+          status?: string
+          tenant_id: string
+          type: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          average_cost?: number | null
+          business_hours?: Json | null
+          certifications?: string[] | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          emergency_phone?: string | null
+          estimated_response_time?: string | null
+          id?: string
+          is_emergency_provider?: boolean
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          specializations?: string[] | null
+          status?: string
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_providers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stables: {
         Row: {
