@@ -24,11 +24,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrderTypes } from "@/hooks/useHorseOrderTypes";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
+import { ServiceProviderSelector } from "./ServiceProviderSelector";
+import { ClientSelector } from "./ClientSelector";
+import { FinancialCategorization } from "./FinancialCategorization";
 import type { HorseOrder, CreateOrderData } from "@/hooks/useHorseOrders";
+import type { FinancialCategorization as FinCategorizationType, OrderCategory } from "@/hooks/useFinancialCategories";
+import { ClipboardList, Building2, Users, Wallet, Calendar, FileText } from "lucide-react";
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -58,21 +64,26 @@ export function CreateOrderDialog({
   const [scheduledFor, setScheduledFor] = useState<Date | undefined>(undefined);
   const [notes, setNotes] = useState("");
   const [externalProviderName, setExternalProviderName] = useState("");
+  const [externalProviderId, setExternalProviderId] = useState<string | null>(null);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [internalResourceLabel, setInternalResourceLabel] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
+  const [financialCategorization, setFinancialCategorization] = useState<FinCategorizationType>({
+    category: "veterinary",
+    isIncome: false,
+    taxCategory: "vat_standard",
+    accountCode: "",
+  });
 
-  // Get the selected order type's category
   const selectedType = activeTypes.find((t) => t.id === orderTypeId);
   const serviceModeOptions = getServiceModeOptions(selectedType?.category || null);
 
-  // Reset service mode when order type changes
   useEffect(() => {
     if (serviceModeOptions.length === 1) {
       setServiceMode(serviceModeOptions[0].value);
     }
   }, [orderTypeId, serviceModeOptions]);
 
-  // Populate form when editing
   useEffect(() => {
     if (editOrder) {
       setHorseId(editOrder.horse_id);
@@ -86,7 +97,6 @@ export function CreateOrderDialog({
       setInternalResourceLabel((ref?.label as string) || "");
       setEstimatedCost(editOrder.estimated_cost?.toString() || "");
     } else {
-      // Reset form
       setHorseId(defaultHorseId || "");
       setOrderTypeId("");
       setServiceMode("external");
@@ -94,8 +104,16 @@ export function CreateOrderDialog({
       setScheduledFor(undefined);
       setNotes("");
       setExternalProviderName("");
+      setExternalProviderId(null);
+      setClientId(null);
       setInternalResourceLabel("");
       setEstimatedCost("");
+      setFinancialCategorization({
+        category: "veterinary",
+        isIncome: false,
+        taxCategory: "vat_standard",
+        accountCode: "",
+      });
     }
   }, [editOrder, defaultHorseId, open]);
 
@@ -113,6 +131,7 @@ export function CreateOrderDialog({
         scheduled_for: scheduledFor ? scheduledFor.toISOString() : null,
         notes: notes || null,
         estimated_cost: estimatedCost ? parseFloat(estimatedCost) : null,
+        is_income: financialCategorization.isIncome,
       };
 
       if (serviceMode === "external") {
@@ -130,131 +149,178 @@ export function CreateOrderDialog({
     }
   };
 
+  const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
+    <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
+      <Icon className="h-4 w-4" />
+      <span>{title}</span>
+    </div>
+  );
+
   const formContent = (
-    <div className="space-y-4 py-4">
-      {/* Horse Selection */}
-      <div className="space-y-2">
-        <Label>Horse *</Label>
-        <Select value={horseId} onValueChange={setHorseId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select horse" />
-          </SelectTrigger>
-          <SelectContent>
-            {horses.map((horse) => (
-              <SelectItem key={horse.id} value={horse.id}>
-                {horse.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-6 py-4" dir="rtl">
+      {/* Section 1: Basic Info */}
+      <div>
+        <SectionHeader icon={ClipboardList} title="المعلومات الأساسية" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>الخيل *</Label>
+            <Select value={horseId} onValueChange={setHorseId}>
+              <SelectTrigger>
+                <SelectValue placeholder="اختر الخيل" />
+              </SelectTrigger>
+              <SelectContent>
+                {horses.map((horse) => (
+                  <SelectItem key={horse.id} value={horse.id}>
+                    {horse.name_ar || horse.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>نوع الطلب *</Label>
+            <Select value={orderTypeId} onValueChange={setOrderTypeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="اختر نوع الطلب" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name_ar || type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
-      {/* Order Type */}
-      <div className="space-y-2">
-        <Label>Order Type *</Label>
-        <Select value={orderTypeId} onValueChange={setOrderTypeId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select order type" />
-          </SelectTrigger>
-          <SelectContent>
-            {activeTypes.map((type) => (
-              <SelectItem key={type.id} value={type.id}>
-                {type.name}
-                {type.category && (
-                  <span className="text-muted-foreground ml-2">({type.category})</span>
-                )}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Separator />
+
+      {/* Section 2: Service Provider */}
+      <div>
+        <SectionHeader icon={Building2} title="مقدم الخدمة" />
+        {orderTypeId && serviceModeOptions.length > 1 && (
+          <div className="space-y-2 mb-4">
+            <Label>نوع الخدمة *</Label>
+            <Select value={serviceMode} onValueChange={(v) => setServiceMode(v as "internal" | "external")}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {serviceModeOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.value === "internal" ? "داخلية" : "خارجية"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        {serviceMode === "external" ? (
+          <div className="space-y-2">
+            <Label>مقدم الخدمة الخارجي</Label>
+            <ServiceProviderSelector
+              selectedProviderId={externalProviderId}
+              onProviderSelect={(id, provider) => {
+                setExternalProviderId(id);
+                setExternalProviderName(provider?.name || "");
+              }}
+              filterByType={selectedType?.category as any}
+            />
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label>المورد الداخلي</Label>
+            <Input
+              value={internalResourceLabel}
+              onChange={(e) => setInternalResourceLabel(e.target.value)}
+              placeholder="اسم الموظف/القسم"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Service Mode */}
-      {orderTypeId && serviceModeOptions.length > 1 && (
-        <div className="space-y-2">
-          <Label>Service Mode *</Label>
-          <Select value={serviceMode} onValueChange={(v) => setServiceMode(v as "internal" | "external")}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {serviceModeOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      <Separator />
 
-      {/* Provider/Resource based on mode */}
-      {serviceMode === "external" ? (
-        <div className="space-y-2">
-          <Label>External Provider</Label>
-          <Input
-            value={externalProviderName}
-            onChange={(e) => setExternalProviderName(e.target.value)}
-            placeholder="Provider name"
-          />
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label>Internal Resource</Label>
-          <Input
-            value={internalResourceLabel}
-            onChange={(e) => setInternalResourceLabel(e.target.value)}
-            placeholder="Resource/staff name"
-          />
-        </div>
-      )}
-
-      {/* Priority */}
-      <div className="space-y-2">
-        <Label>Priority</Label>
-        <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
-            <SelectItem value="urgent">Urgent</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Schedule */}
-      <div className="space-y-2">
-        <Label>Scheduled For</Label>
-        <DateTimePicker
-          value={scheduledFor}
-          onChange={setScheduledFor}
-          minDate={new Date()}
-          maxDate={addYears(new Date(), 2)}
-          placeholder="Select date and time"
+      {/* Section 3: Client */}
+      <div>
+        <SectionHeader icon={Users} title="العميل" />
+        <ClientSelector
+          selectedClientId={clientId}
+          onClientSelect={(id) => setClientId(id)}
         />
       </div>
 
-      {/* Estimated Cost */}
-      <div className="space-y-2">
-        <Label>Estimated Cost (SAR)</Label>
-        <Input
-          type="number"
-          value={estimatedCost}
-          onChange={(e) => setEstimatedCost(e.target.value)}
-          placeholder="0.00"
-        />
+      <Separator />
+
+      {/* Section 4: Financial */}
+      <div>
+        <SectionHeader icon={Wallet} title="التصنيف المالي" />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>التكلفة التقديرية (ر.س)</Label>
+            <Input
+              type="number"
+              value={estimatedCost}
+              onChange={(e) => setEstimatedCost(e.target.value)}
+              placeholder="0.00"
+              dir="ltr"
+              className="text-left"
+            />
+          </div>
+          <FinancialCategorization
+            orderCategory={(selectedType?.category as OrderCategory) || "veterinary"}
+            estimatedCost={estimatedCost ? parseFloat(estimatedCost) : 0}
+            isExternalService={serviceMode === "external"}
+            categorization={financialCategorization}
+            onCategorizationChange={setFinancialCategorization}
+          />
+        </div>
       </div>
 
-      {/* Notes */}
-      <div className="space-y-2">
-        <Label>Notes</Label>
+      <Separator />
+
+      {/* Section 5: Schedule */}
+      <div>
+        <SectionHeader icon={Calendar} title="الجدولة والأولوية" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>موعد التنفيذ</Label>
+            <DateTimePicker
+              value={scheduledFor}
+              onChange={setScheduledFor}
+              minDate={new Date()}
+              maxDate={addYears(new Date(), 2)}
+              placeholder="اختر التاريخ والوقت"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>الأولوية</Label>
+            <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">منخفضة</SelectItem>
+                <SelectItem value="medium">متوسطة</SelectItem>
+                <SelectItem value="high">عالية</SelectItem>
+                <SelectItem value="urgent">عاجلة</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Section 6: Notes */}
+      <div>
+        <SectionHeader icon={FileText} title="ملاحظات إضافية" />
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Additional details..."
+          placeholder="أضف أي تفاصيل إضافية..."
           rows={3}
         />
       </div>
@@ -267,27 +333,27 @@ export function CreateOrderDialog({
           disabled={loading || !horseId || !orderTypeId}
           className="flex-1"
         >
-          Save Draft
+          حفظ كمسودة
         </Button>
         <Button
           onClick={() => handleSubmit(false)}
           disabled={loading || !horseId || !orderTypeId}
           className="flex-1"
         >
-          {editOrder ? "Update" : "Create"} Order
+          {editOrder ? "تحديث" : "إنشاء"} الطلب
         </Button>
       </div>
     </div>
   );
 
-  const title = editOrder ? "Edit Order" : "Create Order";
+  const title = editOrder ? "تعديل الطلب" : "إنشاء طلب جديد";
 
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>{title}</SheetTitle>
+            <SheetTitle className="text-right">{title}</SheetTitle>
           </SheetHeader>
           {formContent}
         </SheetContent>
@@ -297,9 +363,9 @@ export function CreateOrderDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="text-right">{title}</DialogTitle>
         </DialogHeader>
         {formContent}
       </DialogContent>
