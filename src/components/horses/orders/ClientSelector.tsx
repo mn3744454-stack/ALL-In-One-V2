@@ -33,16 +33,16 @@ const typeIcons: Record<ClientType, React.ReactNode> = {
 };
 
 const typeLabels: Record<ClientType, string> = {
-  individual: "فرد",
-  organization: "منظمة",
-  farm: "مزرعة",
-  clinic: "عيادة",
+  individual: "Individual",
+  organization: "Organization",
+  farm: "Farm",
+  clinic: "Clinic",
 };
 
 export function ClientSelector({
   selectedClientId,
   onClientSelect,
-  placeholder = "اختر العميل",
+  placeholder = "Select client",
   disabled = false,
 }: ClientSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -67,7 +67,7 @@ export function ClientSelector({
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("ar-SA", {
+    return new Intl.NumberFormat("en-SA", {
       style: "currency",
       currency: "SAR",
       maximumFractionDigits: 0,
@@ -87,10 +87,10 @@ export function ClientSelector({
           {selectedClient ? (
             <div className="flex items-center gap-2 truncate">
               {typeIcons[selectedClient.type]}
-              <span className="truncate">{selectedClient.name_ar || selectedClient.name}</span>
+              <span className="truncate">{selectedClient.name}</span>
               {(selectedClient.outstanding_balance || 0) > 0 && (
                 <Badge variant="outline" className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs">
-                  رصيد مستحق
+                  Outstanding
                 </Badge>
               )}
             </div>
@@ -102,9 +102,9 @@ export function ClientSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[350px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="ابحث عن عميل..." className="text-right" dir="rtl" />
+          <CommandInput placeholder="Search clients..." />
           <CommandList>
-            <CommandEmpty>لا يوجد عملاء</CommandEmpty>
+            <CommandEmpty>No clients found</CommandEmpty>
             <CommandGroup>
               {activeClients.map((client) => (
                 <CommandItem
@@ -122,23 +122,23 @@ export function ClientSelector({
                         )}
                       />
                       {typeIcons[client.type]}
-                      <span className="font-medium">{client.name_ar || client.name}</span>
+                      <span className="font-medium">{client.name}</span>
                     </div>
                     <Badge variant="secondary" className="text-[10px]">
                       {typeLabels[client.type]}
                     </Badge>
                   </div>
-                  <div className="flex w-full items-center gap-3 text-xs text-muted-foreground mr-6">
+                  <div className="flex w-full items-center gap-3 text-xs text-muted-foreground ml-6">
                     {client.phone && <span>{client.phone}</span>}
                     {(client.outstanding_balance || 0) > 0 && (
                       <span className="flex items-center gap-1 text-amber-600">
                         <AlertCircle className="h-3 w-3" />
-                        مستحق: {formatCurrency(client.outstanding_balance || 0)}
+                        Due: {formatCurrency(client.outstanding_balance || 0)}
                       </span>
                     )}
                     {client.credit_limit && (
                       <span className="text-muted-foreground">
-                        حد ائتماني: {formatCurrency(client.credit_limit)}
+                        Credit limit: {formatCurrency(client.credit_limit)}
                       </span>
                     )}
                   </div>

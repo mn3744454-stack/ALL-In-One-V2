@@ -32,9 +32,10 @@ import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { ServiceProviderSelector } from "./ServiceProviderSelector";
 import { ClientSelector } from "./ClientSelector";
 import { FinancialCategorization } from "./FinancialCategorization";
+import { AssigneeSelector } from "./AssigneeSelector";
 import type { HorseOrder, CreateOrderData } from "@/hooks/useHorseOrders";
 import type { FinancialCategorization as FinCategorizationType, OrderCategory } from "@/hooks/useFinancialCategories";
-import { ClipboardList, Building2, Users, Wallet, Calendar, FileText } from "lucide-react";
+import { ClipboardList, Building2, Users, Wallet, Calendar, FileText, UserCheck } from "lucide-react";
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function CreateOrderDialog({
   const [externalProviderName, setExternalProviderName] = useState("");
   const [externalProviderId, setExternalProviderId] = useState<string | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [assignedTo, setAssignedTo] = useState<string | null>(null);
   const [internalResourceLabel, setInternalResourceLabel] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
   const [financialCategorization, setFinancialCategorization] = useState<FinCategorizationType>({
@@ -93,9 +95,18 @@ export function CreateOrderDialog({
       setScheduledFor(editOrder.scheduled_for ? new Date(editOrder.scheduled_for) : undefined);
       setNotes(editOrder.notes || "");
       setExternalProviderName(editOrder.external_provider_name || "");
+      setExternalProviderId(editOrder.external_provider_id || null);
+      setClientId(editOrder.client_id || null);
+      setAssignedTo(editOrder.assigned_to || null);
       const ref = editOrder.internal_resource_ref as Record<string, unknown> | null;
       setInternalResourceLabel((ref?.label as string) || "");
       setEstimatedCost(editOrder.estimated_cost?.toString() || "");
+      setFinancialCategorization({
+        category: (editOrder.financial_category as any) || "veterinary",
+        isIncome: editOrder.is_income,
+        taxCategory: (editOrder.tax_category as any) || "vat_standard",
+        accountCode: editOrder.account_code || "",
+      });
     } else {
       setHorseId(defaultHorseId || "");
       setOrderTypeId("");
@@ -106,6 +117,7 @@ export function CreateOrderDialog({
       setExternalProviderName("");
       setExternalProviderId(null);
       setClientId(null);
+      setAssignedTo(null);
       setInternalResourceLabel("");
       setEstimatedCost("");
       setFinancialCategorization({
@@ -132,6 +144,12 @@ export function CreateOrderDialog({
         notes: notes || null,
         estimated_cost: estimatedCost ? parseFloat(estimatedCost) : null,
         is_income: financialCategorization.isIncome,
+        client_id: clientId,
+        external_provider_id: externalProviderId,
+        assigned_to: assignedTo,
+        financial_category: financialCategorization.category,
+        tax_category: financialCategorization.taxCategory,
+        account_code: financialCategorization.accountCode,
       };
 
       if (serviceMode === "external") {
@@ -157,36 +175,36 @@ export function CreateOrderDialog({
   );
 
   const formContent = (
-    <div className="space-y-6 py-4" dir="rtl">
+    <div className="space-y-6 py-4">
       {/* Section 1: Basic Info */}
       <div>
-        <SectionHeader icon={ClipboardList} title="المعلومات الأساسية" />
+        <SectionHeader icon={ClipboardList} title="Basic Information" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>الخيل *</Label>
+            <Label>Horse *</Label>
             <Select value={horseId} onValueChange={setHorseId}>
               <SelectTrigger>
-                <SelectValue placeholder="اختر الخيل" />
+                <SelectValue placeholder="Select horse" />
               </SelectTrigger>
               <SelectContent>
                 {horses.map((horse) => (
                   <SelectItem key={horse.id} value={horse.id}>
-                    {horse.name_ar || horse.name}
+                    {horse.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>نوع الطلب *</Label>
+            <Label>Order Type *</Label>
             <Select value={orderTypeId} onValueChange={setOrderTypeId}>
               <SelectTrigger>
-                <SelectValue placeholder="اختر نوع الطلب" />
+                <SelectValue placeholder="Select order type" />
               </SelectTrigger>
               <SelectContent>
                 {activeTypes.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
-                    {type.name_ar || type.name}
+                    {type.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -199,10 +217,10 @@ export function CreateOrderDialog({
 
       {/* Section 2: Service Provider */}
       <div>
-        <SectionHeader icon={Building2} title="مقدم الخدمة" />
+        <SectionHeader icon={Building2} title="Service Provider" />
         {orderTypeId && serviceModeOptions.length > 1 && (
           <div className="space-y-2 mb-4">
-            <Label>نوع الخدمة *</Label>
+            <Label>Service Type *</Label>
             <Select value={serviceMode} onValueChange={(v) => setServiceMode(v as "internal" | "external")}>
               <SelectTrigger>
                 <SelectValue />
@@ -210,7 +228,7 @@ export function CreateOrderDialog({
               <SelectContent>
                 {serviceModeOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.value === "internal" ? "داخلية" : "خارجية"}
+                    {opt.value === "internal" ? "Internal" : "External"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -219,7 +237,7 @@ export function CreateOrderDialog({
         )}
         {serviceMode === "external" ? (
           <div className="space-y-2">
-            <Label>مقدم الخدمة الخارجي</Label>
+            <Label>External Provider</Label>
             <ServiceProviderSelector
               selectedProviderId={externalProviderId}
               onProviderSelect={(id, provider) => {
@@ -231,11 +249,11 @@ export function CreateOrderDialog({
           </div>
         ) : (
           <div className="space-y-2">
-            <Label>المورد الداخلي</Label>
+            <Label>Internal Resource</Label>
             <Input
               value={internalResourceLabel}
               onChange={(e) => setInternalResourceLabel(e.target.value)}
-              placeholder="اسم الموظف/القسم"
+              placeholder="Employee/Department name"
             />
           </div>
         )}
@@ -245,7 +263,7 @@ export function CreateOrderDialog({
 
       {/* Section 3: Client */}
       <div>
-        <SectionHeader icon={Users} title="العميل" />
+        <SectionHeader icon={Users} title="Client" />
         <ClientSelector
           selectedClientId={clientId}
           onClientSelect={(id) => setClientId(id)}
@@ -254,12 +272,23 @@ export function CreateOrderDialog({
 
       <Separator />
 
-      {/* Section 4: Financial */}
+      {/* Section 4: Assignee */}
       <div>
-        <SectionHeader icon={Wallet} title="التصنيف المالي" />
+        <SectionHeader icon={UserCheck} title="Assignee" />
+        <AssigneeSelector
+          selectedAssigneeId={assignedTo}
+          onAssigneeSelect={(id) => setAssignedTo(id)}
+        />
+      </div>
+
+      <Separator />
+
+      {/* Section 5: Financial */}
+      <div>
+        <SectionHeader icon={Wallet} title="Financial Classification" />
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>التكلفة التقديرية (ر.س)</Label>
+            <Label>Estimated Cost (SAR)</Label>
             <Input
               type="number"
               value={estimatedCost}
@@ -281,31 +310,31 @@ export function CreateOrderDialog({
 
       <Separator />
 
-      {/* Section 5: Schedule */}
+      {/* Section 6: Schedule */}
       <div>
-        <SectionHeader icon={Calendar} title="الجدولة والأولوية" />
+        <SectionHeader icon={Calendar} title="Schedule & Priority" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>موعد التنفيذ</Label>
+            <Label>Scheduled Date</Label>
             <DateTimePicker
               value={scheduledFor}
               onChange={setScheduledFor}
               minDate={new Date()}
               maxDate={addYears(new Date(), 2)}
-              placeholder="اختر التاريخ والوقت"
+              placeholder="Select date and time"
             />
           </div>
           <div className="space-y-2">
-            <Label>الأولوية</Label>
+            <Label>Priority</Label>
             <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">منخفضة</SelectItem>
-                <SelectItem value="medium">متوسطة</SelectItem>
-                <SelectItem value="high">عالية</SelectItem>
-                <SelectItem value="urgent">عاجلة</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -314,13 +343,13 @@ export function CreateOrderDialog({
 
       <Separator />
 
-      {/* Section 6: Notes */}
+      {/* Section 7: Notes */}
       <div>
-        <SectionHeader icon={FileText} title="ملاحظات إضافية" />
+        <SectionHeader icon={FileText} title="Additional Notes" />
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="أضف أي تفاصيل إضافية..."
+          placeholder="Add any additional details..."
           rows={3}
         />
       </div>
@@ -333,27 +362,27 @@ export function CreateOrderDialog({
           disabled={loading || !horseId || !orderTypeId}
           className="flex-1"
         >
-          حفظ كمسودة
+          Save as Draft
         </Button>
         <Button
           onClick={() => handleSubmit(false)}
           disabled={loading || !horseId || !orderTypeId}
           className="flex-1"
         >
-          {editOrder ? "تحديث" : "إنشاء"} الطلب
+          {editOrder ? "Update" : "Create"} Order
         </Button>
       </div>
     </div>
   );
 
-  const title = editOrder ? "تعديل الطلب" : "إنشاء طلب جديد";
+  const title = editOrder ? "Edit Order" : "Create New Order";
 
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-right">{title}</SheetTitle>
+            <SheetTitle>{title}</SheetTitle>
           </SheetHeader>
           {formContent}
         </SheetContent>
@@ -365,7 +394,7 @@ export function CreateOrderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-right">{title}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {formContent}
       </DialogContent>
