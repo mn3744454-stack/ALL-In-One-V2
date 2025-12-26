@@ -282,6 +282,73 @@ export type Database = {
           },
         ]
       }
+      custom_financial_categories: {
+        Row: {
+          account_code: string | null
+          category_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          name_ar: string | null
+          parent_id: string | null
+          sort_order: number | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          account_code?: string | null
+          category_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          name_ar?: string | null
+          parent_id?: string | null
+          sort_order?: number | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          account_code?: string | null
+          category_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          name_ar?: string | null
+          parent_id?: string | null
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_financial_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_financial_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_financial_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -519,6 +586,7 @@ export type Database = {
         Row: {
           account_code: string | null
           actual_cost: number | null
+          assigned_to: string | null
           category: string | null
           client_id: string | null
           completed_at: string | null
@@ -548,6 +616,7 @@ export type Database = {
         Insert: {
           account_code?: string | null
           actual_cost?: number | null
+          assigned_to?: string | null
           category?: string | null
           client_id?: string | null
           completed_at?: string | null
@@ -577,6 +646,7 @@ export type Database = {
         Update: {
           account_code?: string | null
           actual_cost?: number | null
+          assigned_to?: string | null
           category?: string | null
           client_id?: string | null
           completed_at?: string | null
@@ -604,6 +674,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "horse_orders_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horse_orders_client_id_fkey"
             columns: ["client_id"]

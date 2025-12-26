@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ChevronsUpDown, Star, Clock, DollarSign, AlertTriangle, Building2 } from "lucide-react";
+import { Check, ChevronsUpDown, Star, Clock, DollarSign, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,11 +35,11 @@ const typeIcons: Record<ServiceProviderType, string> = {
 };
 
 const typeLabels: Record<ServiceProviderType, string> = {
-  veterinary: "بيطري",
-  laboratory: "مختبر",
-  transportation: "نقل",
-  boarding: "إيواء",
-  breeding: "تربية",
+  veterinary: "Veterinary",
+  laboratory: "Laboratory",
+  transportation: "Transportation",
+  boarding: "Boarding",
+  breeding: "Breeding",
 };
 
 const statusColors: Record<string, string> = {
@@ -53,7 +53,7 @@ export function ServiceProviderSelector({
   selectedProviderId,
   onProviderSelect,
   filterByType,
-  placeholder = "اختر مقدم الخدمة",
+  placeholder = "Select service provider",
   disabled = false,
 }: ServiceProviderSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -99,7 +99,7 @@ export function ServiceProviderSelector({
           {selectedProvider ? (
             <div className="flex items-center gap-2 truncate">
               <span>{typeIcons[selectedProvider.type]}</span>
-              <span className="truncate">{selectedProvider.name_ar || selectedProvider.name}</span>
+              <span className="truncate">{selectedProvider.name}</span>
               {selectedProvider.rating && (
                 <span className="flex items-center gap-0.5 text-amber-500 text-xs">
                   <Star className="h-3 w-3 fill-current" />
@@ -115,9 +115,9 @@ export function ServiceProviderSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[350px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="ابحث عن مقدم خدمة..." className="text-right" dir="rtl" />
+          <CommandInput placeholder="Search providers..." />
           <CommandList>
-            <CommandEmpty>لا يوجد مقدمي خدمات</CommandEmpty>
+            <CommandEmpty>No providers found</CommandEmpty>
             <CommandGroup>
               {filteredProviders.map((provider) => (
                 <CommandItem
@@ -135,23 +135,23 @@ export function ServiceProviderSelector({
                         )}
                       />
                       <span>{typeIcons[provider.type]}</span>
-                      <span className="font-medium">{provider.name_ar || provider.name}</span>
+                      <span className="font-medium">{provider.name}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       {provider.status === "preferred" && (
                         <Badge variant="outline" className={statusColors.preferred}>
-                          مفضل
+                          Preferred
                         </Badge>
                       )}
                       {provider.is_emergency_provider && (
                         <Badge variant="outline" className="bg-red-500/20 text-red-600 border-red-500/30">
                           <AlertTriangle className="h-3 w-3 mr-1" />
-                          طوارئ
+                          Emergency
                         </Badge>
                       )}
                     </div>
                   </div>
-                  <div className="flex w-full items-center gap-3 text-xs text-muted-foreground mr-6">
+                  <div className="flex w-full items-center gap-3 text-xs text-muted-foreground ml-6">
                     {provider.rating && (
                       <span className="flex items-center gap-0.5 text-amber-500">
                         <Star className="h-3 w-3 fill-current" />
@@ -170,7 +170,7 @@ export function ServiceProviderSelector({
                     {provider.average_cost && (
                       <span className="flex items-center gap-0.5">
                         <DollarSign className="h-3 w-3" />
-                        {provider.average_cost} ر.س
+                        {provider.average_cost} SAR
                       </span>
                     )}
                     <Badge variant="secondary" className="text-[10px]">
