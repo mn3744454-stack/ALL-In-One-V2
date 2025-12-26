@@ -89,7 +89,7 @@ export function AddCategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Financial Category</DialogTitle>
         </DialogHeader>
@@ -176,7 +176,11 @@ export function AddCategoryDialog({
                 <SelectTrigger>
                   <SelectValue placeholder="Select parent category" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent 
+                  position="popper" 
+                  sideOffset={4}
+                  className="max-h-[200px] overflow-y-auto z-[100]"
+                >
                   {parentCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
