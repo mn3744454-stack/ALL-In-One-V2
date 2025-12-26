@@ -21,7 +21,6 @@ import {
   MapPin, 
   Clock, 
   User,
-  Scale,
   Ruler,
   FileText
 } from "lucide-react";
@@ -33,6 +32,8 @@ import {
   getHorseTypeLabel, 
   getHorseTypeBadgeProps 
 } from "@/lib/horseClassification";
+import { HorseWizard, HorseData } from "@/components/horses/HorseWizard";
+import { OwnershipTimeline } from "@/components/horses/OwnershipTimeline";
 
 interface Horse {
   id: string;
@@ -74,6 +75,7 @@ const HorseProfile = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditWizard, setShowEditWizard] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -198,7 +200,12 @@ const HorseProfile = () => {
           </Button>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setShowEditWizard(true)}
+            >
               <Pencil className="w-4 h-4" />
               <span className="hidden sm:inline">Edit</span>
             </Button>
@@ -428,7 +435,22 @@ const HorseProfile = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Ownership Timeline */}
+        <OwnershipTimeline horseId={horse.id} />
       </main>
+
+      {/* Edit Wizard */}
+      <HorseWizard
+        open={showEditWizard}
+        onOpenChange={setShowEditWizard}
+        mode="edit"
+        existingHorse={horse as HorseData}
+        onSuccess={() => {
+          setShowEditWizard(false);
+          fetchHorse(); // Refresh data
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

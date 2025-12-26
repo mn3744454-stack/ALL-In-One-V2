@@ -411,6 +411,60 @@ export type Database = {
           },
         ]
       }
+      horse_ownership_history: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          horse_id: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          owner_id: string
+          ownership_percentage: number
+          previous_percentage: number | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          horse_id: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          owner_id: string
+          ownership_percentage: number
+          previous_percentage?: number | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          horse_id?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          owner_id?: string
+          ownership_percentage?: number
+          previous_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_ownership_history_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_ownership_history_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horses: {
         Row: {
           age_category: string | null
