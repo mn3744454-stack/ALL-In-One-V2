@@ -94,7 +94,7 @@ const DashboardHorses = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-cream flex overflow-x-hidden">
+    <div className="h-screen w-full bg-cream flex overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy transform transition-transform duration-300 lg:translate-x-0 lg:static ${
@@ -192,7 +192,7 @@ const DashboardHorses = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen min-w-0">
+      <main className="flex-1 h-screen min-w-0 overflow-y-auto">
         {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
