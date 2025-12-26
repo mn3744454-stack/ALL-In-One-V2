@@ -97,6 +97,7 @@ export interface HorseWizardData {
   
   // Media
   images: string[];
+  videos: string[];
   external_links: string[];
 }
 
@@ -141,6 +142,7 @@ const initialData: HorseWizardData = {
   breeder_id: "",
   owners: [],
   images: [],
+  videos: [],
   external_links: [],
 };
 
@@ -256,6 +258,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
           paternal_grandfather: data.paternal_grandfather || null,
           breeder_id: data.breeder_id || null,
           images: data.images,
+          videos: data.videos,
           external_links: data.external_links,
         })
         .select()
@@ -371,23 +374,24 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-6 border-t mt-6">
+      <div className="flex items-center justify-between pt-6 pb-4 border-t mt-6">
         <Button
           variant="ghost"
           onClick={goBack}
           disabled={currentStep === 0 || saving}
+          className="min-w-[100px]"
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
         {currentStep === STEPS.length - 1 ? (
-          <Button onClick={handleSave} disabled={!canGoNext() || saving}>
+          <Button onClick={handleSave} disabled={!canGoNext() || saving} className="min-w-[120px]">
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Horse
           </Button>
         ) : (
-          <Button onClick={goNext} disabled={!canGoNext() || saving}>
+          <Button onClick={goNext} disabled={!canGoNext() || saving} className="min-w-[100px]">
             Next
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
@@ -399,7 +403,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-hidden">
+        <SheetContent side="bottom" className="h-[90vh] overflow-hidden pb-safe">
           <SheetHeader className="mb-4">
             <SheetTitle>Add New Horse</SheetTitle>
           </SheetHeader>
@@ -411,7 +415,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess }: HorseWizardProps)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl lg:max-w-5xl h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Add New Horse</DialogTitle>
         </DialogHeader>

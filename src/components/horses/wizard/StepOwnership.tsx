@@ -23,11 +23,28 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
   const primaryCount = data.owners.filter((o) => o.is_primary).length;
   const isValid = data.owners.length === 0 || (totalPercentage === 100 && primaryCount === 1);
 
+  // Redistribute percentages equally among all owners
+  const redistributePercentages = (ownersList: typeof data.owners): typeof data.owners => {
+    if (ownersList.length === 0) return ownersList;
+    
+    const equalShare = Math.floor(100 / ownersList.length);
+    const remainder = 100 % ownersList.length;
+    
+    return ownersList.map((owner, index) => ({
+      ...owner,
+      // Give the remainder to the first owner to ensure total = 100
+      percentage: equalShare + (index === 0 ? remainder : 0),
+    }));
+  };
+
   const addOwner = () => {
-    const remaining = 100 - totalPercentage;
-    onChange({
-      owners: [...data.owners, { owner_id: "", percentage: remaining > 0 ? remaining : 0, is_primary: data.owners.length === 0 }]
-    });
+    const newOwner = { 
+      owner_id: "", 
+      percentage: 0, 
+      is_primary: data.owners.length === 0 
+    };
+    const newOwners = redistributePercentages([...data.owners, newOwner]);
+    onChange({ owners: newOwners });
   };
 
   const updateOwner = (index: number, updates: Partial<typeof data.owners[0]>) => {
@@ -40,7 +57,14 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
   };
 
   const removeOwner = (index: number) => {
-    onChange({ owners: data.owners.filter((_, i) => i !== index) });
+    const remaining = data.owners.filter((_, i) => i !== index);
+    // Redistribute percentages after removal
+    const redistributed = redistributePercentages(remaining);
+    // If we removed the primary owner, make the first one primary
+    if (data.owners[index]?.is_primary && redistributed.length > 0) {
+      redistributed[0].is_primary = true;
+    }
+    onChange({ owners: redistributed });
   };
 
   return (
