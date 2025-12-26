@@ -253,13 +253,33 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
   // Pre-fill data when in edit mode
   useEffect(() => {
-    if (mode === "edit" && existingHorse && open) {
-      setData(mapHorseToWizardData(existingHorse));
-      setCurrentStep(1); // Skip registration step
-    } else if (mode === "create" && open) {
-      setData(initialData);
-      setCurrentStep(0);
-    }
+    const loadEditData = async () => {
+      if (mode === "edit" && existingHorse && open) {
+        const wizardData = mapHorseToWizardData(existingHorse);
+        
+        // Load current ownership
+        const { data: ownershipData } = await supabase
+          .from("horse_ownership" as any)
+          .select(`*, owner:horse_owners(id, name, name_ar)`)
+          .eq("horse_id", existingHorse.id);
+        
+        if (ownershipData && ownershipData.length > 0) {
+          wizardData.owners = ownershipData.map((o: any) => ({
+            owner_id: o.owner_id,
+            percentage: Number(o.ownership_percentage),
+            is_primary: o.is_primary,
+          }));
+        }
+        
+        setData(wizardData);
+        setCurrentStep(1); // Skip registration step
+      } else if (mode === "create" && open) {
+        setData(initialData);
+        setCurrentStep(0);
+      }
+    };
+    
+    loadEditData();
   }, [mode, existingHorse, open]);
 
   const updateData = (updates: Partial<HorseWizardData>) => {
@@ -388,28 +408,48 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
         if (horseError) throw horseError;
         horseId = horse.id;
+      }
 
-        // Insert ownership records if any (only for new horses)
-        if (data.owners.length > 0) {
-          const ownershipRecords = data.owners.map((o) => ({
-            horse_id: horseId,
-            owner_id: o.owner_id,
-            ownership_percentage: o.percentage,
-            is_primary: o.is_primary,
-          }));
-
-          const { error: ownershipError } = await supabase
+      // Handle ownership records (for both create and edit)
+      // Filter out owners with empty owner_id
+      const validOwners = data.owners.filter(o => o.owner_id && o.owner_id.trim() !== "");
+      
+      if (validOwners.length > 0) {
+        // For edit mode, delete old ownership first
+        if (mode === "edit" && existingHorse?.id) {
+          await supabase
             .from("horse_ownership" as any)
-            .insert(ownershipRecords);
-
-          if (ownershipError) throw ownershipError;
+            .delete()
+            .eq("horse_id", horseId);
         }
 
-        toast({
-          title: "Horse added successfully",
-          description: `${data.name} has been added to your stable.`,
-        });
+        // Insert new ownership records
+        const ownershipRecords = validOwners.map((o) => ({
+          horse_id: horseId,
+          owner_id: o.owner_id,
+          ownership_percentage: o.percentage,
+          is_primary: o.is_primary,
+        }));
+
+        const { error: ownershipError } = await supabase
+          .from("horse_ownership" as any)
+          .insert(ownershipRecords);
+
+        if (ownershipError) {
+          console.error("Ownership error:", ownershipError);
+          // Don't throw - horse was saved successfully, just log warning
+          toast({
+            title: "Warning",
+            description: "Horse saved but ownership records may not have been saved correctly.",
+            variant: "destructive",
+          });
+        }
       }
+
+      toast({
+        title: mode === "edit" ? "Horse updated successfully" : "Horse added successfully",
+        description: `${data.name} has been ${mode === "edit" ? "updated" : "added to your stable"}.`,
+      });
 
       // Reset and close
       setData(initialData);
