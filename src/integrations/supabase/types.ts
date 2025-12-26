@@ -126,6 +126,90 @@ export type Database = {
           },
         ]
       }
+      branches: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "branches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      breeders: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          phone: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          phone?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          phone?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breeders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -162,53 +246,370 @@ export type Database = {
           },
         ]
       }
-      horses: {
+      horse_breeds: {
         Row: {
-          avatar_url: string | null
-          birth_date: string | null
-          breed: string | null
-          color: string | null
           created_at: string
-          gender: string
           id: string
-          microchip_number: string | null
           name: string
-          notes: string | null
-          registration_number: string | null
+          name_ar: string | null
           tenant_id: string
-          updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
-          birth_date?: string | null
-          breed?: string | null
-          color?: string | null
           created_at?: string
-          gender: string
           id?: string
-          microchip_number?: string | null
           name: string
-          notes?: string | null
-          registration_number?: string | null
+          name_ar?: string | null
           tenant_id: string
-          updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
-          birth_date?: string | null
-          breed?: string | null
-          color?: string | null
           created_at?: string
-          gender?: string
           id?: string
-          microchip_number?: string | null
           name?: string
-          notes?: string | null
-          registration_number?: string | null
+          name_ar?: string | null
           tenant_id?: string
-          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "horse_breeds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_breeds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_colors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          name_ar: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_colors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_colors_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_owners: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          phone: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          phone?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          phone?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_owners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_owners_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_ownership: {
+        Row: {
+          created_at: string
+          horse_id: string
+          id: string
+          is_primary: boolean
+          owner_id: string
+          ownership_percentage: number
+        }
+        Insert: {
+          created_at?: string
+          horse_id: string
+          id?: string
+          is_primary?: boolean
+          owner_id: string
+          ownership_percentage: number
+        }
+        Update: {
+          created_at?: string
+          horse_id?: string
+          id?: string
+          is_primary?: boolean
+          owner_id?: string
+          ownership_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_ownership_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_ownership_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "horse_owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horses: {
+        Row: {
+          age_category: string | null
+          avatar_url: string | null
+          birth_date: string | null
+          body_marks: string | null
+          branch_id: string | null
+          breed: string | null
+          breed_id: string | null
+          breeder_id: string | null
+          color: string | null
+          color_id: string | null
+          created_at: string
+          distinctive_marks_notes: string | null
+          external_links: string[] | null
+          father_id: string | null
+          father_name: string | null
+          father_name_ar: string | null
+          gender: string
+          height: number | null
+          housing_notes: string | null
+          housing_unit_id: string | null
+          id: string
+          images: string[] | null
+          is_pregnant: boolean
+          legs_marks: string | null
+          mane_marks: string | null
+          maternal_grandfather: string | null
+          maternal_grandmother: string | null
+          microchip_number: string | null
+          mother_id: string | null
+          mother_name: string | null
+          mother_name_ar: string | null
+          name: string
+          name_ar: string | null
+          notes: string | null
+          passport_number: string | null
+          paternal_grandfather: string | null
+          paternal_grandmother: string | null
+          pregnancy_months: number | null
+          registration_number: string | null
+          stable_id: string | null
+          status: string
+          tenant_id: string
+          ueln: string | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          age_category?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          body_marks?: string | null
+          branch_id?: string | null
+          breed?: string | null
+          breed_id?: string | null
+          breeder_id?: string | null
+          color?: string | null
+          color_id?: string | null
+          created_at?: string
+          distinctive_marks_notes?: string | null
+          external_links?: string[] | null
+          father_id?: string | null
+          father_name?: string | null
+          father_name_ar?: string | null
+          gender: string
+          height?: number | null
+          housing_notes?: string | null
+          housing_unit_id?: string | null
+          id?: string
+          images?: string[] | null
+          is_pregnant?: boolean
+          legs_marks?: string | null
+          mane_marks?: string | null
+          maternal_grandfather?: string | null
+          maternal_grandmother?: string | null
+          microchip_number?: string | null
+          mother_id?: string | null
+          mother_name?: string | null
+          mother_name_ar?: string | null
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          passport_number?: string | null
+          paternal_grandfather?: string | null
+          paternal_grandmother?: string | null
+          pregnancy_months?: number | null
+          registration_number?: string | null
+          stable_id?: string | null
+          status?: string
+          tenant_id: string
+          ueln?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          age_category?: string | null
+          avatar_url?: string | null
+          birth_date?: string | null
+          body_marks?: string | null
+          branch_id?: string | null
+          breed?: string | null
+          breed_id?: string | null
+          breeder_id?: string | null
+          color?: string | null
+          color_id?: string | null
+          created_at?: string
+          distinctive_marks_notes?: string | null
+          external_links?: string[] | null
+          father_id?: string | null
+          father_name?: string | null
+          father_name_ar?: string | null
+          gender?: string
+          height?: number | null
+          housing_notes?: string | null
+          housing_unit_id?: string | null
+          id?: string
+          images?: string[] | null
+          is_pregnant?: boolean
+          legs_marks?: string | null
+          mane_marks?: string | null
+          maternal_grandfather?: string | null
+          maternal_grandmother?: string | null
+          microchip_number?: string | null
+          mother_id?: string | null
+          mother_name?: string | null
+          mother_name_ar?: string | null
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          passport_number?: string | null
+          paternal_grandfather?: string | null
+          paternal_grandmother?: string | null
+          pregnancy_months?: number | null
+          registration_number?: string | null
+          stable_id?: string | null
+          status?: string
+          tenant_id?: string
+          ueln?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_breed_id_fkey"
+            columns: ["breed_id"]
+            isOneToOne: false
+            referencedRelation: "horse_breeds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_breeder_id_fkey"
+            columns: ["breeder_id"]
+            isOneToOne: false
+            referencedRelation: "breeders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_color_id_fkey"
+            columns: ["color_id"]
+            isOneToOne: false
+            referencedRelation: "horse_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_father_id_fkey"
+            columns: ["father_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_housing_unit_id_fkey"
+            columns: ["housing_unit_id"]
+            isOneToOne: false
+            referencedRelation: "housing_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_mother_id_fkey"
+            columns: ["mother_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_stable_id_fkey"
+            columns: ["stable_id"]
+            isOneToOne: false
+            referencedRelation: "stables"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horses_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -218,6 +619,71 @@ export type Database = {
           },
           {
             foreignKeyName: "horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      housing_units: {
+        Row: {
+          branch_id: string | null
+          code: string
+          created_at: string
+          id: string
+          notes: string | null
+          stable_id: string | null
+          status: string
+          tenant_id: string
+          unit_type: string
+        }
+        Insert: {
+          branch_id?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          stable_id?: string | null
+          status?: string
+          tenant_id: string
+          unit_type?: string
+        }
+        Update: {
+          branch_id?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          stable_id?: string | null
+          status?: string
+          tenant_id?: string
+          unit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housing_units_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_units_stable_id_fkey"
+            columns: ["stable_id"]
+            isOneToOne: false
+            referencedRelation: "stables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_units_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_units_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -617,6 +1083,52 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      stables: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stables_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stables_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tenant_members: {
         Row: {
