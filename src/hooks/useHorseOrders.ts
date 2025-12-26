@@ -20,6 +20,7 @@ export interface HorseOrder {
   notes: string | null;
   internal_resource_ref: Record<string, unknown> | null;
   external_provider_name: string | null;
+  external_provider_id: string | null;
   external_provider_meta: Record<string, unknown> | null;
   estimated_cost: number | null;
   actual_cost: number | null;
@@ -28,6 +29,8 @@ export interface HorseOrder {
   tax_category: string | null;
   account_code: string | null;
   financial_category: string | null;
+  client_id: string | null;
+  assigned_to: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -61,9 +64,15 @@ export interface CreateOrderData {
   notes?: string | null;
   internal_resource_ref?: Json | null;
   external_provider_name?: string | null;
+  external_provider_id?: string | null;
   external_provider_meta?: Json | null;
   estimated_cost?: number | null;
   is_income?: boolean;
+  tax_category?: string | null;
+  account_code?: string | null;
+  financial_category?: string | null;
+  client_id?: string | null;
+  assigned_to?: string | null;
 }
 
 export interface OrderFilters {
