@@ -42,7 +42,7 @@ export function useCustomFinancialCategories() {
       const { data, error } = await supabase
         .from('custom_financial_categories')
         .select('*')
-        .eq('tenant_id', activeTenant.id)
+        .eq('tenant_id', activeTenant.tenant_id)
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
@@ -67,7 +67,7 @@ export function useCustomFinancialCategories() {
         .from('custom_financial_categories')
         .insert({
           ...categoryData,
-          tenant_id: activeTenant.id,
+          tenant_id: activeTenant.tenant_id,
         })
         .select()
         .single();
