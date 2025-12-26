@@ -20,10 +20,6 @@ interface OrderFiltersProps {
   onFiltersChange: (filters: OrderFilters) => void;
   horses: HorseOption[];
 }
-  filters: OrderFilters;
-  onFiltersChange: (filters: OrderFilters) => void;
-  horses: Horse[];
-}
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
