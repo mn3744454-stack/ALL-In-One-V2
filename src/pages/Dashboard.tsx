@@ -55,7 +55,7 @@ const Dashboard = () => {
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
   return (
-    <div className="h-screen w-full bg-cream flex overflow-hidden">
+    <div className="h-dvh w-full bg-cream flex overflow-hidden">
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy transform transition-transform duration-300 lg:translate-x-0 lg:static ${
@@ -153,9 +153,9 @@ const Dashboard = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 h-screen min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
               <button
@@ -194,251 +194,254 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <div className="p-4 lg:p-8">
-          {/* Welcome Section */}
-          <div className="mb-8">
-            <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
-              Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
-            </h1>
-            <p className="text-muted-foreground">
-              {activeTenant
-                ? `Here's what's happening at ${activeTenant.tenant.name} today.`
-                : "Discover our services and explore what Khail has to offer."}
-            </p>
-          </div>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Dashboard Content */}
+          <div className="p-4 lg:p-8">
+            {/* Welcome Section */}
+            <div className="mb-8">
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
+                Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+              </h1>
+              <p className="text-muted-foreground">
+                {activeTenant
+                  ? `Here's what's happening at ${activeTenant.tenant.name} today.`
+                  : "Discover our services and explore what Khail has to offer."}
+              </p>
+            </div>
 
-          {/* Getting Started Card - Only show when no tenants */}
-          {hasNoTenants && (
-            <Card variant="elevated" className="mb-8 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
-                    <Building2 className="w-7 h-7 text-gold" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                      Get Started with Khail
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Create your organization to manage horses, track health records, and collaborate with your team. Or explore our services first!
-                    </p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Button
-                      variant="gold"
-                      onClick={() => navigate("/select-role")}
-                      className="gap-2"
-                    >
-                      <Building2 className="w-4 h-4" />
-                      Create Organization
-                    </Button>
-                    <InvitationsPanel />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Public Profile Setup Reminder - for owners who haven't set up their public profile */}
-          {needsPublicProfileSetup && (
-            <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center shrink-0">
-                    <AlertCircle className="w-7 h-7 text-orange-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                      Complete Your Public Profile
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Set up your public profile to appear in the directory and let customers find and book your services.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/dashboard/public-profile")}
-                    className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10"
-                  >
-                    <Globe className="w-4 h-4" />
-                    Set Up Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* View Public Profile Button - for owners with completed public profile */}
-          {hasPublicProfile && (
-            <Card variant="elevated" className="mb-8 border-success/30 bg-gradient-to-r from-success/5 to-transparent">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center shrink-0">
-                    <Globe className="w-7 h-7 text-success" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                      Your Public Profile is Live!
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      Customers can now find you in the directory and book your services.
-                    </p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/dashboard/public-profile")}
-                      className="gap-2"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Edit Profile
-                    </Button>
-                    <Button
-                      variant="gold"
-                      onClick={() => window.open(`/tenant/${activeTenant.tenant.slug}`, '_blank')}
-                      className="gap-2"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      View Public Page
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={Heart}
-              label="Total Horses"
-              value={horses.length.toString()}
-              change={horses.length > 0 ? "Active records" : "Add your first horse"}
-            />
-            <StatCard
-              icon={Activity}
-              label="Health Checkups"
-              value="0"
-              change="Scheduled this week"
-            />
-            <StatCard
-              icon={Users}
-              label="Team Members"
-              value="1"
-              change="Active"
-            />
-            <StatCard
-              icon={TrendingUp}
-              label="This Month"
-              value="—"
-              change="Stats coming soon"
-            />
-          </div>
-
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Horses List - Only show if user has a tenant */}
-            {activeTenant ? (
-              <div className="lg:col-span-2">
-                <Card variant="elevated">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-navy">Your Horses</CardTitle>
-                    <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
-                      View All <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </CardHeader>
-                  <CardContent>
-                    {horsesLoading ? (
-                      <div className="py-8 text-center text-muted-foreground">
-                        Loading horses...
-                      </div>
-                    ) : horses.length === 0 ? (
-                      <div className="py-8 text-center">
-                        <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-muted-foreground mb-4">No horses yet</p>
-                        <AddHorseDialog
-                          trigger={
-                            <Button variant="outline" size="sm">
-                              Add Your First Horse
-                            </Button>
-                          }
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {horses.slice(0, 5).map((horse) => (
-                          <HorseItem
-                            key={horse.id}
-                            name={horse.name}
-                            breed={horse.breed || "Unknown breed"}
-                            gender={horse.gender}
-                            status="Healthy"
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              /* Available Services - Show for users without tenant */
-              <div className="lg:col-span-2">
-                <Card variant="elevated">
-                  <CardHeader>
-                    <CardTitle className="text-navy">Available Services</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-6">
-                      Explore our services and start your 14-day free trial
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <ServiceCard
-                        icon={Building2}
-                        title="Stable Management"
-                        description="Manage your stable, horses, and team"
-                      />
-                      <ServiceCard
-                        icon={Heart}
-                        title="Horse Owner"
-                        description="Track your horses' health and records"
-                      />
-                      <ServiceCard
-                        icon={Activity}
-                        title="Veterinary Clinic"
-                        description="Manage appointments and medical records"
-                      />
-                      <ServiceCard
-                        icon={Users}
-                        title="Training Academy"
-                        description="Schedule training sessions and track progress"
-                      />
+            {/* Getting Started Card - Only show when no tenants */}
+            {hasNoTenants && (
+              <Card variant="elevated" className="mb-8 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
+                      <Building2 className="w-7 h-7 text-gold" />
                     </div>
-                    <Button
-                      variant="gold"
-                      className="w-full mt-6"
-                      onClick={() => navigate("/select-role")}
-                    >
-                      Start Free Trial (14 days)
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Upcoming Events */}
-            <div>
-              <Card variant="elevated">
-                <CardHeader>
-                  <CardTitle className="text-navy">Upcoming</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="py-8 text-center text-muted-foreground">
-                    <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p>No upcoming events</p>
+                    <div className="flex-1">
+                      <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                        Get Started with Khail
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Create your organization to manage horses, track health records, and collaborate with your team. Or explore our services first!
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                      <Button
+                        variant="gold"
+                        onClick={() => navigate("/select-role")}
+                        className="gap-2"
+                      >
+                        <Building2 className="w-4 h-4" />
+                        Create Organization
+                      </Button>
+                      <InvitationsPanel />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Public Profile Setup Reminder - for owners who haven't set up their public profile */}
+            {needsPublicProfileSetup && (
+              <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-orange-500/10 flex items-center justify-center shrink-0">
+                      <AlertCircle className="w-7 h-7 text-orange-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                        Complete Your Public Profile
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Set up your public profile to appear in the directory and let customers find and book your services.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/dashboard/public-profile")}
+                      className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Set Up Now
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* View Public Profile Button - for owners with completed public profile */}
+            {hasPublicProfile && (
+              <Card variant="elevated" className="mb-8 border-success/30 bg-gradient-to-r from-success/5 to-transparent">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center shrink-0">
+                      <Globe className="w-7 h-7 text-success" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                        Your Public Profile is Live!
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Customers can now find you in the directory and book your services.
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate("/dashboard/public-profile")}
+                        className="gap-2"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Edit Profile
+                      </Button>
+                      <Button
+                        variant="gold"
+                        onClick={() => window.open(`/tenant/${activeTenant.tenant.slug}`, '_blank')}
+                        className="gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        View Public Page
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <StatCard
+                icon={Heart}
+                label="Total Horses"
+                value={horses.length.toString()}
+                change={horses.length > 0 ? "Active records" : "Add your first horse"}
+              />
+              <StatCard
+                icon={Activity}
+                label="Health Checkups"
+                value="0"
+                change="Scheduled this week"
+              />
+              <StatCard
+                icon={Users}
+                label="Team Members"
+                value="1"
+                change="Active"
+              />
+              <StatCard
+                icon={TrendingUp}
+                label="This Month"
+                value="—"
+                change="Stats coming soon"
+              />
+            </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Horses List - Only show if user has a tenant */}
+              {activeTenant ? (
+                <div className="lg:col-span-2">
+                  <Card variant="elevated">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="text-navy">Your Horses</CardTitle>
+                      <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
+                        View All <ChevronRight className="w-4 h-4" />
+                      </Link>
+                    </CardHeader>
+                    <CardContent>
+                      {horsesLoading ? (
+                        <div className="py-8 text-center text-muted-foreground">
+                          Loading horses...
+                        </div>
+                      ) : horses.length === 0 ? (
+                        <div className="py-8 text-center">
+                          <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                          <p className="text-muted-foreground mb-4">No horses yet</p>
+                          <AddHorseDialog
+                            trigger={
+                              <Button variant="outline" size="sm">
+                                Add Your First Horse
+                              </Button>
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {horses.slice(0, 5).map((horse) => (
+                            <HorseItem
+                              key={horse.id}
+                              name={horse.name}
+                              breed={horse.breed || "Unknown breed"}
+                              gender={horse.gender}
+                              status="Healthy"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                /* Available Services - Show for users without tenant */
+                <div className="lg:col-span-2">
+                  <Card variant="elevated">
+                    <CardHeader>
+                      <CardTitle className="text-navy">Available Services</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground mb-6">
+                        Explore our services and start your 14-day free trial
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <ServiceCard
+                          icon={Building2}
+                          title="Stable Management"
+                          description="Manage your stable, horses, and team"
+                        />
+                        <ServiceCard
+                          icon={Heart}
+                          title="Horse Owner"
+                          description="Track your horses' health and records"
+                        />
+                        <ServiceCard
+                          icon={Activity}
+                          title="Veterinary Clinic"
+                          description="Manage appointments and medical records"
+                        />
+                        <ServiceCard
+                          icon={Users}
+                          title="Training Academy"
+                          description="Schedule training sessions and track progress"
+                        />
+                      </div>
+                      <Button
+                        variant="gold"
+                        className="w-full mt-6"
+                        onClick={() => navigate("/select-role")}
+                      >
+                        Start Free Trial (14 days)
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Upcoming Events */}
+              <div>
+                <Card variant="elevated">
+                  <CardHeader>
+                    <CardTitle className="text-navy">Upcoming</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="py-8 text-center text-muted-foreground">
+                      <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p>No upcoming events</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
