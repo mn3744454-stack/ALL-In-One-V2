@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import { horseSchema, safeValidate } from "@/lib/validations";
+import { horseSchema, horseSchemaBase, safeValidate } from "@/lib/validations";
 
 interface Horse {
   id: string;
@@ -14,12 +14,15 @@ interface Horse {
   breed_id?: string | null;
   color_id?: string | null;
   birth_date?: string | null;
+  birth_at?: string | null;
   registration_number?: string | null;
   microchip_number?: string | null;
   passport_number?: string | null;
   ueln?: string | null;
   age_category?: string | null;
   status?: string | null;
+  is_gelded?: boolean;
+  breeding_role?: string | null;
   notes?: string | null;
   avatar_url?: string | null;
   created_at: string;
@@ -115,7 +118,7 @@ export const useHorses = (filters?: HorseFilters) => {
   };
 
   const updateHorse = async (id: string, updates: Partial<CreateHorseData>) => {
-    const partialSchema = horseSchema.partial();
+    const partialSchema = horseSchemaBase.partial();
     const validation = safeValidate(partialSchema, updates);
     if (!validation.success) {
       return { data: null, error: new Error(validation.errors.join(", ")) };

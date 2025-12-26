@@ -4,7 +4,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useHorseMasterData } from "@/hooks/useHorseMasterData";
+import { isAdultHorse } from "@/lib/horseClassification";
 import type { HorseWizardData } from "../HorseWizard";
+import { useMemo } from "react";
 
 interface StepDetailsProps {
   data: HorseWizardData;
@@ -13,6 +15,15 @@ interface StepDetailsProps {
 
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
   const { branches, stables, housingUnits } = useHorseMasterData();
+
+  // Check if horse is adult for broodmare toggle
+  const isAdult = useMemo(() => {
+    return isAdultHorse({
+      gender: data.gender,
+      birth_date: data.birth_date,
+      birth_at: data.birth_at,
+    });
+  }, [data.gender, data.birth_date, data.birth_at]);
 
   return (
     <div className="space-y-4">
@@ -60,8 +71,43 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         </Select>
       </div>
 
+      {/* Gelding Toggle - Only for Male Horses */}
+      {data.gender === "male" && (
+        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="gelded" className="text-sm font-medium">Is Gelded?</Label>
+              <p className="text-xs text-muted-foreground">Mark if this horse has been castrated</p>
+            </div>
+            <Switch 
+              id="gelded" 
+              checked={data.is_gelded} 
+              onCheckedChange={(checked) => onChange({ is_gelded: checked })} 
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Broodmare Toggle - Only for Adult Female Horses */}
+      {data.gender === "female" && isAdult && (
+        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="broodmare" className="text-sm font-medium">Broodmare Role</Label>
+              <p className="text-xs text-muted-foreground">Mark if this mare is used for breeding</p>
+            </div>
+            <Switch 
+              id="broodmare" 
+              checked={data.breeding_role === 'broodmare'} 
+              onCheckedChange={(checked) => onChange({ breeding_role: checked ? 'broodmare' : '' })} 
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Pregnancy Section - Only for Female Horses */}
       {data.gender === "female" && (
-        <div className="space-y-4 p-4 bg-muted/50 rounded-xl">
+        <div className="p-4 bg-muted/50 rounded-xl border border-border/50 space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="pregnant">Is Pregnant?</Label>
             <Switch id="pregnant" checked={data.is_pregnant} onCheckedChange={(c) => onChange({ is_pregnant: c })} />
