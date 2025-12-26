@@ -416,6 +416,7 @@ export type Database = {
           action: string
           changed_at: string
           changed_by: string | null
+          effective_date: string | null
           horse_id: string
           id: string
           is_primary: boolean
@@ -423,11 +424,13 @@ export type Database = {
           owner_id: string
           ownership_percentage: number
           previous_percentage: number | null
+          transfer_id: string | null
         }
         Insert: {
           action: string
           changed_at?: string
           changed_by?: string | null
+          effective_date?: string | null
           horse_id: string
           id?: string
           is_primary?: boolean
@@ -435,11 +438,13 @@ export type Database = {
           owner_id: string
           ownership_percentage: number
           previous_percentage?: number | null
+          transfer_id?: string | null
         }
         Update: {
           action?: string
           changed_at?: string
           changed_by?: string | null
+          effective_date?: string | null
           horse_id?: string
           id?: string
           is_primary?: boolean
@@ -447,6 +452,7 @@ export type Database = {
           owner_id?: string
           ownership_percentage?: number
           previous_percentage?: number | null
+          transfer_id?: string | null
         }
         Relationships: [
           {

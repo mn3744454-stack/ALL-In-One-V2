@@ -34,6 +34,7 @@ import {
 } from "@/lib/horseClassification";
 import { HorseWizard, HorseData } from "@/components/horses/HorseWizard";
 import { OwnershipTimeline } from "@/components/horses/OwnershipTimeline";
+import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
 
 interface Horse {
   id: string;
@@ -435,6 +436,9 @@ const HorseProfile = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Current Ownership */}
+        <CurrentOwnership horseId={horse.id} horseName={horse.name} />
 
         {/* Ownership Timeline */}
         <OwnershipTimeline horseId={horse.id} />

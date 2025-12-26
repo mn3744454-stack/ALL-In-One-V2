@@ -299,6 +299,7 @@ export const useHorseMasterData = () => {
     createHousingUnit,
     createBreeder,
     createOwner,
+    fetchOwners,
     refresh: fetchAll,
   };
 };
