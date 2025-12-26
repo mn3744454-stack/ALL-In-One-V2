@@ -6,3 +6,6 @@ export { ServiceModeBadge } from "./ServiceModeBadge";
 export { OrderFilters } from "./OrderFilters";
 export { PinnedTabs } from "./PinnedTabs";
 export { OrderTimeline } from "./OrderTimeline";
+export { CreateOrderDialog } from "./CreateOrderDialog";
+export { OrderTypesManager } from "./OrderTypesManager";
+export { CapabilitiesManager } from "./CapabilitiesManager";
