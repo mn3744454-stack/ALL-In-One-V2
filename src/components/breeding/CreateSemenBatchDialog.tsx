@@ -90,124 +90,133 @@ export function CreateSemenBatchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Semen Batch</DialogTitle>
+          <DialogTitle className="text-xl font-display">Add Semen Batch</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Stallion *</Label>
-            <Select value={stallionId} onValueChange={setStallionId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select stallion" />
-              </SelectTrigger>
-              <SelectContent>
-                {stallions.map((stallion) => (
-                  <SelectItem key={stallion.id} value={stallion.id}>
-                    {stallion.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Stallion *</Label>
+                <Select value={stallionId} onValueChange={setStallionId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select stallion" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    {stallions.map((stallion) => (
+                      <SelectItem key={stallion.id} value={stallion.id}>
+                        {stallion.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Storage Tank</Label>
-            <Select value={tankId} onValueChange={setTankId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select tank (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">No tank</SelectItem>
-                {tanks.map((tank) => (
-                  <SelectItem key={tank.id} value={tank.id}>
-                    {tank.name} {tank.location && `(${tank.location})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label>Storage Tank</Label>
+                <Select value={tankId} onValueChange={setTankId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tank (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="">No tank</SelectItem>
+                    {tanks.map((tank) => (
+                      <SelectItem key={tank.id} value={tank.id}>
+                        {tank.name} {tank.location && `(${tank.location})`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Collection Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !collectionDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {collectionDate ? format(collectionDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={collectionDate}
-                  onSelect={setCollectionDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Type *</Label>
-            <Select value={type} onValueChange={(v) => setType(v as CreateSemenBatchData["type"])}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="fresh">Fresh</SelectItem>
-                <SelectItem value="frozen">Frozen</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Total Doses *</Label>
-              <Input
-                type="number"
-                min="1"
-                value={dosesTotal}
-                onChange={(e) => handleDosesTotalChange(e.target.value)}
-              />
+              <div className="space-y-2">
+                <Label>Collection Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !collectionDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {collectionDate ? format(collectionDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={collectionDate}
+                      onSelect={setCollectionDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Available Doses</Label>
-              <Input
-                type="number"
-                min="0"
-                max={dosesTotal}
-                value={dosesAvailable}
-                onChange={(e) => setDosesAvailable(e.target.value)}
-              />
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Type *</Label>
+                <Select value={type} onValueChange={(v) => setType(v as CreateSemenBatchData["type"])}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="fresh">Fresh</SelectItem>
+                    <SelectItem value="frozen">Frozen</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Total Doses *</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={dosesTotal}
+                    onChange={(e) => handleDosesTotalChange(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Available Doses</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max={dosesTotal}
+                    value={dosesAvailable}
+                    onChange={(e) => setDosesAvailable(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
+          {/* Full Width Notes */}
           <div className="space-y-2">
             <Label>Quality Notes</Label>
             <Textarea
               value={qualityNotes}
               onChange={(e) => setQualityNotes(e.target.value)}
-              placeholder="Motility, concentration, etc..."
-              rows={3}
+              placeholder="Motility, concentration, morphology, etc..."
+              rows={4}
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={loading || !stallionId || !collectionDate}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? "Creating..." : "Create Batch"}
             </Button>
           </div>
         </form>
