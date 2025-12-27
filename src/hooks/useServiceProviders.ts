@@ -64,7 +64,7 @@ export function useServiceProviders() {
   const canManage = activeRole === 'owner' || activeRole === 'manager';
 
   const fetchProviders = useCallback(async () => {
-    if (!activeTenant?.id) {
+    if (!activeTenant?.tenant?.id) {
       setProviders([]);
       setLoading(false);
       return;
@@ -75,7 +75,7 @@ export function useServiceProviders() {
       const { data, error } = await supabase
         .from('service_providers')
         .select('*')
-        .eq('tenant_id', activeTenant.id)
+        .eq('tenant_id', activeTenant.tenant.id)
         .order('name');
 
       if (error) throw error;
@@ -90,7 +90,7 @@ export function useServiceProviders() {
     } finally {
       setLoading(false);
     }
-  }, [activeTenant?.id, toast]);
+  }, [activeTenant?.tenant?.id, toast]);
 
   useEffect(() => {
     fetchProviders();
@@ -113,14 +113,14 @@ export function useServiceProviders() {
   }, [providers]);
 
   const createProvider = async (data: CreateServiceProviderData) => {
-    if (!activeTenant?.id || !canManage) return null;
+    if (!activeTenant?.tenant?.id || !canManage) return null;
 
     try {
       const { data: newProvider, error } = await supabase
         .from('service_providers')
         .insert({
           ...data,
-          tenant_id: activeTenant.id,
+          tenant_id: activeTenant.tenant.id,
         })
         .select()
         .single();

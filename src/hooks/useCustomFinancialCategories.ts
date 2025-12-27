@@ -32,7 +32,7 @@ export function useCustomFinancialCategories() {
   const [loading, setLoading] = useState(true);
 
   const fetchCategories = useCallback(async () => {
-    if (!activeTenant) {
+    if (!activeTenant?.tenant?.id) {
       setCategories([]);
       setLoading(false);
       return;
@@ -42,7 +42,7 @@ export function useCustomFinancialCategories() {
       const { data, error } = await supabase
         .from('custom_financial_categories')
         .select('*')
-        .eq('tenant_id', activeTenant.tenant_id)
+        .eq('tenant_id', activeTenant.tenant.id)
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
@@ -60,14 +60,14 @@ export function useCustomFinancialCategories() {
   }, [fetchCategories]);
 
   const createCategory = async (categoryData: CreateCustomCategoryData) => {
-    if (!activeTenant) return null;
+    if (!activeTenant?.tenant?.id) return null;
 
     try {
       const { data, error } = await supabase
         .from('custom_financial_categories')
         .insert({
           ...categoryData,
-          tenant_id: activeTenant.tenant_id,
+          tenant_id: activeTenant.tenant.id,
         })
         .select()
         .single();

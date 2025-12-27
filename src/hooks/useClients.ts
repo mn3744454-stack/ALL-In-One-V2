@@ -50,7 +50,7 @@ export function useClients() {
   const canManage = activeRole === 'owner' || activeRole === 'manager';
 
   const fetchClients = useCallback(async () => {
-    if (!activeTenant?.id) {
+    if (!activeTenant?.tenant?.id) {
       setClients([]);
       setLoading(false);
       return;
@@ -61,7 +61,7 @@ export function useClients() {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('tenant_id', activeTenant.id)
+        .eq('tenant_id', activeTenant.tenant.id)
         .order('name');
 
       if (error) throw error;
@@ -76,7 +76,7 @@ export function useClients() {
     } finally {
       setLoading(false);
     }
-  }, [activeTenant?.id, toast]);
+  }, [activeTenant?.tenant?.id, toast]);
 
   useEffect(() => {
     fetchClients();
@@ -105,14 +105,14 @@ export function useClients() {
   }, [clients]);
 
   const createClient = async (data: CreateClientData) => {
-    if (!activeTenant?.id || !canManage) return null;
+    if (!activeTenant?.tenant?.id || !canManage) return null;
 
     try {
       const { data: newClient, error } = await supabase
         .from('clients')
         .insert({
           ...data,
-          tenant_id: activeTenant.id,
+          tenant_id: activeTenant.tenant.id,
         })
         .select()
         .single();
