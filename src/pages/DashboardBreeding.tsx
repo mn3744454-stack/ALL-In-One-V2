@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Plus, Heart, Baby, Syringe, FlaskConical, Search, Menu } from "lucide-react";
@@ -23,6 +23,125 @@ import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDial
 import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTransferDialog";
 import { CreateSemenBatchDialog } from "@/components/breeding/CreateSemenBatchDialog";
 
+// Mock data for demo purposes
+const mockAttempts = [
+  {
+    id: "mock-1",
+    mare: { name: "الريم", avatar_url: null },
+    stallion: { name: "الأصيل", avatar_url: null },
+    attempt_type: "natural",
+    attempt_date: "2024-12-20",
+    result: "pending",
+    notes: "First breeding attempt of the season",
+    created_by_profile: { full_name: "Ahmed" },
+  },
+  {
+    id: "mock-2",
+    mare: { name: "الفرسة الذهبية", avatar_url: null },
+    stallion: { name: "البرق", avatar_url: null },
+    attempt_type: "ai_fresh",
+    attempt_date: "2024-12-18",
+    result: "confirmed",
+    notes: "Successful AI procedure",
+    created_by_profile: { full_name: "Mohammed" },
+  },
+  {
+    id: "mock-3",
+    mare: { name: "نجمة الصحراء", avatar_url: null },
+    stallion: null,
+    external_stallion_name: "Champion Star",
+    attempt_type: "ai_frozen",
+    attempt_date: "2024-12-15",
+    result: "failed",
+    notes: "External stallion semen used",
+    created_by_profile: { full_name: "Khalid" },
+  },
+];
+
+const mockPregnancies = [
+  {
+    id: "mock-p1",
+    mare: { name: "الريم", avatar_url: null },
+    start_date: "2024-10-15",
+    expected_due_date: "2025-09-15",
+    status: "active",
+    notes: "Healthy pregnancy, regular checkups",
+    created_by_profile: { full_name: "Ahmed" },
+  },
+  {
+    id: "mock-p2",
+    mare: { name: "الفرسة الذهبية", avatar_url: null },
+    start_date: "2024-11-01",
+    expected_due_date: "2025-10-01",
+    status: "active",
+    notes: "Twin pregnancy confirmed",
+    created_by_profile: { full_name: "Mohammed" },
+  },
+];
+
+const mockTransfers = [
+  {
+    id: "mock-t1",
+    donor_mare: { name: "نجمة الصحراء", avatar_url: null },
+    recipient_mare: { name: "الأميرة", avatar_url: null },
+    flush_date: "2024-12-10",
+    transfer_date: "2024-12-11",
+    embryo_grade: "excellent",
+    embryo_count: 2,
+    status: "transferred",
+    notes: "High quality embryos",
+    created_by_profile: { full_name: "Dr. Sarah" },
+  },
+  {
+    id: "mock-t2",
+    donor_mare: { name: "الريم", avatar_url: null },
+    recipient_mare: { name: "القمر", avatar_url: null },
+    flush_date: "2024-12-05",
+    transfer_date: null,
+    embryo_grade: "good",
+    embryo_count: 1,
+    status: "pending",
+    notes: "Awaiting recipient preparation",
+    created_by_profile: { full_name: "Dr. Sarah" },
+  },
+];
+
+const mockBatches = [
+  {
+    id: "mock-b1",
+    stallion: { name: "الأصيل", avatar_url: null },
+    collection_date: "2024-12-01",
+    type: "frozen",
+    doses_total: 20,
+    doses_available: 15,
+    quality_notes: "Excellent motility 85%, concentration 500M/ml",
+    tank: { name: "Tank A", location: "Main Facility" },
+    created_by_profile: { full_name: "Dr. Ahmed" },
+  },
+  {
+    id: "mock-b2",
+    stallion: { name: "البرق", avatar_url: null },
+    collection_date: "2024-12-10",
+    type: "fresh",
+    doses_total: 5,
+    doses_available: 3,
+    quality_notes: "Fresh collection, use within 48 hours",
+    tank: null,
+    created_by_profile: { full_name: "Dr. Ahmed" },
+  },
+  {
+    id: "mock-b3",
+    stallion: { name: "الأصيل", avatar_url: null },
+    collection_date: "2024-11-15",
+    type: "frozen",
+    doses_total: 30,
+    doses_available: 28,
+    quality_notes: "Premium quality, 90% motility",
+    tank: { name: "Tank B", location: "Storage Room" },
+    created_by_profile: { full_name: "Dr. Ahmed" },
+  },
+];
+
 export default function DashboardBreeding() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("attempts");
@@ -37,6 +156,27 @@ export default function DashboardBreeding() {
   const { pregnancies, loading: pregnanciesLoading, closePregnancy } = usePregnancies();
   const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
   const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
+
+  // Use mock data if real data is empty
+  const displayAttempts = useMemo(() => 
+    attempts.length > 0 ? attempts : mockAttempts, [attempts]
+  );
+  const displayPregnancies = useMemo(() => 
+    pregnancies.length > 0 ? pregnancies : mockPregnancies, [pregnancies]
+  );
+  const displayTransfers = useMemo(() => 
+    transfers.length > 0 ? transfers : mockTransfers, [transfers]
+  );
+  const displayBatches = useMemo(() => 
+    batches.length > 0 ? batches : mockBatches, [batches]
+  );
+
+  const isUsingMockData = {
+    attempts: attempts.length === 0,
+    pregnancies: pregnancies.length === 0,
+    transfers: transfers.length === 0,
+    batches: batches.length === 0,
+  };
 
   const handleAddNew = () => {
     switch (activeTab) {
@@ -158,28 +298,22 @@ export default function DashboardBreeding() {
                     </div>
 
                     <TabsContent value="attempts">
+                      {isUsingMockData.attempts && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                          📋 Showing demo data. Add your first breeding attempt to see real records.
+                        </div>
+                      )}
                       {attemptsLoading ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
                         </div>
-                      ) : attempts.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                          <Heart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No breeding attempts recorded yet</p>
-                          {canManage && (
-                            <Button variant="outline" className="mt-4" onClick={() => setShowAttemptDialog(true)}>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add First Attempt
-                            </Button>
-                          )}
-                        </div>
                       ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {attempts.map((attempt) => (
+                          {displayAttempts.map((attempt) => (
                             <BreedingAttemptCard
                               key={attempt.id}
                               attempt={attempt}
-                              canManage={canManage}
+                              canManage={canManage && !isUsingMockData.attempts}
                               onUpdateResult={(id, result) => updateAttempt(id, { result })}
                               onDelete={deleteAttempt}
                             />
@@ -189,28 +323,22 @@ export default function DashboardBreeding() {
                     </TabsContent>
 
                     <TabsContent value="pregnancies">
+                      {isUsingMockData.pregnancies && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                          📋 Showing demo data. Add your first pregnancy record to see real records.
+                        </div>
+                      )}
                       {pregnanciesLoading ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
                         </div>
-                      ) : pregnancies.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                          <Baby className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No pregnancy records yet</p>
-                          {canManage && (
-                            <Button variant="outline" className="mt-4" onClick={() => setShowPregnancyDialog(true)}>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add First Record
-                            </Button>
-                          )}
-                        </div>
                       ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {pregnancies.map((pregnancy) => (
+                          {displayPregnancies.map((pregnancy) => (
                             <PregnancyCard
                               key={pregnancy.id}
                               pregnancy={pregnancy}
-                              canManage={canManage}
+                              canManage={canManage && !isUsingMockData.pregnancies}
                               onClose={closePregnancy}
                             />
                           ))}
@@ -219,28 +347,22 @@ export default function DashboardBreeding() {
                     </TabsContent>
 
                     <TabsContent value="embryo">
+                      {isUsingMockData.transfers && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                          📋 Showing demo data. Add your first embryo transfer to see real records.
+                        </div>
+                      )}
                       {transfersLoading ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
                         </div>
-                      ) : transfers.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                          <FlaskConical className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No embryo transfers recorded yet</p>
-                          {canManage && (
-                            <Button variant="outline" className="mt-4" onClick={() => setShowTransferDialog(true)}>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add First Transfer
-                            </Button>
-                          )}
-                        </div>
                       ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {transfers.map((transfer) => (
+                          {displayTransfers.map((transfer) => (
                             <EmbryoTransferCard
                               key={transfer.id}
                               transfer={transfer}
-                              canManage={canManage}
+                              canManage={canManage && !isUsingMockData.transfers}
                               onUpdateStatus={(id, status) => updateTransfer(id, { status })}
                               onDelete={deleteTransfer}
                             />
@@ -250,28 +372,22 @@ export default function DashboardBreeding() {
                     </TabsContent>
 
                     <TabsContent value="inventory">
+                      {isUsingMockData.batches && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
+                          📋 Showing demo data. Add your first semen batch to see real records.
+                        </div>
+                      )}
                       {inventoryLoading ? (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}
                         </div>
-                      ) : batches.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground">
-                          <Syringe className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                          <p>No semen batches in inventory</p>
-                          {canManage && (
-                            <Button variant="outline" className="mt-4" onClick={() => setShowBatchDialog(true)}>
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add First Batch
-                            </Button>
-                          )}
-                        </div>
                       ) : (
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                          {batches.map((batch) => (
+                          {displayBatches.map((batch) => (
                             <SemenBatchCard
                               key={batch.id}
                               batch={batch}
-                              canManage={canManage}
+                              canManage={canManage && !isUsingMockData.batches}
                               onDelete={deleteBatch}
                             />
                           ))}

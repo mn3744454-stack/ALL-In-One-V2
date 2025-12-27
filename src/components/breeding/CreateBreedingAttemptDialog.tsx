@@ -85,126 +85,135 @@ export function CreateBreedingAttemptDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Breeding Attempt</DialogTitle>
+          <DialogTitle className="text-xl font-display">Add Breeding Attempt</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Mare *</Label>
-            <Select value={mareId} onValueChange={setMareId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select mare" />
-              </SelectTrigger>
-              <SelectContent>
-                {mares.map((mare) => (
-                  <SelectItem key={mare.id} value={mare.id}>
-                    {mare.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Mare *</Label>
+                <Select value={mareId} onValueChange={setMareId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select mare" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    {mares.map((mare) => (
+                      <SelectItem key={mare.id} value={mare.id}>
+                        {mare.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="useExternal"
-                checked={useExternalStallion}
-                onChange={(e) => setUseExternalStallion(e.target.checked)}
-                className="rounded"
-              />
-              <Label htmlFor="useExternal" className="text-sm">Use external stallion</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="useExternal"
+                    checked={useExternalStallion}
+                    onChange={(e) => setUseExternalStallion(e.target.checked)}
+                    className="rounded border-input"
+                  />
+                  <Label htmlFor="useExternal" className="text-sm cursor-pointer">Use external stallion</Label>
+                </div>
+              </div>
+
+              {useExternalStallion ? (
+                <div className="space-y-2">
+                  <Label>External Stallion Name</Label>
+                  <Input
+                    value={externalStallionName}
+                    onChange={(e) => setExternalStallionName(e.target.value)}
+                    placeholder="Enter stallion name"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Stallion</Label>
+                  <Select value={stallionId} onValueChange={setStallionId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stallion" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[200]">
+                      {stallions.map((stallion) => (
+                        <SelectItem key={stallion.id} value={stallion.id}>
+                          {stallion.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Attempt Type *</Label>
+                <Select value={attemptType} onValueChange={(v) => setAttemptType(v as CreateBreedingAttemptData["attempt_type"])}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="natural">Natural</SelectItem>
+                    <SelectItem value="ai_fresh">AI (Fresh)</SelectItem>
+                    <SelectItem value="ai_frozen">AI (Frozen)</SelectItem>
+                    <SelectItem value="embryo_transfer">Embryo Transfer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Attempt Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !attemptDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {attemptDate ? format(attemptDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={attemptDate}
+                      onSelect={setAttemptDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
 
-          {useExternalStallion ? (
-            <div className="space-y-2">
-              <Label>External Stallion Name</Label>
-              <Input
-                value={externalStallionName}
-                onChange={(e) => setExternalStallionName(e.target.value)}
-                placeholder="Enter stallion name"
-              />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label>Stallion</Label>
-              <Select value={stallionId} onValueChange={setStallionId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select stallion" />
-                </SelectTrigger>
-                <SelectContent>
-                  {stallions.map((stallion) => (
-                    <SelectItem key={stallion.id} value={stallion.id}>
-                      {stallion.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label>Attempt Type *</Label>
-            <Select value={attemptType} onValueChange={(v) => setAttemptType(v as CreateBreedingAttemptData["attempt_type"])}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="natural">Natural</SelectItem>
-                <SelectItem value="ai_fresh">AI (Fresh)</SelectItem>
-                <SelectItem value="ai_frozen">AI (Frozen)</SelectItem>
-                <SelectItem value="embryo_transfer">Embryo Transfer</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Attempt Date *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !attemptDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {attemptDate ? format(attemptDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={attemptDate}
-                  onSelect={setAttemptDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
+          {/* Full Width Notes */}
           <div className="space-y-2">
             <Label>Notes</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes..."
-              rows={3}
+              placeholder="Optional notes about this breeding attempt..."
+              rows={4}
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={loading || !mareId || !attemptDate}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? "Creating..." : "Create Attempt"}
             </Button>
           </div>
         </form>

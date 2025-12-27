@@ -90,98 +90,110 @@ export function CreatePregnancyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Pregnancy Record</DialogTitle>
+          <DialogTitle className="text-xl font-display">Add Pregnancy Record</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Mare *</Label>
-            <Select value={mareId} onValueChange={handleMareSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select mare" />
-              </SelectTrigger>
-              <SelectContent>
-                {mares.map((mare) => (
-                  <SelectItem key={mare.id} value={mare.id}>
-                    {mare.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Mare *</Label>
+                <Select value={mareId} onValueChange={handleMareSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select mare" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    {mares.map((mare) => (
+                      <SelectItem key={mare.id} value={mare.id}>
+                        {mare.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Start Date (Conception) *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={handleStartDateChange}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Expected Due Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !expectedDueDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {expectedDueDate ? format(expectedDueDate, "PPP") : <span>Auto-calculated (~11 months)</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={expectedDueDate}
+                      onSelect={setExpectedDueDate}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Automatically calculated as 11 months from conception date
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Start Date (Conception) *</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={handleStartDateChange}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Expected Due Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !expectedDueDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expectedDueDate ? format(expectedDueDate, "PPP") : <span>Auto-calculated (~11 months)</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={expectedDueDate}
-                  onSelect={setExpectedDueDate}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
+          {/* Full Width Notes */}
           <div className="space-y-2">
             <Label>Notes</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes..."
-              rows={3}
+              placeholder="Optional notes about this pregnancy..."
+              rows={4}
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" className="flex-1" disabled={loading || !mareId || !startDate}>
-              {loading ? "Creating..." : "Create"}
+              {loading ? "Creating..." : "Create Record"}
             </Button>
           </div>
         </form>
