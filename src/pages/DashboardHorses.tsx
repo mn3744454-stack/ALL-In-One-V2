@@ -5,6 +5,7 @@ import Logo from "@/components/Logo";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NavGroup } from "@/components/dashboard/NavGroup";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -28,6 +29,8 @@ import {
   GraduationCap,
   Ticket,
   CreditCard,
+  ClipboardList,
+  Baby,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -121,9 +124,21 @@ const DashboardHorses = () => {
             <NavItem icon={MessageSquare} label="Community" href="/community" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Ticket} label="My Bookings" href="/dashboard/my-bookings" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={CreditCard} label="Payments" href="/dashboard/payments" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Heart} label="My Horses" href="/dashboard/horses" active badge={horses.length} onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={FileText} label="Orders" href="/dashboard/horse-orders" onNavigate={() => setSidebarOpen(false)} />
+            
+            {/* Horses NavGroup */}
+            <NavGroup
+              icon={Heart}
+              label="Horses"
+              items={[
+                { icon: Heart, label: "My Horses", href: "/dashboard/horses", badge: horses.length },
+                { icon: ClipboardList, label: "Orders", href: "/dashboard/horse-orders" },
+                { icon: Baby, label: "Breeding", href: "/dashboard/breeding" },
+              ]}
+              onNavigate={() => setSidebarOpen(false)}
+            />
+            
             <NavItem icon={Calendar} label="Schedule" onNavigate={() => setSidebarOpen(false)} />
+            <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
             <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
             
