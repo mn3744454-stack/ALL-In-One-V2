@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Logo from "@/components/Logo";
+import { Card, CardContent } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { InvitationsPanel } from "@/components/InvitationsPanel";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
-import { useAuth } from "@/contexts/AuthContext";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTenant } from "@/contexts/TenantContext";
 import {
   useServices,
@@ -17,27 +16,11 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
-import {
-  Building2,
-  Home,
-  Calendar,
-  FileText,
-  Users,
-  Settings,
-  Search,
-  Menu,
-  LogOut,
-  MessageSquare,
-  Globe,
-  X,
-  Package,
-  ArrowLeft,
-} from "lucide-react";
+import { Building2, Menu, Search, Package, ArrowLeft } from "lucide-react";
 
 const DashboardServices = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
 
   const { data: services = [], isLoading } = useServices();
@@ -45,11 +28,6 @@ const DashboardServices = () => {
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const toggleActive = useToggleServiceActive();
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
 
   const handleCreate = async (data: CreateServiceInput) => {
     await createService.mutateAsync(data);
@@ -115,73 +93,7 @@ const DashboardServices = () => {
 
   return (
     <div className="min-h-screen w-full bg-cream flex overflow-x-hidden">
-      {/* Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy transform transition-transform duration-300 lg:translate-x-0 lg:static ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-6 border-b border-navy-light flex items-center justify-between">
-            <Logo variant="light" />
-            <button
-              className="p-2 rounded-xl hover:bg-navy-light lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-              aria-label="Close menu"
-            >
-              <X className="w-5 h-5 text-cream" />
-            </button>
-          </div>
-
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-            <NavItem icon={Home} label="Dashboard" href="/dashboard" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={MessageSquare} label="Community" href="/community" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Package} label="Services" active onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Calendar} label="Schedule" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
-            <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
-
-            {activeRole === "owner" && activeTenant && (
-              <NavItem icon={Globe} label="Public Profile" href="/dashboard/public-profile" onNavigate={() => setSidebarOpen(false)} />
-            )}
-
-            <div className="pt-4 mt-4 border-t border-navy-light">
-              <NavItem icon={Settings} label="Settings" onNavigate={() => setSidebarOpen(false)} />
-            </div>
-          </nav>
-
-          <div className="p-4 border-t border-navy-light">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-gold flex items-center justify-center text-navy font-bold shrink-0">
-                {profile?.full_name?.[0]?.toUpperCase() || "U"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-cream truncate">
-                  {activeTenant?.tenant.name || "No Organization"}
-                </p>
-                <p className="text-xs text-cream/60 capitalize">{activeRole || "Member"}</p>
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-cream/70 hover:text-cream hover:bg-navy-light"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-navy/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
       <main className="flex-1 min-h-screen min-w-0">
@@ -257,54 +169,6 @@ const DashboardServices = () => {
         </div>
       </main>
     </div>
-  );
-};
-
-const NavItem = ({
-  icon: Icon,
-  label,
-  active = false,
-  badge,
-  href,
-  onNavigate,
-}: {
-  icon: any;
-  label: string;
-  active?: boolean;
-  badge?: number;
-  href?: string;
-  onNavigate?: () => void;
-}) => {
-  const className = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all ${
-    active
-      ? "bg-gold text-navy"
-      : "text-cream/70 hover:text-cream hover:bg-navy-light"
-  }`;
-
-  const content = (
-    <>
-      <Icon className="w-5 h-5 shrink-0" />
-      <span className="flex-1 text-left truncate">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span className={`px-2 py-0.5 rounded-full text-xs shrink-0 ${active ? "bg-navy/20" : "bg-cream/10"}`}>
-          {badge}
-        </span>
-      )}
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link to={href} className={className} onClick={onNavigate}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <button className={className} onClick={onNavigate}>
-      {content}
-    </button>
   );
 };
 
