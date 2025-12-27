@@ -86,7 +86,7 @@ export function AssigneeSelector({
               avatar_url
             )
           `)
-          .eq('tenant_id', activeTenant.id)
+          .eq('tenant_id', activeTenant.tenant.id)
           .eq('is_active', true);
 
         if (error) throw error;
