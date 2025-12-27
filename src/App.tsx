@@ -21,6 +21,7 @@ import DashboardPayments from "./pages/DashboardPayments";
 import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
+import DashboardBreeding from "./pages/DashboardBreeding";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
@@ -208,6 +209,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/dashboard/breeding"
+        element={
+          <ProtectedRoute>
+            <DashboardBreeding />
+          </ProtectedRoute>
+        }
       <Route
         path="/dashboard/horses/:id"
         element={

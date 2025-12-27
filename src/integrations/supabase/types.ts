@@ -210,6 +210,177 @@ export type Database = {
           },
         ]
       }
+      breeding_attempts: {
+        Row: {
+          assigned_to: string | null
+          attempt_date: string
+          attempt_type: string
+          created_at: string
+          created_by: string
+          external_stallion_meta: Json | null
+          external_stallion_name: string | null
+          heat_cycle_ref: string | null
+          id: string
+          location_ref: string | null
+          mare_id: string
+          notes: string | null
+          result: string
+          semen_batch_id: string | null
+          stallion_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          attempt_date: string
+          attempt_type: string
+          created_at?: string
+          created_by: string
+          external_stallion_meta?: Json | null
+          external_stallion_name?: string | null
+          heat_cycle_ref?: string | null
+          id?: string
+          location_ref?: string | null
+          mare_id: string
+          notes?: string | null
+          result?: string
+          semen_batch_id?: string | null
+          stallion_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          attempt_date?: string
+          attempt_type?: string
+          created_at?: string
+          created_by?: string
+          external_stallion_meta?: Json | null
+          external_stallion_name?: string | null
+          heat_cycle_ref?: string | null
+          id?: string
+          location_ref?: string | null
+          mare_id?: string
+          notes?: string | null
+          result?: string
+          semen_batch_id?: string | null
+          stallion_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breeding_attempts_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_semen_batch_id_fkey"
+            columns: ["semen_batch_id"]
+            isOneToOne: false
+            referencedRelation: "semen_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      breeding_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status: string | null
+          id: string
+          payload: Json | null
+          tenant_id: string
+          to_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id: string
+          to_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breeding_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -342,6 +513,219 @@ export type Database = {
           },
           {
             foreignKeyName: "custom_financial_categories_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      embryo_transfers: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          donor_attempt_id: string | null
+          donor_mare_id: string
+          embryo_count: number
+          embryo_grade: string | null
+          flush_date: string | null
+          id: string
+          notes: string | null
+          recipient_mare_id: string
+          status: string
+          tenant_id: string
+          transfer_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          donor_attempt_id?: string | null
+          donor_mare_id: string
+          embryo_count?: number
+          embryo_grade?: string | null
+          flush_date?: string | null
+          id?: string
+          notes?: string | null
+          recipient_mare_id: string
+          status?: string
+          tenant_id: string
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          donor_attempt_id?: string | null
+          donor_mare_id?: string
+          embryo_count?: number
+          embryo_grade?: string | null
+          flush_date?: string | null
+          id?: string
+          notes?: string | null
+          recipient_mare_id?: string
+          status?: string
+          tenant_id?: string
+          transfer_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embryo_transfers_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_donor_attempt_id_fkey"
+            columns: ["donor_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_donor_mare_id_fkey"
+            columns: ["donor_mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_recipient_mare_id_fkey"
+            columns: ["recipient_mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_entries: {
+        Row: {
+          account_code: string | null
+          actual_cost: number | null
+          client_id: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          custom_financial_category_id: string | null
+          entity_id: string
+          entity_type: string
+          estimated_cost: number | null
+          external_provider_id: string | null
+          id: string
+          internal_resource_ref: Json | null
+          is_income: boolean
+          notes: string | null
+          service_mode: string
+          tax_category: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_code?: string | null
+          actual_cost?: number | null
+          client_id?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          custom_financial_category_id?: string | null
+          entity_id: string
+          entity_type: string
+          estimated_cost?: number | null
+          external_provider_id?: string | null
+          id?: string
+          internal_resource_ref?: Json | null
+          is_income?: boolean
+          notes?: string | null
+          service_mode?: string
+          tax_category?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string | null
+          actual_cost?: number | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          custom_financial_category_id?: string | null
+          entity_id?: string
+          entity_type?: string
+          estimated_cost?: number | null
+          external_provider_id?: string | null
+          id?: string
+          internal_resource_ref?: Json | null
+          is_income?: boolean
+          notes?: string | null
+          service_mode?: string
+          tax_category?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_custom_financial_category_id_fkey"
+            columns: ["custom_financial_category_id"]
+            isOneToOne: false
+            referencedRelation: "custom_financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_external_provider_id_fkey"
+            columns: ["external_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_entries_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1522,6 +1906,168 @@ export type Database = {
           },
         ]
       }
+      pregnancies: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          end_reason: string | null
+          ended_at: string | null
+          expected_due_date: string | null
+          id: string
+          mare_id: string
+          notes: string | null
+          source_attempt_id: string | null
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          verification_state: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          end_reason?: string | null
+          ended_at?: string | null
+          expected_due_date?: string | null
+          id?: string
+          mare_id: string
+          notes?: string | null
+          source_attempt_id?: string | null
+          start_date: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          verification_state?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          end_reason?: string | null
+          ended_at?: string | null
+          expected_due_date?: string | null
+          id?: string
+          mare_id?: string
+          notes?: string | null
+          source_attempt_id?: string | null
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          verification_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregnancies_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_source_attempt_id_fkey"
+            columns: ["source_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pregnancy_checks: {
+        Row: {
+          check_date: string
+          created_at: string
+          created_by: string
+          id: string
+          method: string
+          notes: string | null
+          outcome: string
+          pregnancy_id: string
+          tenant_id: string
+        }
+        Insert: {
+          check_date: string
+          created_at?: string
+          created_by: string
+          id?: string
+          method: string
+          notes?: string | null
+          outcome: string
+          pregnancy_id: string
+          tenant_id: string
+        }
+        Update: {
+          check_date?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          outcome?: string
+          pregnancy_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pregnancy_checks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancy_checks_pregnancy_id_fkey"
+            columns: ["pregnancy_id"]
+            isOneToOne: false
+            referencedRelation: "pregnancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancy_checks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancy_checks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1563,6 +2109,122 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      semen_batches: {
+        Row: {
+          collection_date: string
+          created_at: string
+          doses_available: number
+          doses_total: number
+          id: string
+          quality_notes: string | null
+          stallion_id: string
+          tank_id: string | null
+          tenant_id: string
+          type: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          collection_date: string
+          created_at?: string
+          doses_available: number
+          doses_total: number
+          id?: string
+          quality_notes?: string | null
+          stallion_id: string
+          tank_id?: string | null
+          tenant_id: string
+          type: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          collection_date?: string
+          created_at?: string
+          doses_available?: number
+          doses_total?: number
+          id?: string
+          quality_notes?: string | null
+          stallion_id?: string
+          tank_id?: string | null
+          tenant_id?: string
+          type?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semen_batches_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_batches_tank_id_fkey"
+            columns: ["tank_id"]
+            isOneToOne: false
+            referencedRelation: "semen_tanks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_batches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_batches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      semen_tanks: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semen_tanks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_tanks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_providers: {
         Row: {
