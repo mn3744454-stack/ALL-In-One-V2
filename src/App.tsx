@@ -216,6 +216,7 @@ const AppRoutes = () => {
             <DashboardBreeding />
           </ProtectedRoute>
         }
+      />
       <Route
         path="/dashboard/horses/:id"
         element={
