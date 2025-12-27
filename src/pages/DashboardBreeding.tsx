@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Plus, Heart, Baby, Syringe, FlaskConical, Building2, Home, Calendar, FileText, Users, Settings, Search, TrendingUp, Menu, LogOut, MessageSquare, Globe, X, Package, GraduationCap, Ticket, CreditCard, ClipboardList } from "lucide-react";
+import { Plus, Heart, Baby, Syringe, FlaskConical, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import Logo from "@/components/Logo";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { InvitationsPanel } from "@/components/InvitationsPanel";
-import { NavGroup } from "@/components/dashboard/NavGroup";
-import { useAuth } from "@/contexts/AuthContext";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTenant } from "@/contexts/TenantContext";
-import { useHorses } from "@/hooks/useHorses";
 import { useBreedingAttempts } from "@/hooks/breeding/useBreedingAttempts";
 import { usePregnancies } from "@/hooks/breeding/usePregnancies";
 import { useEmbryoTransfers } from "@/hooks/breeding/useEmbryoTransfers";
@@ -26,57 +23,6 @@ import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDial
 import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTransferDialog";
 import { CreateSemenBatchDialog } from "@/components/breeding/CreateSemenBatchDialog";
 
-interface NavItemProps {
-  icon: React.ElementType;
-  label: string;
-  href?: string;
-  active?: boolean;
-  badge?: number;
-  onNavigate?: () => void;
-  highlight?: boolean;
-}
-
-const NavItem = ({
-  icon: Icon,
-  label,
-  href,
-  active,
-  badge,
-  onNavigate,
-  highlight,
-}: NavItemProps) => {
-  const content = (
-    <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all cursor-pointer ${
-        active
-          ? "bg-gold text-navy font-semibold"
-          : highlight
-          ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30"
-          : "text-cream/70 hover:bg-navy-light hover:text-cream"
-      }`}
-      onClick={onNavigate}
-    >
-      <Icon className="w-5 h-5" />
-      <span className="flex-1">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span className="px-2 py-0.5 text-xs rounded-full bg-gold/20 text-gold">
-          {badge}
-        </span>
-      )}
-    </div>
-  );
-
-  if (href) {
-    return (
-      <Link to={href} onClick={onNavigate}>
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
-};
-
 export default function DashboardBreeding() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("attempts");
@@ -85,20 +31,12 @@ export default function DashboardBreeding() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showBatchDialog, setShowBatchDialog] = useState(false);
 
-  const { signOut, profile } = useAuth();
-  const { activeTenant, activeRole } = useTenant();
-  const { horses } = useHorses();
+  const { activeTenant } = useTenant();
   
   const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt } = useBreedingAttempts();
   const { pregnancies, loading: pregnanciesLoading, closePregnancy } = usePregnancies();
   const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
   const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
-
-  const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
 
   const handleAddNew = () => {
     switch (activeTab) {
@@ -117,12 +55,6 @@ export default function DashboardBreeding() {
     }
   };
 
-  const horsesNavItems = [
-    { icon: Heart, label: "My Horses", href: "/dashboard/horses", badge: horses.length },
-    { icon: ClipboardList, label: "Orders", href: "/dashboard/horse-orders" },
-    { icon: Baby, label: "Breeding", href: "/dashboard/breeding" },
-  ];
-
   return (
     <>
       <Helmet>
@@ -131,102 +63,7 @@ export default function DashboardBreeding() {
       </Helmet>
 
       <div className="h-dvh w-full bg-cream flex overflow-hidden">
-        {/* Sidebar */}
-        <aside
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy transform transition-transform duration-300 lg:translate-x-0 lg:static ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-navy-light flex items-center justify-between">
-              <Logo variant="light" />
-              <button
-                className="p-2 rounded-xl hover:bg-navy-light lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5 text-cream" />
-              </button>
-            </div>
-
-            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-              <NavItem icon={Home} label="Dashboard" href="/dashboard" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={MessageSquare} label="Community" href="/community" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={Ticket} label="My Bookings" href="/dashboard/my-bookings" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={CreditCard} label="Payments" href="/dashboard/payments" onNavigate={() => setSidebarOpen(false)} />
-              
-              {/* Horses NavGroup */}
-              <NavGroup
-                icon={Heart}
-                label="Horses"
-                items={horsesNavItems}
-                onNavigate={() => setSidebarOpen(false)}
-              />
-              
-              <NavItem icon={Calendar} label="Schedule" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={FileText} label="Records" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={Users} label="Team" onNavigate={() => setSidebarOpen(false)} />
-              <NavItem icon={Building2} label="Facilities" onNavigate={() => setSidebarOpen(false)} />
-              
-              {['owner', 'manager'].includes(activeRole || '') && activeTenant && (
-                <>
-                  <NavItem icon={Package} label="Services" href="/dashboard/services" onNavigate={() => setSidebarOpen(false)} />
-                  <NavItem icon={TrendingUp} label="Revenue" href="/dashboard/revenue" onNavigate={() => setSidebarOpen(false)} />
-                </>
-              )}
-              
-              {['owner', 'manager'].includes(activeRole || '') && activeTenant?.tenant.type === 'academy' && (
-                <>
-                  <NavItem icon={GraduationCap} label="Sessions" href="/dashboard/academy/sessions" onNavigate={() => setSidebarOpen(false)} />
-                  <NavItem icon={Ticket} label="Manage Bookings" href="/dashboard/academy/bookings" onNavigate={() => setSidebarOpen(false)} />
-                </>
-              )}
-              
-              {activeRole === 'owner' && activeTenant && (
-                <NavItem 
-                  icon={Globe} 
-                  label="Public Profile" 
-                  href="/dashboard/public-profile" 
-                  onNavigate={() => setSidebarOpen(false)}
-                  highlight={needsPublicProfileSetup}
-                />
-              )}
-              
-              <div className="pt-4 mt-4 border-t border-navy-light">
-                <NavItem icon={Settings} label="Settings" onNavigate={() => setSidebarOpen(false)} />
-              </div>
-            </nav>
-
-            <div className="p-4 border-t border-navy-light">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gold flex items-center justify-center text-navy font-bold shrink-0">
-                  {profile?.full_name?.[0]?.toUpperCase() || "U"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-cream truncate">
-                    {activeTenant?.tenant.name || "No Organization"}
-                  </p>
-                  <p className="text-xs text-cream/60 capitalize">{activeRole || "Member"}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-cream/70 hover:text-cream hover:bg-navy-light"
-                onClick={handleSignOut}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </aside>
-
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-navy/50 z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-h-0 min-w-0">
@@ -450,10 +287,22 @@ export default function DashboardBreeding() {
       </div>
 
       {/* Dialogs */}
-      <CreateBreedingAttemptDialog open={showAttemptDialog} onOpenChange={setShowAttemptDialog} />
-      <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} />
-      <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} />
-      <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} />
+      <CreateBreedingAttemptDialog
+        open={showAttemptDialog}
+        onOpenChange={setShowAttemptDialog}
+      />
+      <CreatePregnancyDialog
+        open={showPregnancyDialog}
+        onOpenChange={setShowPregnancyDialog}
+      />
+      <CreateEmbryoTransferDialog
+        open={showTransferDialog}
+        onOpenChange={setShowTransferDialog}
+      />
+      <CreateSemenBatchDialog
+        open={showBatchDialog}
+        onOpenChange={setShowBatchDialog}
+      />
     </>
   );
 }
