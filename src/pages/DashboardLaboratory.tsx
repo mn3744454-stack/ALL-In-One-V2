@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { SamplesList, LabTimeline, LabCreditsPanel } from "@/components/laboratory";
+import { 
+  SamplesList, 
+  LabTimeline, 
+  LabCreditsPanel,
+  CreateSampleDialog,
+  CreateResultDialog,
+  ResultsList,
+  LabTestTypesManager,
+  LabTemplatesManager,
+} from "@/components/laboratory";
 import { FlaskConical, FileText, Settings, Clock, Info } from "lucide-react";
 
 export default function DashboardLaboratory() {
   const [activeTab, setActiveTab] = useState("samples");
+  const [createSampleOpen, setCreateSampleOpen] = useState(false);
+  const [createResultOpen, setCreateResultOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,15 +65,15 @@ export default function DashboardLaboratory() {
           </TabsList>
 
           <TabsContent value="samples">
-            <SamplesList />
+            <SamplesList 
+              onCreateSample={() => setCreateSampleOpen(true)}
+            />
           </TabsContent>
 
           <TabsContent value="results">
-            <div className="text-center py-12 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Results management coming soon</p>
-              <p className="text-sm">Create results from samples to see them here</p>
-            </div>
+            <ResultsList
+              onCreateResult={() => setCreateResultOpen(true)}
+            />
           </TabsContent>
 
           <TabsContent value="timeline">
@@ -70,17 +81,28 @@ export default function DashboardLaboratory() {
           </TabsContent>
 
           <TabsContent value="settings">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
               <LabCreditsPanel />
-              <div className="text-center py-12 text-muted-foreground border rounded-lg">
-                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Templates & Test Types management</p>
-                <p className="text-sm">Coming in next iteration</p>
+              <LabTestTypesManager />
+              <div className="lg:col-span-2">
+                <LabTemplatesManager />
               </div>
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <CreateSampleDialog
+        open={createSampleOpen}
+        onOpenChange={setCreateSampleOpen}
+        onSuccess={() => setActiveTab("samples")}
+      />
+      <CreateResultDialog
+        open={createResultOpen}
+        onOpenChange={setCreateResultOpen}
+        onSuccess={() => setActiveTab("results")}
+      />
     </div>
   );
 }
