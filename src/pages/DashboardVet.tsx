@@ -3,12 +3,246 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb } from "lucide-react";
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
 import { VetTreatmentsList, CreateVetTreatmentDialog, VetFollowupsList, VaccinationsList, VaccinationProgramManager } from "@/components/vet";
 import { useTenant } from "@/contexts/TenantContext";
+
+// Mock data for demo purposes
+const mockTreatments = [
+  {
+    id: "mock-treat-1",
+    horse: { id: "h1", name: "الأصيل", avatar_url: null },
+    category: "treatment" as const,
+    title: "Respiratory Infection Treatment",
+    description: "Treatment for mild respiratory infection with antibiotics course",
+    status: "in_progress" as const,
+    priority: "high" as const,
+    service_mode: "external" as const,
+    external_provider: { id: "p1", name: "Dr. Ahmed - Vet Clinic" },
+    scheduled_for: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    tenant_id: "t1",
+    created_by: "u1",
+    updated_at: new Date().toISOString(),
+    notes: "Monitoring improvement daily",
+    assigned_to: null,
+    completed_at: null,
+  },
+  {
+    id: "mock-treat-2",
+    horse: { id: "h2", name: "الفارس", avatar_url: null },
+    category: "dental" as const,
+    title: "Annual Dental Float",
+    description: "Routine dental floating and examination",
+    status: "scheduled" as const,
+    priority: "medium" as const,
+    service_mode: "external" as const,
+    external_provider: { id: "p2", name: "Equine Dental Services" },
+    scheduled_for: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    tenant_id: "t1",
+    created_by: "u1",
+    updated_at: new Date().toISOString(),
+    notes: null,
+    assigned_to: null,
+    completed_at: null,
+  },
+  {
+    id: "mock-treat-3",
+    horse: { id: "h3", name: "النجمة", avatar_url: null },
+    category: "hoof" as const,
+    title: "Hoof Abscess Treatment",
+    description: "Draining and treating hoof abscess on left front",
+    status: "completed" as const,
+    priority: "urgent" as const,
+    service_mode: "internal" as const,
+    external_provider: null,
+    scheduled_for: null,
+    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    tenant_id: "t1",
+    created_by: "u1",
+    updated_at: new Date().toISOString(),
+    notes: "Fully recovered, normal movement restored",
+    assigned_to: { id: "a1", display_name: "محمد", avatar_url: null },
+    completed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "mock-treat-4",
+    horse: { id: "h4", name: "الريم", avatar_url: null },
+    category: "checkup" as const,
+    title: "Pre-Purchase Examination",
+    description: "Complete veterinary examination for potential buyer",
+    status: "draft" as const,
+    priority: "low" as const,
+    service_mode: "external" as const,
+    external_provider: { id: "p3", name: "Mobile Vet Services" },
+    scheduled_for: null,
+    created_at: new Date().toISOString(),
+    tenant_id: "t1",
+    created_by: "u1",
+    updated_at: new Date().toISOString(),
+    notes: "Waiting for buyer confirmation",
+    assigned_to: null,
+    completed_at: null,
+  },
+  {
+    id: "mock-treat-5",
+    horse: { id: "h5", name: "الأمير", avatar_url: null },
+    category: "injury" as const,
+    title: "Leg Laceration Treatment",
+    description: "Deep cut on right hind leg requiring stitches",
+    status: "in_progress" as const,
+    priority: "high" as const,
+    service_mode: "internal" as const,
+    external_provider: null,
+    scheduled_for: null,
+    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    tenant_id: "t1",
+    created_by: "u1",
+    updated_at: new Date().toISOString(),
+    notes: "Daily wound cleaning and bandage change",
+    assigned_to: { id: "a2", display_name: "أحمد", avatar_url: null },
+    completed_at: null,
+  },
+];
+
+const mockVaccinations = [
+  {
+    id: "mock-vacc-1",
+    horse: { id: "h1", name: "الفارس", avatar_url: null },
+    program: { id: "prog-1", name: "Tetanus", name_ar: "الكزاز" },
+    status: "due" as const,
+    due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    service_mode: "internal" as const,
+    notes: "Annual booster due",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    administered_date: null,
+    administered_by: null,
+    external_provider: null,
+  },
+  {
+    id: "mock-vacc-2",
+    horse: { id: "h2", name: "الريم", avatar_url: null },
+    program: { id: "prog-2", name: "Influenza", name_ar: "الانفلونزا" },
+    status: "overdue" as const,
+    due_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    service_mode: "external" as const,
+    notes: "Needs immediate attention - 5 days overdue",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    administered_date: null,
+    administered_by: null,
+    external_provider: { id: "p1", name: "Dr. Ahmed - Vet Clinic" },
+  },
+  {
+    id: "mock-vacc-3",
+    horse: { id: "h3", name: "النجمة", avatar_url: null },
+    program: { id: "prog-3", name: "Rabies", name_ar: "داء الكلب" },
+    status: "due" as const,
+    due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    service_mode: "external" as const,
+    notes: "Schedule with regular vet visit",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    administered_date: null,
+    administered_by: null,
+    external_provider: { id: "p2", name: "Mobile Vet Services" },
+  },
+  {
+    id: "mock-vacc-4",
+    horse: { id: "h4", name: "الأصيل", avatar_url: null },
+    program: { id: "prog-4", name: "West Nile Virus", name_ar: "فيروس غرب النيل" },
+    status: "overdue" as const,
+    due_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    service_mode: "internal" as const,
+    notes: "Critical - 10 days overdue",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    administered_date: null,
+    administered_by: null,
+    external_provider: null,
+  },
+];
+
+const mockFollowups = [
+  {
+    id: "mock-follow-1",
+    treatment: { 
+      id: "t1", 
+      title: "Leg Laceration Treatment",
+      horse: { id: "h1", name: "الأمير", avatar_url: null }
+    },
+    type: "wound_check" as const,
+    status: "open" as const,
+    due_at: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: "Check wound healing progress and change bandage",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    created_by: "u1",
+    completed_at: null,
+    cancelled_reason: null,
+  },
+  {
+    id: "mock-follow-2",
+    treatment: { 
+      id: "t2", 
+      title: "Post-Surgery Recovery",
+      horse: { id: "h2", name: "النجمة", avatar_url: null }
+    },
+    type: "suture_removal" as const,
+    status: "open" as const,
+    due_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: "Remove stitches - 2 days overdue!",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    created_by: "u1",
+    completed_at: null,
+    cancelled_reason: null,
+  },
+  {
+    id: "mock-follow-3",
+    treatment: { 
+      id: "t3", 
+      title: "Respiratory Treatment",
+      horse: { id: "h3", name: "الأصيل", avatar_url: null }
+    },
+    type: "recheck" as const,
+    status: "open" as const,
+    due_at: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: "Follow-up examination after antibiotics course",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    created_by: "u1",
+    completed_at: null,
+    cancelled_reason: null,
+  },
+  {
+    id: "mock-follow-4",
+    treatment: { 
+      id: "t4", 
+      title: "Colic Episode",
+      horse: { id: "h4", name: "الفارس", avatar_url: null }
+    },
+    type: "blood_test" as const,
+    status: "open" as const,
+    due_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: "Blood work to confirm recovery - overdue",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    created_by: "u1",
+    completed_at: null,
+    cancelled_reason: null,
+  },
+];
 
 const DashboardVet = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -19,6 +253,15 @@ const DashboardVet = () => {
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
   const { followups, dueFollowups, overdueFollowups, loading: followupsLoading, markAsDone, markAsCancelled } = useVetFollowups();
   const { vaccinations, dueVaccinations, loading: vaccinationsLoading, markAsAdministered, cancelVaccination } = useHorseVaccinations();
+
+  // Use mock data when no real data exists
+  const displayTreatments = treatments.length > 0 ? treatments : mockTreatments;
+  const displayVaccinations = vaccinations.length > 0 ? vaccinations : mockVaccinations;
+  const displayFollowups = followups.length > 0 ? followups : mockFollowups;
+
+  const isUsingMockTreatments = treatments.length === 0 && !treatmentsLoading;
+  const isUsingMockVaccinations = vaccinations.length === 0 && !vaccinationsLoading;
+  const isUsingMockFollowups = followups.length === 0 && !followupsLoading;
 
   const isOwnerOrManager = activeRole === 'owner' || activeRole === 'manager';
 
@@ -96,29 +339,56 @@ const DashboardVet = () => {
             </div>
 
             <TabsContent value="treatments">
+              {isUsingMockTreatments && (
+                <Alert className="bg-amber-50 border-amber-200 mb-4">
+                  <Lightbulb className="w-4 h-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    هذه بيانات تجريبية للعرض. قم بإنشاء أول علاج للبدء!
+                    <span className="block text-xs mt-1 opacity-75">These are demo treatments. Create your first treatment to get started!</span>
+                  </AlertDescription>
+                </Alert>
+              )}
               <VetTreatmentsList
-                treatments={treatments}
+                treatments={displayTreatments as any}
                 loading={treatmentsLoading}
                 emptyMessage="No treatments yet. Create your first treatment to get started."
               />
             </TabsContent>
 
             <TabsContent value="vaccinations">
+              {isUsingMockVaccinations && (
+                <Alert className="bg-amber-50 border-amber-200 mb-4">
+                  <Lightbulb className="w-4 h-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    هذه بيانات تجريبية للعرض. قم بجدولة أول تطعيم للبدء!
+                    <span className="block text-xs mt-1 opacity-75">These are demo vaccinations. Schedule your first vaccination to get started!</span>
+                  </AlertDescription>
+                </Alert>
+              )}
               <VaccinationsList
-                vaccinations={vaccinations}
+                vaccinations={displayVaccinations as any}
                 loading={vaccinationsLoading}
-                onMarkAdministered={canManage ? markAsAdministered : undefined}
-                onCancel={canManage ? cancelVaccination : undefined}
+                onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
+                onCancel={!isUsingMockVaccinations && canManage ? cancelVaccination : undefined}
                 emptyMessage="No vaccinations scheduled"
               />
             </TabsContent>
 
             <TabsContent value="followups">
+              {isUsingMockFollowups && (
+                <Alert className="bg-amber-50 border-amber-200 mb-4">
+                  <Lightbulb className="w-4 h-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    هذه بيانات تجريبية للعرض. المتابعات تُنشأ تلقائياً من العلاجات.
+                    <span className="block text-xs mt-1 opacity-75">These are demo follow-ups. Follow-ups are created automatically from treatments!</span>
+                  </AlertDescription>
+                </Alert>
+              )}
               <VetFollowupsList
-                followups={followups}
+                followups={displayFollowups as any}
                 loading={followupsLoading}
-                onMarkDone={canManage ? markAsDone : undefined}
-                onCancel={canManage ? markAsCancelled : undefined}
+                onMarkDone={!isUsingMockFollowups && canManage ? markAsDone : undefined}
+                onCancel={!isUsingMockFollowups && canManage ? markAsCancelled : undefined}
                 emptyMessage="No follow-ups scheduled"
               />
             </TabsContent>
