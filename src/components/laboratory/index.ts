@@ -4,3 +4,8 @@ export * from "./SamplesList";
 export * from "./ResultCard";
 export * from "./LabTimeline";
 export * from "./LabCreditsPanel";
+export * from "./CreateSampleDialog";
+export * from "./CreateResultDialog";
+export * from "./LabTestTypesManager";
+export * from "./LabTemplatesManager";
+export * from "./ResultsList";
