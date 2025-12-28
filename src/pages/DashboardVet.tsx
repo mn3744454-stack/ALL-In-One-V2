@@ -130,7 +130,7 @@ const mockVaccinations = [
     id: "mock-vacc-2",
     horse: { id: "h2", name: "الريم", avatar_url: null },
     program: { id: "prog-2", name: "Influenza", name_ar: "الانفلونزا" },
-    status: "overdue" as const,
+    status: "due" as const, // Overdue is UI-calculated based on due_date
     due_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     service_mode: "external" as const,
     notes: "Needs immediate attention - 5 days overdue",
@@ -160,7 +160,7 @@ const mockVaccinations = [
     id: "mock-vacc-4",
     horse: { id: "h4", name: "الأصيل", avatar_url: null },
     program: { id: "prog-4", name: "West Nile Virus", name_ar: "فيروس غرب النيل" },
-    status: "overdue" as const,
+    status: "due" as const, // Overdue is UI-calculated based on due_date
     due_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     service_mode: "internal" as const,
     notes: "Critical - 10 days overdue",
@@ -252,7 +252,7 @@ const DashboardVet = () => {
 
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
   const { followups, dueFollowups, overdueFollowups, loading: followupsLoading, markAsDone, markAsCancelled } = useVetFollowups();
-  const { vaccinations, dueVaccinations, loading: vaccinationsLoading, markAsAdministered, cancelVaccination } = useHorseVaccinations();
+  const { vaccinations, dueVaccinations, loading: vaccinationsLoading, markAsAdministered, skipVaccination } = useHorseVaccinations();
 
   // Use mock data when no real data exists
   const displayTreatments = treatments.length > 0 ? treatments : mockTreatments;
@@ -369,7 +369,7 @@ const DashboardVet = () => {
                 vaccinations={displayVaccinations as any}
                 loading={vaccinationsLoading}
                 onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
-                onCancel={!isUsingMockVaccinations && canManage ? cancelVaccination : undefined}
+                onCancel={!isUsingMockVaccinations && canManage ? skipVaccination : undefined}
                 emptyMessage="No vaccinations scheduled"
               />
             </TabsContent>

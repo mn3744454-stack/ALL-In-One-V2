@@ -3204,6 +3204,10 @@ export type Database = {
           type: Database["public"]["Enums"]["tenant_type"]
         }[]
       }
+      has_internal_capability: {
+        Args: { _category: string; _tenant_id: string }
+        Returns: boolean
+      }
       has_tenant_role: {
         Args: {
           _role: Database["public"]["Enums"]["tenant_role"]

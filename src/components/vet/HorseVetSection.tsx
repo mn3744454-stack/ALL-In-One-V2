@@ -11,7 +11,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
-import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
+import { useHorseVaccinations, isVaccinationOverdue } from "@/hooks/vet/useHorseVaccinations";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
@@ -40,8 +40,9 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
   });
 
   const recentTreatments = treatments.slice(0, 5);
+  // Filter due vaccinations - includes both due and overdue (UI-calculated)
   const upcomingVaccinations = vaccinations
-    .filter(v => v.status === 'due' || v.status === 'overdue')
+    .filter(v => v.status === 'due')
     .slice(0, 5);
   const openFollowups = followups
     .filter(f => f.status === 'open')
@@ -161,7 +162,8 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                   <div className="space-y-2">
                     {upcomingVaccinations.map((vaccination) => {
                       const dueDate = new Date(vaccination.due_date);
-                      const isOverdue = vaccination.status === 'overdue' || isPast(dueDate);
+                      // Use the exported helper to check if overdue
+                      const isOverdue = isVaccinationOverdue(vaccination);
                       const isDueToday = isToday(dueDate);
                       
                       return (

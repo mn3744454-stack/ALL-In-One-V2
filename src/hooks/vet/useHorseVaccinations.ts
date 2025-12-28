@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
+import { isPast } from "date-fns";
 
-export type VaccinationStatus = 'due' | 'overdue' | 'done' | 'cancelled';
+// DB stores: 'due' | 'done' | 'skipped' - 'overdue' is UI-calculated
+export type VaccinationStatus = 'due' | 'done' | 'skipped';
 
 export interface HorseVaccination {
   id: string;
@@ -25,8 +27,13 @@ export interface HorseVaccination {
   administeredBy?: { id: string; full_name: string; avatar_url: string | null } | null;
 }
 
+// Helper to check if a vaccination is overdue (UI-calculated)
+export function isVaccinationOverdue(vaccination: HorseVaccination): boolean {
+  return vaccination.status === 'due' && isPast(new Date(vaccination.due_date));
+}
+
 export interface VaccinationFilters {
-  status?: VaccinationStatus | 'all';
+  status?: VaccinationStatus | 'all' | 'overdue';
   horse_id?: string;
 }
 
@@ -91,9 +98,11 @@ export function useHorseVaccinations(filters: VaccinationFilters = {}) {
     fetchVaccinations();
   }, [fetchVaccinations]);
 
-  const dueVaccinations = vaccinations.filter(v => v.status === 'due');
-  const overdueVaccinations = vaccinations.filter(v => v.status === 'overdue');
+  // Filter helpers using UI-calculated overdue
+  const dueVaccinations = vaccinations.filter(v => v.status === 'due' && !isVaccinationOverdue(v));
+  const overdueVaccinations = vaccinations.filter(v => isVaccinationOverdue(v));
   const completedVaccinations = vaccinations.filter(v => v.status === 'done');
+  const skippedVaccinations = vaccinations.filter(v => v.status === 'skipped');
 
   const scheduleVaccination = async (data: CreateVaccinationData) => {
     if (!activeTenant?.tenant.id) {
@@ -149,21 +158,21 @@ export function useHorseVaccinations(filters: VaccinationFilters = {}) {
     }
   };
 
-  const cancelVaccination = async (id: string) => {
+  const skipVaccination = async (id: string) => {
     try {
       const { error } = await supabase
         .from("horse_vaccinations")
-        .update({ status: 'cancelled' })
+        .update({ status: 'skipped' })
         .eq("id", id);
 
       if (error) throw error;
 
-      toast.success("Vaccination cancelled");
+      toast.success("Vaccination marked as skipped");
       fetchVaccinations();
       return true;
     } catch (error: unknown) {
-      console.error("Error cancelling vaccination:", error);
-      toast.error("Failed to cancel vaccination");
+      console.error("Error skipping vaccination:", error);
+      toast.error("Failed to skip vaccination");
       return false;
     }
   };
@@ -192,11 +201,12 @@ export function useHorseVaccinations(filters: VaccinationFilters = {}) {
     dueVaccinations,
     overdueVaccinations,
     completedVaccinations,
+    skippedVaccinations,
     loading,
     canManage,
     scheduleVaccination,
     markAsAdministered,
-    cancelVaccination,
+    skipVaccination,
     deleteVaccination,
     refresh: fetchVaccinations,
   };

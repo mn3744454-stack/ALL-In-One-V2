@@ -111,7 +111,7 @@ export function VaccinationsList({
                 </div>
 
                 {/* Actions */}
-                {(vaccination.status === 'due' || vaccination.status === 'overdue') && (
+                {vaccination.status === 'due' && (
                   <div className="flex gap-1 shrink-0">
                     {onMarkAdministered && (
                       <Button 
