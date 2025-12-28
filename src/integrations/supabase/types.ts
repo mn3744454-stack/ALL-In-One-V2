@@ -1726,6 +1726,519 @@ export type Database = {
           },
         ]
       }
+      lab_credit_transactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          sample_ref: string | null
+          samples_count: number
+          tenant_id: string
+          txn_type: string
+          wallet_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          sample_ref?: string | null
+          samples_count: number
+          tenant_id: string
+          txn_type: string
+          wallet_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          sample_ref?: string | null
+          samples_count?: number
+          tenant_id?: string
+          txn_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_credit_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_credit_transactions_sample_ref_fkey"
+            columns: ["sample_ref"]
+            isOneToOne: false
+            referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_credit_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_credit_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_credit_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "lab_credit_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_credit_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_credit_wallets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_credit_wallets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status: string | null
+          id: string
+          payload: Json | null
+          tenant_id: string
+          to_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id: string
+          to_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_results: {
+        Row: {
+          created_at: string
+          created_by: string
+          flags: string | null
+          id: string
+          interpretation: Json | null
+          result_data: Json
+          reviewed_by: string | null
+          sample_id: string
+          status: string
+          template_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          flags?: string | null
+          id?: string
+          interpretation?: Json | null
+          result_data?: Json
+          reviewed_by?: string | null
+          sample_id: string
+          status?: string
+          template_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          flags?: string | null
+          id?: string
+          interpretation?: Json | null
+          result_data?: Json
+          reviewed_by?: string | null
+          sample_id?: string
+          status?: string
+          template_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_results_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_samples: {
+        Row: {
+          accessioned_at: string | null
+          assigned_to: string | null
+          client_id: string | null
+          collection_date: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          debit_txn_id: string | null
+          horse_id: string
+          id: string
+          metadata: Json | null
+          notes: string | null
+          physical_sample_id: string | null
+          related_order_id: string | null
+          retest_count: number
+          retest_of_sample_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          accessioned_at?: string | null
+          assigned_to?: string | null
+          client_id?: string | null
+          collection_date?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          debit_txn_id?: string | null
+          horse_id: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          physical_sample_id?: string | null
+          related_order_id?: string | null
+          retest_count?: number
+          retest_of_sample_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          accessioned_at?: string | null
+          assigned_to?: string | null
+          client_id?: string | null
+          collection_date?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          debit_txn_id?: string | null
+          horse_id?: string
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          physical_sample_id?: string | null
+          related_order_id?: string | null
+          retest_count?: number
+          retest_of_sample_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_samples_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_debit_txn_fkey"
+            columns: ["debit_txn_id"]
+            isOneToOne: false
+            referencedRelation: "lab_credit_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "horse_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_retest_of_sample_id_fkey"
+            columns: ["retest_of_sample_id"]
+            isOneToOne: false
+            referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_templates: {
+        Row: {
+          category: string | null
+          created_at: string
+          diagnostic_rules: Json | null
+          fields: Json
+          groups: Json | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          normal_ranges: Json | null
+          pricing: Json | null
+          template_type: string
+          tenant_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          diagnostic_rules?: Json | null
+          fields?: Json
+          groups?: Json | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          normal_ranges?: Json | null
+          pricing?: Json | null
+          template_type?: string
+          tenant_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          diagnostic_rules?: Json | null
+          fields?: Json
+          groups?: Json | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          normal_ranges?: Json | null
+          pricing?: Json | null
+          template_type?: string
+          tenant_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_test_types: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          pin_as_tab: boolean
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          pin_as_tab?: boolean
+          sort_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          pin_as_tab?: boolean
+          sort_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_test_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_test_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_accounts: {
         Row: {
           created_at: string
@@ -3168,6 +3681,10 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_lab: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_orders: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -3220,6 +3737,7 @@ export type Database = {
         Args: { _follower_id: string; _following_id: string }
         Returns: boolean
       }
+      is_lab_credits_enabled: { Args: { _tenant_id: string }; Returns: boolean }
       is_slug_available: {
         Args: { check_slug: string; exclude_tenant_id?: string }
         Returns: boolean
