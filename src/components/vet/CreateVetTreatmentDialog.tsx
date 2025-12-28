@@ -34,6 +34,7 @@ interface CreateVetTreatmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedHorseId?: string;
+  onSuccess?: () => void;
 }
 
 const categories: { value: VetTreatmentCategory; label: string }[] = [
@@ -59,6 +60,7 @@ export function CreateVetTreatmentDialog({
   open, 
   onOpenChange,
   preselectedHorseId,
+  onSuccess,
 }: CreateVetTreatmentDialogProps) {
   const { horses } = useHorses();
   const { providers } = useServiceProviders();
@@ -87,6 +89,7 @@ export function CreateVetTreatmentDialog({
     try {
       await createTreatment(formData as CreateVetTreatmentData);
       onOpenChange(false);
+      onSuccess?.();
       // Reset form
       setFormData({
         horse_id: '',

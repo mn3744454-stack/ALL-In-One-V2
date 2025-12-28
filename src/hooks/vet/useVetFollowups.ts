@@ -33,7 +33,12 @@ export interface CreateFollowupData {
   notes?: string;
 }
 
-export function useVetFollowups(treatmentId?: string) {
+interface UseVetFollowupsFilters {
+  treatment_id?: string;
+  horse_id?: string;
+}
+
+export function useVetFollowups(filters?: UseVetFollowupsFilters) {
   const [followups, setFollowups] = useState<VetFollowup[]>([]);
   const [loading, setLoading] = useState(true);
   const { activeTenant, activeRole } = useTenant();
@@ -56,6 +61,7 @@ export function useVetFollowups(treatmentId?: string) {
           treatment:vet_treatments!vet_followups_treatment_id_fkey(
             id, 
             title, 
+            horse_id,
             horse:horses!vet_treatments_horse_id_fkey(id, name, avatar_url)
           ),
           assignee:profiles!vet_followups_assigned_to_fkey(id, full_name, avatar_url)
@@ -63,21 +69,28 @@ export function useVetFollowups(treatmentId?: string) {
         .eq("tenant_id", activeTenant.tenant.id)
         .order("due_at", { ascending: true });
 
-      if (treatmentId) {
-        query = query.eq("treatment_id", treatmentId);
+      if (filters?.treatment_id) {
+        query = query.eq("treatment_id", filters.treatment_id);
       }
 
       const { data, error } = await query;
 
       if (error) throw error;
-      setFollowups((data || []) as VetFollowup[]);
+      
+      // Filter by horse_id if provided (post-query since it's a nested field)
+      let filteredData = (data || []) as VetFollowup[];
+      if (filters?.horse_id) {
+        filteredData = filteredData.filter(f => f.treatment?.horse?.id === filters.horse_id);
+      }
+      
+      setFollowups(filteredData);
     } catch (error) {
       console.error("Error fetching followups:", error);
       toast.error("Failed to load follow-ups");
     } finally {
       setLoading(false);
     }
-  }, [activeTenant?.tenant.id, treatmentId]);
+  }, [activeTenant?.tenant.id, filters?.treatment_id, filters?.horse_id]);
 
   useEffect(() => {
     fetchFollowups();
