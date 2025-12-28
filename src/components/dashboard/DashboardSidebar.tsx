@@ -27,6 +27,7 @@ import {
   ClipboardList,
   Baby,
   Stethoscope,
+  FlaskConical,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -132,6 +133,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: ClipboardList, label: "Orders", href: "/dashboard/horse-orders" },
     { icon: Baby, label: "Breeding", href: "/dashboard/breeding" },
     { icon: Stethoscope, label: "Vet & Health", href: "/dashboard/vet" },
+    { icon: FlaskConical, label: "Laboratory", href: "/dashboard/laboratory" },
   ];
 
   return (
