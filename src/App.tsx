@@ -22,6 +22,7 @@ import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
+import DashboardVet from "./pages/DashboardVet";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
@@ -214,6 +215,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardBreeding />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/vet"
+        element={
+          <ProtectedRoute>
+            <DashboardVet />
           </ProtectedRoute>
         }
       />

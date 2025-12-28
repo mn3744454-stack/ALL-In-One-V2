@@ -1263,6 +1263,97 @@ export type Database = {
           },
         ]
       }
+      horse_vaccinations: {
+        Row: {
+          administered_by: string | null
+          administered_date: string | null
+          created_at: string
+          due_date: string
+          external_provider_id: string | null
+          horse_id: string
+          id: string
+          notes: string | null
+          program_id: string
+          service_mode: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          administered_by?: string | null
+          administered_date?: string | null
+          created_at?: string
+          due_date: string
+          external_provider_id?: string | null
+          horse_id: string
+          id?: string
+          notes?: string | null
+          program_id: string
+          service_mode?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          administered_by?: string | null
+          administered_date?: string | null
+          created_at?: string
+          due_date?: string
+          external_provider_id?: string | null
+          horse_id?: string
+          id?: string
+          notes?: string | null
+          program_id?: string
+          service_mode?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_vaccinations_administered_by_fkey"
+            columns: ["administered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_external_provider_id_fkey"
+            columns: ["external_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "vaccination_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horses: {
         Row: {
           age_category: string | null
@@ -2605,6 +2696,392 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      vaccination_programs: {
+        Row: {
+          age_min_days: number | null
+          created_at: string
+          default_interval_days: number | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          notes: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          age_min_days?: number | null
+          created_at?: string
+          default_interval_days?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          age_min_days?: number | null
+          created_at?: string
+          default_interval_days?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaccination_programs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaccination_programs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vet_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status: string | null
+          id: string
+          payload: Json | null
+          tenant_id: string
+          to_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id: string
+          to_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          payload?: Json | null
+          tenant_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vet_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vet_followups: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          due_at: string
+          id: string
+          notes: string | null
+          status: string
+          tenant_id: string
+          treatment_id: string
+          type: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          due_at: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id: string
+          treatment_id: string
+          type: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          due_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id?: string
+          treatment_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vet_followups_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_followups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_followups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_followups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_followups_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "vet_treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vet_medications: {
+        Row: {
+          created_at: string
+          dose: string | null
+          duration_days: number | null
+          end_date: string | null
+          frequency: string | null
+          id: string
+          name: string
+          notes: string | null
+          start_date: string | null
+          tenant_id: string
+          treatment_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose?: string | null
+          duration_days?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          start_date?: string | null
+          tenant_id: string
+          treatment_id: string
+        }
+        Update: {
+          created_at?: string
+          dose?: string | null
+          duration_days?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          start_date?: string | null
+          tenant_id?: string
+          treatment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vet_medications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_medications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_medications_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "vet_treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vet_treatments: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          external_provider_id: string | null
+          external_provider_name: string | null
+          horse_id: string
+          id: string
+          internal_resource_ref: Json | null
+          notes: string | null
+          priority: string
+          related_order_id: string | null
+          requested_at: string
+          scheduled_for: string | null
+          service_mode: string
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          external_provider_id?: string | null
+          external_provider_name?: string | null
+          horse_id: string
+          id?: string
+          internal_resource_ref?: Json | null
+          notes?: string | null
+          priority?: string
+          related_order_id?: string | null
+          requested_at?: string
+          scheduled_for?: string | null
+          service_mode?: string
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          external_provider_id?: string | null
+          external_provider_name?: string | null
+          horse_id?: string
+          id?: string
+          internal_resource_ref?: Json | null
+          notes?: string | null
+          priority?: string
+          related_order_id?: string | null
+          requested_at?: string
+          scheduled_for?: string | null
+          service_mode?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vet_treatments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_external_provider_id_fkey"
+            columns: ["external_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "horse_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_treatments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
