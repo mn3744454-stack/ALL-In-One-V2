@@ -26,6 +26,7 @@ import {
   CreditCard,
   ClipboardList,
   Baby,
+  Stethoscope,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -130,6 +131,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Heart, label: "My Horses", href: "/dashboard/horses", badge: horses.length },
     { icon: ClipboardList, label: "Orders", href: "/dashboard/horse-orders" },
     { icon: Baby, label: "Breeding", href: "/dashboard/breeding" },
+    { icon: Stethoscope, label: "Vet & Health", href: "/dashboard/vet" },
   ];
 
   return (
