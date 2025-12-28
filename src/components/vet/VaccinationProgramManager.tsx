@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +13,68 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useVaccinationPrograms, type CreateProgramData } from "@/hooks/vet/useVaccinationPrograms";
-import { Plus, Pencil, Trash2, Syringe, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Syringe, Loader2, Lightbulb } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
+// Mock vaccination programs for demo
+const mockPrograms = [
+  { 
+    id: "prog-1", 
+    name: "Tetanus", 
+    name_ar: "الكزاز", 
+    is_active: true, 
+    default_interval_days: 365, 
+    age_min_days: 90,
+    notes: "Essential core vaccine for all horses",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  { 
+    id: "prog-2", 
+    name: "Influenza", 
+    name_ar: "الانفلونزا", 
+    is_active: true, 
+    default_interval_days: 180, 
+    age_min_days: 120,
+    notes: "Required for competition horses",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  { 
+    id: "prog-3", 
+    name: "Rabies", 
+    name_ar: "داء الكلب", 
+    is_active: true, 
+    default_interval_days: 365, 
+    age_min_days: 90,
+    notes: "Recommended in endemic areas",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  { 
+    id: "prog-4", 
+    name: "West Nile Virus", 
+    name_ar: "فيروس غرب النيل", 
+    is_active: false, 
+    default_interval_days: 365,
+    age_min_days: 90,
+    notes: "Seasonal vaccination program",
+    tenant_id: "t1",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
+
 export function VaccinationProgramManager() {
   const { programs, loading, canManage, createProgram, updateProgram, deleteProgram } = useVaccinationPrograms();
+  
+  // Use mock data when no real programs exist
+  const displayPrograms = programs.length > 0 ? programs : mockPrograms;
+  const isUsingMockData = programs.length === 0 && !loading;
   const [showDialog, setShowDialog] = useState(false);
   const [editingProgram, setEditingProgram] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -94,6 +151,16 @@ export function VaccinationProgramManager() {
 
   return (
     <div className="space-y-4">
+      {isUsingMockData && (
+        <Alert className="bg-amber-50 border-amber-200">
+          <Lightbulb className="w-4 h-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            هذه برامج تطعيم تجريبية للعرض. قم بإنشاء أول برنامج للبدء!
+            <span className="block text-xs mt-1 opacity-75">These are demo vaccination programs. Create your first program to get started!</span>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {canManage && (
         <div className="flex justify-end">
           <Button onClick={handleOpenCreate} className="gap-2">
@@ -103,24 +170,8 @@ export function VaccinationProgramManager() {
         </div>
       )}
 
-      {programs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
-            <Syringe className="w-6 h-6 text-muted-foreground" />
-          </div>
-          <h3 className="font-medium text-navy mb-1">No Vaccination Programs</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Create vaccination programs to schedule vaccines for your horses
-          </p>
-          {canManage && (
-            <Button onClick={handleOpenCreate} variant="outline">
-              Add First Program
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {programs.map((program) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {displayPrograms.map((program) => (
             <Card key={program.id}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
@@ -145,7 +196,7 @@ export function VaccinationProgramManager() {
                       </p>
                     )}
                   </div>
-                  {canManage && (
+                  {canManage && !isUsingMockData && (
                     <div className="flex gap-1">
                       <Button 
                         variant="ghost" 
@@ -170,7 +221,6 @@ export function VaccinationProgramManager() {
             </Card>
           ))}
         </div>
-      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
