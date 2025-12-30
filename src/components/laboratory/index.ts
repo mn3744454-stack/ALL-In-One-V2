@@ -9,3 +9,6 @@ export * from "./CreateResultDialog";
 export * from "./LabTestTypesManager";
 export * from "./LabTemplatesManager";
 export * from "./ResultsList";
+export * from "./LabBottomNavigation";
+export * from "./ResultPreviewDialog";
+export * from "./ResultsComparison";
