@@ -11,7 +11,7 @@ import {
   LabTestTypesManager,
   LabTemplatesManager,
 } from "@/components/laboratory";
-import { FlaskConical, FileText, Settings, Clock, Info } from "lucide-react";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack } from "lucide-react";
 
 export default function DashboardLaboratory() {
   const [activeTab, setActiveTab] = useState("samples");
@@ -58,6 +58,10 @@ export default function DashboardLaboratory() {
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Timeline</span>
             </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2">
+              <FileStack className="h-4 w-4" />
+              <span className="hidden sm:inline">Templates</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Settings</span>
@@ -80,13 +84,14 @@ export default function DashboardLaboratory() {
             <LabTimeline />
           </TabsContent>
 
+          <TabsContent value="templates">
+            <LabTemplatesManager onNavigateToTemplates={() => setActiveTab("templates")} />
+          </TabsContent>
+
           <TabsContent value="settings">
             <div className="grid gap-6 lg:grid-cols-2">
               <LabCreditsPanel />
               <LabTestTypesManager />
-              <div className="lg:col-span-2">
-                <LabTemplatesManager />
-              </div>
             </div>
           </TabsContent>
         </Tabs>

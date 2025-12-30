@@ -287,10 +287,23 @@ export function CreateResultDialog({
             </p>
             
             {activeTemplates.length === 0 ? (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  No templates available. Create a template first in the Settings tab.
+              <Alert className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-700 dark:text-amber-300">
+                  <div className="space-y-3">
+                    <p>لا توجد قوالب متاحة. يجب إنشاء قالب أولاً لتسجيل النتائج.</p>
+                    <p className="text-sm">No templates available. Create a template first to enter results.</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => {
+                        onOpenChange(false);
+                      }}
+                    >
+                      Go to Templates Tab
+                    </Button>
+                  </div>
                 </AlertDescription>
               </Alert>
             ) : (
