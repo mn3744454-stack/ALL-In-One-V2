@@ -151,87 +151,150 @@ export function LabTestTypesManager() {
               )}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-center">Pinned</TableHead>
-                  {canManage && <TableHead className="w-20">Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-center">Pinned</TableHead>
+                      {canManage && <TableHead className="w-20">Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {testTypes.map((type) => (
+                      <TableRow key={type.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{type.name}</p>
+                            {type.name_ar && (
+                              <p className="text-sm text-muted-foreground">{type.name_ar}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {type.code && (
+                            <Badge variant="outline" className="font-mono">
+                              {type.code}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {canManage ? (
+                            <Switch
+                              checked={type.is_active}
+                              onCheckedChange={() => toggleActive(type)}
+                            />
+                          ) : (
+                            <Badge variant={type.is_active ? "default" : "secondary"}>
+                              {type.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {canManage ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => togglePin(type)}
+                              className={type.pin_as_tab ? "text-primary" : "text-muted-foreground"}
+                            >
+                              <Pin className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            type.pin_as_tab && <Pin className="h-4 w-4 mx-auto text-primary" />
+                          )}
+                        </TableCell>
+                        {canManage && (
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(type)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setTypeToDelete(type);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
                 {testTypes.map((type) => (
-                  <TableRow key={type.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{type.name}</p>
-                        {type.name_ar && (
-                          <p className="text-sm text-muted-foreground">{type.name_ar}</p>
+                  <div 
+                    key={type.id} 
+                    className="border rounded-lg p-4 flex items-center justify-between gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate">{type.name}</p>
+                        {type.code && (
+                          <Badge variant="outline" className="font-mono text-xs shrink-0">
+                            {type.code}
+                          </Badge>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {type.code && (
-                        <Badge variant="outline" className="font-mono">
-                          {type.code}
-                        </Badge>
+                      {type.name_ar && (
+                        <p className="text-sm text-muted-foreground truncate" dir="rtl">
+                          {type.name_ar}
+                        </p>
                       )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {canManage ? (
-                        <Switch
-                          checked={type.is_active}
-                          onCheckedChange={() => toggleActive(type)}
-                        />
-                      ) : (
-                        <Badge variant={type.is_active ? "default" : "secondary"}>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant={type.is_active ? "default" : "secondary"} className="text-xs">
                           {type.is_active ? 'Active' : 'Inactive'}
                         </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {canManage ? (
+                        {type.pin_as_tab && (
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <Pin className="h-3 w-3" />
+                            Pinned
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    {canManage && (
+                      <div className="flex gap-1 shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => togglePin(type)}
-                          className={type.pin_as_tab ? "text-primary" : "text-muted-foreground"}
+                          onClick={() => openEditDialog(type)}
                         >
-                          <Pin className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      ) : (
-                        type.pin_as_tab && <Pin className="h-4 w-4 mx-auto text-primary" />
-                      )}
-                    </TableCell>
-                    {canManage && (
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditDialog(type)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setTypeToDelete(type);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setTypeToDelete(type);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     )}
-                  </TableRow>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

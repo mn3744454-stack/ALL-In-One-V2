@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { 
   SamplesList, 
   LabTimeline, 
@@ -10,19 +12,66 @@ import {
   ResultsList,
   LabTestTypesManager,
   LabTemplatesManager,
+  LabBottomNavigation,
+  ResultsComparison,
+  ResultPreviewDialog,
 } from "@/components/laboratory";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack } from "lucide-react";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, Menu, GitCompare } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
+import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 
 export default function DashboardLaboratory() {
   const [activeTab, setActiveTab] = useState("samples");
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
   const [createResultOpen, setCreateResultOpen] = useState(false);
+  const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
+  const { setOpenMobile } = useSidebar();
+
+  const { results } = useLabResults();
+  const { templates } = useLabTemplates();
+
+  const handleQuickAction = () => {
+    if (activeTab === "results") {
+      setCreateResultOpen(true);
+    } else {
+      setCreateSampleOpen(true);
+    }
+  };
+
+  const handlePreviewResult = (result: LabResult) => {
+    setPreviewResult(result);
+  };
+
+  // Get full template for preview
+  const previewTemplate = previewResult 
+    ? templates.find(t => t.id === previewResult.template_id)
+    : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 lg:pb-0">
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b lg:hidden">
+        <div className="flex items-center h-14 px-4">
+          <Link to="/dashboard">
+            <Button variant="ghost" size="sm" className="gap-1">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only">Back</span>
+            </Button>
+          </Link>
+          <h1 className="flex-1 text-center font-semibold flex items-center justify-center gap-2">
+            <FlaskConical className="h-5 w-5" />
+            Laboratory
+          </h1>
+          <Button variant="ghost" size="icon" onClick={() => setOpenMobile(true)}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        {/* Desktop Header */}
+        <div className="hidden lg:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <FlaskConical className="h-6 w-6" />
@@ -35,6 +84,11 @@ export default function DashboardLaboratory() {
           <LabCreditsPanel compact />
         </div>
 
+        {/* Mobile Credits */}
+        <div className="lg:hidden mb-4">
+          <LabCreditsPanel compact />
+        </div>
+
         {/* Demo Alert */}
         <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
           <Info className="h-4 w-4 text-blue-600" />
@@ -43,28 +97,32 @@ export default function DashboardLaboratory() {
           </AlertDescription>
         </Alert>
 
-        {/* Tabs */}
+        {/* Tabs - Hidden on mobile, shown on desktop */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 hidden lg:flex">
             <TabsTrigger value="samples" className="gap-2">
               <FlaskConical className="h-4 w-4" />
-              <span className="hidden sm:inline">Samples</span>
+              Samples
             </TabsTrigger>
             <TabsTrigger value="results" className="gap-2">
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Results</span>
+              Results
+            </TabsTrigger>
+            <TabsTrigger value="compare" className="gap-2">
+              <GitCompare className="h-4 w-4" />
+              Compare
             </TabsTrigger>
             <TabsTrigger value="timeline" className="gap-2">
               <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Timeline</span>
+              Timeline
             </TabsTrigger>
             <TabsTrigger value="templates" className="gap-2">
               <FileStack className="h-4 w-4" />
-              <span className="hidden sm:inline">Templates</span>
+              Templates
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Settings</span>
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -77,7 +135,15 @@ export default function DashboardLaboratory() {
           <TabsContent value="results">
             <ResultsList
               onCreateResult={() => setCreateResultOpen(true)}
+              onResultClick={(resultId) => {
+                const result = results.find(r => r.id === resultId);
+                if (result) handlePreviewResult(result);
+              }}
             />
+          </TabsContent>
+
+          <TabsContent value="compare">
+            <ResultsComparison />
           </TabsContent>
 
           <TabsContent value="timeline">
@@ -97,6 +163,13 @@ export default function DashboardLaboratory() {
         </Tabs>
       </div>
 
+      {/* Mobile Bottom Navigation */}
+      <LabBottomNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onQuickAction={handleQuickAction}
+      />
+
       {/* Dialogs */}
       <CreateSampleDialog
         open={createSampleOpen}
@@ -107,6 +180,12 @@ export default function DashboardLaboratory() {
         open={createResultOpen}
         onOpenChange={setCreateResultOpen}
         onSuccess={() => setActiveTab("results")}
+      />
+      <ResultPreviewDialog
+        open={!!previewResult}
+        onOpenChange={(open) => !open && setPreviewResult(null)}
+        result={previewResult}
+        fullTemplate={previewTemplate}
       />
     </div>
   );
