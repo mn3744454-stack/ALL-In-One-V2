@@ -26,8 +26,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function ResultsComparison() {
-  const [selectedHorseId, setSelectedHorseId] = useState<string>("");
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [selectedHorseId, setSelectedHorseId] = useState<string>("all");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("all");
   const [comparisonMode, setComparisonMode] = useState<'historical' | 'side-by-side'>('historical');
 
   const { horses, loading: horsesLoading } = useHorses();
@@ -37,8 +37,8 @@ export function ResultsComparison() {
   // Filter results for selected horse and template
   const filteredResults = useMemo(() => {
     return results.filter(r => {
-      const matchesHorse = !selectedHorseId || r.sample?.horse?.id === selectedHorseId;
-      const matchesTemplate = !selectedTemplateId || r.template_id === selectedTemplateId;
+      const matchesHorse = selectedHorseId === "all" || r.sample?.horse?.id === selectedHorseId;
+      const matchesTemplate = selectedTemplateId === "all" || r.template_id === selectedTemplateId;
       return matchesHorse && matchesTemplate;
     }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [results, selectedHorseId, selectedTemplateId]);
@@ -91,7 +91,7 @@ export function ResultsComparison() {
                   <SelectValue placeholder="Select horse" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Horses</SelectItem>
+                  <SelectItem value="all">All Horses</SelectItem>
                   {horses.map((horse) => (
                     <SelectItem key={horse.id} value={horse.id}>
                       {horse.name}
@@ -108,7 +108,7 @@ export function ResultsComparison() {
                   <SelectValue placeholder="Select test type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   {templates.filter(t => t.is_active).map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}
@@ -145,7 +145,7 @@ export function ResultsComparison() {
       ) : comparisonMode === 'historical' ? (
         <>
           {/* Trend Chart */}
-          {selectedTemplateId && numericFields.length > 0 && chartData.length >= 2 && (
+          {selectedTemplateId !== "all" && numericFields.length > 0 && chartData.length >= 2 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Trend Over Time</CardTitle>
@@ -198,7 +198,7 @@ export function ResultsComparison() {
                       <th className="text-left p-2">Test</th>
                       <th className="text-center p-2">Status</th>
                       <th className="text-center p-2">Flag</th>
-                      {selectedTemplateId && numericFields.slice(0, 3).map(field => (
+                      {selectedTemplateId !== "all" && numericFields.slice(0, 3).map(field => (
                         <th key={field.id} className="text-center p-2">{field.name}</th>
                       ))}
                     </tr>
@@ -242,7 +242,7 @@ export function ResultsComparison() {
                               </Badge>
                             )}
                           </td>
-                          {selectedTemplateId && numericFields.slice(0, 3).map(field => {
+                          {selectedTemplateId !== "all" && numericFields.slice(0, 3).map(field => {
                             const value = resultData?.[field.id];
                             const prevValue = prevData?.[field.id];
                             const range = normalRanges[field.id];
