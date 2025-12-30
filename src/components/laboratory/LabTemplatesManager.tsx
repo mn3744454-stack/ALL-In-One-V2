@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Copy, Pencil, Trash2, FileText, Loader2, X } from "lucide-react";
+import { Plus, Copy, Pencil, Trash2, FileText, Loader2, X, Sparkles } from "lucide-react";
 import { useLabTemplates, type CreateLabTemplateData, type LabTemplate, type LabTemplateField } from "@/hooks/laboratory/useLabTemplates";
 import {
   AlertDialog,
@@ -50,8 +50,13 @@ const FIELD_TYPES = [
   { value: 'textarea', label: 'Text Area' },
 ];
 
-export function LabTemplatesManager() {
-  const { templates, loading, canManage, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate } = useLabTemplates();
+interface LabTemplatesManagerProps {
+  onNavigateToTemplates?: () => void;
+}
+
+export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManagerProps) {
+  const { templates, loading, canManage, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate, seedDefaultTemplates } = useLabTemplates();
+  const [seedingDefaults, setSeedingDefaults] = useState(false);
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -199,21 +204,62 @@ export function LabTemplatesManager() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Result Templates</CardTitle>
           {canManage && (
-            <Button size="sm" onClick={openCreateDialog}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Template
-            </Button>
+            <div className="flex gap-2">
+              {templates.length === 0 && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={async () => {
+                    setSeedingDefaults(true);
+                    await seedDefaultTemplates();
+                    setSeedingDefaults(false);
+                  }}
+                  disabled={seedingDefaults}
+                >
+                  {seedingDefaults ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Add Default Templates
+                </Button>
+              )}
+              <Button size="sm" onClick={openCreateDialog}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Template
+              </Button>
+            </div>
           )}
         </CardHeader>
         <CardContent>
           {templates.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No templates configured</p>
+              <p className="mb-2">No templates configured</p>
+              <p className="text-sm mb-4">Templates are required to enter lab results</p>
               {canManage && (
-                <Button variant="link" onClick={openCreateDialog}>
-                  Create your first template
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Button 
+                    variant="default"
+                    onClick={async () => {
+                      setSeedingDefaults(true);
+                      await seedDefaultTemplates();
+                      setSeedingDefaults(false);
+                    }}
+                    disabled={seedingDefaults}
+                  >
+                    {seedingDefaults ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Add Default Templates
+                  </Button>
+                  <Button variant="outline" onClick={openCreateDialog}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Custom Template
+                  </Button>
+                </div>
               )}
             </div>
           ) : (

@@ -193,6 +193,93 @@ export function useLabTemplates() {
 
   const activeTemplates = templates.filter(t => t.is_active);
 
+  const seedDefaultTemplates = async () => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
+
+    const defaultTemplates: CreateLabTemplateData[] = [
+      {
+        name: "Complete Blood Count (CBC)",
+        name_ar: "تحليل الدم الشامل",
+        template_type: "blood",
+        category: "Routine",
+        is_active: true,
+        fields: [
+          { id: "hemoglobin", name: "Hemoglobin", name_ar: "الهيموجلوبين", type: "number", unit: "g/dL", required: true },
+          { id: "wbc", name: "WBC Count", name_ar: "كريات الدم البيضاء", type: "number", unit: "K/µL", required: true },
+          { id: "rbc", name: "RBC Count", name_ar: "كريات الدم الحمراء", type: "number", unit: "M/µL", required: true },
+          { id: "platelets", name: "Platelets", name_ar: "الصفائح الدموية", type: "number", unit: "K/µL", required: true },
+          { id: "hematocrit", name: "Hematocrit", name_ar: "الهيماتوكريت", type: "number", unit: "%", required: false },
+        ] as unknown as Json,
+        normal_ranges: {
+          hemoglobin: { min: 11, max: 19 },
+          wbc: { min: 5.5, max: 12.5 },
+          rbc: { min: 6.8, max: 13 },
+          platelets: { min: 100, max: 350 },
+          hematocrit: { min: 32, max: 53 },
+        } as unknown as Json,
+      },
+      {
+        name: "Basic Urine Analysis",
+        name_ar: "تحليل البول الأساسي",
+        template_type: "urine",
+        category: "Routine",
+        is_active: true,
+        fields: [
+          { id: "ph", name: "pH Level", name_ar: "درجة الحموضة", type: "number", required: true },
+          { id: "specific_gravity", name: "Specific Gravity", name_ar: "الكثافة النوعية", type: "number", required: true },
+          { id: "protein", name: "Protein", name_ar: "البروتين", type: "select", options: ["Negative", "Trace", "+", "++", "+++"], required: true },
+          { id: "glucose", name: "Glucose", name_ar: "الجلوكوز", type: "select", options: ["Negative", "Trace", "+", "++", "+++"], required: false },
+          { id: "blood", name: "Blood", name_ar: "الدم", type: "select", options: ["Negative", "Trace", "+", "++", "+++"], required: false },
+        ] as unknown as Json,
+        normal_ranges: {
+          ph: { min: 7.5, max: 8.5 },
+          specific_gravity: { min: 1.020, max: 1.050 },
+        } as unknown as Json,
+      },
+      {
+        name: "Equine Hormonal Panel",
+        name_ar: "تحليل الهرمونات",
+        template_type: "hormonal",
+        category: "Diagnostic",
+        is_active: true,
+        fields: [
+          { id: "testosterone", name: "Testosterone", name_ar: "التستوستيرون", type: "number", unit: "ng/dL", required: true },
+          { id: "cortisol", name: "Cortisol", name_ar: "الكورتيزول", type: "number", unit: "µg/dL", required: true },
+          { id: "progesterone", name: "Progesterone", name_ar: "البروجسترون", type: "number", unit: "ng/mL", required: false },
+          { id: "estradiol", name: "Estradiol", name_ar: "الإستراديول", type: "number", unit: "pg/mL", required: false },
+        ] as unknown as Json,
+        normal_ranges: {
+          testosterone: { min: 0.1, max: 2.0 },
+          cortisol: { min: 2, max: 8 },
+          progesterone: { min: 0, max: 15 },
+        } as unknown as Json,
+      },
+    ];
+
+    try {
+      for (const templateData of defaultTemplates) {
+        await supabase
+          .from("lab_templates")
+          .insert({
+            tenant_id: activeTenant.tenant.id,
+            ...templateData,
+          });
+      }
+
+      toast.success("Default templates created successfully");
+      fetchTemplates();
+      return true;
+    } catch (error: unknown) {
+      console.error("Error seeding templates:", error);
+      const message = error instanceof Error ? error.message : "Failed to create default templates";
+      toast.error(message);
+      return false;
+    }
+  };
+
   return {
     templates,
     activeTemplates,
@@ -202,6 +289,7 @@ export function useLabTemplates() {
     updateTemplate,
     duplicateTemplate,
     deleteTemplate,
+    seedDefaultTemplates,
     refresh: fetchTemplates,
   };
 }
