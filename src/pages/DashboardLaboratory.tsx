@@ -16,8 +16,7 @@ import {
   ResultsComparison,
   ResultPreviewDialog,
 } from "@/components/laboratory";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, Menu, GitCompare } from "lucide-react";
-import { useSidebar } from "@/components/ui/sidebar";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare } from "lucide-react";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 
@@ -26,7 +25,6 @@ export default function DashboardLaboratory() {
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
   const [createResultOpen, setCreateResultOpen] = useState(false);
   const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
-  const { setOpenMobile } = useSidebar();
 
   const { results } = useLabResults();
   const { templates } = useLabTemplates();
@@ -63,9 +61,7 @@ export default function DashboardLaboratory() {
             <FlaskConical className="h-5 w-5" />
             Laboratory
           </h1>
-          <Button variant="ghost" size="icon" onClick={() => setOpenMobile(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
+          <div className="w-10" /> {/* Spacer for balance */}
         </div>
       </header>
 
