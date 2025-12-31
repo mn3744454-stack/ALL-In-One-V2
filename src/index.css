@@ -248,3 +248,39 @@
     }
   }
 }
+
+/* Print Styles for Lab Reports */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-content,
+  .print-content * {
+    visibility: visible !important;
+  }
+  
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: white !important;
+  }
+  
+  .print-content table {
+    border-collapse: collapse;
+  }
+  
+  .print-content th,
+  .print-content td {
+    border: 1px solid #e5e7eb;
+  }
+  
+  .print\\:hidden,
+  [data-radix-dialog-overlay],
+  [data-radix-dialog-close] {
+    display: none !important;
+  }
+}

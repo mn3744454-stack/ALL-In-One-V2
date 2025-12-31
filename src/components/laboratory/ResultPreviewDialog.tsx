@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +24,16 @@ import {
   User,
   CheckCircle2,
   AlertTriangle,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 
 type DesignTemplate = 'classic' | 'modern' | 'compact';
 
@@ -47,6 +51,8 @@ export function ResultPreviewDialog({
   fullTemplate,
 }: ResultPreviewDialogProps) {
   const [designTemplate, setDesignTemplate] = useState<DesignTemplate>('modern');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
 
   if (!result) return null;
@@ -58,6 +64,48 @@ export function ResultPreviewDialog({
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!previewRef.current) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // If content is taller than one page, scale it down
+      const finalHeight = Math.min(imgHeight, pageHeight - 20);
+      const finalWidth = (finalHeight === imgHeight) ? imgWidth : (canvas.width * finalHeight) / canvas.height;
+      
+      const xOffset = (pageWidth - finalWidth) / 2;
+      
+      pdf.addImage(imgData, 'PNG', xOffset, 10, finalWidth, finalHeight);
+      pdf.save(`lab-result-${horseName}-${result.id.slice(0, 8)}.pdf`);
+      
+      toast.success("PDF downloaded successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const getFlagIcon = (flag: string) => {
@@ -108,7 +156,9 @@ export function ResultPreviewDialog({
         </DialogHeader>
 
         {/* Preview Content */}
-        <div className={`border rounded-lg p-6 bg-background print:border-none ${
+        <div 
+          ref={previewRef}
+          className={`print-content border rounded-lg p-6 bg-background print:border-none ${
           designTemplate === 'modern' ? 'space-y-6' :
           designTemplate === 'compact' ? 'space-y-3 text-sm' :
           'space-y-4'
@@ -289,8 +339,17 @@ export function ResultPreviewDialog({
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button variant="outline" size="sm" disabled>
-            <Download className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
             PDF
           </Button>
           <Button variant="outline" size="sm" disabled>
