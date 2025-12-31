@@ -74,8 +74,8 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
       </div>
       <span
         className={cn(
-          "text-[10px] font-medium mt-1",
-          active ? "text-primary" : "text-muted-foreground"
+          "text-xs font-medium mt-1",
+          active ? "text-primary font-semibold" : "text-muted-foreground"
         )}
       >
         {label}
