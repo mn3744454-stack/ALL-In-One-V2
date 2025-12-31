@@ -15,6 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Printer, 
   Download, 
@@ -25,7 +31,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   XCircle,
-  Loader2
+  Loader2,
+  MessageCircle,
+  Send,
+  Link2
 } from "lucide-react";
 import { format } from "date-fns";
 import html2canvas from "html2canvas";
@@ -63,7 +72,96 @@ export function ResultPreviewDialog({
   const collectionDate = format(new Date(result.created_at), "MMM d, yyyy");
 
   const handlePrint = () => {
-    window.print();
+    if (!previewRef.current) return;
+    
+    // Create a new window for printing with full content
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Please allow popups for printing");
+      return;
+    }
+    
+    const content = previewRef.current.innerHTML;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Lab Report - ${horseName}</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            padding: 20mm;
+            color: #1f2937;
+          }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { padding: 10px; text-align: left; border: 1px solid #e5e7eb; }
+          th { background-color: #f3f4f6; font-weight: 600; }
+          .text-center { text-align: center; }
+          .font-bold { font-weight: 700; }
+          .font-semibold { font-weight: 600; }
+          .font-medium { font-weight: 500; }
+          .font-mono { font-family: monospace; }
+          .text-sm { font-size: 0.875rem; }
+          .text-xs { font-size: 0.75rem; }
+          .text-2xl { font-size: 1.5rem; }
+          .text-xl { font-size: 1.25rem; }
+          .uppercase { text-transform: uppercase; }
+          .text-muted { color: #6b7280; }
+          .text-green-600 { color: #16a34a; }
+          .text-red-600 { color: #dc2626; }
+          .text-blue-600 { color: #2563eb; }
+          .bg-muted { background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
+          .grid { display: grid; gap: 16px; }
+          .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+          .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+          .flex { display: flex; }
+          .items-center { align-items: center; }
+          .justify-between { justify-content: space-between; }
+          .justify-center { justify-content: center; }
+          .gap-1 { gap: 4px; }
+          .gap-2 { gap: 8px; }
+          .gap-4 { gap: 16px; }
+          .mb-2 { margin-bottom: 8px; }
+          .mb-3 { margin-bottom: 12px; }
+          .p-3 { padding: 12px; }
+          .p-4 { padding: 16px; }
+          .border { border: 1px solid #e5e7eb; }
+          .rounded-lg { border-radius: 8px; }
+          .space-y-4 > * + * { margin-top: 16px; }
+          .space-y-6 > * + * { margin-top: 24px; }
+          hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
+          .badge { 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 4px 12px; 
+            border-radius: 9999px; 
+            font-size: 0.75rem;
+            font-weight: 500;
+            border: 1px solid;
+          }
+          .badge-green { border-color: #16a34a; color: #16a34a; }
+          .badge-blue { border-color: #2563eb; color: #2563eb; }
+          .badge-yellow { border-color: #ca8a04; color: #ca8a04; }
+          svg { display: none; }
+          @media print {
+            body { padding: 15mm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="space-y-6">
+          ${content}
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   const handleDownloadPDF = async () => {
@@ -71,12 +169,29 @@ export function ResultPreviewDialog({
     
     setIsGeneratingPDF(true);
     try {
-      const canvas = await html2canvas(previewRef.current, {
+      // Clone the content to capture full height
+      const clone = previewRef.current.cloneNode(true) as HTMLElement;
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '0';
+      clone.style.width = '800px';
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.overflow = 'visible';
+      clone.style.backgroundColor = '#ffffff';
+      clone.style.padding = '40px';
+      document.body.appendChild(clone);
+      
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: 800,
+        height: clone.scrollHeight,
       });
+      
+      document.body.removeChild(clone);
       
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
@@ -85,26 +200,52 @@ export function ResultPreviewDialog({
         format: 'a4',
       });
       
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      const contentHeight = (canvas.height * contentWidth) / canvas.width;
       
-      // If content is taller than one page, scale it down
-      const finalHeight = Math.min(imgHeight, pageHeight - 20);
-      const finalWidth = (finalHeight === imgHeight) ? imgWidth : (canvas.width * finalHeight) / canvas.height;
+      // Add image - if content is longer than one page, add multiple pages
+      let heightLeft = contentHeight;
+      let position = margin;
       
-      const xOffset = (pageWidth - finalWidth) / 2;
+      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+      heightLeft -= (pageHeight - margin * 2);
       
-      pdf.addImage(imgData, 'PNG', xOffset, 10, finalWidth, finalHeight);
+      while (heightLeft > 0) {
+        position = heightLeft - contentHeight + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+        heightLeft -= (pageHeight - margin * 2);
+      }
+      
       pdf.save(`lab-result-${horseName}-${result.id.slice(0, 8)}.pdf`);
       
-      toast.success("PDF downloaded successfully");
+      toast.success("تم تحميل PDF بنجاح");
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
+      toast.error("فشل في إنشاء PDF");
     } finally {
       setIsGeneratingPDF(false);
+    }
+  };
+
+  const handleShare = (platform: 'whatsapp' | 'telegram' | 'copy') => {
+    const reportUrl = window.location.href;
+    const message = `Lab Report for ${horseName} - ${templateName}`;
+    
+    switch (platform) {
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(message + '\n' + reportUrl)}`, '_blank');
+        break;
+      case 'telegram':
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(reportUrl)}&text=${encodeURIComponent(message)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(reportUrl);
+        toast.success("تم نسخ الرابط");
+        break;
     }
   };
 
@@ -352,10 +493,28 @@ export function ResultPreviewDialog({
             )}
             PDF
           </Button>
-          <Button variant="outline" size="sm" disabled>
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background">
+              <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                WhatsApp
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('telegram')}>
+                <Send className="h-4 w-4 mr-2 text-blue-500" />
+                Telegram
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('copy')}>
+                <Link2 className="h-4 w-4 mr-2" />
+                Copy Link
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </DialogContent>
     </Dialog>
