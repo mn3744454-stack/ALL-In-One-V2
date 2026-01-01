@@ -769,6 +769,65 @@ export type Database = {
           },
         ]
       }
+      horse_aliases: {
+        Row: {
+          alias: string
+          created_at: string
+          created_by: string
+          horse_id: string
+          id: string
+          is_active: boolean
+          tenant_id: string
+        }
+        Insert: {
+          alias: string
+          created_at?: string
+          created_by: string
+          horse_id: string
+          id?: string
+          is_active?: boolean
+          tenant_id: string
+        }
+        Update: {
+          alias?: string
+          created_at?: string
+          created_by?: string
+          horse_id?: string
+          id?: string
+          is_active?: boolean
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_aliases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_aliases_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_aliases_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_aliases_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_breeds: {
         Row: {
           created_at: string
@@ -1898,6 +1957,71 @@ export type Database = {
           },
         ]
       }
+      lab_result_shares: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          result_id: string
+          revoked_at: string | null
+          share_token: string
+          tenant_id: string
+          use_alias: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          result_id: string
+          revoked_at?: string | null
+          share_token?: string
+          tenant_id: string
+          use_alias?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          result_id?: string
+          revoked_at?: string | null
+          share_token?: string
+          tenant_id?: string
+          use_alias?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_result_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_shares_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "lab_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_result_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_results: {
         Row: {
           created_at: string
@@ -2001,9 +2125,12 @@ export type Database = {
           metadata: Json | null
           notes: string | null
           physical_sample_id: string | null
+          received_at: string | null
+          received_by: string | null
           related_order_id: string | null
           retest_count: number
           retest_of_sample_id: string | null
+          source_lab_tenant_id: string | null
           status: string
           tenant_id: string
           updated_at: string
@@ -2022,9 +2149,12 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
+          received_at?: string | null
+          received_by?: string | null
           related_order_id?: string | null
           retest_count?: number
           retest_of_sample_id?: string | null
+          source_lab_tenant_id?: string | null
           status?: string
           tenant_id: string
           updated_at?: string
@@ -2043,9 +2173,12 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
+          received_at?: string | null
+          received_by?: string | null
           related_order_id?: string | null
           retest_count?: number
           retest_of_sample_id?: string | null
+          source_lab_tenant_id?: string | null
           status?: string
           tenant_id?: string
           updated_at?: string
@@ -2087,6 +2220,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_samples_received_by_fkey"
+            columns: ["received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lab_samples_related_order_id_fkey"
             columns: ["related_order_id"]
             isOneToOne: false
@@ -2098,6 +2238,20 @@ export type Database = {
             columns: ["retest_of_sample_id"]
             isOneToOne: false
             referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_source_lab_tenant_id_fkey"
+            columns: ["source_lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_source_lab_tenant_id_fkey"
+            columns: ["source_lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -3702,6 +3856,10 @@ export type Database = {
         Returns: boolean
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_horse_display_name: {
+        Args: { _horse_id: string; _use_alias?: boolean }
+        Returns: string
+      }
       get_public_tenant: {
         Args: { tenant_slug: string }
         Returns: {
@@ -3721,8 +3879,26 @@ export type Database = {
           type: Database["public"]["Enums"]["tenant_type"]
         }[]
       }
+      get_shared_lab_result: {
+        Args: { _share_token: string }
+        Returns: {
+          created_at: string
+          flags: string
+          horse_display_name: string
+          interpretation: Json
+          result_data: Json
+          result_id: string
+          status: string
+          template_name: string
+          tenant_display_name: string
+        }[]
+      }
       has_internal_capability: {
         Args: { _category: string; _tenant_id: string }
+        Returns: boolean
+      }
+      has_lab_feature: {
+        Args: { _feature: string; _tenant_id: string }
         Returns: boolean
       }
       has_tenant_role: {
