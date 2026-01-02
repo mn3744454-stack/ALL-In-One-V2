@@ -169,7 +169,14 @@ export function useLabResults(filters: LabResultFilters = {}) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle status transition errors from DB trigger
+        if (error.message.includes("Invalid result status transition")) {
+          toast.error("Cannot review: Result must be in draft status");
+          return null;
+        }
+        throw error;
+      }
 
       toast.success("Result reviewed successfully");
       fetchResults();
@@ -182,18 +189,30 @@ export function useLabResults(filters: LabResultFilters = {}) {
     }
   };
 
+  // Finalize result: only allowed from 'reviewed' status (enforced by DB trigger)
   const finalizeResult = async (id: string) => {
     if (!user?.id) return null;
     
     try {
       const { data, error } = await supabase
         .from("lab_results")
-        .update({ status: 'final', reviewed_by: user.id })
+        .update({ status: 'final' })
         .eq("id", id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle status transition errors from DB trigger
+        if (error.message.includes("Invalid result status transition")) {
+          toast.error("Cannot finalize: Result must be reviewed first");
+          return null;
+        }
+        if (error.message.includes("final")) {
+          toast.error("Result is already finalized");
+          return null;
+        }
+        throw error;
+      }
 
       toast.success("Result finalized successfully");
       fetchResults();

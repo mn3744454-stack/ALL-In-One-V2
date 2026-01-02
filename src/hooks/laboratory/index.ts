@@ -4,3 +4,6 @@ export * from "./useLabTemplates";
 export * from "./useLabResults";
 export * from "./useLabEvents";
 export * from "./useLabCredits";
+export * from "./useLabResultShares";
+export * from "./useHorseAliases";
+export * from "./useLabFeatures";
