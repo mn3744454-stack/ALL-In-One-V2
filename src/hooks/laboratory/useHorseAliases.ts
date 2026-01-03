@@ -103,7 +103,7 @@ export function useHorseAliases(horseId?: string) {
       if (error) {
         // Handle unique constraint violation
         if (error.code === "23505" || error.message.includes("unique")) {
-          toast.error("An alias with this name already exists for this horse");
+          toast.error("هذا الاسم مستخدم بالفعل داخل هذا الحساب");
           return null;
         }
         throw error;

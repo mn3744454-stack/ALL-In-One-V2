@@ -114,23 +114,23 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       }
 
       if (filters.collectionDateToday) {
-        // Timezone-aware "today" filter for +03 (Arabia Standard Time)
-        const now = new Date();
-        const offsetMinutes = -180; // +03:00 = -180 minutes from UTC
-        const localNow = new Date(now.getTime() + (offsetMinutes + now.getTimezoneOffset()) * 60000);
-        
-        const startOfDay = new Date(localNow);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(localNow);
-        endOfDay.setHours(23, 59, 59, 999);
-        
-        // Convert back to UTC for query
-        const startUTC = new Date(startOfDay.getTime() - offsetMinutes * 60000);
-        const endUTC = new Date(endOfDay.getTime() - offsetMinutes * 60000);
-        
-        query = query
-          .gte("collection_date", startUTC.toISOString())
-          .lte("collection_date", endUTC.toISOString());
+        // Use server-side RPC for timezone-aware Riyadh day bounds
+        try {
+          const { data: bounds, error: rpcError } = await supabase
+            .rpc("get_riyadh_day_bounds");
+          
+          if (rpcError) {
+            console.error("Error fetching Riyadh day bounds:", rpcError);
+            // Graceful fallback: skip filter if RPC fails
+          } else if (bounds && bounds.length > 0) {
+            query = query
+              .gte("collection_date", bounds[0].start_utc)
+              .lt("collection_date", bounds[0].end_utc);
+          }
+        } catch (rpcErr) {
+          console.error("RPC call failed for get_riyadh_day_bounds:", rpcErr);
+          // Graceful fallback: continue without this filter
+        }
       }
 
       const { data, error } = await query;

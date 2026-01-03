@@ -3879,6 +3879,13 @@ export type Database = {
           type: Database["public"]["Enums"]["tenant_type"]
         }[]
       }
+      get_riyadh_day_bounds: {
+        Args: { _day?: string }
+        Returns: {
+          end_utc: string
+          start_utc: string
+        }[]
+      }
       get_shared_lab_result: {
         Args: { _share_token: string }
         Returns: {
