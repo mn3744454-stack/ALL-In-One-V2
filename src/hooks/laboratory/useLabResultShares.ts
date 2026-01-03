@@ -72,10 +72,16 @@ export function useLabResultShares(resultId?: string) {
 
   const createShare = async (
     targetResultId: string,
-    opts?: CreateShareOptions
+    opts?: CreateShareOptions & { resultStatus?: string }
   ): Promise<LabResultShare | null> => {
     if (!activeTenant?.tenant.id || !user?.id) {
       toast.error("No active organization");
+      return null;
+    }
+
+    // UX guard: Check result status before attempting insert
+    if (opts?.resultStatus && opts.resultStatus !== "final") {
+      toast.error("Only final results can be shared");
       return null;
     }
 
@@ -99,8 +105,14 @@ export function useLabResultShares(resultId?: string) {
       return data as LabResultShare;
     } catch (error: unknown) {
       console.error("Error creating share:", error);
-      const message = error instanceof Error ? error.message : "Failed to create share link";
-      toast.error(message);
+      
+      // Handle DB trigger error for non-final results
+      const errorMessage = error instanceof Error ? error.message : "";
+      if (errorMessage.includes("Only finalized results can be shared")) {
+        toast.error("Only final results can be shared");
+      } else {
+        toast.error(errorMessage || "Failed to create share link");
+      }
       return null;
     }
   };
