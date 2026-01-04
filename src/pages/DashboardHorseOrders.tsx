@@ -18,6 +18,7 @@ import {
   OrderTypesManager,
   CapabilitiesManager,
   OrderTimeline,
+  OrdersBottomNavigation,
 } from "@/components/horses/orders";
 import {
   DropdownMenu,
@@ -57,14 +58,25 @@ const DashboardHorseOrders = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [viewingOrderId, setViewingOrderId] = useState<string | null>(null);
   const [editingOrder, setEditingOrder] = useState<any>(null);
+  const [mobileStatusTab, setMobileStatusTab] = useState("all");
   
   const { pinnedTabs, moreTypes } = useHorseOrderTypes();
   
-  // Apply type filter
-  const appliedFilters = useMemo(() => ({
-    ...filters,
-    order_type_id: selectedTypeId || undefined,
-  }), [filters, selectedTypeId]);
+  // Apply type filter and mobile status filter
+  const appliedFilters = useMemo(() => {
+    const statusMap: Record<string, OrderFiltersType["status"]> = {
+      pending: "pending",
+      active: "in_progress",
+      completed: "completed",
+    };
+    return {
+      ...filters,
+      order_type_id: selectedTypeId || undefined,
+      status: mobileStatusTab !== "all" && mobileStatusTab !== "settings" 
+        ? statusMap[mobileStatusTab] 
+        : filters.status,
+    };
+  }, [filters, selectedTypeId, mobileStatusTab]);
   
   const { orders, loading, canManage, createOrder, updateOrder, updateStatus, deleteOrder, refresh } = useHorseOrders(appliedFilters);
 
@@ -169,7 +181,7 @@ const DashboardHorseOrders = () => {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0 pb-24 lg:pb-0">
           <div className="p-4 lg:p-8">
             {!activeTenant ? (
               <div className="text-center py-12">
@@ -232,6 +244,13 @@ const DashboardHorseOrders = () => {
             )}
           </div>
         </div>
+
+        {/* Bottom Navigation for Mobile */}
+        <OrdersBottomNavigation
+          activeTab={mobileStatusTab}
+          onTabChange={setMobileStatusTab}
+          showSettings={canManage}
+        />
       </main>
 
       {/* Create Order Dialog */}

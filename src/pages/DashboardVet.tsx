@@ -8,7 +8,7 @@ import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
-import { VetTreatmentsList, CreateVetTreatmentDialog, VetFollowupsList, VaccinationsList, VaccinationProgramManager } from "@/components/vet";
+import { VetTreatmentsList, CreateVetTreatmentDialog, VetFollowupsList, VaccinationsList, VaccinationProgramManager, VetBottomNavigation } from "@/components/vet";
 import { useTenant } from "@/contexts/TenantContext";
 
 // Mock data for demo purposes
@@ -248,6 +248,7 @@ const DashboardVet = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("treatments");
   const { activeRole } = useTenant();
 
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
@@ -298,8 +299,8 @@ const DashboardVet = () => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-8">
-          <Tabs defaultValue="treatments" className="space-y-6">
+        <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <TabsList>
                 <TabsTrigger value="treatments" className="gap-2">
@@ -405,6 +406,14 @@ const DashboardVet = () => {
             )}
           </Tabs>
         </main>
+
+        {/* Bottom Navigation for Mobile */}
+        <VetBottomNavigation
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          showSettings={isOwnerOrManager}
+          overdueCount={overdueFollowups.length}
+        />
       </div>
 
       <CreateVetTreatmentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />

@@ -12,3 +12,4 @@ export { CapabilitiesManager } from "./CapabilitiesManager";
 export { ServiceProviderSelector } from "./ServiceProviderSelector";
 export { ClientSelector } from "./ClientSelector";
 export { FinancialCategorization } from "./FinancialCategorization";
+export { OrdersBottomNavigation } from "./OrdersBottomNavigation";
