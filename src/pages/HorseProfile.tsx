@@ -35,6 +35,7 @@ import {
 import { HorseWizard, HorseData } from "@/components/horses/HorseWizard";
 import { OwnershipTimeline } from "@/components/horses/OwnershipTimeline";
 import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
+import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
 
 interface Horse {
@@ -440,6 +441,9 @@ const HorseProfile = () => {
 
         {/* Vet & Health Section */}
         <HorseVetSection horseId={horse.id} horseName={horse.name} />
+
+        {/* Laboratory Section */}
+        <HorseLabSection horseId={horse.id} horseName={horse.name} />
 
         {/* Current Ownership */}
         <CurrentOwnership horseId={horse.id} horseName={horse.name} />

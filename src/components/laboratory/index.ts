@@ -1,6 +1,7 @@
 export * from "./SampleStatusBadge";
 export * from "./SampleCard";
 export * from "./SamplesList";
+export * from "./SamplesFilterTabs";
 export * from "./ResultCard";
 export * from "./LabTimeline";
 export * from "./LabCreditsPanel";
@@ -12,3 +13,5 @@ export * from "./ResultsList";
 export * from "./LabBottomNavigation";
 export * from "./ResultPreviewDialog";
 export * from "./ResultsComparison";
+export * from "./ResultSharePanel";
+export * from "./HorseLabSection";
