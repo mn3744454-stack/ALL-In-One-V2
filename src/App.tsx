@@ -24,6 +24,7 @@ import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
 import DashboardLaboratory from "./pages/DashboardLaboratory";
+import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
@@ -75,6 +76,8 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/directory" element={<Directory />} />
       <Route path="/t/:slug" element={<TenantPublicProfile />} />
+      {/* Public shared lab result - no auth required */}
+      <Route path="/shared/lab-result/:token" element={<SharedLabResult />} />
       <Route
         path="/auth"
         element={

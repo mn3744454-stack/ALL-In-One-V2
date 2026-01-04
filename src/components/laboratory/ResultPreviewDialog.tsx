@@ -41,6 +41,7 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
+import { ResultSharePanel } from "./ResultSharePanel";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 
@@ -515,6 +516,12 @@ export function ResultPreviewDialog({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
+
+        {/* Share Management Panel */}
+        <Separator className="print:hidden" />
+        <div className="print:hidden">
+          <ResultSharePanel resultId={result.id} resultStatus={result.status} />
         </div>
       </DialogContent>
     </Dialog>
