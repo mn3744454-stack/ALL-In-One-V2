@@ -18,6 +18,7 @@ import { BreedingAttemptCard } from "@/components/breeding/BreedingAttemptCard";
 import { PregnancyCard } from "@/components/breeding/PregnancyCard";
 import { EmbryoTransferCard } from "@/components/breeding/EmbryoTransferCard";
 import { SemenBatchCard } from "@/components/breeding/SemenBatchCard";
+import { BreedingBottomNavigation } from "@/components/breeding/BreedingBottomNavigation";
 import { CreateBreedingAttemptDialog } from "@/components/breeding/CreateBreedingAttemptDialog";
 import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDialog";
 import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTransferDialog";
@@ -242,7 +243,7 @@ export default function DashboardBreeding() {
           </header>
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 overflow-y-auto min-h-0 pb-24 lg:pb-0">
             <div className="p-4 lg:p-8">
               {!activeTenant ? (
                 <div className="text-center py-12">
@@ -399,6 +400,12 @@ export default function DashboardBreeding() {
               )}
             </div>
           </div>
+
+          {/* Bottom Navigation for Mobile */}
+          <BreedingBottomNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </main>
       </div>
 

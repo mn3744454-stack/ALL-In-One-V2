@@ -9,3 +9,4 @@ export * from './VaccinationsList';
 export * from './VaccinationProgramManager';
 export * from './VetTimeline';
 export * from './HorseVetSection';
+export * from './VetBottomNavigation';
