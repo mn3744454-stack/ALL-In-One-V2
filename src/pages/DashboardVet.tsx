@@ -302,7 +302,7 @@ const DashboardVet = () => {
         <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <TabsList>
+              <TabsList className="hidden lg:flex">
                 <TabsTrigger value="treatments" className="gap-2">
                   <Stethoscope className="w-4 h-4" />
                   <span className="hidden sm:inline">Treatments</span>
