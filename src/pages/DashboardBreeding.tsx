@@ -271,7 +271,7 @@ export default function DashboardBreeding() {
 
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                      <TabsList className="w-full sm:w-auto">
+                      <TabsList className="hidden lg:flex">
                         <TabsTrigger value="attempts" className="gap-2">
                           <Heart className="h-4 w-4" />
                           <span className="hidden sm:inline">Attempts</span>
