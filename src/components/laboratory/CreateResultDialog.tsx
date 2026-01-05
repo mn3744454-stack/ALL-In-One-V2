@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, ChevronLeft, ChevronRight, Check, FileText, FlaskConical, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Loader2, 
+  ChevronLeft, 
+  ChevronRight, 
+  Check, 
+  FileText, 
+  FlaskConical, 
+  AlertCircle,
+  ArrowRight,
+  Edit,
+  CheckCircle2
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabTemplates, type LabTemplate, type LabTemplateField } from "@/hooks/laboratory/useLabTemplates";
-import { useLabResults, type CreateLabResultData, type LabResultFlags } from "@/hooks/laboratory/useLabResults";
+import { useLabResults, type CreateLabResultData, type LabResultFlags, type LabResult } from "@/hooks/laboratory/useLabResults";
 import type { Json } from "@/integrations/supabase/types";
 
 interface CreateResultDialogProps {
@@ -35,10 +47,11 @@ interface CreateResultDialogProps {
 }
 
 const STEPS = [
-  { key: 'sample', title: 'Select Sample', icon: FlaskConical },
-  { key: 'template', title: 'Select Template', icon: FileText },
-  { key: 'results', title: 'Enter Results', icon: FileText },
-  { key: 'review', title: 'Review', icon: Check },
+  { key: 'sample', title: 'اختر العينة', titleEn: 'Select Sample', icon: FlaskConical },
+  { key: 'template', title: 'اختر القالب', titleEn: 'Select Template', icon: FileText },
+  { key: 'results', title: 'أدخل النتائج', titleEn: 'Enter Results', icon: FileText },
+  { key: 'review', title: 'مراجعة', titleEn: 'Review', icon: Check },
+  { key: 'next', title: 'متابعة', titleEn: 'Continue', icon: ArrowRight },
 ];
 
 export function CreateResultDialog({
@@ -49,7 +62,7 @@ export function CreateResultDialog({
 }: CreateResultDialogProps) {
   const { samples } = useLabSamples({ status: 'processing' });
   const { activeTemplates } = useLabTemplates();
-  const { createResult } = useLabResults();
+  const { results, createResult, updateResult, refresh: refreshResults } = useLabResults();
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -58,11 +71,47 @@ export function CreateResultDialog({
   const [resultData, setResultData] = useState<Record<string, unknown>>({});
   const [flags, setFlags] = useState<LabResultFlags>('normal');
   const [interpretation, setInterpretation] = useState('');
+  const [editingResultId, setEditingResultId] = useState<string | null>(null);
+  const [savedInSession, setSavedInSession] = useState<string[]>([]);
 
-  // Filter templates based on sample's selected templates (if any)
-  const availableTemplates = selectedSample?.templates?.length
-    ? activeTemplates.filter(t => selectedSample.templates!.some(st => st.template.id === t.id))
-    : activeTemplates;
+  // Get ordered templates for the selected sample
+  const orderedTemplates = useMemo(() => {
+    if (!selectedSample?.templates?.length) return [];
+    return [...selectedSample.templates]
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map(st => {
+        // Find the full template data from activeTemplates
+        const fullTemplate = activeTemplates.find(t => t.id === st.template.id);
+        return fullTemplate || {
+          ...st.template,
+          is_active: true,
+          normal_ranges: {},
+          created_at: '',
+          updated_at: '',
+        } as LabTemplate;
+      });
+  }, [selectedSample, activeTemplates]);
+
+  // Get existing results for the selected sample
+  const sampleResults = useMemo(() => {
+    if (!selectedSample) return [];
+    return results.filter(r => r.sample_id === selectedSample.id);
+  }, [selectedSample, results]);
+
+  // Completed template IDs (have a result)
+  const completedTemplateIds = useMemo(() => {
+    return sampleResults.map(r => r.template_id);
+  }, [sampleResults]);
+
+  // Remaining templates (no result yet)
+  const remainingTemplates = useMemo(() => {
+    return orderedTemplates.filter(t => !completedTemplateIds.includes(t.id));
+  }, [orderedTemplates, completedTemplateIds]);
+
+  // Progress calculation
+  const totalTemplates = orderedTemplates.length;
+  const completedCount = completedTemplateIds.length;
+  const progressPercent = totalTemplates > 0 ? (completedCount / totalTemplates) * 100 : 0;
 
   useEffect(() => {
     if (open) {
@@ -72,8 +121,11 @@ export function CreateResultDialog({
       setResultData({});
       setFlags('normal');
       setInterpretation('');
+      setEditingResultId(null);
+      setSavedInSession([]);
+      refreshResults();
     }
-  }, [open, preselectedSample]);
+  }, [open, preselectedSample, refreshResults]);
 
   const handleNext = () => {
     if (step < STEPS.length - 1) {
@@ -101,14 +153,77 @@ export function CreateResultDialog({
         status: 'draft',
       };
 
-      const result = await createResult(data);
+      let success = false;
+
+      if (editingResultId) {
+        // Update existing result
+        const updated = await updateResult(editingResultId, {
+          result_data: resultData as Json,
+          interpretation: { notes: interpretation } as Json,
+          flags,
+        });
+        success = !!updated;
+      } else {
+        // Create new result
+        const created = await createResult(data);
+        success = !!created;
+      }
       
-      if (result) {
-        onOpenChange(false);
-        onSuccess?.();
+      if (success) {
+        // Track saved templates in this session
+        setSavedInSession(prev => [...prev, selectedTemplate.id]);
+        
+        // Refresh results to get updated list
+        await refreshResults();
+        
+        // Check if there are more templates to complete
+        const stillRemaining = orderedTemplates.filter(
+          t => !completedTemplateIds.includes(t.id) && t.id !== selectedTemplate.id
+        );
+        
+        if (stillRemaining.length > 0) {
+          // Move to "next" step to ask user what to do
+          setStep(STEPS.findIndex(s => s.key === 'next'));
+        } else {
+          // All templates completed
+          onOpenChange(false);
+          onSuccess?.();
+        }
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContinueToNext = () => {
+    // Get the next remaining template
+    const nextTemplate = remainingTemplates.find(t => !savedInSession.includes(t.id));
+    if (nextTemplate) {
+      setSelectedTemplate(nextTemplate);
+      setResultData({});
+      setFlags('normal');
+      setInterpretation('');
+      setEditingResultId(null);
+      setStep(STEPS.findIndex(s => s.key === 'results'));
+    }
+  };
+
+  const handleSelectTemplate = (template: LabTemplate) => {
+    const existingResult = sampleResults.find(r => r.template_id === template.id);
+    
+    setSelectedTemplate(template);
+    
+    if (existingResult) {
+      // Load existing data for editing
+      setResultData(existingResult.result_data as Record<string, unknown> || {});
+      setFlags((existingResult.flags as LabResultFlags) || 'normal');
+      setInterpretation((existingResult.interpretation as { notes?: string })?.notes || '');
+      setEditingResultId(existingResult.id);
+    } else {
+      setResultData({});
+      setFlags('normal');
+      setInterpretation('');
+      setEditingResultId(null);
     }
   };
 
@@ -144,6 +259,8 @@ export function CreateResultDialog({
         const requiredFields = selectedTemplate.fields.filter(f => f.required);
         return requiredFields.every(f => resultData[f.id] !== undefined && resultData[f.id] !== '');
       case 'review':
+        return true;
+      case 'next':
         return true;
       default:
         return true;
@@ -243,42 +360,58 @@ export function CreateResultDialog({
         return (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Select a sample that is currently being processed.
+              اختر عينة في مرحلة المعالجة / Select a sample that is currently being processed.
             </p>
             
             {samples.length === 0 ? (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  No samples are currently in processing. Start processing a sample first.
+                  لا توجد عينات في مرحلة المعالجة. ابدأ بمعالجة عينة أولاً.
                 </AlertDescription>
               </Alert>
             ) : (
               <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-                {samples.map((sample) => (
-                  <Card
-                    key={sample.id}
-                    className={cn(
-                      "p-4 cursor-pointer transition-colors",
-                      selectedSample?.id === sample.id
-                        ? "border-primary bg-primary/5"
-                        : "hover:border-primary/50"
-                    )}
-                    onClick={() => setSelectedSample(sample)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{sample.horse?.name || 'Unknown Horse'}</p>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          {sample.physical_sample_id || sample.id.slice(0, 8)}
-                        </p>
-                      </div>
-                      {selectedSample?.id === sample.id && (
-                        <Check className="h-5 w-5 text-primary" />
+                {samples.map((sample) => {
+                  const sampleTemplateCount = sample.templates?.length || 0;
+                  const sampleResultsCount = results.filter(r => r.sample_id === sample.id).length;
+                  
+                  return (
+                    <Card
+                      key={sample.id}
+                      className={cn(
+                        "p-4 cursor-pointer transition-colors",
+                        selectedSample?.id === sample.id
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-primary/50"
                       )}
-                    </div>
-                  </Card>
-                ))}
+                      onClick={() => setSelectedSample(sample)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium">{sample.horse?.name || 'Unknown Horse'}</p>
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {sample.physical_sample_id || sample.id.slice(0, 8)}
+                          </p>
+                          {sampleTemplateCount > 0 && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Progress 
+                                value={(sampleResultsCount / sampleTemplateCount) * 100} 
+                                className="h-1.5 flex-1 max-w-[100px]"
+                              />
+                              <span className="text-xs text-muted-foreground">
+                                {sampleResultsCount}/{sampleTemplateCount}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {selectedSample?.id === sample.id && (
+                          <Check className="h-5 w-5 text-primary shrink-0" />
+                        )}
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -287,79 +420,96 @@ export function CreateResultDialog({
       case 'template':
         return (
           <div className="space-y-4">
-            {/* Show which templates are required for this sample */}
-            {selectedSample?.templates && selectedSample.templates.length > 0 && (
-              <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
-                <FileText className="h-4 w-4 text-blue-600" />
-                <AlertDescription className="text-blue-700 dark:text-blue-300">
-                  <span className="font-medium">القوالب المطلوبة لهذه العينة:</span>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {selectedSample.templates.map(st => (
-                      <Badge key={st.id} variant="secondary" className="text-xs">
-                        {st.template.name_ar || st.template.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </AlertDescription>
-              </Alert>
+            {/* Progress indicator for this sample */}
+            {totalTemplates > 0 && (
+              <Card className="p-3 bg-muted/50">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">تقدم التحاليل</span>
+                  <span className="text-sm text-muted-foreground">
+                    {completedCount}/{totalTemplates}
+                  </span>
+                </div>
+                <Progress value={progressPercent} className="h-2" />
+              </Card>
             )}
 
             <p className="text-sm text-muted-foreground">
               اختر القالب لإدخال النتائج / Choose a template for entering results.
             </p>
             
-            {availableTemplates.length === 0 ? (
+            {orderedTemplates.length === 0 ? (
               <Alert className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-700 dark:text-amber-300">
-                  <div className="space-y-3">
-                    <p>لا توجد قوالب متاحة. يجب إنشاء قالب أولاً لتسجيل النتائج.</p>
-                    <p className="text-sm">No templates available. Create a template first to enter results.</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        onOpenChange(false);
-                      }}
-                    >
-                      Go to Templates Tab
-                    </Button>
-                  </div>
+                  لا توجد قوالب محددة لهذه العينة.
                 </AlertDescription>
               </Alert>
             ) : (
-              <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-                {availableTemplates.map((template) => (
-                  <Card
-                    key={template.id}
-                    className={cn(
-                      "p-4 cursor-pointer transition-colors min-h-12",
-                      selectedTemplate?.id === template.id
-                        ? "border-primary bg-primary/5"
-                        : "hover:border-primary/50"
-                    )}
-                    onClick={() => {
-                      setSelectedTemplate(template);
-                      setResultData({});
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{template.name_ar || template.name}</p>
-                        {template.name_ar && (
-                          <p className="text-xs text-muted-foreground">{template.name}</p>
-                        )}
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {template.fields.length} fields • {template.template_type || 'Standard'}
-                        </p>
-                      </div>
-                      {selectedTemplate?.id === template.id && (
-                        <Check className="h-5 w-5 text-primary" />
+              <div className="grid gap-2 max-h-[300px] overflow-y-auto">
+                {orderedTemplates.map((template, index) => {
+                  const existingResult = sampleResults.find(r => r.template_id === template.id);
+                  const isCompleted = !!existingResult;
+                  const isDraft = existingResult?.status === 'draft';
+                  const isReviewed = existingResult?.status === 'reviewed';
+                  const isFinal = existingResult?.status === 'final';
+                  
+                  return (
+                    <Card
+                      key={template.id}
+                      className={cn(
+                        "p-3 cursor-pointer transition-colors min-h-11",
+                        isFinal && "opacity-60",
+                        selectedTemplate?.id === template.id && "border-primary bg-primary/5",
+                        !isFinal && "hover:border-primary/50"
                       )}
-                    </div>
-                  </Card>
-                ))}
+                      onClick={() => {
+                        if (isFinal) {
+                          return; // Can't edit final results
+                        }
+                        handleSelectTemplate(template);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground text-sm font-mono w-6">
+                          #{index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {template.name_ar || template.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {template.fields.length} حقل
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {isFinal ? (
+                            <Badge variant="secondary" className="text-green-600 text-xs">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              نهائي
+                            </Badge>
+                          ) : isReviewed ? (
+                            <Badge variant="secondary" className="text-blue-600 text-xs">
+                              <Check className="h-3 w-3 mr-1" />
+                              مراجع
+                            </Badge>
+                          ) : isDraft ? (
+                            <Badge variant="outline" className="text-amber-600 text-xs">
+                              <Edit className="h-3 w-3 mr-1" />
+                              مسودة
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground text-xs">
+                              معلق
+                            </Badge>
+                          )}
+                          {selectedTemplate?.id === template.id && (
+                            <Check className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -369,34 +519,42 @@ export function CreateResultDialog({
         return (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">{selectedTemplate?.name}</h4>
-              <Badge>{selectedTemplate?.fields.length} fields</Badge>
+              <h4 className="font-medium">{selectedTemplate?.name_ar || selectedTemplate?.name}</h4>
+              <div className="flex items-center gap-2">
+                {editingResultId && (
+                  <Badge variant="outline" className="text-amber-600">
+                    <Edit className="h-3 w-3 mr-1" />
+                    تعديل
+                  </Badge>
+                )}
+                <Badge>{selectedTemplate?.fields.length} حقل</Badge>
+              </div>
             </div>
             
-            <div className="grid gap-4 max-h-[400px] overflow-y-auto pr-2">
+            <div className="grid gap-4 max-h-[350px] overflow-y-auto pr-2">
               {selectedTemplate?.fields.map(field => renderFieldInput(field))}
             </div>
 
             <div className="space-y-2 pt-4 border-t">
-              <Label>Overall Assessment</Label>
+              <Label>التقييم العام / Overall Assessment</Label>
               <Select value={flags} onValueChange={(v) => setFlags(v as LabResultFlags)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="z-[200]">
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="abnormal">Abnormal</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="normal">طبيعي / Normal</SelectItem>
+                  <SelectItem value="abnormal">غير طبيعي / Abnormal</SelectItem>
+                  <SelectItem value="critical">حرج / Critical</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Interpretation / Notes</Label>
+              <Label>التفسير / Interpretation</Label>
               <Textarea
                 value={interpretation}
                 onChange={(e) => setInterpretation(e.target.value)}
-                placeholder="Additional notes or interpretation..."
+                placeholder="ملاحظات إضافية أو تفسير..."
                 rows={3}
               />
             </div>
@@ -406,31 +564,31 @@ export function CreateResultDialog({
       case 'review':
         return (
           <div className="space-y-4">
-            <h4 className="font-medium">Review Results</h4>
+            <h4 className="font-medium">مراجعة النتائج</h4>
             
             <Card className="p-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Sample</span>
+                <span className="text-muted-foreground">العينة</span>
                 <span className="font-medium">{selectedSample?.horse?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Sample ID</span>
+                <span className="text-muted-foreground">رقم العينة</span>
                 <span className="font-mono text-sm">{selectedSample?.physical_sample_id}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Template</span>
-                <span>{selectedTemplate?.name}</span>
+                <span className="text-muted-foreground">القالب</span>
+                <span>{selectedTemplate?.name_ar || selectedTemplate?.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Overall Status</span>
+                <span className="text-muted-foreground">الحالة</span>
                 <Badge variant={flags === 'normal' ? 'default' : flags === 'critical' ? 'destructive' : 'secondary'}>
-                  {flags}
+                  {flags === 'normal' ? 'طبيعي' : flags === 'abnormal' ? 'غير طبيعي' : 'حرج'}
                 </Badge>
               </div>
             </Card>
 
             <Card className="p-4">
-              <h5 className="font-medium mb-3">Results Summary</h5>
+              <h5 className="font-medium mb-3">ملخص النتائج</h5>
               <div className="space-y-2 text-sm">
                 {selectedTemplate?.fields.map(field => {
                   const value = resultData[field.id];
@@ -456,7 +614,7 @@ export function CreateResultDialog({
 
             {interpretation && (
               <Card className="p-4">
-                <h5 className="font-medium mb-2">Interpretation</h5>
+                <h5 className="font-medium mb-2">التفسير</h5>
                 <p className="text-sm text-muted-foreground">{interpretation}</p>
               </Card>
             )}
@@ -464,9 +622,92 @@ export function CreateResultDialog({
             <Alert>
               <FileText className="h-4 w-4" />
               <AlertDescription>
-                Result will be saved as draft. You can review and finalize it later.
+                سيتم حفظ النتيجة كمسودة. يمكنك مراجعتها وإنهائها لاحقاً.
               </AlertDescription>
             </Alert>
+          </div>
+        );
+
+      case 'next':
+        // Recalculate remaining after saving
+        const currentRemaining = orderedTemplates.filter(
+          t => !completedTemplateIds.includes(t.id) && !savedInSession.includes(t.id)
+        );
+        
+        return (
+          <div className="space-y-4">
+            {/* Success message */}
+            <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-700 dark:text-green-300">
+                <span className="font-medium">
+                  تم حفظ نتيجة: {selectedTemplate?.name_ar || selectedTemplate?.name}
+                </span>
+              </AlertDescription>
+            </Alert>
+
+            {/* Remaining templates */}
+            {currentRemaining.length > 0 ? (
+              <>
+                <Card className="p-4">
+                  <h5 className="font-medium mb-3">القوالب المتبقية: {currentRemaining.length}</h5>
+                  <div className="space-y-2">
+                    {currentRemaining.map((t, i) => (
+                      <div key={t.id} className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">#{orderedTemplates.indexOf(t) + 1}</span>
+                        <span>{t.name_ar || t.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                <div className="grid gap-3">
+                  <Button
+                    onClick={handleContinueToNext}
+                    className="w-full min-h-11"
+                  >
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    متابعة للقالب التالي
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onSuccess?.();
+                    }}
+                    className="w-full min-h-11"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    إغلاق والمتابعة لاحقاً
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  يمكنك إصدار نتيجة جزئية الآن أو إكمال بقية التحاليل
+                </p>
+              </>
+            ) : (
+              <>
+                <Alert className="border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 dark:text-green-300">
+                    تم إكمال جميع القوالب لهذه العينة!
+                  </AlertDescription>
+                </Alert>
+
+                <Button
+                  onClick={() => {
+                    onOpenChange(false);
+                    onSuccess?.();
+                  }}
+                  className="w-full min-h-11"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  إغلاق
+                </Button>
+              </>
+            )}
           </div>
         );
 
@@ -475,30 +716,33 @@ export function CreateResultDialog({
     }
   };
 
+  // Determine if we're on the "next" step (which has its own navigation)
+  const isNextStep = STEPS[step].key === 'next';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Enter Lab Results</DialogTitle>
+          <DialogTitle>إدخال نتائج المختبر</DialogTitle>
         </DialogHeader>
 
         {/* Step Indicator */}
         <div className="flex items-center justify-center gap-2 py-4">
-          {STEPS.map((s, i) => (
+          {STEPS.slice(0, 4).map((s, i) => (
             <div key={s.key} className="flex items-center">
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                  i === step
+                  i === step || (step === 4 && i === 3)
                     ? "bg-primary text-primary-foreground"
                     : i < step
                     ? "bg-primary/20 text-primary"
                     : "bg-muted text-muted-foreground"
                 )}
               >
-                {i < step ? <Check className="h-4 w-4" /> : i + 1}
+                {i < step || (step === 4 && i < 4) ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              {i < STEPS.length - 1 && (
+              {i < 3 && (
                 <div
                   className={cn(
                     "w-8 h-0.5 mx-1",
@@ -519,44 +763,46 @@ export function CreateResultDialog({
           {renderStepContent()}
         </div>
 
-        {/* Navigation */}
-        <div className="flex gap-3 pt-4 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
-            className="flex-1"
-          >
-            {step === 0 ? (
-              'Cancel'
-            ) : (
-              <>
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Previous
-              </>
-            )}
-          </Button>
-          
-          {step < STEPS.length - 1 ? (
+        {/* Navigation - hide on "next" step since it has its own buttons */}
+        {!isNextStep && (
+          <div className="flex gap-3 pt-4 border-t">
             <Button
-              onClick={handleNext}
-              disabled={!canProceed()}
-              className="flex-1"
+              type="button"
+              variant="outline"
+              onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
+              className="flex-1 min-h-11"
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
+              {step === 0 ? (
+                'إلغاء'
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  السابق
+                </>
+              )}
             </Button>
-          ) : (
-            <Button
-              onClick={handleSubmit}
-              disabled={loading || !canProceed()}
-              className="flex-1"
-            >
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Save Result
-            </Button>
-          )}
-        </div>
+            
+            {step < STEPS.findIndex(s => s.key === 'review') ? (
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className="flex-1 min-h-11"
+              >
+                التالي
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            ) : step === STEPS.findIndex(s => s.key === 'review') ? (
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !canProceed()}
+                className="flex-1 min-h-11"
+              >
+                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {editingResultId ? 'تحديث النتيجة' : 'حفظ النتيجة'}
+              </Button>
+            ) : null}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -55,6 +55,22 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
+  // Check if user can edit a specific result
+  const canEditResult = (result: LabResult): boolean => {
+    if (!user?.id) return false;
+    
+    // Owner or Manager can always edit
+    if (activeRole === 'owner' || activeRole === 'manager') return true;
+    
+    // Reviewer can edit
+    if (result.reviewed_by === user.id) return true;
+    
+    // Creator can edit if still draft
+    if (result.created_by === user.id && result.status === 'draft') return true;
+    
+    return false;
+  };
+
   const fetchResults = useCallback(async () => {
     if (!activeTenant?.tenant.id) {
       setResults([]);
@@ -299,6 +315,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
     results,
     loading,
     canManage,
+    canEditResult,
     createResult,
     updateResult,
     reviewResult,
