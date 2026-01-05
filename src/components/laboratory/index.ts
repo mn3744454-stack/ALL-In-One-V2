@@ -15,3 +15,4 @@ export * from "./ResultPreviewDialog";
 export * from "./ResultsComparison";
 export * from "./ResultSharePanel";
 export * from "./HorseLabSection";
+export * from "./CombinedResultsDialog";
