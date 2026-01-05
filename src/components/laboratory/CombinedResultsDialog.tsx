@@ -273,7 +273,7 @@ export function CombinedResultsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FlaskConical className="h-5 w-5" />
@@ -290,42 +290,42 @@ export function CombinedResultsDialog({
         ) : (
           <>
             {/* Preview Content */}
-            <div ref={previewRef} className="border rounded-lg p-6 bg-background space-y-6" dir="rtl">
+            <div ref={previewRef} className="border rounded-lg p-3 md:p-6 bg-background space-y-4 md:space-y-6 overflow-x-hidden" dir="rtl">
               {/* Header */}
               <div className="text-center border-b pb-4">
-                <h2 className="font-bold text-2xl">
+                <h2 className="font-bold text-xl md:text-2xl">
                   {activeTenant?.tenant?.name || 'المختبر'}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs md:text-sm text-muted-foreground">
                   تقرير نتائج المختبر المجمّع
                 </p>
               </div>
 
               {/* Sample Info */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-muted/50 rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-2 md:gap-4 bg-muted/50 rounded-lg p-3 md:p-4">
                 <div>
                   <p className="text-xs text-muted-foreground">اسم الحصان</p>
-                  <p className="font-semibold">{horseName}</p>
+                  <p className="font-semibold text-sm md:text-base truncate">{horseName}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">معرف العينة</p>
-                  <p className="font-mono">{sampleId}</p>
+                  <p className="font-mono text-sm md:text-base">{sampleId}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">تاريخ الجمع</p>
-                  <p>{format(new Date(sample.collection_date), "d MMM yyyy")}</p>
+                  <p className="text-sm md:text-base">{format(new Date(sample.collection_date), "d MMM yyyy")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">التحاليل</p>
-                  <p>{completedCount}/{totalCount} مكتمل</p>
+                  <p className="text-sm md:text-base">{completedCount}/{totalCount} مكتمل</p>
                 </div>
               </div>
 
               {/* Warning if incomplete */}
               {completedCount < totalCount && (
-                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-200">
+                <div className="flex items-center gap-2 p-2 md:p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-200">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm">
+                  <span className="text-xs md:text-sm">
                     هذا التقرير غير مكتمل. بعض التحاليل لم تُسجّل بعد.
                   </span>
                 </div>
@@ -343,15 +343,15 @@ export function CombinedResultsDialog({
                 return (
                   <div key={template.id} className="template-section">
                     {/* Template Header */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3 md:mb-4">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <h3 className="font-semibold">
+                        <FileText className="h-4 w-4 text-muted-foreground hidden md:block" />
+                        <h3 className="font-semibold text-sm md:text-base">
                           {index + 1}. {template.name_ar || template.name}
                         </h3>
                         {result?.flags && getFlagIcon(result.flags)}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 md:gap-2">
                         {getStatusBadge(result?.status)}
                         {/* Action Buttons */}
                         {result?.status === 'draft' && onReviewResult && (
@@ -359,7 +359,7 @@ export function CombinedResultsDialog({
                             size="sm" 
                             variant="outline"
                             onClick={() => onReviewResult(result.id)}
-                            className="print:hidden"
+                            className="print:hidden h-7 text-xs"
                           >
                             مراجعة
                           </Button>
@@ -369,7 +369,7 @@ export function CombinedResultsDialog({
                             size="sm" 
                             variant="outline"
                             onClick={() => onFinalizeResult(result.id)}
-                            className="print:hidden"
+                            className="print:hidden h-7 text-xs"
                           >
                             اعتماد
                           </Button>
@@ -377,88 +377,154 @@ export function CombinedResultsDialog({
                       </div>
                     </div>
 
-                    {/* Results Table */}
+                    {/* Results Table - Desktop */}
                     {result ? (
-                      <div className="border rounded-lg overflow-hidden">
-                        <table className="w-full">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="text-right p-3 text-sm font-medium">المعامل</th>
-                              <th className="text-center p-3 text-sm font-medium">القيمة</th>
-                              <th className="text-center p-3 text-sm font-medium">الوحدة</th>
-                              <th className="text-center p-3 text-sm font-medium">المرجعي</th>
-                              <th className="text-center p-3 text-sm font-medium">الحالة</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {templateFields.map((field) => {
-                              const value = resultData[field.id];
-                              const range = normalRanges[field.id];
-                              const numValue = typeof value === 'number' ? value : parseFloat(value as string);
-                              
-                              let status: 'normal' | 'low' | 'high' = 'normal';
-                              if (range && !isNaN(numValue)) {
-                                if (range.min !== undefined && numValue < range.min) status = 'low';
-                                else if (range.max !== undefined && numValue > range.max) status = 'high';
-                              }
+                      <>
+                        <div className="hidden md:block border rounded-lg overflow-hidden">
+                          <table className="w-full">
+                            <thead className="bg-muted">
+                              <tr>
+                                <th className="text-right p-3 text-sm font-medium">المعامل</th>
+                                <th className="text-center p-3 text-sm font-medium">القيمة</th>
+                                <th className="text-center p-3 text-sm font-medium">الوحدة</th>
+                                <th className="text-center p-3 text-sm font-medium">المرجعي</th>
+                                <th className="text-center p-3 text-sm font-medium">الحالة</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {templateFields.map((field) => {
+                                const value = resultData[field.id];
+                                const range = normalRanges[field.id];
+                                const numValue = typeof value === 'number' ? value : parseFloat(value as string);
+                                
+                                let status: 'normal' | 'low' | 'high' = 'normal';
+                                if (range && !isNaN(numValue)) {
+                                  if (range.min !== undefined && numValue < range.min) status = 'low';
+                                  else if (range.max !== undefined && numValue > range.max) status = 'high';
+                                }
 
-                              return (
-                                <tr key={field.id} className="hover:bg-muted/50">
-                                  <td className="p-3">
-                                    <span className="font-medium">{field.name_ar || field.name}</span>
-                                  </td>
-                                  <td className={`p-3 text-center font-mono ${
+                                return (
+                                  <tr key={field.id} className="hover:bg-muted/50">
+                                    <td className="p-3">
+                                      <span className="font-medium">{field.name_ar || field.name}</span>
+                                    </td>
+                                    <td className={`p-3 text-center font-mono ${
+                                      status === 'low' ? 'text-blue-600' :
+                                      status === 'high' ? 'text-red-600' : ''
+                                    }`}>
+                                      {value !== undefined ? String(value) : '-'}
+                                    </td>
+                                    <td className="p-3 text-center text-muted-foreground">
+                                      {field.unit || '-'}
+                                    </td>
+                                    <td className="p-3 text-center text-sm text-muted-foreground">
+                                      {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {status === 'normal' ? (
+                                        <CheckCircle2 className="h-4 w-4 text-green-600 mx-auto" />
+                                      ) : status === 'low' ? (
+                                        <span className="text-xs text-blue-600 font-medium">↓ منخفض</span>
+                                      ) : (
+                                        <span className="text-xs text-red-600 font-medium">↑ مرتفع</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                          
+                          {/* Creator/Reviewer Info - Desktop */}
+                          <div className="bg-muted/30 px-4 py-2 text-xs text-muted-foreground flex items-center gap-4">
+                            {result.creator?.full_name && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                أنشأ: {result.creator.full_name}
+                              </span>
+                            )}
+                            {result.reviewer?.full_name && (
+                              <span className="flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" />
+                                راجع: {result.reviewer.full_name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Results Cards - Mobile */}
+                        <div className="md:hidden space-y-2">
+                          {templateFields.map((field) => {
+                            const value = resultData[field.id];
+                            const range = normalRanges[field.id];
+                            const numValue = typeof value === 'number' ? value : parseFloat(value as string);
+                            
+                            let status: 'normal' | 'low' | 'high' = 'normal';
+                            if (range && !isNaN(numValue)) {
+                              if (range.min !== undefined && numValue < range.min) status = 'low';
+                              else if (range.max !== undefined && numValue > range.max) status = 'high';
+                            }
+
+                            return (
+                              <div key={field.id} className="border rounded-lg p-3 bg-background">
+                                <div className="flex justify-between items-start">
+                                  <span className="font-medium text-sm">{field.name_ar || field.name}</span>
+                                  <span>
+                                    {status === 'normal' ? (
+                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    ) : status === 'low' ? (
+                                      <span className="text-xs text-blue-600 font-medium">↓</span>
+                                    ) : (
+                                      <span className="text-xs text-red-600 font-medium">↑</span>
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1 mt-1">
+                                  <span className={`font-mono text-lg ${
                                     status === 'low' ? 'text-blue-600' :
                                     status === 'high' ? 'text-red-600' : ''
                                   }`}>
                                     {value !== undefined ? String(value) : '-'}
-                                  </td>
-                                  <td className="p-3 text-center text-muted-foreground">
-                                    {field.unit || '-'}
-                                  </td>
-                                  <td className="p-3 text-center text-sm text-muted-foreground">
-                                    {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    {status === 'normal' ? (
-                                      <CheckCircle2 className="h-4 w-4 text-green-600 mx-auto" />
-                                    ) : status === 'low' ? (
-                                      <span className="text-xs text-blue-600 font-medium">↓ منخفض</span>
-                                    ) : (
-                                      <span className="text-xs text-red-600 font-medium">↑ مرتفع</span>
-                                    )}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                        
-                        {/* Creator/Reviewer Info */}
-                        <div className="bg-muted/30 px-4 py-2 text-xs text-muted-foreground flex items-center gap-4">
-                          {result.creator?.full_name && (
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              أنشأ: {result.creator.full_name}
-                            </span>
-                          )}
-                          {result.reviewer?.full_name && (
-                            <span className="flex items-center gap-1">
-                              <CheckCircle2 className="h-3 w-3" />
-                              راجع: {result.reviewer.full_name}
-                            </span>
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">{field.unit || ''}</span>
+                                </div>
+                                {range && (
+                                  <span className="text-xs text-muted-foreground">
+                                    المرجعي: {range.min ?? '—'} - {range.max ?? '—'}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Creator/Reviewer Info - Mobile */}
+                          {(result.creator?.full_name || result.reviewer?.full_name) && (
+                            <div className="text-xs text-muted-foreground pt-2 space-y-1">
+                              {result.creator?.full_name && (
+                                <span className="flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  أنشأ: {result.creator.full_name}
+                                </span>
+                              )}
+                              {result.reviewer?.full_name && (
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  راجع: {result.reviewer.full_name}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
+                      </>
                     ) : (
-                      <div className="border rounded-lg p-6 text-center text-muted-foreground bg-muted/20">
-                        <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>لم تُسجّل النتائج بعد</p>
+                      <div className="border rounded-lg p-4 md:p-6 text-center text-muted-foreground bg-muted/20">
+                        <Clock className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">لم تُسجّل النتائج بعد</p>
                       </div>
                     )}
                     
                     {index < orderedTemplates.length - 1 && (
-                      <Separator className="mt-6" />
+                      <Separator className="mt-4 md:mt-6" />
                     )}
                   </div>
                 );
@@ -468,7 +534,7 @@ export function CombinedResultsDialog({
               <div className="flex justify-center pt-4 border-t">
                 <Badge 
                   variant="outline" 
-                  className={`text-sm ${
+                  className={`text-xs md:text-sm ${
                     allFinal ? 'border-green-600 text-green-600' :
                     completedCount === totalCount ? 'border-blue-600 text-blue-600' :
                     'border-yellow-600 text-yellow-600'
@@ -483,8 +549,8 @@ export function CombinedResultsDialog({
 
             {/* Actions */}
             <div className="flex gap-2 justify-end print:hidden">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={handlePrint} className="h-8 text-xs md:text-sm">
+                <Printer className="h-4 w-4 mr-1 md:mr-2" />
                 طباعة
               </Button>
               <Button 
@@ -492,11 +558,12 @@ export function CombinedResultsDialog({
                 size="sm" 
                 onClick={handleDownloadPDF}
                 disabled={isGeneratingPDF}
+                className="h-8 text-xs md:text-sm"
               >
                 {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-1 md:mr-2 animate-spin" />
                 ) : (
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="h-4 w-4 mr-1 md:mr-2" />
                 )}
                 PDF
               </Button>
