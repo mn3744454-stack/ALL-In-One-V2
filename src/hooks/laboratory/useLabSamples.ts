@@ -217,15 +217,26 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   };
 
   const updateSample = async (id: string, updates: Partial<CreateLabSampleData>) => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from("lab_samples")
         .update(updates)
         .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Sample not found in this organization");
+        return null;
+      }
 
       toast.success("Sample updated successfully");
       fetchSamples();
@@ -255,13 +266,26 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   };
 
   const deleteSample = async (id: string) => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("lab_samples")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
+        .select()
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Sample not found in this organization");
+        return false;
+      }
 
       toast.success("Sample deleted successfully");
       fetchSamples();
@@ -276,6 +300,10 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   // Mark sample as received (sets received_by; trigger fills received_at)
   const markReceived = async (sampleId: string): Promise<boolean> => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
     if (!user?.id) {
       toast.error("Not authenticated");
       return false;
@@ -285,7 +313,8 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       const { error } = await supabase
         .from("lab_samples")
         .update({ received_by: user.id })
-        .eq("id", sampleId);
+        .eq("id", sampleId)
+        .eq("tenant_id", activeTenant.tenant.id);
 
       if (error) throw error;
 
@@ -302,11 +331,17 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   // Mark sample as unreceived (optional; graceful error if RLS/DB refuses)
   const markUnreceived = async (sampleId: string): Promise<boolean> => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
+
     try {
       const { error } = await supabase
         .from("lab_samples")
         .update({ received_by: null, received_at: null })
-        .eq("id", sampleId);
+        .eq("id", sampleId)
+        .eq("tenant_id", activeTenant.tenant.id);
 
       if (error) throw error;
 
