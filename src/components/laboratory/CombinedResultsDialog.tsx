@@ -377,66 +377,66 @@ export function CombinedResultsDialog({
                       </div>
                     </div>
 
-                    {/* Results Table - Desktop */}
+                    {/* Results Table */}
                     {result ? (
-                      <>
-                        <div className="hidden md:block border rounded-lg overflow-hidden">
-                          <table className="w-full">
-                            <thead className="bg-muted">
-                              <tr>
-                                <th className="text-right p-3 text-sm font-medium">المعامل</th>
-                                <th className="text-center p-3 text-sm font-medium">القيمة</th>
-                                <th className="text-center p-3 text-sm font-medium">الوحدة</th>
-                                <th className="text-center p-3 text-sm font-medium">المرجعي</th>
-                                <th className="text-center p-3 text-sm font-medium">الحالة</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              {templateFields.map((field) => {
-                                const value = resultData[field.id];
-                                const range = normalRanges[field.id];
-                                const numValue = typeof value === 'number' ? value : parseFloat(value as string);
-                                
-                                let status: 'normal' | 'low' | 'high' = 'normal';
-                                if (range && !isNaN(numValue)) {
-                                  if (range.min !== undefined && numValue < range.min) status = 'low';
-                                  else if (range.max !== undefined && numValue > range.max) status = 'high';
-                                }
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted">
+                            <tr>
+                              <th className="text-right p-2 md:p-3 text-xs md:text-sm font-medium">المعامل</th>
+                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">القيمة</th>
+                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">الوحدة</th>
+                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">المرجعي</th>
+                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">الحالة</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {templateFields.map((field) => {
+                              const value = resultData[field.id];
+                              const range = normalRanges[field.id];
+                              const numValue = typeof value === 'number' ? value : parseFloat(value as string);
+                              
+                              let status: 'normal' | 'low' | 'high' = 'normal';
+                              if (range && !isNaN(numValue)) {
+                                if (range.min !== undefined && numValue < range.min) status = 'low';
+                                else if (range.max !== undefined && numValue > range.max) status = 'high';
+                              }
 
-                                return (
-                                  <tr key={field.id} className="hover:bg-muted/50">
-                                    <td className="p-3">
-                                      <span className="font-medium">{field.name_ar || field.name}</span>
-                                    </td>
-                                    <td className={`p-3 text-center font-mono ${
-                                      status === 'low' ? 'text-blue-600' :
-                                      status === 'high' ? 'text-red-600' : ''
-                                    }`}>
-                                      {value !== undefined ? String(value) : '-'}
-                                    </td>
-                                    <td className="p-3 text-center text-muted-foreground">
-                                      {field.unit || '-'}
-                                    </td>
-                                    <td className="p-3 text-center text-sm text-muted-foreground">
-                                      {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
-                                    </td>
-                                    <td className="p-3 text-center">
-                                      {status === 'normal' ? (
-                                        <CheckCircle2 className="h-4 w-4 text-green-600 mx-auto" />
-                                      ) : status === 'low' ? (
-                                        <span className="text-xs text-blue-600 font-medium">↓ منخفض</span>
-                                      ) : (
-                                        <span className="text-xs text-red-600 font-medium">↑ مرتفع</span>
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                          
-                          {/* Creator/Reviewer Info - Desktop */}
-                          <div className="bg-muted/30 px-4 py-2 text-xs text-muted-foreground flex items-center gap-4">
+                              return (
+                                <tr key={field.id} className="hover:bg-muted/50">
+                                  <td className="p-2 md:p-3">
+                                    <span className="font-medium text-xs md:text-sm">{field.name_ar || field.name}</span>
+                                  </td>
+                                  <td className={`p-2 md:p-3 text-center font-mono text-xs md:text-base ${
+                                    status === 'low' ? 'text-blue-600' :
+                                    status === 'high' ? 'text-red-600' : ''
+                                  }`}>
+                                    {value !== undefined ? String(value) : '-'}
+                                  </td>
+                                  <td className="p-2 md:p-3 text-center text-muted-foreground text-xs md:text-sm">
+                                    {field.unit || '-'}
+                                  </td>
+                                  <td className="p-2 md:p-3 text-center text-xs text-muted-foreground">
+                                    {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
+                                  </td>
+                                  <td className="p-2 md:p-3 text-center">
+                                    {status === 'normal' ? (
+                                      <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4 text-green-600 mx-auto" />
+                                    ) : status === 'low' ? (
+                                      <span className="text-xs text-blue-600 font-medium">↓</span>
+                                    ) : (
+                                      <span className="text-xs text-red-600 font-medium">↑</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                        
+                        {/* Creator/Reviewer Info */}
+                        {(result.creator?.full_name || result.reviewer?.full_name) && (
+                          <div className="bg-muted/30 px-3 md:px-4 py-2 text-xs text-muted-foreground flex flex-wrap items-center gap-2 md:gap-4">
                             {result.creator?.full_name && (
                               <span className="flex items-center gap-1">
                                 <User className="h-3 w-3" />
@@ -450,72 +450,8 @@ export function CombinedResultsDialog({
                               </span>
                             )}
                           </div>
-                        </div>
-
-                        {/* Results Cards - Mobile */}
-                        <div className="md:hidden space-y-2">
-                          {templateFields.map((field) => {
-                            const value = resultData[field.id];
-                            const range = normalRanges[field.id];
-                            const numValue = typeof value === 'number' ? value : parseFloat(value as string);
-                            
-                            let status: 'normal' | 'low' | 'high' = 'normal';
-                            if (range && !isNaN(numValue)) {
-                              if (range.min !== undefined && numValue < range.min) status = 'low';
-                              else if (range.max !== undefined && numValue > range.max) status = 'high';
-                            }
-
-                            return (
-                              <div key={field.id} className="border rounded-lg p-3 bg-background">
-                                <div className="flex justify-between items-start">
-                                  <span className="font-medium text-sm">{field.name_ar || field.name}</span>
-                                  <span>
-                                    {status === 'normal' ? (
-                                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                    ) : status === 'low' ? (
-                                      <span className="text-xs text-blue-600 font-medium">↓</span>
-                                    ) : (
-                                      <span className="text-xs text-red-600 font-medium">↑</span>
-                                    )}
-                                  </span>
-                                </div>
-                                <div className="flex items-baseline gap-1 mt-1">
-                                  <span className={`font-mono text-lg ${
-                                    status === 'low' ? 'text-blue-600' :
-                                    status === 'high' ? 'text-red-600' : ''
-                                  }`}>
-                                    {value !== undefined ? String(value) : '-'}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">{field.unit || ''}</span>
-                                </div>
-                                {range && (
-                                  <span className="text-xs text-muted-foreground">
-                                    المرجعي: {range.min ?? '—'} - {range.max ?? '—'}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                          
-                          {/* Creator/Reviewer Info - Mobile */}
-                          {(result.creator?.full_name || result.reviewer?.full_name) && (
-                            <div className="text-xs text-muted-foreground pt-2 space-y-1">
-                              {result.creator?.full_name && (
-                                <span className="flex items-center gap-1">
-                                  <User className="h-3 w-3" />
-                                  أنشأ: {result.creator.full_name}
-                                </span>
-                              )}
-                              {result.reviewer?.full_name && (
-                                <span className="flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  راجع: {result.reviewer.full_name}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </>
+                        )}
+                      </div>
                     ) : (
                       <div className="border rounded-lg p-4 md:p-6 text-center text-muted-foreground bg-muted/20">
                         <Clock className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 opacity-50" />
