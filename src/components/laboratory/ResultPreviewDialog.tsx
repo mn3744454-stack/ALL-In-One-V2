@@ -52,6 +52,8 @@ interface ResultPreviewDialogProps {
   onOpenChange: (open: boolean) => void;
   result: LabResult | null;
   fullTemplate?: LabTemplate | null;
+  onReview?: (resultId: string) => Promise<void>;
+  onFinalize?: (resultId: string) => Promise<void>;
 }
 
 export function ResultPreviewDialog({
@@ -59,6 +61,8 @@ export function ResultPreviewDialog({
   onOpenChange,
   result,
   fullTemplate,
+  onReview,
+  onFinalize,
 }: ResultPreviewDialogProps) {
   const [designTemplate, setDesignTemplate] = useState<DesignTemplate>('modern');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -476,46 +480,75 @@ export function ResultPreviewDialog({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 justify-end print:hidden">
-          <Button variant="outline" size="sm" onClick={handlePrint}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleDownloadPDF}
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="h-4 w-4 mr-2" />
-            )}
-            PDF
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+        <div className="flex flex-wrap gap-2 justify-between print:hidden">
+          {/* Status Change Buttons */}
+          <div className="flex gap-2">
+            {result.status === 'draft' && onReview && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                onClick={() => onReview(result.id)}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                مراجعة
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background">
-              <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
-                <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare('telegram')}>
-                <Send className="h-4 w-4 mr-2 text-blue-500" />
-                Telegram
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare('copy')}>
-                <Link2 className="h-4 w-4 mr-2" />
-                Copy Link
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            )}
+            {result.status === 'reviewed' && onFinalize && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                onClick={() => onFinalize(result.id)}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                اعتماد
+              </Button>
+            )}
+          </div>
+          
+          {/* Print/Share Buttons */}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 mr-2" />
+              Print
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownloadPDF}
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              PDF
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background">
+                <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                  <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                  WhatsApp
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleShare('telegram')}>
+                  <Send className="h-4 w-4 mr-2 text-blue-500" />
+                  Telegram
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleShare('copy')}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Copy Link
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Share Management Panel */}

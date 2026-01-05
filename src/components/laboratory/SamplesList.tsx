@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { useLabSamples, type LabSampleStatus, type LabSampleFilters } from "@/hooks/laboratory/useLabSamples";
+import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { SampleCard } from "./SampleCard";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
+import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [activeTab, setActiveTab] = useState<SampleFilterTab>('all');
   const [statusFilter, setStatusFilter] = useState<LabSampleStatus | 'all'>('all');
   const [search, setSearch] = useState("");
+  const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
 
   // Get tab-based filters
   const tabFilters = getFiltersForTab(activeTab);
@@ -62,7 +64,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   });
 
   // Fetch all results to calculate progress per sample
-  const { results } = useLabResults();
+  const { results, reviewResult, finalizeResult } = useLabResults();
 
   // Create a map of sample_id -> results count
   const resultsCountBySample = useMemo(() => {
@@ -184,12 +186,22 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
                   onCancel={() => cancelSample(sample.id)}
                   onRetest={() => createRetest(sample.id)}
                   onClick={() => onSampleClick?.(sample.id)}
+                  onViewAllResults={() => setCombinedResultsSample(sample)}
                 />
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Combined Results Dialog */}
+      <CombinedResultsDialog
+        open={!!combinedResultsSample}
+        onOpenChange={(open) => !open && setCombinedResultsSample(null)}
+        sample={combinedResultsSample}
+        onReviewResult={reviewResult}
+        onFinalizeResult={finalizeResult}
+      />
     </div>
   );
 }

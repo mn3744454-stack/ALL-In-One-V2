@@ -15,7 +15,8 @@ import {
   XCircle,
   RotateCcw,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Eye
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,6 +36,7 @@ interface SampleCardProps {
   onCancel?: () => void;
   onRetest?: () => void;
   onClick?: () => void;
+  onViewAllResults?: () => void;
 }
 
 export function SampleCard({
@@ -47,6 +49,7 @@ export function SampleCard({
   onCancel,
   onRetest,
   onClick,
+  onViewAllResults,
 }: SampleCardProps) {
   const horseName = sample.horse?.name || "Unknown Horse";
   const horseInitials = horseName.slice(0, 2).toUpperCase();
@@ -171,6 +174,22 @@ export function SampleCard({
               </div>
             </div>
             <Progress value={progressPercent} className="h-1.5" />
+            
+            {/* View All Results Button */}
+            {resultsCount > 0 && onViewAllResults && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full mt-2 h-7 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewAllResults();
+                }}
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                عرض جميع النتائج
+              </Button>
+            )}
           </div>
         )}
         
