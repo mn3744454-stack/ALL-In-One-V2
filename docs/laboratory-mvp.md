@@ -7,10 +7,12 @@ The Laboratory module provides a complete workflow for managing lab samples, res
 ## What's Included in MVP
 
 ### 1. Samples Lifecycle
-- **Create sample**: Register new lab samples with horse, test type, and physical sample ID
+- **Create sample**: Register new lab samples with horse, collection date, and physical sample ID
+- **Multi-select test types**: Choose multiple test types (e.g., CBC, Urine) for a single sample
 - **Mark Received/Unreceived**: Track when samples arrive at the lab (trigger auto-fills `received_at`)
 - **Status transitions**: `draft` → `accessioned` → `processing` → `completed`
 - **Retest creation**: Create retests from completed samples (max 3 retests per sample)
+- **Test types carry forward**: Retests inherit test types from original sample
 
 ### 2. Results Workflow
 - **Create results**: Enter lab results using templates
@@ -45,17 +47,20 @@ The Laboratory module provides a complete workflow for managing lab samples, res
 
 ### Samples Lifecycle (Mobile-first)
 1. [ ] Create new sample - verify all fields save
-2. [ ] Mark sample as Received - verify `received_at` auto-populates
-3. [ ] Mark sample as Unreceived - verify fields clear
-4. [ ] Transition: draft → accessioned → processing → completed
-5. [ ] Verify "Create Retest" button appears only for completed samples
+2. [ ] Select multiple test types during sample creation
+3. [ ] Verify test type badges appear on SampleCard
+4. [ ] Mark sample as Received - verify `received_at` auto-populates
+5. [ ] Mark sample as Unreceived - verify fields clear
+6. [ ] Transition: draft → accessioned → processing → completed
+7. [ ] Verify "Create Retest" button appears only for completed samples
 
 ### Retest Flow
 1. [ ] Click "Create Retest" on completed sample
 2. [ ] Verify new sample created with `retest_of_sample_id` set
-3. [ ] Verify "Retest" badge appears on new sample
-4. [ ] Verify retest count increments on original
-5. [ ] Verify retest blocked after 3 retests
+3. [ ] Verify test types are copied from original sample
+4. [ ] Verify "Retest" badge appears on new sample
+5. [ ] Verify retest count increments on original
+6. [ ] Verify retest blocked after 3 retests
 
 ### Results Workflow
 1. [ ] Create result for sample

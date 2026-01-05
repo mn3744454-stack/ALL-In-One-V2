@@ -7,6 +7,16 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type LabSampleStatus = 'draft' | 'accessioned' | 'processing' | 'completed' | 'cancelled';
 
+export interface SampleTestType {
+  id: string;
+  test_type: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    code: string | null;
+  };
+}
+
 export interface LabSample {
   id: string;
   tenant_id: string;
@@ -37,6 +47,8 @@ export interface LabSample {
   assignee?: { id: string; full_name: string | null; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string | null };
   receiver?: { id: string; full_name: string | null } | null;
+  // Test types (many-to-many)
+  test_types?: SampleTestType[];
 }
 
 export interface LabSampleFilters {
@@ -60,6 +72,7 @@ export interface CreateLabSampleData {
   notes?: string;
   retest_of_sample_id?: string;
   metadata?: Json;
+  test_type_ids?: string[];
 }
 
 // Cache TTL for Riyadh bounds (60 seconds)
@@ -134,7 +147,8 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           client:clients!lab_samples_client_id_fkey(id, name),
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),
-          receiver:profiles!lab_samples_received_by_fkey(id, full_name)
+          receiver:profiles!lab_samples_received_by_fkey(id, full_name),
+          test_types:lab_sample_test_types(id, test_type:lab_test_types(id, name, name_ar, code))
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });
@@ -193,17 +207,38 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     }
 
     try {
+      // Extract test_type_ids before inserting sample
+      const { test_type_ids, ...sampleData } = data;
+
       const { data: sample, error } = await supabase
         .from("lab_samples")
         .insert({
           tenant_id: activeTenant.tenant.id,
           created_by: user.id,
-          ...data,
+          ...sampleData,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Insert test types if provided
+      if (test_type_ids && test_type_ids.length > 0 && sample) {
+        const testTypeRows = test_type_ids.map(typeId => ({
+          sample_id: sample.id,
+          test_type_id: typeId,
+          tenant_id: activeTenant.tenant.id,
+        }));
+
+        const { error: testTypesError } = await supabase
+          .from("lab_sample_test_types")
+          .insert(testTypeRows);
+
+        if (testTypesError) {
+          console.error("Error inserting sample test types:", testTypesError);
+          // Don't fail the whole operation, sample was created
+        }
+      }
 
       toast.success("Sample created successfully");
       fetchSamples();

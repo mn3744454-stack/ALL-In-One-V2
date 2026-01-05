@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { format } from "date-fns";
@@ -11,7 +12,8 @@ import {
   Play, 
   CheckCircle2, 
   XCircle,
-  RotateCcw
+  RotateCcw,
+  TestTube2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -121,6 +123,18 @@ export function SampleCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
+        {/* Test Types Badges */}
+        {sample.test_types && sample.test_types.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {sample.test_types.map((tt) => (
+              <Badge key={tt.id} variant="outline" className="text-xs">
+                <TestTube2 className="h-3 w-3 mr-1" />
+                {tt.test_type.name_ar || tt.test_type.name}
+              </Badge>
+            ))}
+          </div>
+        )}
+        
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
