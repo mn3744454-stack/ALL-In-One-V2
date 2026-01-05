@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import type { Json } from "@/integrations/supabase/types";
 
 export type LabSampleStatus = 'draft' | 'accessioned' | 'processing' | 'completed' | 'cancelled';
@@ -192,7 +193,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       setSamples((data || []) as LabSample[]);
     } catch (error) {
       console.error("Error fetching lab samples:", error);
-      toast.error("Failed to load samples");
+      toast.error(tGlobal("laboratory.toasts.failedToLoadSamples"));
     } finally {
       setLoading(false);
     }
@@ -204,7 +205,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   const createSample = async (data: CreateLabSampleData) => {
     if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
@@ -243,12 +244,12 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         }
       }
 
-      toast.success("Sample created successfully");
+      toast.success(tGlobal("laboratory.toasts.sampleCreated"));
       fetchSamples();
       return sample;
     } catch (error: unknown) {
       console.error("Error creating sample:", error);
-      const message = error instanceof Error ? error.message : "Failed to create sample";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToCreateSample");
       toast.error(message);
       return null;
     }
@@ -256,7 +257,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   const updateSample = async (id: string, updates: Partial<CreateLabSampleData>) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
@@ -272,16 +273,16 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       if (error) throw error;
 
       if (!data) {
-        toast.error("Sample not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
         return null;
       }
 
-      toast.success("Sample updated successfully");
+      toast.success(tGlobal("laboratory.toasts.sampleUpdated"));
       fetchSamples();
       return data;
     } catch (error: unknown) {
       console.error("Error updating sample:", error);
-      const message = error instanceof Error ? error.message : "Failed to update sample";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToUpdateSample");
       toast.error(message);
       return null;
     }
@@ -305,7 +306,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   const deleteSample = async (id: string) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return false;
     }
 
@@ -321,16 +322,16 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       if (error) throw error;
 
       if (!data) {
-        toast.error("Sample not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
         return false;
       }
 
-      toast.success("Sample deleted successfully");
+      toast.success(tGlobal("laboratory.toasts.sampleDeleted"));
       fetchSamples();
       return true;
     } catch (error: unknown) {
       console.error("Error deleting sample:", error);
-      const message = error instanceof Error ? error.message : "Failed to delete sample";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToDeleteSample");
       toast.error(message);
       return false;
     }
@@ -339,11 +340,11 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   // Mark sample as received (sets received_by; trigger fills received_at)
   const markReceived = async (sampleId: string): Promise<boolean> => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return false;
     }
     if (!user?.id) {
-      toast.error("Not authenticated");
+      toast.error(tGlobal("laboratory.toasts.notAuthenticated"));
       return false;
     }
 
@@ -356,12 +357,12 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
-      toast.success("Sample marked as received");
+      toast.success(tGlobal("laboratory.toasts.sampleMarkedReceived"));
       fetchSamples();
       return true;
     } catch (error: unknown) {
       console.error("Error marking sample as received:", error);
-      const message = error instanceof Error ? error.message : "Failed to mark sample as received";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToMarkReceived");
       toast.error(message);
       return false;
     }
@@ -370,7 +371,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   // Mark sample as unreceived (optional; graceful error if RLS/DB refuses)
   const markUnreceived = async (sampleId: string): Promise<boolean> => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return false;
     }
 
@@ -383,12 +384,12 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
-      toast.success("Sample marked as unreceived");
+      toast.success(tGlobal("laboratory.toasts.sampleMarkedUnreceived"));
       fetchSamples();
       return true;
     } catch (error: unknown) {
       console.error("Error marking sample as unreceived:", error);
-      toast.error("Unable to mark as unreceived. This action may not be allowed.");
+      toast.error(tGlobal("laboratory.toasts.unableToMarkUnreceived"));
       return false;
     }
   };
@@ -396,7 +397,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   // Create retest sample from completed sample (tenant-safe + workflow-safe)
   const createRetest = async (originalSampleId: string): Promise<LabSample | null> => {
     if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
@@ -411,13 +412,13 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (fetchError) throw fetchError;
       if (!original) {
-        toast.error("Sample not found");
+        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
         return null;
       }
 
       // WORKFLOW GUARD: Only allow retest for completed samples
       if (original.status !== 'completed') {
-        toast.error("Can only create retest for completed samples");
+        toast.error(tGlobal("laboratory.toasts.retestOnlyCompleted"));
         return null;
       }
 
@@ -438,18 +439,18 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
-      toast.success("Retest sample created successfully");
+      toast.success(tGlobal("laboratory.toasts.retestCreated"));
       fetchSamples();
       return newSample as LabSample;
     } catch (error: unknown) {
       console.error("Error creating retest:", error);
-      const message = error instanceof Error ? error.message : "Failed to create retest";
+      const message = error instanceof Error ? error.message : "";
       
       // Handle max retests constraint (trigger returns this)
       if (message.includes("Maximum") || message.includes("retest") || message.includes("max_retests")) {
-        toast.error("Maximum retests (3) reached for this sample");
+        toast.error(tGlobal("laboratory.toasts.maxRetestsReached"));
       } else {
-        toast.error(message);
+        toast.error(tGlobal("laboratory.toasts.failedToCreateRetest"));
       }
       return null;
     }

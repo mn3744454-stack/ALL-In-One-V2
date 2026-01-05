@@ -1,5 +1,6 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n";
 
 export type SampleFilterTab = 'all' | 'today' | 'received' | 'unreceived' | 'retest';
 
@@ -15,37 +16,37 @@ interface SamplesFilterTabsProps {
   };
 }
 
-const tabs: { id: SampleFilterTab; label: string; labelAr: string }[] = [
-  { id: 'all', label: 'All', labelAr: 'الكل' },
-  { id: 'today', label: 'Today', labelAr: 'اليوم' },
-  { id: 'received', label: 'Received', labelAr: 'مستلم' },
-  { id: 'unreceived', label: 'Unreceived', labelAr: 'غير مستلم' },
-  { id: 'retest', label: 'Retest', labelAr: 'إعادة' },
-];
+const tabKeys: SampleFilterTab[] = ['all', 'today', 'received', 'unreceived', 'retest'];
 
 export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFilterTabsProps) {
+  const { t } = useI18n();
+
+  const getLabel = (tabId: SampleFilterTab): string => {
+    return t(`laboratory.filterTabs.${tabId}`);
+  };
+
   return (
     <ScrollArea className="w-full whitespace-nowrap">
       <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full">
-        {tabs.map((tab) => {
-          const count = counts?.[tab.id];
+        {tabKeys.map((tabId) => {
+          const count = counts?.[tabId];
           return (
             <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
+              key={tabId}
+              onClick={() => onTabChange(tabId)}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                activeTab === tab.id
+                activeTab === tabId
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-background/50"
               )}
             >
-              <span>{tab.label}</span>
+              <span>{getLabel(tabId)}</span>
               {count !== undefined && count > 0 && (
                 <span className={cn(
                   "inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full",
-                  activeTab === tab.id
+                  activeTab === tabId
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted-foreground/20 text-muted-foreground"
                 )}>

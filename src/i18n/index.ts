@@ -1,4 +1,12 @@
-export { I18nProvider, useI18n } from './I18nContext';
+export { 
+  I18nProvider, 
+  useI18n, 
+  tGlobal, 
+  setGlobalLanguage, 
+  getCurrentLanguage, 
+  getCurrentDirection,
+  detectLanguage 
+} from './I18nContext';
 export { 
   type Language, 
   RTL_LANGUAGES, 

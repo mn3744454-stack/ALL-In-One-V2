@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,8 @@ import { format } from "date-fns";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
+import type { Language } from "@/i18n";
 
 // Interface matching ACTUAL RPC output (9 fields only)
 interface SharedResultData {
@@ -33,6 +35,22 @@ interface SharedResultData {
   template_name: string;
   tenant_display_name: string;
 }
+
+// Get nested translation value
+const getNestedValue = (obj: unknown, path: string): string => {
+  const keys = path.split('.');
+  let current: unknown = obj;
+
+  for (const key of keys) {
+    if (current && typeof current === 'object' && key in current) {
+      current = (current as Record<string, unknown>)[key];
+    } else {
+      return path;
+    }
+  }
+
+  return typeof current === 'string' ? current : path;
+};
 
 // Safe value formatter - handles all types without heavy JSON
 const formatValue = (val: unknown): string => {
@@ -67,34 +85,30 @@ const prettyKey = (key: string): string => {
     .replace(/\b\w/g, c => c.toUpperCase());
 };
 
-// Render interpretation safely (can be string/object/null)
-const renderInterpretation = (interpretation: unknown): React.ReactNode => {
-  if (!interpretation) return <p className="text-muted-foreground">No interpretation provided.</p>;
-  if (typeof interpretation === 'string') return <p>{interpretation}</p>;
-  if (typeof interpretation === 'object' && interpretation !== null) {
-    const entries = Object.entries(interpretation);
-    if (entries.length === 0) return <p className="text-muted-foreground">No interpretation provided.</p>;
-    return (
-      <div className="space-y-2">
-        {entries.map(([key, value]) => (
-          <div key={key}>
-            <span className="font-medium">{prettyKey(key)}:</span>{' '}
-            <span>{formatValue(value)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return <p>{String(interpretation)}</p>;
-};
-
 export default function SharedLabResult() {
   const { token } = useParams<{ token: string }>();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<SharedResultData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  // Detect language from URL > localStorage > navigator > default
+  const lang = useMemo(() => detectLanguage(searchParams), [searchParams]);
+  const dir = isRTL(lang) ? 'rtl' : 'ltr';
+
+  // Local translator function using detected language
+  const t = (key: string): string => {
+    const dict = translations[lang as Language] || translations[DEFAULT_LANGUAGE];
+    return getNestedValue(dict, key);
+  };
+
+  // Set document language and direction on mount
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = dir;
+  }, [lang, dir]);
 
   useEffect(() => {
     if (token) {
@@ -114,7 +128,7 @@ export default function SharedLabResult() {
       if (rpcError) throw rpcError;
 
       if (!data || (Array.isArray(data) && data.length === 0)) {
-        setError("Link invalid, expired, revoked, or result not final");
+        setError(t("laboratory.sharedResult.linkError"));
         setResult(null);
       } else {
         // RPC returns a single row or array with one element
@@ -123,10 +137,31 @@ export default function SharedLabResult() {
       }
     } catch (err) {
       console.error("Error fetching shared result:", err);
-      setError("Failed to load the shared result");
+      setError(t("laboratory.sharedResult.loadFailed"));
     } finally {
       setLoading(false);
     }
+  };
+
+  // Render interpretation safely (can be string/object/null)
+  const renderInterpretation = (interpretation: unknown): React.ReactNode => {
+    if (!interpretation) return <p className="text-muted-foreground">{t("laboratory.sharedResult.noInterpretation")}</p>;
+    if (typeof interpretation === 'string') return <p>{interpretation}</p>;
+    if (typeof interpretation === 'object' && interpretation !== null) {
+      const entries = Object.entries(interpretation);
+      if (entries.length === 0) return <p className="text-muted-foreground">{t("laboratory.sharedResult.noInterpretation")}</p>;
+      return (
+        <div className="space-y-2">
+          {entries.map(([key, value]) => (
+            <div key={key}>
+              <span className="font-medium">{prettyKey(key)}:</span>{' '}
+              <span>{formatValue(value)}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <p>{String(interpretation)}</p>;
   };
 
   const handlePrint = () => {
@@ -134,25 +169,27 @@ export default function SharedLabResult() {
     
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast.error("Please allow popups for printing");
+      toast.error(t("laboratory.sharedResult.allowPopups"));
       return;
     }
     
     const content = previewRef.current.innerHTML;
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html>
+      <html lang="${lang}" dir="${dir}">
       <head>
-        <title>Lab Report - ${result.horse_display_name}</title>
+        <title>${t("laboratory.sharedResult.labReport")} - ${result.horse_display_name}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
           body { 
             font-family: system-ui, -apple-system, sans-serif; 
             padding: 20mm;
             color: #1f2937;
+            direction: ${dir};
+            text-align: ${dir === 'rtl' ? 'right' : 'left'};
           }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; text-align: left; border: 1px solid #e5e7eb; }
+          table { width: 100%; border-collapse: collapse; direction: ${dir}; }
+          th, td { padding: 10px; text-align: ${dir === 'rtl' ? 'right' : 'left'}; border: 1px solid #e5e7eb; }
           th { background-color: #f3f4f6; font-weight: 600; }
           .text-center { text-align: center; }
           .font-bold { font-weight: 700; }
@@ -218,6 +255,7 @@ export default function SharedLabResult() {
       clone.style.overflow = 'visible';
       clone.style.backgroundColor = '#ffffff';
       clone.style.padding = '40px';
+      clone.style.direction = dir;
       document.body.appendChild(clone);
       
       const canvas = await html2canvas(clone, {
@@ -258,10 +296,10 @@ export default function SharedLabResult() {
       }
       
       pdf.save(`lab-result-${result.horse_display_name}-${result.result_id.slice(0, 8)}.pdf`);
-      toast.success("PDF downloaded successfully");
+      toast.success(t("laboratory.sharedResult.pdfSuccess"));
     } catch (err) {
       console.error("Error generating PDF:", err);
-      toast.error("Failed to generate PDF");
+      toast.error(t("laboratory.sharedResult.pdfFailed"));
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -285,9 +323,18 @@ export default function SharedLabResult() {
     }
   };
 
+  const getFlagLabel = (flag: string | null) => {
+    switch (flag) {
+      case 'normal': return t("laboratory.flags.normal");
+      case 'abnormal': return t("laboratory.flags.abnormal");
+      case 'critical': return t("laboratory.flags.critical");
+      default: return flag;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-8" dir={dir}>
         <div className="max-w-3xl mx-auto space-y-6">
           <Skeleton className="h-12 w-48" />
           <Skeleton className="h-32 w-full" />
@@ -299,14 +346,14 @@ export default function SharedLabResult() {
 
   if (error || !result) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={dir}>
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
             <ShieldAlert className="w-8 h-8 text-destructive" />
           </div>
-          <h1 className="text-xl font-semibold mb-2">Unable to View Result</h1>
+          <h1 className="text-xl font-semibold mb-2">{t("laboratory.sharedResult.unableToView")}</h1>
           <p className="text-muted-foreground">
-            {error || "This link is invalid, expired, revoked, or the result is not yet finalized."}
+            {error || t("laboratory.sharedResult.linkInvalid")}
           </p>
         </div>
       </div>
@@ -317,18 +364,18 @@ export default function SharedLabResult() {
   const resultEntries = Object.entries(result.result_data || {});
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" dir={dir}>
       {/* Header Actions - Sticky on mobile */}
       <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
             <FlaskConical className="h-5 w-5 text-primary shrink-0" />
-            <span className="font-semibold truncate">Lab Report</span>
+            <span className="font-semibold truncate">{t("laboratory.sharedResult.labReport")}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Print</span>
+              <Printer className="h-4 w-4 md:me-2" />
+              <span className="hidden md:inline">{t("laboratory.sharedResult.print")}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -340,8 +387,8 @@ export default function SharedLabResult() {
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  <Download className="h-4 w-4 md:mr-2" />
-                  <span className="hidden md:inline">PDF</span>
+                  <Download className="h-4 w-4 md:me-2" />
+                  <span className="hidden md:inline">{t("laboratory.sharedResult.pdf")}</span>
                 </>
               )}
             </Button>
@@ -355,25 +402,25 @@ export default function SharedLabResult() {
           {/* Report Header */}
           <div className="text-center border-b pb-4">
             <h1 className="text-2xl font-bold">{result.tenant_display_name}</h1>
-            <p className="text-sm text-muted-foreground">Laboratory Results Report</p>
+            <p className="text-sm text-muted-foreground">{t("laboratory.sharedResult.labResultsReport")}</p>
           </div>
 
           {/* Patient/Sample Info */}
           <div className="grid grid-cols-2 gap-4 bg-muted/50 rounded-lg p-4">
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Horse</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.horse")}</p>
               <p className="font-semibold">{result.horse_display_name}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Test Type</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.testType")}</p>
               <p className="font-medium">{result.template_name}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Report Date</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.reportDate")}</p>
               <p>{format(new Date(result.created_at), "MMM d, yyyy")}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">Status</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.status")}</p>
               <Badge variant="secondary" className="capitalize">{result.status}</Badge>
             </div>
           </div>
@@ -383,11 +430,11 @@ export default function SharedLabResult() {
           {/* Results Table */}
           <div>
             <h3 className="font-semibold mb-3 flex items-center gap-2">
-              Test Results
+              {t("laboratory.sharedResult.testResults")}
               {result.flags && (
                 <Badge className={getFlagColor(result.flags)}>
                   {getFlagIcon(result.flags)}
-                  <span className="ml-1 capitalize">{result.flags}</span>
+                  <span className="ms-1 capitalize">{getFlagLabel(result.flags)}</span>
                 </Badge>
               )}
             </h3>
@@ -396,18 +443,18 @@ export default function SharedLabResult() {
               <table className="w-full">
                 <thead className="bg-primary/10">
                   <tr>
-                    <th className="text-left p-3 text-sm font-medium">Parameter</th>
-                    <th className="text-center p-3 text-sm font-medium">Value</th>
-                    <th className="text-center p-3 text-sm font-medium hidden md:table-cell">Unit</th>
-                    <th className="text-center p-3 text-sm font-medium hidden lg:table-cell">Reference</th>
-                    <th className="text-center p-3 text-sm font-medium">Status</th>
+                    <th className="text-start p-3 text-sm font-medium">{t("laboratory.sharedResult.parameter")}</th>
+                    <th className="text-center p-3 text-sm font-medium">{t("laboratory.sharedResult.value")}</th>
+                    <th className="text-center p-3 text-sm font-medium hidden md:table-cell">{t("laboratory.sharedResult.unit")}</th>
+                    <th className="text-center p-3 text-sm font-medium hidden lg:table-cell">{t("laboratory.sharedResult.reference")}</th>
+                    <th className="text-center p-3 text-sm font-medium">{t("laboratory.sharedResult.status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {resultEntries.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="text-center py-8 text-muted-foreground">
-                        No result data available
+                        {t("laboratory.sharedResult.noResultData")}
                       </td>
                     </tr>
                   ) : (
@@ -438,7 +485,7 @@ export default function SharedLabResult() {
 
           {/* Interpretation */}
           <div className="bg-muted/30 rounded-lg p-4">
-            <h4 className="font-medium mb-2">Interpretation</h4>
+            <h4 className="font-medium mb-2">{t("laboratory.sharedResult.interpretation")}</h4>
             <div className="text-sm text-muted-foreground">
               {renderInterpretation(result.interpretation)}
             </div>

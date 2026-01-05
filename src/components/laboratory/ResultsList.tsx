@@ -40,6 +40,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 interface ResultsListProps {
   onCreateResult?: () => void;
@@ -59,6 +61,7 @@ const flagColors: Record<LabResultFlags, string> = {
 };
 
 export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps) {
+  const { t, dir } = useI18n();
   const [statusFilter, setStatusFilter] = useState<LabResultStatus | 'all'>('all');
   const [flagsFilter, setFlagsFilter] = useState<LabResultFlags | 'all'>('all');
   const [search, setSearch] = useState("");
@@ -94,6 +97,14 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     setResultToDelete(null);
   };
 
+  const getStatusLabel = (status: LabResultStatus): string => {
+    return t(`laboratory.resultStatus.${status}`);
+  };
+
+  const getFlagsLabel = (flags: LabResultFlags): string => {
+    return t(`laboratory.flags.${flags}`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -117,41 +128,44 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex flex-1 gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className={cn(
+                "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground",
+                dir === 'rtl' ? 'right-3' : 'left-3'
+              )} />
               <Input
-                placeholder="Search results..."
+                placeholder={t("laboratory.results.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className={cn(dir === 'rtl' ? 'pr-9' : 'pl-9')}
               />
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as LabResultStatus | 'all')}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={t("laboratory.results.statusFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="reviewed">Reviewed</SelectItem>
-                <SelectItem value="final">Final</SelectItem>
+                <SelectItem value="all">{t("laboratory.results.allStatus")}</SelectItem>
+                <SelectItem value="draft">{t("laboratory.resultStatus.draft")}</SelectItem>
+                <SelectItem value="reviewed">{t("laboratory.resultStatus.reviewed")}</SelectItem>
+                <SelectItem value="final">{t("laboratory.resultStatus.final")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={flagsFilter} onValueChange={(v) => setFlagsFilter(v as LabResultFlags | 'all')}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Flags" />
+                <SelectValue placeholder={t("laboratory.results.flagsFilter")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Flags</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="abnormal">Abnormal</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="all">{t("laboratory.results.allFlags")}</SelectItem>
+                <SelectItem value="normal">{t("laboratory.flags.normal")}</SelectItem>
+                <SelectItem value="abnormal">{t("laboratory.flags.abnormal")}</SelectItem>
+                <SelectItem value="critical">{t("laboratory.flags.critical")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           {canManage && onCreateResult && (
             <Button onClick={onCreateResult}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Result
+              <Plus className="h-4 w-4 me-2" />
+              {t("laboratory.results.newResult")}
             </Button>
           )}
         </div>
@@ -160,23 +174,23 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         {filteredResults.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">No results found</h3>
+            <h3 className="text-lg font-medium">{t("laboratory.results.noResultsFound")}</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {statusFilter !== 'all' || flagsFilter !== 'all' || search 
-                ? "Try adjusting your filters" 
-                : "Create your first result to get started"}
+                ? t("laboratory.results.adjustFilters")
+                : t("laboratory.results.createFirst")}
             </p>
             {canManage && onCreateResult && !search && statusFilter === 'all' && (
               <Button onClick={onCreateResult} className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Enter Result
+                <Plus className="h-4 w-4 me-2" />
+                {t("laboratory.results.enterResult")}
               </Button>
             )}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredResults.map((result) => {
-              const horseName = result.sample?.horse?.name || 'Unknown Horse';
+              const horseName = result.sample?.horse?.name || t("laboratory.results.unknownHorse");
               const horseInitials = horseName.slice(0, 2).toUpperCase();
 
               return (
@@ -197,13 +211,13 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                         <div>
                           <h3 className="font-semibold text-sm">{horseName}</h3>
                           <p className="text-xs text-muted-foreground">
-                            {result.template?.name || 'Unknown Template'}
+                            {result.template?.name || t("laboratory.results.unknownTemplate")}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={statusColors[result.status]}>
-                          {result.status}
+                          {getStatusLabel(result.status)}
                         </Badge>
                         {canManage && (
                           <DropdownMenu>
@@ -214,19 +228,19 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onResultClick?.(result.id); }}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View Details
+                                <Eye className="h-4 w-4 me-2" />
+                                {t("laboratory.resultActions.viewDetails")}
                               </DropdownMenuItem>
                               {result.status === 'draft' && (
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); reviewResult(result.id); }}>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Mark Reviewed
+                                  <CheckCircle2 className="h-4 w-4 me-2" />
+                                  {t("laboratory.resultActions.markReviewed")}
                                 </DropdownMenuItem>
                               )}
                               {result.status === 'reviewed' && (
                                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); finalizeResult(result.id); }}>
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Finalize
+                                  <CheckCircle2 className="h-4 w-4 me-2" />
+                                  {t("laboratory.resultActions.finalize")}
                                 </DropdownMenuItem>
                               )}
                               {result.status !== 'final' && (
@@ -240,8 +254,8 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                                     }}
                                     className="text-destructive"
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
+                                    <Trash2 className="h-4 w-4 me-2" />
+                                    {t("laboratory.resultActions.delete")}
                                   </DropdownMenuItem>
                                 </>
                               )}
@@ -260,7 +274,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                       </div>
                       {result.flags && (
                         <Badge className={flagColors[result.flags]} variant="outline">
-                          {result.flags}
+                          {getFlagsLabel(result.flags)}
                         </Badge>
                       )}
                     </div>
@@ -279,15 +293,15 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Result</AlertDialogTitle>
+            <AlertDialogTitle>{t("laboratory.results.deleteResult")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this result? This action cannot be undone.
+              {t("laboratory.results.deleteConfirmation")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

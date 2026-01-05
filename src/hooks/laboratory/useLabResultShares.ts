@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 
 export interface LabResultShare {
   id: string;
@@ -60,7 +61,7 @@ export function useLabResultShares(resultId?: string) {
       setShares((data || []) as LabResultShare[]);
     } catch (error) {
       console.error("Error fetching lab result shares:", error);
-      toast.error("Failed to load shares");
+      toast.error(tGlobal("laboratory.toasts.failedToLoadShares"));
     } finally {
       setLoading(false);
     }
@@ -75,13 +76,13 @@ export function useLabResultShares(resultId?: string) {
     opts?: CreateShareOptions & { resultStatus?: string }
   ): Promise<LabResultShare | null> => {
     if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
     // UX guard: Check result status before attempting insert
     if (opts?.resultStatus && opts.resultStatus !== "final") {
-      toast.error("Only final results can be shared");
+      toast.error(tGlobal("laboratory.toasts.onlyFinalCanShare"));
       return null;
     }
 
@@ -100,7 +101,7 @@ export function useLabResultShares(resultId?: string) {
 
       if (error) throw error;
 
-      toast.success("Share link created");
+      toast.success(tGlobal("laboratory.toasts.shareLinkCreated"));
       fetchShares();
       return data as LabResultShare;
     } catch (error: unknown) {
@@ -109,9 +110,9 @@ export function useLabResultShares(resultId?: string) {
       // Handle DB trigger error for non-final results
       const errorMessage = error instanceof Error ? error.message : "";
       if (errorMessage.includes("Only finalized results can be shared")) {
-        toast.error("Only final results can be shared");
+        toast.error(tGlobal("laboratory.toasts.onlyFinalCanShare"));
       } else {
-        toast.error(errorMessage || "Failed to create share link");
+        toast.error(tGlobal("laboratory.toasts.failedToCreateShare"));
       }
       return null;
     }
@@ -119,7 +120,7 @@ export function useLabResultShares(resultId?: string) {
 
   const revokeShare = async (shareId: string): Promise<boolean> => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return false;
     }
 
@@ -135,17 +136,16 @@ export function useLabResultShares(resultId?: string) {
       if (error) throw error;
 
       if (!data) {
-        toast.error("Share not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.shareNotFound"));
         return false;
       }
 
-      toast.success("Share link revoked");
+      toast.success(tGlobal("laboratory.toasts.shareLinkRevoked"));
       fetchShares();
       return true;
     } catch (error: unknown) {
       console.error("Error revoking share:", error);
-      const message = error instanceof Error ? error.message : "Failed to revoke share link";
-      toast.error(message);
+      toast.error(tGlobal("laboratory.toasts.failedToRevokeShare"));
       return false;
     }
   };
