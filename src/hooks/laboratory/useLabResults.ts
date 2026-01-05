@@ -137,15 +137,26 @@ export function useLabResults(filters: LabResultFilters = {}) {
   };
 
   const updateResult = async (id: string, updates: Partial<CreateLabResultData>) => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from("lab_results")
         .update(updates)
         .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Result not found in this organization");
+        return null;
+      }
 
       toast.success("Result updated successfully");
       fetchResults();
@@ -159,15 +170,23 @@ export function useLabResults(filters: LabResultFilters = {}) {
   };
 
   const reviewResult = async (id: string) => {
-    if (!user?.id) return null;
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return null;
+    }
+    if (!user?.id) {
+      toast.error("Not authenticated");
+      return null;
+    }
     
     try {
       const { data, error } = await supabase
         .from("lab_results")
         .update({ status: 'reviewed', reviewed_by: user.id })
         .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         // Handle status transition errors from DB trigger
@@ -176,6 +195,11 @@ export function useLabResults(filters: LabResultFilters = {}) {
           return null;
         }
         throw error;
+      }
+
+      if (!data) {
+        toast.error("Result not found in this organization");
+        return null;
       }
 
       toast.success("Result reviewed successfully");
@@ -191,15 +215,23 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   // Finalize result: only allowed from 'reviewed' status (enforced by DB trigger)
   const finalizeResult = async (id: string) => {
-    if (!user?.id) return null;
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return null;
+    }
+    if (!user?.id) {
+      toast.error("Not authenticated");
+      return null;
+    }
     
     try {
       const { data, error } = await supabase
         .from("lab_results")
         .update({ status: 'final' })
         .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         // Handle status transition errors from DB trigger
@@ -214,6 +246,11 @@ export function useLabResults(filters: LabResultFilters = {}) {
         throw error;
       }
 
+      if (!data) {
+        toast.error("Result not found in this organization");
+        return null;
+      }
+
       toast.success("Result finalized successfully");
       fetchResults();
       return data;
@@ -226,13 +263,26 @@ export function useLabResults(filters: LabResultFilters = {}) {
   };
 
   const deleteResult = async (id: string) => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("lab_results")
         .delete()
-        .eq("id", id);
+        .eq("id", id)
+        .eq("tenant_id", activeTenant.tenant.id)
+        .select()
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Result not found in this organization");
+        return false;
+      }
 
       toast.success("Result deleted successfully");
       fetchResults();

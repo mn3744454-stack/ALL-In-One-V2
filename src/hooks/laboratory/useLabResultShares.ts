@@ -118,13 +118,26 @@ export function useLabResultShares(resultId?: string) {
   };
 
   const revokeShare = async (shareId: string): Promise<boolean> => {
+    if (!activeTenant?.tenant.id) {
+      toast.error("No active organization");
+      return false;
+    }
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("lab_result_shares")
         .update({ revoked_at: new Date().toISOString() })
-        .eq("id", shareId);
+        .eq("id", shareId)
+        .eq("tenant_id", activeTenant.tenant.id)
+        .select()
+        .maybeSingle();
 
       if (error) throw error;
+
+      if (!data) {
+        toast.error("Share not found in this organization");
+        return false;
+      }
 
       toast.success("Share link revoked");
       fetchShares();
