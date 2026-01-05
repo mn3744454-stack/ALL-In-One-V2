@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { format } from "date-fns";
@@ -13,7 +14,8 @@ import {
   CheckCircle2, 
   XCircle,
   RotateCcw,
-  FileText
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,6 +28,7 @@ import {
 interface SampleCardProps {
   sample: LabSample;
   canManage: boolean;
+  completedResultsCount?: number;
   onAccession?: () => void;
   onStartProcessing?: () => void;
   onComplete?: () => void;
@@ -37,6 +40,7 @@ interface SampleCardProps {
 export function SampleCard({
   sample,
   canManage,
+  completedResultsCount = 0,
   onAccession,
   onStartProcessing,
   onComplete,
@@ -46,6 +50,14 @@ export function SampleCard({
 }: SampleCardProps) {
   const horseName = sample.horse?.name || "Unknown Horse";
   const horseInitials = horseName.slice(0, 2).toUpperCase();
+
+  // Template progress calculation
+  const templateCount = sample.templates?.length || 0;
+  const resultsCount = completedResultsCount;
+  const hasTemplates = templateCount > 0;
+  const isPartial = hasTemplates && resultsCount > 0 && resultsCount < templateCount;
+  const isComplete = hasTemplates && resultsCount >= templateCount;
+  const progressPercent = hasTemplates ? (resultsCount / templateCount) * 100 : 0;
 
   return (
     <Card 
@@ -132,6 +144,33 @@ export function SampleCard({
                 {st.template.name_ar || st.template.name}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Results Progress */}
+        {hasTemplates && (sample.status === 'processing' || sample.status === 'completed') && (
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs text-muted-foreground">نتائج التحاليل</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {resultsCount}/{templateCount}
+                </span>
+                {isPartial && (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    جزئي
+                  </Badge>
+                )}
+                {isComplete && (
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    مكتمل
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <Progress value={progressPercent} className="h-1.5" />
           </div>
         )}
         

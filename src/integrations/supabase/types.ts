@@ -2115,6 +2115,7 @@ export type Database = {
           created_at: string
           id: string
           sample_id: string
+          sort_order: number | null
           template_id: string
           tenant_id: string
         }
@@ -2122,6 +2123,7 @@ export type Database = {
           created_at?: string
           id?: string
           sample_id: string
+          sort_order?: number | null
           template_id: string
           tenant_id: string
         }
@@ -2129,6 +2131,7 @@ export type Database = {
           created_at?: string
           id?: string
           sample_id?: string
+          sort_order?: number | null
           template_id?: string
           tenant_id?: string
         }

@@ -9,6 +9,7 @@ export type LabSampleStatus = 'draft' | 'accessioned' | 'processing' | 'complete
 
 export interface SampleTemplate {
   id: string;
+  sort_order: number;
   template: {
     id: string;
     name: string;
@@ -149,7 +150,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),
           receiver:profiles!lab_samples_received_by_fkey(id, full_name),
-          templates:lab_sample_templates(id, template:lab_templates(id, name, name_ar, template_type, fields))
+          templates:lab_sample_templates(id, sort_order, template:lab_templates(id, name, name_ar, template_type, fields))
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });
@@ -223,12 +224,13 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
-      // Insert templates if provided
+      // Insert templates if provided (with sort_order to preserve selection order)
       if (template_ids && template_ids.length > 0 && sample) {
-        const templateRows = template_ids.map(templateId => ({
+        const templateRows = template_ids.map((templateId, index) => ({
           sample_id: sample.id,
           template_id: templateId,
           tenant_id: activeTenant.tenant.id,
+          sort_order: index + 1,
         }));
 
         const { error: templatesError } = await supabase

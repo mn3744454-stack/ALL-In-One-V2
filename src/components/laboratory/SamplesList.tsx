@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters } from "@/hooks/laboratory/useLabSamples";
+import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { SampleCard } from "./SampleCard";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,18 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     search: search || undefined,
     ...tabFilters,
   });
+
+  // Fetch all results to calculate progress per sample
+  const { results } = useLabResults();
+
+  // Create a map of sample_id -> results count
+  const resultsCountBySample = useMemo(() => {
+    const countMap: Record<string, number> = {};
+    results.forEach(r => {
+      countMap[r.sample_id] = (countMap[r.sample_id] || 0) + 1;
+    });
+    return countMap;
+  }, [results]);
 
   if (loading) {
     return (
@@ -164,6 +177,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
                 <SampleCard
                   sample={sample}
                   canManage={canManage}
+                  completedResultsCount={resultsCountBySample[sample.id] || 0}
                   onAccession={() => accessionSample(sample.id)}
                   onStartProcessing={() => startProcessing(sample.id)}
                   onComplete={() => completeSample(sample.id)}
