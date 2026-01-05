@@ -8,11 +8,11 @@ The Laboratory module provides a complete workflow for managing lab samples, res
 
 ### 1. Samples Lifecycle
 - **Create sample**: Register new lab samples with horse, collection date, and physical sample ID
-- **Multi-select test types**: Choose multiple test types (e.g., CBC, Urine) for a single sample
+- **Multi-select templates**: Choose multiple result templates (e.g., CBC, Hormonal Panel) for a single sample
 - **Mark Received/Unreceived**: Track when samples arrive at the lab (trigger auto-fills `received_at`)
 - **Status transitions**: `draft` → `accessioned` → `processing` → `completed`
 - **Retest creation**: Create retests from completed samples (max 3 retests per sample)
-- **Test types carry forward**: Retests inherit test types from original sample
+- **Templates carry forward**: Retests inherit templates from original sample
 
 ### 2. Results Workflow
 - **Create results**: Enter lab results using templates
@@ -47,8 +47,8 @@ The Laboratory module provides a complete workflow for managing lab samples, res
 
 ### Samples Lifecycle (Mobile-first)
 1. [ ] Create new sample - verify all fields save
-2. [ ] Select multiple test types during sample creation
-3. [ ] Verify test type badges appear on SampleCard
+2. [ ] Select multiple templates during sample creation
+3. [ ] Verify template badges appear on SampleCard
 4. [ ] Mark sample as Received - verify `received_at` auto-populates
 5. [ ] Mark sample as Unreceived - verify fields clear
 6. [ ] Transition: draft → accessioned → processing → completed
@@ -57,10 +57,17 @@ The Laboratory module provides a complete workflow for managing lab samples, res
 ### Retest Flow
 1. [ ] Click "Create Retest" on completed sample
 2. [ ] Verify new sample created with `retest_of_sample_id` set
-3. [ ] Verify test types are copied from original sample
+3. [ ] Verify templates are copied from original sample
 4. [ ] Verify "Retest" badge appears on new sample
 5. [ ] Verify retest count increments on original
 6. [ ] Verify retest blocked after 3 retests
+
+### Results Workflow
+1. [ ] Create result for sample
+2. [ ] Templates are filtered to only those selected during sample creation
+3. [ ] Review result (draft → reviewed)
+4. [ ] Finalize result (reviewed → final)
+5. [ ] Verify cannot edit finalized result
 
 ### Results Workflow
 1. [ ] Create result for sample

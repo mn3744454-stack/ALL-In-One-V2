@@ -59,6 +59,11 @@ export function CreateResultDialog({
   const [flags, setFlags] = useState<LabResultFlags>('normal');
   const [interpretation, setInterpretation] = useState('');
 
+  // Filter templates based on sample's selected templates (if any)
+  const availableTemplates = selectedSample?.templates?.length
+    ? activeTemplates.filter(t => selectedSample.templates!.some(st => st.template.id === t.id))
+    : activeTemplates;
+
   useEffect(() => {
     if (open) {
       setStep(0);
@@ -282,11 +287,28 @@ export function CreateResultDialog({
       case 'template':
         return (
           <div className="space-y-4">
+            {/* Show which templates are required for this sample */}
+            {selectedSample?.templates && selectedSample.templates.length > 0 && (
+              <Alert className="border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+                <FileText className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  <span className="font-medium">القوالب المطلوبة لهذه العينة:</span>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {selectedSample.templates.map(st => (
+                      <Badge key={st.id} variant="secondary" className="text-xs">
+                        {st.template.name_ar || st.template.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <p className="text-sm text-muted-foreground">
-              Choose a template for entering results.
+              اختر القالب لإدخال النتائج / Choose a template for entering results.
             </p>
             
-            {activeTemplates.length === 0 ? (
+            {availableTemplates.length === 0 ? (
               <Alert className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 <AlertDescription className="text-amber-700 dark:text-amber-300">
@@ -308,11 +330,11 @@ export function CreateResultDialog({
               </Alert>
             ) : (
               <div className="grid gap-3 max-h-[300px] overflow-y-auto">
-                {activeTemplates.map((template) => (
+                {availableTemplates.map((template) => (
                   <Card
                     key={template.id}
                     className={cn(
-                      "p-4 cursor-pointer transition-colors",
+                      "p-4 cursor-pointer transition-colors min-h-12",
                       selectedTemplate?.id === template.id
                         ? "border-primary bg-primary/5"
                         : "hover:border-primary/50"
@@ -324,8 +346,11 @@ export function CreateResultDialog({
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{template.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium">{template.name_ar || template.name}</p>
+                        {template.name_ar && (
+                          <p className="text-xs text-muted-foreground">{template.name}</p>
+                        )}
+                        <p className="text-sm text-muted-foreground mt-1">
                           {template.fields.length} fields • {template.template_type || 'Standard'}
                         </p>
                       </div>

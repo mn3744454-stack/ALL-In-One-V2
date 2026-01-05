@@ -2110,6 +2110,59 @@ export type Database = {
           },
         ]
       }
+      lab_sample_templates: {
+        Row: {
+          created_at: string
+          id: string
+          sample_id: string
+          template_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sample_id: string
+          template_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sample_id?: string
+          template_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_sample_templates_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_sample_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_sample_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_sample_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_sample_test_types: {
         Row: {
           created_at: string

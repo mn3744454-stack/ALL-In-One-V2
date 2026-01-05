@@ -7,13 +7,14 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type LabSampleStatus = 'draft' | 'accessioned' | 'processing' | 'completed' | 'cancelled';
 
-export interface SampleTestType {
+export interface SampleTemplate {
   id: string;
-  test_type: {
+  template: {
     id: string;
     name: string;
     name_ar: string | null;
-    code: string | null;
+    template_type: string;
+    fields: unknown[];
   };
 }
 
@@ -47,8 +48,8 @@ export interface LabSample {
   assignee?: { id: string; full_name: string | null; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string | null };
   receiver?: { id: string; full_name: string | null } | null;
-  // Test types (many-to-many)
-  test_types?: SampleTestType[];
+  // Templates (many-to-many)
+  templates?: SampleTemplate[];
 }
 
 export interface LabSampleFilters {
@@ -72,7 +73,7 @@ export interface CreateLabSampleData {
   notes?: string;
   retest_of_sample_id?: string;
   metadata?: Json;
-  test_type_ids?: string[];
+  template_ids?: string[];
 }
 
 // Cache TTL for Riyadh bounds (60 seconds)
@@ -148,7 +149,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),
           receiver:profiles!lab_samples_received_by_fkey(id, full_name),
-          test_types:lab_sample_test_types(id, test_type:lab_test_types(id, name, name_ar, code))
+          templates:lab_sample_templates(id, template:lab_templates(id, name, name_ar, template_type, fields))
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });
@@ -207,8 +208,8 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     }
 
     try {
-      // Extract test_type_ids before inserting sample
-      const { test_type_ids, ...sampleData } = data;
+      // Extract template_ids before inserting sample
+      const { template_ids, ...sampleData } = data;
 
       const { data: sample, error } = await supabase
         .from("lab_samples")
@@ -222,20 +223,20 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
-      // Insert test types if provided
-      if (test_type_ids && test_type_ids.length > 0 && sample) {
-        const testTypeRows = test_type_ids.map(typeId => ({
+      // Insert templates if provided
+      if (template_ids && template_ids.length > 0 && sample) {
+        const templateRows = template_ids.map(templateId => ({
           sample_id: sample.id,
-          test_type_id: typeId,
+          template_id: templateId,
           tenant_id: activeTenant.tenant.id,
         }));
 
-        const { error: testTypesError } = await supabase
-          .from("lab_sample_test_types")
-          .insert(testTypeRows);
+        const { error: templatesError } = await supabase
+          .from("lab_sample_templates")
+          .insert(templateRows);
 
-        if (testTypesError) {
-          console.error("Error inserting sample test types:", testTypesError);
+        if (templatesError) {
+          console.error("Error inserting sample templates:", templatesError);
           // Don't fail the whole operation, sample was created
         }
       }
