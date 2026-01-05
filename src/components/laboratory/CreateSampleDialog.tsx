@@ -22,13 +22,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, TestTube2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useClients } from "@/hooks/useClients";
 import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
+import { useLabTestTypes } from "@/hooks/laboratory/useLabTestTypes";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -43,10 +46,11 @@ interface CreateSampleDialogProps {
 }
 
 const STEPS = [
-  { key: 'basic', title: 'Basic Info', icon: FlaskConical },
-  { key: 'details', title: 'Details', icon: FlaskConical },
-  { key: 'billing', title: 'Billing', icon: CreditCard, conditional: true },
-  { key: 'review', title: 'Review', icon: Check },
+  { key: 'basic', title: 'Basic Info', titleAr: 'معلومات أساسية', icon: FlaskConical },
+  { key: 'tests', title: 'Test Types', titleAr: 'أنواع التحاليل', icon: TestTube2 },
+  { key: 'details', title: 'Details', titleAr: 'التفاصيل', icon: FlaskConical },
+  { key: 'billing', title: 'Billing', titleAr: 'الفوترة', icon: CreditCard, conditional: true },
+  { key: 'review', title: 'Review', titleAr: 'مراجعة', icon: Check },
 ];
 
 interface FormData {
@@ -55,6 +59,7 @@ interface FormData {
   physical_sample_id: string;
   client_id: string;
   notes: string;
+  test_type_ids: string[];
 }
 
 export function CreateSampleDialog({
@@ -69,6 +74,7 @@ export function CreateSampleDialog({
   const { clients } = useClients();
   const { createSample } = useLabSamples();
   const { wallet, creditsEnabled, debitCredits } = useLabCredits();
+  const { activeTypes: testTypes, loading: testTypesLoading } = useLabTestTypes();
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -78,6 +84,7 @@ export function CreateSampleDialog({
     physical_sample_id: '',
     client_id: retestOfSample?.client_id || '',
     notes: '',
+    test_type_ids: [],
   });
 
   // Determine if this is a free retest
@@ -93,12 +100,15 @@ export function CreateSampleDialog({
   useEffect(() => {
     if (open) {
       setStep(0);
+      // For retests, copy test types from original sample
+      const retestTestTypeIds = retestOfSample?.test_types?.map(tt => tt.test_type.id) || [];
       setFormData({
         horse_id: preselectedHorseId || retestOfSample?.horse_id || '',
         collection_date: new Date(),
         physical_sample_id: retestOfSample?.physical_sample_id ? `${retestOfSample.physical_sample_id}-R${(retestOfSample.retest_count || 0) + 1}` : '',
         client_id: retestOfSample?.client_id || '',
         notes: isRetest ? `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}` : '',
+        test_type_ids: retestTestTypeIds,
       });
     }
   }, [open, preselectedHorseId, retestOfSample, isRetest]);
@@ -136,6 +146,7 @@ export function CreateSampleDialog({
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
         status: 'draft',
+        test_type_ids: formData.test_type_ids.length > 0 ? formData.test_type_ids : undefined,
       };
 
       const sample = await createSample(sampleData);
@@ -156,12 +167,24 @@ export function CreateSampleDialog({
 
   const selectedHorse = horses.find(h => h.id === formData.horse_id);
   const selectedClient = clients.find(c => c.id === formData.client_id);
+  const selectedTestTypes = testTypes.filter(t => formData.test_type_ids.includes(t.id));
+
+  const toggleTestType = (typeId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      test_type_ids: prev.test_type_ids.includes(typeId)
+        ? prev.test_type_ids.filter(id => id !== typeId)
+        : [...prev.test_type_ids, typeId],
+    }));
+  };
 
   const canProceed = () => {
     const currentStep = effectiveSteps[step];
     switch (currentStep.key) {
       case 'basic':
         return !!formData.horse_id && !!formData.collection_date;
+      case 'tests':
+        return true; // Test types are optional
       case 'details':
         return true;
       case 'billing':
@@ -258,6 +281,68 @@ export function CreateSampleDialog({
                 Leave empty to auto-generate a unique ID
               </p>
             </div>
+        </div>
+        );
+
+      case 'tests':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>اختر أنواع التحاليل / Select Test Types</Label>
+              {formData.test_type_ids.length > 0 && (
+                <Badge variant="secondary">{formData.test_type_ids.length} selected</Badge>
+              )}
+            </div>
+            
+            {testTypesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : testTypes.length === 0 ? (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  No test types configured. You can add them in Laboratory Settings.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <ScrollArea className="h-[280px] rounded-md border p-2">
+                <div className="space-y-1">
+                  {testTypes.map((testType) => (
+                    <div
+                      key={testType.id}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors min-h-11",
+                        "hover:bg-accent",
+                        formData.test_type_ids.includes(testType.id) && "bg-primary/10 border border-primary/20"
+                      )}
+                      onClick={() => toggleTestType(testType.id)}
+                    >
+                      <Checkbox
+                        checked={formData.test_type_ids.includes(testType.id)}
+                        onCheckedChange={() => toggleTestType(testType.id)}
+                        className="min-h-5 min-w-5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">
+                          {testType.name_ar || testType.name}
+                        </div>
+                        {testType.name_ar && (
+                          <div className="text-xs text-muted-foreground">{testType.name}</div>
+                        )}
+                        {testType.code && (
+                          <Badge variant="outline" className="text-xs mt-1">{testType.code}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+            
+            <p className="text-xs text-muted-foreground">
+              اختياري - يمكنك تحديد التحاليل المطلوبة لهذه العينة
+            </p>
           </div>
         );
 
@@ -366,6 +451,18 @@ export function CreateSampleDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Related Order</span>
                   <span className="font-mono text-sm">{relatedOrderId.slice(0, 8)}...</span>
+                </div>
+              )}
+              {selectedTestTypes.length > 0 && (
+                <div className="pt-2 border-t">
+                  <span className="text-muted-foreground text-sm">Test Types</span>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {selectedTestTypes.map(tt => (
+                      <Badge key={tt.id} variant="outline" className="text-xs">
+                        {tt.name_ar || tt.name}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
               {formData.notes && (
