@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,6 +62,9 @@ export interface CreateLabSampleData {
   metadata?: Json;
 }
 
+// Cache TTL for Riyadh bounds (60 seconds)
+const RIYADH_BOUNDS_CACHE_TTL_MS = 60000;
+
 export function useLabSamples(filters: LabSampleFilters = {}) {
   const [samples, setSamples] = useState<LabSample[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,50 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   const { user } = useAuth();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
+
+  // Cache for Riyadh day bounds
+  const riyadhBoundsCache = useRef<{
+    start: string;
+    end: string;
+    timestamp: number;
+  } | null>(null);
+
+  // Helper to get cached or fresh Riyadh bounds
+  const getRiyadhDayBounds = async (): Promise<{ start: string; end: string } | null> => {
+    const now = Date.now();
+    
+    // Return cached if still valid
+    if (riyadhBoundsCache.current && (now - riyadhBoundsCache.current.timestamp) < RIYADH_BOUNDS_CACHE_TTL_MS) {
+      return {
+        start: riyadhBoundsCache.current.start,
+        end: riyadhBoundsCache.current.end,
+      };
+    }
+
+    // Fetch fresh bounds
+    try {
+      const { data, error } = await supabase.rpc('get_riyadh_day_bounds');
+      
+      if (error || !data || (Array.isArray(data) && data.length === 0)) {
+        console.error("Failed to get Riyadh day bounds:", error);
+        return null;
+      }
+
+      const bounds = Array.isArray(data) ? data[0] : data;
+      
+      // Cache the result
+      riyadhBoundsCache.current = {
+        start: bounds.start_utc,
+        end: bounds.end_utc,
+        timestamp: now,
+      };
+
+      return { start: bounds.start_utc, end: bounds.end_utc };
+    } catch (err) {
+      console.error("RPC call failed for get_riyadh_day_bounds:", err);
+      return null;
+    }
+  };
 
   const fetchSamples = useCallback(async () => {
     if (!activeTenant?.tenant.id) {
@@ -114,22 +161,12 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       }
 
       if (filters.collectionDateToday) {
-        // Use server-side RPC for timezone-aware Riyadh day bounds
-        try {
-          const { data: bounds, error: rpcError } = await supabase
-            .rpc("get_riyadh_day_bounds");
-          
-          if (rpcError) {
-            console.error("Error fetching Riyadh day bounds:", rpcError);
-            // Graceful fallback: skip filter if RPC fails
-          } else if (bounds && bounds.length > 0) {
-            query = query
-              .gte("collection_date", bounds[0].start_utc)
-              .lt("collection_date", bounds[0].end_utc);
-          }
-        } catch (rpcErr) {
-          console.error("RPC call failed for get_riyadh_day_bounds:", rpcErr);
-          // Graceful fallback: continue without this filter
+        // Use cached server-side RPC for timezone-aware Riyadh day bounds
+        const bounds = await getRiyadhDayBounds();
+        if (bounds) {
+          query = query
+            .gte("collection_date", bounds.start)
+            .lt("collection_date", bounds.end);
         }
       }
 
@@ -283,6 +320,68 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     }
   };
 
+  // Create retest sample from completed sample (tenant-safe + workflow-safe)
+  const createRetest = async (originalSampleId: string): Promise<LabSample | null> => {
+    if (!activeTenant?.tenant.id || !user?.id) {
+      toast.error("No active organization");
+      return null;
+    }
+
+    try {
+      // Fetch original sample - SCOPED BY TENANT
+      const { data: original, error: fetchError } = await supabase
+        .from("lab_samples")
+        .select("id, horse_id, client_id, status, physical_sample_id")
+        .eq("id", originalSampleId)
+        .eq("tenant_id", activeTenant.tenant.id)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+      if (!original) {
+        toast.error("Sample not found");
+        return null;
+      }
+
+      // WORKFLOW GUARD: Only allow retest for completed samples
+      if (original.status !== 'completed') {
+        toast.error("Can only create retest for completed samples");
+        return null;
+      }
+
+      // Insert new retest - MINIMAL FIELDS (no physical_sample_id, no notes copy)
+      const { data: newSample, error } = await supabase
+        .from("lab_samples")
+        .insert({
+          tenant_id: activeTenant.tenant.id,
+          created_by: user.id,
+          horse_id: original.horse_id,
+          client_id: original.client_id || null,
+          collection_date: new Date().toISOString(),
+          status: 'draft',
+          retest_of_sample_id: originalSampleId,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Retest sample created successfully");
+      fetchSamples();
+      return newSample as LabSample;
+    } catch (error: unknown) {
+      console.error("Error creating retest:", error);
+      const message = error instanceof Error ? error.message : "Failed to create retest";
+      
+      // Handle max retests constraint (trigger returns this)
+      if (message.includes("Maximum") || message.includes("retest") || message.includes("max_retests")) {
+        toast.error("Maximum retests (3) reached for this sample");
+      } else {
+        toast.error(message);
+      }
+      return null;
+    }
+  };
+
   return {
     samples,
     loading,
@@ -296,6 +395,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     deleteSample,
     markReceived,
     markUnreceived,
+    createRetest,
     refresh: fetchSamples,
   };
 }
