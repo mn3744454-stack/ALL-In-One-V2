@@ -21,20 +21,72 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 
+// Interface matching ACTUAL RPC output (9 fields only)
 interface SharedResultData {
   result_id: string;
-  horse_display_name: string;
-  template_name: string;
-  template_fields: unknown[];
-  template_normal_ranges: Record<string, { min?: number; max?: number }>;
+  status: string;
   result_data: Record<string, unknown>;
   interpretation: unknown;
-  flags: string;
-  status: string;
+  flags: string | null;
   created_at: string;
-  reviewed_at: string | null;
+  horse_display_name: string;
+  template_name: string;
   tenant_display_name: string;
 }
+
+// Safe value formatter - handles all types without heavy JSON
+const formatValue = (val: unknown): string => {
+  if (val === null || val === undefined) return '-';
+  if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+  if (typeof val === 'number') return val.toLocaleString();
+  if (Array.isArray(val)) {
+    if (val.length === 0) return '-';
+    if (val.length <= 3) return val.map(v => formatValue(v)).join(', ');
+    return `${val.slice(0, 3).map(v => formatValue(v)).join(', ')}... (+${val.length - 3})`;
+  }
+  if (typeof val === 'object') {
+    const keys = Object.keys(val as object);
+    if (keys.length === 0) return '-';
+    return `{${keys.length} fields}`;
+  }
+  // String - truncate if too long
+  const str = String(val);
+  if (str.length > 50) return str.slice(0, 47) + '...';
+  return str;
+};
+
+// Format key for display - handle UUIDs and snake_case
+const prettyKey = (key: string): string => {
+  // UUID pattern - show first 8 chars
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)) {
+    return key.slice(0, 8) + '...';
+  }
+  // snake_case to Title Case
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+};
+
+// Render interpretation safely (can be string/object/null)
+const renderInterpretation = (interpretation: unknown): React.ReactNode => {
+  if (!interpretation) return <p className="text-muted-foreground">No interpretation provided.</p>;
+  if (typeof interpretation === 'string') return <p>{interpretation}</p>;
+  if (typeof interpretation === 'object' && interpretation !== null) {
+    const entries = Object.entries(interpretation);
+    if (entries.length === 0) return <p className="text-muted-foreground">No interpretation provided.</p>;
+    return (
+      <div className="space-y-2">
+        {entries.map(([key, value]) => (
+          <div key={key}>
+            <span className="font-medium">{prettyKey(key)}:</span>{' '}
+            <span>{formatValue(value)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return <p>{String(interpretation)}</p>;
+};
 
 export default function SharedLabResult() {
   const { token } = useParams<{ token: string }>();
@@ -215,7 +267,7 @@ export default function SharedLabResult() {
     }
   };
 
-  const getFlagColor = (flag: string) => {
+  const getFlagColor = (flag: string | null) => {
     switch (flag) {
       case 'normal': return 'bg-green-100 text-green-800';
       case 'abnormal': return 'bg-orange-100 text-orange-800';
@@ -224,7 +276,7 @@ export default function SharedLabResult() {
     }
   };
 
-  const getFlagIcon = (flag: string) => {
+  const getFlagIcon = (flag: string | null) => {
     switch (flag) {
       case 'normal': return <CheckCircle2 className="h-4 w-4 text-green-600" />;
       case 'abnormal': return <AlertTriangle className="h-4 w-4 text-orange-600" />;
@@ -261,14 +313,8 @@ export default function SharedLabResult() {
     );
   }
 
-  const templateFields = (result.template_fields || []) as Array<{
-    id: string;
-    name: string;
-    name_ar?: string;
-    unit?: string;
-  }>;
-  const normalRanges = result.template_normal_ranges || {};
-  const resultData = result.result_data || {};
+  // Get result entries safely from result_data
+  const resultEntries = Object.entries(result.result_data || {});
 
   return (
     <div className="min-h-screen bg-background">
@@ -352,78 +398,51 @@ export default function SharedLabResult() {
                   <tr>
                     <th className="text-left p-3 text-sm font-medium">Parameter</th>
                     <th className="text-center p-3 text-sm font-medium">Value</th>
-                    <th className="text-center p-3 text-sm font-medium hidden sm:table-cell">Unit</th>
-                    <th className="text-center p-3 text-sm font-medium hidden md:table-cell">Reference</th>
+                    <th className="text-center p-3 text-sm font-medium hidden md:table-cell">Unit</th>
+                    <th className="text-center p-3 text-sm font-medium hidden lg:table-cell">Reference</th>
                     <th className="text-center p-3 text-sm font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {templateFields.map((field) => {
-                    const value = resultData[field.id];
-                    const range = normalRanges[field.id];
-                    const numValue = typeof value === 'number' ? value : parseFloat(value as string);
-                    
-                    let status: 'normal' | 'low' | 'high' = 'normal';
-                    if (range && !isNaN(numValue)) {
-                      if (range.min !== undefined && numValue < range.min) status = 'low';
-                      else if (range.max !== undefined && numValue > range.max) status = 'high';
-                    }
-
-                    return (
-                      <tr key={field.id} className="hover:bg-muted/50">
+                  {resultEntries.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-8 text-muted-foreground">
+                        No result data available
+                      </td>
+                    </tr>
+                  ) : (
+                    resultEntries.map(([key, value]) => (
+                      <tr key={key} className="hover:bg-muted/50">
                         <td className="p-3">
-                          <div>
-                            <span className="font-medium">{field.name}</span>
-                            {field.name_ar && (
-                              <span className="text-xs text-muted-foreground block" dir="rtl">
-                                {field.name_ar}
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-medium">{prettyKey(key)}</span>
                         </td>
-                        <td className={`p-3 text-center font-mono ${
-                          status === 'low' ? 'text-blue-600' :
-                          status === 'high' ? 'text-red-600' : ''
-                        }`}>
-                          {value !== undefined ? String(value) : '-'}
-                          <span className="sm:hidden text-xs text-muted-foreground block">
-                            {field.unit || ''}
-                          </span>
+                        <td className="p-3 text-center font-mono">
+                          {formatValue(value)}
                         </td>
-                        <td className="p-3 text-center text-muted-foreground hidden sm:table-cell">
-                          {field.unit || '-'}
+                        <td className="p-3 text-center text-muted-foreground hidden md:table-cell">
+                          -
                         </td>
-                        <td className="p-3 text-center text-sm text-muted-foreground hidden md:table-cell">
-                          {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
+                        <td className="p-3 text-center text-sm text-muted-foreground hidden lg:table-cell">
+                          -
                         </td>
                         <td className="p-3 text-center">
-                          {status === 'normal' ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600 mx-auto" />
-                          ) : status === 'low' ? (
-                            <span className="text-xs text-blue-600 font-medium">↓</span>
-                          ) : (
-                            <span className="text-xs text-red-600 font-medium">↑</span>
-                          )}
+                          <CheckCircle2 className="h-4 w-4 text-green-600 mx-auto" />
                         </td>
                       </tr>
-                    );
-                  })}
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
           {/* Interpretation */}
-          {result.interpretation && (
-            <div className="bg-muted/30 rounded-lg p-4">
-              <h4 className="font-medium mb-2">Interpretation</h4>
-              <p className="text-sm text-muted-foreground">
-                {typeof result.interpretation === 'string' 
-                  ? result.interpretation 
-                  : JSON.stringify(result.interpretation)}
-              </p>
+          <div className="bg-muted/30 rounded-lg p-4">
+            <h4 className="font-medium mb-2">Interpretation</h4>
+            <div className="text-sm text-muted-foreground">
+              {renderInterpretation(result.interpretation)}
             </div>
-          )}
+          </div>
 
           <Separator />
 
@@ -433,11 +452,6 @@ export default function SharedLabResult() {
               <Calendar className="h-3 w-3" />
               <span>{format(new Date(result.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
             </div>
-            {result.reviewed_at && (
-              <p className="text-xs">
-                Reviewed: {format(new Date(result.reviewed_at), "MMM d, yyyy")}
-              </p>
-            )}
           </div>
         </div>
       </main>

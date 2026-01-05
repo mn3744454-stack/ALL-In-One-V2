@@ -53,6 +53,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     startProcessing,
     completeSample,
     cancelSample,
+    createRetest,
   } = useLabSamples({ 
     status: statusFilter !== 'all' ? statusFilter : undefined,
     search: search || undefined,
@@ -167,6 +168,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
                   onStartProcessing={() => startProcessing(sample.id)}
                   onComplete={() => completeSample(sample.id)}
                   onCancel={() => cancelSample(sample.id)}
+                  onRetest={() => createRetest(sample.id)}
                   onClick={() => onSampleClick?.(sample.id)}
                 />
               </div>
