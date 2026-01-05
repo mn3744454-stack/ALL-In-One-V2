@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { I18nProvider } from "@/i18n";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
@@ -24,6 +25,7 @@ import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
 import DashboardLaboratory from "./pages/DashboardLaboratory";
+import DashboardHR from "./pages/DashboardHR";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -239,6 +241,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/hr"
+        element={
+          <ProtectedRoute>
+            <DashboardHR />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/horses/:id"
         element={
           <ProtectedRoute>
@@ -270,17 +280,19 @@ const AppRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <TenantProvider>
-              <AppRoutes />
-            </TenantProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <I18nProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AuthProvider>
+              <TenantProvider>
+                <AppRoutes />
+              </TenantProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </I18nProvider>
     </HelmetProvider>
   </QueryClientProvider>
 );

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import Logo from "@/components/Logo";
 import { NavGroup } from "@/components/dashboard/NavGroup";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import {
   Building2,
@@ -119,6 +121,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
+  const { t, dir } = useI18n();
 
   const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
 
@@ -129,25 +132,36 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const isActive = (path: string) => location.pathname === path;
 
   const horsesNavItems = [
-    { icon: Heart, label: "My Horses", href: "/dashboard/horses", badge: horses.length },
-    { icon: ClipboardList, label: "Orders", href: "/dashboard/horse-orders" },
-    { icon: Baby, label: "Breeding", href: "/dashboard/breeding" },
-    { icon: Stethoscope, label: "Vet & Health", href: "/dashboard/vet" },
-    { icon: FlaskConical, label: "Laboratory", href: "/dashboard/laboratory" },
+    { icon: Heart, label: t('sidebar.myHorses'), href: "/dashboard/horses", badge: horses.length },
+    { icon: ClipboardList, label: t('sidebar.orders'), href: "/dashboard/horse-orders" },
+    { icon: Baby, label: t('sidebar.breeding'), href: "/dashboard/breeding" },
+    { icon: Stethoscope, label: t('sidebar.vetHealth'), href: "/dashboard/vet" },
+    { icon: FlaskConical, label: t('sidebar.laboratory'), href: "/dashboard/laboratory" },
   ];
+
+  // RTL-aware sidebar positioning
+  const sidebarPositionClasses = dir === 'rtl'
+    ? 'right-0'
+    : 'left-0';
+
+  const sidebarTransformClasses = dir === 'rtl'
+    ? (isOpen ? 'translate-x-0' : 'translate-x-full')
+    : (isOpen ? 'translate-x-0' : '-translate-x-full');
 
   return (
     <>
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-cream via-cream to-cream-dark/50 border-r border-border/50 transform transition-transform duration-300 lg:translate-x-0 lg:static shadow-xl lg:shadow-none",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed inset-y-0 z-50 w-64 bg-gradient-to-b from-cream via-cream to-cream-dark/50 border-border/50 transform transition-transform duration-300 shadow-xl lg:shadow-none lg:static lg:translate-x-0",
+          sidebarPositionClasses,
+          sidebarTransformClasses,
+          dir === 'rtl' ? 'border-l' : 'border-r'
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo + Close Button */}
-          <div className="p-5 border-b border-border/50 flex items-center justify-between bg-white/50">
+          <div className="p-5 border-b border-border/50 flex items-center justify-between gap-3 bg-white/50">
             <Logo />
             <button
               className="p-2 rounded-xl hover:bg-navy/5 lg:hidden transition-colors"
@@ -162,28 +176,28 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             <NavItem
               icon={Home}
-              label="Dashboard"
+              label={t('sidebar.dashboard')}
               href="/dashboard"
               active={isActive("/dashboard")}
               onNavigate={onClose}
             />
             <NavItem
               icon={MessageSquare}
-              label="Community"
+              label={t('sidebar.community')}
               href="/community"
               active={isActive("/community")}
               onNavigate={onClose}
             />
             <NavItem
               icon={Ticket}
-              label="My Bookings"
+              label={t('sidebar.myBookings')}
               href="/dashboard/my-bookings"
               active={isActive("/dashboard/my-bookings")}
               onNavigate={onClose}
             />
             <NavItem
               icon={CreditCard}
-              label="Payments"
+              label={t('sidebar.payments')}
               href="/dashboard/payments"
               active={isActive("/dashboard/payments")}
               onNavigate={onClose}
@@ -192,29 +206,40 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             {/* Horses NavGroup */}
             <NavGroup
               icon={Heart}
-              label="Horses"
+              label={t('sidebar.horses')}
               items={horsesNavItems}
               onNavigate={onClose}
             />
 
-            <NavItem icon={Calendar} label="Schedule" onNavigate={onClose} />
-            <NavItem icon={FileText} label="Records" onNavigate={onClose} />
-            <NavItem icon={Users} label="Team" onNavigate={onClose} />
-            <NavItem icon={Building2} label="Facilities" onNavigate={onClose} />
+            <NavItem icon={Calendar} label={t('sidebar.schedule')} onNavigate={onClose} />
+            <NavItem icon={FileText} label={t('sidebar.records')} onNavigate={onClose} />
+            
+            {/* HR / Team - for owners and managers */}
+            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
+              <NavItem
+                icon={Users}
+                label={t('sidebar.hr')}
+                href="/dashboard/hr"
+                active={isActive("/dashboard/hr")}
+                onNavigate={onClose}
+              />
+            )}
+            
+            <NavItem icon={Building2} label={t('sidebar.facilities')} onNavigate={onClose} />
 
             {/* Services & Revenue - for owners and managers */}
             {["owner", "manager"].includes(activeRole || "") && activeTenant && (
               <>
                 <NavItem
                   icon={Package}
-                  label="Services"
+                  label={t('sidebar.services')}
                   href="/dashboard/services"
                   active={isActive("/dashboard/services")}
                   onNavigate={onClose}
                 />
                 <NavItem
                   icon={TrendingUp}
-                  label="Revenue"
+                  label={t('sidebar.revenue')}
                   href="/dashboard/revenue"
                   active={isActive("/dashboard/revenue")}
                   onNavigate={onClose}
@@ -228,14 +253,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 <>
                   <NavItem
                     icon={GraduationCap}
-                    label="Sessions"
+                    label={t('sidebar.sessions')}
                     href="/dashboard/academy/sessions"
                     active={isActive("/dashboard/academy/sessions")}
                     onNavigate={onClose}
                   />
                   <NavItem
                     icon={Ticket}
-                    label="Manage Bookings"
+                    label={t('sidebar.manageBookings')}
                     href="/dashboard/academy/bookings"
                     active={isActive("/dashboard/academy/bookings")}
                     onNavigate={onClose}
@@ -247,7 +272,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             {activeRole === "owner" && activeTenant && (
               <NavItem
                 icon={Globe}
-                label="Public Profile"
+                label={t('sidebar.publicProfile')}
                 href="/dashboard/public-profile"
                 active={isActive("/dashboard/public-profile")}
                 onNavigate={onClose}
@@ -256,12 +281,17 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             )}
 
             <div className="pt-4 mt-4 border-t border-border/50">
-              <NavItem icon={Settings} label="Settings" onNavigate={onClose} />
+              <NavItem icon={Settings} label={t('sidebar.settings')} onNavigate={onClose} />
             </div>
           </nav>
 
-          {/* User Section */}
+          {/* User Section with Language Selector */}
           <div className="p-4 border-t border-border/50 bg-white/30">
+            {/* Language Selector */}
+            <div className="mb-3">
+              <LanguageSelector />
+            </div>
+            
             <div className="p-3 rounded-xl bg-white shadow-sm border border-border/30">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-navy font-bold shadow-sm shrink-0">
@@ -279,11 +309,11 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start text-navy/60 hover:text-navy hover:bg-navy/5"
+                className="w-full justify-start gap-2 text-navy/60 hover:text-navy hover:bg-navy/5"
                 onClick={handleSignOut}
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                <LogOut className="w-4 h-4" />
+                {t('sidebar.signOut')}
               </Button>
             </div>
           </div>

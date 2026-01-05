@@ -1705,6 +1705,72 @@ export type Database = {
           },
         ]
       }
+      hr_employees: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          department: string | null
+          email: string | null
+          employee_type: Database["public"]["Enums"]["hr_employee_type"]
+          employee_type_custom: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          phone: string | null
+          tags: string[]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          employee_type?: Database["public"]["Enums"]["hr_employee_type"]
+          employee_type_custom?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          tags?: string[]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          employee_type?: Database["public"]["Enums"]["hr_employee_type"]
+          employee_type_custom?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          tags?: string[]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           assigned_horse_ids: string[] | null
@@ -3944,6 +4010,10 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_hr: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_lab: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -4038,8 +4108,21 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      hr_employee_type:
+        | "trainer"
+        | "groom"
+        | "vet_tech"
+        | "receptionist"
+        | "lab_tech"
+        | "admin"
+        | "manager"
+        | "driver"
+        | "farrier"
+        | "other"
       invitation_status: "pending" | "accepted" | "rejected"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
       payment_owner_type: "platform" | "tenant"
@@ -4195,6 +4278,18 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      hr_employee_type: [
+        "trainer",
+        "groom",
+        "vet_tech",
+        "receptionist",
+        "lab_tech",
+        "admin",
+        "manager",
+        "driver",
+        "farrier",
+        "other",
+      ],
       invitation_status: ["pending", "accepted", "rejected"],
       payment_intent_type: ["platform_fee", "service_payment", "commission"],
       payment_owner_type: ["platform", "tenant"],
