@@ -180,6 +180,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="min-h-11 min-w-11"
                       onClick={() => handleCopyUrl(share.share_token, share.id)}
                       disabled={isExpired}
                     >
@@ -192,6 +193,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="min-h-11 min-w-11"
                       onClick={() => window.open(getShareUrl(share.share_token), '_blank')}
                       disabled={isExpired}
                     >
@@ -200,8 +202,8 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="min-h-11 min-w-11 text-destructive hover:text-destructive"
                       onClick={() => handleRevoke(share.id)}
-                      className="text-destructive hover:text-destructive"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
