@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { format } from "date-fns";
+import { useI18n } from "@/i18n";
 import { 
   FlaskConical, 
   Calendar, 
@@ -51,7 +52,8 @@ export function SampleCard({
   onClick,
   onViewAllResults,
 }: SampleCardProps) {
-  const horseName = sample.horse?.name || "Unknown Horse";
+  const { t } = useI18n();
+  const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
   const horseInitials = horseName.slice(0, 2).toUpperCase();
 
   // Template progress calculation
@@ -97,26 +99,26 @@ export function SampleCard({
                 <DropdownMenuContent align="end">
                   {sample.status === 'draft' && onAccession && (
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAccession(); }}>
-                      <FlaskConical className="h-4 w-4 mr-2" />
-                      Accession
+                      <FlaskConical className="h-4 w-4 me-2" />
+                      {t("laboratory.sampleActions.accession")}
                     </DropdownMenuItem>
                   )}
                   {sample.status === 'accessioned' && onStartProcessing && (
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStartProcessing(); }}>
-                      <Play className="h-4 w-4 mr-2" />
-                      Start Processing
+                      <Play className="h-4 w-4 me-2" />
+                      {t("laboratory.sampleActions.startProcessing")}
                     </DropdownMenuItem>
                   )}
                   {sample.status === 'processing' && onComplete && (
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onComplete(); }}>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Complete
+                      <CheckCircle2 className="h-4 w-4 me-2" />
+                      {t("laboratory.sampleActions.complete")}
                     </DropdownMenuItem>
                   )}
                   {sample.status === 'completed' && sample.retest_count < 3 && onRetest && (
                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRetest(); }}>
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Create Retest
+                      <RotateCcw className="h-4 w-4 me-2" />
+                      {t("laboratory.sampleActions.createRetest")}
                     </DropdownMenuItem>
                   )}
                   {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
@@ -126,8 +128,8 @@ export function SampleCard({
                         onClick={(e) => { e.stopPropagation(); onCancel(); }}
                         className="text-destructive"
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Cancel
+                        <XCircle className="h-4 w-4 me-2" />
+                        {t("laboratory.sampleActions.cancel")}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -143,7 +145,7 @@ export function SampleCard({
           <div className="flex flex-wrap gap-1.5 mb-3">
             {sample.templates.map((st) => (
               <Badge key={st.id} variant="outline" className="text-xs">
-                <FileText className="h-3 w-3 mr-1" />
+                <FileText className="h-3 w-3 me-1" />
                 {st.template.name_ar || st.template.name}
               </Badge>
             ))}
@@ -154,21 +156,21 @@ export function SampleCard({
         {hasTemplates && (sample.status === 'processing' || sample.status === 'completed') && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs text-muted-foreground">نتائج التحاليل</span>
+              <span className="text-xs text-muted-foreground">{t("laboratory.samples.resultsProgress")}</span>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
                   {resultsCount}/{templateCount}
                 </span>
                 {isPartial && (
                   <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    جزئي
+                    <AlertTriangle className="h-3 w-3 me-1" />
+                    {t("laboratory.samples.partial")}
                   </Badge>
                 )}
                 {isComplete && (
                   <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800">
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    مكتمل
+                    <CheckCircle2 className="h-3 w-3 me-1" />
+                    {t("laboratory.samples.complete")}
                   </Badge>
                 )}
               </div>
@@ -186,8 +188,8 @@ export function SampleCard({
                   onViewAllResults();
                 }}
               >
-                <Eye className="h-3 w-3 mr-1" />
-                عرض جميع النتائج
+                <Eye className="h-3 w-3 me-1" />
+                {t("laboratory.samples.viewAllResults")}
               </Button>
             )}
           </div>
@@ -201,7 +203,7 @@ export function SampleCard({
           {sample.retest_count > 0 && (
             <div className="flex items-center gap-1">
               <RotateCcw className="h-3 w-3" />
-              <span>Retest #{sample.retest_count}</span>
+              <span>{t("laboratory.samples.retestNumber").replace("{{count}}", String(sample.retest_count))}</span>
             </div>
           )}
         </div>

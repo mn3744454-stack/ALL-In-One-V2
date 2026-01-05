@@ -19,6 +19,7 @@ import {
 import { format } from "date-fns";
 import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
 
 interface ResultSharePanelProps {
   resultId: string;
@@ -26,6 +27,7 @@ interface ResultSharePanelProps {
 }
 
 export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelProps) {
+  const { t } = useI18n();
   const { shares, loading, createShare, revokeShare, getShareUrl } = useLabResultShares(resultId);
   const [useAlias, setUseAlias] = useState(true);
   const [expiresAt, setExpiresAt] = useState<string>("");
@@ -49,7 +51,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
         // Copy URL to clipboard automatically
         const url = `${window.location.origin}${getShareUrl(share.share_token)}`;
         await navigator.clipboard.writeText(url);
-        toast.success("Share link created and copied to clipboard");
+        toast.success(t("laboratory.share.linkCreated"));
       }
     } finally {
       setIsCreating(false);
@@ -60,7 +62,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
     const url = `${window.location.origin}${getShareUrl(shareToken)}`;
     await navigator.clipboard.writeText(url);
     setCopiedId(shareId);
-    toast.success("Link copied to clipboard");
+    toast.success(t("laboratory.share.linkCopiedClipboard"));
     setTimeout(() => setCopiedId(null), 2000);
   };
 
@@ -69,24 +71,24 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
   };
 
   const getShareStatus = (share: typeof shares[0]) => {
-    if (share.revoked_at) return { label: 'Revoked', variant: 'destructive' as const };
+    if (share.revoked_at) return { label: t("laboratory.share.revoked"), variant: 'destructive' as const };
     if (share.expires_at && new Date(share.expires_at) < new Date()) {
-      return { label: 'Expired', variant: 'secondary' as const };
+      return { label: t("laboratory.share.expired"), variant: 'secondary' as const };
     }
-    return { label: 'Active', variant: 'default' as const };
+    return { label: t("laboratory.share.active"), variant: 'default' as const };
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Link2 className="h-4 w-4 text-muted-foreground" />
-        <h4 className="font-medium">Share Result</h4>
+        <h4 className="font-medium">{t("laboratory.share.title")}</h4>
       </div>
 
       {!isFinal && (
         <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
           <p className="text-amber-800 dark:text-amber-200">
-            Only finalized results can be shared. Please finalize this result first.
+            {t("laboratory.share.notFinalWarning")}
           </p>
         </div>
       )}
@@ -101,7 +103,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                 <Eye className="h-4 w-4 text-muted-foreground" />
               )}
               <Label htmlFor="use-alias" className="text-sm">
-                {useAlias ? "Hide horse name (use alias)" : "Show real horse name"}
+                {useAlias ? t("laboratory.share.hideHorseName") : t("laboratory.share.showRealName")}
               </Label>
             </div>
             <Switch
@@ -114,7 +116,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
           <div className="space-y-2">
             <Label htmlFor="expires-at" className="text-sm flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              Expiry date (optional)
+              {t("laboratory.share.expiryDate")}
             </Label>
             <Input
               id="expires-at"
@@ -132,11 +134,11 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
             className="w-full"
           >
             {isCreating ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              <Loader2 className="h-4 w-4 animate-spin me-2" />
             ) : (
-              <Link2 className="h-4 w-4 mr-2" />
+              <Link2 className="h-4 w-4 me-2" />
             )}
-            Create Share Link
+            {t("laboratory.share.createShareLink")}
           </Button>
         </div>
       )}
@@ -144,7 +146,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
       {/* Active Shares */}
       {activeShares.length > 0 && (
         <div className="space-y-2">
-          <h5 className="text-sm font-medium text-muted-foreground">Active Links</h5>
+          <h5 className="text-sm font-medium text-muted-foreground">{t("laboratory.share.activeLinks")}</h5>
           <div className="space-y-2">
             {activeShares.map((share) => {
               const status = getShareStatus(share);
@@ -162,16 +164,16 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                       </Badge>
                       {share.use_alias && (
                         <Badge variant="outline" className="text-xs">
-                          <EyeOff className="h-3 w-3 mr-1" />
-                          Alias
+                          <EyeOff className="h-3 w-3 me-1" />
+                          {t("laboratory.share.alias")}
                         </Badge>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Created {format(new Date(share.created_at), "MMM d, yyyy")}
+                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d, yyyy")}
                       {share.expires_at && (
                         <span className={isExpired ? 'text-destructive' : ''}>
-                          {" • "}Expires {format(new Date(share.expires_at), "MMM d, yyyy")}
+                          {" • "}{t("laboratory.share.expires")} {format(new Date(share.expires_at), "MMM d, yyyy")}
                         </span>
                       )}
                     </p>
@@ -221,7 +223,7 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
           <Separator />
           <details className="group">
             <summary className="text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground">
-              Revoked Links ({revokedShares.length})
+              {t("laboratory.share.revokedLinks")} ({revokedShares.length})
             </summary>
             <div className="mt-2 space-y-2">
               {revokedShares.map((share) => (
@@ -231,11 +233,11 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                 >
                   <div className="min-w-0 flex-1">
                     <Badge variant="destructive" className="text-xs mb-1">
-                      Revoked
+                      {t("laboratory.share.revoked")}
                     </Badge>
                     <p className="text-xs text-muted-foreground">
-                      Created {format(new Date(share.created_at), "MMM d")}
-                      {" • "}Revoked {format(new Date(share.revoked_at!), "MMM d")}
+                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d")}
+                      {" • "}{t("laboratory.share.revoked")} {format(new Date(share.revoked_at!), "MMM d")}
                     </p>
                   </div>
                 </div>

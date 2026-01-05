@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { tGlobal } from "@/i18n";
 import type { Json } from "@/integrations/supabase/types";
 
 export type LabResultStatus = 'draft' | 'reviewed' | 'final';
@@ -112,7 +113,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
       setResults((data || []) as LabResult[]);
     } catch (error) {
       console.error("Error fetching lab results:", error);
-      toast.error("Failed to load results");
+      toast.error(tGlobal("laboratory.toasts.failedToLoadResults"));
     } finally {
       setLoading(false);
     }
@@ -124,7 +125,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   const createResult = async (data: CreateLabResultData) => {
     if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
@@ -141,12 +142,12 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
       if (error) throw error;
 
-      toast.success("Result created successfully");
+      toast.success(tGlobal("laboratory.toasts.resultCreated"));
       fetchResults();
       return result;
     } catch (error: unknown) {
       console.error("Error creating result:", error);
-      const message = error instanceof Error ? error.message : "Failed to create result";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToCreateResult");
       toast.error(message);
       return null;
     }
@@ -154,7 +155,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   const updateResult = async (id: string, updates: Partial<CreateLabResultData>) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
 
@@ -170,16 +171,16 @@ export function useLabResults(filters: LabResultFilters = {}) {
       if (error) throw error;
 
       if (!data) {
-        toast.error("Result not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.resultNotFound"));
         return null;
       }
 
-      toast.success("Result updated successfully");
+      toast.success(tGlobal("laboratory.toasts.resultUpdated"));
       fetchResults();
       return data;
     } catch (error: unknown) {
       console.error("Error updating result:", error);
-      const message = error instanceof Error ? error.message : "Failed to update result";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToUpdateResult");
       toast.error(message);
       return null;
     }
@@ -187,11 +188,11 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   const reviewResult = async (id: string) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
     if (!user?.id) {
-      toast.error("Not authenticated");
+      toast.error(tGlobal("laboratory.toasts.notAuthenticated"));
       return null;
     }
     
@@ -207,23 +208,23 @@ export function useLabResults(filters: LabResultFilters = {}) {
       if (error) {
         // Handle status transition errors from DB trigger
         if (error.message.includes("Invalid result status transition")) {
-          toast.error("Cannot review: Result must be in draft status");
+          toast.error(tGlobal("laboratory.toasts.cannotReviewNotDraft"));
           return null;
         }
         throw error;
       }
 
       if (!data) {
-        toast.error("Result not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.resultNotFound"));
         return null;
       }
 
-      toast.success("Result reviewed successfully");
+      toast.success(tGlobal("laboratory.toasts.resultReviewed"));
       fetchResults();
       return data;
     } catch (error: unknown) {
       console.error("Error reviewing result:", error);
-      const message = error instanceof Error ? error.message : "Failed to review result";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToReviewResult");
       toast.error(message);
       return null;
     }
@@ -232,11 +233,11 @@ export function useLabResults(filters: LabResultFilters = {}) {
   // Finalize result: only allowed from 'reviewed' status (enforced by DB trigger)
   const finalizeResult = async (id: string) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return null;
     }
     if (!user?.id) {
-      toast.error("Not authenticated");
+      toast.error(tGlobal("laboratory.toasts.notAuthenticated"));
       return null;
     }
     
@@ -252,27 +253,27 @@ export function useLabResults(filters: LabResultFilters = {}) {
       if (error) {
         // Handle status transition errors from DB trigger
         if (error.message.includes("Invalid result status transition")) {
-          toast.error("Cannot finalize: Result must be reviewed first");
+          toast.error(tGlobal("laboratory.toasts.cannotFinalizeNotReviewed"));
           return null;
         }
         if (error.message.includes("final")) {
-          toast.error("Result is already finalized");
+          toast.error(tGlobal("laboratory.toasts.resultAlreadyFinal"));
           return null;
         }
         throw error;
       }
 
       if (!data) {
-        toast.error("Result not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.resultNotFound"));
         return null;
       }
 
-      toast.success("Result finalized successfully");
+      toast.success(tGlobal("laboratory.toasts.resultFinalized"));
       fetchResults();
       return data;
     } catch (error: unknown) {
       console.error("Error finalizing result:", error);
-      const message = error instanceof Error ? error.message : "Failed to finalize result";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToFinalizeResult");
       toast.error(message);
       return null;
     }
@@ -280,7 +281,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
 
   const deleteResult = async (id: string) => {
     if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
       return false;
     }
 
@@ -296,16 +297,16 @@ export function useLabResults(filters: LabResultFilters = {}) {
       if (error) throw error;
 
       if (!data) {
-        toast.error("Result not found in this organization");
+        toast.error(tGlobal("laboratory.toasts.resultNotFound"));
         return false;
       }
 
-      toast.success("Result deleted successfully");
+      toast.success(tGlobal("laboratory.toasts.resultDeleted"));
       fetchResults();
       return true;
     } catch (error: unknown) {
       console.error("Error deleting result:", error);
-      const message = error instanceof Error ? error.message : "Failed to delete result";
+      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToDeleteResult");
       toast.error(message);
       return false;
     }

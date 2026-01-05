@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/i18n";
 import { 
   FlaskConical, 
   FileText, 
@@ -16,12 +17,14 @@ export function LabBottomNavigation({
   activeTab,
   onTabChange,
 }: LabBottomNavigationProps) {
+  const { t } = useI18n();
+
   const tabs = [
-    { id: "samples", icon: FlaskConical, label: "Samples" },
-    { id: "results", icon: FileText, label: "Results" },
-    { id: "compare", icon: GitCompare, label: "Compare" },
-    { id: "templates", icon: FileStack, label: "Templates" },
-    { id: "settings", icon: Settings, label: "Settings" },
+    { id: "samples", icon: FlaskConical, labelKey: "laboratory.bottomNav.samples" },
+    { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
+    { id: "compare", icon: GitCompare, labelKey: "laboratory.bottomNav.compare" },
+    { id: "templates", icon: FileStack, labelKey: "laboratory.bottomNav.templates" },
+    { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
   ];
 
   return (
@@ -31,7 +34,7 @@ export function LabBottomNavigation({
           <NavItem
             key={tab.id}
             icon={tab.icon}
-            label={tab.label}
+            label={t(tab.labelKey)}
             active={activeTab === tab.id}
             onClick={() => onTabChange(tab.id)}
           />
