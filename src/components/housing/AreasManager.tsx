@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Map, Edit, Power, Loader2 } from "lucide-react";
 
 export function AreasManager() {
-  const { t, dir, language } = useI18n();
+  const { t, dir, lang: language } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);

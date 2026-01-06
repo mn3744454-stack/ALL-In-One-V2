@@ -32,10 +32,10 @@ interface AssignHorseDialogProps {
 }
 
 export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialogProps) {
-  const { t, language } = useI18n();
+  const { t, lang: language } = useI18n();
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
   
-  const { horses, isLoading: horsesLoading } = useHorses();
+  const { horses, loading: horsesLoading } = useHorses();
   const { assignHorse, isAssigning, occupants } = useUnitOccupants(unit?.id);
 
   if (!unit) return null;
