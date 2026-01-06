@@ -15,7 +15,7 @@ interface UnitCardProps {
 }
 
 export function UnitCard({ unit, onViewDetails }: UnitCardProps) {
-  const { t, dir, language } = useI18n();
+  const { t, dir, lang: language } = useI18n();
 
   const displayName = language === 'ar' && unit.name_ar ? unit.name_ar : (unit.name || unit.code);
   const occupancyPercent = unit.capacity > 0 

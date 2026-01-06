@@ -28,7 +28,7 @@ interface UnitDetailsSheetProps {
 }
 
 export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetProps) {
-  const { t, dir, language } = useI18n();
+  const { t, dir, lang: language } = useI18n();
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   
   const { 
