@@ -1,0 +1,33 @@
+{
+  "description": "Allowlist for RTL audit - files and patterns that are intentionally using physical direction classes",
+  "allowedFiles": [
+    "src/components/ui/carousel.tsx",
+    "src/components/ui/resizable.tsx",
+    "src/components/ui/sheet.tsx",
+    "src/components/ui/drawer.tsx",
+    "src/components/ui/navigation-menu.tsx",
+    "src/components/ui/sidebar.tsx",
+    "src/components/ui/scroll-area.tsx",
+    "src/components/ui/tooltip.tsx",
+    "src/components/ui/popover.tsx",
+    "src/components/ui/dropdown-menu.tsx",
+    "src/components/ui/context-menu.tsx",
+    "src/components/ui/menubar.tsx",
+    "src/components/ui/dialog.tsx",
+    "src/components/ui/alert-dialog.tsx",
+    "src/components/ui/hover-card.tsx",
+    "src/components/ui/command.tsx",
+    "src/components/ui/select.tsx",
+    "src/components/ui/accordion.tsx",
+    "src/components/ui/collapsible.tsx",
+    "src/components/ui/tabs.tsx",
+    "src/components/ui/toggle-group.tsx"
+  ],
+  "allowedPatterns": [
+    "rounded-l-none",
+    "rounded-r-none",
+    "left-1/2",
+    "left-[50%]",
+    "-translate-x-1/2"
+  ]
+}

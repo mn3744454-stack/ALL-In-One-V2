@@ -1,9 +1,11 @@
 # Housing, Movement & i18n Release Notes
 
-## Running i18n Audit
+## Running Audits
+
+### i18n Audit
 
 ```bash
-npm run audit:i18n
+npx tsx scripts/audit-i18n.ts
 ```
 
 **Expected output:** 0 missing keys in en.ts and ar.ts
@@ -14,6 +16,20 @@ The audit script:
 - Reports missing keys (causes exit code 1)
 - Warns about dynamic keys that can't be statically verified
 - Uses allowlist from `scripts/i18n-allowlist.json` for dynamic patterns
+
+### RTL Audit
+
+```bash
+npx tsx scripts/audit-rtl.ts
+```
+
+**Expected output:** No RTL issues found (exit code 0)
+
+The RTL audit script:
+- Scans `src/**` for physical direction classes (ml-*, mr-*, left-*, right-*, text-left, etc.)
+- Reports violations that may break RTL layouts
+- Uses allowlist from `scripts/rtl-allowlist.json` for exceptions (UI library components, centering, etc.)
+- Suggests logical property replacements (ml-* → ms-*, left-* → start-*, etc.)
 
 ## Smoke Test Checklist
 
