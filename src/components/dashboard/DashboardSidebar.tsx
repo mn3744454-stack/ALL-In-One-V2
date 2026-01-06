@@ -31,6 +31,7 @@ import {
   Stethoscope,
   FlaskConical,
   ArrowLeftRight,
+  Warehouse,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -227,7 +228,16 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               />
             )}
             
-            <NavItem icon={Building2} label={t('sidebar.facilities')} onNavigate={onClose} />
+            {/* Housing - for owners and managers */}
+            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
+              <NavItem
+                icon={Warehouse}
+                label={t('sidebar.housing')}
+                href="/dashboard/housing"
+                active={isActive("/dashboard/housing")}
+                onNavigate={onClose}
+              />
+            )}
 
             {/* Services & Revenue - for owners and managers */}
             {["owner", "manager"].includes(activeRole || "") && activeTenant && (

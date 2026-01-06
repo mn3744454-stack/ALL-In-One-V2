@@ -29,6 +29,7 @@ import DashboardHR from "./pages/DashboardHR";
 import DashboardHRSettings from "./pages/DashboardHRSettings";
 import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import DashboardMovement from "./pages/DashboardMovement";
+import DashboardHousing from "./pages/DashboardHousing";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -272,6 +273,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardMovement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/housing"
+        element={
+          <ProtectedRoute>
+            <DashboardHousing />
           </ProtectedRoute>
         }
       />
