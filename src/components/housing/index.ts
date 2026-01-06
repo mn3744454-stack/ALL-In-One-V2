@@ -6,3 +6,4 @@ export * from './UnitDetailsSheet';
 export * from './AssignHorseDialog';
 export * from './AreasManager';
 export * from './UnitsManager';
+export * from './HousingStats';

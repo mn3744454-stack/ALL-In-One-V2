@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,14 +20,25 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UnitCard } from "./UnitCard";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
+import { HousingStats } from "./HousingStats";
 import { useHousingUnits, type HousingUnit, type CreateUnitData } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
-import { Plus, LayoutGrid, Loader2 } from "lucide-react";
+import { Plus, LayoutGrid, Loader2, Search } from "lucide-react";
 
+// Strict allowlists - match DB enum only
 const UNIT_TYPES = ['stall', 'paddock', 'room', 'cage', 'other'] as const;
 const OCCUPANCY_MODES = ['single', 'group'] as const;
+
+type UnitStatus = 'vacant' | 'occupied' | 'full';
+
+function getUnitStatus(unit: HousingUnit): UnitStatus {
+  const occupants = unit.current_occupants ?? 0;
+  if (occupants === 0) return 'vacant';
+  if (occupants >= unit.capacity) return 'full';
+  return 'occupied';
+}
 
 export function UnitsManager() {
   const { t } = useI18n();
@@ -36,6 +47,12 @@ export function UnitsManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  
   const [formData, setFormData] = useState<Partial<CreateUnitData>>({
     branch_id: '',
     area_id: '',
@@ -59,6 +76,18 @@ export function UnitsManager() {
   } = useHousingUnits(selectedBranchId || undefined, selectedAreaId || undefined);
 
   const formAreas = useFacilityAreas(formData.branch_id || undefined).activeAreas;
+
+  // Filtered units based on search and filters
+  const filteredUnits = useMemo(() => {
+    return (units || []).filter(unit => {
+      const matchesSearch = !searchQuery || 
+        unit.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        unit.code.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = !typeFilter || unit.unit_type === typeFilter;
+      const matchesStatus = !statusFilter || getUnitStatus(unit) === statusFilter;
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [units, searchQuery, typeFilter, statusFilter]);
 
   const resetForm = () => {
     setFormData({
@@ -108,45 +137,88 @@ export function UnitsManager() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
-          setSelectedBranchId(v === "__all__" ? "" : v);
-          setSelectedAreaId('');
-        }}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t('housing.areas.selectBranch')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t('common.all')}</SelectItem>
-            {activeLocations.map((loc) => (
-              <SelectItem key={loc.id} value={loc.id}>
-                {loc.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Stats */}
+      <HousingStats units={units || []} />
 
-        <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t('housing.units.selectArea')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t('common.all')}</SelectItem>
-            {activeAreas.map((area) => (
-              <SelectItem key={area.id} value={area.id}>
-                {area.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Search & Filters */}
+      <div className="flex flex-col gap-3">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t('housing.units.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="ps-9"
+          />
+        </div>
 
-        {canManage && (
-          <Button className="gap-2 sm:ms-auto" onClick={handleOpenDialog}>
-            <Plus className="w-4 h-4" />
-            {t('housing.units.addUnit')}
-          </Button>
-        )}
+        {/* Filters row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
+            setSelectedBranchId(v === "__all__" ? "" : v);
+            setSelectedAreaId('');
+          }}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('housing.areas.selectBranch')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('common.all')}</SelectItem>
+              {activeLocations.map((loc) => (
+                <SelectItem key={loc.id} value={loc.id}>
+                  {loc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder={t('housing.units.selectArea')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('common.all')}</SelectItem>
+              {activeAreas.map((area) => (
+                <SelectItem key={area.id} value={area.id}>
+                  {area.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={typeFilter || "__all__"} onValueChange={(v) => setTypeFilter(v === "__all__" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder={t('housing.units.filterByType')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('housing.units.allTypes')}</SelectItem>
+              {UNIT_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {t(`housing.units.types.${type}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter || "__all__"} onValueChange={(v) => setStatusFilter(v === "__all__" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder={t('housing.units.filterByStatus')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('housing.units.allStatuses')}</SelectItem>
+              <SelectItem value="vacant">{t('housing.units.status.vacant')}</SelectItem>
+              <SelectItem value="occupied">{t('housing.units.status.occupied')}</SelectItem>
+              <SelectItem value="full">{t('housing.units.status.full')}</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {canManage && (
+            <Button className="gap-2 sm:ms-auto" onClick={handleOpenDialog}>
+              <Plus className="w-4 h-4" />
+              {t('housing.units.addUnit')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Units Grid */}
@@ -154,12 +226,12 @@ export function UnitsManager() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
-      ) : units.length === 0 ? (
+      ) : filteredUnits.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <LayoutGrid className="w-12 h-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">{t('housing.units.noUnits')}</p>
-            {canManage && (
+            {canManage && !searchQuery && !typeFilter && !statusFilter && (
               <Button variant="link" onClick={handleOpenDialog}>
                 {t('housing.units.addFirst')}
               </Button>
@@ -168,7 +240,7 @@ export function UnitsManager() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {units.map((unit) => (
+          {filteredUnits.map((unit) => (
             <UnitCard 
               key={unit.id} 
               unit={unit} 
