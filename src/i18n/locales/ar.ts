@@ -665,6 +665,7 @@ export const ar = {
     tabs: {
       units: "الوحدات",
       areas: "المناطق",
+      settings: "الإعدادات",
     },
     areas: {
       title: "مناطق المنشأة",
@@ -713,6 +714,29 @@ export const ar = {
       deactivated: "تم إلغاء تفعيل الوحدة",
       viewDetails: "عرض التفاصيل",
       active: "وحدات نشطة",
+      types: {
+        stall: "إسطبل",
+        paddock: "حظيرة",
+        pasture: "مرعى",
+        barn: "حظيرة كبيرة",
+        isolation: "عزل",
+        foaling: "إسطبل الولادة",
+        other: "أخرى",
+      },
+      occupancyModes: {
+        single: "فردي",
+        shared: "مشترك",
+        group: "جماعي",
+      },
+      status: {
+        vacant: "شاغر",
+        occupied: "مشغول",
+        full: "ممتلئ",
+      },
+    },
+    settings: {
+      title: "إعدادات الإسكان",
+      description: "تكوين وحدة الإسكان وإدارة البيانات التجريبية",
     },
     unitTypes: {
       stall: "إسطبل",
