@@ -1,0 +1,13 @@
+{
+  "description": "Allowlist for dynamic i18n keys that cannot be statically verified",
+  "dynamicPatterns": [
+    "housing.units.types.*",
+    "housing.units.occupancyModes.*",
+    "housing.unitTypes.*",
+    "housing.occupancyModes.*",
+    "laboratory.samples.status.*",
+    "laboratory.results.status.*",
+    "laboratory.sampleStatus.*",
+    "laboratory.resultStatus.*"
+  ]
+}

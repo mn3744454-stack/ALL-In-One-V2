@@ -665,6 +665,7 @@ export const en = {
     tabs: {
       units: "Units",
       areas: "Areas",
+      settings: "Settings",
     },
     areas: {
       title: "Facility Areas",
@@ -713,6 +714,29 @@ export const en = {
       deactivated: "Unit deactivated",
       viewDetails: "View Details",
       active: "active units",
+      types: {
+        stall: "Stall",
+        paddock: "Paddock",
+        pasture: "Pasture",
+        barn: "Barn",
+        isolation: "Isolation",
+        foaling: "Foaling Stall",
+        other: "Other",
+      },
+      occupancyModes: {
+        single: "Single",
+        shared: "Shared",
+        group: "Group",
+      },
+      status: {
+        vacant: "Vacant",
+        occupied: "Occupied",
+        full: "Full",
+      },
+    },
+    settings: {
+      title: "Housing Settings",
+      description: "Configure housing module and manage demo data",
     },
     unitTypes: {
       stall: "Stall",

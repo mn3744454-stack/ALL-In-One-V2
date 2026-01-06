@@ -127,6 +127,7 @@ export default function DashboardHousing() {
             <TabsList className="hidden md:flex">
               <TabsTrigger value="units">{t('housing.tabs.units')}</TabsTrigger>
               <TabsTrigger value="areas">{t('housing.tabs.areas')}</TabsTrigger>
+              <TabsTrigger value="settings">{t('housing.tabs.settings')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="units" className="mt-0">
@@ -135,6 +136,49 @@ export default function DashboardHousing() {
 
             <TabsContent value="areas" className="mt-0">
               <AreasManager />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('housing.settings.title')}</CardTitle>
+                  <CardDescription>{t('housing.settings.description')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Demo Data Section */}
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <h3 className="font-medium">{t('housing.demo.title')}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('housing.demo.description')}
+                    </p>
+                    {canManageDemo && (
+                      <div className="flex gap-2">
+                        {demoExists ? (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={handleRemoveDemo}
+                            disabled={isRemoving}
+                          >
+                            {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            <span className="ms-2">{t('housing.demo.remove')}</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleLoadDemo}
+                            disabled={isLoadingDemo}
+                          >
+                            {isLoadingDemo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                            <span className="ms-2">{t('housing.demo.load')}</span>
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
