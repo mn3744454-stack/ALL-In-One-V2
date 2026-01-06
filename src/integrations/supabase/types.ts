@@ -129,24 +129,36 @@ export type Database = {
       branches: {
         Row: {
           address: string | null
+          city: string | null
           created_at: string
           id: string
+          is_active: boolean
+          is_demo: boolean
           name: string
           tenant_id: string
+          updated_at: string
         }
         Insert: {
           address?: string | null
+          city?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_demo?: boolean
           name: string
           tenant_id: string
+          updated_at?: string
         }
         Update: {
           address?: string | null
+          city?: string | null
           created_at?: string
           id?: string
+          is_active?: boolean
+          is_demo?: boolean
           name?: string
           tenant_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -906,6 +918,93 @@ export type Database = {
           },
         ]
       }
+      horse_movements: {
+        Row: {
+          created_at: string
+          from_location_id: string | null
+          horse_id: string
+          id: string
+          internal_location_note: string | null
+          is_demo: boolean
+          movement_at: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes: string | null
+          reason: string | null
+          recorded_by: string | null
+          tenant_id: string
+          to_location_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_location_id?: string | null
+          horse_id: string
+          id?: string
+          internal_location_note?: string | null
+          is_demo?: boolean
+          movement_at?: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          reason?: string | null
+          recorded_by?: string | null
+          tenant_id: string
+          to_location_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_location_id?: string | null
+          horse_id?: string
+          id?: string
+          internal_location_note?: string | null
+          is_demo?: boolean
+          movement_at?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          notes?: string | null
+          reason?: string | null
+          recorded_by?: string | null
+          tenant_id?: string
+          to_location_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_movements_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_order_events: {
         Row: {
           created_at: string
@@ -1428,6 +1527,7 @@ export type Database = {
           color: string | null
           color_id: string | null
           created_at: string
+          current_location_id: string | null
           distinctive_marks_notes: string | null
           external_links: string[] | null
           father_id: string | null
@@ -1479,6 +1579,7 @@ export type Database = {
           color?: string | null
           color_id?: string | null
           created_at?: string
+          current_location_id?: string | null
           distinctive_marks_notes?: string | null
           external_links?: string[] | null
           father_id?: string | null
@@ -1530,6 +1631,7 @@ export type Database = {
           color?: string | null
           color_id?: string | null
           created_at?: string
+          current_location_id?: string | null
           distinctive_marks_notes?: string | null
           external_links?: string[] | null
           father_id?: string | null
@@ -1594,6 +1696,13 @@ export type Database = {
             columns: ["color_id"]
             isOneToOne: false
             referencedRelation: "horse_colors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_current_location_id_fkey"
+            columns: ["current_location_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
@@ -4133,6 +4242,10 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_movement: {
+        Args: { p_tenant_id: string; user_id: string }
+        Returns: boolean
+      }
       can_manage_orders: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -4240,6 +4353,7 @@ export type Database = {
         | "farrier"
         | "other"
       invitation_status: "pending" | "accepted" | "rejected"
+      movement_type: "in" | "out" | "transfer"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
       payment_owner_type: "platform" | "tenant"
       payment_reference_type:
@@ -4408,6 +4522,7 @@ export const Constants = {
         "other",
       ],
       invitation_status: ["pending", "accepted", "rejected"],
+      movement_type: ["in", "out", "transfer"],
       payment_intent_type: ["platform_fee", "service_payment", "commission"],
       payment_owner_type: ["platform", "tenant"],
       payment_reference_type: [
