@@ -717,6 +717,8 @@ export const ar = {
       types: {
         stall: "إسطبل",
         paddock: "حظيرة",
+        room: "غرفة",
+        cage: "قفص",
         pasture: "مرعى",
         barn: "حظيرة كبيرة",
         isolation: "عزل",
@@ -733,6 +735,19 @@ export const ar = {
         occupied: "مشغول",
         full: "ممتلئ",
       },
+      searchPlaceholder: "البحث في الوحدات...",
+      filterByType: "تصفية حسب النوع",
+      filterByStatus: "تصفية حسب الحالة",
+      allTypes: "جميع الأنواع",
+      allStatuses: "جميع الحالات",
+    },
+    stats: {
+      title: "نظرة عامة على الإسكان",
+      total: "إجمالي الوحدات",
+      vacant: "شاغرة",
+      occupied: "مشغولة",
+      full: "ممتلئة",
+      horses: "الخيول المُسكَّنة",
     },
     settings: {
       title: "إعدادات الإسكان",
@@ -741,6 +756,8 @@ export const ar = {
     unitTypes: {
       stall: "إسطبل",
       paddock: "حظيرة",
+      room: "غرفة",
+      cage: "قفص",
       pasture: "مرعى",
       barn: "حظيرة كبيرة",
       isolation: "عزل",

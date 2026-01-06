@@ -717,6 +717,8 @@ export const en = {
       types: {
         stall: "Stall",
         paddock: "Paddock",
+        room: "Room",
+        cage: "Cage",
         pasture: "Pasture",
         barn: "Barn",
         isolation: "Isolation",
@@ -733,6 +735,19 @@ export const en = {
         occupied: "Occupied",
         full: "Full",
       },
+      searchPlaceholder: "Search units...",
+      filterByType: "Filter by type",
+      filterByStatus: "Filter by status",
+      allTypes: "All types",
+      allStatuses: "All statuses",
+    },
+    stats: {
+      title: "Housing Overview",
+      total: "Total Units",
+      vacant: "Vacant",
+      occupied: "Occupied",
+      full: "Full",
+      horses: "Horses Housed",
     },
     settings: {
       title: "Housing Settings",
@@ -741,6 +756,8 @@ export const en = {
     unitTypes: {
       stall: "Stall",
       paddock: "Paddock",
+      room: "Room",
+      cage: "Cage",
       pasture: "Pasture",
       barn: "Barn",
       isolation: "Isolation",

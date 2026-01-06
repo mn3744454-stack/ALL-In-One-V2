@@ -5,6 +5,7 @@
     "housing.units.occupancyModes.*",
     "housing.unitTypes.*",
     "housing.occupancyModes.*",
+    "movement.types.*",
     "laboratory.samples.status.*",
     "laboratory.results.status.*",
     "laboratory.sampleStatus.*",
