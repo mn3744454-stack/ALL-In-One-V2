@@ -66,7 +66,7 @@ export function LocationsManager() {
         <div>
           <h3 className="text-lg font-semibold">{t("movement.locations.title")}</h3>
           <p className="text-sm text-muted-foreground">
-            {t("movement.locations.activeCount", { count: activeLocations.length })}
+            {activeLocations.length} {t("movement.locations.activeLabel")}
           </p>
         </div>
         {canManage && (
