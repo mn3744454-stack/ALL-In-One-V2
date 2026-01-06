@@ -98,6 +98,87 @@ export const en = {
     filterByStatus: "Filter by status",
     allTypes: "All Types",
     allStatuses: "All Statuses",
+    
+    // Categories
+    category: "Category",
+    categories: {
+      field: "Field Staff",
+      office: "Office Staff",
+      mixed: "Mixed",
+    },
+    jobTitle: "Job Title",
+    jobTitlePlaceholder: "e.g. Senior Trainer",
+    
+    // Settings
+    settings: {
+      title: "HR Settings",
+      modules: "Enabled Modules",
+      assignments: "Staff Assignments",
+      assignmentsDesc: "Assign staff members to horses",
+      attendance: "Attendance Tracking",
+      attendanceDesc: "Track daily check-ins and work hours",
+      documents: "Documents",
+      documentsDesc: "Store employee documents and certifications",
+      comingSoon: "Coming Soon",
+      updated: "Settings updated",
+    },
+    
+    // Assignments
+    assignments: {
+      title: "Assigned Staff",
+      addAssignment: "Assign Staff",
+      assignTo: "Assign to {{name}}",
+      selectEmployee: "Select Employee",
+      searchEmployees: "Search employees...",
+      role: "Role",
+      selectRole: "Select role",
+      notes: "Notes",
+      notesPlaceholder: "Optional notes about this assignment...",
+      startDate: "Start Date",
+      endDate: "End Date",
+      noAssignments: "No staff assigned",
+      assignFirst: "Assign a staff member to this horse",
+      assignmentCreated: "Staff assigned successfully",
+      assignmentRemoved: "Assignment removed",
+      confirmRemove: "Remove this assignment?",
+      roles: {
+        primary_groom: "Primary Groom",
+        secondary_groom: "Secondary Groom",
+        trainer: "Trainer",
+        vet_contact: "Vet Contact",
+        farrier: "Farrier",
+        exercise_rider: "Exercise Rider",
+        other: "Other",
+      },
+      assignedHorses: "Assigned Horses",
+      noHorses: "No horses assigned",
+    },
+    
+    // Demo
+    demo: {
+      title: "Demo Mode",
+      description: "Load sample employees and assignments for testing. Demo data is tagged and can be safely removed.",
+      load: "Load Demo Data",
+      remove: "Remove Demo Data",
+      loaded: "Demo data loaded successfully",
+      removed: "Demo data removed",
+      alreadyLoaded: "Demo data already exists",
+      active: "Demo Active",
+      needsHorses: "Please create at least 2 horses first, then try again.",
+      confirmRemove: "Remove all demo employees and their assignments? This won't affect real data.",
+    },
+    
+    // Attendance placeholder
+    attendance: {
+      title: "Attendance",
+      comingSoon: "Attendance tracking coming soon",
+      comingSoonDesc: "Track daily check-ins, work hours, and attendance reports.",
+    },
+    
+    // Toasts
+    toasts: {
+      noActiveOrganization: "No active organization",
+    },
   },
   language: {
     title: "Language",

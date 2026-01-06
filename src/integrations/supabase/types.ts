@@ -1705,17 +1705,86 @@ export type Database = {
           },
         ]
       }
+      hr_assignments: {
+        Row: {
+          created_at: string
+          employee_id: string
+          end_date: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          notes: string | null
+          role: string
+          start_date: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          end_date?: string | null
+          entity_id: string
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          role: string
+          start_date?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          end_date?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          notes?: string | null
+          role?: string
+          start_date?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hr_employees: {
         Row: {
           created_at: string
           created_by: string | null
+          custom_fields: Json
           department: string | null
           email: string | null
+          employee_category:
+            | Database["public"]["Enums"]["hr_employee_category"]
+            | null
           employee_type: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom: string | null
           full_name: string
           id: string
           is_active: boolean
+          job_title: string | null
           notes: string | null
           phone: string | null
           tags: string[]
@@ -1725,13 +1794,18 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          custom_fields?: Json
           department?: string | null
           email?: string | null
+          employee_category?:
+            | Database["public"]["Enums"]["hr_employee_category"]
+            | null
           employee_type?: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom?: string | null
           full_name: string
           id?: string
           is_active?: boolean
+          job_title?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[]
@@ -1741,13 +1815,18 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          custom_fields?: Json
           department?: string | null
           email?: string | null
+          employee_category?:
+            | Database["public"]["Enums"]["hr_employee_category"]
+            | null
           employee_type?: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
+          job_title?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[]
@@ -1766,6 +1845,42 @@ export type Database = {
             foreignKeyName: "hr_employees_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_settings: {
+        Row: {
+          created_at: string
+          enabled_modules: Json
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled_modules?: Json
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled_modules?: Json
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_settings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -4112,6 +4227,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      hr_employee_category: "field" | "office" | "mixed"
       hr_employee_type:
         | "trainer"
         | "groom"
@@ -4278,6 +4394,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      hr_employee_category: ["field", "office", "mixed"],
       hr_employee_type: [
         "trainer",
         "groom",
