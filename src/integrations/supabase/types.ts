@@ -636,6 +636,67 @@ export type Database = {
           },
         ]
       }
+      facility_areas: {
+        Row: {
+          branch_id: string
+          code: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_demo: boolean | null
+          name: string
+          name_ar: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          branch_id: string
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_demo?: boolean | null
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          branch_id?: string
+          code?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_demo?: boolean | null
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facility_areas_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facility_areas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facility_areas_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_entries: {
         Row: {
           account_code: string | null
@@ -921,7 +982,9 @@ export type Database = {
       horse_movements: {
         Row: {
           created_at: string
+          from_area_id: string | null
           from_location_id: string | null
+          from_unit_id: string | null
           horse_id: string
           id: string
           internal_location_note: string | null
@@ -932,12 +995,16 @@ export type Database = {
           reason: string | null
           recorded_by: string | null
           tenant_id: string
+          to_area_id: string | null
           to_location_id: string | null
+          to_unit_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          from_area_id?: string | null
           from_location_id?: string | null
+          from_unit_id?: string | null
           horse_id: string
           id?: string
           internal_location_note?: string | null
@@ -948,12 +1015,16 @@ export type Database = {
           reason?: string | null
           recorded_by?: string | null
           tenant_id: string
+          to_area_id?: string | null
           to_location_id?: string | null
+          to_unit_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          from_area_id?: string | null
           from_location_id?: string | null
+          from_unit_id?: string | null
           horse_id?: string
           id?: string
           internal_location_note?: string | null
@@ -964,15 +1035,31 @@ export type Database = {
           reason?: string | null
           recorded_by?: string | null
           tenant_id?: string
+          to_area_id?: string | null
           to_location_id?: string | null
+          to_unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "horse_movements_from_area_id_fkey"
+            columns: ["from_area_id"]
+            isOneToOne: false
+            referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horse_movements_from_location_id_fkey"
             columns: ["from_location_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_from_unit_id_fkey"
+            columns: ["from_unit_id"]
+            isOneToOne: false
+            referencedRelation: "housing_units"
             referencedColumns: ["id"]
           },
           {
@@ -997,10 +1084,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_movements_to_area_id_fkey"
+            columns: ["to_area_id"]
+            isOneToOne: false
+            referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "horse_movements_to_location_id_fkey"
             columns: ["to_location_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_to_unit_id_fkey"
+            columns: ["to_unit_id"]
+            isOneToOne: false
+            referencedRelation: "housing_units"
             referencedColumns: ["id"]
           },
         ]
@@ -1527,6 +1628,7 @@ export type Database = {
           color: string | null
           color_id: string | null
           created_at: string
+          current_area_id: string | null
           current_location_id: string | null
           distinctive_marks_notes: string | null
           external_links: string[] | null
@@ -1579,6 +1681,7 @@ export type Database = {
           color?: string | null
           color_id?: string | null
           created_at?: string
+          current_area_id?: string | null
           current_location_id?: string | null
           distinctive_marks_notes?: string | null
           external_links?: string[] | null
@@ -1631,6 +1734,7 @@ export type Database = {
           color?: string | null
           color_id?: string | null
           created_at?: string
+          current_area_id?: string | null
           current_location_id?: string | null
           distinctive_marks_notes?: string | null
           external_links?: string[] | null
@@ -1699,6 +1803,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horses_current_area_id_fkey"
+            columns: ["current_area_id"]
+            isOneToOne: false
+            referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "horses_current_location_id_fkey"
             columns: ["current_location_id"]
             isOneToOne: false
@@ -1749,41 +1860,134 @@ export type Database = {
           },
         ]
       }
+      housing_unit_occupants: {
+        Row: {
+          created_at: string | null
+          horse_id: string
+          id: string
+          is_demo: boolean | null
+          since: string | null
+          tenant_id: string
+          unit_id: string
+          until: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          horse_id: string
+          id?: string
+          is_demo?: boolean | null
+          since?: string | null
+          tenant_id: string
+          unit_id: string
+          until?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          horse_id?: string
+          id?: string
+          is_demo?: boolean | null
+          since?: string | null
+          tenant_id?: string
+          unit_id?: string
+          until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housing_unit_occupants_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_unit_occupants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_unit_occupants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_unit_occupants_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "housing_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       housing_units: {
         Row: {
+          area_id: string | null
           branch_id: string | null
+          capacity: number
           code: string
           created_at: string
           id: string
+          is_active: boolean | null
+          is_demo: boolean | null
+          name: string | null
+          name_ar: string | null
           notes: string | null
+          occupancy: Database["public"]["Enums"]["occupancy_mode"]
           stable_id: string | null
           status: string
           tenant_id: string
           unit_type: string
+          updated_at: string | null
         }
         Insert: {
+          area_id?: string | null
           branch_id?: string | null
+          capacity?: number
           code: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
+          is_demo?: boolean | null
+          name?: string | null
+          name_ar?: string | null
           notes?: string | null
+          occupancy?: Database["public"]["Enums"]["occupancy_mode"]
           stable_id?: string | null
           status?: string
           tenant_id: string
           unit_type?: string
+          updated_at?: string | null
         }
         Update: {
+          area_id?: string | null
           branch_id?: string | null
+          capacity?: number
           code?: string
           created_at?: string
           id?: string
+          is_active?: boolean | null
+          is_demo?: boolean | null
+          name?: string | null
+          name_ar?: string | null
           notes?: string | null
+          occupancy?: Database["public"]["Enums"]["occupancy_mode"]
           stable_id?: string | null
           status?: string
           tenant_id?: string
           unit_type?: string
+          updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "housing_units_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "housing_units_branch_id_fkey"
             columns: ["branch_id"]
@@ -4352,8 +4556,10 @@ export type Database = {
         | "driver"
         | "farrier"
         | "other"
+      internal_unit_type: "stall" | "paddock" | "room" | "cage" | "other"
       invitation_status: "pending" | "accepted" | "rejected"
       movement_type: "in" | "out" | "transfer"
+      occupancy_mode: "single" | "group"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
       payment_owner_type: "platform" | "tenant"
       payment_reference_type:
@@ -4521,8 +4727,10 @@ export const Constants = {
         "farrier",
         "other",
       ],
+      internal_unit_type: ["stall", "paddock", "room", "cage", "other"],
       invitation_status: ["pending", "accepted", "rejected"],
       movement_type: ["in", "out", "transfer"],
+      occupancy_mode: ["single", "group"],
       payment_intent_type: ["platform_fee", "service_payment", "commission"],
       payment_owner_type: ["platform", "tenant"],
       payment_reference_type: [
