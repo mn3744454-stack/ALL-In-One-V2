@@ -135,20 +135,26 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
     min-width: 320px;
   }
 
   /* RTL (Arabic) font and sizing */
   html[dir="rtl"] body {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif !important;
     line-height: 1.7;
     letter-spacing: 0.01em;
   }
 
   /* LTR (English) font and sizing */
   html[dir="ltr"] body {
+    font-family: "IBM Plex Sans", system-ui, sans-serif !important;
+    line-height: 1.6;
+  }
+
+  /* Fallback when dir is not set */
+  html:not([dir]) body {
     font-family: "IBM Plex Sans", system-ui, sans-serif;
     line-height: 1.6;
   }
