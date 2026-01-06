@@ -106,12 +106,12 @@ export function AreasManager() {
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+        <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder={t('housing.areas.selectBranch')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.all')}</SelectItem>
+            <SelectItem value="__all__">{t('common.all')}</SelectItem>
             {activeLocations.map((loc) => (
               <SelectItem key={loc.id} value={loc.id}>
                 {loc.name}
