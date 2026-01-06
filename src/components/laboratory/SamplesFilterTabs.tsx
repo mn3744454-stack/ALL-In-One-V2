@@ -27,7 +27,7 @@ export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFil
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full">
+      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full rtl:flex-row-reverse">
         {tabKeys.map((tabId) => {
           const count = counts?.[tabId];
           return (

@@ -140,9 +140,9 @@ export function SampleCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {/* Templates Badges */}
+        {/* Templates Badges - RTL-aware alignment */}
         {sample.templates && sample.templates.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-3 rtl:justify-end">
             {sample.templates.map((st) => (
               <Badge key={st.id} variant="outline" className="text-xs">
                 <FileText className="h-3 w-3 me-1" />

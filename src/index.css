@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Khail - Equestrian Excellence Design System */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+/* Fonts loaded via index.html for better performance */
 
 @layer base {
   :root {
@@ -140,41 +140,35 @@
     min-width: 320px;
   }
 
-  /* RTL (Arabic) font and sizing */
-  html[dir="rtl"] body {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+  /* Arabic language font (lang-based selector per user request) */
+  html[lang="ar"] body {
+    font-family: "IBM Plex Sans Arabic", var(--font-sans), system-ui, sans-serif;
     line-height: 1.7;
     letter-spacing: 0.01em;
   }
 
-  /* LTR (English) font and sizing */
-  html[dir="ltr"] body {
-    font-family: "IBM Plex Sans", system-ui, sans-serif !important;
-    line-height: 1.6;
-  }
-
-  /* Fallback when dir is not set */
-  html:not([dir]) body {
+  /* English/default font */
+  html:not([lang="ar"]) body {
     font-family: "IBM Plex Sans", system-ui, sans-serif;
     line-height: 1.6;
   }
 
   /* Mobile font size adjustments */
   @media (max-width: 768px) {
-    html[dir="ltr"] {
+    html:not([lang="ar"]) {
       font-size: 16px;
     }
     
-    html[dir="rtl"] {
+    html[lang="ar"] {
       font-size: 17px;
     }
     
-    /* Larger small text for better readability */
-    html[dir="rtl"] .text-sm {
+    /* Larger small text for better readability in Arabic */
+    html[lang="ar"] .text-sm {
       font-size: 0.9375rem; /* 15px */
     }
     
-    html[dir="rtl"] .text-xs {
+    html[lang="ar"] .text-xs {
       font-size: 0.8125rem; /* 13px */
     }
   }
@@ -188,20 +182,20 @@
   }
 
   /* LTR headings use Playfair Display */
-  html[dir="ltr"] h1, html[dir="ltr"] h2, html[dir="ltr"] h3,
-  html[dir="ltr"] h4, html[dir="ltr"] h5, html[dir="ltr"] h6 {
+  html:not([lang="ar"]) h1, html:not([lang="ar"]) h2, html:not([lang="ar"]) h3,
+  html:not([lang="ar"]) h4, html:not([lang="ar"]) h5, html:not([lang="ar"]) h6 {
     font-family: "Playfair Display", serif;
   }
 
-  /* RTL headings use IBM Plex Sans Arabic */
-  html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3,
-  html[dir="rtl"] h4, html[dir="rtl"] h5, html[dir="rtl"] h6 {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+  /* Arabic headings use IBM Plex Sans Arabic */
+  html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3,
+  html[lang="ar"] h4, html[lang="ar"] h5, html[lang="ar"] h6 {
+    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
   }
 
-  /* Override font-display class in RTL context */
-  html[dir="rtl"] .font-display {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+  /* Override font-display class in Arabic context */
+  html[lang="ar"] .font-display {
+    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
   }
 }
 
