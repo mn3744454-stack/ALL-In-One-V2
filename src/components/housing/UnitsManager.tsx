@@ -110,15 +110,15 @@ export function UnitsManager() {
     <div className="space-y-4">
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={selectedBranchId} onValueChange={(v) => {
-          setSelectedBranchId(v);
+        <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
+          setSelectedBranchId(v === "__all__" ? "" : v);
           setSelectedAreaId('');
         }}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder={t('housing.areas.selectBranch')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.all')}</SelectItem>
+            <SelectItem value="__all__">{t('common.all')}</SelectItem>
             {activeLocations.map((loc) => (
               <SelectItem key={loc.id} value={loc.id}>
                 {loc.name}
@@ -127,12 +127,12 @@ export function UnitsManager() {
           </SelectContent>
         </Select>
 
-        <Select value={selectedAreaId} onValueChange={setSelectedAreaId}>
+        <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder={t('housing.units.selectArea')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">{t('common.all')}</SelectItem>
+            <SelectItem value="__all__">{t('common.all')}</SelectItem>
             {activeAreas.map((area) => (
               <SelectItem key={area.id} value={area.id}>
                 {area.name}
