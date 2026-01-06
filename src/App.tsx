@@ -28,6 +28,7 @@ import DashboardLaboratory from "./pages/DashboardLaboratory";
 import DashboardHR from "./pages/DashboardHR";
 import DashboardHRSettings from "./pages/DashboardHRSettings";
 import DashboardHRAttendance from "./pages/DashboardHRAttendance";
+import DashboardMovement from "./pages/DashboardMovement";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -263,6 +264,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardHRAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/movement"
+        element={
+          <ProtectedRoute>
+            <DashboardMovement />
           </ProtectedRoute>
         }
       />

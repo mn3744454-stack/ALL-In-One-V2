@@ -30,6 +30,7 @@ import {
   Baby,
   Stethoscope,
   FlaskConical,
+  ArrowLeftRight,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -137,6 +138,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Baby, label: t('sidebar.breeding'), href: "/dashboard/breeding" },
     { icon: Stethoscope, label: t('sidebar.vetHealth'), href: "/dashboard/vet" },
     { icon: FlaskConical, label: t('sidebar.laboratory'), href: "/dashboard/laboratory" },
+    { icon: ArrowLeftRight, label: t('sidebar.movement'), href: "/dashboard/movement" },
   ];
 
   // RTL-aware sidebar positioning
