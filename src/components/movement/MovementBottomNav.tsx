@@ -14,9 +14,9 @@ export function MovementBottomNav({
   const { t } = useI18n();
 
   const tabs = [
-    { id: "movements", icon: ArrowLeftRight, labelKey: "movement.bottomNav.movements" },
-    { id: "locations", icon: MapPin, labelKey: "movement.bottomNav.locations" },
-    { id: "settings", icon: Settings, labelKey: "movement.bottomNav.settings" },
+    { id: "movements", icon: ArrowLeftRight, labelKey: "movement.tabs.movements" },
+    { id: "locations", icon: MapPin, labelKey: "movement.tabs.locations" },
+    { id: "settings", icon: Settings, labelKey: "movement.tabs.settings" },
   ];
 
   return (

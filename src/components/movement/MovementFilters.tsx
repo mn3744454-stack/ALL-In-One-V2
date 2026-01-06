@@ -45,7 +45,7 @@ export function MovementFilters({
       <div className="relative">
         <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder={t("movement.filters.searchHorse")}
+          placeholder={t("movement.filters.searchPlaceholder")}
           value={filters.search || ""}
           onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
           className="ps-9"
