@@ -26,6 +26,8 @@ import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
 import DashboardLaboratory from "./pages/DashboardLaboratory";
 import DashboardHR from "./pages/DashboardHR";
+import DashboardHRSettings from "./pages/DashboardHRSettings";
+import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -245,6 +247,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardHR />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/hr/settings"
+        element={
+          <ProtectedRoute>
+            <DashboardHRSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/hr/attendance"
+        element={
+          <ProtectedRoute>
+            <DashboardHRAttendance />
           </ProtectedRoute>
         }
       />

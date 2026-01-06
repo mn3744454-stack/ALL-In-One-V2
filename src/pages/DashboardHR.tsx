@@ -1,15 +1,21 @@
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from '@/i18n';
 import { useEmployees } from '@/hooks/hr';
+import { useTenant } from '@/contexts/TenantContext';
 import { EmployeesList } from '@/components/hr';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function DashboardHR() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const navigate = useNavigate();
+  const { activeRole } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const canManage = activeRole === 'owner' || activeRole === 'manager';
   
   const {
     employees,
@@ -30,7 +36,7 @@ export default function DashboardHR() {
         <title>{t('hr.title')} | Khail</title>
       </Helmet>
 
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background flex" dir={dir}>
         <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 flex flex-col min-w-0">
@@ -44,7 +50,33 @@ export default function DashboardHR() {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold truncate">{t('hr.title')}</h1>
+            <h1 className="text-lg font-semibold truncate flex-1">{t('hr.title')}</h1>
+            {canManage && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/dashboard/hr/settings')}
+                className="shrink-0"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            )}
+          </header>
+
+          {/* Desktop Header */}
+          <header className="hidden lg:flex items-center justify-between p-6 border-b border-border bg-card">
+            <h1 className="text-xl font-semibold">{t('hr.title')}</h1>
+            {canManage && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/dashboard/hr/settings')}
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                {t('hr.settings.title')}
+              </Button>
+            )}
           </header>
 
           {/* Content */}

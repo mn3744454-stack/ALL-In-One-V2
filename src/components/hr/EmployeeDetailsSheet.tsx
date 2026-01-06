@@ -12,6 +12,7 @@ import {
 import { Phone, Mail, Edit, Power, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import type { Employee } from '@/hooks/hr/useEmployees';
 
 interface EmployeeDetailsSheetProps {
@@ -159,6 +160,9 @@ export function EmployeeDetailsSheet({
               </p>
             </div>
           )}
+
+          {/* Assigned Horses */}
+          <EmployeeAssignedHorses employeeId={employee.id} />
         </div>
 
         {/* Actions */}

@@ -98,6 +98,87 @@ export const ar = {
     filterByStatus: "تصفية حسب الحالة",
     allTypes: "جميع الأنواع",
     allStatuses: "جميع الحالات",
+    
+    // Categories
+    category: "الفئة",
+    categories: {
+      field: "موظفو الميدان",
+      office: "موظفو المكتب",
+      mixed: "مختلط",
+    },
+    jobTitle: "المسمى الوظيفي",
+    jobTitlePlaceholder: "مثال: مدرب أول",
+    
+    // Settings
+    settings: {
+      title: "إعدادات الموارد البشرية",
+      modules: "الوحدات المفعلة",
+      assignments: "تعيين الموظفين",
+      assignmentsDesc: "تعيين الموظفين للخيول",
+      attendance: "تتبع الحضور",
+      attendanceDesc: "تتبع الحضور اليومي وساعات العمل",
+      documents: "المستندات",
+      documentsDesc: "حفظ مستندات وشهادات الموظفين",
+      comingSoon: "قريباً",
+      updated: "تم تحديث الإعدادات",
+    },
+    
+    // Assignments
+    assignments: {
+      title: "الفريق المعين",
+      addAssignment: "تعيين موظف",
+      assignTo: "تعيين لـ {{name}}",
+      selectEmployee: "اختر الموظف",
+      searchEmployees: "البحث في الموظفين...",
+      role: "الدور",
+      selectRole: "اختر الدور",
+      notes: "ملاحظات",
+      notesPlaceholder: "ملاحظات اختيارية عن هذا التعيين...",
+      startDate: "تاريخ البدء",
+      endDate: "تاريخ الانتهاء",
+      noAssignments: "لا يوجد موظفون معينون",
+      assignFirst: "قم بتعيين موظف لهذا الحصان",
+      assignmentCreated: "تم تعيين الموظف بنجاح",
+      assignmentRemoved: "تم إزالة التعيين",
+      confirmRemove: "إزالة هذا التعيين؟",
+      roles: {
+        primary_groom: "مسؤول الرعاية الأساسي",
+        secondary_groom: "مسؤول الرعاية الثانوي",
+        trainer: "مدرب",
+        vet_contact: "جهة اتصال بيطرية",
+        farrier: "بيطار",
+        exercise_rider: "فارس تمرين",
+        other: "أخرى",
+      },
+      assignedHorses: "الخيول المعينة",
+      noHorses: "لا توجد خيول معينة",
+    },
+    
+    // Demo
+    demo: {
+      title: "وضع العرض التجريبي",
+      description: "تحميل بيانات تجريبية من الموظفين والتعيينات للاختبار. البيانات التجريبية موسومة ويمكن إزالتها بأمان.",
+      load: "تحميل البيانات التجريبية",
+      remove: "إزالة البيانات التجريبية",
+      loaded: "تم تحميل البيانات التجريبية بنجاح",
+      removed: "تم إزالة البيانات التجريبية",
+      alreadyLoaded: "البيانات التجريبية موجودة بالفعل",
+      active: "العرض التجريبي نشط",
+      needsHorses: "يرجى إنشاء حصانين على الأقل أولاً، ثم حاول مرة أخرى.",
+      confirmRemove: "إزالة جميع الموظفين التجريبيين وتعييناتهم؟ لن يؤثر ذلك على البيانات الحقيقية.",
+    },
+    
+    // Attendance placeholder
+    attendance: {
+      title: "الحضور",
+      comingSoon: "تتبع الحضور قريباً",
+      comingSoonDesc: "تتبع الحضور اليومي وساعات العمل وتقارير الحضور.",
+    },
+    
+    // Toasts
+    toasts: {
+      noActiveOrganization: "لا توجد منشأة نشطة",
+    },
   },
   language: {
     title: "اللغة",
