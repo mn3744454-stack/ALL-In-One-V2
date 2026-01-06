@@ -98,7 +98,7 @@ const HorseProfile = () => {
           *,
           breed_data:horse_breeds(name),
           color_data:horse_colors(name),
-          branch_data:branches(name),
+          branch_data:branches!branch_id(name),
           stable_data:stables(name)
         `)
         .eq("id", id)
