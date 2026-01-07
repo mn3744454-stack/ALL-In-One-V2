@@ -13,6 +13,7 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      "rtl:flex-row-reverse", // RTL: reverse tab order for natural reading
       className,
     )}
     {...props}

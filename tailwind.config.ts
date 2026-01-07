@@ -14,9 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
+        // Use CSS variables so Arabic font override works globally
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         arabic: ["IBM Plex Sans Arabic", "system-ui", "sans-serif"],
-        display: ["Playfair Display", "Georgia", "serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",

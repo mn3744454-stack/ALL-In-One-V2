@@ -7,6 +7,10 @@
 
 @layer base {
   :root {
+    /* Font System - CSS Variables for global override */
+    --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+    --font-display: "Playfair Display", Georgia, serif;
+
     /* Core Palette - Luxury Equestrian */
     --background: 40 33% 98%;
     --foreground: 222 47% 11%;
@@ -83,6 +87,12 @@
     --sidebar-ring: 43 74% 49%;
   }
 
+  /* Arabic language - override font variable globally */
+  html[lang="ar"] {
+    --font-sans: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    --font-display: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  }
+
   .dark {
     --background: 222 47% 8%;
     --foreground: 40 33% 98%;
@@ -134,23 +144,19 @@
     @apply scroll-smooth;
   }
 
+  /* GLOBAL font application using CSS variable - works for all elements */
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
     min-width: 320px;
+    line-height: 1.6;
   }
 
-  /* Arabic language font (lang-based selector per user request) */
+  /* Arabic-specific adjustments */
   html[lang="ar"] body {
-    font-family: "IBM Plex Sans Arabic", var(--font-sans), system-ui, sans-serif;
     line-height: 1.7;
     letter-spacing: 0.01em;
-  }
-
-  /* English/default font */
-  html:not([lang="ar"]) body {
-    font-family: "IBM Plex Sans", system-ui, sans-serif;
-    line-height: 1.6;
   }
 
   /* Mobile font size adjustments */
@@ -177,25 +183,10 @@
     @apply min-h-screen w-full overflow-x-hidden;
   }
 
+  /* Headings use display font (overridden to Arabic in html[lang="ar"]) */
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
-  }
-
-  /* LTR headings use Playfair Display */
-  html:not([lang="ar"]) h1, html:not([lang="ar"]) h2, html:not([lang="ar"]) h3,
-  html:not([lang="ar"]) h4, html:not([lang="ar"]) h5, html:not([lang="ar"]) h6 {
-    font-family: "Playfair Display", serif;
-  }
-
-  /* Arabic headings use IBM Plex Sans Arabic */
-  html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3,
-  html[lang="ar"] h4, html[lang="ar"] h5, html[lang="ar"] h6 {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
-  }
-
-  /* Override font-display class in Arabic context */
-  html[lang="ar"] .font-display {
-    font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+    font-family: var(--font-display);
   }
 }
 
