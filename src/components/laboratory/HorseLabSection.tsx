@@ -136,7 +136,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
         </CardTitle>
         <Button variant="outline" size="sm" onClick={handleViewAll}>
           View All
-          <ChevronRight className="h-4 w-4 ml-1" />
+          <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
         </Button>
       </CardHeader>
       <CardContent>
@@ -155,7 +155,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
               className="mt-2"
               onClick={handleViewAll}
             >
-              Create a sample <ArrowRight className="h-4 w-4 ml-1" />
+              Create a sample <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
             </Button>
           </div>
         ) : (
@@ -264,7 +264,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                 onClick={handleViewAll}
               >
                 View All Results
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
               </Button>
             </div>
           )}

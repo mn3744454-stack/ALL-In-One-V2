@@ -238,11 +238,11 @@ export const TransferOwnershipDialog = ({
           <div className="space-y-2">
             <Label>Transfer To</Label>
             <RadioGroup value={recipientType} onValueChange={(v) => { setRecipientType(v as any); setRecipientId(""); }}>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <RadioGroupItem value="existing" id="existing" />
                 <Label htmlFor="existing" className="font-normal">Existing Owner</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <RadioGroupItem value="new" id="new" />
                 <Label htmlFor="new" className="font-normal">New Owner</Label>
               </div>

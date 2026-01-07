@@ -60,7 +60,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
       </button>
 
       {isOpen && (
-        <div className="mt-2 ml-6 pl-3 border-l-2 border-gold/30 space-y-1">
+        <div className="mt-2 ms-6 ps-3 border-s-2 border-gold/30 space-y-1">
           {items.map((item) => {
             const ItemIcon = item.icon;
             const isActive = location.pathname === item.href;
