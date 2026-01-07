@@ -93,10 +93,26 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       
       setTenants(memberships);
 
-      // Set first tenant as active if none selected
+      // Set active tenant: prefer localStorage, then first tenant
       if (memberships.length > 0 && !activeTenant) {
-        setActiveTenantState(memberships[0]);
-        setActiveRoleState(memberships[0].role);
+        const storedTenantId = localStorage.getItem('activeTenantId');
+        const storedMembership = storedTenantId 
+          ? memberships.find(m => m.tenant_id === storedTenantId)
+          : null;
+        
+        if (storedMembership) {
+          // Use stored tenant (it's valid)
+          setActiveTenantState(storedMembership);
+          setActiveRoleState(storedMembership.role);
+        } else {
+          // Invalid or no stored tenant - fallback to first
+          if (storedTenantId) {
+            localStorage.removeItem('activeTenantId'); // Clean up invalid value
+          }
+          setActiveTenantState(memberships[0]);
+          setActiveRoleState(memberships[0].role);
+          localStorage.setItem('activeTenantId', memberships[0].tenant_id);
+        }
       }
     }
 

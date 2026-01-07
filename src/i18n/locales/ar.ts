@@ -199,6 +199,53 @@ export const ar = {
       timeline: "السجل الزمني",
       templates: "القوالب",
       settings: "الإعدادات",
+      requests: "الطلبات",
+    },
+    
+    // Lab Modes
+    modes: {
+      none: "بدون مختبر",
+      requests: "طلبات تحاليل فقط",
+      full: "مختبر كامل",
+    },
+    
+    // Lab Requests
+    requests: {
+      title: "طلبات التحاليل",
+      subtitle: "طلب وتتبع التحاليل من مختبرات خارجية",
+      create: "طلب جديد",
+      createTitle: "إنشاء طلب تحليل",
+      testDescription: "وصف الفحص",
+      testDescriptionPlaceholder: "صِف الفحوصات المطلوبة...",
+      externalLab: "المختبر الخارجي",
+      externalLabPlaceholder: "اسم المختبر...",
+      priority: "الأولوية",
+      notesPlaceholder: "ملاحظات إضافية...",
+      searchPlaceholder: "البحث في الطلبات...",
+      noRequests: "لا توجد طلبات تحاليل",
+      noRequestsDesc: "أنشئ أول طلب تحليل",
+      viewResult: "عرض النتيجة",
+      markReceived: "تحديد كمستلم",
+      created: "تم إنشاء الطلب",
+      updated: "تم تحديث الطلب",
+      deleted: "تم حذف الطلب",
+      createFailed: "فشل في إنشاء الطلب",
+      updateFailed: "فشل في تحديث الطلب",
+      deleteFailed: "فشل في حذف الطلب",
+      status: {
+        pending: "قيد الانتظار",
+        sent: "تم الإرسال",
+        processing: "قيد المعالجة",
+        ready: "جاهز",
+        received: "تم الاستلام",
+        cancelled: "ملغى",
+      },
+    },
+    
+    // Alerts
+    alerts: {
+      mvpInfo: "وحدة المختبر - النسخة التجريبية. إنشاء وتتبع العينات وإدارة النتائج بالقوالب.",
+      requestsInfo: "وضع الطلبات: إنشاء وتتبع طلبات التحاليل من مختبرات خارجية.",
     },
     
     // Filter Tabs
