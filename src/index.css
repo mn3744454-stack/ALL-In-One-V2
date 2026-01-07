@@ -12,9 +12,9 @@
   }
 
   :root {
-    /* Font System - CSS Variables for global override */
+    /* Font System - IBM Plex Sans for all text */
     --font-sans: "IBM Plex Sans", system-ui, sans-serif;
-    --font-display: "Playfair Display", Georgia, serif;
+    --font-display: "IBM Plex Sans", system-ui, sans-serif;
 
     /* Core Palette - Luxury Equestrian */
     --background: 40 33% 98%;
