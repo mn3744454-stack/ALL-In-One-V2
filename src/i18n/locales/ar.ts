@@ -571,11 +571,6 @@ export const ar = {
       noActiveOrganization: "لا توجد منشأة نشطة",
       notAuthenticated: "غير مسجل الدخول",
     },
-    
-    // Alerts & Messages
-    alerts: {
-      mvpInfo: "وحدة المختبر - النسخة التجريبية. إنشاء وتتبع العينات وإدارة النتائج بالقوالب.",
-    },
   },
   movement: {
     title: "حركة الخيول",

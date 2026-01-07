@@ -283,6 +283,23 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     }
     debugLog("Step B SUCCESS - Member created as owner");
 
+    // Step C: Initialize tenant capability defaults
+    debugLog("Step C: Initializing tenant capability defaults...");
+    const { error: rpcError } = await supabase.rpc('initialize_tenant_defaults', {
+      p_tenant_id: tenant.id,
+      p_tenant_type: tenant.type
+    });
+
+    if (rpcError) {
+      // Non-blocking - log warning but don't fail onboarding
+      debugError("Step C WARNING - Failed to initialize defaults (non-blocking)", {
+        message: rpcError.message,
+      });
+      // Continue with tenant creation - defaults will apply at runtime via useModuleAccess fallbacks
+    } else {
+      debugLog("Step C SUCCESS - Tenant capability defaults initialized");
+    }
+
     // Refresh tenants and return success
     debugLog("Refreshing tenants...");
     await refreshTenants();

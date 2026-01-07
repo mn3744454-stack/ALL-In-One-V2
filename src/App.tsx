@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { I18nProvider } from "@/i18n";
+import { ModuleGuard } from "@/components/guards/ModuleGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
@@ -224,7 +225,9 @@ const AppRoutes = () => {
         path="/dashboard/breeding"
         element={
           <ProtectedRoute>
-            <DashboardBreeding />
+            <ModuleGuard module="breeding">
+              <DashboardBreeding />
+            </ModuleGuard>
           </ProtectedRoute>
         }
       />
@@ -232,7 +235,9 @@ const AppRoutes = () => {
         path="/dashboard/vet"
         element={
           <ProtectedRoute>
-            <DashboardVet />
+            <ModuleGuard module="vet">
+              <DashboardVet />
+            </ModuleGuard>
           </ProtectedRoute>
         }
       />
@@ -240,7 +245,9 @@ const AppRoutes = () => {
         path="/dashboard/laboratory"
         element={
           <ProtectedRoute>
-            <DashboardLaboratory />
+            <ModuleGuard module="laboratory">
+              <DashboardLaboratory />
+            </ModuleGuard>
           </ProtectedRoute>
         }
       />
@@ -272,7 +279,9 @@ const AppRoutes = () => {
         path="/dashboard/movement"
         element={
           <ProtectedRoute>
-            <DashboardMovement />
+            <ModuleGuard module="movement">
+              <DashboardMovement />
+            </ModuleGuard>
           </ProtectedRoute>
         }
       />
@@ -280,7 +289,9 @@ const AppRoutes = () => {
         path="/dashboard/housing"
         element={
           <ProtectedRoute>
-            <DashboardHousing />
+            <ModuleGuard module="housing">
+              <DashboardHousing />
+            </ModuleGuard>
           </ProtectedRoute>
         }
       />

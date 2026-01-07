@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,8 +19,22 @@ import { ArrowLeftRight, MapPin, Settings, ArrowLeft, Menu, FlaskConical, Loader
 export default function DashboardMovement() {
   const { t } = useI18n();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [activeTab, setActiveTab] = useState("movements");
+  const availableTabs = useMemo(() => ['movements', 'locations', 'settings'], []);
+  
+  const activeTab = useMemo(() => {
+    const urlTab = searchParams.get('tab');
+    if (urlTab && availableTabs.includes(urlTab)) {
+      return urlTab;
+    }
+    return availableTabs[0];
+  }, [searchParams, availableTabs]);
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
+  
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -94,7 +108,7 @@ export default function DashboardMovement() {
 
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-6 hidden lg:flex">
               <TabsTrigger value="movements" className="gap-2">
                 <ArrowLeftRight className="h-4 w-4" />
@@ -170,7 +184,7 @@ export default function DashboardMovement() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MovementBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <MovementBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Record Movement Dialog */}
       <RecordMovementDialog

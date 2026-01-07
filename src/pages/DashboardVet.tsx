@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -248,8 +249,28 @@ const DashboardVet = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("treatments");
+  const [searchParams, setSearchParams] = useSearchParams();
   const { activeRole } = useTenant();
+
+  const isOwnerOrManager = activeRole === 'owner' || activeRole === 'manager';
+
+  const availableTabs = useMemo(() => {
+    const tabs = ['treatments', 'vaccinations', 'followups'];
+    if (isOwnerOrManager) tabs.push('settings');
+    return tabs;
+  }, [isOwnerOrManager]);
+
+  const activeTab = useMemo(() => {
+    const urlTab = searchParams.get('tab');
+    if (urlTab && availableTabs.includes(urlTab)) {
+      return urlTab;
+    }
+    return availableTabs[0];
+  }, [searchParams, availableTabs]);
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
 
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
   const { followups, dueFollowups, overdueFollowups, loading: followupsLoading, markAsDone, markAsCancelled } = useVetFollowups();
@@ -263,8 +284,6 @@ const DashboardVet = () => {
   const isUsingMockTreatments = treatments.length === 0 && !treatmentsLoading;
   const isUsingMockVaccinations = vaccinations.length === 0 && !vaccinationsLoading;
   const isUsingMockFollowups = followups.length === 0 && !followupsLoading;
-
-  const isOwnerOrManager = activeRole === 'owner' || activeRole === 'manager';
 
   return (
     <div className="flex min-h-screen bg-cream">
@@ -300,7 +319,7 @@ const DashboardVet = () => {
 
         {/* Content */}
         <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <TabsList className="hidden lg:flex">
                 <TabsTrigger value="treatments" className="gap-2">
@@ -315,7 +334,7 @@ const DashboardVet = () => {
                   <Calendar className="w-4 h-4" />
                   <span className="hidden sm:inline">Follow-ups</span>
                   {overdueFollowups.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-destructive text-destructive-foreground rounded-full">
+                    <span className="ms-1 px-1.5 py-0.5 text-xs bg-destructive text-destructive-foreground rounded-full">
                       {overdueFollowups.length}
                     </span>
                   )}
@@ -410,7 +429,7 @@ const DashboardVet = () => {
         {/* Bottom Navigation for Mobile */}
         <VetBottomNavigation
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           showSettings={isOwnerOrManager}
           overdueCount={overdueFollowups.length}
         />
