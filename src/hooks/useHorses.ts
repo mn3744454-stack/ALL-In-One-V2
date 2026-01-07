@@ -25,6 +25,9 @@ interface Horse {
   breeding_role?: string | null;
   notes?: string | null;
   avatar_url?: string | null;
+  current_location_id?: string | null;
+  current_area_id?: string | null;
+  housing_unit_id?: string | null;
   created_at: string;
   updated_at: string;
 }

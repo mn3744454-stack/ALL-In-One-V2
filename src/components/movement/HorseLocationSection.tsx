@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { MapPin, ArrowRight, Clock, Plus, ChevronRight } from "lucide-react";
+import { MapPin, ArrowRight, Clock, Plus, ChevronRight, Building2, DoorOpen } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSingleHorseMovements, type HorseMovement } from "@/hooks/movement/useHorseMovements";
@@ -19,6 +19,17 @@ interface HorseLocationSectionProps {
     name: string;
     city?: string | null;
   } | null;
+  currentArea?: {
+    id: string;
+    name: string;
+    name_ar?: string | null;
+  } | null;
+  currentUnit?: {
+    id: string;
+    name: string | null;
+    name_ar?: string | null;
+    code: string;
+  } | null;
   homeLocation?: {
     id: string;
     name: string;
@@ -29,6 +40,8 @@ interface HorseLocationSectionProps {
 export function HorseLocationSection({
   horseId,
   currentLocation,
+  currentArea,
+  currentUnit,
   homeLocation,
   canManage = false,
 }: HorseLocationSectionProps) {
@@ -79,6 +92,35 @@ export function HorseLocationSection({
           )}
         </div>
 
+        {/* Current Housing (Area/Unit) */}
+        {(currentArea || currentUnit) && (
+          <div className="bg-muted/30 rounded-lg p-3">
+            <p className="text-xs text-muted-foreground mb-2">
+              {t("movement.labels.currentHousing")}
+            </p>
+            <div className={cn(
+              "flex flex-wrap items-center gap-2",
+              dir === 'rtl' && "justify-end"
+            )}>
+              {currentArea && (
+                <Badge variant="outline" className="gap-1">
+                  <Building2 className="h-3 w-3" />
+                  {dir === 'rtl' && currentArea.name_ar ? currentArea.name_ar : currentArea.name}
+                </Badge>
+              )}
+              {currentUnit && (
+                <Badge className="gap-1">
+                  <DoorOpen className="h-3 w-3" />
+                  {currentUnit.code}
+                  {currentUnit.name && currentUnit.name !== currentUnit.code && (
+                    <span className="opacity-75">- {currentUnit.name}</span>
+                  )}
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Home Location (branch_id) */}
         {homeLocation && homeLocation.id !== currentLocation?.id && (
           <div className="text-sm">
@@ -127,7 +169,7 @@ export function HorseLocationSection({
                   <MovementTypeBadge type={movement.movement_type} size="sm" />
                   <div className="flex-1 min-w-0">
                     {movement.movement_type === 'transfer' ? (
-                      <span className="flex items-center gap-1 truncate">
+                      <span className="flex items-center gap-1 flex-wrap">
                         <span className="text-muted-foreground truncate">
                           {movement.from_location?.name || "—"}
                         </span>
@@ -135,10 +177,25 @@ export function HorseLocationSection({
                         <span className="font-medium truncate">
                           {movement.to_location?.name || "—"}
                         </span>
+                        {/* Show unit if present */}
+                        {movement.to_unit && (
+                          <Badge variant="secondary" className="text-xs gap-1 ms-1">
+                            <DoorOpen className="h-2.5 w-2.5" />
+                            {movement.to_unit.code}
+                          </Badge>
+                        )}
                       </span>
                     ) : movement.movement_type === 'in' ? (
-                      <span className="font-medium truncate">
-                        {movement.to_location?.name || "—"}
+                      <span className="flex items-center gap-1 flex-wrap">
+                        <span className="font-medium truncate">
+                          {movement.to_location?.name || "—"}
+                        </span>
+                        {movement.to_unit && (
+                          <Badge variant="secondary" className="text-xs gap-1 ms-1">
+                            <DoorOpen className="h-2.5 w-2.5" />
+                            {movement.to_unit.code}
+                          </Badge>
+                        )}
                       </span>
                     ) : (
                       <span className="text-muted-foreground truncate">

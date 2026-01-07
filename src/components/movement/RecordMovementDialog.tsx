@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -27,8 +28,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
+import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
+import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { MovementTypeBadge } from "./MovementTypeBadge";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { HousingSelector } from "./HousingSelector";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -38,8 +42,8 @@ interface RecordMovementDialogProps {
   onSuccess?: () => void;
 }
 
-const STEPS = ["type", "horse", "location", "details", "review"] as const;
-type Step = typeof STEPS[number];
+const ALL_STEPS = ["type", "horse", "location", "housing", "details", "review"] as const;
+type Step = typeof ALL_STEPS[number];
 
 export function RecordMovementDialog({
   open,
@@ -55,6 +59,8 @@ export function RecordMovementDialog({
     horseId: string | null;
     fromLocationId: string | null;
     toLocationId: string | null;
+    toAreaId: string | null;
+    toUnitId: string | null;
     reason: string;
     notes: string;
     internalLocationNote: string;
@@ -63,6 +69,8 @@ export function RecordMovementDialog({
     horseId: null,
     fromLocationId: null,
     toLocationId: null,
+    toAreaId: null,
+    toUnitId: null,
     reason: "",
     notes: "",
     internalLocationNote: "",
@@ -71,8 +79,18 @@ export function RecordMovementDialog({
   const { horses } = useHorses();
   const { activeLocations } = useLocations();
   const { recordMovement, isRecording } = useHorseMovements();
+  
+  // For housing step display in review
+  const { activeAreas } = useFacilityAreas(formData.toLocationId || undefined);
+  const { activeUnits } = useHousingUnits(formData.toLocationId || undefined, formData.toAreaId || undefined);
 
-  const stepIndex = STEPS.indexOf(step);
+  const stepIndex = ALL_STEPS.indexOf(step);
+  
+  // Skip housing step for OUT movements
+  const effectiveSteps: readonly Step[] = formData.movementType === "out" 
+    ? ALL_STEPS.filter(s => s !== "housing") 
+    : ALL_STEPS;
+
   const canGoNext = () => {
     switch (step) {
       case "type":
@@ -88,6 +106,9 @@ export function RecordMovementDialog({
           return true;
         }
         return false;
+      case "housing":
+        // Housing is optional, always can proceed
+        return true;
       case "details":
         return true;
       case "review":
@@ -98,30 +119,43 @@ export function RecordMovementDialog({
   };
 
   const handleNext = () => {
-    const currentIndex = STEPS.indexOf(step);
-    if (currentIndex < STEPS.length - 1) {
-      setStep(STEPS[currentIndex + 1]);
+    const currentIndex = effectiveSteps.indexOf(step);
+    if (currentIndex < effectiveSteps.length - 1) {
+      setStep(effectiveSteps[currentIndex + 1]);
     }
   };
 
   const handleBack = () => {
-    const currentIndex = STEPS.indexOf(step);
+    const currentIndex = effectiveSteps.indexOf(step);
     if (currentIndex > 0) {
-      setStep(STEPS[currentIndex - 1]);
+      setStep(effectiveSteps[currentIndex - 1]);
     }
+  };
+
+  const handleHousingSkip = () => {
+    // Just move to next step, keeping toAreaId and toUnitId as null
+    handleNext();
   };
 
   const handleSubmit = async () => {
     if (!formData.movementType || !formData.horseId) return;
 
+    // Get horse's current housing for from_area_id and from_unit_id
+    const selectedHorse = horses.find(h => h.id === formData.horseId);
+    
     const data: CreateMovementData = {
       horse_id: formData.horseId,
       movement_type: formData.movementType,
       from_location_id: formData.fromLocationId,
       to_location_id: formData.toLocationId,
+      from_area_id: selectedHorse?.current_area_id || null,
+      from_unit_id: selectedHorse?.housing_unit_id || null,
+      to_area_id: formData.toAreaId,
+      to_unit_id: formData.toUnitId,
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
+      clear_housing: false, // We don't expose clear_housing toggle in MVP
     };
 
     await recordMovement(data);
@@ -137,6 +171,8 @@ export function RecordMovementDialog({
       horseId: null,
       fromLocationId: null,
       toLocationId: null,
+      toAreaId: null,
+      toUnitId: null,
       reason: "",
       notes: "",
       internalLocationNote: "",
@@ -151,6 +187,8 @@ export function RecordMovementDialog({
   const selectedHorse = horses.find(h => h.id === formData.horseId);
   const fromLocation = activeLocations.find(l => l.id === formData.fromLocationId);
   const toLocation = activeLocations.find(l => l.id === formData.toLocationId);
+  const selectedArea = activeAreas.find(a => a.id === formData.toAreaId);
+  const selectedUnit = activeUnits.find(u => u.id === formData.toUnitId);
 
   const isSameBranchTransfer = formData.movementType === 'transfer' && 
     formData.fromLocationId && formData.toLocationId && 
@@ -160,12 +198,12 @@ export function RecordMovementDialog({
     <div className="space-y-6">
       {/* Progress indicator */}
       <div className="flex items-center justify-center gap-2">
-        {STEPS.map((s, i) => (
+        {effectiveSteps.map((s, i) => (
           <div
             key={s}
             className={cn(
               "w-2 h-2 rounded-full transition-colors",
-              i <= stepIndex ? "bg-primary" : "bg-muted"
+              effectiveSteps.indexOf(step) >= i ? "bg-primary" : "bg-muted"
             )}
           />
         ))}
@@ -279,7 +317,13 @@ export function RecordMovementDialog({
                 <Label>{t("movement.form.toLocation")}</Label>
                 <Select
                   value={formData.toLocationId || ""}
-                  onValueChange={(value) => setFormData({ ...formData, toLocationId: value })}
+                  onValueChange={(value) => setFormData({ 
+                    ...formData, 
+                    toLocationId: value,
+                    // Reset housing when location changes
+                    toAreaId: null,
+                    toUnitId: null,
+                  })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t("movement.form.toLocation")} />
@@ -313,6 +357,17 @@ export function RecordMovementDialog({
               </div>
             )}
           </div>
+        )}
+
+        {step === "housing" && (
+          <HousingSelector
+            branchId={formData.toLocationId}
+            selectedAreaId={formData.toAreaId}
+            selectedUnitId={formData.toUnitId}
+            onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
+            onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
+            onSkip={handleHousingSkip}
+          />
         )}
 
         {step === "details" && (
@@ -375,6 +430,27 @@ export function RecordMovementDialog({
                 </div>
               )}
 
+              {/* Housing info in review */}
+              {(selectedArea || selectedUnit) && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.labels.currentHousing")}</span>
+                  <div className={cn("flex items-center gap-2", dir === 'rtl' && "flex-row-reverse")}>
+                    {selectedArea && (
+                      <Badge variant="outline" className="gap-1">
+                        <Building2 className="h-3 w-3" />
+                        {dir === 'rtl' && selectedArea.name_ar ? selectedArea.name_ar : selectedArea.name}
+                      </Badge>
+                    )}
+                    {selectedUnit && (
+                      <Badge className="gap-1">
+                        <DoorOpen className="h-3 w-3" />
+                        {selectedUnit.code}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {formData.internalLocationNote && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("movement.form.internalLocationNote")}</span>
@@ -398,7 +474,7 @@ export function RecordMovementDialog({
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={stepIndex === 0}
+          disabled={effectiveSteps.indexOf(step) === 0}
           className="gap-1"
         >
           {dir === 'rtl' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -408,6 +484,11 @@ export function RecordMovementDialog({
         {step === "review" ? (
           <Button onClick={handleSubmit} disabled={isRecording}>
             {t("common.confirm")}
+          </Button>
+        ) : step === "housing" ? (
+          <Button onClick={handleNext} className="gap-1">
+            {t("common.next")}
+            {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </Button>
         ) : (
           <Button onClick={handleNext} disabled={!canGoNext()} className="gap-1">
