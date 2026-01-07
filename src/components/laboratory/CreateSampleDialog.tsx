@@ -208,7 +208,7 @@ export function CreateSampleDialog({
                 <FlaskConical className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-700 dark:text-blue-300">
                   Creating retest #{(retestOfSample?.retest_count || 0) + 1} for sample {retestOfSample?.physical_sample_id}
-                  {isFreeRetest && <Badge className="ml-2 bg-green-500">Free Retest</Badge>}
+                  {isFreeRetest && <Badge className="ms-2 bg-green-500">Free Retest</Badge>}
                 </AlertDescription>
               </Alert>
             )}
@@ -244,7 +244,7 @@ export function CreateSampleDialog({
                       !formData.collection_date && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon className="me-2 h-4 w-4" />
                     {formData.collection_date
                       ? format(formData.collection_date, "PPP")
                       : "Select date"}

@@ -27,7 +27,12 @@
     "src/components/ui/input-otp.tsx",
     "src/components/ui/pagination.tsx",
     "src/components/ui/breadcrumb.tsx",
-    "src/components/ui/sonner.tsx"
+    "src/components/ui/sonner.tsx",
+    "src/components/ui/button.tsx",
+    "src/components/ui/card.tsx",
+    "src/components/ui/badge.tsx",
+    "src/components/ui/avatar.tsx",
+    "src/components/ui/progress.tsx"
   ],
   "allowedPatterns": [
     "rounded-l-none",
@@ -35,6 +40,7 @@
     "left-1/2",
     "left-[50%]",
     "-translate-x-1/2",
-    "space-x-"
+    "space-x-",
+    "inset-x-0"
   ]
 }

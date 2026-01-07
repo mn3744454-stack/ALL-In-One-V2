@@ -63,12 +63,12 @@ export function LabCreditsPanel({ compact = false }: LabCreditsPanelProps) {
         <Wallet className="h-5 w-5 text-primary" />
         <div>
           <span className="text-sm text-muted-foreground">Credits:</span>
-          <span className="ml-2 font-semibold text-lg">{wallet?.balance || 0}</span>
+          <span className="ms-2 font-semibold text-lg">{wallet?.balance || 0}</span>
         </div>
         {canManage && (
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="ml-auto">
+              <Button size="sm" variant="outline" className="ms-auto">
                 <Plus className="h-4 w-4" />
               </Button>
             </DialogTrigger>
@@ -126,7 +126,7 @@ export function LabCreditsPanel({ compact = false }: LabCreditsPanelProps) {
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 me-2" />
                   Purchase
                 </Button>
               </DialogTrigger>

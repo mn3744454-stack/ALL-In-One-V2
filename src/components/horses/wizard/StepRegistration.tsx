@@ -51,14 +51,14 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
         }}
         className="space-y-3"
       >
-        <div className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
+        <div className="flex items-center gap-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
           <RadioGroupItem value="no" id="no" />
           <Label htmlFor="no" className="cursor-pointer flex-1">
             <div className="font-medium">No, this is a new horse</div>
             <div className="text-sm text-muted-foreground">Register a new horse from scratch</div>
           </Label>
         </div>
-        <div className="flex items-center space-x-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
+        <div className="flex items-center gap-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
           <RadioGroupItem value="yes" id="yes" />
           <Label htmlFor="yes" className="cursor-pointer flex-1">
             <div className="font-medium">Yes, search existing horse</div>
@@ -120,7 +120,7 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
                         <p className="font-medium text-foreground truncate">
                           {horse.name}
                           {horse.name_ar && (
-                            <span className="text-muted-foreground ml-2" dir="rtl">
+                            <span className="text-muted-foreground ms-2" dir="rtl">
                               ({horse.name_ar})
                             </span>
                           )}
