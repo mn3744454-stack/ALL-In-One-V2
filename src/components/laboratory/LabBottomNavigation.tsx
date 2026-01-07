@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import { 
@@ -5,27 +6,39 @@ import {
   FileText, 
   FileStack, 
   Settings,
-  GitCompare
+  GitCompare,
+  ClipboardList
 } from "lucide-react";
+import type { LabMode } from "@/hooks/useModuleAccess";
 
 interface LabBottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  labMode?: LabMode;
 }
 
 export function LabBottomNavigation({
   activeTab,
   onTabChange,
+  labMode = 'full',
 }: LabBottomNavigationProps) {
   const { t } = useI18n();
 
-  const tabs = [
-    { id: "samples", icon: FlaskConical, labelKey: "laboratory.bottomNav.samples" },
-    { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
-    { id: "compare", icon: GitCompare, labelKey: "laboratory.bottomNav.compare" },
-    { id: "templates", icon: FileStack, labelKey: "laboratory.bottomNav.templates" },
-    { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
-  ];
+  const tabs = useMemo(() => {
+    if (labMode === 'requests') {
+      return [
+        { id: "requests", icon: ClipboardList, labelKey: "laboratory.tabs.requests" },
+        { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
+      ];
+    }
+    return [
+      { id: "samples", icon: FlaskConical, labelKey: "laboratory.bottomNav.samples" },
+      { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
+      { id: "compare", icon: GitCompare, labelKey: "laboratory.bottomNav.compare" },
+      { id: "templates", icon: FileStack, labelKey: "laboratory.bottomNav.templates" },
+      { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
+    ];
+  }, [labMode]);
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">

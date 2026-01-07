@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -7,6 +7,7 @@ import { NavGroup } from "@/components/dashboard/NavGroup";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import {
@@ -123,6 +124,13 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
+  const { 
+    labMode, 
+    vetEnabled, 
+    housingEnabled, 
+    movementEnabled, 
+    breedingEnabled 
+  } = useModuleAccess();
   const { t, dir } = useI18n();
 
   const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
@@ -133,14 +141,31 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
   const isActive = (path: string) => location.pathname === path;
 
-  const horsesNavItems = [
-    { icon: Heart, label: t('sidebar.myHorses'), href: "/dashboard/horses", badge: horses.length },
-    { icon: ClipboardList, label: t('sidebar.orders'), href: "/dashboard/horse-orders" },
-    { icon: Baby, label: t('sidebar.breeding'), href: "/dashboard/breeding" },
-    { icon: Stethoscope, label: t('sidebar.vetHealth'), href: "/dashboard/vet" },
-    { icon: FlaskConical, label: t('sidebar.laboratory'), href: "/dashboard/laboratory" },
-    { icon: ArrowLeftRight, label: t('sidebar.movement'), href: "/dashboard/movement" },
-  ];
+  // Build horses nav items conditionally based on module access
+  const horsesNavItems = useMemo(() => {
+    const items = [
+      { icon: Heart, label: t('sidebar.myHorses'), href: "/dashboard/horses", badge: horses.length },
+      { icon: ClipboardList, label: t('sidebar.orders'), href: "/dashboard/horse-orders" },
+    ];
+    
+    if (breedingEnabled) {
+      items.push({ icon: Baby, label: t('sidebar.breeding'), href: "/dashboard/breeding" });
+    }
+    
+    if (vetEnabled) {
+      items.push({ icon: Stethoscope, label: t('sidebar.vetHealth'), href: "/dashboard/vet" });
+    }
+    
+    if (labMode !== 'none') {
+      items.push({ icon: FlaskConical, label: t('sidebar.laboratory'), href: "/dashboard/laboratory" });
+    }
+    
+    if (movementEnabled) {
+      items.push({ icon: ArrowLeftRight, label: t('sidebar.movement'), href: "/dashboard/movement" });
+    }
+    
+    return items;
+  }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);
 
   // RTL-aware sidebar positioning
   const sidebarPositionClasses = dir === 'rtl'
@@ -228,8 +253,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               />
             )}
             
-            {/* Housing - for owners and managers */}
-            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
+            {/* Housing - for owners and managers AND if housing is enabled */}
+            {housingEnabled && ["owner", "manager"].includes(activeRole || "") && activeTenant && (
               <NavItem
                 icon={Warehouse}
                 label={t('sidebar.housing')}

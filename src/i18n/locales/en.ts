@@ -199,6 +199,53 @@ export const en = {
       timeline: "Timeline",
       templates: "Templates",
       settings: "Settings",
+      requests: "Requests",
+    },
+    
+    // Lab Modes
+    modes: {
+      none: "No Laboratory",
+      requests: "Lab Requests Only",
+      full: "Full Laboratory",
+    },
+    
+    // Lab Requests
+    requests: {
+      title: "Lab Test Requests",
+      subtitle: "Request and track lab tests from external laboratories",
+      create: "New Request",
+      createTitle: "Create Lab Test Request",
+      testDescription: "Test Description",
+      testDescriptionPlaceholder: "Describe the tests needed...",
+      externalLab: "External Lab",
+      externalLabPlaceholder: "Lab name...",
+      priority: "Priority",
+      notesPlaceholder: "Additional notes...",
+      searchPlaceholder: "Search requests...",
+      noRequests: "No lab requests yet",
+      noRequestsDesc: "Create your first lab test request",
+      viewResult: "View Result",
+      markReceived: "Mark as Received",
+      created: "Lab request created",
+      updated: "Lab request updated",
+      deleted: "Lab request deleted",
+      createFailed: "Failed to create lab request",
+      updateFailed: "Failed to update lab request",
+      deleteFailed: "Failed to delete lab request",
+      status: {
+        pending: "Pending",
+        sent: "Sent",
+        processing: "Processing",
+        ready: "Ready",
+        received: "Received",
+        cancelled: "Cancelled",
+      },
+    },
+    
+    // Alerts
+    alerts: {
+      mvpInfo: "Laboratory Module MVP. Create and track samples, manage results with templates.",
+      requestsInfo: "Requests mode: Create and track lab test requests from external laboratories.",
     },
     
     // Filter Tabs

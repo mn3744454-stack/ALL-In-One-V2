@@ -2451,6 +2451,108 @@ export type Database = {
           },
         ]
       }
+      lab_requests: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          expected_by: string | null
+          external_lab_id: string | null
+          external_lab_name: string | null
+          horse_id: string
+          id: string
+          is_demo: boolean | null
+          notes: string | null
+          priority: string
+          received_at: string | null
+          requested_at: string
+          result_file_path: string | null
+          result_share_token: string | null
+          result_url: string | null
+          status: string
+          tenant_id: string
+          test_description: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          expected_by?: string | null
+          external_lab_id?: string | null
+          external_lab_name?: string | null
+          horse_id: string
+          id?: string
+          is_demo?: boolean | null
+          notes?: string | null
+          priority?: string
+          received_at?: string | null
+          requested_at?: string
+          result_file_path?: string | null
+          result_share_token?: string | null
+          result_url?: string | null
+          status?: string
+          tenant_id: string
+          test_description: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          expected_by?: string | null
+          external_lab_id?: string | null
+          external_lab_name?: string | null
+          horse_id?: string
+          id?: string
+          is_demo?: boolean | null
+          notes?: string | null
+          priority?: string
+          received_at?: string | null
+          requested_at?: string
+          result_file_path?: string | null
+          result_share_token?: string | null
+          result_url?: string | null
+          status?: string
+          tenant_id?: string
+          test_description?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_requests_external_lab_id_fkey"
+            columns: ["external_lab_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_external_lab_id_fkey"
+            columns: ["external_lab_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_result_shares: {
         Row: {
           created_at: string
@@ -4526,6 +4628,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      initialize_tenant_defaults: {
+        Args: { p_tenant_id: string; p_tenant_type: string }
+        Returns: undefined
       }
       is_following: {
         Args: { _follower_id: string; _following_id: string }
