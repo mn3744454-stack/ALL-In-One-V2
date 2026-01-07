@@ -51,6 +51,9 @@ const RISKY_PATTERNS = [
   /\brounded-tr-\w+\b/g,
   /\brounded-bl-\w+\b/g,
   /\brounded-br-\w+\b/g,
+  // Space-x breaks in RTL (use gap-* instead)
+  /\bspace-x-\d+\b/g,
+  /\bspace-x-\[\w+\]\b/g,
 ];
 
 // File extensions to scan

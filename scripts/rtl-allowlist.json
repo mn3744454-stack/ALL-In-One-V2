@@ -21,13 +21,20 @@
     "src/components/ui/accordion.tsx",
     "src/components/ui/collapsible.tsx",
     "src/components/ui/tabs.tsx",
-    "src/components/ui/toggle-group.tsx"
+    "src/components/ui/toggle-group.tsx",
+    "src/components/ui/toast.tsx",
+    "src/components/ui/calendar.tsx",
+    "src/components/ui/input-otp.tsx",
+    "src/components/ui/pagination.tsx",
+    "src/components/ui/breadcrumb.tsx",
+    "src/components/ui/sonner.tsx"
   ],
   "allowedPatterns": [
     "rounded-l-none",
     "rounded-r-none",
     "left-1/2",
     "left-[50%]",
-    "-translate-x-1/2"
+    "-translate-x-1/2",
+    "space-x-"
   ]
 }
