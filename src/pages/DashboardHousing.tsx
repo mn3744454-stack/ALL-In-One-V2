@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,21 @@ export default function DashboardHousing() {
   const { activeTenant, activeRole } = useTenant();
   const isMobile = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'areas' | 'units' | 'settings'>("units");
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const availableTabs = useMemo(() => ['units', 'areas', 'settings'], []);
+
+  const activeTab = useMemo(() => {
+    const urlTab = searchParams.get('tab');
+    if (urlTab && availableTabs.includes(urlTab)) {
+      return urlTab as 'areas' | 'units' | 'settings';
+    }
+    return 'units';
+  }, [searchParams, availableTabs]);
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
 
   const {
     demoExists,
@@ -123,7 +138,7 @@ export default function DashboardHousing() {
 
         {/* Content */}
         <div className="flex-1 p-4 md:p-6">
-          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'areas' | 'units' | 'settings')} className="space-y-4">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
             <TabsList className="hidden md:flex">
               <TabsTrigger value="units">{t('housing.tabs.units')}</TabsTrigger>
               <TabsTrigger value="areas">{t('housing.tabs.areas')}</TabsTrigger>
@@ -185,7 +200,7 @@ export default function DashboardHousing() {
 
         {/* Mobile Bottom Navigation */}
         {isMobile && (
-          <HousingBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+          <HousingBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
         )}
       </main>
     </div>

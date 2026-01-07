@@ -571,11 +571,6 @@ export const en = {
       noActiveOrganization: "No active organization",
       notAuthenticated: "Not authenticated",
     },
-    
-    // Alerts & Messages
-    alerts: {
-      mvpInfo: "Laboratory Module MVP. Create and track samples, manage results with templates.",
-    },
   },
   movement: {
     title: "Horse Movement",

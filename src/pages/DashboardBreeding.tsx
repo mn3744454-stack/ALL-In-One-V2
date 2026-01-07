@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Plus, Heart, Baby, Syringe, FlaskConical, Search, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -145,13 +145,27 @@ const mockBatches = [
 
 export default function DashboardBreeding() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("attempts");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showAttemptDialog, setShowAttemptDialog] = useState(false);
   const [showPregnancyDialog, setShowPregnancyDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showBatchDialog, setShowBatchDialog] = useState(false);
 
   const { activeTenant } = useTenant();
+
+  const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'embryo', 'inventory'], []);
+
+  const activeTab = useMemo(() => {
+    const urlTab = searchParams.get('tab');
+    if (urlTab && availableTabs.includes(urlTab)) {
+      return urlTab;
+    }
+    return availableTabs[0];
+  }, [searchParams, availableTabs]);
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab }, { replace: true });
+  };
   
   const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt } = useBreedingAttempts();
   const { pregnancies, loading: pregnanciesLoading, closePregnancy } = usePregnancies();
@@ -269,7 +283,7 @@ export default function DashboardBreeding() {
                     </div>
                   </div>
 
-                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <Tabs value={activeTab} onValueChange={handleTabChange}>
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                       <TabsList className="hidden lg:flex">
                         <TabsTrigger value="attempts" className="gap-2">
@@ -404,7 +418,7 @@ export default function DashboardBreeding() {
           {/* Bottom Navigation for Mobile */}
           <BreedingBottomNavigation
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
           />
         </main>
       </div>
