@@ -31,6 +31,7 @@ import DashboardHRSettings from "./pages/DashboardHRSettings";
 import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
+import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -292,6 +293,14 @@ const AppRoutes = () => {
             <ModuleGuard module="housing">
               <DashboardHousing />
             </ModuleGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/settings"
+        element={
+          <ProtectedRoute>
+            <DashboardOrganizationSettings />
           </ProtectedRoute>
         }
       />

@@ -317,9 +317,17 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               />
             )}
 
-            <div className="pt-4 mt-4 border-t border-border/50">
-              <NavItem icon={Settings} label={t('sidebar.settings')} onNavigate={onClose} />
-            </div>
+            {activeRole === "owner" && activeTenant && (
+              <div className="pt-4 mt-4 border-t border-border/50">
+                <NavItem 
+                  icon={Settings} 
+                  label={t('sidebar.settings')} 
+                  href="/dashboard/settings"
+                  active={isActive("/dashboard/settings")}
+                  onNavigate={onClose} 
+                />
+              </div>
+            )}
           </nav>
 
           {/* User Section with Language Selector */}

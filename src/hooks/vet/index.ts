@@ -4,3 +4,4 @@ export * from './useVetFollowups';
 export * from './useVaccinationPrograms';
 export * from './useHorseVaccinations';
 export * from './useVetEvents';
+export * from './useVetVisits';

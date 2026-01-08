@@ -10,3 +10,6 @@ export * from './VaccinationProgramManager';
 export * from './VetTimeline';
 export * from './HorseVetSection';
 export * from './VetBottomNavigation';
+export * from './VetVisitCard';
+export * from './VetVisitsList';
+export * from './CreateVetVisitDialog';
