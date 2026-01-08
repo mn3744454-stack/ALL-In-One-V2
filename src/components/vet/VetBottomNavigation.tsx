@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
-import { Stethoscope, Syringe, Calendar, Settings } from "lucide-react";
+import { Stethoscope, Syringe, Calendar, Settings, CalendarCheck } from "lucide-react";
 
 interface VetBottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   showSettings?: boolean;
   overdueCount?: number;
+  todayVisitsCount?: number;
 }
 
 export function VetBottomNavigation({
@@ -13,10 +14,12 @@ export function VetBottomNavigation({
   onTabChange,
   showSettings = false,
   overdueCount = 0,
+  todayVisitsCount = 0,
 }: VetBottomNavigationProps) {
   const tabs = [
     { id: "treatments", icon: Stethoscope, label: "Treatments" },
     { id: "vaccinations", icon: Syringe, label: "Vaccines" },
+    { id: "visits", icon: CalendarCheck, label: "Visits", badge: todayVisitsCount },
     { id: "followups", icon: Calendar, label: "Follow-ups", badge: overdueCount },
     ...(showSettings ? [{ id: "settings", icon: Settings, label: "Settings" }] : []),
   ];

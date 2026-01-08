@@ -4455,6 +4455,103 @@ export type Database = {
           },
         ]
       }
+      vet_visits: {
+        Row: {
+          actual_cost: number | null
+          actual_date: string | null
+          created_at: string | null
+          created_by: string | null
+          estimated_cost: number | null
+          findings: string | null
+          horse_ids: string[] | null
+          id: string
+          notes: string | null
+          recommendations: string | null
+          reminder_date: string | null
+          reminder_sent: boolean | null
+          scheduled_date: string
+          scheduled_end_date: string | null
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string | null
+          vet_name: string | null
+          vet_phone: string | null
+          vet_provider_id: string | null
+          visit_type: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          actual_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          estimated_cost?: number | null
+          findings?: string | null
+          horse_ids?: string[] | null
+          id?: string
+          notes?: string | null
+          recommendations?: string | null
+          reminder_date?: string | null
+          reminder_sent?: boolean | null
+          scheduled_date: string
+          scheduled_end_date?: string | null
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+          vet_name?: string | null
+          vet_phone?: string | null
+          vet_provider_id?: string | null
+          visit_type?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          actual_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          estimated_cost?: number | null
+          findings?: string | null
+          horse_ids?: string[] | null
+          id?: string
+          notes?: string | null
+          recommendations?: string | null
+          reminder_date?: string | null
+          reminder_sent?: boolean | null
+          scheduled_date?: string
+          scheduled_end_date?: string | null
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+          vet_name?: string | null
+          vet_phone?: string | null
+          vet_provider_id?: string | null
+          visit_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vet_visits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_visits_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vet_visits_vet_provider_id_fkey"
+            columns: ["vet_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       academy_booking_consumption: {

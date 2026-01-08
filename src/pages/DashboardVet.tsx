@@ -5,12 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb } from "lucide-react";
+import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb, CalendarCheck } from "lucide-react";
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
+import { useVetVisits } from "@/hooks/vet/useVetVisits";
 import { VetTreatmentsList, CreateVetTreatmentDialog, VetFollowupsList, VaccinationsList, VaccinationProgramManager, VetBottomNavigation } from "@/components/vet";
+import { VetVisitsList } from "@/components/vet/VetVisitsList";
+import { CreateVetVisitDialog } from "@/components/vet/CreateVetVisitDialog";
 import { useTenant } from "@/contexts/TenantContext";
+import { useHorses } from "@/hooks/useHorses";
 
 // Mock data for demo purposes
 const mockTreatments = [
@@ -248,14 +252,16 @@ const mockFollowups = [
 const DashboardVet = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showVisitDialog, setShowVisitDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeRole } = useTenant();
+  const { horses } = useHorses();
 
   const isOwnerOrManager = activeRole === 'owner' || activeRole === 'manager';
 
   const availableTabs = useMemo(() => {
-    const tabs = ['treatments', 'vaccinations', 'followups'];
+    const tabs = ['treatments', 'vaccinations', 'visits', 'followups'];
     if (isOwnerOrManager) tabs.push('settings');
     return tabs;
   }, [isOwnerOrManager]);
@@ -275,6 +281,16 @@ const DashboardVet = () => {
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
   const { followups, dueFollowups, overdueFollowups, loading: followupsLoading, markAsDone, markAsCancelled } = useVetFollowups();
   const { vaccinations, dueVaccinations, loading: vaccinationsLoading, markAsAdministered, skipVaccination } = useHorseVaccinations();
+  const { 
+    visits, 
+    todayVisits,
+    loading: visitsLoading, 
+    createVisit, 
+    confirmVisit, 
+    startVisit, 
+    completeVisit, 
+    cancelVisit 
+  } = useVetVisits({ search: searchQuery });
 
   // Use mock data when no real data exists
   const displayTreatments = treatments.length > 0 ? treatments : mockTreatments;
@@ -309,10 +325,16 @@ const DashboardVet = () => {
             </div>
 
             {canManage && (
-              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">New Treatment</span>
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
+                  <CalendarCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Schedule Visit</span>
+                </Button>
+                <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">New Treatment</span>
+                </Button>
+              </div>
             )}
           </div>
         </header>
@@ -329,6 +351,15 @@ const DashboardVet = () => {
                 <TabsTrigger value="vaccinations" className="gap-2">
                   <Syringe className="w-4 h-4" />
                   <span className="hidden sm:inline">Vaccinations</span>
+                </TabsTrigger>
+                <TabsTrigger value="visits" className="gap-2">
+                  <CalendarCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Visits</span>
+                  {todayVisits.length > 0 && (
+                    <span className="ms-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                      {todayVisits.length}
+                    </span>
+                  )}
                 </TabsTrigger>
                 <TabsTrigger value="followups" className="gap-2">
                   <Calendar className="w-4 h-4" />
@@ -394,6 +425,19 @@ const DashboardVet = () => {
               />
             </TabsContent>
 
+            <TabsContent value="visits">
+              <VetVisitsList
+                visits={visits}
+                horses={horses}
+                loading={visitsLoading}
+                emptyMessage="No visits scheduled. Schedule a vet visit to get started."
+                onConfirm={canManage ? confirmVisit : undefined}
+                onStart={canManage ? startVisit : undefined}
+                onComplete={canManage ? completeVisit : undefined}
+                onCancel={canManage ? cancelVisit : undefined}
+              />
+            </TabsContent>
+
             <TabsContent value="followups">
               {isUsingMockFollowups && (
                 <Alert className="bg-amber-50 border-amber-200 mb-4">
@@ -432,10 +476,16 @@ const DashboardVet = () => {
           onTabChange={handleTabChange}
           showSettings={isOwnerOrManager}
           overdueCount={overdueFollowups.length}
+          todayVisitsCount={todayVisits.length}
         />
       </div>
 
       <CreateVetTreatmentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+      <CreateVetVisitDialog 
+        open={showVisitDialog} 
+        onOpenChange={setShowVisitDialog} 
+        onSubmit={createVisit}
+      />
     </div>
   );
 };
