@@ -243,7 +243,7 @@ export function CreateVetVisitDialog({
                 </div>
                 {selectedHorses?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {t("vetVisits.horsesSelected", { count: selectedHorses.length })}
+                    {selectedHorses.length} {t("vetVisits.horsesSelected")}
                   </p>
                 )}
               </div>

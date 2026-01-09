@@ -179,7 +179,7 @@ export function VetVisitCard({
             <span className="text-sm text-muted-foreground">
               {visitHorses.length === 1 
                 ? visitHorses[0].name 
-                : t("vetVisits.horsesCount", { count: visitHorses.length })}
+                : `${visitHorses.length} ${t("vetVisits.horsesCount")}`}
             </span>
           </div>
         )}
