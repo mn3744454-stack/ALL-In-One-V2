@@ -174,7 +174,7 @@ export function CreateVetVisitDialog({
                         )}
                       >
                         <CalendarIcon className="me-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                        {selectedDate ? format(selectedDate, "PPP") : t("vetVisits.placeholders.pickDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -189,7 +189,7 @@ export function CreateVetVisitDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Time</Label>
+                  <Label>{t("vetVisits.fields.time")}</Label>
                   <Input
                     type="time"
                     value={selectedTime}
@@ -205,7 +205,7 @@ export function CreateVetVisitDialog({
                   <Input
                     id="vet_name"
                     {...register("vet_name")}
-                    placeholder="Dr. Ahmed..."
+                    placeholder={t("vetVisits.placeholders.vetName")}
                   />
                 </div>
                 <div className="space-y-2">
@@ -213,17 +213,16 @@ export function CreateVetVisitDialog({
                   <Input
                     id="vet_phone"
                     {...register("vet_phone")}
-                    placeholder="+966..."
+                    placeholder={t("vetVisits.placeholders.phone")}
                   />
                 </div>
               </div>
 
-              {/* Horses */}
               <div className="space-y-2">
                 <Label>{t("vetVisits.fields.horses")}</Label>
                 <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
                   {horses.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No horses available</p>
+                    <p className="text-sm text-muted-foreground">{t("vetVisits.noHorsesAvailable")}</p>
                   ) : (
                     horses.map((horse) => (
                       <div key={horse.id} className="flex items-center gap-2">
@@ -244,7 +243,7 @@ export function CreateVetVisitDialog({
                 </div>
                 {selectedHorses?.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {selectedHorses.length} horse(s) selected
+                    {t("vetVisits.horsesSelected", { count: selectedHorses.length })}
                   </p>
                 )}
               </div>
@@ -267,7 +266,7 @@ export function CreateVetVisitDialog({
                 <Textarea
                   id="notes"
                   {...register("notes")}
-                  placeholder="Additional notes..."
+                  placeholder={t("vetVisits.placeholders.notes")}
                   rows={3}
                 />
               </div>

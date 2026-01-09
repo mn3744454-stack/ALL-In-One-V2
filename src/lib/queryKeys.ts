@@ -53,6 +53,7 @@ export const queryKeys = {
   
   // Vet
   vetTreatments: (tenantId?: string) => ['vet-treatments', tenantId] as const,
+  vetVisits: (tenantId?: string) => ['vet-visits', tenantId] as const,
   vetFollowups: (tenantId?: string) => ['vet-followups', tenantId] as const,
   vaccinations: (tenantId?: string) => ['vaccinations', tenantId] as const,
   vaccinationPrograms: (tenantId?: string) => ['vaccination-programs', tenantId] as const,

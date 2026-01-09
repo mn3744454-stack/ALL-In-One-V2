@@ -15,6 +15,7 @@ import { VetVisitsList } from "@/components/vet/VetVisitsList";
 import { CreateVetVisitDialog } from "@/components/vet/CreateVetVisitDialog";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { useI18n } from "@/i18n";
 
 // Mock data for demo purposes
 const mockTreatments = [
@@ -250,6 +251,7 @@ const mockFollowups = [
 ];
 
 const DashboardVet = () => {
+  const { t } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showVisitDialog, setShowVisitDialog] = useState(false);
@@ -275,7 +277,9 @@ const DashboardVet = () => {
   }, [searchParams, availableTabs]);
 
   const handleTabChange = (tab: string) => {
-    setSearchParams({ tab }, { replace: true });
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', tab);
+    setSearchParams(next, { replace: true });
   };
 
   const { treatments, loading: treatmentsLoading, canManage } = useVetTreatments({ search: searchQuery });
@@ -317,9 +321,9 @@ const DashboardVet = () => {
                 <Menu className="w-5 h-5 text-navy" />
               </button>
               <div>
-                <h1 className="font-display text-xl font-bold text-navy">Vet & Health</h1>
+                <h1 className="font-display text-xl font-bold text-navy">{t("vet.title")}</h1>
                 <p className="text-sm text-muted-foreground hidden sm:block">
-                  Manage treatments, vaccinations, and follow-ups
+                  {t("vet.subtitle")}
                 </p>
               </div>
             </div>
@@ -328,11 +332,11 @@ const DashboardVet = () => {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
                   <CalendarCheck className="w-4 h-4" />
-                  <span className="hidden sm:inline">Schedule Visit</span>
+                  <span className="hidden sm:inline">{t("vetVisits.scheduleVisit")}</span>
                 </Button>
                 <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
                   <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">New Treatment</span>
+                  <span className="hidden sm:inline">{t("vet.newTreatment")}</span>
                 </Button>
               </div>
             )}
@@ -346,15 +350,15 @@ const DashboardVet = () => {
               <TabsList className="hidden lg:flex">
                 <TabsTrigger value="treatments" className="gap-2">
                   <Stethoscope className="w-4 h-4" />
-                  <span className="hidden sm:inline">Treatments</span>
+                  <span className="hidden sm:inline">{t("vet.tabs.treatments")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="vaccinations" className="gap-2">
                   <Syringe className="w-4 h-4" />
-                  <span className="hidden sm:inline">Vaccinations</span>
+                  <span className="hidden sm:inline">{t("vet.tabs.vaccinations")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="visits" className="gap-2">
                   <CalendarCheck className="w-4 h-4" />
-                  <span className="hidden sm:inline">Visits</span>
+                  <span className="hidden sm:inline">{t("vet.tabs.visits")}</span>
                   {todayVisits.length > 0 && (
                     <span className="ms-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
                       {todayVisits.length}
@@ -363,7 +367,7 @@ const DashboardVet = () => {
                 </TabsTrigger>
                 <TabsTrigger value="followups" className="gap-2">
                   <Calendar className="w-4 h-4" />
-                  <span className="hidden sm:inline">Follow-ups</span>
+                  <span className="hidden sm:inline">{t("vet.tabs.followups")}</span>
                   {overdueFollowups.length > 0 && (
                     <span className="ms-1 px-1.5 py-0.5 text-xs bg-destructive text-destructive-foreground rounded-full">
                       {overdueFollowups.length}
@@ -373,18 +377,18 @@ const DashboardVet = () => {
                 {isOwnerOrManager && (
                   <TabsTrigger value="settings" className="gap-2">
                     <Settings className="w-4 h-4" />
-                    <span className="hidden sm:inline">Settings</span>
+                    <span className="hidden sm:inline">{t("vet.tabs.settings")}</span>
                   </TabsTrigger>
                 )}
               </TabsList>
 
               <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search..."
+                  placeholder={t("common.search")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="ps-9"
                 />
               </div>
             </div>
@@ -402,7 +406,7 @@ const DashboardVet = () => {
               <VetTreatmentsList
                 treatments={displayTreatments as any}
                 loading={treatmentsLoading}
-                emptyMessage="No treatments yet. Create your first treatment to get started."
+                emptyMessage={t("vet.emptyMessages.treatments")}
               />
             </TabsContent>
 
@@ -421,7 +425,7 @@ const DashboardVet = () => {
                 loading={vaccinationsLoading}
                 onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
                 onCancel={!isUsingMockVaccinations && canManage ? skipVaccination : undefined}
-                emptyMessage="No vaccinations scheduled"
+                emptyMessage={t("vet.emptyMessages.vaccinations")}
               />
             </TabsContent>
 
@@ -430,7 +434,7 @@ const DashboardVet = () => {
                 visits={visits}
                 horses={horses}
                 loading={visitsLoading}
-                emptyMessage="No visits scheduled. Schedule a vet visit to get started."
+                emptyMessage={t("vet.emptyMessages.visits")}
                 onConfirm={canManage ? confirmVisit : undefined}
                 onStart={canManage ? startVisit : undefined}
                 onComplete={canManage ? completeVisit : undefined}
@@ -453,7 +457,7 @@ const DashboardVet = () => {
                 loading={followupsLoading}
                 onMarkDone={!isUsingMockFollowups && canManage ? markAsDone : undefined}
                 onCancel={!isUsingMockFollowups && canManage ? markAsCancelled : undefined}
-                emptyMessage="No follow-ups scheduled"
+                emptyMessage={t("vet.emptyMessages.followups")}
               />
             </TabsContent>
 
@@ -461,7 +465,7 @@ const DashboardVet = () => {
               <TabsContent value="settings">
                 <div className="space-y-6">
                   <div>
-                    <h2 className="font-display text-lg font-semibold text-navy mb-4">Vaccination Programs</h2>
+                    <h2 className="font-display text-lg font-semibold text-navy mb-4">{t("vet.vaccinationPrograms")}</h2>
                     <VaccinationProgramManager />
                   </div>
                 </div>

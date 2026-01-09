@@ -59,12 +59,16 @@ export default function DashboardLaboratory() {
   useEffect(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab && !availableTabs.includes(urlTab)) {
-      setSearchParams({ tab: availableTabs[0] }, { replace: true });
+      const next = new URLSearchParams(searchParams);
+      next.set('tab', availableTabs[0]);
+      setSearchParams(next, { replace: true });
     }
   }, [availableTabs, searchParams, setSearchParams]);
 
   const handleTabChange = (tab: string) => {
-    setSearchParams({ tab }, { replace: true });
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', tab);
+    setSearchParams(next, { replace: true });
   };
 
   const handlePreviewResult = (result: LabResult) => {

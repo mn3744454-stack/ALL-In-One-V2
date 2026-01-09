@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Json } from "@/integrations/supabase/types";
 
 export type VetTreatmentCategory = 
@@ -66,21 +68,16 @@ export interface CreateVetTreatmentData {
 }
 
 export function useVetTreatments(filters: VetTreatmentFilters = {}) {
-  const [treatments, setTreatments] = useState<VetTreatment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { activeTenant, activeRole } = useTenant();
+  const tenantId = activeTenant?.tenant.id;
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  const fetchTreatments = useCallback(async () => {
-    if (!activeTenant?.tenant.id) {
-      setTreatments([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
+  // Use React Query for fetching treatments
+  const { data: treatments = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.vetTreatments(tenantId),
+    queryFn: async () => {
       let query = supabase
         .from("vet_treatments")
         .select(`
@@ -90,7 +87,7 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
           assignee:profiles!vet_treatments_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!vet_treatments_created_by_fkey(id, full_name, avatar_url)
         `)
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId!)
         .order("created_at", { ascending: false });
 
       if (filters.status && filters.status !== 'all') {
@@ -112,36 +109,24 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setTreatments((data || []) as VetTreatment[]);
-    } catch (error) {
-      console.error("Error fetching vet treatments:", error);
-      toast.error("Failed to load treatments");
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTenant?.tenant.id, filters.status, filters.category, filters.priority, filters.horse_id, filters.search]);
+      return (data || []) as VetTreatment[];
+    },
+    enabled: !!tenantId,
+    placeholderData: [], // Prevent flash from previous tenant data
+  });
 
-  useEffect(() => {
-    fetchTreatments();
-  }, [fetchTreatments]);
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateVetTreatmentData) => {
+      if (!tenantId) throw new Error("No active organization");
 
-  const createTreatment = async (data: CreateVetTreatmentData) => {
-    if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
-      return null;
-    }
-
-    try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Not authenticated");
-        return null;
-      }
+      if (!user) throw new Error("Not authenticated");
 
       const { data: treatment, error } = await supabase
         .from("vet_treatments")
         .insert({
-          tenant_id: activeTenant.tenant.id,
+          tenant_id: tenantId,
           created_by: user.id,
           ...data,
         })
@@ -149,20 +134,21 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
         .single();
 
       if (error) throw error;
-
-      toast.success("Treatment created successfully");
-      fetchTreatments();
       return treatment;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      toast.success("Treatment created successfully");
+    },
+    onError: (error: Error) => {
       console.error("Error creating treatment:", error);
-      const message = error instanceof Error ? error.message : "Failed to create treatment";
-      toast.error(message);
-      return null;
-    }
-  };
+      toast.error(error.message || "Failed to create treatment");
+    },
+  });
 
-  const updateTreatment = async (id: string, updates: Partial<CreateVetTreatmentData>) => {
-    try {
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<CreateVetTreatmentData> }) => {
       const { data, error } = await supabase
         .from("vet_treatments")
         .update(updates)
@@ -171,14 +157,52 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
         .single();
 
       if (error) throw error;
-
-      toast.success("Treatment updated successfully");
-      fetchTreatments();
       return data;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      toast.success("Treatment updated successfully");
+    },
+    onError: (error: Error) => {
       console.error("Error updating treatment:", error);
-      const message = error instanceof Error ? error.message : "Failed to update treatment";
-      toast.error(message);
+      toast.error(error.message || "Failed to update treatment");
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("vet_treatments")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+      toast.success("Treatment deleted successfully");
+    },
+    onError: (error: Error) => {
+      console.error("Error deleting treatment:", error);
+      toast.error(error.message || "Failed to delete treatment");
+    },
+  });
+
+  // Wrapper functions for backward compatibility
+  const createTreatment = async (data: CreateVetTreatmentData) => {
+    try {
+      return await createMutation.mutateAsync(data);
+    } catch {
+      return null;
+    }
+  };
+
+  const updateTreatment = async (id: string, updates: Partial<CreateVetTreatmentData>) => {
+    try {
+      return await updateMutation.mutateAsync({ id, updates });
+    } catch {
       return null;
     }
   };
@@ -189,23 +213,16 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
 
   const deleteTreatment = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("vet_treatments")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast.success("Treatment deleted successfully");
-      fetchTreatments();
+      await deleteMutation.mutateAsync(id);
       return true;
-    } catch (error: unknown) {
-      console.error("Error deleting treatment:", error);
-      const message = error instanceof Error ? error.message : "Failed to delete treatment";
-      toast.error(message);
+    } catch {
       return false;
     }
   };
+
+  const refresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.vetTreatments(tenantId) });
+  }, [queryClient, tenantId]);
 
   return {
     treatments,
@@ -215,6 +232,6 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
     updateTreatment,
     updateStatus,
     deleteTreatment,
-    refresh: fetchTreatments,
+    refresh,
   };
 }
