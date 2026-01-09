@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { tGlobal } from "@/i18n";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Json } from "@/integrations/supabase/types";
 
 export type LabSampleStatus = 'draft' | 'accessioned' | 'processing' | 'completed' | 'cancelled';
@@ -82,10 +84,10 @@ export interface CreateLabSampleData {
 const RIYADH_BOUNDS_CACHE_TTL_MS = 60000;
 
 export function useLabSamples(filters: LabSampleFilters = {}) {
-  const [samples, setSamples] = useState<LabSample[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { activeTenant, activeRole } = useTenant();
   const { user } = useAuth();
+  const tenantId = activeTenant?.tenant.id;
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
@@ -133,15 +135,10 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     }
   };
 
-  const fetchSamples = useCallback(async () => {
-    if (!activeTenant?.tenant.id) {
-      setSamples([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
+  // Use React Query for fetching samples
+  const { data: samples = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.labSamples(tenantId),
+    queryFn: async () => {
       let query = supabase
         .from("lab_samples")
         .select(`
@@ -153,7 +150,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           receiver:profiles!lab_samples_received_by_fkey(id, full_name),
           templates:lab_sample_templates(id, sort_order, template:lab_templates(id, name, name_ar, template_type, fields))
         `)
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId!)
         .order("created_at", { ascending: false });
 
       if (filters.status && filters.status !== 'all') {
@@ -190,33 +187,26 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setSamples((data || []) as LabSample[]);
-    } catch (error) {
-      console.error("Error fetching lab samples:", error);
-      toast.error(tGlobal("laboratory.toasts.failedToLoadSamples"));
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTenant?.tenant.id, filters.status, filters.horse_id, filters.search, filters.received, filters.isRetest, filters.collectionDateToday]);
+      return (data || []) as LabSample[];
+    },
+    enabled: !!tenantId,
+    placeholderData: [], // Prevent flash from previous tenant data
+  });
 
-  useEffect(() => {
-    fetchSamples();
-  }, [fetchSamples]);
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateLabSampleData) => {
+      if (!tenantId || !user?.id) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
 
-  const createSample = async (data: CreateLabSampleData) => {
-    if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return null;
-    }
-
-    try {
       // Extract template_ids before inserting sample
       const { template_ids, ...sampleData } = data;
 
       const { data: sample, error } = await supabase
         .from("lab_samples")
         .insert({
-          tenant_id: activeTenant.tenant.id,
+          tenant_id: tenantId,
           created_by: user.id,
           ...sampleData,
         })
@@ -230,7 +220,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         const templateRows = template_ids.map((templateId, index) => ({
           sample_id: sample.id,
           template_id: templateId,
-          tenant_id: activeTenant.tenant.id,
+          tenant_id: tenantId,
           sort_order: index + 1,
         }));
 
@@ -244,189 +234,169 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         }
       }
 
-      toast.success(tGlobal("laboratory.toasts.sampleCreated"));
-      fetchSamples();
       return sample;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.sampleCreated"));
+    },
+    onError: (error: Error) => {
       console.error("Error creating sample:", error);
-      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToCreateSample");
-      toast.error(message);
-      return null;
-    }
-  };
+      toast.error(error.message || tGlobal("laboratory.toasts.failedToCreateSample"));
+    },
+  });
 
-  const updateSample = async (id: string, updates: Partial<CreateLabSampleData>) => {
-    if (!activeTenant?.tenant.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return null;
-    }
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<CreateLabSampleData> }) => {
+      if (!tenantId) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
 
-    try {
       const { data, error } = await supabase
         .from("lab_samples")
         .update(updates)
         .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId)
         .select()
         .maybeSingle();
 
       if (error) throw error;
 
       if (!data) {
-        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
-        return null;
+        throw new Error(tGlobal("laboratory.toasts.sampleNotFound"));
       }
 
-      toast.success(tGlobal("laboratory.toasts.sampleUpdated"));
-      fetchSamples();
       return data;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.sampleUpdated"));
+    },
+    onError: (error: Error) => {
       console.error("Error updating sample:", error);
-      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToUpdateSample");
-      toast.error(message);
-      return null;
-    }
-  };
+      toast.error(error.message || tGlobal("laboratory.toasts.failedToUpdateSample"));
+    },
+  });
 
-  const accessionSample = async (id: string) => {
-    return updateSample(id, { status: 'accessioned' });
-  };
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!tenantId) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
 
-  const startProcessing = async (id: string) => {
-    return updateSample(id, { status: 'processing' });
-  };
-
-  const completeSample = async (id: string) => {
-    return updateSample(id, { status: 'completed' });
-  };
-
-  const cancelSample = async (id: string) => {
-    return updateSample(id, { status: 'cancelled' });
-  };
-
-  const deleteSample = async (id: string) => {
-    if (!activeTenant?.tenant.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return false;
-    }
-
-    try {
       const { data, error } = await supabase
         .from("lab_samples")
         .delete()
         .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId)
         .select()
         .maybeSingle();
 
       if (error) throw error;
 
       if (!data) {
-        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
-        return false;
+        throw new Error(tGlobal("laboratory.toasts.sampleNotFound"));
       }
 
-      toast.success(tGlobal("laboratory.toasts.sampleDeleted"));
-      fetchSamples();
       return true;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.sampleDeleted"));
+    },
+    onError: (error: Error) => {
       console.error("Error deleting sample:", error);
-      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToDeleteSample");
-      toast.error(message);
-      return false;
-    }
-  };
+      toast.error(error.message || tGlobal("laboratory.toasts.failedToDeleteSample"));
+    },
+  });
 
-  // Mark sample as received (sets received_by; trigger fills received_at)
-  const markReceived = async (sampleId: string): Promise<boolean> => {
-    if (!activeTenant?.tenant.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return false;
-    }
-    if (!user?.id) {
-      toast.error(tGlobal("laboratory.toasts.notAuthenticated"));
-      return false;
-    }
+  // Mark received mutation
+  const markReceivedMutation = useMutation({
+    mutationFn: async (sampleId: string) => {
+      if (!tenantId) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
+      if (!user?.id) {
+        throw new Error(tGlobal("laboratory.toasts.notAuthenticated"));
+      }
 
-    try {
       const { error } = await supabase
         .from("lab_samples")
         .update({ received_by: user.id })
         .eq("id", sampleId)
-        .eq("tenant_id", activeTenant.tenant.id);
+        .eq("tenant_id", tenantId);
 
       if (error) throw error;
-
-      toast.success(tGlobal("laboratory.toasts.sampleMarkedReceived"));
-      fetchSamples();
       return true;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.sampleMarkedReceived"));
+    },
+    onError: (error: Error) => {
       console.error("Error marking sample as received:", error);
-      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToMarkReceived");
-      toast.error(message);
-      return false;
-    }
-  };
+      toast.error(error.message || tGlobal("laboratory.toasts.failedToMarkReceived"));
+    },
+  });
 
-  // Mark sample as unreceived (optional; graceful error if RLS/DB refuses)
-  const markUnreceived = async (sampleId: string): Promise<boolean> => {
-    if (!activeTenant?.tenant.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return false;
-    }
+  // Mark unreceived mutation
+  const markUnreceivedMutation = useMutation({
+    mutationFn: async (sampleId: string) => {
+      if (!tenantId) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
 
-    try {
       const { error } = await supabase
         .from("lab_samples")
         .update({ received_by: null, received_at: null })
         .eq("id", sampleId)
-        .eq("tenant_id", activeTenant.tenant.id);
+        .eq("tenant_id", tenantId);
 
       if (error) throw error;
-
-      toast.success(tGlobal("laboratory.toasts.sampleMarkedUnreceived"));
-      fetchSamples();
       return true;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.sampleMarkedUnreceived"));
+    },
+    onError: (error: Error) => {
       console.error("Error marking sample as unreceived:", error);
       toast.error(tGlobal("laboratory.toasts.unableToMarkUnreceived"));
-      return false;
-    }
-  };
+    },
+  });
 
-  // Create retest sample from completed sample (tenant-safe + workflow-safe)
-  const createRetest = async (originalSampleId: string): Promise<LabSample | null> => {
-    if (!activeTenant?.tenant.id || !user?.id) {
-      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
-      return null;
-    }
+  // Create retest mutation
+  const createRetestMutation = useMutation({
+    mutationFn: async (originalSampleId: string) => {
+      if (!tenantId || !user?.id) {
+        throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      }
 
-    try {
       // Fetch original sample - SCOPED BY TENANT
       const { data: original, error: fetchError } = await supabase
         .from("lab_samples")
         .select("id, horse_id, client_id, status, physical_sample_id")
         .eq("id", originalSampleId)
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
       if (!original) {
-        toast.error(tGlobal("laboratory.toasts.sampleNotFound"));
-        return null;
+        throw new Error(tGlobal("laboratory.toasts.sampleNotFound"));
       }
 
       // WORKFLOW GUARD: Only allow retest for completed samples
       if (original.status !== 'completed') {
-        toast.error(tGlobal("laboratory.toasts.retestOnlyCompleted"));
-        return null;
+        throw new Error(tGlobal("laboratory.toasts.retestOnlyCompleted"));
       }
 
       // Insert new retest - MINIMAL FIELDS (no physical_sample_id, no notes copy)
       const { data: newSample, error } = await supabase
         .from("lab_samples")
         .insert({
-          tenant_id: activeTenant.tenant.id,
+          tenant_id: tenantId,
           created_by: user.id,
           horse_id: original.horse_id,
           client_id: original.client_id || null,
@@ -438,13 +408,15 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         .single();
 
       if (error) throw error;
-
-      toast.success(tGlobal("laboratory.toasts.retestCreated"));
-      fetchSamples();
       return newSample as LabSample;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      toast.success(tGlobal("laboratory.toasts.retestCreated"));
+    },
+    onError: (error: Error) => {
       console.error("Error creating retest:", error);
-      const message = error instanceof Error ? error.message : "";
+      const message = error.message || "";
       
       // Handle max retests constraint (trigger returns this)
       if (message.includes("Maximum") || message.includes("retest") || message.includes("max_retests")) {
@@ -452,9 +424,69 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       } else {
         toast.error(tGlobal("laboratory.toasts.failedToCreateRetest"));
       }
+    },
+  });
+
+  // Wrapper functions for backward compatibility
+  const createSample = async (data: CreateLabSampleData) => {
+    try {
+      return await createMutation.mutateAsync(data);
+    } catch {
       return null;
     }
   };
+
+  const updateSample = async (id: string, updates: Partial<CreateLabSampleData>) => {
+    try {
+      return await updateMutation.mutateAsync({ id, updates });
+    } catch {
+      return null;
+    }
+  };
+
+  const accessionSample = async (id: string) => updateSample(id, { status: 'accessioned' });
+  const startProcessing = async (id: string) => updateSample(id, { status: 'processing' });
+  const completeSample = async (id: string) => updateSample(id, { status: 'completed' });
+  const cancelSample = async (id: string) => updateSample(id, { status: 'cancelled' });
+
+  const deleteSample = async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync(id);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const markReceived = async (sampleId: string): Promise<boolean> => {
+    try {
+      await markReceivedMutation.mutateAsync(sampleId);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const markUnreceived = async (sampleId: string): Promise<boolean> => {
+    try {
+      await markUnreceivedMutation.mutateAsync(sampleId);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const createRetest = async (originalSampleId: string): Promise<LabSample | null> => {
+    try {
+      return await createRetestMutation.mutateAsync(originalSampleId);
+    } catch {
+      return null;
+    }
+  };
+
+  const refresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+  }, [queryClient, tenantId]);
 
   return {
     samples,
@@ -470,6 +502,6 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
     markReceived,
     markUnreceived,
     createRetest,
-    refresh: fetchSamples,
+    refresh,
   };
 }

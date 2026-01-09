@@ -179,7 +179,7 @@ export function VetVisitCard({
             <span className="text-sm text-muted-foreground">
               {visitHorses.length === 1 
                 ? visitHorses[0].name 
-                : `${visitHorses.length} horses`}
+                : t("vetVisits.horsesCount", { count: visitHorses.length })}
             </span>
           </div>
         )}
@@ -189,17 +189,16 @@ export function VetVisitCard({
           <p className="text-sm text-muted-foreground line-clamp-2">{visit.notes}</p>
         )}
 
-        {/* Cost */}
         {(visit.estimated_cost || visit.actual_cost) && (
           <div className="flex items-center gap-4 text-sm pt-2 border-t border-border/50">
             {visit.estimated_cost && (
               <span className="text-muted-foreground">
-                Est: <span className="font-medium text-foreground">${visit.estimated_cost}</span>
+                {t("vetVisits.estimated")} <span className="font-medium text-foreground">${visit.estimated_cost}</span>
               </span>
             )}
             {visit.actual_cost && (
               <span className="text-muted-foreground">
-                Actual: <span className="font-medium text-foreground">${visit.actual_cost}</span>
+                {t("vetVisits.actual")} <span className="font-medium text-foreground">${visit.actual_cost}</span>
               </span>
             )}
           </div>

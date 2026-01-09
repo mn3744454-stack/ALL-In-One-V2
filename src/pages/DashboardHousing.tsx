@@ -30,7 +30,9 @@ export default function DashboardHousing() {
   }, [searchParams, availableTabs]);
 
   const handleTabChange = (tab: string) => {
-    setSearchParams({ tab }, { replace: true });
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', tab);
+    setSearchParams(next, { replace: true });
   };
 
   const {

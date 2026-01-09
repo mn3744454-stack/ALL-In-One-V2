@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface TenantCapability {
@@ -23,40 +25,28 @@ export interface CreateCapabilityData {
 }
 
 export function useTenantCapabilities() {
-  const [capabilities, setCapabilities] = useState<TenantCapability[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const { activeTenant, activeRole } = useTenant();
+  const tenantId = activeTenant?.tenant.id;
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  const fetchCapabilities = useCallback(async () => {
-    if (!activeTenant?.tenant.id) {
-      setCapabilities([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
+  // Use React Query for fetching capabilities
+  const { data: capabilities = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.capabilities(tenantId),
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("tenant_capabilities")
         .select("*")
-        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("tenant_id", tenantId!)
         .order("category", { ascending: true });
 
       if (error) throw error;
-      setCapabilities(data || []);
-    } catch (error) {
-      console.error("Error fetching capabilities:", error);
-      toast.error("Failed to load capabilities");
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTenant?.tenant.id]);
-
-  useEffect(() => {
-    fetchCapabilities();
-  }, [fetchCapabilities]);
+      return (data || []) as TenantCapability[];
+    },
+    enabled: !!tenantId,
+    placeholderData: [], // Prevent flash from previous tenant data
+  });
 
   const getCapabilityForCategory = useCallback(
     (category: string | null): TenantCapability | null => {
@@ -107,36 +97,147 @@ export function useTenantCapabilities() {
     [hasInternalCapability, allowsExternalCapability]
   );
 
-  const createCapability = async (capData: CreateCapabilityData) => {
-    if (!activeTenant?.tenant.id) {
-      toast.error("No active organization");
-      return null;
-    }
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (capData: CreateCapabilityData) => {
+      if (!tenantId) throw new Error("No active organization");
 
-    if (!canManage) {
-      toast.error("You don't have permission to manage capabilities");
-      return null;
-    }
-
-    try {
       const { data, error } = await supabase
         .from("tenant_capabilities")
         .insert({
-          tenant_id: activeTenant.tenant.id,
+          tenant_id: tenantId,
           ...capData,
         })
         .select()
         .single();
 
       if (error) throw error;
-
-      toast.success("Capability created successfully");
-      fetchCapabilities();
       return data;
-    } catch (error: unknown) {
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.capabilities(tenantId) });
+      toast.success("Capability created successfully");
+    },
+    onError: (error: Error) => {
       console.error("Error creating capability:", error);
-      const message = error instanceof Error ? error.message : "Failed to create capability";
-      toast.error(message);
+      toast.error(error.message || "Failed to create capability");
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<CreateCapabilityData> }) => {
+      const { data, error } = await supabase
+        .from("tenant_capabilities")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.capabilities(tenantId) });
+      toast.success("Capability updated successfully");
+    },
+    onError: (error: Error) => {
+      console.error("Error updating capability:", error);
+      toast.error(error.message || "Failed to update capability");
+    },
+  });
+
+  // Upsert mutation (merges config to prevent overwrite)
+  const upsertMutation = useMutation({
+    mutationFn: async ({ category, updates }: { 
+      category: string; 
+      updates: Omit<CreateCapabilityData, "category"> 
+    }) => {
+      if (!tenantId) throw new Error("No active organization");
+
+      const existing = capabilities.find((c) => c.category === category);
+      
+      // Merge config to prevent overwriting other fields
+      const existingConfig = existing?.config && typeof existing.config === 'object' && !Array.isArray(existing.config)
+        ? existing.config as Record<string, Json>
+        : {};
+      
+      const newConfigFields = updates.config && typeof updates.config === 'object' && !Array.isArray(updates.config)
+        ? updates.config as Record<string, Json>
+        : {};
+      
+      const mergedConfig: Record<string, Json> = { ...existingConfig, ...newConfigFields };
+
+      if (existing) {
+        const { data, error } = await supabase
+          .from("tenant_capabilities")
+          .update({ 
+            has_internal: updates.has_internal,
+            allow_external: updates.allow_external,
+            config: mergedConfig as Json 
+          })
+          .eq("id", existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from("tenant_capabilities")
+          .insert({
+            tenant_id: tenantId, 
+            category,
+            has_internal: updates.has_internal ?? false,
+            allow_external: updates.allow_external ?? true,
+            config: mergedConfig as Json 
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.capabilities(tenantId) });
+    },
+    onError: (error: Error) => {
+      console.error("Error upserting capability:", error);
+      toast.error(error.message || "Failed to save capability");
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("tenant_capabilities")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.capabilities(tenantId) });
+      toast.success("Capability deleted successfully");
+    },
+    onError: (error: Error) => {
+      console.error("Error deleting capability:", error);
+      toast.error(error.message || "Failed to delete capability");
+    },
+  });
+
+  // Wrapper functions to maintain backward compatibility
+  const createCapability = async (capData: CreateCapabilityData) => {
+    if (!canManage) {
+      toast.error("You don't have permission to manage capabilities");
+      return null;
+    }
+    try {
+      return await createMutation.mutateAsync(capData);
+    } catch {
       return null;
     }
   };
@@ -146,34 +247,18 @@ export function useTenantCapabilities() {
       toast.error("You don't have permission to manage capabilities");
       return null;
     }
-
     try {
-      const { data, error } = await supabase
-        .from("tenant_capabilities")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success("Capability updated successfully");
-      fetchCapabilities();
-      return data;
-    } catch (error: unknown) {
-      console.error("Error updating capability:", error);
-      const message = error instanceof Error ? error.message : "Failed to update capability";
-      toast.error(message);
+      return await updateMutation.mutateAsync({ id, updates });
+    } catch {
       return null;
     }
   };
 
   const upsertCapability = async (category: string, updates: Omit<CreateCapabilityData, "category">) => {
-    const existing = getCapabilityForCategory(category);
-    if (existing) {
-      return updateCapability(existing.id, updates);
-    } else {
-      return createCapability({ category, ...updates });
+    try {
+      return await upsertMutation.mutateAsync({ category, updates });
+    } catch {
+      return null;
     }
   };
 
@@ -182,25 +267,17 @@ export function useTenantCapabilities() {
       toast.error("You don't have permission to manage capabilities");
       return false;
     }
-
     try {
-      const { error } = await supabase
-        .from("tenant_capabilities")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast.success("Capability deleted successfully");
-      fetchCapabilities();
+      await deleteMutation.mutateAsync(id);
       return true;
-    } catch (error: unknown) {
-      console.error("Error deleting capability:", error);
-      const message = error instanceof Error ? error.message : "Failed to delete capability";
-      toast.error(message);
+    } catch {
       return false;
     }
   };
+
+  const refresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.capabilities(tenantId) });
+  }, [queryClient, tenantId]);
 
   return {
     capabilities,
@@ -214,6 +291,6 @@ export function useTenantCapabilities() {
     updateCapability,
     upsertCapability,
     deleteCapability,
-    refresh: fetchCapabilities,
+    refresh,
   };
 }
