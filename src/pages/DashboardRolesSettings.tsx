@@ -11,7 +11,8 @@ import {
   useTenantRoles, 
   useTenantRoleBundles, 
   useTenantRolePermissions,
-  useMemberRoleAssignment 
+  useMemberRoleAssignment,
+  useSetTenantRoleAccess
 } from "@/hooks/roles";
 import { useI18n } from "@/i18n";
 import { useNavigate } from "react-router-dom";
@@ -39,14 +40,14 @@ const DashboardRolesSettings = () => {
   } = useTenantRoles();
   const { 
     getRoleBundles, 
-    setRoleBundles, 
-    isUpdating: updatingBundles 
   } = useTenantRoleBundles();
   const { 
     getRolePermissions, 
-    setRolePermissions, 
-    isUpdating: updatingPermissions 
   } = useTenantRolePermissions();
+  const {
+    setRoleAccess,
+    isUpdating: updatingRoleAccess,
+  } = useSetTenantRoleAccess();
   const {
     members,
     updateMemberRole,
@@ -106,9 +107,12 @@ const DashboardRolesSettings = () => {
         });
       }
 
-      // Set permissions and bundles for the role
-      setRolePermissions({ roleKey: data.role_key, permissionKeys: data.permissionKeys });
-      setRoleBundles({ roleKey: data.role_key, bundleIds: data.bundleIds });
+      // Use atomic RPC to set permissions and bundles for the role
+      setRoleAccess({ 
+        roleKey: data.role_key, 
+        permissionKeys: data.permissionKeys, 
+        bundleIds: data.bundleIds 
+      });
 
       setEditorOpen(false);
     } catch (error) {
@@ -273,7 +277,7 @@ const DashboardRolesSettings = () => {
         allBundles={bundles}
         getBundlePermissions={getBundlePermissions}
         onSave={handleSaveRole}
-        isLoading={isCreating || isUpdating || updatingPermissions || updatingBundles}
+        isLoading={isCreating || isUpdating || updatingRoleAccess}
         isNew={isNew}
       />
     </div>

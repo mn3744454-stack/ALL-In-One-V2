@@ -47,52 +47,11 @@ export function useTenantRolePermissions() {
       .map((rp) => rp.permission_key);
   };
 
-  // Set permissions for a role (replaces all existing)
-  const setRolePermissionsMutation = useMutation({
-    mutationFn: async (data: { roleKey: string; permissionKeys: string[] }) => {
-      if (!tenantId || !user) throw new Error("Not authenticated");
-
-      // Delete existing
-      const { error: deleteError } = await supabase
-        .from("tenant_role_permissions" as any)
-        .delete()
-        .eq("tenant_id", tenantId)
-        .eq("role_key", data.roleKey);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new ones
-      if (data.permissionKeys.length > 0) {
-        const inserts = data.permissionKeys.map((permissionKey) => ({
-          tenant_id: tenantId,
-          role_key: data.roleKey,
-          permission_key: permissionKey,
-          granted: true,
-          created_by: user.id,
-        }));
-
-        const { error: insertError } = await supabase
-          .from("tenant_role_permissions" as any)
-          .insert(inserts);
-
-        if (insertError) throw insertError;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant-role-permissions", tenantId] });
-      toast.success("تم تحديث صلاحيات الدور بنجاح");
-    },
-    onError: (error: any) => {
-      console.error("Error setting role permissions:", error);
-      toast.error(error.message || "فشل في تحديث صلاحيات الدور");
-    },
-  });
-
+  // NOTE: Direct mutation removed - use useSetTenantRoleAccess RPC for atomic updates
+  // Kept for backwards compatibility but deprecated
   return {
     rolePermissions,
     isLoading,
     getRolePermissions,
-    setRolePermissions: setRolePermissionsMutation.mutate,
-    isUpdating: setRolePermissionsMutation.isPending,
   };
 }
