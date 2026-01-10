@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
+import { useInvoices } from "@/hooks/finance/useInvoices";
+import { useExpenses } from "@/hooks/finance/useExpenses";
+import {
+  InvoicesList,
+  InvoiceFormDialog,
+  ExpensesList,
+  ExpenseFormDialog,
+} from "@/components/finance";
 import { cn } from "@/lib/utils";
+import { isThisMonth } from "date-fns";
 import {
   Menu,
   FileText,
@@ -18,10 +27,35 @@ import {
   Users,
 } from "lucide-react";
 
-// Placeholder components - will be replaced with real implementations
 function InvoicesTab() {
-  const { t } = useI18n();
-  
+  const { t, dir } = useI18n();
+  const { activeTenant, activeRole } = useTenant();
+  const { invoices, isLoading, updateInvoice, deleteInvoice } = useInvoices(
+    activeTenant?.tenant.id
+  );
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const canManage = activeRole === "owner" || activeRole === "manager";
+
+  const stats = useMemo(() => {
+    const paid = invoices
+      .filter((i) => i.status === "paid")
+      .reduce((sum, i) => sum + i.total_amount, 0);
+    const pending = invoices.filter((i) => i.status === "sent").length;
+    const overdue = invoices
+      .filter((i) => i.status === "overdue")
+      .reduce((sum, i) => sum + i.total_amount, 0);
+    return { total: invoices.length, paid, pending, overdue };
+  }, [invoices]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+      style: "currency",
+      currency: "SAR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -33,7 +67,7 @@ function InvoicesTab() {
                 <FileText className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0</p>
+                <p className="text-2xl font-bold text-navy">{stats.total}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.total")}</p>
               </div>
             </div>
@@ -46,7 +80,7 @@ function InvoicesTab() {
                 <DollarSign className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0</p>
+                <p className="text-2xl font-bold text-navy">{stats.pending}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.pending")}</p>
               </div>
             </div>
@@ -59,7 +93,7 @@ function InvoicesTab() {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0 SAR</p>
+                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.paid)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.paid")}</p>
               </div>
             </div>
@@ -72,7 +106,7 @@ function InvoicesTab() {
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0 SAR</p>
+                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.overdue)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.overdue")}</p>
               </div>
             </div>
@@ -80,29 +114,66 @@ function InvoicesTab() {
         </Card>
       </div>
 
-      {/* Empty State */}
-      <Card>
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <FileText className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 className="font-semibold text-navy mb-2">{t("finance.invoices.empty")}</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            {t("finance.invoices.emptyDesc")}
-          </p>
-          <Button>
+      {/* Create Button */}
+      {canManage && (
+        <div className="flex justify-end">
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 me-2" />
             {t("finance.invoices.create")}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* List */}
+      <InvoicesList
+        invoices={invoices}
+        loading={isLoading}
+        onDelete={deleteInvoice}
+        onUpdateStatus={async (id, status) => {
+          await updateInvoice({ id, status: status as any });
+        }}
+        canManage={canManage}
+      />
+
+      {/* Create Dialog */}
+      <InvoiceFormDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
     </div>
   );
 }
 
 function ExpensesTab() {
-  const { t } = useI18n();
-  
+  const { t, dir } = useI18n();
+  const { activeTenant, activeRole } = useTenant();
+  const { expenses, isLoading, updateExpense, deleteExpense } = useExpenses(
+    activeTenant?.tenant.id
+  );
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const canManage = activeRole === "owner" || activeRole === "manager";
+
+  const stats = useMemo(() => {
+    const thisMonth = expenses
+      .filter((e) => isThisMonth(new Date(e.expense_date)))
+      .reduce((sum, e) => sum + e.amount, 0);
+    const pending = expenses.filter((e) => e.status === "pending").length;
+    return {
+      total: expenses.reduce((sum, e) => sum + e.amount, 0),
+      thisMonth,
+      pending,
+    };
+  }, [expenses]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+      style: "currency",
+      currency: "SAR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -114,7 +185,7 @@ function ExpensesTab() {
                 <Receipt className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0</p>
+                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.total)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.expenses.total")}</p>
               </div>
             </div>
@@ -127,7 +198,7 @@ function ExpensesTab() {
                 <DollarSign className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0 SAR</p>
+                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.thisMonth)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.expenses.thisMonth")}</p>
               </div>
             </div>
@@ -140,7 +211,7 @@ function ExpensesTab() {
                 <Receipt className="w-5 h-5 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0</p>
+                <p className="text-2xl font-bold text-navy">{stats.pending}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.expenses.pending")}</p>
               </div>
             </div>
@@ -148,29 +219,39 @@ function ExpensesTab() {
         </Card>
       </div>
 
-      {/* Empty State */}
-      <Card>
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Receipt className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 className="font-semibold text-navy mb-2">{t("finance.expenses.empty")}</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            {t("finance.expenses.emptyDesc")}
-          </p>
-          <Button>
+      {/* Create Button */}
+      {canManage && (
+        <div className="flex justify-end">
+          <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 me-2" />
             {t("finance.expenses.create")}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* List */}
+      <ExpensesList
+        expenses={expenses}
+        loading={isLoading}
+        onDelete={deleteExpense}
+        onUpdateStatus={async (id, status) => {
+          await updateExpense({ id, status: status as any });
+        }}
+        canManage={canManage}
+      />
+
+      {/* Create Dialog */}
+      <ExpenseFormDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+      />
     </div>
   );
 }
 
 function LedgerTab() {
   const { t } = useI18n();
-  
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -223,9 +304,7 @@ function LedgerTab() {
             <Wallet className="w-8 h-8 text-muted-foreground" />
           </div>
           <h3 className="font-semibold text-navy mb-2">{t("finance.ledger.empty")}</h3>
-          <p className="text-sm text-muted-foreground">
-            {t("finance.ledger.emptyDesc")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("finance.ledger.emptyDesc")}</p>
         </CardContent>
       </Card>
     </div>
@@ -280,11 +359,11 @@ export default function DashboardFinance() {
           <TabsContent value="invoices">
             <InvoicesTab />
           </TabsContent>
-          
+
           <TabsContent value="expenses">
             <ExpensesTab />
           </TabsContent>
-          
+
           <TabsContent value="ledger">
             <LedgerTab />
           </TabsContent>
