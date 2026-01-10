@@ -532,6 +532,55 @@ export type Database = {
           },
         ]
       }
+      customer_balances: {
+        Row: {
+          balance: number
+          client_id: string
+          currency: string | null
+          id: string
+          last_updated: string | null
+          tenant_id: string
+        }
+        Insert: {
+          balance?: number
+          client_id: string
+          currency?: string | null
+          id?: string
+          last_updated?: string | null
+          tenant_id: string
+        }
+        Update: {
+          balance?: number
+          client_id?: string
+          currency?: string | null
+          id?: string
+          last_updated?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_balances_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       embryo_transfers: {
         Row: {
           assigned_to: string | null
@@ -632,6 +681,89 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          description: string | null
+          expense_date: string
+          id: string
+          notes: string | null
+          receipt_asset_id: string | null
+          status: string | null
+          tenant_id: string
+          updated_at: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_asset_id?: string | null
+          status?: string | null
+          tenant_id: string
+          updated_at?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          description?: string | null
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          receipt_asset_id?: string | null
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_receipt_asset_id_fkey"
+            columns: ["receipt_asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
             referencedColumns: ["id"]
           },
         ]
@@ -2279,6 +2411,132 @@ export type Database = {
           },
         ]
       }
+      invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          invoice_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          invoice_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          discount_amount: number | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          issue_date: string
+          notes: string | null
+          status: string
+          subtotal: number
+          tax_amount: number | null
+          tenant_id: string
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number | null
+          tenant_id: string
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          discount_amount?: number | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          notes?: string | null
+          status?: string
+          subtotal?: number
+          tax_amount?: number | null
+          tenant_id?: string
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_credit_transactions: {
         Row: {
           created_at: string
@@ -3091,6 +3349,136 @@ export type Database = {
           },
           {
             foreignKeyName: "lab_test_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_entries: {
+        Row: {
+          amount: number
+          balance_after: number
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          entry_type: string
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_type: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          entry_type?: string
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_assets: {
+        Row: {
+          alt_text: string | null
+          bucket: string
+          created_at: string | null
+          created_by: string | null
+          display_order: number | null
+          entity_id: string
+          entity_type: string
+          filename: string
+          id: string
+          mime_type: string | null
+          path: string
+          size_bytes: number | null
+          tenant_id: string
+          visibility: string
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket?: string
+          created_at?: string | null
+          created_by?: string | null
+          display_order?: number | null
+          entity_id: string
+          entity_type: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+          path: string
+          size_bytes?: number | null
+          tenant_id: string
+          visibility?: string
+        }
+        Update: {
+          alt_text?: string | null
+          bucket?: string
+          created_at?: string | null
+          created_by?: string | null
+          display_order?: number | null
+          entity_id?: string
+          entity_type?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+          path?: string
+          size_bytes?: number | null
+          tenant_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_assets_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
