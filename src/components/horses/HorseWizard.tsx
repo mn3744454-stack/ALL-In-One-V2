@@ -250,6 +250,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
+  const [mediaTempUUID, setMediaTempUUID] = useState<string | null>(null); // Track temp UUID from StepMedia
 
   // Pre-fill data when in edit mode
   useEffect(() => {
@@ -410,16 +411,18 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         horseId = horse.id;
 
         // Migrate temp media assets to the new horse ID
-        // Look for assets with entity_id starting with 'temp-'
-        const { error: migrateError } = await supabase
-          .from("media_assets" as any)
-          .update({ entity_id: horseId })
-          .eq("tenant_id", activeTenant.tenant_id)
-          .eq("entity_type", "horse")
-          .like("entity_id", "temp-%");
+        // Only migrate if we have a temp UUID from media uploads
+        if (mediaTempUUID) {
+          const { error: migrateError } = await supabase
+            .from("media_assets" as any)
+            .update({ entity_id: horseId })
+            .eq("tenant_id", activeTenant.tenant_id)
+            .eq("entity_type", "horse")
+            .eq("entity_id", mediaTempUUID); // Use exact UUID match
 
-        if (migrateError) {
-          console.warn("Media asset migration warning:", migrateError);
+          if (migrateError) {
+            console.warn("Media asset migration warning:", migrateError);
+          }
         }
       }
 
@@ -510,6 +513,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
             onChange={updateData} 
             tenantId={activeTenant?.tenant_id || ""} 
             horseId={mode === "edit" ? existingHorse?.id : undefined}
+            onTempUUIDGenerated={setMediaTempUUID}
           />
         );
       default:
