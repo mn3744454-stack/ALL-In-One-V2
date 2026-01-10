@@ -66,29 +66,29 @@ export function RecentActivityWidget() {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
-          <span className="flex items-center gap-2">
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+        <CardTitle className="flex items-center justify-between text-sm sm:text-base">
+          <span className="flex items-center gap-1.5 sm:gap-2">
             <Activity className="w-4 h-4 text-gold" />
-            {t("dashboard.widgets.recentActivity")}
+            <span className="truncate">{t("dashboard.widgets.recentActivity")}</span>
           </span>
           <Link
             to="/dashboard/records"
-            className="text-sm font-normal text-gold hover:text-gold-dark flex items-center gap-1"
+            className="text-xs sm:text-sm font-normal text-gold hover:text-gold-dark flex items-center gap-1 shrink-0"
           >
-            {t("dashboard.widgets.viewAll")}
+            <span className="hidden xs:inline">{t("dashboard.widgets.viewAll")}</span>
             <ChevronRight className={cn("w-4 h-4", dir === "rtl" && "rotate-180")} />
           </Link>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Activity className="w-10 h-10 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground">{t("records.empty")}</p>
+          <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+            <Activity className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/30 mb-2" />
+            <p className="text-xs sm:text-sm text-muted-foreground">{t("records.empty")}</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {items.map((item) => {
               const Icon = moduleIcons[item.module] || Activity;
               const colorClass = moduleColors[item.module] || "text-gray-600 bg-gray-100";
@@ -96,31 +96,31 @@ export function RecentActivityWidget() {
               return (
                 <div
                   key={item.id}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50"
+                  className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50"
                 >
                   <div
                     className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                      "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0",
                       colorClass
                     )}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-navy">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                      <p className="text-xs sm:text-sm font-medium text-navy">
                         {getEventLabel(item)}
                       </p>
                       {item.fromStatus && item.toStatus && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="hidden xs:flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
                           <span>{item.fromStatus}</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                           <span className="text-navy">{item.toStatus}</span>
                         </div>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {item.creatorName && <span>{item.creatorName} • </span>}
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                      {item.creatorName && <span className="hidden sm:inline">{item.creatorName} • </span>}
                       {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                     </p>
                   </div>

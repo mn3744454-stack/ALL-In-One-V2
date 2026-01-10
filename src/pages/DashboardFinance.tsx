@@ -7,6 +7,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useExpenses } from "@/hooks/finance/useExpenses";
+import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
 import {
   InvoicesList,
   InvoiceFormDialog,
@@ -25,6 +26,9 @@ import {
   TrendingDown,
   DollarSign,
   Users,
+  Sparkles,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 
 function InvoicesTab() {
@@ -316,6 +320,14 @@ export default function DashboardFinance() {
   const [activeTab, setActiveTab] = useState("invoices");
   const { activeTenant } = useTenant();
   const { t, dir } = useI18n();
+  const {
+    canManageDemo,
+    demoExists,
+    loadDemoData,
+    removeDemoData,
+    isLoading: isDemoLoading,
+    isRemoving,
+  } = useFinanceDemo();
 
   return (
     <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
@@ -323,7 +335,7 @@ export default function DashboardFinance() {
 
       <main className="flex-1 p-4 lg:p-8 overflow-auto">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between mb-6">
+        <div className="lg:hidden flex items-center justify-between mb-4">
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-6 w-6" />
           </Button>
@@ -337,22 +349,96 @@ export default function DashboardFinance() {
             <h1 className="text-2xl font-bold text-navy">{t("finance.title")}</h1>
             <p className="text-muted-foreground">{t("finance.subtitle")}</p>
           </div>
+          
+          {/* Demo Actions */}
+          {canManageDemo && (
+            <div className="flex gap-2">
+              {demoExists ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeDemoData()}
+                  disabled={isRemoving}
+                  className="gap-2"
+                >
+                  {isRemoving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  {t("common.removeDemo")}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadDemoData()}
+                  disabled={isDemoLoading}
+                  className="gap-2"
+                >
+                  {isDemoLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  {t("common.loadDemo")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Mobile Demo Actions */}
+        {canManageDemo && (
+          <div className="lg:hidden flex justify-end mb-4">
+            {demoExists ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => removeDemoData()}
+                disabled={isRemoving}
+                className="gap-2"
+              >
+                {isRemoving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                <span className="hidden xs:inline">{t("common.removeDemo")}</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadDemoData()}
+                disabled={isDemoLoading}
+                className="gap-2"
+              >
+                {isDemoLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                <span className="hidden xs:inline">{t("common.loadDemo")}</span>
+              </Button>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="invoices" className="gap-2">
+          <TabsList className="mb-4 lg:mb-6 w-full sm:w-auto overflow-x-auto">
+            <TabsTrigger value="invoices" className="gap-1.5 text-xs sm:text-sm">
               <FileText className="w-4 h-4" />
-              {t("finance.tabs.invoices")}
+              <span className="hidden xs:inline">{t("finance.tabs.invoices")}</span>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2">
+            <TabsTrigger value="expenses" className="gap-1.5 text-xs sm:text-sm">
               <Receipt className="w-4 h-4" />
-              {t("finance.tabs.expenses")}
+              <span className="hidden xs:inline">{t("finance.tabs.expenses")}</span>
             </TabsTrigger>
-            <TabsTrigger value="ledger" className="gap-2">
+            <TabsTrigger value="ledger" className="gap-1.5 text-xs sm:text-sm">
               <Wallet className="w-4 h-4" />
-              {t("finance.tabs.ledger")}
+              <span className="hidden xs:inline">{t("finance.tabs.ledger")}</span>
             </TabsTrigger>
           </TabsList>
 

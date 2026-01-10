@@ -74,29 +74,29 @@ export function UpcomingScheduleWidget() {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-base">
-          <span className="flex items-center gap-2">
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 pt-3 sm:pt-6">
+        <CardTitle className="flex items-center justify-between text-sm sm:text-base">
+          <span className="flex items-center gap-1.5 sm:gap-2">
             <CalendarDays className="w-4 h-4 text-gold" />
-            {t("dashboard.widgets.upcomingSchedule")}
+            <span className="truncate">{t("dashboard.widgets.upcomingSchedule")}</span>
           </span>
           <Link
             to="/dashboard/schedule"
-            className="text-sm font-normal text-gold hover:text-gold-dark flex items-center gap-1"
+            className="text-xs sm:text-sm font-normal text-gold hover:text-gold-dark flex items-center gap-1 shrink-0"
           >
-            {t("dashboard.widgets.viewAll")}
+            <span className="hidden xs:inline">{t("dashboard.widgets.viewAll")}</span>
             <ChevronRight className={cn("w-4 h-4", dir === "rtl" && "rotate-180")} />
           </Link>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
         {upcoming.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <CalendarDays className="w-10 h-10 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground">{t("schedule.empty")}</p>
+          <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-center">
+            <CalendarDays className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/30 mb-2" />
+            <p className="text-xs sm:text-sm text-muted-foreground">{t("schedule.empty")}</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {upcoming.map((item) => {
               const Icon = moduleIcons[item.module] || CalendarDays;
               const colorClass = moduleColors[item.module] || "bg-muted text-muted-foreground";
@@ -104,31 +104,31 @@ export function UpcomingScheduleWidget() {
               return (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                 >
                   <div
                     className={cn(
-                      "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                      "w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0",
                       colorClass
                     )}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-navy truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <p className="font-medium text-xs sm:text-sm text-navy truncate">{item.title}</p>
+                    <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
                       <span>{format(new Date(item.startAt), "MMM d, h:mm a")}</span>
                       {item.horseName && (
                         <>
-                          <span>•</span>
-                          <span className="truncate">{item.horseName}</span>
+                          <span className="hidden xs:inline">•</span>
+                          <span className="hidden xs:inline truncate">{item.horseName}</span>
                         </>
                       )}
                     </div>
                   </div>
                   {item.status && (
-                    <Badge variant="outline" className="text-xs shrink-0">
+                    <Badge variant="outline" className="text-[10px] sm:text-xs shrink-0 hidden sm:flex">
                       {item.status}
                     </Badge>
                   )}

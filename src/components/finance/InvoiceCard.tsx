@@ -57,39 +57,39 @@ export function InvoiceCard({
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Invoice Icon */}
-          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-            <FileText className="w-6 h-6 text-blue-600" />
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Invoice Icon - smaller on mobile */}
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <div>
-                <h4 className="font-medium text-navy">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2 mb-1">
+              <div className="min-w-0">
+                <h4 className="font-medium text-navy text-sm sm:text-base">
                   {invoice.invoice_number}
                 </h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {invoice.client_name || t("finance.invoices.noClient")}
                 </p>
               </div>
-              <div className="text-end shrink-0">
-                <p className="text-lg font-bold text-navy">
+              <div className="text-start sm:text-end shrink-0">
+                <p className="text-base sm:text-lg font-bold text-navy">
                   {formatCurrency(invoice.total_amount, invoice.currency)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center flex-wrap gap-2 mt-2">
+            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-2">
               <InvoiceStatusBadge status={invoice.status} />
               <span className="text-xs text-muted-foreground">
-                {t("finance.invoices.issued")}: {format(new Date(invoice.issue_date), "MMM d, yyyy")}
+                {format(new Date(invoice.issue_date), "MMM d")}
               </span>
               {invoice.due_date && (
                 <span className="text-xs text-muted-foreground">
-                  {t("finance.invoices.due")}: {format(new Date(invoice.due_date), "MMM d, yyyy")}
+                  → {format(new Date(invoice.due_date), "MMM d")}
                 </span>
               )}
             </div>
