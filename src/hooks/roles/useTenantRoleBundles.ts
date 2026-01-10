@@ -46,51 +46,11 @@ export function useTenantRoleBundles() {
       .map((rb) => rb.bundle_id);
   };
 
-  // Set bundles for a role (replaces all existing)
-  const setRoleBundlesMutation = useMutation({
-    mutationFn: async (data: { roleKey: string; bundleIds: string[] }) => {
-      if (!tenantId || !user) throw new Error("Not authenticated");
-
-      // Delete existing
-      const { error: deleteError } = await supabase
-        .from("tenant_role_bundles" as any)
-        .delete()
-        .eq("tenant_id", tenantId)
-        .eq("role_key", data.roleKey);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new ones
-      if (data.bundleIds.length > 0) {
-        const inserts = data.bundleIds.map((bundleId) => ({
-          tenant_id: tenantId,
-          role_key: data.roleKey,
-          bundle_id: bundleId,
-          created_by: user.id,
-        }));
-
-        const { error: insertError } = await supabase
-          .from("tenant_role_bundles" as any)
-          .insert(inserts);
-
-        if (insertError) throw insertError;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant-role-bundles", tenantId] });
-      toast.success("تم تحديث حزم الدور بنجاح");
-    },
-    onError: (error: any) => {
-      console.error("Error setting role bundles:", error);
-      toast.error(error.message || "فشل في تحديث حزم الدور");
-    },
-  });
-
+  // NOTE: Direct mutation removed - use useSetTenantRoleAccess RPC for atomic updates
+  // Kept for backwards compatibility but deprecated
   return {
     roleBundles,
     isLoading,
     getRoleBundles,
-    setRoleBundles: setRoleBundlesMutation.mutate,
-    isUpdating: setRoleBundlesMutation.isPending,
   };
 }

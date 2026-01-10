@@ -5794,6 +5794,15 @@ export type Database = {
         }
         Returns: Json
       }
+      set_tenant_role_access: {
+        Args: {
+          _bundle_ids: string[]
+          _permission_keys: string[]
+          _role_key: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
