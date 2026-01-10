@@ -1,44 +1,146 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Link, Image, Video, Upload, Loader2, X } from "lucide-react";
+import { Plus, Trash2, Link, Video, Upload, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { SecureImage } from "@/components/ui/SecureImage";
 import type { HorseWizardData } from "../HorseWizard";
+
+// Interface for media asset references stored in wizard data
+export interface MediaAssetRef {
+  id: string;
+  path: string;
+  bucket: string;
+  filename: string;
+  mime_type: string;
+  size_bytes: number;
+}
 
 interface StepMediaProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
+  tenantId: string;
+  horseId?: string; // Optional for create mode (will use temp ID)
 }
 
-export const StepMedia = ({ data, onChange }: StepMediaProps) => {
+export const StepMedia = ({ data, onChange, tenantId, horseId }: StepMediaProps) => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [dragOverImages, setDragOverImages] = useState(false);
   const [dragOverVideos, setDragOverVideos] = useState(false);
+  const [mediaAssets, setMediaAssets] = useState<MediaAssetRef[]>([]);
+  const [videoAssets, setVideoAssets] = useState<MediaAssetRef[]>([]);
   
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadFile = async (file: File, type: 'image' | 'video'): Promise<string | null> => {
+  // Get or create a temp entity ID for uploads before horse is saved
+  const tempEntityId = horseId || `temp-${Date.now()}`;
+
+  // Load existing media assets when horseId is available
+  useEffect(() => {
+    const loadExistingAssets = async () => {
+      if (!horseId || !tenantId) return;
+      
+      try {
+        const { data: assets, error } = await supabase
+          .from("media_assets" as any)
+          .select("*")
+          .eq("tenant_id", tenantId)
+          .eq("entity_type", "horse")
+          .eq("entity_id", horseId)
+          .order("display_order", { ascending: true });
+
+        if (error) {
+          console.warn("Error loading media assets:", error);
+          return;
+        }
+
+        const images: MediaAssetRef[] = [];
+        const videos: MediaAssetRef[] = [];
+        
+        (assets as any[] || []).forEach((asset: any) => {
+          const ref: MediaAssetRef = {
+            id: asset.id,
+            path: asset.path,
+            bucket: asset.bucket,
+            filename: asset.filename,
+            mime_type: asset.mime_type || "",
+            size_bytes: asset.size_bytes || 0,
+          };
+          
+          if (asset.mime_type?.startsWith("video/")) {
+            videos.push(ref);
+          } else {
+            images.push(ref);
+          }
+        });
+
+        setMediaAssets(images);
+        setVideoAssets(videos);
+      } catch (err) {
+        console.error("Error loading media assets:", err);
+      }
+    };
+
+    loadExistingAssets();
+  }, [horseId, tenantId]);
+
+  const uploadFile = async (file: File, type: 'image' | 'video'): Promise<MediaAssetRef | null> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${type}s/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const entityId = horseId || tempEntityId;
+    // Use tenant-scoped path: ${tenantId}/${entityType}/${entityId}/${uuid}.${ext}
+    const path = `${tenantId}/horses/${entityId}/${crypto.randomUUID()}.${fileExt}`;
 
-    const { data: uploadData, error } = await supabase.storage
+    // 1. Upload to storage
+    const { error: uploadError } = await supabase.storage
       .from('horse-media')
-      .upload(fileName, file);
+      .upload(path, file);
 
-    if (error) {
-      console.error('Upload error:', error);
-      throw error;
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw uploadError;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('horse-media')
-      .getPublicUrl(fileName);
+    // 2. Get current user
+    const { data: user } = await supabase.auth.getUser();
 
-    return publicUrl;
+    // 3. Create media_asset record
+    const { data: asset, error: assetError } = await supabase
+      .from("media_assets" as any)
+      .insert({
+        tenant_id: tenantId,
+        entity_type: "horse",
+        entity_id: entityId,
+        bucket: "horse-media",
+        path,
+        filename: file.name,
+        mime_type: file.type,
+        size_bytes: file.size,
+        visibility: "tenant",
+        created_by: user?.user?.id,
+        display_order: type === 'image' ? mediaAssets.length : videoAssets.length,
+      })
+      .select()
+      .single();
+
+    if (assetError) {
+      console.error('Asset creation error:', assetError);
+      // Clean up the uploaded file if asset creation fails
+      await supabase.storage.from('horse-media').remove([path]);
+      throw assetError;
+    }
+
+    return {
+      id: (asset as any).id,
+      path,
+      bucket: "horse-media",
+      filename: file.name,
+      mime_type: file.type,
+      size_bytes: file.size,
+    };
   };
 
   const handleImageUpload = async (files: FileList | null) => {
@@ -46,7 +148,7 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
 
     setUploadingImages(true);
     try {
-      const uploadedUrls: string[] = [];
+      const uploadedAssets: MediaAssetRef[] = [];
       
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('image/')) {
@@ -58,15 +160,18 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
           continue;
         }
 
-        const url = await uploadFile(file, 'image');
-        if (url) uploadedUrls.push(url);
+        const asset = await uploadFile(file, 'image');
+        if (asset) uploadedAssets.push(asset);
       }
 
-      if (uploadedUrls.length > 0) {
-        onChange({ images: [...data.images, ...uploadedUrls] });
+      if (uploadedAssets.length > 0) {
+        const newAssets = [...mediaAssets, ...uploadedAssets];
+        setMediaAssets(newAssets);
+        // Also update legacy images array for backward compatibility
+        onChange({ images: [...data.images, ...uploadedAssets.map(a => a.path)] });
         toast({
           title: "Images uploaded",
-          description: `${uploadedUrls.length} image(s) uploaded successfully`,
+          description: `${uploadedAssets.length} image(s) uploaded successfully`,
         });
       }
     } catch (error: any) {
@@ -85,7 +190,7 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
 
     setUploadingVideos(true);
     try {
-      const uploadedUrls: string[] = [];
+      const uploadedAssets: MediaAssetRef[] = [];
       
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('video/')) {
@@ -107,15 +212,18 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
           continue;
         }
 
-        const url = await uploadFile(file, 'video');
-        if (url) uploadedUrls.push(url);
+        const asset = await uploadFile(file, 'video');
+        if (asset) uploadedAssets.push(asset);
       }
 
-      if (uploadedUrls.length > 0) {
-        onChange({ videos: [...(data.videos || []), ...uploadedUrls] });
+      if (uploadedAssets.length > 0) {
+        const newAssets = [...videoAssets, ...uploadedAssets];
+        setVideoAssets(newAssets);
+        // Also update legacy videos array for backward compatibility
+        onChange({ videos: [...(data.videos || []), ...uploadedAssets.map(a => a.path)] });
         toast({
           title: "Videos uploaded",
-          description: `${uploadedUrls.length} video(s) uploaded successfully`,
+          description: `${uploadedAssets.length} video(s) uploaded successfully`,
         });
       }
     } catch (error: any) {
@@ -138,18 +246,70 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
       setDragOverVideos(false);
       handleVideoUpload(e.dataTransfer.files);
     }
-  }, [data.images, data.videos]);
+  }, [mediaAssets, videoAssets, data.images, data.videos]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  const removeImage = (index: number) => {
-    onChange({ images: data.images.filter((_, i) => i !== index) });
+  const removeImage = async (index: number) => {
+    const asset = mediaAssets[index];
+    if (!asset) return;
+
+    try {
+      // 1. Delete from storage
+      await supabase.storage.from('horse-media').remove([asset.path]);
+      
+      // 2. Delete from media_assets
+      await supabase.from("media_assets" as any).delete().eq("id", asset.id);
+      
+      // 3. Update local state
+      const newAssets = mediaAssets.filter((_, i) => i !== index);
+      setMediaAssets(newAssets);
+      onChange({ images: data.images.filter((_, i) => i !== index) });
+      
+      toast({
+        title: "Image removed",
+        description: "Image has been deleted",
+      });
+    } catch (error: any) {
+      console.error("Error removing image:", error);
+      toast({
+        title: "Failed to remove image",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const removeVideo = (index: number) => {
-    onChange({ videos: (data.videos || []).filter((_, i) => i !== index) });
+  const removeVideo = async (index: number) => {
+    const asset = videoAssets[index];
+    if (!asset) return;
+
+    try {
+      // 1. Delete from storage
+      await supabase.storage.from('horse-media').remove([asset.path]);
+      
+      // 2. Delete from media_assets
+      await supabase.from("media_assets" as any).delete().eq("id", asset.id);
+      
+      // 3. Update local state
+      const newAssets = videoAssets.filter((_, i) => i !== index);
+      setVideoAssets(newAssets);
+      onChange({ videos: (data.videos || []).filter((_, i) => i !== index) });
+      
+      toast({
+        title: "Video removed",
+        description: "Video has been deleted",
+      });
+    } catch (error: any) {
+      console.error("Error removing video:", error);
+      toast({
+        title: "Failed to remove video",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const addLink = () => {
@@ -210,12 +370,17 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
           />
         </div>
 
-        {/* Image Previews */}
-        {data.images.length > 0 && (
+        {/* Image Previews using SecureImage */}
+        {mediaAssets.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mt-4">
-            {data.images.map((url, index) => (
-              <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
-                <img src={url} alt={`Image ${index + 1}`} className="w-full h-full object-cover" />
+            {mediaAssets.map((asset, index) => (
+              <div key={asset.id} className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
+                <SecureImage 
+                  bucket={asset.bucket}
+                  path={asset.path}
+                  alt={`Image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); removeImage(index); }}
@@ -272,13 +437,15 @@ export const StepMedia = ({ data, onChange }: StepMediaProps) => {
         </div>
 
         {/* Video Previews */}
-        {(data.videos || []).length > 0 && (
+        {videoAssets.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-            {(data.videos || []).map((url, index) => (
-              <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-muted group">
-                <video src={url} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <Video className="w-8 h-8 text-white" />
+            {videoAssets.map((asset, index) => (
+              <div key={asset.id} className="relative aspect-video rounded-lg overflow-hidden bg-muted group">
+                <div className="w-full h-full flex items-center justify-center bg-navy/10">
+                  <Video className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2">
+                  <p className="text-xs text-white truncate">{asset.filename}</p>
                 </div>
                 <button
                   type="button"

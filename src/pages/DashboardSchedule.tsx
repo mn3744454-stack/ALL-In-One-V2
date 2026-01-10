@@ -42,6 +42,7 @@ import { ScheduleCalendarView } from "@/components/schedule";
 
 const moduleIcons: Record<string, React.ElementType> = {
   vet: Stethoscope,
+  vet_followups: Stethoscope,
   vaccinations: Syringe,
   breeding: Baby,
   movement: ArrowLeftRight,
@@ -51,6 +52,7 @@ const moduleIcons: Record<string, React.ElementType> = {
 
 const moduleColors: Record<string, string> = {
   vet: "bg-green-100 text-green-700 border-green-200",
+  vet_followups: "bg-emerald-100 text-emerald-700 border-emerald-200",
   vaccinations: "bg-blue-100 text-blue-700 border-blue-200",
   breeding: "bg-pink-100 text-pink-700 border-pink-200",
   movement: "bg-orange-100 text-orange-700 border-orange-200",
@@ -309,6 +311,7 @@ export default function DashboardSchedule() {
                 <SelectContent>
                   <SelectItem value="all">{t("common.all")}</SelectItem>
                   <SelectItem value="vet">{t("schedule.modules.vet")}</SelectItem>
+                  <SelectItem value="vet_followups">{t("schedule.modules.vetFollowups")}</SelectItem>
                   <SelectItem value="vaccinations">{t("schedule.modules.vaccinations")}</SelectItem>
                   <SelectItem value="breeding">{t("schedule.modules.breeding")}</SelectItem>
                   <SelectItem value="movement">{t("schedule.modules.movement")}</SelectItem>

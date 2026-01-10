@@ -1007,6 +1007,8 @@ export const ar = {
     searchPlaceholder: "البحث عن الأحداث...",
     modules: {
       vet: "البيطرة",
+      vet_followups: "المتابعات البيطرية",
+      vetFollowups: "المتابعات البيطرية",
       vaccinations: "التطعيمات",
       breeding: "التناسل",
       movement: "التنقل",

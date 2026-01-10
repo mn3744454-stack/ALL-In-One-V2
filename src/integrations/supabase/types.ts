@@ -5098,6 +5098,10 @@ export type Database = {
           tenant_display_name: string
         }[]
       }
+      get_tenant_id_from_storage_path: {
+        Args: { object_path: string }
+        Returns: string
+      }
       has_internal_capability: {
         Args: { _category: string; _tenant_id: string }
         Returns: boolean

@@ -408,6 +408,19 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
         if (horseError) throw horseError;
         horseId = horse.id;
+
+        // Migrate temp media assets to the new horse ID
+        // Look for assets with entity_id starting with 'temp-'
+        const { error: migrateError } = await supabase
+          .from("media_assets" as any)
+          .update({ entity_id: horseId })
+          .eq("tenant_id", activeTenant.tenant_id)
+          .eq("entity_type", "horse")
+          .like("entity_id", "temp-%");
+
+        if (migrateError) {
+          console.warn("Media asset migration warning:", migrateError);
+        }
       }
 
       // Handle ownership records (for both create and edit)
@@ -491,7 +504,14 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       case "ownership":
         return <StepOwnership data={data} onChange={updateData} />;
       case "media":
-        return <StepMedia data={data} onChange={updateData} />;
+        return (
+          <StepMedia 
+            data={data} 
+            onChange={updateData} 
+            tenantId={activeTenant?.tenant_id || ""} 
+            horseId={mode === "edit" ? existingHorse?.id : undefined}
+          />
+        );
       default:
         return null;
     }
