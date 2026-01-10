@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { queryKeys } from "@/lib/queryKeys";
 import { format } from "date-fns";
 
 export interface ScheduleItem {
   id: string;
-  module: "vet" | "vaccinations" | "breeding" | "movement" | "academy" | "laboratory";
+  module: "vet" | "vaccinations" | "breeding" | "movement" | "academy" | "laboratory" | "vet_followups";
   title: string;
   startAt: string;
   endAt?: string;
@@ -61,6 +60,31 @@ export function useScheduleItems({ tenantId, dateRange, modules }: UseScheduleIt
         });
       }
 
+      // Fetch vet followups
+      if (!modules || modules.includes("vet_followups")) {
+        const { data: followups } = await supabase
+          .from("vet_followups")
+          .select("id, due_at, type, status, treatment:vet_treatments(id, title, horse_id, horses:horses(id, name))")
+          .eq("tenant_id", tenantId)
+          .gte("due_at", startDate)
+          .lte("due_at", endDate);
+
+        followups?.forEach((f: any) => {
+          allItems.push({
+            id: f.id,
+            module: "vet_followups",
+            title: f.type || "Followup",
+            startAt: f.due_at,
+            status: f.status,
+            entityType: "vet_followup",
+            entityId: f.id,
+            routeToOpen: "/dashboard/vet",
+            horseName: f.treatment?.horses?.name,
+            color: "emerald",
+          });
+        });
+      }
+
       // Fetch vaccinations
       if (!modules || modules.includes("vaccinations")) {
         const { data: vaccinations } = await supabase
@@ -107,6 +131,80 @@ export function useScheduleItems({ tenantId, dateRange, modules }: UseScheduleIt
             routeToOpen: "/dashboard/breeding",
             horseName: a.mare?.name,
             color: "pink",
+          });
+        });
+      }
+
+      // Fetch horse movements
+      if (!modules || modules.includes("movement")) {
+        const { data: movements } = await supabase
+          .from("horse_movements")
+          .select("id, movement_at, movement_type, reason, horse:horses(id, name)")
+          .eq("tenant_id", tenantId)
+          .gte("movement_at", startDate)
+          .lte("movement_at", endDate);
+
+        movements?.forEach((m: any) => {
+          allItems.push({
+            id: m.id,
+            module: "movement",
+            title: `${m.movement_type} - ${m.horse?.name || "Unknown"}`,
+            startAt: m.movement_at,
+            entityType: "horse_movement",
+            entityId: m.id,
+            routeToOpen: "/dashboard/movement",
+            horseName: m.horse?.name,
+            color: "orange",
+          });
+        });
+      }
+
+      // Fetch academy sessions
+      if (!modules || modules.includes("academy")) {
+        const { data: sessions } = await supabase
+          .from("academy_sessions")
+          .select("id, title, start_at, end_at, is_active")
+          .eq("tenant_id", tenantId)
+          .gte("start_at", startDate)
+          .lte("start_at", endDate);
+
+        sessions?.forEach((s: any) => {
+          allItems.push({
+            id: s.id,
+            module: "academy",
+            title: s.title,
+            startAt: s.start_at,
+            endAt: s.end_at,
+            status: s.is_active ? "active" : "inactive",
+            entityType: "academy_session",
+            entityId: s.id,
+            routeToOpen: "/dashboard/academy",
+            color: "purple",
+          });
+        });
+      }
+
+      // Fetch lab samples
+      if (!modules || modules.includes("laboratory")) {
+        const { data: samples } = await supabase
+          .from("lab_samples")
+          .select("id, collection_date, status, horse:horses(id, name)")
+          .eq("tenant_id", tenantId)
+          .gte("collection_date", startDate)
+          .lte("collection_date", endDate);
+
+        samples?.forEach((s: any) => {
+          allItems.push({
+            id: s.id,
+            module: "laboratory",
+            title: `Sample - ${s.horse?.name || "Unknown"}`,
+            startAt: s.collection_date,
+            status: s.status,
+            entityType: "lab_sample",
+            entityId: s.id,
+            routeToOpen: "/dashboard/laboratory",
+            horseName: s.horse?.name,
+            color: "cyan",
           });
         });
       }

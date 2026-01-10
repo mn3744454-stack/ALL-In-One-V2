@@ -1007,6 +1007,8 @@ export const en = {
     searchPlaceholder: "Search events...",
     modules: {
       vet: "Veterinary",
+      vet_followups: "Vet Followups",
+      vetFollowups: "Vet Followups",
       vaccinations: "Vaccinations",
       breeding: "Breeding",
       movement: "Movement",
