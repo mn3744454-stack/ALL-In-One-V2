@@ -39,8 +39,8 @@ export function MemberRoleAssignment({
   isUpdating,
   isOwner,
 }: MemberRoleAssignmentProps) {
-  const { t, language } = useI18n();
-  const isArabic = language === "ar";
+  const { t, lang } = useI18n();
+  const isArabic = lang === "ar";
 
   const getRoleDisplayName = (roleKey: string) => {
     const role = roles.find((r) => r.role_key === roleKey);

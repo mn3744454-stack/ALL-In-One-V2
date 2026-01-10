@@ -38,8 +38,8 @@ export function RolesList({
   getMemberCount,
   isOwner,
 }: RolesListProps) {
-  const { t, language } = useI18n();
-  const isArabic = language === "ar";
+  const { t, lang } = useI18n();
+  const isArabic = lang === "ar";
 
   const roleIcons: Record<string, string> = {
     owner: "👑",

@@ -74,9 +74,9 @@ export function RoleEditorDialog({
   isLoading,
   isNew,
 }: RoleEditorDialogProps) {
-  const { t, language, dir } = useI18n();
+  const { t, lang, dir } = useI18n();
   const isRTL = dir === "rtl";
-  const isArabic = language === "ar";
+  const isArabic = lang === "ar";
 
   const [name, setName] = useState("");
   const [nameAr, setNameAr] = useState("");
