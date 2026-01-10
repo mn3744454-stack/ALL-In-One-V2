@@ -158,6 +158,29 @@ export function usePermissions() {
     return effectivePermissions.has(key);
   };
 
+  // Query delegation scopes for the current member (non-owner only)
+  const { data: delegationScopes = [] } = useQuery({
+    queryKey: ["my-delegation-scopes", memberId],
+    queryFn: async (): Promise<{ permission_key: string; can_delegate: boolean }[]> => {
+      if (!memberId || isOwner) return [];
+
+      const { data, error } = await supabase
+        .from("delegation_scopes" as any)
+        .select("permission_key, can_delegate")
+        .eq("grantor_member_id", memberId)
+        .eq("can_delegate", true);
+
+      if (error) {
+        console.error("Error fetching delegation scopes:", error);
+        return [];
+      }
+      return (data || []) as unknown as { permission_key: string; can_delegate: boolean }[];
+    },
+    enabled: !!memberId && !isOwner,
+  });
+
+  const delegatableScopeSet = new Set(delegationScopes.map((s) => s.permission_key));
+
   const canDelegate = (key: string): boolean => {
     if (!user || !tenantId) return false;
     if (isOwner) return true;
@@ -168,9 +191,12 @@ export function usePermissions() {
 
     if (!hasPerm || !hasDelegate) return false;
 
-    // Check if permission is delegatable
+    // Check if permission is delegatable by definition
     const definition = allDefinitions.find((d) => d.key === key);
     if (definition && !definition.is_delegatable) return false;
+
+    // NEW: Non-owner must have explicit delegation scope from owner
+    if (!delegatableScopeSet.has(key)) return false;
 
     return true;
   };
