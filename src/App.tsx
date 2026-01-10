@@ -37,6 +37,7 @@ import DashboardRecords from "./pages/DashboardRecords";
 import DashboardFileManager from "./pages/DashboardFileManager";
 import DashboardFinance from "./pages/DashboardFinance";
 import SharedLabResult from "./pages/SharedLabResult";
+import SharedMedia from "./pages/SharedMedia";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
@@ -88,8 +89,9 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/directory" element={<Directory />} />
       <Route path="/t/:slug" element={<TenantPublicProfile />} />
-      {/* Public shared lab result - no auth required */}
+      {/* Public shared routes - no auth required */}
       <Route path="/shared/lab-result/:token" element={<SharedLabResult />} />
+      <Route path="/shared/media/:token" element={<SharedMedia />} />
       <Route
         path="/auth"
         element={

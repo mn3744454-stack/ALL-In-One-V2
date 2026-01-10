@@ -393,6 +393,36 @@ export type Database = {
           },
         ]
       }
+      bundle_permissions: {
+        Row: {
+          bundle_id: string
+          permission_key: string
+        }
+        Insert: {
+          bundle_id: string
+          permission_key: string
+        }
+        Update: {
+          bundle_id?: string
+          permission_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bundle_permissions_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "permission_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bundle_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -574,6 +604,65 @@ export type Database = {
           },
           {
             foreignKeyName: "customer_balances_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delegation_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          permission_key: string
+          target_member_id: string
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          permission_key: string
+          target_member_id: string
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          permission_key?: string
+          target_member_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delegation_audit_log_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_audit_log_target_member_id_fkey"
+            columns: ["target_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_audit_log_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -3420,6 +3509,69 @@ export type Database = {
           },
         ]
       }
+      media_asset_clients: {
+        Row: {
+          asset_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          tenant_id: string
+        }
+        Insert: {
+          asset_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          tenant_id: string
+        }
+        Update: {
+          asset_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_asset_clients_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_asset_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_asset_clients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_asset_clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_asset_clients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       media_assets: {
         Row: {
           alt_text: string | null
@@ -3482,6 +3634,160 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_share_links: {
+        Row: {
+          asset_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          revoked_at: string | null
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          revoked_at?: string | null
+          tenant_id: string
+          token?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          revoked_at?: string | null
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_share_links_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_share_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_share_links_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_share_links_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_permission_bundles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          bundle_id: string
+          tenant_member_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          bundle_id: string
+          tenant_member_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          bundle_id?: string
+          tenant_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_permission_bundles_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_permission_bundles_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "permission_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_permission_bundles_tenant_member_id_fkey"
+            columns: ["tenant_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_permissions: {
+        Row: {
+          granted: boolean
+          granted_at: string
+          granted_by: string | null
+          id: string
+          permission_key: string
+          tenant_member_id: string
+        }
+        Insert: {
+          granted?: boolean
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_key: string
+          tenant_member_id: string
+        }
+        Update: {
+          granted?: boolean
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission_key?: string
+          tenant_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_permissions_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "member_permissions_tenant_member_id_fkey"
+            columns: ["tenant_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
             referencedColumns: ["id"]
           },
         ]
@@ -3640,6 +3946,94 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      permission_bundles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permission_bundles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_bundles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "permission_bundles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      permission_definitions: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          description_ar: string | null
+          display_name: string
+          is_delegatable: boolean
+          key: string
+          module: string
+          resource: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_name: string
+          is_delegatable?: boolean
+          key: string
+          module: string
+          resource: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          description_ar?: string | null
+          display_name?: string
+          is_delegatable?: boolean
+          key?: string
+          module?: string
+          resource?: string
+        }
+        Relationships: []
       }
       post_comments: {
         Row: {
@@ -5013,6 +5407,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_delegate_permission: {
+        Args: { _permission_key: string; _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_invite_in_tenant: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -5057,6 +5455,15 @@ export type Database = {
       get_horse_display_name: {
         Args: { _horse_id: string; _use_alias?: boolean }
         Returns: string
+      }
+      get_media_share_info: {
+        Args: { _token: string }
+        Returns: {
+          bucket: string
+          filename: string
+          mime_type: string
+          path: string
+        }[]
       }
       get_public_tenant: {
         Args: { tenant_slug: string }
@@ -5108,6 +5515,10 @@ export type Database = {
       }
       has_lab_feature: {
         Args: { _feature: string; _tenant_id: string }
+        Returns: boolean
+      }
+      has_permission: {
+        Args: { _permission_key: string; _tenant_id: string; _user_id: string }
         Returns: boolean
       }
       has_tenant_role: {
