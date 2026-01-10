@@ -255,7 +255,7 @@ export function usePermissionBundles() {
     },
   });
 
-  // Grant/revoke individual permission
+  // Grant/revoke individual permission (audit is now server-side via trigger)
   const setMemberPermissionMutation = useMutation({
     mutationFn: async ({
       memberId,
@@ -268,7 +268,7 @@ export function usePermissionBundles() {
     }) => {
       if (!user || !tenantId) throw new Error("No user or tenant");
 
-      // Upsert permission override
+      // Upsert permission override - audit log is created by trigger
       const { error } = await supabase.from("member_permissions" as any).upsert(
         {
           tenant_member_id: memberId,
@@ -283,22 +283,6 @@ export function usePermissionBundles() {
       );
 
       if (error) throw error;
-
-      // Get target member's tenant_id for audit log
-      const { data: memberData } = await supabase
-        .from("tenant_members")
-        .select("tenant_id")
-        .eq("id", memberId)
-        .single();
-
-      // Log the action
-      await supabase.from("delegation_audit_log" as any).insert({
-        tenant_id: memberData?.tenant_id || tenantId,
-        actor_user_id: user.id,
-        target_member_id: memberId,
-        permission_key: permissionKey,
-        action: granted ? "granted" : "revoked",
-      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member-permissions"] });

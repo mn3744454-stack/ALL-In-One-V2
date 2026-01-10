@@ -670,6 +670,72 @@ export type Database = {
           },
         ]
       }
+      delegation_scopes: {
+        Row: {
+          can_delegate: boolean
+          created_at: string
+          created_by: string | null
+          grantor_member_id: string
+          id: string
+          permission_key: string
+          tenant_id: string
+        }
+        Insert: {
+          can_delegate?: boolean
+          created_at?: string
+          created_by?: string | null
+          grantor_member_id: string
+          id?: string
+          permission_key: string
+          tenant_id: string
+        }
+        Update: {
+          can_delegate?: boolean
+          created_at?: string
+          created_by?: string | null
+          grantor_member_id?: string
+          id?: string
+          permission_key?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delegation_scopes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_scopes_grantor_member_id_fkey"
+            columns: ["grantor_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_scopes_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "delegation_scopes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delegation_scopes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       embryo_transfers: {
         Row: {
           assigned_to: string | null

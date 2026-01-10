@@ -1307,7 +1307,11 @@ export const ar = {
       revoked: "تم الإلغاء",
       bundle_assigned: "تم تعيين الحزمة",
       bundle_removed: "تم إزالة الحزمة",
+      override_removed: "تم إزالة التخصيص",
     },
+    delegationScopes: "نطاقات التفويض",
+    delegationScopesDesc: "تحكم في الصلاحيات التي يمكن لهذا المدير تفويضها للآخرين",
+    allowDelegate: "السماح بالتفويض",
   },
   sharedMedia: {
     invalidLink: "رابط غير صالح أو منتهي",
