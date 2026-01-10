@@ -1,44 +1,59 @@
 import { useParams } from "react-router-dom";
-import { useMediaShareInfo } from "@/hooks/useMediaShareLinks";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download, FileX, Image, Video, FileText, AlertCircle } from "lucide-react";
+import { Download, Image, Video, FileText, AlertCircle } from "lucide-react";
 import { useI18n } from "@/i18n";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+interface SharedMediaData {
+  signedUrl: string;
+  filename: string;
+  mimeType: string;
+}
 
 export default function SharedMedia() {
   const { token } = useParams<{ token: string }>();
   const { t } = useI18n();
-  const { shareInfo, isLoading, error } = useMediaShareInfo(token);
 
-  // Get signed URL for the file
-  const { data: signedUrl, isLoading: loadingUrl } = useQuery({
-    queryKey: ["shared-media-url", shareInfo?.bucket, shareInfo?.path],
-    queryFn: async () => {
-      if (!shareInfo?.bucket || !shareInfo?.path) return null;
+  // Call edge function to get signed URL (works for anonymous users)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["shared-media-sign", token],
+    queryFn: async (): Promise<SharedMediaData> => {
+      if (!token) throw new Error("No token");
 
-      const { data, error } = await supabase.storage
-        .from(shareInfo.bucket)
-        .createSignedUrl(shareInfo.path, 3600); // 1 hour expiry
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/shared-media-sign`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        }
+      );
 
-      if (error) throw error;
-      return data.signedUrl;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to load shared media");
+      }
+
+      return response.json();
     },
-    enabled: !!shareInfo?.bucket && !!shareInfo?.path,
+    enabled: !!token,
+    retry: false,
   });
 
-  const isImage = shareInfo?.mime_type?.startsWith("image/");
-  const isVideo = shareInfo?.mime_type?.startsWith("video/");
+  const isImage = data?.mimeType?.startsWith("image/");
+  const isVideo = data?.mimeType?.startsWith("video/");
 
   const handleDownload = () => {
-    if (signedUrl) {
-      window.open(signedUrl, "_blank");
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, "_blank");
     }
   };
 
-  if (isLoading || loadingUrl) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
@@ -52,7 +67,7 @@ export default function SharedMedia() {
     );
   }
 
-  if (error || !shareInfo) {
+  if (error || !data) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -64,7 +79,7 @@ export default function SharedMedia() {
               {t("sharedMedia.invalidLink")}
             </h2>
             <p className="text-muted-foreground">
-              {t("sharedMedia.invalidLinkDesc")}
+              {error instanceof Error ? error.message : t("sharedMedia.invalidLinkDesc")}
             </p>
           </CardContent>
         </Card>
@@ -78,15 +93,15 @@ export default function SharedMedia() {
         <CardContent className="p-6">
           {/* Preview */}
           <div className="aspect-video bg-muted rounded-lg overflow-hidden mb-6 flex items-center justify-center">
-            {isImage && signedUrl ? (
+            {isImage && data.signedUrl ? (
               <img
-                src={signedUrl}
-                alt={shareInfo.filename}
+                src={data.signedUrl}
+                alt={data.filename}
                 className="max-w-full max-h-full object-contain"
               />
-            ) : isVideo && signedUrl ? (
+            ) : isVideo && data.signedUrl ? (
               <video
-                src={signedUrl}
+                src={data.signedUrl}
                 controls
                 className="max-w-full max-h-full"
               />
@@ -111,14 +126,14 @@ export default function SharedMedia() {
                 )}
               </div>
               <div>
-                <h3 className="font-medium text-navy">{shareInfo.filename}</h3>
+                <h3 className="font-medium text-navy">{data.filename}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {shareInfo.mime_type}
+                  {data.mimeType}
                 </p>
               </div>
             </div>
 
-            <Button onClick={handleDownload} disabled={!signedUrl}>
+            <Button onClick={handleDownload} disabled={!data.signedUrl}>
               <Download className="w-4 h-4 me-2" />
               {t("sharedMedia.download")}
             </Button>

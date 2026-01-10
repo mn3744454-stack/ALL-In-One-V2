@@ -1307,7 +1307,11 @@ export const en = {
       revoked: "Revoked",
       bundle_assigned: "Bundle Assigned",
       bundle_removed: "Bundle Removed",
+      override_removed: "Override Removed",
     },
+    delegationScopes: "Delegation Scopes",
+    delegationScopesDesc: "Control which permissions this manager can delegate to others",
+    allowDelegate: "Allow delegation",
   },
   sharedMedia: {
     invalidLink: "Invalid or Expired Link",

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.send-ownership-notification]
 verify_jwt = false
+
+[functions.shared-media-sign]
+verify_jwt = false
