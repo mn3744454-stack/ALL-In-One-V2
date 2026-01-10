@@ -32,6 +32,10 @@ import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
 import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
+import DashboardSchedule from "./pages/DashboardSchedule";
+import DashboardRecords from "./pages/DashboardRecords";
+import DashboardFileManager from "./pages/DashboardFileManager";
+import DashboardFinance from "./pages/DashboardFinance";
 import SharedLabResult from "./pages/SharedLabResult";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
@@ -301,6 +305,38 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardOrganizationSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/schedule"
+        element={
+          <ProtectedRoute>
+            <DashboardSchedule />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/records"
+        element={
+          <ProtectedRoute>
+            <DashboardRecords />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/files"
+        element={
+          <ProtectedRoute>
+            <DashboardFileManager />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance"
+        element={
+          <ProtectedRoute>
+            <DashboardFinance />
           </ProtectedRoute>
         }
       />

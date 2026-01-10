@@ -33,6 +33,8 @@ import {
   FlaskConical,
   ArrowLeftRight,
   Warehouse,
+  FolderOpen,
+  Wallet,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -239,8 +241,20 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               onNavigate={onClose}
             />
 
-            <NavItem icon={Calendar} label={t('sidebar.schedule')} onNavigate={onClose} />
-            <NavItem icon={FileText} label={t('sidebar.records')} onNavigate={onClose} />
+            <NavItem 
+              icon={Calendar} 
+              label={t('sidebar.schedule')} 
+              href="/dashboard/schedule"
+              active={isActive("/dashboard/schedule")}
+              onNavigate={onClose} 
+            />
+            <NavItem 
+              icon={FileText} 
+              label={t('sidebar.records')} 
+              href="/dashboard/records"
+              active={isActive("/dashboard/records")}
+              onNavigate={onClose} 
+            />
             
             {/* HR / Team - for owners and managers */}
             {["owner", "manager"].includes(activeRole || "") && activeTenant && (
@@ -279,6 +293,20 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   label={t('sidebar.revenue')}
                   href="/dashboard/revenue"
                   active={isActive("/dashboard/revenue")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={Wallet}
+                  label={t('finance.title')}
+                  href="/dashboard/finance"
+                  active={isActive("/dashboard/finance")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={FolderOpen}
+                  label={t('files.title')}
+                  href="/dashboard/files"
+                  active={isActive("/dashboard/files")}
                   onNavigate={onClose}
                 />
               </>
