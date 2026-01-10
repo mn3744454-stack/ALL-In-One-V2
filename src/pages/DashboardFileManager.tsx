@@ -352,7 +352,7 @@ export default function DashboardFileManager() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (confirm(t("files.confirmBulkDelete", { count: selectedIds.size }))) {
+    if (confirm(`${t("files.confirmBulkDelete")} (${selectedIds.size})`)) {
       for (const id of selectedIds) {
         await deleteAsset(id);
       }
@@ -453,7 +453,7 @@ export default function DashboardFileManager() {
                   onCheckedChange={handleSelectAll}
                 />
                 <span className="text-sm text-muted-foreground">
-                  {t("files.selected", { count: selectedIds.size })}
+                  {selectedIds.size} {t("files.selected")}
                 </span>
                 <Button 
                   variant="destructive" 
