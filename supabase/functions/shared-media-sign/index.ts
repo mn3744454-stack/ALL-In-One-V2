@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 Deno.serve(async (req) => {
@@ -22,11 +23,21 @@ Deno.serve(async (req) => {
     }
 
     // Create Supabase client with service role for privileged access
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing required environment variables");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Call the RPC to validate token and get share info
+    // Note: RPC already filters out revoked/expired links
     const { data: shareInfo, error: rpcError } = await supabase.rpc(
       "get_media_share_info",
       { _token: token }
@@ -48,21 +59,6 @@ Deno.serve(async (req) => {
     }
 
     const info = shareInfo[0];
-    
-    // Check if link is revoked or expired
-    if (info.is_revoked) {
-      return new Response(
-        JSON.stringify({ error: "This share link has been revoked" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (info.expires_at && new Date(info.expires_at) < new Date()) {
-      return new Response(
-        JSON.stringify({ error: "This share link has expired" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
 
     // Create signed URL using service role
     const { data: signedUrlData, error: storageError } = await supabase.storage
