@@ -25,6 +25,17 @@ export const ar = {
     success: "نجاح",
     error: "خطأ",
     required: "مطلوب",
+    system: "نظام",
+    selectAll: "تحديد الكل",
+    deselectAll: "إلغاء التحديد",
+  },
+  settings: {
+    permissionsRoles: {
+      title: "الصلاحيات والأدوار",
+      desc: "إدارة أدوار الأعضاء، إسناد الحزم، ونطاقات التفويض.",
+      open: "فتح",
+      unauthorized: "غير مصرح لك بالوصول إلى هذه الصفحة",
+    },
   },
   sidebar: {
     dashboard: "لوحة التحكم",

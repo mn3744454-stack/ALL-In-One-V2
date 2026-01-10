@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield } from "lucide-react";
+import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key } from "lucide-react";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
@@ -15,6 +16,7 @@ type LabMode = "none" | "requests" | "full";
 
 const DashboardOrganizationSettings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { 
     vetEnabled, 
@@ -115,6 +117,34 @@ const DashboardOrganizationSettings = () => {
           )}
 
           <div className="max-w-3xl space-y-6">
+            {/* Permissions & Roles Card */}
+            {(activeRole === "owner" || activeRole === "manager") && (
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Key className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>{t("settings.permissionsRoles.title")}</CardTitle>
+                        <CardDescription>
+                          {t("settings.permissionsRoles.desc")}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/dashboard/settings/permissions")}
+                      className="gap-2"
+                    >
+                      {t("settings.permissionsRoles.open")}
+                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
+
             {/* Modules Card */}
             <Card>
               <CardHeader>
