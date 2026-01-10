@@ -38,13 +38,13 @@ export function useScheduleItems({ tenantId, dateRange, modules }: UseScheduleIt
       if (!modules || modules.includes("vet")) {
         const { data: vetVisits } = await supabase
           .from("vet_visits")
-          .select("id, title, scheduled_date, scheduled_end_date, status, vet_visit_horses(horse:horses(id, name))")
+          .select("id, title, scheduled_date, scheduled_end_date, status, horse_id, horses(id, name)")
           .eq("tenant_id", tenantId)
           .gte("scheduled_date", startDate)
           .lte("scheduled_date", endDate);
 
-        vetVisits?.forEach((v) => {
-          const horseName = v.vet_visit_horses?.[0]?.horse?.name;
+        vetVisits?.forEach((v: any) => {
+          const horseName = v.horses?.name;
           allItems.push({
             id: v.id,
             module: "vet",

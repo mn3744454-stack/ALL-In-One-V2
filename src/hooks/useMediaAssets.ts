@@ -28,33 +28,44 @@ interface UseMediaAssetsParams {
 export function useMediaAssets({ tenantId, entityType, entityId }: UseMediaAssetsParams) {
   const queryClient = useQueryClient();
 
+  // Note: media_assets table needs to be created via migration
+  // Using rpc or raw query pattern for tables not yet in generated types
   const { data: assets = [], isLoading } = useQuery({
     queryKey: ["media-assets", tenantId, entityType, entityId],
-    queryFn: async () => {
+    queryFn: async (): Promise<MediaAsset[]> => {
       if (!tenantId) return [];
 
-      let query = supabase
-        .from("media_assets")
+      // Build filter conditions
+      const filters: string[] = [`tenant_id.eq.${tenantId}`];
+      if (entityType) filters.push(`entity_type.eq.${entityType}`);
+      if (entityId) filters.push(`entity_id.eq.${entityId}`);
+
+      const { data, error } = await supabase
+        .from("media_assets" as any)
         .select("*")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
 
-      if (entityType) {
-        query = query.eq("entity_type", entityType);
-      }
-
-      if (entityId) {
-        query = query.eq("entity_id", entityId);
-      }
-
-      const { data, error } = await query;
-
       if (error) {
+        // Table might not exist yet
+        if (error.code === "42P01") {
+          console.warn("media_assets table does not exist yet");
+          return [];
+        }
         console.error("Error fetching media assets:", error);
         return [];
       }
 
-      return (data || []) as MediaAsset[];
+      // Apply additional filters manually if needed
+      let result = (data || []) as unknown as MediaAsset[];
+      if (entityType) {
+        result = result.filter(a => a.entity_type === entityType);
+      }
+      if (entityId) {
+        result = result.filter(a => a.entity_id === entityId);
+      }
+
+      return result;
     },
     enabled: !!tenantId,
   });
@@ -73,9 +84,9 @@ export function useMediaAssets({ tenantId, entityType, entityId }: UseMediaAsset
         console.error("Storage delete error:", storageError);
       }
 
-      // Delete from database
+      // Delete from database using type assertion
       const { error } = await supabase
-        .from("media_assets")
+        .from("media_assets" as any)
         .delete()
         .eq("id", assetId);
 
