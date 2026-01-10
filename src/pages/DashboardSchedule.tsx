@@ -35,8 +35,10 @@ import {
   ChevronRight,
   Clock,
   MapPin,
+  Grid3X3,
 } from "lucide-react";
 import { DirectionalIcon } from "@/components/ui/directional-icon";
+import { ScheduleCalendarView } from "@/components/schedule";
 
 const moduleIcons: Record<string, React.ElementType> = {
   vet: Stethoscope,
@@ -215,7 +217,7 @@ function ScheduleCalendar({
 
 export default function DashboardSchedule() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [view, setView] = useState<"list" | "calendar">("list");
+  const [view, setView] = useState<"list" | "calendar" | "grid">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -315,15 +317,19 @@ export default function DashboardSchedule() {
                 </SelectContent>
               </Select>
 
-              <Tabs value={view} onValueChange={(v) => setView(v as "list" | "calendar")}>
-                <TabsList>
-                  <TabsTrigger value="list" className="gap-2">
+              <Tabs value={view} onValueChange={(v) => setView(v as "list" | "calendar" | "grid")}>
+                <TabsList className="h-9">
+                  <TabsTrigger value="list" className="gap-1.5 px-2 sm:px-3">
                     <List className="w-4 h-4" />
                     <span className="hidden sm:inline">{t("schedule.views.list")}</span>
                   </TabsTrigger>
-                  <TabsTrigger value="calendar" className="gap-2">
+                  <TabsTrigger value="calendar" className="gap-1.5 px-2 sm:px-3">
                     <CalendarDays className="w-4 h-4" />
                     <span className="hidden sm:inline">{t("schedule.views.calendar")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="grid" className="gap-1.5 px-2 sm:px-3">
+                    <Grid3X3 className="w-4 h-4" />
+                    <span className="hidden sm:inline">{t("schedule.calendar.monthView")}</span>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -359,15 +365,17 @@ export default function DashboardSchedule() {
         </Card>
 
         {/* Content */}
-        {view === "list" ? (
+        {view === "list" && (
           <ScheduleList 
             items={filteredItems} 
             loading={isLoading}
             onItemClick={handleItemClick}
           />
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
+        )}
+        
+        {view === "calendar" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div className="order-2 lg:order-1 lg:col-span-1">
               <ScheduleCalendar
                 items={filteredItems}
                 selectedDate={selectedDate}
@@ -375,8 +383,8 @@ export default function DashboardSchedule() {
                 onMonthChange={handleMonthChange}
               />
             </div>
-            <div className="lg:col-span-2">
-              <h3 className="text-lg font-semibold text-navy mb-4">
+            <div className="order-1 lg:order-2 lg:col-span-2">
+              <h3 className="text-base lg:text-lg font-semibold text-navy mb-3 lg:mb-4">
                 {format(selectedDate, "EEEE, MMMM d, yyyy")}
               </h3>
               <ScheduleList 
@@ -386,6 +394,15 @@ export default function DashboardSchedule() {
               />
             </div>
           </div>
+        )}
+
+        {view === "grid" && (
+          <ScheduleCalendarView
+            items={filteredItems}
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            onItemClick={handleItemClick}
+          />
         )}
       </main>
     </div>

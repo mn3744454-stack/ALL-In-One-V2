@@ -87,32 +87,32 @@ export function ExpenseCard({
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Category Icon */}
-          <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0", colorClass)}>
-            <Icon className="w-6 h-6" />
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Category Icon - smaller on mobile */}
+          <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", colorClass)}>
+            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <div>
-                <h4 className="font-medium text-navy truncate">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2 mb-1">
+              <div className="min-w-0">
+                <h4 className="font-medium text-navy text-sm sm:text-base truncate">
                   {expense.description || t(`finance.expenses.categories.${expense.category}`)}
                 </h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {expense.vendor_name || t("finance.expenses.noVendor")}
                 </p>
               </div>
-              <div className="text-end shrink-0">
-                <p className="text-lg font-bold text-navy">
+              <div className="text-start sm:text-end shrink-0">
+                <p className="text-base sm:text-lg font-bold text-navy">
                   {formatCurrency(expense.amount, expense.currency)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center flex-wrap gap-2 mt-2">
+            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-2">
               <ExpenseStatusBadge status={expense.status} />
               <span className="text-xs text-muted-foreground">
                 {format(new Date(expense.expense_date), "MMM d, yyyy")}
@@ -121,17 +121,17 @@ export function ExpenseCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-xs gap-1 text-gold hover:text-gold-dark"
+                  className="h-6 text-xs gap-1 text-gold hover:text-gold-dark px-1.5"
                   onClick={onViewReceipt}
                 >
                   <Receipt className="w-3 h-3" />
-                  {t("finance.expenses.viewReceipt")}
+                  <span className="hidden xs:inline">{t("finance.expenses.viewReceipt")}</span>
                 </Button>
               )}
             </div>
 
-            {expense.notes && (
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+            {expense.notes && !expense.notes.includes('[DEMO]') && (
+              <p className="text-xs sm:text-sm text-muted-foreground mt-2 line-clamp-2">
                 {expense.notes}
               </p>
             )}
@@ -141,7 +141,7 @@ export function ExpenseCard({
           {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0">
+                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
                   <MoreHorizontal className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>

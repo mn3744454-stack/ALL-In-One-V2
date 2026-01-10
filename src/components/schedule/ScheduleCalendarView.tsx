@@ -99,16 +99,16 @@ function DraggableEventCard({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center gap-1.5 p-1.5 rounded-md border text-xs cursor-grab active:cursor-grabbing transition-all",
+        "group flex items-center gap-1 p-1 sm:p-1.5 rounded border text-[10px] sm:text-xs cursor-grab active:cursor-grabbing transition-all",
         colorClass,
         isDragging && "opacity-50 shadow-lg scale-105"
       )}
       {...listeners}
       {...attributes}
     >
-      <GripVertical className="w-3 h-3 opacity-0 group-hover:opacity-50 shrink-0" />
-      <Icon className="w-3 h-3 shrink-0" />
-      <span className="truncate flex-1">{item.title}</span>
+      <GripVertical className="w-2.5 h-2.5 sm:w-3 sm:h-3 opacity-0 group-hover:opacity-50 shrink-0 hidden sm:block" />
+      <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+      <span className="truncate flex-1 leading-tight">{item.title}</span>
     </div>
   );
 }
@@ -131,14 +131,15 @@ function DroppableDay({
   });
 
   const dayItems = items.filter((item) => isSameDay(new Date(item.startAt), date));
-  const displayItems = dayItems.slice(0, 3);
-  const moreCount = dayItems.length - 3;
+  // Show 2 items on mobile, 3 on desktop
+  const displayItems = dayItems.slice(0, 2);
+  const moreCount = dayItems.length - 2;
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "min-h-24 p-1 border-b border-e transition-colors",
+        "min-h-16 sm:min-h-24 p-0.5 sm:p-1 border-b border-e transition-colors",
         !isCurrentMonth && "bg-muted/30",
         isToday(date) && "bg-gold/5",
         isOver && "bg-gold/20 ring-2 ring-gold ring-inset"
@@ -146,22 +147,22 @@ function DroppableDay({
     >
       <div
         className={cn(
-          "text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full",
+          "text-[10px] sm:text-xs font-medium mb-0.5 sm:mb-1 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full",
           isToday(date) && "bg-gold text-white",
           !isCurrentMonth && "text-muted-foreground"
         )}
       >
         {format(date, "d")}
       </div>
-      <div className="space-y-1">
+      <div className="space-y-0.5 sm:space-y-1">
         {displayItems.map((item) => (
           <div key={item.id} onClick={() => onItemClick?.(item)}>
             <DraggableEventCard item={item} />
           </div>
         ))}
         {moreCount > 0 && (
-          <div className="text-xs text-muted-foreground text-center">
-            +{moreCount} more
+          <div className="text-[10px] sm:text-xs text-muted-foreground text-center">
+            +{moreCount}
           </div>
         )}
       </div>
