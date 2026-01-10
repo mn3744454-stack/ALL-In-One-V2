@@ -25,6 +25,17 @@ export const en = {
     success: "Success",
     error: "Error",
     required: "Required",
+    system: "System",
+    selectAll: "Select All",
+    deselectAll: "Deselect All",
+  },
+  settings: {
+    permissionsRoles: {
+      title: "Permissions & Roles",
+      desc: "Manage member roles, bundle assignments, and delegation scopes.",
+      open: "Open",
+      unauthorized: "You are not authorized to access this page",
+    },
   },
   sidebar: {
     dashboard: "Dashboard",

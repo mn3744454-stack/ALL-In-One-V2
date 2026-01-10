@@ -36,6 +36,7 @@ import DashboardSchedule from "./pages/DashboardSchedule";
 import DashboardRecords from "./pages/DashboardRecords";
 import DashboardFileManager from "./pages/DashboardFileManager";
 import DashboardFinance from "./pages/DashboardFinance";
+import DashboardPermissionsSettings from "./pages/DashboardPermissionsSettings";
 import SharedLabResult from "./pages/SharedLabResult";
 import SharedMedia from "./pages/SharedMedia";
 import HorseProfile from "./pages/HorseProfile";
@@ -307,6 +308,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardOrganizationSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/settings/permissions"
+        element={
+          <ProtectedRoute>
+            <DashboardPermissionsSettings />
           </ProtectedRoute>
         }
       />
