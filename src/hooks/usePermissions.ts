@@ -160,13 +160,14 @@ export function usePermissions() {
 
   // Query delegation scopes for the current member (non-owner only)
   const { data: delegationScopes = [] } = useQuery({
-    queryKey: ["my-delegation-scopes", memberId],
+    queryKey: ["my-delegation-scopes", tenantId, memberId],
     queryFn: async (): Promise<{ permission_key: string; can_delegate: boolean }[]> => {
-      if (!memberId || isOwner) return [];
+      if (!memberId || !tenantId || isOwner) return [];
 
       const { data, error } = await supabase
         .from("delegation_scopes" as any)
         .select("permission_key, can_delegate")
+        .eq("tenant_id", tenantId)
         .eq("grantor_member_id", memberId)
         .eq("can_delegate", true);
 
@@ -176,7 +177,7 @@ export function usePermissions() {
       }
       return (data || []) as unknown as { permission_key: string; can_delegate: boolean }[];
     },
-    enabled: !!memberId && !isOwner,
+    enabled: !!memberId && !!tenantId && !isOwner,
   });
 
   const delegatableScopeSet = new Set(delegationScopes.map((s) => s.permission_key));
