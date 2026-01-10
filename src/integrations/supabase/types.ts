@@ -4785,6 +4785,168 @@ export type Database = {
           },
         ]
       }
+      tenant_role_bundles: {
+        Row: {
+          bundle_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          role_key: string
+          tenant_id: string
+        }
+        Insert: {
+          bundle_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role_key: string
+          tenant_id: string
+        }
+        Update: {
+          bundle_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role_key?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_role_bundles_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "permission_bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_role_bundles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_role_bundles_tenant_id_role_key_fkey"
+            columns: ["tenant_id", "role_key"]
+            isOneToOne: false
+            referencedRelation: "tenant_roles"
+            referencedColumns: ["tenant_id", "role_key"]
+          },
+        ]
+      }
+      tenant_role_permissions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          granted: boolean
+          id: string
+          permission_key: string
+          role_key: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          granted?: boolean
+          id?: string
+          permission_key: string
+          role_key: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          granted?: boolean
+          id?: string
+          permission_key?: string
+          role_key?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_role_permissions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_role_permissions_permission_key_fkey"
+            columns: ["permission_key"]
+            isOneToOne: false
+            referencedRelation: "permission_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "tenant_role_permissions_tenant_id_role_key_fkey"
+            columns: ["tenant_id", "role_key"]
+            isOneToOne: false
+            referencedRelation: "tenant_roles"
+            referencedColumns: ["tenant_id", "role_key"]
+          },
+        ]
+      }
+      tenant_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          description_ar: string | null
+          is_system: boolean
+          name: string
+          name_ar: string | null
+          role_key: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          is_system?: boolean
+          name: string
+          name_ar?: string | null
+          role_key: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          description_ar?: string | null
+          is_system?: boolean
+          name?: string
+          name_ar?: string | null
+          role_key?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_roles_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_services: {
         Row: {
           created_at: string
