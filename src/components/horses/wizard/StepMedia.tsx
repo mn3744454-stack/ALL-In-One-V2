@@ -22,11 +22,11 @@ interface StepMediaProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
   tenantId: string;
-  horseId?: string; // Optional for create mode (will use temp UUID)
-  onTempUUIDGenerated?: (tempUUID: string) => void; // Callback to notify parent of temp UUID
+  horseId?: string; // For edit mode - the real horse ID
+  tempEntityId: string; // For create mode - stable temp UUID from HorseWizard
 }
 
-export const StepMedia = ({ data, onChange, tenantId, horseId, onTempUUIDGenerated }: StepMediaProps) => {
+export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: StepMediaProps) => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [dragOverImages, setDragOverImages] = useState(false);
@@ -37,23 +37,18 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, onTempUUIDGenerat
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate a stable temp UUID for this component instance (only used in create mode)
-  const [tempEntityUUID] = useState(() => crypto.randomUUID());
-  
-  // Use horseId if available (edit mode), otherwise use the stable temp UUID
-  const entityIdForUpload = horseId || tempEntityUUID;
-  
-  // Notify parent of the temp UUID when in create mode
-  useEffect(() => {
-    if (!horseId && onTempUUIDGenerated) {
-      onTempUUIDGenerated(tempEntityUUID);
-    }
-  }, [horseId, tempEntityUUID, onTempUUIDGenerated]);
+  // Determine the entity ID to use for uploads and queries
+  // In edit mode: use horseId (real horse ID)
+  // In create mode: use tempEntityId (stable UUID from HorseWizard)
+  const entityIdForUpload = horseId ?? tempEntityId;
 
-  // Load existing media assets when horseId is available
+  // Load existing media assets
+  // - Edit mode: load by horseId
+  // - Create mode: load by tempEntityId (for assets uploaded in this session)
   useEffect(() => {
     const loadExistingAssets = async () => {
-      if (!horseId || !tenantId) return;
+      const entityIdToQuery = horseId ?? tempEntityId;
+      if (!entityIdToQuery || !tenantId) return;
       
       try {
         const { data: assets, error } = await supabase
@@ -61,7 +56,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, onTempUUIDGenerat
           .select("*")
           .eq("tenant_id", tenantId)
           .eq("entity_type", "horse")
-          .eq("entity_id", horseId)
+          .eq("entity_id", entityIdToQuery)
           .order("display_order", { ascending: true });
 
         if (error) {
@@ -97,7 +92,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, onTempUUIDGenerat
     };
 
     loadExistingAssets();
-  }, [horseId, tenantId]);
+  }, [horseId, tempEntityId, tenantId]);
 
   const uploadFile = async (file: File, type: 'image' | 'video'): Promise<MediaAssetRef | null> => {
     const fileExt = file.name.split('.').pop();
