@@ -7,6 +7,9 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { InvitationsPanel } from "@/components/InvitationsPanel";
 import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
+import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
+import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -229,6 +232,15 @@ const Dashboard = () => {
                 change="Stats coming soon"
               />
             </div>
+
+            {/* Dashboard Widgets - Only show for users with a tenant */}
+            {activeTenant && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <UpcomingScheduleWidget />
+                <RecentActivityWidget />
+                <FinancialSummaryWidget />
+              </div>
+            )}
 
             {/* Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
