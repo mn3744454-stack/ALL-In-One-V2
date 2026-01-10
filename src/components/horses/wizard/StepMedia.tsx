@@ -22,10 +22,11 @@ interface StepMediaProps {
   data: HorseWizardData;
   onChange: (updates: Partial<HorseWizardData>) => void;
   tenantId: string;
-  horseId?: string; // Optional for create mode (will use temp ID)
+  horseId?: string; // Optional for create mode (will use temp UUID)
+  onTempUUIDGenerated?: (tempUUID: string) => void; // Callback to notify parent of temp UUID
 }
 
-export const StepMedia = ({ data, onChange, tenantId, horseId }: StepMediaProps) => {
+export const StepMedia = ({ data, onChange, tenantId, horseId, onTempUUIDGenerated }: StepMediaProps) => {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [dragOverImages, setDragOverImages] = useState(false);
@@ -36,8 +37,18 @@ export const StepMedia = ({ data, onChange, tenantId, horseId }: StepMediaProps)
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  // Get or create a temp entity ID for uploads before horse is saved
-  const tempEntityId = horseId || `temp-${Date.now()}`;
+  // Generate a stable temp UUID for this component instance (only used in create mode)
+  const [tempEntityUUID] = useState(() => crypto.randomUUID());
+  
+  // Use horseId if available (edit mode), otherwise use the stable temp UUID
+  const entityIdForUpload = horseId || tempEntityUUID;
+  
+  // Notify parent of the temp UUID when in create mode
+  useEffect(() => {
+    if (!horseId && onTempUUIDGenerated) {
+      onTempUUIDGenerated(tempEntityUUID);
+    }
+  }, [horseId, tempEntityUUID, onTempUUIDGenerated]);
 
   // Load existing media assets when horseId is available
   useEffect(() => {
@@ -90,9 +101,9 @@ export const StepMedia = ({ data, onChange, tenantId, horseId }: StepMediaProps)
 
   const uploadFile = async (file: File, type: 'image' | 'video'): Promise<MediaAssetRef | null> => {
     const fileExt = file.name.split('.').pop();
-    const entityId = horseId || tempEntityId;
     // Use tenant-scoped path: ${tenantId}/${entityType}/${entityId}/${uuid}.${ext}
-    const path = `${tenantId}/horses/${entityId}/${crypto.randomUUID()}.${fileExt}`;
+    // entityIdForUpload is always a valid UUID (either real horseId or temp UUID)
+    const path = `${tenantId}/horses/${entityIdForUpload}/${crypto.randomUUID()}.${fileExt}`;
 
     // 1. Upload to storage
     const { error: uploadError } = await supabase.storage
@@ -113,7 +124,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId }: StepMediaProps)
       .insert({
         tenant_id: tenantId,
         entity_type: "horse",
-        entity_id: entityId,
+        entity_id: entityIdForUpload, // Always a valid UUID
         bucket: "horse-media",
         path,
         filename: file.name,
