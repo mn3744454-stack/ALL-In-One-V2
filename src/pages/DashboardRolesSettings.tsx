@@ -28,11 +28,11 @@ const DashboardRolesSettings = () => {
   const { activeTenant, activeRole } = useTenant();
   const { allDefinitions, loading: loadingPermissions } = usePermissions();
   const { bundles, getBundlePermissions, loading: loadingBundles } = usePermissionBundles();
-  const { 
+const { 
     roles, 
     isLoading: loadingRoles, 
-    createRole, 
-    updateRole, 
+    createRoleAsync, 
+    updateRoleAsync, 
     deleteRole,
     isCreating,
     isUpdating,
@@ -44,8 +44,8 @@ const DashboardRolesSettings = () => {
   const { 
     getRolePermissions, 
   } = useTenantRolePermissions();
-  const {
-    setRoleAccess,
+const {
+    setRoleAccessAsync,
     isUpdating: updatingRoleAccess,
   } = useSetTenantRoleAccess();
   const {
@@ -61,10 +61,12 @@ const DashboardRolesSettings = () => {
   const isOwnerRole = activeRole === "owner";
   const loading = loadingPermissions || loadingBundles || loadingRoles;
 
+  // Temporarily disabled until Patch 3 (enum to text conversion)
   const handleCreateRole = () => {
-    setSelectedRoleKey(null);
-    setIsNew(true);
-    setEditorOpen(true);
+    toast.info("الأدوار المخصصة ستُفعّل بعد Patch 3 (تحويل tenant_members.role إلى text)");
+    // setSelectedRoleKey(null);
+    // setIsNew(true);
+    // setEditorOpen(true);
   };
 
   const handleEditRole = (role: typeof roles[0]) => {
@@ -89,8 +91,9 @@ const DashboardRolesSettings = () => {
     bundleIds: string[];
   }) => {
     try {
+      // Step 1: Create or update the role first (sequential to avoid race condition)
       if (isNew) {
-        createRole({
+        await createRoleAsync({
           role_key: data.role_key,
           name: data.name,
           name_ar: data.name_ar,
@@ -98,7 +101,7 @@ const DashboardRolesSettings = () => {
           description_ar: data.description_ar,
         });
       } else {
-        updateRole({
+        await updateRoleAsync({
           role_key: data.role_key,
           name: data.name,
           name_ar: data.name_ar,
@@ -107,16 +110,20 @@ const DashboardRolesSettings = () => {
         });
       }
 
-      // Use atomic RPC to set permissions and bundles for the role
-      setRoleAccess({ 
+      // Step 2: Only after role exists, set permissions and bundles atomically
+      await setRoleAccessAsync({ 
         roleKey: data.role_key, 
         permissionKeys: data.permissionKeys, 
         bundleIds: data.bundleIds 
       });
 
+      // Only close dialog after both operations succeed
+      toast.success(isNew ? "تم إنشاء الدور بنجاح" : "تم تحديث الدور بنجاح");
       setEditorOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving role:", error);
+      // Don't close dialog on error - let user retry
+      toast.error(error.message || "فشل في حفظ الدور");
     }
   };
 

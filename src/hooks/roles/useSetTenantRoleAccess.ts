@@ -28,16 +28,18 @@ export function useSetTenantRoleAccess() {
       if (error) throw error;
     },
     onSuccess: () => {
-      // Invalidate all related queries
+      // Invalidate tenant-scoped queries only
       queryClient.invalidateQueries({ queryKey: ["tenant-role-permissions", tenantId] });
       queryClient.invalidateQueries({ queryKey: ["tenant-role-bundles", tenantId] });
       queryClient.invalidateQueries({ queryKey: ["tenant-roles", tenantId] });
-      // Invalidate effective permissions cache
+      // Invalidate effective permissions cache (tenant-scoped where applicable)
+      queryClient.invalidateQueries({ queryKey: ["permission-definitions", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["bundle-permissions", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["member-permissions", tenantId] });
+      // Also invalidate without tenantId for global caches
       queryClient.invalidateQueries({ queryKey: ["permission-definitions"] });
-      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles"] });
       queryClient.invalidateQueries({ queryKey: ["bundle-permissions"] });
-      queryClient.invalidateQueries({ queryKey: ["member-permissions"] });
-      toast.success("تم تحديث صلاحيات الدور بنجاح");
     },
     onError: (error: any) => {
       console.error("Error setting role access:", error);
