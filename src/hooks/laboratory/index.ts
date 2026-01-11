@@ -7,3 +7,4 @@ export * from "./useLabCredits";
 export * from "./useLabResultShares";
 export * from "./useHorseAliases";
 export * from "./useLabFeatures";
+export * from "./useLabInvoiceDraft";

@@ -259,6 +259,26 @@ export const en = {
       },
     },
     
+    // Lab Billing
+    billing: {
+      generateInvoice: "Generate Invoice",
+      generateInvoiceDesc: "Create a draft invoice from this lab service",
+      createInvoice: "Create Invoice",
+      selectClient: "Select Client",
+      selectClientPlaceholder: "Choose a client for billing...",
+      lineItems: "Line Items",
+      noItemsFound: "No billable items found",
+      quantity: "Qty",
+      sourceSample: "Sample",
+      sourceRequest: "Request",
+      invoiceCreated: "Invoice created successfully",
+      invoiceError: "Failed to create invoice",
+      noTenant: "No active organization",
+      noPermission: "You don't have permission to create invoices",
+      noItems: "No billable items found",
+      notesPlaceholder: "Optional notes for the invoice...",
+    },
+    
     // Alerts
     alerts: {
       mvpInfo: "Laboratory Module MVP. Create and track samples, manage results with templates.",
