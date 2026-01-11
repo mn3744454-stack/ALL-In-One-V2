@@ -10,9 +10,11 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
+import { MobileBottomNav, MobileLauncher } from "@/components/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { useI18n } from "@/i18n";
 import {
   Building2,
   Search,
@@ -31,10 +33,12 @@ import {
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
+  const { t, dir } = useI18n();
 
   // Check if public profile needs setup (owner with no slug)
   const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
@@ -44,7 +48,8 @@ const Dashboard = () => {
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
   return (
-    <div className="h-dvh w-full bg-cream flex overflow-hidden">
+    <div className="h-dvh w-full bg-cream flex overflow-hidden" dir={dir}>
+      {/* Desktop Sidebar - hidden on mobile */}
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       {/* Main Content */}
@@ -348,7 +353,15 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+          {/* Bottom padding for mobile nav */}
+          <div className="h-20 lg:hidden" />
         </div>
+        
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav onOpenLauncher={() => setLauncherOpen(true)} />
+        
+        {/* Mobile Launcher Sheet */}
+        <MobileLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
       </main>
     </div>
   );
