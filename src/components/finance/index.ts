@@ -8,3 +8,4 @@ export { InvoiceLineItemsEditor } from "./InvoiceLineItemsEditor";
 export { InvoicesList } from "./InvoicesList";
 export { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 export { generateInvoicePDF, downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
+export { FinancialCategorization } from "./FinancialCategorization";

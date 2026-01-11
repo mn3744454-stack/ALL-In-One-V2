@@ -46,6 +46,8 @@ import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
 import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
+// Finance child pages
+import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
 
 const queryClient = new QueryClient();
 
@@ -352,11 +354,86 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Finance module routes */}
       <Route
         path="/dashboard/finance"
         element={
           <ProtectedRoute>
             <DashboardFinance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/invoices"
+        element={
+          <ProtectedRoute>
+            <DashboardFinance initialTab="invoices" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/expenses"
+        element={
+          <ProtectedRoute>
+            <DashboardFinance initialTab="expenses" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/ledger"
+        element={
+          <ProtectedRoute>
+            <DashboardFinance initialTab="ledger" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/payments"
+        element={
+          <ProtectedRoute>
+            <DashboardPayments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/revenue"
+        element={
+          <ProtectedRoute>
+            <DashboardRevenue />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/pos"
+        element={
+          <ProtectedRoute>
+            <DashboardFinancePOS />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/categories"
+        element={
+          <ProtectedRoute>
+            <DashboardFinanceCategories />
+          </ProtectedRoute>
+        }
+      />
+      {/* Backward compatibility redirects */}
+      <Route
+        path="/dashboard/payments"
+        element={<Navigate to="/dashboard/finance/payments" replace />}
+      />
+      <Route
+        path="/dashboard/revenue"
+        element={<Navigate to="/dashboard/finance/revenue" replace />}
+      />
+      {/* My Payments for regular users (different from finance payments) */}
+      <Route
+        path="/dashboard/my-payments"
+        element={
+          <ProtectedRoute>
+            <DashboardPayments />
           </ProtectedRoute>
         }
       />
