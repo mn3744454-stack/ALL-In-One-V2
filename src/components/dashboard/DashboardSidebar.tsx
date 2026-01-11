@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import {
@@ -122,6 +123,12 @@ interface DashboardSidebarProps {
 }
 
 export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
+  const isDesktop = useIsDesktop();
+  
+  // Don't render sidebar at all on mobile/tablet (<1024px)
+  // This is the single-point fix for mobile sidebar isolation
+  if (!isDesktop) return null;
+  
   const location = useLocation();
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
