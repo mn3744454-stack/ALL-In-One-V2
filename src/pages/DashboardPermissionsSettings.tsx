@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RtlTabs, RtlTabsList, RtlTabsTrigger, RtlTabsContent } from "@/components/ui/RtlTabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Menu, Shield, ArrowRight, Package, Plus } from "lucide-react";
+import { Menu, Shield, Package, Plus } from "lucide-react";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { usePermissionBundles } from "@/hooks/usePermissionBundles";
@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { MemberPermissionsPanel, BundleEditor, DelegationAuditLog } from "@/components/permissions";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { BackButton } from "@/components/ui/BackButton";
 import type { PermissionBundle } from "@/hooks/usePermissions";
 
 const DashboardPermissionsSettings = () => {
@@ -30,7 +31,7 @@ const DashboardPermissionsSettings = () => {
     isCreating,
     isUpdating 
   } = usePermissionBundles();
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const isOwner = activeRole === "owner";
@@ -127,15 +128,7 @@ const DashboardPermissionsSettings = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard/settings")}
-              className="gap-2"
-            >
-              <ArrowRight className={dir === "rtl" ? "rotate-180" : ""} />
-              {t("common.back")}
-            </Button>
+            <BackButton onClick={() => navigate("/dashboard/settings")} />
           </div>
         </header>
 
@@ -148,14 +141,14 @@ const DashboardPermissionsSettings = () => {
             </AlertDescription>
           </Alert>
 
-          <Tabs defaultValue="members" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-3 mb-6">
-              <TabsTrigger value="members">{t("permissions.members")}</TabsTrigger>
-              <TabsTrigger value="bundles">{t("permissions.bundles")}</TabsTrigger>
-              <TabsTrigger value="audit">{t("permissions.auditLog")}</TabsTrigger>
-            </TabsList>
+          <RtlTabs defaultValue="members" className="w-full">
+            <RtlTabsList className="grid w-full max-w-md grid-cols-3 mb-6">
+              <RtlTabsTrigger value="members">{t("permissions.members")}</RtlTabsTrigger>
+              <RtlTabsTrigger value="bundles">{t("permissions.bundles")}</RtlTabsTrigger>
+              <RtlTabsTrigger value="audit">{t("permissions.auditLog")}</RtlTabsTrigger>
+            </RtlTabsList>
 
-            <TabsContent value="members">
+            <RtlTabsContent value="members">
               <Card>
                 <CardHeader>
                   <CardTitle>{t("permissions.members")}</CardTitle>
@@ -165,9 +158,9 @@ const DashboardPermissionsSettings = () => {
                   <MemberPermissionsPanel />
                 </CardContent>
               </Card>
-            </TabsContent>
+            </RtlTabsContent>
 
-            <TabsContent value="bundles">
+            <RtlTabsContent value="bundles">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -225,9 +218,9 @@ const DashboardPermissionsSettings = () => {
                   </ScrollArea>
                 </CardContent>
               </Card>
-            </TabsContent>
+            </RtlTabsContent>
 
-            <TabsContent value="audit">
+            <RtlTabsContent value="audit">
               <Card>
                 <CardHeader>
                   <CardTitle>{t("permissions.auditLog")}</CardTitle>
@@ -237,8 +230,8 @@ const DashboardPermissionsSettings = () => {
                   <DelegationAuditLog />
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
+            </RtlTabsContent>
+          </RtlTabs>
         </main>
       </div>
 

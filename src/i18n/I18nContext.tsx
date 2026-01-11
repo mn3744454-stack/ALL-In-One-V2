@@ -27,7 +27,12 @@ const getNestedValue = (obj: unknown, path: string): string => {
     if (current && typeof current === 'object' && key in current) {
       current = (current as Record<string, unknown>)[key];
     } else {
-      return path; // Return key as fallback
+      // Dev-only warning for missing translation keys
+      if (import.meta.env.DEV) {
+        console.warn(`[i18n] Missing translation key: "${path}"`);
+        return `⟦${path}⟧`;
+      }
+      return path; // Return key as fallback in production
     }
   }
 

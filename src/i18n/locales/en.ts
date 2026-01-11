@@ -1330,4 +1330,57 @@ export const en = {
     download: "Download",
     previewNotAvailable: "Preview not available",
   },
+  // Status translations for badges
+  status: {
+    draft: "Draft",
+    scheduled: "Scheduled",
+    in_progress: "In Progress",
+    completed: "Completed",
+    cancelled: "Cancelled",
+    due: "Due",
+    overdue: "Overdue",
+    done: "Done",
+    open: "Open",
+    pending: "Pending",
+    active: "Active",
+    confirmed: "Confirmed",
+    skipped: "Skipped",
+    administered: "Administered",
+  },
+  // Severity/Priority translations
+  severity: {
+    low: "Low",
+    medium: "Medium",
+    high: "High",
+    urgent: "Urgent",
+    normal: "Normal",
+  },
+  // Scope/Service mode translations
+  scope: {
+    internal: "Internal",
+    external: "External",
+  },
+  // Category translations
+  category: {
+    treatment: "Treatment",
+    checkup: "Checkup",
+    dental: "Dental",
+    hoof: "Hoof",
+    injury: "Injury",
+    vaccination: "Vaccination",
+    surgery: "Surgery",
+    other: "Other",
+  },
+  // Navigation labels
+  nav: {
+    home: "Home",
+    more: "More",
+    menu: "Menu",
+    settings: "Settings",
+    treatments: "Treatments",
+    vaccines: "Vaccines",
+    visits: "Visits",
+    followUps: "Follow-ups",
+    back: "Back",
+  },
 };
