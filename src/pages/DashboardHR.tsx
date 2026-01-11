@@ -8,6 +8,7 @@ import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { useState } from 'react';
 import { Menu, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MobilePageHeader } from '@/components/navigation';
 
 export default function DashboardHR() {
   const { t, dir } = useI18n();
@@ -41,17 +42,10 @@ export default function DashboardHR() {
 
         <main className="flex-1 flex flex-col min-w-0">
           {/* Mobile Header */}
-          <header className="lg:hidden flex items-center gap-3 p-4 border-b border-border bg-card">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-              className="shrink-0"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <h1 className="text-lg font-semibold truncate flex-1">{t('hr.title')}</h1>
-            {canManage && (
+          <MobilePageHeader 
+            title={t('hr.title')} 
+            backTo="/dashboard"
+            rightElement={canManage ? (
               <Button
                 variant="ghost"
                 size="icon"
@@ -60,8 +54,8 @@ export default function DashboardHR() {
               >
                 <Settings className="h-5 w-5" />
               </Button>
-            )}
-          </header>
+            ) : undefined}
+          />
 
           {/* Desktop Header */}
           <header className="hidden lg:flex items-center justify-between p-6 border-b border-border bg-card">
