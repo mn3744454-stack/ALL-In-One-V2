@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/i18n";
 import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
 import { cn } from "@/lib/utils";
@@ -22,11 +23,11 @@ interface BreedingAttemptCardProps {
   canManage?: boolean;
 }
 
-const attemptTypeLabels: Record<string, string> = {
-  natural: "Natural",
-  ai_fresh: "AI (Fresh)",
-  ai_frozen: "AI (Frozen)",
-  embryo_transfer: "Embryo Transfer",
+const attemptTypeKeys: Record<string, string> = {
+  natural: "breeding.attemptTypes.natural",
+  ai_fresh: "breeding.attemptTypes.aiFresh",
+  ai_frozen: "breeding.attemptTypes.aiFrozen",
+  embryo_transfer: "breeding.attemptTypes.embryoTransfer",
 };
 
 export function BreedingAttemptCard({
@@ -36,6 +37,8 @@ export function BreedingAttemptCard({
   onUpdateResult,
   canManage = false,
 }: BreedingAttemptCardProps) {
+  const { t } = useI18n();
+  
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
@@ -46,13 +49,13 @@ export function BreedingAttemptCard({
               <AvatarFallback>{(attempt.mare?.name || "M")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{attempt.mare?.name || "Unknown Mare"}</h3>
+              <h3 className="font-semibold">{attempt.mare?.name || t("breeding.unknownMare")}</h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>×</span>
                 {attempt.stallion ? (
                   <span>{attempt.stallion.name}</span>
                 ) : (
-                  <span className="italic">{attempt.external_stallion_name || "External"}</span>
+                  <span className="italic">{attempt.external_stallion_name || t("scope.external")}</span>
                 )}
               </div>
             </div>
@@ -70,16 +73,16 @@ export function BreedingAttemptCard({
                   {attempt.result === "unknown" && (
                     <>
                       <DropdownMenuItem onClick={() => onUpdateResult?.(attempt.id, "successful")}>
-                        Mark Successful
+                        {t("breeding.markSuccessful")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onUpdateResult?.(attempt.id, "unsuccessful")}>
-                        Mark Unsuccessful
+                        {t("breeding.markUnsuccessful")}
                       </DropdownMenuItem>
                     </>
                   )}
-                  <DropdownMenuItem onClick={() => onEdit?.(attempt)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit?.(attempt)}>{t("common.edit")}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onDelete?.(attempt.id)} className="text-destructive">
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -89,7 +92,7 @@ export function BreedingAttemptCard({
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2 mb-3">
-          <Badge variant="secondary">{attemptTypeLabels[attempt.attempt_type] || attempt.attempt_type}</Badge>
+          <Badge variant="secondary">{t(attemptTypeKeys[attempt.attempt_type]) || attempt.attempt_type}</Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
@@ -105,7 +108,7 @@ export function BreedingAttemptCard({
           {attempt.assignee && (
             <div className="flex items-center gap-1 col-span-2">
               <User className="h-3.5 w-3.5" />
-              <span>{attempt.assignee.full_name || "Assigned"}</span>
+              <span>{attempt.assignee.full_name || t("breeding.assigned")}</span>
             </div>
           )}
         </div>

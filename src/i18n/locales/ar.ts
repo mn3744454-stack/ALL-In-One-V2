@@ -28,6 +28,7 @@ export const ar = {
     system: "نظام",
     selectAll: "تحديد الكل",
     deselectAll: "إلغاء التحديد",
+    unknown: "غير معروف",
   },
   settings: {
     permissionsRoles: {
@@ -1329,6 +1330,38 @@ export const ar = {
     invalidLinkDesc: "قد يكون هذا الرابط منتهي الصلاحية أو ملغى أو غير صالح.",
     download: "تحميل",
     previewNotAvailable: "المعاينة غير متاحة",
+  },
+  // Orders module
+  orders: {
+    title: "الطلبات",
+    provider: "مزود الخدمة",
+    timeline: {
+      title: "سجل النشاط",
+      noActivity: "لا يوجد نشاط مسجل بعد",
+      created: "تم إنشاء الطلب",
+      statusChanged: "تم تغيير الحالة من {{from}} إلى {{to}}",
+      updated: "تم تحديث تفاصيل الطلب",
+      deleted: "تم حذف الطلب",
+    },
+    actions: {
+      viewDetails: "عرض التفاصيل",
+      edit: "تعديل الطلب",
+      markAs: "تحديد كـ",
+    },
+  },
+  // Breeding module
+  breeding: {
+    title: "التربية",
+    unknownMare: "فرس غير معروفة",
+    assigned: "معين",
+    markSuccessful: "تحديد ناجح",
+    markUnsuccessful: "تحديد غير ناجح",
+    attemptTypes: {
+      natural: "طبيعي",
+      aiFresh: "تلقيح صناعي (طازج)",
+      aiFrozen: "تلقيح صناعي (مجمد)",
+      embryoTransfer: "نقل أجنة",
+    },
   },
   // Status translations for badges
   status: {

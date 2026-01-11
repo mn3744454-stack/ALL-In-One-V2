@@ -11,6 +11,8 @@ import {
   Plus,
   ArrowRight,
 } from "lucide-react";
+import { useI18n } from "@/i18n";
+import { tStatus } from "@/i18n/labels";
 import type { HorseOrderEvent } from "@/hooks/useHorseOrderEvents";
 
 interface OrderTimelineProps {
@@ -25,21 +27,31 @@ const eventIcons: Record<string, React.ReactNode> = {
   deleted: <XCircle className="w-4 h-4 text-red-600" />,
 };
 
-const statusLabels: Record<string, string> = {
-  draft: "Draft",
-  pending: "Pending",
-  scheduled: "Scheduled",
-  in_progress: "In Progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
 export function OrderTimeline({ events, loading }: OrderTimelineProps) {
+  const { t } = useI18n();
+
+  const getEventDescription = (event: HorseOrderEvent): string => {
+    switch (event.event_type) {
+      case "created":
+        return t("orders.timeline.created");
+      case "status_changed":
+        return t("orders.timeline.statusChanged")
+          .replace("{{from}}", tStatus(event.from_status || ""))
+          .replace("{{to}}", tStatus(event.to_status || ""));
+      case "updated":
+        return t("orders.timeline.updated");
+      case "deleted":
+        return t("orders.timeline.deleted");
+      default:
+        return event.event_type;
+    }
+  };
+
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Activity History</CardTitle>
+          <CardTitle className="text-base">{t("orders.timeline.title")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -60,36 +72,21 @@ export function OrderTimeline({ events, loading }: OrderTimelineProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Activity History</CardTitle>
+          <CardTitle className="text-base">{t("orders.timeline.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-4">
-            No activity recorded yet
+            {t("orders.timeline.noActivity")}
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  const getEventDescription = (event: HorseOrderEvent): string => {
-    switch (event.event_type) {
-      case "created":
-        return "Order created";
-      case "status_changed":
-        return `Status changed from ${statusLabels[event.from_status || ""] || event.from_status} to ${statusLabels[event.to_status || ""] || event.to_status}`;
-      case "updated":
-        return "Order details updated";
-      case "deleted":
-        return "Order deleted";
-      default:
-        return event.event_type;
-    }
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Activity History</CardTitle>
+        <CardTitle className="text-base">{t("orders.timeline.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="relative space-y-4">
@@ -117,7 +114,7 @@ export function OrderTimeline({ events, loading }: OrderTimelineProps) {
                           {event.creator.full_name?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{event.creator.full_name || "Unknown"}</span>
+                      <span>{event.creator.full_name || t("common.unknown")}</span>
                       <span>•</span>
                     </>
                   )}
