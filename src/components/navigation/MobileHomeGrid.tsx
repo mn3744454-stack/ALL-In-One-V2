@@ -4,6 +4,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { NAV_MODULES, type NavModule } from "@/navigation/navConfig";
 import { cn } from "@/lib/utils";
+import { ModuleIconCard, getModuleColorScheme } from "./ModuleIconCard";
 
 interface MobileHomeGridProps {
   className?: string;
@@ -69,37 +70,17 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   return (
     <div className={cn("lg:hidden", className)}>
       <div className="grid grid-cols-3 gap-3">
-        {visibleModules.map((module) => (
-          <ModuleIcon
+        {visibleModules.map((module, index) => (
+          <ModuleIconCard
             key={module.key}
             icon={module.icon}
             label={t(module.labelKey)}
+            colorScheme={getModuleColorScheme(module.key)}
             onClick={() => handleModuleClick(module)}
+            index={index}
           />
         ))}
       </div>
     </div>
-  );
-}
-
-interface ModuleIconProps {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-}
-
-function ModuleIcon({ icon: Icon, label, onClick }: ModuleIconProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all active:scale-95"
-    >
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      <span className="text-xs font-medium text-foreground text-center line-clamp-2">
-        {label}
-      </span>
-    </button>
   );
 }

@@ -4,6 +4,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { NAV_MODULES, type NavModuleChild } from "@/navigation/navConfig";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "./MobilePageHeader";
+import { ModuleIconCard, getModuleColorScheme } from "./ModuleIconCard";
 
 interface MobileModuleGridProps {
   moduleKey: string;
@@ -56,42 +57,22 @@ export function MobileModuleGrid({ moduleKey, className }: MobileModuleGridProps
 
   return (
     <div className={cn("lg:hidden min-h-dvh bg-cream", className)}>
-      <MobilePageHeader title={t(parentModule.labelKey)} backTo="/dashboard" />
+      <MobilePageHeader title={t(parentModule.labelKey)} />
       
       <div className="p-4">
         <div className="grid grid-cols-3 gap-3">
-          {visibleChildren.map((child) => (
-            <ChildIcon
+          {visibleChildren.map((child, index) => (
+            <ModuleIconCard
               key={child.key}
               icon={child.icon}
               label={t(child.labelKey)}
+              colorScheme={getModuleColorScheme(child.key)}
               onClick={() => handleChildClick(child)}
+              index={index}
             />
           ))}
         </div>
       </div>
     </div>
-  );
-}
-
-interface ChildIconProps {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-}
-
-function ChildIcon({ icon: Icon, label, onClick }: ChildIconProps) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all active:scale-95"
-    >
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      <span className="text-xs font-medium text-foreground text-center line-clamp-2">
-        {label}
-      </span>
-    </button>
   );
 }

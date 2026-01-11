@@ -293,6 +293,85 @@
       transform: scale(1);
     }
   }
+
+  /* Module Icon Color Schemes */
+  .module-icon-gold {
+    --icon-gradient: linear-gradient(135deg, hsl(43 74% 49%) 0%, hsl(38 80% 55%) 100%);
+    --icon-glow: hsl(43 74% 49% / 0.4);
+    --icon-border: hsl(43 74% 49%);
+  }
+  
+  .module-icon-emerald {
+    --icon-gradient: linear-gradient(135deg, hsl(152 69% 40%) 0%, hsl(166 72% 45%) 100%);
+    --icon-glow: hsl(152 69% 40% / 0.4);
+    --icon-border: hsl(152 69% 40%);
+  }
+  
+  .module-icon-purple {
+    --icon-gradient: linear-gradient(135deg, hsl(271 76% 53%) 0%, hsl(292 70% 55%) 100%);
+    --icon-glow: hsl(271 76% 53% / 0.4);
+    --icon-border: hsl(271 76% 53%);
+  }
+  
+  .module-icon-sky {
+    --icon-gradient: linear-gradient(135deg, hsl(199 89% 48%) 0%, hsl(186 82% 50%) 100%);
+    --icon-glow: hsl(199 89% 48% / 0.4);
+    --icon-border: hsl(199 89% 48%);
+  }
+  
+  .module-icon-orange {
+    --icon-gradient: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(38 92% 50%) 100%);
+    --icon-glow: hsl(25 95% 53% / 0.4);
+    --icon-border: hsl(25 95% 53%);
+  }
+  
+  .module-icon-indigo {
+    --icon-gradient: linear-gradient(135deg, hsl(239 84% 67%) 0%, hsl(271 76% 60%) 100%);
+    --icon-glow: hsl(239 84% 67% / 0.4);
+    --icon-border: hsl(239 84% 67%);
+  }
+  
+  .module-icon-slate {
+    --icon-gradient: linear-gradient(135deg, hsl(215 16% 47%) 0%, hsl(215 20% 55%) 100%);
+    --icon-glow: hsl(215 16% 47% / 0.4);
+    --icon-border: hsl(215 16% 47%);
+  }
+  
+  .module-icon-cyan {
+    --icon-gradient: linear-gradient(135deg, hsl(186 94% 41%) 0%, hsl(175 77% 45%) 100%);
+    --icon-glow: hsl(186 94% 41% / 0.4);
+    --icon-border: hsl(186 94% 41%);
+  }
+  
+  .module-icon-rose {
+    --icon-gradient: linear-gradient(135deg, hsl(347 77% 50%) 0%, hsl(330 70% 55%) 100%);
+    --icon-glow: hsl(347 77% 50% / 0.4);
+    --icon-border: hsl(347 77% 50%);
+  }
+  
+  .module-icon-pink {
+    --icon-gradient: linear-gradient(135deg, hsl(330 81% 60%) 0%, hsl(350 75% 62%) 100%);
+    --icon-glow: hsl(330 81% 60% / 0.4);
+    --icon-border: hsl(330 81% 60%);
+  }
+  
+  .module-icon-teal {
+    --icon-gradient: linear-gradient(135deg, hsl(168 76% 42%) 0%, hsl(186 73% 47%) 100%);
+    --icon-glow: hsl(168 76% 42% / 0.4);
+    --icon-border: hsl(168 76% 42%);
+  }
+  
+  .module-icon-amber {
+    --icon-gradient: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(45 93% 47%) 100%);
+    --icon-glow: hsl(38 92% 50% / 0.4);
+    --icon-border: hsl(38 92% 50%);
+  }
+
+  .module-icon-navy {
+    --icon-gradient: linear-gradient(135deg, hsl(222 47% 15%) 0%, hsl(222 35% 25%) 100%);
+    --icon-glow: hsl(222 47% 15% / 0.4);
+    --icon-border: hsl(222 47% 15%);
+  }
 }
 
 /* Print Styles for Lab Reports */
