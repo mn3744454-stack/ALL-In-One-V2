@@ -8,6 +8,8 @@ import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { format } from "date-fns";
 import { Calendar, Clock, User, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/i18n";
+import { tScope } from "@/i18n/labels";
 
 interface VetTreatmentCardProps {
   treatment: VetTreatment;
@@ -16,6 +18,7 @@ interface VetTreatmentCardProps {
 }
 
 export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCardProps) {
+  const { t } = useI18n();
   const horseName = treatment.horse?.name || "Unknown Horse";
   const horseAvatar = treatment.horse?.avatar_url;
 
@@ -47,7 +50,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
               <VetCategoryBadge category={treatment.category} />
               <VetPriorityBadge priority={treatment.priority} />
               <Badge variant="outline" className="text-xs">
-                {treatment.service_mode === 'internal' ? 'Internal' : 'External'}
+                {tScope(treatment.service_mode)}
               </Badge>
             </div>
 
@@ -91,12 +94,12 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
           <div className="flex gap-2 mt-4 pt-3 border-t">
             {onView && (
               <Button variant="outline" size="sm" className="flex-1" onClick={() => onView(treatment)}>
-                View Details
+                {t("common.actions")}
               </Button>
             )}
             {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
               <Button variant="ghost" size="sm" onClick={() => onEdit(treatment)}>
-                Edit
+                {t("common.edit")}
               </Button>
             )}
           </div>

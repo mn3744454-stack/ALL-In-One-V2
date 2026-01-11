@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Building2, ExternalLink } from "lucide-react";
+import { tScope } from "@/i18n/labels";
 
 interface ServiceModeBadgeProps {
   mode: "internal" | "external";
@@ -23,7 +24,7 @@ export function ServiceModeBadge({ mode, size = "default" }: ServiceModeBadgePro
       ) : (
         <ExternalLink className="w-3 h-3" />
       )}
-      {isInternal ? "Internal" : "External"}
+      {tScope(mode)}
     </Badge>
   );
 }

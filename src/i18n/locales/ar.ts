@@ -1330,4 +1330,57 @@ export const ar = {
     download: "تحميل",
     previewNotAvailable: "المعاينة غير متاحة",
   },
+  // Status translations for badges
+  status: {
+    draft: "مسودة",
+    scheduled: "مجدول",
+    in_progress: "قيد التنفيذ",
+    completed: "مكتمل",
+    cancelled: "ملغى",
+    due: "مستحق",
+    overdue: "متأخر",
+    done: "تم",
+    open: "مفتوح",
+    pending: "معلق",
+    active: "نشط",
+    confirmed: "مؤكد",
+    skipped: "تم تخطيه",
+    administered: "تم إعطاؤه",
+  },
+  // Severity/Priority translations
+  severity: {
+    low: "منخفض",
+    medium: "متوسط",
+    high: "عالي",
+    urgent: "عاجل",
+    normal: "عادي",
+  },
+  // Scope/Service mode translations
+  scope: {
+    internal: "داخلي",
+    external: "خارجي",
+  },
+  // Category translations
+  category: {
+    treatment: "علاج",
+    checkup: "فحص",
+    dental: "أسنان",
+    hoof: "حوافر",
+    injury: "إصابة",
+    vaccination: "تطعيم",
+    surgery: "جراحة",
+    other: "أخرى",
+  },
+  // Navigation labels
+  nav: {
+    home: "الرئيسية",
+    more: "المزيد",
+    menu: "القائمة",
+    settings: "الإعدادات",
+    treatments: "العلاجات",
+    vaccines: "التطعيمات",
+    visits: "الزيارات",
+    followUps: "المتابعات",
+    back: "رجوع",
+  },
 };

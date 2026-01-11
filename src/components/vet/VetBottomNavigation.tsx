@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Stethoscope, Syringe, Calendar, Settings, CalendarCheck } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 interface VetBottomNavigationProps {
   activeTab: string;
@@ -16,12 +17,14 @@ export function VetBottomNavigation({
   overdueCount = 0,
   todayVisitsCount = 0,
 }: VetBottomNavigationProps) {
+  const { t } = useI18n();
+
   const tabs = [
-    { id: "treatments", icon: Stethoscope, label: "Treatments" },
-    { id: "vaccinations", icon: Syringe, label: "Vaccines" },
-    { id: "visits", icon: CalendarCheck, label: "Visits", badge: todayVisitsCount },
-    { id: "followups", icon: Calendar, label: "Follow-ups", badge: overdueCount },
-    ...(showSettings ? [{ id: "settings", icon: Settings, label: "Settings" }] : []),
+    { id: "treatments", icon: Stethoscope, labelKey: "nav.treatments" },
+    { id: "vaccinations", icon: Syringe, labelKey: "nav.vaccines" },
+    { id: "visits", icon: CalendarCheck, labelKey: "nav.visits", badge: todayVisitsCount },
+    { id: "followups", icon: Calendar, labelKey: "nav.followUps", badge: overdueCount },
+    ...(showSettings ? [{ id: "settings", icon: Settings, labelKey: "nav.settings" }] : []),
   ];
 
   return (
@@ -31,7 +34,7 @@ export function VetBottomNavigation({
           <NavItem
             key={tab.id}
             icon={tab.icon}
-            label={tab.label}
+            label={t(tab.labelKey)}
             active={activeTab === tab.id}
             onClick={() => onTabChange(tab.id)}
             badge={"badge" in tab ? tab.badge : undefined}

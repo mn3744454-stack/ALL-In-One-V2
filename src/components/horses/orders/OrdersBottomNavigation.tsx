@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { ClipboardList, Clock, Play, CheckCircle, Settings } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 interface OrdersBottomNavigationProps {
   activeTab: string;
@@ -12,12 +13,14 @@ export function OrdersBottomNavigation({
   onTabChange,
   showSettings = false,
 }: OrdersBottomNavigationProps) {
+  const { t } = useI18n();
+
   const tabs = [
-    { id: "all", icon: ClipboardList, label: "All" },
-    { id: "pending", icon: Clock, label: "Pending" },
-    { id: "active", icon: Play, label: "Active" },
-    { id: "completed", icon: CheckCircle, label: "Done" },
-    ...(showSettings ? [{ id: "settings", icon: Settings, label: "Settings" }] : []),
+    { id: "all", icon: ClipboardList, labelKey: "common.all" },
+    { id: "pending", icon: Clock, labelKey: "status.pending" },
+    { id: "active", icon: Play, labelKey: "status.active" },
+    { id: "completed", icon: CheckCircle, labelKey: "status.done" },
+    ...(showSettings ? [{ id: "settings", icon: Settings, labelKey: "nav.settings" }] : []),
   ];
 
   return (
@@ -27,7 +30,7 @@ export function OrdersBottomNavigation({
           <NavItem
             key={tab.id}
             icon={tab.icon}
-            label={tab.label}
+            label={t(tab.labelKey)}
             active={activeTab === tab.id}
             onClick={() => onTabChange(tab.id)}
           />
