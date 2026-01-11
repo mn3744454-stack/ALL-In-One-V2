@@ -29,13 +29,14 @@ import {
   AlertCircle,
   Users,
   Calendar,
+  LogOut,
 } from "lucide-react";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Removed launcherOpen state - no longer needed
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { t, dir } = useI18n();
@@ -56,9 +57,44 @@ const Dashboard = () => {
       <main className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Top Bar */}
         <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              {/* Hamburger menu - only on tablet/desktop, hidden on mobile */}
+          {/* Mobile Header - Two rows */}
+          <div className="lg:hidden">
+            {/* Row 1: Icons */}
+            <div className="flex items-center justify-between h-14 px-4 border-b border-border/30">
+              <div className="flex items-center gap-2">
+                {/* Add Horse */}
+                {activeTenant && <AddHorseDialog />}
+                
+                {/* Invitations */}
+                <InvitationsPanel />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {/* Language Selector */}
+                <LanguageSelector />
+                
+                {/* Logout */}
+                <button
+                  onClick={() => signOut()}
+                  className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Row 2: Account Name */}
+            <div className="flex items-center justify-between h-12 px-4">
+              <TenantSwitcher />
+              <RoleSwitcher />
+            </div>
+          </div>
+
+          {/* Desktop Header - Single row */}
+          <div className="hidden lg:flex items-center justify-between h-16 px-8">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Hamburger menu - only on tablet */}
               <button
                 className="p-2 rounded-xl hover:bg-muted hidden md:block lg:hidden shrink-0"
                 onClick={() => setSidebarOpen(true)}
@@ -67,17 +103,14 @@ const Dashboard = () => {
                 <Menu className="w-5 h-5" />
               </button>
               
-              {/* Tenant Switcher - shows org name instead of logo on mobile */}
+              {/* Tenant Switcher */}
               <TenantSwitcher />
-              
-              <div className="hidden md:block">
-                <RoleSwitcher />
-              </div>
+              <RoleSwitcher />
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-3">
               {/* Search */}
-              <div className="relative hidden md:block">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
@@ -86,11 +119,23 @@ const Dashboard = () => {
                 />
               </div>
               
+              {/* Language Selector */}
+              <LanguageSelector />
+              
               {/* Invitations */}
               <InvitationsPanel />
 
-              {/* Add Horse - Only show if user has a tenant */}
+              {/* Add Horse */}
               {activeTenant && <AddHorseDialog />}
+              
+              {/* Logout */}
+              <button
+                onClick={() => signOut()}
+                className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
+                aria-label="Sign out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </div>
           </div>
         </header>
