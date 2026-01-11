@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
+import { useTenant } from "@/contexts/TenantContext";
 import { SampleCard } from "./SampleCard";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
+import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -43,10 +45,21 @@ const getFiltersForTab = (tab: SampleFilterTab): Partial<LabSampleFilters> => {
 
 export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps) {
   const { t, dir } = useI18n();
+  const { activeRole } = useTenant();
   const [activeTab, setActiveTab] = useState<SampleFilterTab>('all');
   const [statusFilter, setStatusFilter] = useState<LabSampleStatus | 'all'>('all');
   const [search, setSearch] = useState("");
   const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
+
+  // Permission check for invoice creation
+  const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
+
+  const handleGenerateInvoice = (sample: LabSample) => {
+    setSelectedSampleForInvoice(sample);
+    setInvoiceDialogOpen(true);
+  };
 
   // Get tab-based filters
   const tabFilters = getFiltersForTab(activeTab);
@@ -188,6 +201,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
                 <SampleCard
                   sample={sample}
                   canManage={canManage}
+                  canCreateInvoice={canCreateInvoice}
                   completedResultsCount={resultsCountBySample[sample.id] || 0}
                   onAccession={() => accessionSample(sample.id)}
                   onStartProcessing={() => startProcessing(sample.id)}
@@ -196,6 +210,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
                   onRetest={() => createRetest(sample.id)}
                   onClick={() => onSampleClick?.(sample.id)}
                   onViewAllResults={() => setCombinedResultsSample(sample)}
+                  onGenerateInvoice={() => handleGenerateInvoice(sample)}
                 />
               </div>
             );
@@ -211,6 +226,16 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         onReviewResult={reviewResult}
         onFinalizeResult={finalizeResult}
       />
+
+      {/* Generate Invoice Dialog */}
+      {selectedSampleForInvoice && (
+        <GenerateInvoiceDialog
+          open={invoiceDialogOpen}
+          onOpenChange={setInvoiceDialogOpen}
+          sourceType="lab_sample"
+          sample={selectedSampleForInvoice}
+        />
+      )}
     </div>
   );
 }
