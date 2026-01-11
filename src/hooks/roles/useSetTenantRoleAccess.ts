@@ -28,18 +28,40 @@ export function useSetTenantRoleAccess() {
       if (error) throw error;
     },
     onSuccess: () => {
-      // Invalidate tenant-scoped queries only
-      queryClient.invalidateQueries({ queryKey: ["tenant-role-permissions", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["tenant-role-bundles", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["tenant-roles", tenantId] });
-      // Invalidate effective permissions cache (tenant-scoped where applicable)
-      queryClient.invalidateQueries({ queryKey: ["permission-definitions", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["bundle-permissions", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["member-permissions", tenantId] });
-      // Also invalidate without tenantId for global caches
-      queryClient.invalidateQueries({ queryKey: ["permission-definitions"] });
-      queryClient.invalidateQueries({ queryKey: ["bundle-permissions"] });
+      // Use predicate-based invalidation for precise cache clearing
+      const affectedRoots = new Set([
+        "tenant-role-permissions",
+        "tenant-role-bundles",
+        "tenant-roles",
+        "permission-definitions",
+        "bundle-permissions",
+        "member-permissions",
+        "member-permission-bundles",
+        "delegation-scopes",
+        "my-delegation-scopes",
+      ]);
+
+      queryClient.invalidateQueries({
+        predicate: (q) => {
+          const key = q.queryKey;
+          if (!Array.isArray(key) || key.length === 0) return false;
+          const root = String(key[0]);
+          if (!affectedRoots.has(root)) return false;
+
+          // Tenant-scoped queries: only invalidate if tenantId matches
+          const hasTenantInKey = tenantId && key.includes(tenantId);
+          
+          // Global queries (permission-definitions, bundle-permissions) without tenantId
+          const isGlobalRoot = root === "permission-definitions" || root === "bundle-permissions";
+          const isGlobalKey = key.length === 1; // Only root, no tenantId
+
+          if (hasTenantInKey) return true;
+          if (isGlobalRoot && isGlobalKey) return true;
+
+          return false;
+        },
+      });
+      // No toast here - handled in DashboardRolesSettings after full save
     },
     onError: (error: any) => {
       console.error("Error setting role access:", error);

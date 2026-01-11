@@ -112,7 +112,7 @@ export function MemberRoleAssignment({
                       <SelectContent>
                         {/* Only show system roles until enum is converted to text in Patch 3 */}
                         {roles
-                          .filter((r) => r.role_key !== "owner" && r.is_system !== false)
+                          .filter((r) => r.role_key !== "owner" && r.is_system)
                           .map((role) => (
                             <SelectItem key={role.role_key} value={role.role_key}>
                               {isArabic && role.name_ar ? role.name_ar : role.name}

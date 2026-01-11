@@ -71,7 +71,7 @@ export function useTenantRoles() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-roles", tenantId] });
-      toast.success("تم إنشاء الدور بنجاح");
+      // Toast handled in DashboardRolesSettings after full save completes
     },
     onError: (error: any) => {
       console.error("Error creating role:", error);
@@ -106,7 +106,7 @@ export function useTenantRoles() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-roles", tenantId] });
-      toast.success("تم تحديث الدور بنجاح");
+      // Toast handled in DashboardRolesSettings after full save completes
     },
     onError: (error: any) => {
       console.error("Error updating role:", error);
@@ -129,7 +129,7 @@ export function useTenantRoles() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tenant-roles", tenantId] });
-      toast.success("تم حذف الدور بنجاح");
+      toast.success("تم حذف الدور بنجاح"); // Keep for delete since it's standalone
     },
     onError: (error: any) => {
       console.error("Error deleting role:", error);
