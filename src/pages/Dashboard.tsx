@@ -10,7 +10,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
-import { MobileHomeGrid } from "@/components/navigation";
+import { MobileHomeGrid, MobileBottomNav, MobileLauncher } from "@/components/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -22,7 +22,6 @@ import {
   Heart,
   Activity,
   ChevronRight,
-  Menu,
   Globe,
   Settings,
   ExternalLink,
@@ -35,6 +34,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [launcherOpen, setLauncherOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
@@ -94,15 +94,6 @@ const Dashboard = () => {
           {/* Desktop Header - Single row */}
           <div className="hidden lg:flex items-center justify-between h-16 px-8">
             <div className="flex items-center gap-3 min-w-0">
-              {/* Hamburger menu - only on tablet */}
-              <button
-                className="p-2 rounded-xl hover:bg-muted hidden md:block lg:hidden shrink-0"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              
               {/* Tenant Switcher */}
               <TenantSwitcher />
               <RoleSwitcher />
@@ -114,8 +105,8 @@ const Dashboard = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search horses, records..."
-                  className="w-64 h-10 pl-10 pr-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  placeholder={t("dashboard.searchPlaceholder")}
+                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
               
@@ -147,12 +138,12 @@ const Dashboard = () => {
             {/* Welcome Section */}
             <div className="mb-8">
               <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
-                Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+                {t("dashboard.welcome")}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
               </h1>
               <p className="text-muted-foreground">
                 {activeTenant
-                  ? `Here's what's happening at ${activeTenant.tenant.name} today.`
-                  : "Discover our services and explore what Khail has to offer."}
+                  ? t("dashboard.todayAt").replace("{{org}}", activeTenant.tenant.name)
+                  : t("dashboard.noTenantMessage")}
               </p>
             </div>
 
@@ -169,10 +160,10 @@ const Dashboard = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                        Get Started with Khail
+                        {t("dashboard.getStarted")}
                       </h3>
                       <p className="text-muted-foreground text-sm">
-                        Create your organization to manage horses, track health records, and collaborate with your team. Or explore our services first!
+                        {t("dashboard.getStartedDesc")}
                       </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -182,7 +173,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <Building2 className="w-4 h-4" />
-                        Create Organization
+                        {t("dashboard.createOrganization")}
                       </Button>
                       <InvitationsPanel />
                     </div>
@@ -201,10 +192,10 @@ const Dashboard = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                        Complete Your Public Profile
+                        {t("dashboard.completePublicProfile")}
                       </h3>
                       <p className="text-muted-foreground text-sm">
-                        Set up your public profile to appear in the directory and let customers find and book your services.
+                        {t("dashboard.publicProfileDesc")}
                       </p>
                     </div>
                     <Button
@@ -213,7 +204,7 @@ const Dashboard = () => {
                       className="gap-2 border-orange-500/50 text-orange-600 hover:bg-orange-500/10"
                     >
                       <Globe className="w-4 h-4" />
-                      Set Up Now
+                      {t("dashboard.setUpNow")}
                     </Button>
                   </div>
                 </CardContent>
@@ -230,10 +221,10 @@ const Dashboard = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-display text-lg font-semibold text-navy mb-1">
-                        Your Public Profile is Live!
+                        {t("dashboard.publicProfileLive")}
                       </h3>
                       <p className="text-muted-foreground text-sm">
-                        Customers can now find you in the directory and book your services.
+                        {t("dashboard.publicProfileLiveDesc")}
                       </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
@@ -243,7 +234,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <Settings className="w-4 h-4" />
-                        Edit Profile
+                        {t("dashboard.editProfile")}
                       </Button>
                       <Button
                         variant="gold"
@@ -251,7 +242,7 @@ const Dashboard = () => {
                         className="gap-2"
                       >
                         <ExternalLink className="w-4 h-4" />
-                        View Public Page
+                        {t("dashboard.viewPublicPage")}
                       </Button>
                     </div>
                   </div>
@@ -263,27 +254,27 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <StatCard
                 icon={Heart}
-                label="Total Horses"
+                label={t("dashboard.totalHorses")}
                 value={horses.length.toString()}
-                change={horses.length > 0 ? "Active records" : "Add your first horse"}
+                change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
               />
               <StatCard
                 icon={Activity}
-                label="Health Checkups"
+                label={t("dashboard.healthCheckups")}
                 value="0"
-                change="Scheduled this week"
+                change={t("dashboard.scheduledThisWeek")}
               />
               <StatCard
                 icon={Users}
-                label="Team Members"
+                label={t("dashboard.teamMembers")}
                 value="1"
-                change="Active"
+                change={t("common.active")}
               />
               <StatCard
                 icon={TrendingUp}
-                label="This Month"
+                label={t("dashboard.thisMonth")}
                 value="—"
-                change="Stats coming soon"
+                change={t("dashboard.statsComingSoon")}
               />
             </div>
 
@@ -303,24 +294,24 @@ const Dashboard = () => {
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle className="text-navy">Your Horses</CardTitle>
+                      <CardTitle className="text-navy">{t("dashboard.yourHorses")}</CardTitle>
                       <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
-                        View All <ChevronRight className="w-4 h-4" />
+                        {t("dashboard.viewAll")} <ChevronRight className="w-4 h-4" />
                       </Link>
                     </CardHeader>
                     <CardContent>
                       {horsesLoading ? (
                         <div className="py-8 text-center text-muted-foreground">
-                          Loading horses...
+                          {t("dashboard.loadingHorses")}
                         </div>
                       ) : horses.length === 0 ? (
                         <div className="py-8 text-center">
                           <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                          <p className="text-muted-foreground mb-4">No horses yet</p>
+                          <p className="text-muted-foreground mb-4">{t("dashboard.noHorsesYet")}</p>
                           <AddHorseDialog
                             trigger={
                               <Button variant="outline" size="sm">
-                                Add Your First Horse
+                                {t("dashboard.addYourFirstHorse")}
                               </Button>
                             }
                           />
@@ -331,9 +322,9 @@ const Dashboard = () => {
                             <HorseItem
                               key={horse.id}
                               name={horse.name}
-                              breed={horse.breed || "Unknown breed"}
+                              breed={horse.breed || t("common.unknown")}
                               gender={horse.gender}
-                              status="Healthy"
+                              status={t("common.active")}
                             />
                           ))}
                         </div>
@@ -346,32 +337,32 @@ const Dashboard = () => {
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
                     <CardHeader>
-                      <CardTitle className="text-navy">Available Services</CardTitle>
+                      <CardTitle className="text-navy">{t("dashboard.availableServices")}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground mb-6">
-                        Explore our services and start your 14-day free trial
+                        {t("dashboard.exploreServices")}
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <ServiceCard
                           icon={Building2}
-                          title="Stable Management"
-                          description="Manage your stable, horses, and team"
+                          title={t("dashboard.stableManagement")}
+                          description={t("dashboard.stableManagementDesc")}
                         />
                         <ServiceCard
                           icon={Heart}
-                          title="Horse Owner"
-                          description="Track your horses' health and records"
+                          title={t("dashboard.horseOwner")}
+                          description={t("dashboard.horseOwnerDesc")}
                         />
                         <ServiceCard
                           icon={Activity}
-                          title="Veterinary Clinic"
-                          description="Manage appointments and medical records"
+                          title={t("dashboard.vetClinic")}
+                          description={t("dashboard.vetClinicDesc")}
                         />
                         <ServiceCard
                           icon={Users}
-                          title="Training Academy"
-                          description="Schedule training sessions and track progress"
+                          title={t("dashboard.trainingAcademy")}
+                          description={t("dashboard.trainingAcademyDesc")}
                         />
                       </div>
                       <Button
@@ -379,7 +370,7 @@ const Dashboard = () => {
                         className="w-full mt-6"
                         onClick={() => navigate("/select-role")}
                       >
-                        Start Free Trial (14 days)
+                        {t("dashboard.startFreeTrial")}
                       </Button>
                     </CardContent>
                   </Card>
@@ -390,12 +381,12 @@ const Dashboard = () => {
               <div>
                 <Card variant="elevated">
                   <CardHeader>
-                    <CardTitle className="text-navy">Upcoming</CardTitle>
+                    <CardTitle className="text-navy">{t("dashboard.upcoming")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="py-8 text-center text-muted-foreground">
                       <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                      <p>No upcoming events</p>
+                      <p>{t("dashboard.noUpcomingEvents")}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -404,6 +395,12 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav onOpenLauncher={() => setLauncherOpen(true)} />
+      
+      {/* Mobile Launcher Drawer */}
+      <MobileLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
     </div>
   );
 };
