@@ -129,8 +129,8 @@ export function BundleEditor({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30">
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b bg-muted/30 shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Package className="w-6 h-6 text-primary" />
             {isEdit ? t("permissions.editBundle") : t("permissions.createBundle")}
@@ -140,47 +140,34 @@ export function BundleEditor({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col gap-5 p-6">
-          {/* Name & Description - side by side */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="bundle-name" className="font-medium">{t("permissions.bundleName")}</Label>
-              <Input
-                id="bundle-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t("permissions.bundleNamePlaceholder")}
-                className="h-11"
-              />
+        <ScrollArea className="flex-1">
+          <div className="p-6 space-y-6">
+            {/* Name & Description - side by side */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="bundle-name" className="font-medium">{t("permissions.bundleName")}</Label>
+                <Input
+                  id="bundle-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t("permissions.bundleNamePlaceholder")}
+                  className="h-11"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="bundle-description" className="font-medium">{t("permissions.description")}</Label>
+                <Input
+                  id="bundle-description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={t("permissions.descriptionPlaceholder")}
+                  className="h-11"
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="bundle-description" className="font-medium">{t("permissions.description")}</Label>
-              <Input
-                id="bundle-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t("permissions.descriptionPlaceholder")}
-                className="h-11"
-              />
-            </div>
-          </div>
 
-          {/* Progress bar and count */}
-          <div className="flex items-center gap-4 px-1">
-            <Progress value={progressValue} className="flex-1 h-2" />
-            <Badge variant="secondary" className="text-sm px-3 py-1.5 font-medium">
-              {selectedKeys.size} / {totalPermissions} {t("permissions.permissionsSelected")}
-            </Badge>
-          </div>
-
-          {/* Permissions selector */}
-          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            <div className="flex items-center justify-between mb-3">
-              <Label className="font-semibold text-base">{t("permissions.selectPermissions")}</Label>
-            </div>
-            
             {/* Search bar */}
-            <div className="relative mb-4">
+            <div className="relative">
               <Search className={cn(
                 "absolute top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground",
                 dir === "rtl" ? "right-3" : "left-3"
@@ -193,103 +180,104 @@ export function BundleEditor({
               />
             </div>
 
-            {/* Permissions - Full width cards, scrollable */}
-            <div className="flex-1 border-2 rounded-xl bg-muted/10 overflow-hidden min-h-0">
-              <ScrollArea className="h-[450px]">
-                <div className="p-5 space-y-5">
-                  {Object.entries(groupedPermissions).map(([module, permissions]) => {
-                    const allSelected = permissions.every((p) => selectedKeys.has(p.key));
-                    const selectedCount = permissions.filter((p) => selectedKeys.has(p.key)).length;
-                    const ModuleIcon = moduleIcons[module.toLowerCase()] || <Shield className="w-5 h-5" />;
+            {/* Progress bar and count */}
+            <div className="flex items-center gap-4">
+              <Progress value={progressValue} className="flex-1 h-2" />
+              <Badge variant="secondary" className="text-sm px-3 py-1.5 font-medium whitespace-nowrap">
+                {selectedKeys.size} / {totalPermissions} {t("permissions.permissionsSelected")}
+              </Badge>
+            </div>
 
-                    return (
-                      <Card key={module} className="overflow-hidden border-2 shadow-sm hover:shadow-md transition-shadow">
-                        <CardHeader className="py-4 px-5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base font-bold capitalize flex items-center gap-3">
-                              <span className="p-2 rounded-lg bg-primary/10 text-primary">
-                                {ModuleIcon}
-                              </span>
-                              {module}
-                              <Badge variant="outline" className="text-xs font-normal">
-                                {selectedCount} / {permissions.length}
-                              </Badge>
-                            </CardTitle>
-                            <Button
-                              variant={allSelected ? "secondary" : "outline"}
-                              size="sm"
-                              className="h-9 gap-2 text-sm font-medium"
-                              onClick={() => handleSelectAllInModule(module)}
-                            >
-                              {allSelected ? (
-                                <>
-                                  <Square className="w-4 h-4" />
-                                  {t("common.deselectAll")}
-                                </>
-                              ) : (
-                                <>
-                                  <CheckSquare className="w-4 h-4" />
-                                  {t("common.selectAll")}
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div className="grid md:grid-cols-2">
-                            {permissions.map((perm, idx) => (
-                              <label
-                                key={perm.key}
-                                htmlFor={perm.key}
-                                className={cn(
-                                  "flex items-start gap-4 p-4 cursor-pointer transition-all border-b md:border-b-0",
-                                  idx % 2 === 0 && "md:border-e",
-                                  Math.floor(idx / 2) < Math.ceil(permissions.length / 2) - 1 && "md:border-b",
-                                  idx < permissions.length - 1 && "border-b",
-                                  selectedKeys.has(perm.key) 
-                                    ? "bg-primary/10 hover:bg-primary/15" 
-                                    : "hover:bg-muted/50"
+            {/* Permissions - Direct cards without wrapper */}
+            <div className="space-y-4">
+              {Object.entries(groupedPermissions).map(([module, permissions]) => {
+                const allSelected = permissions.every((p) => selectedKeys.has(p.key));
+                const selectedCount = permissions.filter((p) => selectedKeys.has(p.key)).length;
+                const ModuleIcon = moduleIcons[module.toLowerCase()] || <Shield className="w-5 h-5" />;
+
+                return (
+                  <Card key={module} className="overflow-hidden border shadow-sm">
+                    <CardHeader className="py-3 px-4 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-b">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <CardTitle className="text-sm font-bold capitalize flex items-center gap-2">
+                          <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                            {ModuleIcon}
+                          </span>
+                          {module}
+                          <Badge variant="outline" className="text-xs font-normal">
+                            {selectedCount} / {permissions.length}
+                          </Badge>
+                        </CardTitle>
+                        <Button
+                          variant={allSelected ? "secondary" : "outline"}
+                          size="sm"
+                          className="h-8 gap-1.5 text-xs font-medium"
+                          onClick={() => handleSelectAllInModule(module)}
+                        >
+                          {allSelected ? (
+                            <>
+                              <Square className="w-3.5 h-3.5" />
+                              {t("common.deselectAll")}
+                            </>
+                          ) : (
+                            <>
+                              <CheckSquare className="w-3.5 h-3.5" />
+                              {t("common.selectAll")}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="divide-y">
+                        {permissions.map((perm) => (
+                          <label
+                            key={perm.key}
+                            htmlFor={perm.key}
+                            className={cn(
+                              "flex items-start gap-3 p-3 cursor-pointer transition-all",
+                              selectedKeys.has(perm.key) 
+                                ? "bg-primary/10 hover:bg-primary/15" 
+                                : "hover:bg-muted/50"
+                            )}
+                          >
+                            <Checkbox
+                              id={perm.key}
+                              checked={selectedKeys.has(perm.key)}
+                              onCheckedChange={(checked) =>
+                                handleToggle(perm.key, !!checked)
+                              }
+                              className="mt-0.5 h-5 w-5 shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-medium">
+                                  {perm.display_name}
+                                </span>
+                                {!perm.is_delegatable && (
+                                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                    {t("permissions.ownerOnly")}
+                                  </Badge>
                                 )}
-                              >
-                                <Checkbox
-                                  id={perm.key}
-                                  checked={selectedKeys.has(perm.key)}
-                                  onCheckedChange={(checked) =>
-                                    handleToggle(perm.key, !!checked)
-                                  }
-                                  className="mt-1 h-5 w-5"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-sm font-semibold">
-                                      {perm.display_name}
-                                    </span>
-                                    {!perm.is_delegatable && (
-                                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                                        {t("permissions.ownerOnly")}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {perm.description && (
-                                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                                      {perm.description}
-                                    </p>
-                                  )}
-                                </div>
-                              </label>
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+                              </div>
+                              {perm.description && (
+                                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                                  {perm.description}
+                                </p>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
-        </div>
+        </ScrollArea>
 
-        <DialogFooter className="px-6 py-4 border-t bg-muted/30">
+        <DialogFooter className="px-6 py-4 border-t bg-muted/30 shrink-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t("common.cancel")}
           </Button>
