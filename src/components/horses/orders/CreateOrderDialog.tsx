@@ -29,6 +29,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrderTypes } from "@/hooks/useHorseOrderTypes";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
+import { useI18n } from "@/i18n";
 import { ServiceProviderSelector } from "./ServiceProviderSelector";
 import { ClientSelector } from "./ClientSelector";
 import { FinancialCategorization } from "./FinancialCategorization";
@@ -56,6 +57,7 @@ export function CreateOrderDialog({
   const { horses } = useHorses();
   const { activeTypes } = useHorseOrderTypes();
   const { getServiceModeOptions } = useTenantCapabilities();
+  const { t } = useI18n();
 
   const [loading, setLoading] = useState(false);
   const [horseId, setHorseId] = useState(defaultHorseId || "");
@@ -228,7 +230,7 @@ export function CreateOrderDialog({
               <SelectContent>
                 {serviceModeOptions.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    {opt.value === "internal" ? "Internal" : "External"}
+                    {opt.value === "internal" ? t("scope.internal") : t("scope.external")}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -331,10 +333,10 @@ export function CreateOrderDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectItem value="low">{t("severity.low")}</SelectItem>
+                <SelectItem value="medium">{t("severity.medium")}</SelectItem>
+                <SelectItem value="high">{t("severity.high")}</SelectItem>
+                <SelectItem value="urgent">{t("severity.urgent")}</SelectItem>
               </SelectContent>
             </Select>
           </div>

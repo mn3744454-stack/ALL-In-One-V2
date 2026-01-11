@@ -13,6 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useI18n } from "@/i18n";
+import { tStatus } from "@/i18n/labels";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
 
 interface OrderCardProps {
@@ -32,6 +34,7 @@ export function OrderCard({
   onStatusChange,
   onDelete,
 }: OrderCardProps) {
+  const { t } = useI18n();
   const getNextStatuses = (): HorseOrder["status"][] => {
     switch (order.status) {
       case "draft":
@@ -78,11 +81,11 @@ export function OrderCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={onView}>
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
+                <Eye className="w-4 h-4 me-2" />
+                {t("orders.actions.viewDetails")}
               </DropdownMenuItem>
               {canManage && onEdit && (
-                <DropdownMenuItem onClick={onEdit}>Edit Order</DropdownMenuItem>
+                <DropdownMenuItem onClick={onEdit}>{t("orders.actions.edit")}</DropdownMenuItem>
               )}
               {canManage && nextStatuses.length > 0 && (
                 <>
@@ -92,7 +95,7 @@ export function OrderCard({
                       key={status}
                       onClick={() => onStatusChange?.(status)}
                     >
-                      Mark as {status.replace("_", " ")}
+                      {t("orders.actions.markAs")} {tStatus(status)}
                     </DropdownMenuItem>
                   ))}
                 </>
@@ -104,7 +107,7 @@ export function OrderCard({
                     onClick={onDelete}
                     className="text-destructive focus:text-destructive"
                   >
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </>
               )}
@@ -137,7 +140,7 @@ export function OrderCard({
         {/* Provider info for external */}
         {order.service_mode === "external" && order.external_provider_name && (
           <p className="mt-2 text-sm text-muted-foreground">
-            Provider: {order.external_provider_name}
+            {t("orders.provider")}: {order.external_provider_name}
           </p>
         )}
       </CardContent>
