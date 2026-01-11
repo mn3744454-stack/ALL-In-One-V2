@@ -29,6 +29,10 @@ export const en = {
     selectAll: "Select All",
     deselectAll: "Deselect All",
     unknown: "Unknown",
+    view: "View",
+    clear: "Clear",
+    more: "More",
+    openMenu: "Open menu",
   },
   settings: {
     permissionsRoles: {
@@ -1374,8 +1378,21 @@ export const en = {
   },
   // Orders module
   orders: {
-    title: "Orders",
+    title: "Horse Orders",
+    subtitle: "Manage veterinary, training, grooming and other service orders",
     provider: "Provider",
+    newOrder: "New Order",
+    createOrder: "Create Order",
+    deleteOrder: "Delete Order",
+    deleteOrderConfirm: "Are you sure you want to delete this order? This action cannot be undone.",
+    noOrdersFound: "No Orders Found",
+    createFirstOrderPrompt: "Create your first order to start tracking horse services",
+    noOrdersCreatedYet: "No orders have been created yet",
+    noOrganizationSelected: "No Organization Selected",
+    createOrJoinOrganization: "Please create or join an organization to manage orders.",
+    manageOrderTypes: "Manage Order Types",
+    serviceCapabilities: "Service Capabilities",
+    orderTimeline: "Order Timeline",
     timeline: {
       title: "Activity History",
       noActivity: "No activity recorded yet",
@@ -1388,6 +1405,23 @@ export const en = {
       viewDetails: "View Details",
       edit: "Edit Order",
       markAs: "Mark as",
+    },
+    table: {
+      horse: "Horse",
+      type: "Type",
+      status: "Status",
+      priority: "Priority",
+      mode: "Mode",
+      scheduled: "Scheduled",
+      actions: "Actions",
+    },
+    filters: {
+      searchOrders: "Search orders...",
+      allStatuses: "All Statuses",
+      allPriorities: "All Priorities",
+      allHorses: "All Horses",
+      status: "Status",
+      priority: "Priority",
     },
   },
   // Breeding module

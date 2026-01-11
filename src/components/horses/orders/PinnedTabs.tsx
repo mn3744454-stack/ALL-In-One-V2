@@ -9,6 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, LayoutGrid } from "lucide-react";
 import type { HorseOrderType } from "@/hooks/useHorseOrderTypes";
+import { useI18n } from "@/i18n";
+import { useRTL } from "@/hooks/useRTL";
 
 interface PinnedTabsProps {
   pinnedTabs: HorseOrderType[];
@@ -23,6 +25,8 @@ export function PinnedTabs({
   selectedTypeId,
   onSelectType,
 }: PinnedTabsProps) {
+  const { t } = useI18n();
+  const { isRTL } = useRTL();
   const [moreOpen, setMoreOpen] = useState(false);
 
   const allSelected = selectedTypeId === null;
@@ -35,12 +39,12 @@ export function PinnedTabs({
         onValueChange={(val) => onSelectType(val === "all" ? null : val)}
         className="shrink-0"
       >
-        <TabsList className="bg-muted/50 h-9">
+        <TabsList className={`bg-muted/50 h-9 ${isRTL ? "flex-row-reverse" : ""}`}>
           <TabsTrigger
             value="all"
             className="data-[state=active]:bg-background data-[state=active]:shadow-sm text-sm px-3"
           >
-            All
+            {t("common.all")}
           </TabsTrigger>
           {pinnedTabs.map((tab) => (
             <TabsTrigger
@@ -63,7 +67,7 @@ export function PinnedTabs({
               className="gap-1 shrink-0"
             >
               <LayoutGrid className="w-4 h-4" />
-              More
+              {t("common.more")}
               <ChevronDown className="w-3 h-3" />
             </Button>
           </DropdownMenuTrigger>
@@ -79,7 +83,7 @@ export function PinnedTabs({
               >
                 {type.name}
                 {type.category && (
-                  <span className="ml-auto text-xs text-muted-foreground">
+                  <span className="ms-auto text-xs text-muted-foreground">
                     {type.category}
                   </span>
                 )}

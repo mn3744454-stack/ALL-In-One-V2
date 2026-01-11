@@ -18,6 +18,7 @@ import { Plus, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useI18n } from "@/i18n";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ export function OrdersList({
   onStatusChange,
   onDeleteOrder,
 }: OrdersListProps) {
+  const { t } = useI18n();
   const isMobile = useIsMobile();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<HorseOrder | null>(null);
@@ -82,17 +84,17 @@ export function OrdersList({
       <div className="text-center py-12 px-4">
         <ClipboardList className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
         <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-          No Orders Found
+          {t("orders.noOrdersFound")}
         </h3>
         <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
           {canManage
-            ? "Create your first order to start tracking horse services"
-            : "No orders have been created yet"}
+            ? t("orders.createFirstOrderPrompt")
+            : t("orders.noOrdersCreatedYet")}
         </p>
         {canManage && (
           <Button onClick={onCreateOrder} className="gap-2">
             <Plus className="w-4 h-4" />
-            Create Order
+            {t("orders.createOrder")}
           </Button>
         )}
       </div>
@@ -120,15 +122,15 @@ export function OrdersList({
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Order</AlertDialogTitle>
+              <AlertDialogTitle>{t("orders.deleteOrder")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this order? This action cannot be undone.
+                {t("orders.deleteOrderConfirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
-                Delete
+                {t("common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -144,13 +146,13 @@ export function OrdersList({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-[200px]">Horse</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Mode</TableHead>
-              <TableHead>Scheduled</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="w-[200px]">{t("orders.table.horse")}</TableHead>
+              <TableHead>{t("orders.table.type")}</TableHead>
+              <TableHead>{t("orders.table.status")}</TableHead>
+              <TableHead>{t("orders.table.priority")}</TableHead>
+              <TableHead>{t("orders.table.mode")}</TableHead>
+              <TableHead>{t("orders.table.scheduled")}</TableHead>
+              <TableHead className="text-end">{t("orders.table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -165,13 +167,13 @@ export function OrdersList({
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-medium truncate max-w-[120px]">
-                      {order.horse?.name || "Unknown"}
+                      {order.horse?.name || t("common.unknown")}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <span className="truncate max-w-[100px] block">
-                    {order.order_type?.name || "Unknown"}
+                    {order.order_type?.name || t("common.unknown")}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -192,14 +194,14 @@ export function OrdersList({
                     <span className="text-sm text-muted-foreground">-</span>
                   )}
                 </TableCell>
-                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                <TableCell className="text-end" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onViewOrder(order)}
                     >
-                      View
+                      {t("common.view")}
                     </Button>
                     {canManage && onEditOrder && (
                       <Button
@@ -207,7 +209,7 @@ export function OrdersList({
                         size="sm"
                         onClick={() => onEditOrder(order)}
                       >
-                        Edit
+                        {t("common.edit")}
                       </Button>
                     )}
                   </div>
@@ -221,15 +223,15 @@ export function OrdersList({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <AlertDialogTitle>{t("orders.deleteOrder")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this order? This action cannot be undone.
+              {t("orders.deleteOrderConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

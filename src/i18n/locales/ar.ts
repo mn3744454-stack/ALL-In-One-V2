@@ -29,6 +29,10 @@ export const ar = {
     selectAll: "تحديد الكل",
     deselectAll: "إلغاء التحديد",
     unknown: "غير معروف",
+    view: "عرض",
+    clear: "مسح",
+    more: "المزيد",
+    openMenu: "فتح القائمة",
   },
   settings: {
     permissionsRoles: {
@@ -1374,8 +1378,21 @@ export const ar = {
   },
   // Orders module
   orders: {
-    title: "الطلبات",
+    title: "طلبات الخيول",
+    subtitle: "إدارة طلبات الخدمات البيطرية والتدريب والعناية وغيرها",
     provider: "مزود الخدمة",
+    newOrder: "طلب جديد",
+    createOrder: "إنشاء طلب",
+    deleteOrder: "حذف الطلب",
+    deleteOrderConfirm: "هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.",
+    noOrdersFound: "لم يتم العثور على طلبات",
+    createFirstOrderPrompt: "أنشئ طلبك الأول لبدء تتبع خدمات الخيول",
+    noOrdersCreatedYet: "لم يتم إنشاء أي طلبات بعد",
+    noOrganizationSelected: "لم يتم تحديد منشأة",
+    createOrJoinOrganization: "يرجى إنشاء منشأة أو الانضمام إلى منشأة لإدارة الطلبات.",
+    manageOrderTypes: "إدارة أنواع الطلبات",
+    serviceCapabilities: "قدرات الخدمة",
+    orderTimeline: "سجل الطلب",
     timeline: {
       title: "سجل النشاط",
       noActivity: "لا يوجد نشاط مسجل بعد",
@@ -1388,6 +1405,23 @@ export const ar = {
       viewDetails: "عرض التفاصيل",
       edit: "تعديل الطلب",
       markAs: "تحديد كـ",
+    },
+    table: {
+      horse: "الحصان",
+      type: "النوع",
+      status: "الحالة",
+      priority: "الأولوية",
+      mode: "الوضع",
+      scheduled: "المجدول",
+      actions: "الإجراءات",
+    },
+    filters: {
+      searchOrders: "البحث في الطلبات...",
+      allStatuses: "جميع الحالات",
+      allPriorities: "جميع الأولويات",
+      allHorses: "جميع الخيول",
+      status: "الحالة",
+      priority: "الأولوية",
     },
   },
   // Breeding module
