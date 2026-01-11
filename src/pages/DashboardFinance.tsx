@@ -15,6 +15,7 @@ import {
   ExpenseFormDialog,
 } from "@/components/finance";
 import { cn } from "@/lib/utils";
+import { MobilePageHeader } from "@/components/navigation";
 import { isThisMonth } from "date-fns";
 import {
   Menu,
@@ -333,15 +334,11 @@ export default function DashboardFinance() {
     <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="flex-1 p-4 lg:p-8 overflow-auto">
-        {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between mb-4">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </Button>
-          <h1 className="text-lg font-bold text-navy">{t("finance.title")}</h1>
-          <div className="w-10" />
-        </div>
+      <main className="flex-1 overflow-auto">
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("finance.title")} />
+
+        <div className="p-4 lg:p-8">
 
         {/* Desktop Header */}
         <div className="hidden lg:flex items-center justify-between mb-8">
@@ -454,6 +451,7 @@ export default function DashboardFinance() {
             <LedgerTab />
           </TabsContent>
         </Tabs>
+        </div>
       </main>
     </div>
   );

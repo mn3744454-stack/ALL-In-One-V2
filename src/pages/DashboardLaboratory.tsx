@@ -19,6 +19,7 @@ import {
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList } from "lucide-react";
+import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -98,22 +99,8 @@ export default function DashboardLaboratory() {
       />
 
       <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
-        {/* Mobile Header */}
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b lg:hidden">
-          <div className="flex items-center h-14 px-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="gap-1">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only">{t("common.back")}</span>
-              </Button>
-            </Link>
-            <h1 className="flex-1 text-center font-semibold flex items-center justify-center gap-2">
-              <FlaskConical className="h-5 w-5" />
-              {t("sidebar.laboratory")}
-            </h1>
-            <div className="w-10" />
-          </div>
-        </header>
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("sidebar.laboratory")} />
 
         {/* Desktop Header with Sidebar trigger */}
         <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">

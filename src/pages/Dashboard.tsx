@@ -10,7 +10,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
-import { MobileBottomNav, MobileLauncher } from "@/components/navigation";
+import { MobileHomeGrid } from "@/components/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -33,7 +33,7 @@ import {
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [launcherOpen, setLauncherOpen] = useState(false);
+  // Removed launcherOpen state - no longer needed
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
@@ -58,8 +58,9 @@ const Dashboard = () => {
         <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+              {/* Hamburger menu - only on tablet/desktop, hidden on mobile */}
               <button
-                className="p-2 rounded-xl hover:bg-muted lg:hidden shrink-0"
+                className="p-2 rounded-xl hover:bg-muted hidden md:block lg:hidden shrink-0"
                 onClick={() => setSidebarOpen(true)}
                 aria-label="Open menu"
               >
@@ -109,6 +110,9 @@ const Dashboard = () => {
                   : "Discover our services and explore what Khail has to offer."}
               </p>
             </div>
+
+            {/* Mobile Home Grid - Quick access to all modules */}
+            <MobileHomeGrid className="mb-8" />
 
             {/* Getting Started Card - Only show when no tenants */}
             {hasNoTenants && (
@@ -353,15 +357,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          {/* Bottom padding for mobile nav */}
-          <div className="h-20 lg:hidden" />
         </div>
-        
-        {/* Mobile Bottom Navigation */}
-        <MobileBottomNav onOpenLauncher={() => setLauncherOpen(true)} />
-        
-        {/* Mobile Launcher Sheet */}
-        <MobileLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
       </main>
     </div>
   );
