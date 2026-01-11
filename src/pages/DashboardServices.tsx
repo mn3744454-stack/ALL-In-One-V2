@@ -119,7 +119,7 @@ const DashboardServices = () => {
                 <input
                   type="text"
                   placeholder="Search services..."
-                  className="w-64 h-10 pl-10 pr-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
               <InvitationsPanel />

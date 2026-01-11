@@ -175,7 +175,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                         placeholder={`Enter your ${config.title.toLowerCase()} name`}
                         value={formData.name}
                         onChange={(e) => updateField("name", e.target.value)}
-                        className="pl-10"
+                        className="ps-10"
                         required
                       />
                     </div>
@@ -226,7 +226,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                         placeholder="Enter your street address"
                         value={formData.address}
                         onChange={(e) => updateField("address", e.target.value)}
-                        className="pl-10"
+                        className="ps-10"
                         required
                       />
                     </div>
@@ -283,7 +283,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                         placeholder="+966 XX XXX XXXX"
                         value={formData.phone}
                         onChange={(e) => updateField("phone", e.target.value)}
-                        className="pl-10"
+                        className="ps-10"
                         required
                       />
                     </div>
@@ -301,7 +301,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                         placeholder={`${config.title.toLowerCase()}@example.com`}
                         value={formData.email}
                         onChange={(e) => updateField("email", e.target.value)}
-                        className="pl-10"
+                        className="ps-10"
                         required
                       />
                     </div>
