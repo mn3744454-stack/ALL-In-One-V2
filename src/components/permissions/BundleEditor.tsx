@@ -247,7 +247,7 @@ export function BundleEditor({
                               onCheckedChange={(checked) =>
                                 handleToggle(perm.key, !!checked)
                               }
-                              className="mt-0.5 h-5 w-5 shrink-0"
+                              className="mt-0.5 h-5 w-5 shrink-0 border-2 border-primary/50 data-[state=checked]:border-primary"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
