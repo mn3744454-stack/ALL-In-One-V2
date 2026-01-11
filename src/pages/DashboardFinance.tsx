@@ -316,9 +316,13 @@ function LedgerTab() {
   );
 }
 
-export default function DashboardFinance() {
+interface DashboardFinanceProps {
+  initialTab?: "invoices" | "expenses" | "ledger";
+}
+
+export default function DashboardFinance({ initialTab }: DashboardFinanceProps = {}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("invoices");
+  const [activeTab, setActiveTab] = useState(initialTab || "invoices");
   const { activeTenant } = useTenant();
   const { t, dir } = useI18n();
   const {
@@ -423,7 +427,7 @@ export default function DashboardFinance() {
         )}
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "invoices" | "expenses" | "ledger")}>
           <TabsList className="mb-4 lg:mb-6 w-full sm:w-auto overflow-x-auto">
             <TabsTrigger value="invoices" className="gap-1.5 text-xs sm:text-sm">
               <FileText className="w-4 h-4" />

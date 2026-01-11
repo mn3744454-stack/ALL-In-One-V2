@@ -20,6 +20,11 @@ import {
   GraduationCap,
   Globe,
   Settings,
+  Receipt,
+  BookOpen,
+  ShoppingCart,
+  Tags,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,10 +78,10 @@ export const NAV_MODULES: NavModule[] = [
     route: "/dashboard/my-bookings",
   },
   {
-    key: "payments",
+    key: "myPayments",
     icon: CreditCard,
-    labelKey: "sidebar.payments",
-    route: "/dashboard/payments",
+    labelKey: "sidebar.myPayments",
+    route: "/dashboard/my-payments",
   },
   {
     key: "horses",
@@ -160,19 +165,62 @@ export const NAV_MODULES: NavModule[] = [
     route: "/dashboard/services",
     roles: ["owner", "manager"],
   },
-  {
-    key: "revenue",
-    icon: TrendingUp,
-    labelKey: "sidebar.revenue",
-    route: "/dashboard/revenue",
-    roles: ["owner", "manager"],
-  },
+  // Finance parent module with children
   {
     key: "finance",
     icon: Wallet,
     labelKey: "finance.title",
-    route: "/dashboard/finance",
     roles: ["owner", "manager"],
+    children: [
+      {
+        key: "overview",
+        icon: BarChart3,
+        labelKey: "finance.overview",
+        route: "/dashboard/finance",
+      },
+      {
+        key: "invoices",
+        icon: FileText,
+        labelKey: "finance.invoices.title",
+        route: "/dashboard/finance/invoices",
+      },
+      {
+        key: "expenses",
+        icon: Receipt,
+        labelKey: "finance.expenses.title",
+        route: "/dashboard/finance/expenses",
+      },
+      {
+        key: "payments",
+        icon: CreditCard,
+        labelKey: "sidebar.payments",
+        route: "/dashboard/finance/payments",
+      },
+      {
+        key: "revenue",
+        icon: TrendingUp,
+        labelKey: "sidebar.revenue",
+        route: "/dashboard/finance/revenue",
+      },
+      {
+        key: "ledger",
+        icon: BookOpen,
+        labelKey: "finance.ledger.title",
+        route: "/dashboard/finance/ledger",
+      },
+      {
+        key: "pos",
+        icon: ShoppingCart,
+        labelKey: "finance.pos.title",
+        route: "/dashboard/finance/pos",
+      },
+      {
+        key: "categories",
+        icon: Tags,
+        labelKey: "finance.categories.title",
+        route: "/dashboard/finance/categories",
+      },
+    ],
   },
   {
     key: "files",

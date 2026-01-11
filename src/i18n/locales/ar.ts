@@ -47,6 +47,7 @@ export const ar = {
     community: "المجتمع",
     myBookings: "حجوزاتي",
     payments: "المدفوعات",
+    myPayments: "مدفوعاتي",
     horses: "الخيول",
     myHorses: "خيولي",
     orders: "الطلبات",
