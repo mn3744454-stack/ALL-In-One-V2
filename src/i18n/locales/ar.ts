@@ -259,6 +259,26 @@ export const ar = {
       },
     },
     
+    // Lab Billing
+    billing: {
+      generateInvoice: "إنشاء فاتورة",
+      generateInvoiceDesc: "إنشاء مسودة فاتورة من هذه الخدمة المخبرية",
+      createInvoice: "إنشاء الفاتورة",
+      selectClient: "اختر العميل",
+      selectClientPlaceholder: "اختر عميلاً للفوترة...",
+      lineItems: "بنود الفاتورة",
+      noItemsFound: "لا توجد بنود قابلة للفوترة",
+      quantity: "الكمية",
+      sourceSample: "العينة",
+      sourceRequest: "الطلب",
+      invoiceCreated: "تم إنشاء الفاتورة بنجاح",
+      invoiceError: "فشل في إنشاء الفاتورة",
+      noTenant: "لا توجد منشأة نشطة",
+      noPermission: "ليس لديك صلاحية لإنشاء الفواتير",
+      noItems: "لا توجد بنود قابلة للفوترة",
+      notesPlaceholder: "ملاحظات اختيارية للفاتورة...",
+    },
+    
     // Alerts
     alerts: {
       mvpInfo: "وحدة المختبر - النسخة التجريبية. إنشاء وتتبع العينات وإدارة النتائج بالقوالب.",

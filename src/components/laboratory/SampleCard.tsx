@@ -17,7 +17,8 @@ import {
   RotateCcw,
   FileText,
   AlertTriangle,
-  Eye
+  Eye,
+  Receipt
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,6 +31,7 @@ import {
 interface SampleCardProps {
   sample: LabSample;
   canManage: boolean;
+  canCreateInvoice?: boolean;
   completedResultsCount?: number;
   onAccession?: () => void;
   onStartProcessing?: () => void;
@@ -38,11 +40,13 @@ interface SampleCardProps {
   onRetest?: () => void;
   onClick?: () => void;
   onViewAllResults?: () => void;
+  onGenerateInvoice?: () => void;
 }
 
 export function SampleCard({
   sample,
   canManage,
+  canCreateInvoice = false,
   completedResultsCount = 0,
   onAccession,
   onStartProcessing,
@@ -51,9 +55,13 @@ export function SampleCard({
   onRetest,
   onClick,
   onViewAllResults,
+  onGenerateInvoice,
 }: SampleCardProps) {
   const { t } = useI18n();
   const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
+  
+  // Check if sample is billable (completed status)
+  const isBillable = sample.status === 'completed';
   const horseInitials = horseName.slice(0, 2).toUpperCase();
 
   // Template progress calculation
@@ -120,6 +128,18 @@ export function SampleCard({
                       <RotateCcw className="h-4 w-4 me-2" />
                       {t("laboratory.sampleActions.createRetest")}
                     </DropdownMenuItem>
+                  )}
+                  {isBillable && canCreateInvoice && onGenerateInvoice && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={(e) => { e.stopPropagation(); onGenerateInvoice(); }}
+                        className="text-primary"
+                      >
+                        <Receipt className="h-4 w-4 me-2" />
+                        {t("laboratory.billing.generateInvoice")}
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
                     <>

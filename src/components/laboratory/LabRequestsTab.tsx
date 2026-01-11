@@ -7,12 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/hooks/laboratory/useLabRequests";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search } from "lucide-react";
+import { useTenant } from "@/contexts/TenantContext";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 
 const statusConfig: Record<LabRequest['status'], { icon: React.ElementType; color: string }> = {
   pending: { icon: Clock, color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -154,13 +163,22 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   );
 }
 
-function RequestCard({ request }: { request: LabRequest }) {
+interface RequestCardProps {
+  request: LabRequest;
+  canCreateInvoice: boolean;
+  onGenerateInvoice: () => void;
+}
+
+function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCardProps) {
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
   
   const horseName = dir === 'rtl' && request.horse?.name_ar 
     ? request.horse.name_ar 
     : request.horse?.name || t('laboratory.samples.unknownHorse');
+
+  // Check if request is billable (ready or received status)
+  const isBillable = request.status === 'ready' || request.status === 'received';
 
   const handleMarkReceived = async () => {
     await updateRequest({
@@ -174,13 +192,33 @@ function RequestCard({ request }: { request: LabRequest }) {
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 min-w-0">
             <CardTitle className="text-base">{horseName}</CardTitle>
             <CardDescription className="line-clamp-2">
               {request.test_description}
             </CardDescription>
           </div>
-          <RequestStatusBadge status={request.status} />
+          <div className="flex items-center gap-2">
+            <RequestStatusBadge status={request.status} />
+            {isBillable && canCreateInvoice && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={onGenerateInvoice}
+                    className="text-primary"
+                  >
+                    <Receipt className="h-4 w-4 me-2" />
+                    {t("laboratory.billing.generateInvoice")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -226,9 +264,15 @@ function RequestCard({ request }: { request: LabRequest }) {
 
 export function LabRequestsTab() {
   const { t } = useI18n();
+  const { activeRole } = useTenant();
   const { requests, loading } = useLabRequests();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<LabRequest | null>(null);
+
+  // Permission check for invoice creation
+  const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
 
   const filteredRequests = requests.filter(req => {
     const matchesSearch = !searchQuery || 
@@ -239,6 +283,11 @@ export function LabRequestsTab() {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleGenerateInvoice = (request: LabRequest) => {
+    setSelectedRequest(request);
+    setInvoiceDialogOpen(true);
+  };
 
   if (loading) {
     return (
@@ -303,9 +352,24 @@ export function LabRequestsTab() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredRequests.map((request) => (
-            <RequestCard key={request.id} request={request} />
+            <RequestCard 
+              key={request.id} 
+              request={request} 
+              canCreateInvoice={canCreateInvoice}
+              onGenerateInvoice={() => handleGenerateInvoice(request)}
+            />
           ))}
         </div>
+      )}
+
+      {/* Generate Invoice Dialog */}
+      {selectedRequest && (
+        <GenerateInvoiceDialog
+          open={invoiceDialogOpen}
+          onOpenChange={setInvoiceDialogOpen}
+          sourceType="lab_request"
+          request={selectedRequest}
+        />
       )}
     </div>
   );
