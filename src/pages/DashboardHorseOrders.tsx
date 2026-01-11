@@ -10,6 +10,7 @@ import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrders, OrderFilters as OrderFiltersType, CreateOrderData, HorseOrder } from "@/hooks/useHorseOrders";
 import { useHorseOrderEvents } from "@/hooks/useHorseOrderEvents";
 import { useHorseOrderTypes } from "@/hooks/useHorseOrderTypes";
+import { useI18n } from "@/i18n";
 import {
   OrdersList,
   OrderFilters,
@@ -48,6 +49,7 @@ const OrderTimelineWrapper = ({ orderId }: { orderId: string }) => {
 };
 
 const DashboardHorseOrders = () => {
+  const { t } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
@@ -123,7 +125,7 @@ const DashboardHorseOrders = () => {
               <button
                 className="p-2 rounded-xl hover:bg-muted lg:hidden shrink-0"
                 onClick={() => setSidebarOpen(true)}
-                aria-label="Open menu"
+                aria-label={t("common.openMenu")}
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -137,11 +139,11 @@ const DashboardHorseOrders = () => {
 
             <div className="flex items-center gap-1.5 sm:gap-3">
               <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
-                  placeholder="Search orders..."
-                  className="w-64 h-10 pl-10 pr-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  placeholder={t("orders.filters.searchOrders")}
+                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                   value={filters.search || ""}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 />
@@ -158,16 +160,16 @@ const DashboardHorseOrders = () => {
                     <OrderTypesManager 
                       trigger={
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <ClipboardList className="w-4 h-4 mr-2" />
-                          Manage Order Types
+                          <ClipboardList className="w-4 h-4 me-2" />
+                          {t("orders.manageOrderTypes")}
                         </DropdownMenuItem>
                       }
                     />
                     <CapabilitiesManager 
                       trigger={
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Sliders className="w-4 h-4 mr-2" />
-                          Service Capabilities
+                          <Sliders className="w-4 h-4 me-2" />
+                          {t("orders.serviceCapabilities")}
                         </DropdownMenuItem>
                       }
                     />
@@ -187,13 +189,13 @@ const DashboardHorseOrders = () => {
               <div className="text-center py-12">
                 <ClipboardList className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
                 <h2 className="font-display text-xl font-semibold text-navy mb-2">
-                  No Organization Selected
+                  {t("orders.noOrganizationSelected")}
                 </h2>
                 <p className="text-muted-foreground mb-4">
-                  Please create or join an organization to manage orders.
+                  {t("orders.createOrJoinOrganization")}
                 </p>
                 <Link to="/select-role">
-                  <Button variant="gold">Create Organization</Button>
+                  <Button variant="gold">{t("dashboard.createOrganization")}</Button>
                 </Link>
               </div>
             ) : (
@@ -201,15 +203,15 @@ const DashboardHorseOrders = () => {
                 {/* Header with tabs and actions */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h1 className="font-display text-2xl font-bold text-navy">Horse Orders</h1>
+                    <h1 className="font-display text-2xl font-bold text-navy">{t("orders.title")}</h1>
                     <p className="text-sm text-muted-foreground">
-                      Manage veterinary, training, grooming and other service orders
+                      {t("orders.subtitle")}
                     </p>
                   </div>
                   {canManage && (
                     <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
                       <Plus className="w-4 h-4" />
-                      New Order
+                      {t("orders.newOrder")}
                     </Button>
                   )}
                 </div>
@@ -272,7 +274,7 @@ const DashboardHorseOrders = () => {
       <Sheet open={!!viewingOrderId} onOpenChange={(open) => !open && setViewingOrderId(null)}>
         <SheetContent className="sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle>Order Timeline</SheetTitle>
+            <SheetTitle>{t("orders.orderTimeline")}</SheetTitle>
           </SheetHeader>
           {viewingOrder && (
             <div className="mt-6">

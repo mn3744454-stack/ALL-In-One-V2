@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 import type { OrderFilters } from "@/hooks/useHorseOrders";
+import { useI18n } from "@/i18n";
+import { tStatus, tSeverity } from "@/i18n/labels";
 
 interface HorseOption {
   id: string;
@@ -21,26 +23,27 @@ interface OrderFiltersProps {
   horses: HorseOption[];
 }
 
-const statusOptions = [
-  { value: "all", label: "All Statuses" },
-  { value: "draft", label: "Draft" },
-  { value: "pending", label: "Pending" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-];
-
-const priorityOptions = [
-  { value: "all", label: "All Priorities" },
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
-];
-
 export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersProps) {
+  const { t } = useI18n();
   const hasFilters = filters.status || filters.priority || filters.horse_id || filters.search;
+
+  const statusOptions = [
+    { value: "all", label: t("orders.filters.allStatuses") },
+    { value: "draft", label: tStatus("draft") },
+    { value: "pending", label: tStatus("pending") },
+    { value: "scheduled", label: tStatus("scheduled") },
+    { value: "in_progress", label: tStatus("in_progress") },
+    { value: "completed", label: tStatus("completed") },
+    { value: "cancelled", label: tStatus("cancelled") },
+  ];
+
+  const priorityOptions = [
+    { value: "all", label: t("orders.filters.allPriorities") },
+    { value: "low", label: tSeverity("low") },
+    { value: "medium", label: tSeverity("medium") },
+    { value: "high", label: tSeverity("high") },
+    { value: "urgent", label: tSeverity("urgent") },
+  ];
 
   const clearFilters = () => {
     onFiltersChange({});
@@ -50,14 +53,14 @@ export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersP
     <div className="flex flex-wrap items-center gap-2">
       {/* Search */}
       <div className="relative flex-1 min-w-[180px] max-w-xs">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Search orders..."
+          placeholder={t("orders.filters.searchOrders")}
           value={filters.search || ""}
           onChange={(e) =>
             onFiltersChange({ ...filters, search: e.target.value || undefined })
           }
-          className="pl-9 h-9"
+          className="ps-9 h-9"
         />
       </div>
 
@@ -69,7 +72,7 @@ export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersP
         }
       >
         <SelectTrigger className="w-[140px] h-9">
-          <SelectValue placeholder="Status" />
+          <SelectValue placeholder={t("orders.filters.status")} />
         </SelectTrigger>
         <SelectContent>
           {statusOptions.map((opt) => (
@@ -88,7 +91,7 @@ export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersP
         }
       >
         <SelectTrigger className="w-[140px] h-9">
-          <SelectValue placeholder="Priority" />
+          <SelectValue placeholder={t("orders.filters.priority")} />
         </SelectTrigger>
         <SelectContent>
           {priorityOptions.map((opt) => (
@@ -107,10 +110,10 @@ export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersP
         }
       >
         <SelectTrigger className="w-[160px] h-9">
-          <SelectValue placeholder="All Horses" />
+          <SelectValue placeholder={t("orders.filters.allHorses")} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All Horses</SelectItem>
+          <SelectItem value="all">{t("orders.filters.allHorses")}</SelectItem>
           {horses.map((horse) => (
             <SelectItem key={horse.id} value={horse.id}>
               {horse.name}
@@ -123,7 +126,7 @@ export function OrderFilters({ filters, onFiltersChange, horses }: OrderFiltersP
       {hasFilters && (
         <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1 h-9">
           <X className="w-4 h-4" />
-          Clear
+          {t("common.clear")}
         </Button>
       )}
     </div>
