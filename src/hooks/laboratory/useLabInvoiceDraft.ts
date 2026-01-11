@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInvoices, useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import type { LabSample } from "./useLabSamples";
 import type { LabRequest } from "./useLabRequests";
 import type { LabTemplate } from "./useLabTemplates";
 
 export type LabBillingSourceType = "lab_sample" | "lab_request";
+
+export interface ExistingInvoiceInfo {
+  invoiceId: string;
+  invoiceNumber: string;
+}
 
 export interface LabBillingLineItem {
   templateId?: string;
@@ -41,9 +47,60 @@ export function useLabInvoiceDraft() {
   const { createItem } = useInvoiceItems();
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
 
   // Permission check: only owner/manager can create invoices
   const canCreateInvoice = activeRole === "owner" || activeRole === "manager";
+
+  /**
+   * Check if an invoice already exists for a given lab source
+   * Searches in invoice_items.description for the pattern [LAB:sourceType:sourceId]
+   */
+  const checkExistingInvoice = useCallback(
+    async (
+      sourceType: LabBillingSourceType,
+      sourceId: string
+    ): Promise<ExistingInvoiceInfo | null> => {
+      if (!tenantId) return null;
+
+      setIsChecking(true);
+      try {
+        const searchPattern = `[LAB:${sourceType}:${sourceId}]`;
+
+        // Search in invoice_items description
+        const { data: items, error } = await supabase
+          .from("invoice_items")
+          .select("invoice_id, invoices!inner(id, invoice_number, tenant_id)")
+          .ilike("description", `%${searchPattern}%`)
+          .eq("invoices.tenant_id", tenantId)
+          .limit(1);
+
+        if (error) {
+          console.error("Error checking existing invoice:", error);
+          return null;
+        }
+
+        if (items && items.length > 0) {
+          const invoice = items[0].invoices as unknown as {
+            id: string;
+            invoice_number: string;
+          };
+          return {
+            invoiceId: invoice.id,
+            invoiceNumber: invoice.invoice_number,
+          };
+        }
+
+        return null;
+      } catch (error) {
+        console.error("Error checking existing invoice:", error);
+        return null;
+      } finally {
+        setIsChecking(false);
+      }
+    },
+    [tenantId]
+  );
 
   /**
    * Extract pricing from template's pricing JSONB field
@@ -191,12 +248,25 @@ export function useLabInvoiceDraft() {
     }
   };
 
+  /**
+   * Navigate to a specific invoice
+   */
+  const goToInvoice = useCallback(
+    (invoiceId: string) => {
+      navigate(`/dashboard/finance/invoices?selected=${invoiceId}`);
+    },
+    [navigate]
+  );
+
   return {
     canCreateInvoice,
     isGenerating: isGenerating || isCreating,
+    isChecking,
     getTemplatePrice,
     buildLineItemsFromSample,
     buildLineItemsFromRequest,
     generateInvoice,
+    checkExistingInvoice,
+    goToInvoice,
   };
 }

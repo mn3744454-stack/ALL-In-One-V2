@@ -277,6 +277,10 @@ export const ar = {
       noPermission: "ليس لديك صلاحية لإنشاء الفواتير",
       noItems: "لا توجد بنود قابلة للفوترة",
       notesPlaceholder: "ملاحظات اختيارية للفاتورة...",
+      checkingExisting: "جاري التحقق من وجود فاتورة سابقة...",
+      invoiceExists: "الفاتورة موجودة مسبقاً",
+      invoiceExistsDesc: "تم إنشاء فاتورة لهذا البند مسبقاً:",
+      goToInvoice: "الانتقال للفاتورة",
     },
     
     // Alerts
