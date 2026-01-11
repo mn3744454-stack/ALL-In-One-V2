@@ -277,6 +277,10 @@ export const en = {
       noPermission: "You don't have permission to create invoices",
       noItems: "No billable items found",
       notesPlaceholder: "Optional notes for the invoice...",
+      checkingExisting: "Checking for existing invoice...",
+      invoiceExists: "Invoice Already Exists",
+      invoiceExistsDesc: "An invoice has already been generated for this item:",
+      goToInvoice: "Go to Invoice",
     },
     
     // Alerts

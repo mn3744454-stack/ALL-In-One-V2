@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
@@ -29,10 +30,11 @@ import {
   type LabBillingSourceType,
   type LabBillingLineItem,
   type GenerateInvoiceInput,
+  type ExistingInvoiceInfo,
 } from "@/hooks/laboratory/useLabInvoiceDraft";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
-import { FileText, Receipt, Loader2, User, DollarSign } from "lucide-react";
+import { FileText, Receipt, Loader2, User, DollarSign, AlertCircle, ExternalLink } from "lucide-react";
 
 interface GenerateInvoiceDialogProps {
   open: boolean;
@@ -55,10 +57,13 @@ export function GenerateInvoiceDialog({
   const {
     canCreateInvoice,
     isGenerating,
+    isChecking,
     getTemplatePrice,
     buildLineItemsFromSample,
     buildLineItemsFromRequest,
     generateInvoice,
+    checkExistingInvoice,
+    goToInvoice,
   } = useLabInvoiceDraft();
 
   // Form state
@@ -67,6 +72,26 @@ export function GenerateInvoiceDialog({
   );
   const [notes, setNotes] = useState("");
   const [manualPrices, setManualPrices] = useState<Record<number, number>>({});
+  const [existingInvoice, setExistingInvoice] = useState<ExistingInvoiceInfo | null>(null);
+  const [hasChecked, setHasChecked] = useState(false);
+
+  // Get source ID
+  const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;
+
+  // Check for existing invoice when dialog opens
+  useEffect(() => {
+    if (open && sourceId && !hasChecked) {
+      checkExistingInvoice(sourceType, sourceId).then((existing) => {
+        setExistingInvoice(existing);
+        setHasChecked(true);
+      });
+    }
+    // Reset when dialog closes
+    if (!open) {
+      setHasChecked(false);
+      setExistingInvoice(null);
+    }
+  }, [open, sourceType, sourceId, checkExistingInvoice, hasChecked]);
 
   // Build line items based on source type
   const lineItems: LabBillingLineItem[] = useMemo(() => {
@@ -102,8 +127,6 @@ export function GenerateInvoiceDialog({
     sourceType === "lab_sample"
       ? sample?.horse?.name || t("laboratory.samples.unknownHorse")
       : request?.horse?.name || t("laboratory.samples.unknownHorse");
-
-  const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;
 
   // Selected client
   const selectedClient = clients.find((c) => c.id === selectedClientId);
@@ -151,6 +174,43 @@ export function GenerateInvoiceDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Loading state while checking */}
+          {isChecking && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <span className="ms-2 text-sm text-muted-foreground">
+                {t("laboratory.billing.checkingExisting")}
+              </span>
+            </div>
+          )}
+
+          {/* Existing Invoice Alert */}
+          {existingInvoice && (
+            <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800 dark:text-amber-200">
+                {t("laboratory.billing.invoiceExists")}
+              </AlertTitle>
+              <AlertDescription className="text-amber-700 dark:text-amber-300">
+                <p className="mb-3">
+                  {t("laboratory.billing.invoiceExistsDesc")} ({existingInvoice.invoiceNumber})
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-amber-500 text-amber-700 hover:bg-amber-100 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  onClick={() => {
+                    goToInvoice(existingInvoice.invoiceId);
+                    onOpenChange(false);
+                  }}
+                >
+                  <ExternalLink className="h-4 w-4 me-2" />
+                  {t("laboratory.billing.goToInvoice")}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Source Info */}
           <Card className="bg-muted/50">
             <CardContent className="p-4">
@@ -286,7 +346,7 @@ export function GenerateInvoiceDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!isValid || isGenerating || !canCreateInvoice}
+            disabled={!isValid || isGenerating || !canCreateInvoice || !!existingInvoice || isChecking}
           >
             {isGenerating ? (
               <>
