@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { DirectionalIcon } from "@/components/ui/directional-icon";
 import { ScheduleCalendarView } from "@/components/schedule";
+import { MobilePageHeader } from "@/components/navigation";
 
 const moduleIcons: Record<string, React.ElementType> = {
   vet: Stethoscope,
@@ -269,16 +270,11 @@ export default function DashboardSchedule() {
     <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="flex-1 p-4 lg:p-8 overflow-auto">
+      <main className="flex-1 overflow-auto">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between mb-6">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-6 w-6" />
-          </Button>
-          <h1 className="text-lg font-bold text-navy">{t("schedule.title")}</h1>
-          <div className="w-10" />
-        </div>
+        <MobilePageHeader title={t("schedule.title")} backTo="/dashboard" />
 
+        <div className="p-4 lg:p-8">
         {/* Desktop Header */}
         <div className="hidden lg:flex items-center justify-between mb-8">
           <div>
@@ -407,6 +403,7 @@ export default function DashboardSchedule() {
             onItemClick={handleItemClick}
           />
         )}
+        </div>
       </main>
     </div>
   );

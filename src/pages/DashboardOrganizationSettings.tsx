@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key } from "lucide-react";
+import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
@@ -83,16 +84,13 @@ const DashboardOrganizationSettings = () => {
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t("organizationSettings.title")} backTo="/dashboard" />
+
+        {/* Desktop Header */}
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-4">
-              <button
-                className="p-2 rounded-xl hover:bg-navy/5 lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="w-5 h-5 text-navy" />
-              </button>
               <div>
                 <h1 className="font-display text-xl font-bold text-navy">
                   {t("organizationSettings.title")}

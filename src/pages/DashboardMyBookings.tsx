@@ -3,10 +3,13 @@ import { Loader2, Calendar, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMyBookings, useCancelBooking } from "@/hooks/useAcademyBookings";
 import { MyBookingCard } from "@/components/bookings/MyBookingCard";
+import { MobilePageHeader } from "@/components/navigation";
+import { useI18n } from "@/i18n";
 
 const DashboardMyBookings = () => {
   const { data: bookings = [], isLoading } = useMyBookings();
   const cancelBooking = useCancelBooking();
+  const { t } = useI18n();
 
   const handleCancel = async (bookingId: string) => {
     await cancelBooking.mutateAsync(bookingId);
@@ -14,21 +17,24 @@ const DashboardMyBookings = () => {
 
   return (
     <div className="min-h-screen bg-cream">
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("nav.myBookings")} backTo="/dashboard" />
+
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
+        {/* Desktop Header */}
+        <div className="mb-8 hidden lg:block">
           <Link
             to="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            {t("common.back")}
           </Link>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-navy">
-            My Bookings
+            {t("nav.myBookings")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            View and manage your session bookings
+            {t("myBookings.subtitle")}
           </p>
         </div>
 

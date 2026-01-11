@@ -17,12 +17,15 @@ import {
   DollarSign,
   BarChart3,
 } from "lucide-react";
+import { MobilePageHeader } from "@/components/navigation";
+import { useI18n } from "@/i18n";
 
 const DashboardRevenue = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { data: paymentIntents, isLoading } = useTenantPaymentIntents();
+  const { t } = useI18n();
 
   // Redirect if not owner/manager
   const canViewRevenue = activeRole === 'owner' || activeRole === 'manager';
@@ -66,16 +69,12 @@ const DashboardRevenue = () => {
 
       {/* Main Content */}
       <main className="flex-1 min-h-screen min-w-0">
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t("nav.revenue")} backTo="/dashboard" />
+
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              <button
-                className="p-2 rounded-xl hover:bg-muted lg:hidden shrink-0"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
               <TenantSwitcher />
               <div className="hidden md:block">
                 <RoleSwitcher />

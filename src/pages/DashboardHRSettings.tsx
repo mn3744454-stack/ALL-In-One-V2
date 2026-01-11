@@ -31,6 +31,7 @@ import {
   Menu,
   ChevronLeft,
 } from 'lucide-react';
+import { MobilePageHeader } from '@/components/navigation';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -98,18 +99,13 @@ export default function DashboardHRSettings() {
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t('hr.settings.title')} backTo="/dashboard/hr" />
+
+        {/* Desktop Header */}
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
               <Button
                 variant="ghost"
                 size="sm"
