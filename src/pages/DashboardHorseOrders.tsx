@@ -21,6 +21,7 @@ import {
   OrderTimeline,
   OrdersBottomNavigation,
 } from "@/components/horses/orders";
+import { MobilePageHeader } from "@/components/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,8 +119,11 @@ const DashboardHorseOrders = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 min-w-0">
-        {/* Top Bar */}
-        <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("sidebar.orders")} />
+
+        {/* Top Bar - Desktop/Tablet */}
+        <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden md:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
               <button

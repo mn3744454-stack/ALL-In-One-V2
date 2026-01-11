@@ -14,6 +14,7 @@ import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
 import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
+import DashboardMobileModule from "./pages/DashboardMobileModule";
 import DashboardPublicProfile from "./pages/DashboardPublicProfile";
 import DashboardServices from "./pages/DashboardServices";
 import DashboardMyBookings from "./pages/DashboardMyBookings";
@@ -154,6 +155,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mobile/:moduleKey"
+        element={
+          <ProtectedRoute>
+            <DashboardMobileModule />
           </ProtectedRoute>
         }
       />

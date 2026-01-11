@@ -11,6 +11,7 @@ import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu, Warehouse, Loader2, Download, Trash2, AlertCircle } from "lucide-react";
+import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
   const { t, dir } = useI18n();
@@ -75,8 +76,11 @@ export default function DashboardHousing() {
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="flex-1 flex flex-col min-h-screen pb-16 md:pb-0">
-        {/* Header */}
-        <header className="bg-white border-b border-border/50 px-4 py-4 md:px-6">
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("housing.title")} />
+
+        {/* Header - Desktop/Tablet */}
+        <header className="bg-white border-b border-border/50 px-4 py-4 md:px-6 hidden md:block">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button

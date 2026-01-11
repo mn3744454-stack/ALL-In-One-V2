@@ -23,6 +23,8 @@ import { CreateBreedingAttemptDialog } from "@/components/breeding/CreateBreedin
 import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDialog";
 import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTransferDialog";
 import { CreateSemenBatchDialog } from "@/components/breeding/CreateSemenBatchDialog";
+import { MobilePageHeader } from "@/components/navigation";
+import { useI18n } from "@/i18n";
 
 // Mock data for demo purposes
 const mockAttempts = [
@@ -152,6 +154,7 @@ export default function DashboardBreeding() {
   const [showBatchDialog, setShowBatchDialog] = useState(false);
 
   const { activeTenant } = useTenant();
+  const { t } = useI18n();
 
   const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'embryo', 'inventory'], []);
 
@@ -224,8 +227,11 @@ export default function DashboardBreeding() {
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col min-h-0 min-w-0">
-          {/* Top Bar */}
-          <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+          {/* Mobile Page Header */}
+          <MobilePageHeader title={t("sidebar.breeding")} />
+
+          {/* Top Bar - Desktop/Tablet */}
+          <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden md:block">
             <div className="flex items-center justify-between h-16 px-4 lg:px-8">
               <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
                 <button

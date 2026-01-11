@@ -13,6 +13,7 @@ import { useVetVisits } from "@/hooks/vet/useVetVisits";
 import { VetTreatmentsList, CreateVetTreatmentDialog, VetFollowupsList, VaccinationsList, VaccinationProgramManager, VetBottomNavigation } from "@/components/vet";
 import { VetVisitsList } from "@/components/vet/VetVisitsList";
 import { CreateVetVisitDialog } from "@/components/vet/CreateVetVisitDialog";
+import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -310,8 +311,11 @@ const DashboardVet = () => {
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("sidebar.vetHealth")} />
+
+        {/* Header - Desktop/Tablet */}
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden md:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-4">
               <button
