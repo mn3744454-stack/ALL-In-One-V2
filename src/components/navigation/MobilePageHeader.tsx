@@ -13,7 +13,7 @@ interface MobilePageHeaderProps {
 
 export function MobilePageHeader({
   title,
-  backTo = "/dashboard",
+  backTo,
   showBack = true,
   className,
   rightElement,
