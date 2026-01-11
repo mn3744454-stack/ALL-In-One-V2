@@ -118,7 +118,7 @@ const Auth = () => {
                         placeholder="Enter your full name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="pl-10"
+                        className="ps-10"
                         required
                       />
                     </div>
@@ -137,7 +137,7 @@ const Auth = () => {
                       placeholder="Enter your email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="pl-10"
+                      className="ps-10"
                       required
                     />
                   </div>
@@ -155,7 +155,7 @@ const Auth = () => {
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="pl-10 pr-10"
+                      className="ps-10 pe-10"
                       required
                       minLength={6}
                     />
