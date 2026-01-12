@@ -34,6 +34,8 @@ interface InvoicesListProps {
   onEdit?: (invoice: Invoice) => void;
   onDelete?: (invoiceId: string) => Promise<void>;
   onUpdateStatus?: (invoiceId: string, status: string) => Promise<void>;
+  onInvoiceClick?: (invoiceId: string) => void;
+  selectedInvoiceId?: string | null;
   canManage?: boolean;
 }
 
@@ -43,6 +45,8 @@ export function InvoicesList({
   onEdit,
   onDelete,
   onUpdateStatus,
+  onInvoiceClick,
+  selectedInvoiceId,
   canManage = false,
 }: InvoicesListProps) {
   const { t, dir } = useI18n();
@@ -179,17 +183,25 @@ export function InvoicesList({
       ) : (
         <div className="space-y-3">
           {filteredInvoices.map((invoice) => (
-            <InvoiceCard
+            <div
               key={invoice.id}
-              invoice={invoice}
-              onEdit={() => onEdit?.(invoice)}
-              onDelete={() => setDeleteId(invoice.id)}
-              onDownloadPDF={() => handleDownloadPDF(invoice)}
-              onPrint={() => handlePrint(invoice)}
-              onSend={() => onUpdateStatus?.(invoice.id, "sent")}
-              onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
-              canManage={canManage}
-            />
+              onClick={() => onInvoiceClick?.(invoice.id)}
+              className={cn(
+                "cursor-pointer transition-colors",
+                selectedInvoiceId === invoice.id && "ring-2 ring-primary rounded-xl"
+              )}
+            >
+              <InvoiceCard
+                invoice={invoice}
+                onEdit={() => onEdit?.(invoice)}
+                onDelete={() => setDeleteId(invoice.id)}
+                onDownloadPDF={() => handleDownloadPDF(invoice)}
+                onPrint={() => handlePrint(invoice)}
+                onSend={() => onUpdateStatus?.(invoice.id, "sent")}
+                onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
+                canManage={canManage}
+              />
+            </div>
           ))}
         </div>
       )}

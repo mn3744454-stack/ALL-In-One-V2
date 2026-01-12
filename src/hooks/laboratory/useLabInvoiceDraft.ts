@@ -17,6 +17,8 @@ export interface ExistingInvoiceInfo {
   invoiceNumber: string;
 }
 
+export type ExistingInvoicesResult = ExistingInvoiceInfo[];
+
 export interface LabBillingLineItem {
   templateId?: string;
   templateName: string;
@@ -53,15 +55,16 @@ export function useLabInvoiceDraft() {
   const canCreateInvoice = activeRole === "owner" || activeRole === "manager";
 
   /**
-   * Check if an invoice already exists for a given lab source
+   * Check if invoices already exist for a given lab source
    * Searches in invoice_items.description for the pattern [LAB:sourceType:sourceId]
+   * Returns an array of existing invoices (up to 5)
    */
   const checkExistingInvoice = useCallback(
     async (
       sourceType: LabBillingSourceType,
       sourceId: string
-    ): Promise<ExistingInvoiceInfo | null> => {
-      if (!tenantId) return null;
+    ): Promise<ExistingInvoicesResult> => {
+      if (!tenantId) return [];
 
       setIsChecking(true);
       try {
@@ -70,31 +73,43 @@ export function useLabInvoiceDraft() {
         // Search in invoice_items description
         const { data: items, error } = await supabase
           .from("invoice_items")
-          .select("invoice_id, invoices!inner(id, invoice_number, tenant_id)")
+          .select("invoice_id, invoices!inner(id, invoice_number, tenant_id, created_at)")
           .ilike("description", `%${searchPattern}%`)
           .eq("invoices.tenant_id", tenantId)
-          .limit(1);
+          .order("invoices(created_at)", { ascending: false })
+          .limit(5);
 
         if (error) {
           console.error("Error checking existing invoice:", error);
-          return null;
+          return [];
         }
 
         if (items && items.length > 0) {
-          const invoice = items[0].invoices as unknown as {
-            id: string;
-            invoice_number: string;
-          };
-          return {
-            invoiceId: invoice.id,
-            invoiceNumber: invoice.invoice_number,
-          };
+          // Deduplicate by invoice_id
+          const seen = new Set<string>();
+          const result: ExistingInvoicesResult = [];
+          
+          for (const item of items) {
+            const invoice = item.invoices as unknown as {
+              id: string;
+              invoice_number: string;
+            };
+            if (!seen.has(invoice.id)) {
+              seen.add(invoice.id);
+              result.push({
+                invoiceId: invoice.id,
+                invoiceNumber: invoice.invoice_number,
+              });
+            }
+          }
+          
+          return result;
         }
 
-        return null;
+        return [];
       } catch (error) {
         console.error("Error checking existing invoice:", error);
-        return null;
+        return [];
       } finally {
         setIsChecking(false);
       }

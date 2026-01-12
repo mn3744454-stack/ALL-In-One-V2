@@ -281,6 +281,8 @@ export const en = {
       invoiceExists: "Invoice Already Exists",
       invoiceExistsDesc: "An invoice has already been generated for this item:",
       goToInvoice: "Go to Invoice",
+      multipleInvoicesFound: "Multiple Invoices Found",
+      chooseInvoice: "Multiple invoices have been created for this item. Choose one to view:",
     },
     
     // Alerts
@@ -1275,6 +1277,8 @@ export const en = {
       issued: "Issued",
       due: "Due",
       noClient: "No client",
+      detailsTitle: "Invoice Details",
+      close: "Close",
     },
     expenses: {
       title: "Expenses",
