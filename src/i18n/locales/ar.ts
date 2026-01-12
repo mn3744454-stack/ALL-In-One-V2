@@ -281,6 +281,8 @@ export const ar = {
       invoiceExists: "الفاتورة موجودة مسبقاً",
       invoiceExistsDesc: "تم إنشاء فاتورة لهذا البند مسبقاً:",
       goToInvoice: "الانتقال للفاتورة",
+      multipleInvoicesFound: "توجد فواتير متعددة",
+      chooseInvoice: "تم إنشاء عدة فواتير لهذا البند. اختر واحدة للعرض:",
     },
     
     // Alerts
@@ -1275,6 +1277,8 @@ export const ar = {
       issued: "صدرت",
       due: "الاستحقاق",
       noClient: "لا يوجد عميل",
+      detailsTitle: "تفاصيل الفاتورة",
+      close: "إغلاق",
     },
     expenses: {
       title: "المصروفات",

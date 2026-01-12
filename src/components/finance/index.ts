@@ -3,6 +3,7 @@ export { ExpenseFormDialog } from "./ExpenseFormDialog";
 export { ExpensesList } from "./ExpensesList";
 export { ExpenseStatusBadge } from "./ExpenseStatusBadge";
 export { InvoiceCard } from "./InvoiceCard";
+export { InvoiceDetailsSheet } from "./InvoiceDetailsSheet";
 export { InvoiceFormDialog } from "./InvoiceFormDialog";
 export { InvoiceLineItemsEditor } from "./InvoiceLineItemsEditor";
 export { InvoicesList } from "./InvoicesList";

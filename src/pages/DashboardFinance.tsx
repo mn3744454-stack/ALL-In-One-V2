@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
 import {
   InvoicesList,
   InvoiceFormDialog,
+  InvoiceDetailsSheet,
   ExpensesList,
   ExpenseFormDialog,
 } from "@/components/finance";
@@ -32,7 +34,12 @@ import {
   Loader2,
 } from "lucide-react";
 
-function InvoicesTab() {
+interface InvoicesTabProps {
+  selectedInvoiceId: string | null;
+  onInvoiceClick: (invoiceId: string) => void;
+}
+
+function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   const { t, dir } = useI18n();
   const { activeTenant, activeRole } = useTenant();
   const { invoices, isLoading, updateInvoice, deleteInvoice } = useInvoices(
@@ -137,6 +144,8 @@ function InvoicesTab() {
         onUpdateStatus={async (id, status) => {
           await updateInvoice({ id, status: status as any });
         }}
+        onInvoiceClick={onInvoiceClick}
+        selectedInvoiceId={selectedInvoiceId}
         canManage={canManage}
       />
 
@@ -321,8 +330,17 @@ interface DashboardFinanceProps {
 }
 
 export default function DashboardFinance({ initialTab }: DashboardFinanceProps = {}) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(initialTab || "invoices");
+  
+  // Handle selected invoice from URL
+  const selectedInvoiceId = searchParams.get("selected");
+  
+  // Force invoices tab if we have a selected invoice
+  const [activeTab, setActiveTab] = useState(
+    selectedInvoiceId ? "invoices" : (initialTab || "invoices")
+  );
+  
   const { activeTenant } = useTenant();
   const { t, dir } = useI18n();
   const {
@@ -333,6 +351,28 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
     isLoading: isDemoLoading,
     isRemoving,
   } = useFinanceDemo();
+
+  // Update activeTab when initialTab changes
+  useEffect(() => {
+    if (initialTab && !selectedInvoiceId) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, selectedInvoiceId]);
+
+  // Handle invoice click
+  const handleInvoiceClick = (invoiceId: string) => {
+    setSearchParams({ selected: invoiceId });
+  };
+
+  // Handle closing invoice details
+  const handleCloseInvoiceDetails = (open: boolean) => {
+    if (!open) {
+      // Remove selected from URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("selected");
+      setSearchParams(newParams);
+    }
+  };
 
   return (
     <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
@@ -444,7 +484,10 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
           </TabsList>
 
           <TabsContent value="invoices">
-            <InvoicesTab />
+            <InvoicesTab 
+              selectedInvoiceId={selectedInvoiceId} 
+              onInvoiceClick={handleInvoiceClick} 
+            />
           </TabsContent>
 
           <TabsContent value="expenses">
@@ -456,6 +499,13 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
           </TabsContent>
         </Tabs>
         </div>
+
+        {/* Invoice Details Sheet */}
+        <InvoiceDetailsSheet
+          open={!!selectedInvoiceId}
+          onOpenChange={handleCloseInvoiceDetails}
+          invoiceId={selectedInvoiceId}
+        />
       </main>
     </div>
   );

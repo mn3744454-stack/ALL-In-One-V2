@@ -208,21 +208,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Redirect old /dashboard/payments and /dashboard/revenue to finance */}
       <Route
         path="/dashboard/payments"
-        element={
-          <ProtectedRoute>
-            <DashboardPayments />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/dashboard/finance/payments" replace />}
       />
       <Route
         path="/dashboard/revenue"
-        element={
-          <ProtectedRoute>
-            <DashboardRevenue />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/dashboard/finance/revenue" replace />}
       />
       <Route
         path="/dashboard/horses"
@@ -418,15 +411,6 @@ const AppRoutes = () => {
             <DashboardFinanceCategories />
           </ProtectedRoute>
         }
-      />
-      {/* Backward compatibility redirects */}
-      <Route
-        path="/dashboard/payments"
-        element={<Navigate to="/dashboard/finance/payments" replace />}
-      />
-      <Route
-        path="/dashboard/revenue"
-        element={<Navigate to="/dashboard/finance/revenue" replace />}
       />
       {/* My Payments for regular users (different from finance payments) */}
       <Route
