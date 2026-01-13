@@ -2612,6 +2612,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          branch_id: string | null
           client_id: string | null
           client_name: string | null
           created_at: string | null
@@ -2623,6 +2624,9 @@ export type Database = {
           invoice_number: string
           issue_date: string
           notes: string | null
+          payment_method: string | null
+          payment_received_at: string | null
+          pos_session_id: string | null
           status: string
           subtotal: number
           tax_amount: number | null
@@ -2631,6 +2635,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
           created_at?: string | null
@@ -2642,6 +2647,9 @@ export type Database = {
           invoice_number: string
           issue_date?: string
           notes?: string | null
+          payment_method?: string | null
+          payment_received_at?: string | null
+          pos_session_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -2650,6 +2658,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           client_id?: string | null
           client_name?: string | null
           created_at?: string | null
@@ -2661,6 +2670,9 @@ export type Database = {
           invoice_number?: string
           issue_date?: string
           notes?: string | null
+          payment_method?: string | null
+          payment_received_at?: string | null
+          pos_session_id?: string | null
           status?: string
           subtotal?: number
           tax_amount?: number | null
@@ -2670,10 +2682,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_pos_session_id_fkey"
+            columns: ["pos_session_id"]
+            isOneToOne: false
+            referencedRelation: "pos_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -4101,6 +4127,82 @@ export type Database = {
         }
         Relationships: []
       }
+      pos_sessions: {
+        Row: {
+          branch_id: string | null
+          cash_variance: number | null
+          closed_at: string | null
+          closed_by: string | null
+          closing_cash: number | null
+          created_at: string
+          expected_cash: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opened_by: string
+          opening_cash: number
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          cash_variance?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_cash?: number | null
+          created_at?: string
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by: string
+          opening_cash?: number
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          cash_variance?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_cash?: number | null
+          created_at?: string
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string
+          opening_cash?: number
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sessions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pos_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_comments: {
         Row: {
           author_id: string
@@ -4955,9 +5057,11 @@ export type Database = {
           is_active: boolean
           is_public: boolean
           name: string
+          name_ar: string | null
           price_display: string | null
           service_type: string | null
           tenant_id: string
+          unit_price: number | null
           updated_at: string
         }
         Insert: {
@@ -4967,9 +5071,11 @@ export type Database = {
           is_active?: boolean
           is_public?: boolean
           name: string
+          name_ar?: string | null
           price_display?: string | null
           service_type?: string | null
           tenant_id: string
+          unit_price?: number | null
           updated_at?: string
         }
         Update: {
@@ -4979,9 +5085,11 @@ export type Database = {
           is_active?: boolean
           is_public?: boolean
           name?: string
+          name_ar?: string | null
           price_display?: string | null
           service_type?: string | null
           tenant_id?: string
+          unit_price?: number | null
           updated_at?: string
         }
         Relationships: [
