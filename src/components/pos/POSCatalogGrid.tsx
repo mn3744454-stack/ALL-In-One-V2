@@ -23,7 +23,7 @@ interface POSCatalogGridProps {
 }
 
 export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGridProps) {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const { isRTL } = useRTL();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -58,7 +58,7 @@ export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGri
   }, [items]);
 
   const getDisplayName = (item: CatalogItem) => {
-    if (language === "ar" && item.name_ar) return item.name_ar;
+    if (lang === "ar" && item.name_ar) return item.name_ar;
     return item.name;
   };
 
@@ -80,7 +80,7 @@ export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGri
             isRTL ? "right-3" : "left-3"
           )} />
           <Input
-            placeholder={t("common.search", "Search...")}
+            placeholder={t("common.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={cn("h-11", isRTL ? "pr-10" : "pl-10")}
@@ -98,7 +98,7 @@ export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGri
               className="cursor-pointer whitespace-nowrap min-h-[36px] flex items-center"
               onClick={() => setSelectedCategory(null)}
             >
-              {t("common.all", "All")}
+              {t("common.all")}
             </Badge>
             {categories.map((cat) => (
               <Badge
@@ -140,7 +140,7 @@ export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGri
               )}>
                 {item.unit_price !== null 
                   ? `${item.unit_price.toFixed(2)}`
-                  : t("finance.pos.priceMissing", "No price")
+                  : t("finance.pos.priceMissing")
                 }
               </span>
             </button>
@@ -149,7 +149,7 @@ export function POSCatalogGrid({ items, onItemSelect, isLoading }: POSCatalogGri
 
         {filteredItems.length === 0 && (
           <div className="p-8 text-center text-muted-foreground">
-            {t("common.noResults", "No items found")}
+            {t("common.noResults")}
           </div>
         )}
       </ScrollArea>

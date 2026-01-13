@@ -63,11 +63,11 @@ export function EmbeddedCheckout({
   onComplete,
   onCancel,
 }: EmbeddedCheckoutProps) {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const { isRTL } = useRTL();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { currentTenant } = useTenant();
+  const { activeTenant } = useTenant();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [discount, setDiscount] = useState<number>(0);
@@ -84,7 +84,7 @@ export function EmbeddedCheckout({
   // Create invoice mutation
   const createInvoiceMutation = useMutation({
     mutationFn: async () => {
-      if (!currentTenant?.id) throw new Error("No tenant selected");
+      if (!activeTenant?.tenant?.id) throw new Error("No tenant selected");
 
       const { data: user } = await supabase.auth.getUser();
       if (!user?.user?.id) throw new Error("Not authenticated");
@@ -100,7 +100,7 @@ export function EmbeddedCheckout({
       const { data: invoice, error: invError } = await supabase
         .from("invoices")
         .insert({
-          tenant_id: currentTenant.id,
+          tenant_id: activeTenant.tenant.id,
           invoice_number: invoiceNumber,
           client_id: suggestedClientId || null,
           client_name: clientName || "Walk-in Customer",
@@ -140,7 +140,7 @@ export function EmbeddedCheckout({
 
       // Post to ledger if client exists
       if (suggestedClientId) {
-        await postLedgerForInvoice(invoice.id, currentTenant.id);
+        await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
       }
 
       return invoice;
@@ -149,14 +149,14 @@ export function EmbeddedCheckout({
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["ledger-entries"] });
       queryClient.invalidateQueries({ queryKey: ["customer-balances"] });
-      toast({ title: t("finance.pos.checkout.success", "Checkout complete") });
+      toast({ title: t("finance.pos.checkout.success") });
       onComplete?.(invoice.id);
       onOpenChange(false);
     },
     onError: (error: Error) => {
       console.error("Checkout error:", error);
       toast({ 
-        title: t("finance.pos.checkout.error", "Checkout failed"), 
+        title: t("finance.pos.checkout.error"), 
         description: error.message,
         variant: "destructive" 
       });
@@ -180,7 +180,7 @@ export function EmbeddedCheckout({
       >
         <SheetHeader>
           <SheetTitle>
-            {t("finance.pos.quickCheckout", "Quick Checkout")}
+            {t("finance.pos.quickCheckout")}
           </SheetTitle>
         </SheetHeader>
 
@@ -198,7 +198,7 @@ export function EmbeddedCheckout({
                 >
                   <div className="flex-1">
                     <p className="font-medium text-sm">
-                      {language === "ar" && item.description_ar 
+                      {lang === "ar" && item.description_ar 
                         ? item.description_ar 
                         : item.description}
                     </p>
@@ -217,17 +217,17 @@ export function EmbeddedCheckout({
           <div className="space-y-4 pt-4 border-t mt-4">
             {/* Client name */}
             <div className="space-y-2">
-              <Label>{t("finance.pos.customer", "Customer")}</Label>
+              <Label>{t("finance.pos.customer")}</Label>
               <Input
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                placeholder={t("finance.pos.walkIn", "Walk-in Customer")}
+                placeholder={t("finance.pos.walkIn")}
               />
             </div>
 
             {/* Discount */}
             <div className="space-y-2">
-              <Label>{t("finance.pos.cart.discount", "Discount")}</Label>
+              <Label>{t("finance.pos.cart.discount")}</Label>
               <Input
                 type="number"
                 min="0"
@@ -240,7 +240,7 @@ export function EmbeddedCheckout({
 
             {/* Payment method */}
             <div className="space-y-2">
-              <Label>{t("finance.pos.payment.method", "Payment Method")}</Label>
+              <Label>{t("finance.pos.payment.method")}</Label>
               <div className="grid grid-cols-4 gap-2">
                 {paymentMethods.map((method) => (
                   <button
@@ -266,17 +266,17 @@ export function EmbeddedCheckout({
             {/* Totals */}
             <div className="space-y-1">
               <div className={cn("flex justify-between text-sm", isRTL && "flex-row-reverse")}>
-                <span>{t("finance.pos.cart.subtotal", "Subtotal")}</span>
+                <span>{t("finance.pos.cart.subtotal")}</span>
                 <span>{subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
                 <div className={cn("flex justify-between text-sm text-green-600", isRTL && "flex-row-reverse")}>
-                  <span>{t("finance.pos.cart.discount", "Discount")}</span>
+                  <span>{t("finance.pos.cart.discount")}</span>
                   <span>-{discount.toFixed(2)}</span>
                 </div>
               )}
               <div className={cn("flex justify-between font-bold text-lg", isRTL && "flex-row-reverse")}>
-                <span>{t("finance.pos.cart.total", "Total")}</span>
+                <span>{t("finance.pos.cart.total")}</span>
                 <span>{total.toFixed(2)}</span>
               </div>
             </div>
@@ -289,7 +289,7 @@ export function EmbeddedCheckout({
                 className="flex-1 h-12 touch-manipulation"
                 disabled={createInvoiceMutation.isPending}
               >
-                {t("common.cancel", "Cancel")}
+                {t("common.cancel")}
               </Button>
               <Button
                 onClick={handleComplete}
@@ -299,7 +299,7 @@ export function EmbeddedCheckout({
                 {createInvoiceMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  t("finance.pos.actions.completeSale", "Complete")
+                  t("finance.pos.actions.completeSale")
                 )}
               </Button>
             </div>

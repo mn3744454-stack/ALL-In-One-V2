@@ -34,16 +34,16 @@ export function POSSessionBar({
       <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
         <Store className="h-5 w-5 text-primary" />
         <span className="font-semibold text-sm">
-          {t("finance.pos.title", "POS")}
+          {t("finance.pos.title")}
         </span>
         
         {session ? (
           <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-            {t("finance.pos.session.open", "Open")}
+            {t("finance.pos.session.open")}
           </Badge>
         ) : (
           <Badge variant="secondary">
-            {t("finance.pos.session.closed", "Closed")}
+            {t("finance.pos.session.closed")}
           </Badge>
         )}
       </div>
@@ -73,7 +73,7 @@ export function POSSessionBar({
             disabled={isClosing}
             className="min-h-[44px] min-w-[44px]"
           >
-            {isClosing ? "..." : t("finance.pos.session.close", "Close Session")}
+            {isClosing ? "..." : t("finance.pos.session.close")}
           </Button>
         </div>
       ) : (
@@ -83,7 +83,7 @@ export function POSSessionBar({
           disabled={isOpening}
           className="min-h-[44px] min-w-[44px]"
         >
-          {isOpening ? "..." : t("finance.pos.session.open", "Open Session")}
+          {isOpening ? "..." : t("finance.pos.session.open")}
         </Button>
       )}
     </div>

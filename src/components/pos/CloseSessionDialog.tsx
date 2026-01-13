@@ -58,7 +58,7 @@ export function CloseSessionDialog({
       <DialogContent className={cn("max-w-sm", isRTL && "rtl")}>
         <DialogHeader>
           <DialogTitle>
-            {t("finance.pos.session.closeTitle", "Close POS Session")}
+            {t("finance.pos.session.closeTitle")}
           </DialogTitle>
         </DialogHeader>
 
@@ -67,13 +67,13 @@ export function CloseSessionDialog({
           <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
             <div className={cn("flex justify-between text-sm", isRTL && "flex-row-reverse")}>
               <span className="text-muted-foreground">
-                {t("finance.pos.session.openingCash", "Opening Cash")}
+                {t("finance.pos.session.openingCash")}
               </span>
               <span className="font-medium">{Number(session.opening_cash).toFixed(2)}</span>
             </div>
             <div className={cn("flex justify-between text-sm", isRTL && "flex-row-reverse")}>
               <span className="text-muted-foreground">
-                {t("finance.pos.session.expectedCash", "Expected Cash")}
+                {t("finance.pos.session.expectedCash")}
               </span>
               <span className="font-medium">{expectedCash.toFixed(2)}</span>
             </div>
@@ -84,7 +84,7 @@ export function CloseSessionDialog({
           {/* Actual cash input */}
           <div className="space-y-2">
             <Label htmlFor="actual-cash">
-              {t("finance.pos.session.actualCash", "Actual Cash Count")}
+              {t("finance.pos.session.actualCash")}
             </Label>
             <Input
               id="actual-cash"
@@ -108,7 +108,7 @@ export function CloseSessionDialog({
               "bg-red-100 text-red-800"
             )}>
               <span className="text-sm font-medium">
-                {t("finance.pos.session.variance", "Variance")}:{" "}
+                {t("finance.pos.session.variance")}:{" "}
               </span>
               <span className="text-lg font-bold">
                 {variance > 0 ? "+" : ""}{variance.toFixed(2)}
@@ -119,21 +119,21 @@ export function CloseSessionDialog({
           {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="close-notes">
-              {t("common.notes", "Notes")} ({t("common.optional", "optional")})
+              {t("common.notes")} ({t("common.optional")})
             </Label>
             <Textarea
               id="close-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              placeholder={variance !== 0 ? t("finance.pos.session.varianceNote", "Explain variance...") : ""}
+              placeholder={variance !== 0 ? t("finance.pos.session.varianceNote") : ""}
             />
           </div>
         </div>
 
         <DialogFooter className={cn("gap-2", isRTL && "flex-row-reverse")}>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            {t("common.cancel", "Cancel")}
+            {t("common.cancel")}
           </Button>
           <Button 
             variant="destructive"
@@ -141,7 +141,7 @@ export function CloseSessionDialog({
             disabled={isLoading || actualCash === ""} 
             className="min-w-[100px]"
           >
-            {isLoading ? "..." : t("finance.pos.session.close", "Close Session")}
+            {isLoading ? "..." : t("finance.pos.session.close")}
           </Button>
         </DialogFooter>
       </DialogContent>
