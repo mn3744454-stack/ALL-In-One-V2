@@ -431,6 +431,12 @@ export const en = {
       deleteConfirmation: "Are you sure you want to delete this result? This action cannot be undone.",
       by: "by",
       reviewedBy: "Reviewed by",
+      viewBySamples: "By Samples",
+      viewByClients: "By Clients",
+      samplesCount: "{{count}} samples",
+      resultsCount: "{{count}} results",
+      finalizedProgress: "Finalized",
+      showSamples: "Show samples",
     },
     
     // Result Actions
