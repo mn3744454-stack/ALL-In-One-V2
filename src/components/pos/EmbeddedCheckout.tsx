@@ -49,11 +49,11 @@ interface EmbeddedCheckoutProps {
 
 type PaymentMethod = "cash" | "card" | "transfer" | "debt";
 
-const paymentMethods = [
-  { id: "cash" as PaymentMethod, icon: Banknote, label: "Cash" },
-  { id: "card" as PaymentMethod, icon: CreditCard, label: "Card" },
-  { id: "transfer" as PaymentMethod, icon: Building2, label: "Transfer" },
-  { id: "debt" as PaymentMethod, icon: Clock, label: "Debt" },
+const getPaymentMethods = (t: (key: string) => string) => [
+  { id: "cash" as PaymentMethod, icon: Banknote, label: t("payments.cash") },
+  { id: "card" as PaymentMethod, icon: CreditCard, label: t("payments.card") },
+  { id: "transfer" as PaymentMethod, icon: Building2, label: t("payments.transfer") },
+  { id: "debt" as PaymentMethod, icon: Clock, label: t("payments.debt") },
 ];
 
 export function EmbeddedCheckout({
@@ -157,7 +157,7 @@ export function EmbeddedCheckout({
         await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
       }
 
-      // Create billing link
+      // Create billing link - show warning but don't fail checkout
       try {
         await createLinkAsync({
           source_type: sourceType,
@@ -168,7 +168,12 @@ export function EmbeddedCheckout({
         });
       } catch (linkError) {
         console.error("Failed to create billing link:", linkError);
-        // Don't fail the checkout if billing link fails
+        // Show warning toast but don't fail the checkout
+        toast({
+          title: t("billing.linkFailed"),
+          description: String(linkError),
+          variant: "destructive",
+        });
       }
 
       return invoice;
@@ -289,8 +294,8 @@ export function EmbeddedCheckout({
             {/* Payment method */}
             <div className="space-y-2">
               <Label>{t("finance.pos.payment.method")}</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {paymentMethods.map((method) => (
+            <div className="grid grid-cols-4 gap-2">
+                {getPaymentMethods(t).map((method) => (
                   <button
                     key={method.id}
                     onClick={() => setPaymentMethod(method.id)}

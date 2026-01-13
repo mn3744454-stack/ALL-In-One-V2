@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +8,8 @@ import { SampleStatusBadge } from "./SampleStatusBadge";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { format } from "date-fns";
 import { useI18n } from "@/i18n";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { 
   FlaskConical, 
   Calendar, 
@@ -30,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
+import type { BillingLinkKind } from "@/hooks/billing/useBillingLinks";
 
 interface SampleCardProps {
   sample: LabSample;
@@ -46,6 +49,8 @@ interface SampleCardProps {
   onGenerateInvoice?: () => void;
 }
 
+type BillingPolicy = "at_intake" | "at_completion" | "both";
+
 export function SampleCard({
   sample,
   canManage,
@@ -61,42 +66,69 @@ export function SampleCard({
   onGenerateInvoice,
 }: SampleCardProps) {
   const { t } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  const { getCapabilityForCategory } = useTenantCapabilities();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutLinkKind, setCheckoutLinkKind] = useState<BillingLinkKind>("final");
+
+  // Get billing policy from tenant capabilities
+  const labCapability = getCapabilityForCategory("laboratory");
+  const config = labCapability?.config && typeof labCapability.config === "object" 
+    ? (labCapability.config as Record<string, unknown>) 
+    : {};
+  const billingPolicy: BillingPolicy = (config.billing_policy as BillingPolicy) || "at_completion";
+  const requirePricesForCheckout = config.require_prices_for_checkout !== false; // Default true
+
+  // Permission-based billing access
+  const canBill = isOwner || hasPermission("laboratory.billing.collect") || hasPermission("finance.payment.collect");
 
   // Build checkout line items from sample templates
-  // Try to get price from template.price or a linked service, otherwise null
-  const buildCheckoutItems = (): CheckoutLineItem[] => {
+  const checkoutItems = useMemo((): CheckoutLineItem[] => {
     if (!sample.templates || sample.templates.length === 0) {
       return [{
         id: sample.id,
         description: `Lab Sample ${sample.physical_sample_id || sample.id.slice(0, 8)}`,
         quantity: 1,
-        unit_price: null as unknown as number, // No price available
+        unit_price: null, // No price available
         total_price: 0,
         entity_type: "lab_sample",
         entity_id: sample.id,
       }];
     }
     return sample.templates.map((st) => {
-      // Try to get price from template (if it has a price field) or linked service
-      const templatePrice = (st.template as any)?.price ?? (st.template as any)?.unit_price ?? null;
-      const unitPrice = templatePrice !== null ? Number(templatePrice) : null;
+      // Try to get price from template.pricing.base_price
+      const templatePricing = (st.template as any)?.pricing;
+      const basePrice = templatePricing && typeof templatePricing === "object" 
+        ? (templatePricing.base_price ?? null) 
+        : null;
+      const unitPrice = typeof basePrice === "number" ? basePrice : null;
       return {
         id: st.id,
         description: st.template?.name || "Lab Test",
         description_ar: st.template?.name_ar,
         quantity: 1,
-        unit_price: unitPrice as unknown as number, // null means price missing
+        unit_price: unitPrice,
         total_price: unitPrice !== null ? unitPrice : 0,
         entity_type: "lab_sample",
         entity_id: sample.id,
       };
     });
-  };
+  }, [sample]);
+
+  // Check for missing prices
+  const hasMissingPrices = checkoutItems.some(item => item.unit_price === null);
   const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
   
-  // Check if sample is billable (completed status)
-  const isBillable = sample.status === 'completed';
+  // Determine billability based on policy
+  const isIntakeBillable = 
+    (billingPolicy === "at_intake" || billingPolicy === "both") && 
+    ["draft", "accessioned"].includes(sample.status);
+  
+  const isCompletionBillable = 
+    (billingPolicy === "at_completion" || billingPolicy === "both") && 
+    sample.status === "completed";
+  
+  const isBillable = isIntakeBillable || isCompletionBillable;
   const horseInitials = horseName.slice(0, 2).toUpperCase();
 
   // Template progress calculation
@@ -106,6 +138,11 @@ export function SampleCard({
   const isPartial = hasTemplates && resultsCount > 0 && resultsCount < templateCount;
   const isComplete = hasTemplates && resultsCount >= templateCount;
   const progressPercent = hasTemplates ? (resultsCount / templateCount) * 100 : 0;
+
+  const handleOpenCheckout = (linkKind: BillingLinkKind) => {
+    setCheckoutLinkKind(linkKind);
+    setCheckoutOpen(true);
+  };
 
   return (
     <Card 
@@ -164,7 +201,27 @@ export function SampleCard({
                       {t("laboratory.sampleActions.createRetest")}
                     </DropdownMenuItem>
                   )}
-                  {isBillable && canCreateInvoice && onGenerateInvoice && (
+                  
+                  {/* Intake billing (deposit) */}
+                  {isIntakeBillable && canBill && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={(e) => { e.stopPropagation(); handleOpenCheckout("deposit"); }}
+                        className="text-primary"
+                        disabled={requirePricesForCheckout && hasMissingPrices}
+                      >
+                        <CreditCard className="h-4 w-4 me-2" />
+                        {t("billing.collectIntake")}
+                        {hasMissingPrices && (
+                          <AlertTriangle className="h-3 w-3 ms-2 text-destructive" />
+                        )}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
+                  {/* Completion billing (final) */}
+                  {isCompletionBillable && canBill && onGenerateInvoice && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
@@ -176,15 +233,20 @@ export function SampleCard({
                       </DropdownMenuItem>
                     </>
                   )}
-                  {isBillable && canCreateInvoice && (
+                  {isCompletionBillable && canBill && (
                     <DropdownMenuItem 
-                      onClick={(e) => { e.stopPropagation(); setCheckoutOpen(true); }}
+                      onClick={(e) => { e.stopPropagation(); handleOpenCheckout("final"); }}
                       className="text-primary"
+                      disabled={requirePricesForCheckout && hasMissingPrices}
                     >
                       <CreditCard className="h-4 w-4 me-2" />
-                      {t("finance.pos.quickCheckout")}
+                      {t("billing.collectFinal")}
+                      {hasMissingPrices && (
+                        <AlertTriangle className="h-3 w-3 ms-2 text-destructive" />
+                      )}
                     </DropdownMenuItem>
                   )}
+                  
                   {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
                     <>
                       <DropdownMenuSeparator />
@@ -284,7 +346,8 @@ export function SampleCard({
         onOpenChange={setCheckoutOpen}
         sourceType="lab_sample"
         sourceId={sample.id}
-        initialLineItems={buildCheckoutItems()}
+        initialLineItems={checkoutItems}
+        linkKind={checkoutLinkKind}
         onComplete={() => setCheckoutOpen(false)}
         onCancel={() => setCheckoutOpen(false)}
       />
