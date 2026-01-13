@@ -137,7 +137,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
   // Use React Query for fetching samples
   const { data: samples = [], isLoading: loading } = useQuery({
-    queryKey: queryKeys.labSamples(tenantId),
+    queryKey: queryKeys.labSamples(tenantId, filters as Record<string, unknown>),
     queryFn: async () => {
       let query = supabase
         .from("lab_samples")
@@ -237,7 +237,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return sample;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleCreated"));
     },
     onError: (error: Error) => {
@@ -270,7 +270,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleUpdated"));
     },
     onError: (error: Error) => {
@@ -303,7 +303,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleDeleted"));
     },
     onError: (error: Error) => {
@@ -332,7 +332,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleMarkedReceived"));
     },
     onError: (error: Error) => {
@@ -358,7 +358,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleMarkedUnreceived"));
     },
     onError: (error: Error) => {
@@ -411,7 +411,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       return newSample as LabSample;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+      queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.retestCreated"));
     },
     onError: (error: Error) => {
@@ -485,7 +485,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
   };
 
   const refresh = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.labSamples(tenantId) });
+    queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
   }, [queryClient, tenantId]);
 
   return {

@@ -3418,8 +3418,12 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string
+          daily_number: number | null
           debit_txn_id: string | null
-          horse_id: string
+          horse_external_id: string | null
+          horse_id: string | null
+          horse_metadata: Json | null
+          horse_name: string | null
           id: string
           metadata: Json | null
           notes: string | null
@@ -3442,8 +3446,12 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by: string
+          daily_number?: number | null
           debit_txn_id?: string | null
-          horse_id: string
+          horse_external_id?: string | null
+          horse_id?: string | null
+          horse_metadata?: Json | null
+          horse_name?: string | null
           id?: string
           metadata?: Json | null
           notes?: string | null
@@ -3466,8 +3474,12 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string
+          daily_number?: number | null
           debit_txn_id?: string | null
-          horse_id?: string
+          horse_external_id?: string | null
+          horse_id?: string | null
+          horse_metadata?: Json | null
+          horse_name?: string | null
           id?: string
           metadata?: Json | null
           notes?: string | null

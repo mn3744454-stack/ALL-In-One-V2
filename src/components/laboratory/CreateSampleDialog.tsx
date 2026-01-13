@@ -791,7 +791,9 @@ export function CreateSampleDialog({
           </div>
 
           <div className="text-center mb-4">
-            <h3 className="font-semibold">{effectiveSteps[step]?.title}</h3>
+            <h3 className="font-semibold">
+              {t(`laboratory.createSample.steps.${effectiveSteps[step]?.key}`)}
+            </h3>
           </div>
 
           {/* Step Content */}
