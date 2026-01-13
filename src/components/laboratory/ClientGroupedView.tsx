@@ -202,14 +202,16 @@ export function ClientGroupedView({ samples, onSampleClick }: ClientGroupedViewP
                       >
                         <FlaskConical className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="flex-1 truncate">{horse.horseName}</span>
-                        {horse.dailyNumber !== null && (
-                          <Badge 
-                            variant="secondary" 
-                            className="text-xs font-mono shrink-0"
-                          >
-                            #{horse.dailyNumber}
-                          </Badge>
-                        )}
+                        {/* Show daily number or placeholder */}
+                        <Badge 
+                          variant={horse.dailyNumber !== null ? "secondary" : "outline"} 
+                          className={cn(
+                            "text-xs font-mono shrink-0",
+                            horse.dailyNumber === null && "text-muted-foreground"
+                          )}
+                        >
+                          {horse.dailyNumber !== null ? `#${horse.dailyNumber}` : "-"}
+                        </Badge>
                       </div>
                     ))}
                   </div>

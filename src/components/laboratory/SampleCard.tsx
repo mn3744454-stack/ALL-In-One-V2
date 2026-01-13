@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,6 @@ import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { 
   FlaskConical, 
   Calendar, 
-  MoreVertical, 
   Play, 
   CheckCircle2, 
   XCircle,
@@ -24,13 +23,6 @@ import {
   Receipt,
   CreditCard
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 import type { BillingLinkKind } from "@/hooks/billing/useBillingLinks";
 
@@ -173,102 +165,7 @@ export function SampleCard({
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <SampleStatusBadge status={sample.status} />
-            {canManage && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {sample.status === 'draft' && onAccession && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onAccession(); }}>
-                      <FlaskConical className="h-4 w-4 me-2" />
-                      {t("laboratory.sampleActions.accession")}
-                    </DropdownMenuItem>
-                  )}
-                  {sample.status === 'accessioned' && onStartProcessing && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onStartProcessing(); }}>
-                      <Play className="h-4 w-4 me-2" />
-                      {t("laboratory.sampleActions.startProcessing")}
-                    </DropdownMenuItem>
-                  )}
-                  {sample.status === 'processing' && onComplete && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onComplete(); }}>
-                      <CheckCircle2 className="h-4 w-4 me-2" />
-                      {t("laboratory.sampleActions.complete")}
-                    </DropdownMenuItem>
-                  )}
-                  {sample.status === 'completed' && sample.retest_count < 3 && onRetest && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRetest(); }}>
-                      <RotateCcw className="h-4 w-4 me-2" />
-                      {t("laboratory.sampleActions.createRetest")}
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {/* Intake billing (deposit) */}
-                  {isIntakeBillable && canBill && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={(e) => { e.stopPropagation(); handleOpenCheckout("deposit"); }}
-                        className="text-primary"
-                        disabled={requirePricesForCheckout && hasMissingPrices}
-                      >
-                        <CreditCard className="h-4 w-4 me-2" />
-                        {t("billing.collectIntake")}
-                        {hasMissingPrices && (
-                          <AlertTriangle className="h-3 w-3 ms-2 text-destructive" />
-                        )}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  
-                  {/* Completion billing (final) */}
-                  {isCompletionBillable && canBill && onGenerateInvoice && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={(e) => { e.stopPropagation(); onGenerateInvoice(); }}
-                        className="text-primary"
-                      >
-                        <Receipt className="h-4 w-4 me-2" />
-                        {t("laboratory.billing.generateInvoice")}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {isCompletionBillable && canBill && (
-                    <DropdownMenuItem 
-                      onClick={(e) => { e.stopPropagation(); handleOpenCheckout("final"); }}
-                      className="text-primary"
-                      disabled={requirePricesForCheckout && hasMissingPrices}
-                    >
-                      <CreditCard className="h-4 w-4 me-2" />
-                      {t("billing.collectFinal")}
-                      {hasMissingPrices && (
-                        <AlertTriangle className="h-3 w-3 ms-2 text-destructive" />
-                      )}
-                    </DropdownMenuItem>
-                  )}
-                  
-                  {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={(e) => { e.stopPropagation(); onCancel(); }}
-                        className="text-destructive"
-                      >
-                        <XCircle className="h-4 w-4 me-2" />
-                        {t("laboratory.sampleActions.cancel")}
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+          <SampleStatusBadge status={sample.status} />
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -345,6 +242,106 @@ export function SampleCard({
           </p>
         )}
       </CardContent>
+
+      {/* Action Buttons - visible instead of dropdown */}
+      {canManage && (
+        <CardFooter className="pt-3 border-t flex flex-wrap gap-1.5 justify-end">
+          {sample.status === 'draft' && onAccession && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onAccession(); }}
+            >
+              <FlaskConical className="h-3 w-3 me-1" />
+              {t("laboratory.sampleActions.accession")}
+            </Button>
+          )}
+          {sample.status === 'accessioned' && onStartProcessing && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onStartProcessing(); }}
+            >
+              <Play className="h-3 w-3 me-1" />
+              {t("laboratory.sampleActions.startProcessing")}
+            </Button>
+          )}
+          {sample.status === 'processing' && onComplete && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onComplete(); }}
+            >
+              <CheckCircle2 className="h-3 w-3 me-1" />
+              {t("laboratory.sampleActions.complete")}
+            </Button>
+          )}
+          {sample.status === 'completed' && sample.retest_count < 3 && onRetest && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onRetest(); }}
+            >
+              <RotateCcw className="h-3 w-3 me-1" />
+              {t("laboratory.sampleActions.createRetest")}
+            </Button>
+          )}
+          
+          {/* Billing buttons */}
+          {isIntakeBillable && canBill && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-xs text-primary"
+              onClick={(e) => { e.stopPropagation(); handleOpenCheckout("deposit"); }}
+              disabled={requirePricesForCheckout && hasMissingPrices}
+            >
+              <CreditCard className="h-3 w-3 me-1" />
+              {t("billing.collectIntake")}
+            </Button>
+          )}
+          
+          {isCompletionBillable && canBill && onGenerateInvoice && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-xs text-primary"
+              onClick={(e) => { e.stopPropagation(); onGenerateInvoice(); }}
+            >
+              <Receipt className="h-3 w-3 me-1" />
+              {t("laboratory.billing.generateInvoice")}
+            </Button>
+          )}
+          {isCompletionBillable && canBill && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-xs text-primary"
+              onClick={(e) => { e.stopPropagation(); handleOpenCheckout("final"); }}
+              disabled={requirePricesForCheckout && hasMissingPrices}
+            >
+              <CreditCard className="h-3 w-3 me-1" />
+              {t("billing.collectFinal")}
+            </Button>
+          )}
+          
+          {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              onClick={(e) => { e.stopPropagation(); onCancel(); }}
+            >
+              <XCircle className="h-3 w-3 me-1" />
+              {t("laboratory.sampleActions.cancel")}
+            </Button>
+          )}
+        </CardFooter>
+      )}
 
       {/* Quick Checkout Sheet */}
       <EmbeddedCheckout
