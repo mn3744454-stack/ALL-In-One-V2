@@ -434,6 +434,12 @@ export const ar = {
       deleteConfirmation: "هل أنت متأكد من حذف هذه النتيجة؟ لا يمكن التراجع عن هذا الإجراء.",
       by: "بواسطة",
       reviewedBy: "راجعه",
+      viewBySamples: "بالعينات",
+      viewByClients: "بالعملاء",
+      samplesCount: "{{count}} عينات",
+      resultsCount: "{{count}} نتائج",
+      finalizedProgress: "معتمد",
+      showSamples: "عرض العينات",
     },
     
     // Result Actions
