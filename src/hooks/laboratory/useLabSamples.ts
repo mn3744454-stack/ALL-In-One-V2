@@ -72,7 +72,11 @@ export interface LabSampleFilters {
 }
 
 export interface CreateLabSampleData {
-  horse_id: string;
+  horse_id?: string;
+  horse_name?: string;
+  horse_external_id?: string;
+  horse_metadata?: Json;
+  daily_number?: number;
   related_order_id?: string;
   client_id?: string;
   assigned_to?: string;

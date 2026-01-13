@@ -25,7 +25,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useClients } from "@/hooks/useClients";
@@ -39,6 +39,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
+import { HorseSelectionStep, type SelectedHorse } from "./HorseSelectionStep";
 
 interface CreateSampleDialogProps {
   open: boolean;
@@ -60,6 +61,7 @@ interface StepDef {
 }
 
 const ALL_STEPS: StepDef[] = [
+  { key: 'horses', title: 'Horses', titleAr: 'الخيول', icon: Users },
   { key: 'basic', title: 'Basic Info', titleAr: 'معلومات أساسية', icon: FlaskConical },
   { key: 'templates', title: 'Templates', titleAr: 'القوالب', icon: FileText },
   { key: 'details', title: 'Details', titleAr: 'التفاصيل', icon: FlaskConical },
@@ -69,8 +71,9 @@ const ALL_STEPS: StepDef[] = [
 ];
 
 interface FormData {
-  horse_id: string;
+  selectedHorses: SelectedHorse[];
   collection_date: Date;
+  daily_number: string;
   physical_sample_id: string;
   client_id: string;
   notes: string;
@@ -97,12 +100,13 @@ export function CreateSampleDialog({
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [createdSampleId, setCreatedSampleId] = useState<string | null>(null);
+  const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
-    horse_id: preselectedHorseId || retestOfSample?.horse_id || '',
+    selectedHorses: [],
     collection_date: new Date(),
+    daily_number: '',
     physical_sample_id: '',
     client_id: retestOfSample?.client_id || '',
     notes: '',
@@ -132,25 +136,28 @@ export function CreateSampleDialog({
   // Calculate effective steps
   const effectiveSteps = useMemo(() => {
     return ALL_STEPS.filter(s => {
+      // For retests, skip horse selection (horse is already defined)
+      if (s.key === 'horses' && isRetest) return false;
       if (s.key === 'billing' && (!creditsEnabled || isFreeRetest)) return false;
       if (s.key === 'checkout' && !showCheckoutStep) return false;
       return true;
     });
-  }, [creditsEnabled, isFreeRetest, showCheckoutStep]);
+  }, [creditsEnabled, isFreeRetest, showCheckoutStep, isRetest]);
 
   // Build checkout line items from selected templates
   const checkoutLineItems = useMemo((): CheckoutLineItem[] => {
     const selectedTemplates = activeTemplates.filter(t => formData.template_ids.includes(t.id));
+    const horseCount = formData.selectedHorses.length || 1;
     
     if (selectedTemplates.length === 0) {
       return [{
         id: "sample-placeholder",
         description: t("laboratory.checkout.sampleFee"),
-        quantity: 1,
+        quantity: horseCount,
         unit_price: null,
         total_price: 0,
         entity_type: "lab_sample",
-        entity_id: createdSampleId || "",
+        entity_id: createdSampleIds[0] || "",
       }];
     }
 
@@ -159,41 +166,64 @@ export function CreateSampleDialog({
       const basePrice = pricing && typeof pricing.base_price === "number" 
         ? pricing.base_price 
         : null;
-      const currency = (pricing?.currency as string) || "SAR";
       
       return {
         id: template.id,
         description: template.name,
         description_ar: template.name_ar,
-        quantity: 1,
+        quantity: horseCount,
         unit_price: basePrice,
-        total_price: basePrice ?? 0,
+        total_price: basePrice !== null ? basePrice * horseCount : 0,
         entity_type: "lab_template",
         entity_id: template.id,
       };
     });
-  }, [formData.template_ids, activeTemplates, createdSampleId, t]);
+  }, [formData.template_ids, formData.selectedHorses.length, activeTemplates, createdSampleIds, t]);
 
   const hasMissingPrices = checkoutLineItems.some(item => item.unit_price === null);
-  const checkoutTotal = checkoutLineItems.reduce((sum, item) => sum + (item.unit_price ?? 0), 0);
+  const checkoutTotal = checkoutLineItems.reduce((sum, item) => sum + (item.unit_price !== null ? item.unit_price * item.quantity : 0), 0);
 
   useEffect(() => {
     if (open) {
       setStep(0);
-      setCreatedSampleId(null);
+      setCreatedSampleIds([]);
       setSkipCheckout(false);
-      // For retests, copy templates from original sample
+      // For retests, set up retest horse
       const retestTemplateIds = retestOfSample?.templates?.map(t => t.template.id) || [];
+      
+      // Build initial selected horses
+      const initialHorses: SelectedHorse[] = [];
+      if (preselectedHorseId) {
+        const horse = horses.find(h => h.id === preselectedHorseId);
+        if (horse) {
+          initialHorses.push({
+            horse_id: horse.id,
+            horse_type: 'internal',
+            horse_name: horse.name,
+          });
+        }
+      } else if (retestOfSample?.horse_id) {
+        const horse = horses.find(h => h.id === retestOfSample.horse_id);
+        if (horse) {
+          initialHorses.push({
+            horse_id: horse.id,
+            horse_type: 'internal',
+            horse_name: horse.name,
+          });
+        }
+      }
+      
       setFormData({
-        horse_id: preselectedHorseId || retestOfSample?.horse_id || '',
+        selectedHorses: initialHorses,
         collection_date: new Date(),
+        daily_number: '',
         physical_sample_id: retestOfSample?.physical_sample_id ? `${retestOfSample.physical_sample_id}-R${(retestOfSample.retest_count || 0) + 1}` : '',
         client_id: retestOfSample?.client_id || '',
         notes: isRetest ? `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}` : '',
         template_ids: retestTemplateIds,
       });
     }
-  }, [open, preselectedHorseId, retestOfSample, isRetest]);
+  }, [open, preselectedHorseId, retestOfSample, isRetest, horses]);
 
   const generateSampleId = () => {
     const prefix = 'LAB';
@@ -214,14 +244,51 @@ export function CreateSampleDialog({
     }
   };
 
-  const createSampleAndOpenCheckout = async () => {
-    if (!formData.horse_id) return;
-
-    setLoading(true);
-    try {
+  const createSamplesForAllHorses = async (): Promise<string[]> => {
+    const createdIds: string[] = [];
+    const horsesToProcess = formData.selectedHorses.length > 0 ? formData.selectedHorses : [];
+    
+    // For retests, use the original sample's horse
+    if (horsesToProcess.length === 0 && isRetest && retestOfSample?.horse_id) {
       const sampleData: CreateLabSampleData = {
-        horse_id: formData.horse_id,
+        horse_id: retestOfSample.horse_id,
         collection_date: formData.collection_date.toISOString(),
+        daily_number: formData.daily_number ? parseInt(formData.daily_number, 10) : undefined,
+        physical_sample_id: formData.physical_sample_id || generateSampleId(),
+        client_id: formData.client_id || undefined,
+        notes: formData.notes || undefined,
+        related_order_id: relatedOrderId || undefined,
+        retest_of_sample_id: retestOfSample?.id || undefined,
+        status: 'draft',
+        template_ids: formData.template_ids.length > 0 ? formData.template_ids : undefined,
+      };
+
+      const sample = await createSample(sampleData);
+      if (sample) {
+        createdIds.push(sample.id);
+        if (creditsEnabled && !isFreeRetest) {
+          await debitCredits(sample.id, 1);
+        }
+      }
+      return createdIds;
+    }
+    
+    for (let i = 0; i < horsesToProcess.length; i++) {
+      const selectedHorse = horsesToProcess[i];
+      const baseDailyNumber = formData.daily_number ? parseInt(formData.daily_number, 10) : undefined;
+      const dailyNumber = baseDailyNumber !== undefined ? baseDailyNumber + i : undefined;
+      
+      const sampleData: CreateLabSampleData = {
+        horse_id: selectedHorse.horse_type === 'internal' ? selectedHorse.horse_id : undefined,
+        horse_name: selectedHorse.horse_type !== 'internal' ? selectedHorse.horse_name : undefined,
+        horse_external_id: selectedHorse.horse_type === 'walk_in' ? selectedHorse.horse_data?.passport_number : undefined,
+        horse_metadata: selectedHorse.horse_type === 'walk_in' ? {
+          microchip: selectedHorse.horse_data?.microchip,
+          breed: selectedHorse.horse_data?.breed,
+          color: selectedHorse.horse_data?.color,
+        } : undefined,
+        collection_date: formData.collection_date.toISOString(),
+        daily_number: dailyNumber,
         physical_sample_id: formData.physical_sample_id || generateSampleId(),
         client_id: formData.client_id || undefined,
         notes: formData.notes || undefined,
@@ -234,12 +301,25 @@ export function CreateSampleDialog({
       const sample = await createSample(sampleData);
       
       if (sample) {
-        setCreatedSampleId(sample.id);
-        // If credits enabled and not a free retest, debit credits
-        if (creditsEnabled && !isFreeRetest && sample.id) {
+        createdIds.push(sample.id);
+        if (creditsEnabled && !isFreeRetest) {
           await debitCredits(sample.id, 1);
         }
-        // Open embedded checkout
+      }
+    }
+    
+    return createdIds;
+  };
+
+  const createSampleAndOpenCheckout = async () => {
+    if (formData.selectedHorses.length === 0 && !isRetest) return;
+
+    setLoading(true);
+    try {
+      const sampleIds = await createSamplesForAllHorses();
+      
+      if (sampleIds.length > 0) {
+        setCreatedSampleIds(sampleIds);
         setCheckoutOpen(true);
       }
     } finally {
@@ -254,30 +334,13 @@ export function CreateSampleDialog({
   };
 
   const handleSkipCheckout = async () => {
-    if (!formData.horse_id) return;
+    if (formData.selectedHorses.length === 0 && !isRetest) return;
 
     setLoading(true);
     try {
-      const sampleData: CreateLabSampleData = {
-        horse_id: formData.horse_id,
-        collection_date: formData.collection_date.toISOString(),
-        physical_sample_id: formData.physical_sample_id || generateSampleId(),
-        client_id: formData.client_id || undefined,
-        notes: formData.notes || undefined,
-        related_order_id: relatedOrderId || undefined,
-        retest_of_sample_id: retestOfSample?.id || undefined,
-        status: 'draft',
-        template_ids: formData.template_ids.length > 0 ? formData.template_ids : undefined,
-      };
-
-      const sample = await createSample(sampleData);
+      const sampleIds = await createSamplesForAllHorses();
       
-      if (sample) {
-        // If credits enabled and not a free retest, debit credits
-        if (creditsEnabled && !isFreeRetest && sample.id) {
-          await debitCredits(sample.id, 1);
-        }
-        
+      if (sampleIds.length > 0) {
         onOpenChange(false);
         onSuccess?.();
       }
@@ -289,30 +352,13 @@ export function CreateSampleDialog({
   const handleSubmit = async () => {
     // If checkout step exists and not skipped, it was already handled
     // This is for the final review step
-    if (!formData.horse_id) return;
+    if (formData.selectedHorses.length === 0 && !isRetest) return;
 
     setLoading(true);
     try {
-      const sampleData: CreateLabSampleData = {
-        horse_id: formData.horse_id,
-        collection_date: formData.collection_date.toISOString(),
-        physical_sample_id: formData.physical_sample_id || generateSampleId(),
-        client_id: formData.client_id || undefined,
-        notes: formData.notes || undefined,
-        related_order_id: relatedOrderId || undefined,
-        retest_of_sample_id: retestOfSample?.id || undefined,
-        status: 'draft',
-        template_ids: formData.template_ids.length > 0 ? formData.template_ids : undefined,
-      };
-
-      const sample = await createSample(sampleData);
+      const sampleIds = await createSamplesForAllHorses();
       
-      if (sample) {
-        // If credits enabled and not a free retest, debit credits
-        if (creditsEnabled && !isFreeRetest && sample.id) {
-          await debitCredits(sample.id, 1);
-        }
-        
+      if (sampleIds.length > 0) {
         onOpenChange(false);
         onSuccess?.();
       }
@@ -321,7 +367,6 @@ export function CreateSampleDialog({
     }
   };
 
-  const selectedHorse = horses.find(h => h.id === formData.horse_id);
   const selectedClient = clients.find(c => c.id === formData.client_id);
   const selectedTemplates = activeTemplates.filter(t => formData.template_ids.includes(t.id));
 
@@ -337,8 +382,10 @@ export function CreateSampleDialog({
   const canProceed = () => {
     const currentStep = effectiveSteps[step];
     switch (currentStep?.key) {
+      case 'horses':
+        return formData.selectedHorses.length > 0;
       case 'basic':
-        return !!formData.horse_id && !!formData.collection_date;
+        return !!formData.collection_date;
       case 'templates':
         return true; // Templates are optional
       case 'details':
@@ -347,7 +394,7 @@ export function CreateSampleDialog({
         // Can proceed if skipping OR if prices are valid
         return skipCheckout || !requirePricesForCheckout || !hasMissingPrices;
       case 'billing':
-        return !creditsEnabled || (wallet?.balance || 0) >= 1;
+        return !creditsEnabled || (wallet?.balance || 0) >= formData.selectedHorses.length;
       case 'review':
         return true;
       default:
@@ -359,6 +406,16 @@ export function CreateSampleDialog({
     const currentStep = effectiveSteps[step];
     
     switch (currentStep?.key) {
+      case 'horses':
+        return (
+          <div className="space-y-4">
+            <HorseSelectionStep
+              selectedHorses={formData.selectedHorses}
+              onHorsesChange={(horses) => setFormData(prev => ({ ...prev, selectedHorses: horses }))}
+            />
+          </div>
+        );
+
       case 'basic':
         return (
           <div className="space-y-4">
@@ -372,25 +429,19 @@ export function CreateSampleDialog({
               </Alert>
             )}
             
-            <div className="space-y-2">
-              <Label>{t("laboratory.createSample.horse")} *</Label>
-              <Select
-                value={formData.horse_id}
-                onValueChange={(value) => setFormData({ ...formData, horse_id: value })}
-                disabled={isRetest}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("laboratory.createSample.selectHorse")} />
-                </SelectTrigger>
-                <SelectContent className="z-[200]">
-                  {horses.map((horse) => (
-                    <SelectItem key={horse.id} value={horse.id}>
-                      {horse.name}
-                    </SelectItem>
+            {/* Show selected horses summary */}
+            {formData.selectedHorses.length > 0 && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <Label className="text-xs text-muted-foreground">{t("laboratory.createSample.horse")}</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {formData.selectedHorses.map((horse, idx) => (
+                    <Badge key={`${horse.horse_id || idx}-${idx}`} variant="secondary" className="text-xs">
+                      {horse.horse_name}
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>{t("laboratory.createSample.collectionDate")} *</Label>
@@ -420,25 +471,34 @@ export function CreateSampleDialog({
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <Label>{t("laboratory.createSample.sampleId")}</Label>
-              <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t("laboratory.createSample.dailyNumber")}</Label>
                 <Input
-                  value={formData.physical_sample_id}
-                  onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
-                  placeholder={t("laboratory.createSample.autoGenerated")}
+                  type="number"
+                  min="1"
+                  value={formData.daily_number}
+                  onChange={(e) => setFormData({ ...formData, daily_number: e.target.value })}
+                  placeholder={t("laboratory.createSample.dailyNumberPlaceholder")}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setFormData({ ...formData, physical_sample_id: generateSampleId() })}
-                >
-                  {t("common.create")}
-                </Button>
+              <span className="text-xs text-muted-foreground">
+                {formData.selectedHorses.length > 1 && formData.daily_number && (
+                  <>#{formData.daily_number} - #{parseInt(formData.daily_number) + formData.selectedHorses.length - 1}</>
+                )}
+              </span>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {t("laboratory.createSample.autoGenerated")}
-              </p>
+
+              <div className="space-y-2">
+                <Label>{t("laboratory.createSample.sampleId")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={formData.physical_sample_id}
+                    onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
+                    placeholder={t("laboratory.createSample.autoGenerated")}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
             </div>
         </div>
         );
@@ -595,7 +655,7 @@ export function CreateSampleDialog({
                         </p>
                       </div>
                       <span className="font-semibold">
-                        {item.unit_price !== null ? `${item.total_price} SAR` : "—"}
+                        {item.unit_price !== null ? `${item.unit_price * item.quantity} SAR` : "—"}
                       </span>
                     </div>
                   ))}
@@ -635,12 +695,13 @@ export function CreateSampleDialog({
         );
 
       case 'billing':
+        const horsesCount = formData.selectedHorses.length || 1;
         return (
           <div className="space-y-4">
             <Card className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="font-medium">{t("laboratory.credits.currentBalance")}</span>
-                <Badge variant={wallet && wallet.balance > 0 ? "default" : "destructive"}>
+                <Badge variant={wallet && wallet.balance >= horsesCount ? "default" : "destructive"}>
                   {wallet?.balance || 0} {t("laboratory.credits.title")}
                 </Badge>
               </div>
@@ -648,16 +709,16 @@ export function CreateSampleDialog({
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>{t("laboratory.credits.sampleCost")}</span>
-                  <span>1 {t("laboratory.credits.title")}</span>
+                  <span>{horsesCount} {t("laboratory.credits.title")}</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium border-t pt-2">
                   <span>{t("laboratory.credits.balanceAfter")}</span>
-                  <span>{(wallet?.balance || 0) - 1} {t("laboratory.credits.title")}</span>
+                  <span>{(wallet?.balance || 0) - horsesCount} {t("laboratory.credits.title")}</span>
                 </div>
               </div>
             </Card>
 
-            {(!wallet || wallet.balance < 1) && (
+            {(!wallet || wallet.balance < horsesCount) && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -674,14 +735,34 @@ export function CreateSampleDialog({
             <h4 className="font-medium">{t("laboratory.createSample.reviewTitle")}</h4>
             
             <Card className="p-4 space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">{t("laboratory.createSample.horse")}</span>
-                <span className="font-medium">{selectedHorse?.name || t("common.unknown")}</span>
+              <div className="border-b pb-3">
+                <span className="text-muted-foreground text-sm">{t("laboratory.createSample.horse")}</span>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {formData.selectedHorses.map((horse, idx) => (
+                    <Badge key={`${horse.horse_id || idx}-${idx}`} variant="secondary" className="text-xs">
+                      {horse.horse_name}
+                    </Badge>
+                  ))}
+                  {formData.selectedHorses.length === 0 && isRetest && retestOfSample?.horse?.name && (
+                    <Badge variant="secondary" className="text-xs">{retestOfSample.horse.name}</Badge>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("laboratory.createSample.collectionDate")}</span>
                 <span>{format(formData.collection_date, "PPP")}</span>
               </div>
+              {formData.daily_number && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">{t("laboratory.createSample.dailyNumber")}</span>
+                  <span className="font-mono">
+                    {formData.selectedHorses.length > 1 
+                      ? `#${formData.daily_number} - #${parseInt(formData.daily_number) + formData.selectedHorses.length - 1}`
+                      : `#${formData.daily_number}`
+                    }
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("laboratory.createSample.sampleId")}</span>
                 <span className="font-mono text-sm">
@@ -845,15 +926,15 @@ export function CreateSampleDialog({
       </Dialog>
 
       {/* Embedded Checkout Sheet */}
-      {createdSampleId && (
+      {createdSampleIds.length > 0 && (
         <EmbeddedCheckout
           open={checkoutOpen}
           onOpenChange={setCheckoutOpen}
           sourceType="lab_sample"
-          sourceId={createdSampleId}
+          sourceId={createdSampleIds[0]}
           initialLineItems={checkoutLineItems.map(item => ({
             ...item,
-            entity_id: createdSampleId,
+            entity_id: createdSampleIds[0],
           }))}
           suggestedClientId={formData.client_id || undefined}
           linkKind="deposit"

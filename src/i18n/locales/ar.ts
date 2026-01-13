@@ -376,7 +376,8 @@ export const ar = {
     resultStatus: {
       draft: "مسودة",
       reviewed: "تمت المراجعة",
-      final: "نهائي",
+      final: "معتمد",
+      finalApproval: "اعتماد نهائي",
     },
     
     // Result Flags

@@ -29,7 +29,7 @@ export function ResultsFilterTabs({ activeTab, onTabChange, counts }: ResultsFil
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full rtl:flex-row-reverse">
+      <div className="flex gap-0.5 p-1 bg-muted rounded-lg w-max min-w-full rtl:flex-row-reverse">
         {tabKeys.map((tabId) => {
           const count = counts?.[tabId];
           return (
@@ -37,7 +37,7 @@ export function ResultsFilterTabs({ activeTab, onTabChange, counts }: ResultsFil
               key={tabId}
               onClick={() => onTabChange(tabId)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all",
+                "flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium transition-all",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 activeTab === tabId
                   ? "bg-background text-foreground shadow-sm"
@@ -47,7 +47,7 @@ export function ResultsFilterTabs({ activeTab, onTabChange, counts }: ResultsFil
               <span>{getLabel(tabId)}</span>
               {count !== undefined && count > 0 && (
                 <span className={cn(
-                  "inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full",
+                  "inline-flex items-center justify-center min-w-4 h-4 px-1 text-xs rounded-full",
                   activeTab === tabId
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted-foreground/20 text-muted-foreground"
