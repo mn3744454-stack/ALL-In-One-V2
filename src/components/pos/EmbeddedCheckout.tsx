@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
 import {
@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Banknote, CreditCard, Building2, Clock, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Banknote, CreditCard, Building2, Clock, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +26,7 @@ export interface CheckoutLineItem {
   description: string;
   description_ar?: string | null;
   quantity: number;
-  unit_price: number;
+  unit_price: number | null; // null means price is missing
   total_price: number;
   entity_type?: string;
   entity_id?: string;
@@ -77,8 +78,16 @@ export function EmbeddedCheckout({
     if (suggestedClientName) setClientName(suggestedClientName);
   }, [suggestedClientName]);
 
-  // Calculate totals
-  const subtotal = initialLineItems.reduce((sum, item) => sum + item.total_price, 0);
+  // Check for missing prices
+  const itemsWithMissingPrice = useMemo(() => 
+    initialLineItems.filter(item => item.unit_price === null),
+    [initialLineItems]
+  );
+  const hasMissingPrices = itemsWithMissingPrice.length > 0;
+
+  // Calculate totals (only include items with valid prices)
+  const subtotal = initialLineItems.reduce((sum, item) => 
+    sum + (item.unit_price !== null ? item.total_price : 0), 0);
   const total = Math.max(0, subtotal - discount);
 
   // Create invoice mutation
@@ -164,6 +173,14 @@ export function EmbeddedCheckout({
   });
 
   const handleComplete = () => {
+    if (hasMissingPrices) {
+      toast({
+        title: t("finance.pos.checkout.missingPrices"),
+        description: t("finance.pos.priceMissing"),
+        variant: "destructive",
+      });
+      return;
+    }
     createInvoiceMutation.mutate();
   };
 
@@ -188,29 +205,41 @@ export function EmbeddedCheckout({
           {/* Line items */}
           <ScrollArea className="flex-1 -mx-6 px-6">
             <div className="space-y-2">
-              {initialLineItems.map((item, idx) => (
-                <div
-                  key={item.id || idx}
-                  className={cn(
-                    "flex justify-between items-start p-2 bg-muted/30 rounded",
-                    isRTL && "flex-row-reverse text-right"
-                  )}
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">
-                      {lang === "ar" && item.description_ar 
-                        ? item.description_ar 
-                        : item.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.unit_price.toFixed(2)} × {item.quantity}
-                    </p>
+              {initialLineItems.map((item, idx) => {
+                const isMissingPrice = item.unit_price === null;
+                return (
+                  <div
+                    key={item.id || idx}
+                    className={cn(
+                      "flex justify-between items-start p-2 bg-muted/30 rounded",
+                      isRTL && "flex-row-reverse text-right",
+                      isMissingPrice && "border border-destructive/50 bg-destructive/5"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-sm">
+                          {lang === "ar" && item.description_ar 
+                            ? item.description_ar 
+                            : item.description}
+                        </p>
+                        {isMissingPrice && (
+                          <Badge variant="destructive" className="text-[10px] h-5">
+                            <AlertTriangle className="h-3 w-3 me-1" />
+                            {t("finance.pos.priceMissing")}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {isMissingPrice ? "—" : `${item.unit_price!.toFixed(2)} × ${item.quantity}`}
+                      </p>
+                    </div>
+                    <span className="font-semibold text-sm">
+                      {isMissingPrice ? "—" : item.total_price.toFixed(2)}
+                    </span>
                   </div>
-                  <span className="font-semibold text-sm">
-                    {item.total_price.toFixed(2)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
 
@@ -294,7 +323,7 @@ export function EmbeddedCheckout({
               <Button
                 onClick={handleComplete}
                 className="flex-1 h-12 touch-manipulation"
-                disabled={createInvoiceMutation.isPending || total <= 0}
+                disabled={createInvoiceMutation.isPending || total <= 0 || hasMissingPrices}
               >
                 {createInvoiceMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

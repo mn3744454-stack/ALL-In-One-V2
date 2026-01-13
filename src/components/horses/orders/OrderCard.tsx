@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -5,7 +6,7 @@ import { OrderStatusBadge } from "./OrderStatusBadge";
 import { OrderPriorityBadge } from "./OrderPriorityBadge";
 import { ServiceModeBadge } from "./ServiceModeBadge";
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Eye } from "lucide-react";
+import { Calendar, MoreVertical, Eye, CreditCard } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +17,12 @@ import {
 import { useI18n } from "@/i18n";
 import { tStatus } from "@/i18n/labels";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
+import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 
 interface OrderCardProps {
   order: HorseOrder;
   canManage: boolean;
+  canBill?: boolean;
   onView: () => void;
   onEdit?: () => void;
   onStatusChange?: (newStatus: HorseOrder["status"]) => void;
@@ -29,12 +32,36 @@ interface OrderCardProps {
 export function OrderCard({
   order,
   canManage,
+  canBill = false,
   onView,
   onEdit,
   onStatusChange,
   onDelete,
 }: OrderCardProps) {
   const { t } = useI18n();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // Build checkout line items from order data
+  const buildCheckoutItems = (): CheckoutLineItem[] => {
+    const orderTypeName = order.order_type?.name || "Service";
+    const orderTypeNameAr = order.order_type?.name_ar;
+    // Use estimated_cost or actual_cost as unit_price
+    const unitPrice = order.actual_cost ?? order.estimated_cost ?? null;
+    
+    return [{
+      id: order.id,
+      description: `${orderTypeName} - ${order.horse?.name || "Horse"}`,
+      description_ar: orderTypeNameAr ? `${orderTypeNameAr} - ${order.horse?.name || "الحصان"}` : undefined,
+      quantity: 1,
+      unit_price: unitPrice,
+      total_price: unitPrice ?? 0,
+      entity_type: "order",
+      entity_id: order.id,
+    }];
+  };
+
+  // Order is billable if completed and has estimated/actual cost
+  const isBillable = order.status === "completed" && (order.estimated_cost || order.actual_cost);
   const getNextStatuses = (): HorseOrder["status"][] => {
     switch (order.status) {
       case "draft":
@@ -100,6 +127,18 @@ export function OrderCard({
                   ))}
                 </>
               )}
+              {isBillable && canBill && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={(e) => { e.stopPropagation(); setCheckoutOpen(true); }}
+                    className="text-primary"
+                  >
+                    <CreditCard className="w-4 h-4 me-2" />
+                    {t("finance.pos.quickCheckout")}
+                  </DropdownMenuItem>
+                </>
+              )}
               {canManage && order.status === "draft" && onDelete && (
                 <>
                   <DropdownMenuSeparator />
@@ -144,6 +183,18 @@ export function OrderCard({
           </p>
         )}
       </CardContent>
+
+      {/* Quick Checkout Sheet */}
+      <EmbeddedCheckout
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        sourceType="order"
+        sourceId={order.id}
+        initialLineItems={buildCheckoutItems()}
+        suggestedClientId={order.client_id}
+        onComplete={() => setCheckoutOpen(false)}
+        onCancel={() => setCheckoutOpen(false)}
+      />
     </Card>
   );
 }

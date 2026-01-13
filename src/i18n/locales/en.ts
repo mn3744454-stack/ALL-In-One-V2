@@ -1177,6 +1177,7 @@ export const en = {
       checkout: {
         success: "Checkout complete",
         error: "Checkout failed",
+        missingPrices: "Some items have no price",
       },
       session: {
         openTitle: "Open POS Session",
@@ -1189,6 +1190,8 @@ export const en = {
         actualCash: "Actual Cash Count",
         variance: "Variance",
         varianceNote: "Explain variance...",
+        openFirst: "Please open a session first",
+        openToSell: "Open a session to start selling",
       },
       cart: {
         title: "Cart",
@@ -1551,6 +1554,7 @@ export const en = {
       viewDetails: "View Details",
       edit: "Edit Order",
       markAs: "Mark as",
+      billOrder: "Bill Order",
     },
     table: {
       horse: "Horse",

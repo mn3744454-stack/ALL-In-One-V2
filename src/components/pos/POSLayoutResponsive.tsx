@@ -1,6 +1,7 @@
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRTL } from "@/hooks/useRTL";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 export type POSStep = "session" | "catalog" | "cart" | "payment" | "receipt";
@@ -30,6 +31,7 @@ export function POSLayoutResponsive({
 }: POSLayoutResponsiveProps) {
   const isMobile = useIsMobile();
   const { isRTL } = useRTL();
+  const { t } = useI18n();
 
   // Mobile: step-based single column
   if (isMobile) {
@@ -44,7 +46,7 @@ export function POSLayoutResponsive({
         <div className="flex-1 overflow-auto pb-20">
           {!hasOpenSession && currentStep !== "session" && (
             <div className="p-4 text-center text-muted-foreground">
-              Please open a session first
+              {t("finance.pos.session.openFirst")}
             </div>
           )}
           
@@ -96,7 +98,7 @@ export function POSLayoutResponsive({
         )}>
           {hasOpenSession ? catalog : (
             <div className="p-8 text-center text-muted-foreground">
-              Please open a session to start selling
+              {t("finance.pos.session.openToSell")}
             </div>
           )}
         </div>
@@ -116,7 +118,7 @@ export function POSLayoutResponsive({
             </>
           ) : (
             <div className="p-4 text-center text-muted-foreground">
-              Open a session first
+              {t("finance.pos.session.openFirst")}
             </div>
           )}
         </div>
