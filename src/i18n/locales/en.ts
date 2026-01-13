@@ -283,6 +283,22 @@ export const en = {
       goToInvoice: "Go to Invoice",
       multipleInvoicesFound: "Multiple Invoices Found",
       chooseInvoice: "Multiple invoices have been created for this item. Choose one to view:",
+      collectIntake: "Collect Payment (Intake)",
+      collectFinal: "Collect Final Payment",
+      missingPricesTitle: "Missing Prices",
+      missingPricesDesc: "Some items are missing prices. Please update template pricing before checkout.",
+      linkFailed: "Invoice created but failed to link to source record",
+    },
+    
+    // Checkout step in sample wizard
+    checkout: {
+      title: "Checkout",
+      subtitle: "Collect payment for this sample",
+      collectNow: "Create Sample & Collect Payment",
+      skip: "Skip Billing",
+      missingPrices: "Cannot proceed: some templates are missing prices",
+      depositLabel: "Intake Deposit",
+      finalLabel: "Final Payment",
     },
     
     // Alerts
@@ -1208,6 +1224,7 @@ export const en = {
         card: "Card",
         transfer: "Transfer",
         debt: "Debt",
+        credit: "Credit",
       },
       actions: {
         addMore: "Add More",
