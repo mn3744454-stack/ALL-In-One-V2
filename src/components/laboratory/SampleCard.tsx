@@ -152,6 +152,12 @@ export function SampleCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
+            {/* Daily Number Badge - prominent display */}
+            {(sample as any).daily_number && (
+              <div className="flex items-center justify-center min-w-10 h-10 rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+                #{(sample as any).daily_number}
+              </div>
+            )}
             <Avatar className="h-10 w-10">
               <AvatarImage src={sample.horse?.avatar_url || undefined} alt={horseName} />
               <AvatarFallback className="bg-primary/10 text-primary text-sm">
