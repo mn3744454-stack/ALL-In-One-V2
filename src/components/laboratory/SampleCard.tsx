@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +19,8 @@ import {
   FileText,
   AlertTriangle,
   Eye,
-  Receipt
+  Receipt,
+  CreditCard
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 
 interface SampleCardProps {
   sample: LabSample;
@@ -58,6 +61,32 @@ export function SampleCard({
   onGenerateInvoice,
 }: SampleCardProps) {
   const { t } = useI18n();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // Build checkout line items from sample templates
+  const buildCheckoutItems = (): CheckoutLineItem[] => {
+    if (!sample.templates || sample.templates.length === 0) {
+      return [{
+        id: sample.id,
+        description: `Lab Sample ${sample.physical_sample_id || sample.id.slice(0, 8)}`,
+        quantity: 1,
+        unit_price: 0,
+        total_price: 0,
+        entity_type: "lab_sample",
+        entity_id: sample.id,
+      }];
+    }
+    return sample.templates.map((st) => ({
+      id: st.id,
+      description: st.template?.name || "Lab Test",
+      description_ar: st.template?.name_ar,
+      quantity: 1,
+      unit_price: 0, // Price should come from template or service
+      total_price: 0,
+      entity_type: "lab_sample",
+      entity_id: sample.id,
+    }));
+  };
   const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
   
   // Check if sample is billable (completed status)
