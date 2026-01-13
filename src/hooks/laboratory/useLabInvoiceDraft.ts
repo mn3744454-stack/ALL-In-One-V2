@@ -25,7 +25,7 @@ export interface LabBillingLineItem {
   templateName: string;
   templateNameAr?: string;
   quantity: number;
-  unitPrice: number;
+  unitPrice: number | null; // null means price is missing
   total: number;
 }
 
@@ -152,8 +152,8 @@ export function useLabInvoiceDraft() {
           templateName: st.template.name,
           templateNameAr: st.template.name_ar || undefined,
           quantity: 1,
-          unitPrice: price ?? 0, // For invoice creation, default to 0 but UI should warn
-          total: price ?? 0,
+          unitPrice: price, // Keep null if price is missing - UI must block checkout
+          total: price ?? 0, // For display purposes
         });
       }
     }

@@ -6,7 +6,7 @@ import { OrderStatusBadge } from "./OrderStatusBadge";
 import { OrderPriorityBadge } from "./OrderPriorityBadge";
 import { ServiceModeBadge } from "./ServiceModeBadge";
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Eye, CreditCard } from "lucide-react";
+import { Calendar, MoreVertical, Eye, CreditCard, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { tStatus } from "@/i18n/labels";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 
@@ -39,7 +40,11 @@ export function OrderCard({
   onDelete,
 }: OrderCardProps) {
   const { t } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  // Permission-based billing access
+  const canCollectPayment = isOwner || hasPermission("orders.billing.collect") || hasPermission("finance.payment.collect");
 
   // Build checkout line items from order data
   const buildCheckoutItems = (): CheckoutLineItem[] => {
@@ -55,13 +60,17 @@ export function OrderCard({
       quantity: 1,
       unit_price: unitPrice,
       total_price: unitPrice ?? 0,
-      entity_type: "order",
+      entity_type: "horse_order",
       entity_id: order.id,
     }];
   };
 
+  const checkoutItems = buildCheckoutItems();
+  const hasMissingPrice = checkoutItems.some(item => item.unit_price === null);
+
   // Order is billable if completed and has estimated/actual cost
   const isBillable = order.status === "completed" && (order.estimated_cost || order.actual_cost);
+  
   const getNextStatuses = (): HorseOrder["status"][] => {
     switch (order.status) {
       case "draft":
@@ -127,15 +136,19 @@ export function OrderCard({
                   ))}
                 </>
               )}
-              {isBillable && canBill && (
+              {isBillable && canCollectPayment && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={(e) => { e.stopPropagation(); setCheckoutOpen(true); }}
                     className="text-primary"
+                    disabled={hasMissingPrice}
                   >
                     <CreditCard className="w-4 h-4 me-2" />
                     {t("finance.pos.quickCheckout")}
+                    {hasMissingPrice && (
+                      <AlertTriangle className="h-3 w-3 ms-2 text-destructive" />
+                    )}
                   </DropdownMenuItem>
                 </>
               )}
@@ -188,10 +201,11 @@ export function OrderCard({
       <EmbeddedCheckout
         open={checkoutOpen}
         onOpenChange={setCheckoutOpen}
-        sourceType="order"
+        sourceType="horse_order"
         sourceId={order.id}
-        initialLineItems={buildCheckoutItems()}
+        initialLineItems={checkoutItems}
         suggestedClientId={order.client_id}
+        linkKind="final"
         onComplete={() => setCheckoutOpen(false)}
         onCancel={() => setCheckoutOpen(false)}
       />
