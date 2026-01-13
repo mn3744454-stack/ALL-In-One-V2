@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import { useTenant } from "@/contexts/TenantContext";
+import { useBillingLinks, type BillingLinkKind } from "@/hooks/billing/useBillingLinks";
 
 export interface CheckoutLineItem {
   id: string;
@@ -35,11 +36,13 @@ export interface CheckoutLineItem {
 interface EmbeddedCheckoutProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sourceType: "lab_sample" | "lab_request" | "service" | "order";
+  sourceType: "lab_sample" | "lab_request" | "service" | "order" | "horse_order";
   sourceId: string;
   initialLineItems: CheckoutLineItem[];
   suggestedClientId?: string | null;
   suggestedClientName?: string;
+  /** Link kind for billing_links table */
+  linkKind?: BillingLinkKind;
   onComplete?: (invoiceId: string) => void;
   onCancel?: () => void;
 }
@@ -61,6 +64,7 @@ export function EmbeddedCheckout({
   initialLineItems,
   suggestedClientId,
   suggestedClientName,
+  linkKind = "final",
   onComplete,
   onCancel,
 }: EmbeddedCheckoutProps) {
@@ -69,6 +73,7 @@ export function EmbeddedCheckout({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { activeTenant } = useTenant();
+  const { createLinkAsync } = useBillingLinks();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [discount, setDiscount] = useState<number>(0);
@@ -150,6 +155,20 @@ export function EmbeddedCheckout({
       // Post to ledger if client exists
       if (suggestedClientId) {
         await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
+      }
+
+      // Create billing link
+      try {
+        await createLinkAsync({
+          source_type: sourceType,
+          source_id: sourceId,
+          invoice_id: invoice.id,
+          link_kind: linkKind,
+          amount: total,
+        });
+      } catch (linkError) {
+        console.error("Failed to create billing link:", linkError);
+        // Don't fail the checkout if billing link fails
       }
 
       return invoice;

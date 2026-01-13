@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useInvoices, useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
@@ -41,8 +42,9 @@ export interface GenerateInvoiceInput {
 export function useLabInvoiceDraft() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { hasPermission, isOwner } = usePermissions();
   const tenantId = activeTenant?.tenant?.id;
 
   const { createInvoice, isCreating } = useInvoices(tenantId);
@@ -51,8 +53,8 @@ export function useLabInvoiceDraft() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
-  // Permission check: only owner/manager can create invoices
-  const canCreateInvoice = activeRole === "owner" || activeRole === "manager";
+  // Permission check: use permission keys instead of role-based
+  const canCreateInvoice = isOwner || hasPermission("laboratory.billing.create") || hasPermission("finance.invoice.create");
 
   /**
    * Check if invoices already exist for a given lab source
@@ -120,17 +122,19 @@ export function useLabInvoiceDraft() {
   /**
    * Extract pricing from template's pricing JSONB field
    * Expected structure: { base_price?: number, currency?: string }
+   * Returns null if no price is set (not 0!)
    */
-  const getTemplatePrice = (template: LabTemplate): number => {
+  const getTemplatePrice = (template: LabTemplate): number | null => {
     const pricing = template.pricing as Record<string, unknown> | null;
     if (pricing && typeof pricing.base_price === "number") {
       return pricing.base_price;
     }
-    return 0; // Default to 0 if no pricing set
+    return null; // Return null instead of 0 for missing prices
   };
 
   /**
    * Build line items from a lab sample's templates
+   * Note: unitPrice can be null if template has no price
    */
   const buildLineItemsFromSample = (
     sample: LabSample,
@@ -141,15 +145,15 @@ export function useLabInvoiceDraft() {
     if (sample.templates && sample.templates.length > 0) {
       for (const st of sample.templates) {
         const fullTemplate = templates.find((t) => t.id === st.template.id);
-        const price = fullTemplate ? getTemplatePrice(fullTemplate) : 0;
+        const price = fullTemplate ? getTemplatePrice(fullTemplate) : null;
 
         items.push({
           templateId: st.template.id,
           templateName: st.template.name,
           templateNameAr: st.template.name_ar || undefined,
           quantity: 1,
-          unitPrice: price,
-          total: price,
+          unitPrice: price ?? 0, // For invoice creation, default to 0 but UI should warn
+          total: price ?? 0,
         });
       }
     }

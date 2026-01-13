@@ -74,6 +74,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     category: string;
     is_active: boolean;
     fields: LabTemplateField[];
+    base_price: string;
+    currency: string;
   }>({
     name: '',
     name_ar: '',
@@ -81,6 +83,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     category: '',
     is_active: true,
     fields: [],
+    base_price: '',
+    currency: 'SAR',
   });
 
   const openCreateDialog = () => {
@@ -92,12 +96,17 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       category: '',
       is_active: true,
       fields: [],
+      base_price: '',
+      currency: 'SAR',
     });
     setDialogOpen(true);
   };
 
   const openEditDialog = (template: LabTemplate) => {
     setEditingTemplate(template);
+    const pricing = template.pricing as Record<string, unknown> | null;
+    const basePrice = pricing?.base_price;
+    const currency = pricing?.currency;
     setFormData({
       name: template.name,
       name_ar: template.name_ar || '',
@@ -105,6 +114,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       category: template.category || '',
       is_active: template.is_active,
       fields: template.fields || [],
+      base_price: typeof basePrice === 'number' ? String(basePrice) : '',
+      currency: typeof currency === 'string' ? currency : 'SAR',
     });
     setDialogOpen(true);
   };
@@ -134,6 +145,18 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     
     setSaving(true);
     try {
+      // Build pricing object
+      const pricing: Record<string, unknown> = {};
+      if (formData.base_price.trim() !== '') {
+        const price = parseFloat(formData.base_price);
+        if (!isNaN(price) && price >= 0) {
+          pricing.base_price = price;
+        }
+      }
+      if (formData.currency) {
+        pricing.currency = formData.currency;
+      }
+
       const data: CreateLabTemplateData = {
         name: formData.name,
         name_ar: formData.name_ar || undefined,
@@ -141,6 +164,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
         category: formData.category || undefined,
         is_active: formData.is_active,
         fields: formData.fields as unknown as Json,
+        pricing: Object.keys(pricing).length > 0 ? pricing as unknown as Json : undefined,
       };
 
       if (editingTemplate) {
@@ -264,7 +288,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {templates.map((template) => (
+              {templates.map((template) => {
+                const pricing = template.pricing as Record<string, unknown> | null;
+                const basePrice = pricing?.base_price;
+                const currency = typeof pricing?.currency === 'string' ? pricing.currency : 'SAR';
+                const hasPrice = typeof basePrice === 'number';
+                
+                return (
                 <Card key={template.id} className="relative">
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
@@ -283,6 +313,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                           <Badge variant="outline">{template.fields.length} fields</Badge>
                           {template.category && (
                             <Badge variant="outline">{template.category}</Badge>
+                          )}
+                          {hasPrice ? (
+                            <Badge variant="default" className="bg-green-600">
+                              {basePrice} {currency}
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">No price</Badge>
                           )}
                         </div>
                       </div>
@@ -321,7 +358,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              );
+              })}
             </div>
           )}
         </CardContent>
@@ -385,6 +423,42 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   placeholder="e.g., Routine, Diagnostic"
                 />
+              </div>
+            </div>
+
+            {/* Pricing Section */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Base Price</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.base_price}
+                  onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
+                  placeholder="e.g., 150.00"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Price charged for this test. Leave empty if no price set.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SAR">SAR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="AED">AED</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
