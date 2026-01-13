@@ -328,6 +328,39 @@ export const en = {
       viewByClients: "View by clients",
     },
     
+    // Horse Selection (Multi-horse)
+    horseSelection: {
+      selectType: "Select horse source",
+      internal: "Facility Horses",
+      internalDesc: "From your registered horses",
+      platform: "Platform Search",
+      platformDesc: "Search all platform horses",
+      walkIn: "Walk-in Entry",
+      walkInDesc: "Quick manual entry",
+      platformComingSoon: "Platform search coming soon",
+      searchHorses: "Search horses...",
+      selectAll: "Select all",
+      noMatchingHorses: "No horses match your search",
+      noHorses: "No horses in your facility",
+      addHorse: "Add another horse",
+      horsesSelected: "horses selected",
+    },
+    
+    // Walk-in Horse Form
+    walkIn: {
+      horseName: "Horse Name",
+      horseNamePlaceholder: "Enter horse name",
+      passportNumber: "Passport Number",
+      passportPlaceholder: "e.g. 123456789",
+      microchip: "Microchip",
+      microchipPlaceholder: "e.g. 985120012345678",
+      breed: "Breed",
+      breedPlaceholder: "e.g. Arabian",
+      color: "Color",
+      colorPlaceholder: "e.g. Bay",
+      addHorse: "Add Horse",
+    },
+    
     // Sample Statuses
     sampleStatus: {
       draft: "Draft",

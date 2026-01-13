@@ -330,6 +330,39 @@ export const ar = {
       viewByClients: "عرض بالعملاء",
     },
     
+    // Horse Selection (Multi-horse)
+    horseSelection: {
+      selectType: "اختر مصدر الخيل",
+      internal: "خيول المنشأة",
+      internalDesc: "من خيولك المسجلة",
+      platform: "بحث المنصة",
+      platformDesc: "البحث في جميع خيول المنصة",
+      walkIn: "إدخال يدوي",
+      walkInDesc: "إدخال سريع",
+      platformComingSoon: "بحث المنصة قريباً",
+      searchHorses: "البحث في الخيول...",
+      selectAll: "اختيار الكل",
+      noMatchingHorses: "لا توجد خيول تطابق بحثك",
+      noHorses: "لا توجد خيول في منشأتك",
+      addHorse: "إضافة خيل آخر",
+      horsesSelected: "خيول محددة",
+    },
+    
+    // Walk-in Horse Form
+    walkIn: {
+      horseName: "اسم الخيل",
+      horseNamePlaceholder: "أدخل اسم الخيل",
+      passportNumber: "رقم الجواز",
+      passportPlaceholder: "مثال: 123456789",
+      microchip: "الشريحة الإلكترونية",
+      microchipPlaceholder: "مثال: 985120012345678",
+      breed: "السلالة",
+      breedPlaceholder: "مثال: عربي أصيل",
+      color: "اللون",
+      colorPlaceholder: "مثال: كميت",
+      addHorse: "إضافة الخيل",
+    },
+    
     // Sample Statuses
     sampleStatus: {
       draft: "مسودة",
