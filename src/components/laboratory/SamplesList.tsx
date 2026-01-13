@@ -124,36 +124,38 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   }
 
   return (
-    <div className="space-y-4">
-      {/* Quick Filter Tabs with View Toggle */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex-1 overflow-x-auto">
-          <SamplesFilterTabs 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab}
-          />
-        </div>
-        <div className="flex gap-1 shrink-0">
+    <div className="space-y-3">
+      {/* View Mode Toggle - separate row */}
+      <div className="flex justify-end">
+        <div className="flex gap-1 bg-muted p-1 rounded-lg">
           <Toggle
             pressed={viewMode === 'samples'}
             onPressedChange={() => handleViewModeChange('samples')}
             size="sm"
             aria-label={t("laboratory.clientGrouped.viewBySamples")}
-            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-8 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm"
           >
-            <LayoutGrid className="h-4 w-4" />
+            <LayoutGrid className="h-4 w-4 me-1.5" />
+            <span className="text-xs">{t("laboratory.clientGrouped.viewBySamples")}</span>
           </Toggle>
           <Toggle
             pressed={viewMode === 'clients'}
             onPressedChange={() => handleViewModeChange('clients')}
             size="sm"
             aria-label={t("laboratory.clientGrouped.viewByClients")}
-            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-8 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm"
           >
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4 me-1.5" />
+            <span className="text-xs">{t("laboratory.clientGrouped.viewByClients")}</span>
           </Toggle>
         </div>
       </div>
+
+      {/* Quick Filter Tabs */}
+      <SamplesFilterTabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+      />
 
       {/* Secondary Filters */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between">

@@ -134,8 +134,8 @@ export default function DashboardLaboratory() {
             </div>
           )}
 
-          {/* Demo Alert */}
-          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950">
+          {/* Demo Alert - hidden on mobile */}
+          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950 hidden lg:flex">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-700 dark:text-blue-300">
               {labMode === 'requests' 
