@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useLabResults, type LabResultStatus, type LabResultFlags, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { ResultsFilterTabs, type ResultFilterTab } from "./ResultsFilterTabs";
+import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Toggle } from "@/components/ui/toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +29,8 @@ import {
   Calendar,
   FlaskConical,
   AlertTriangle,
+  Users,
+  LayoutGrid,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useI18n } from "@/i18n";
@@ -48,8 +52,11 @@ interface SampleWithResults {
   allFinal: boolean;
 }
 
+type ViewMode = 'samples' | 'clients';
+
 export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps) {
   const { t, dir } = useI18n();
+  const [viewMode, setViewMode] = useState<ViewMode>('samples');
   const [activeTab, setActiveTab] = useState<ResultFilterTab>('all');
   const [flagsFilter, setFlagsFilter] = useState<LabResultFlags | 'all'>('all');
   const [search, setSearch] = useState("");
@@ -189,6 +196,28 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
   return (
     <>
       <div className="space-y-4">
+        {/* View Mode Toggle - separate row */}
+        <div className="flex justify-end gap-1">
+          <Toggle
+            pressed={viewMode === 'samples'}
+            onPressedChange={() => setViewMode('samples')}
+            size="sm"
+            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <LayoutGrid className="h-4 w-4 me-1" />
+            {t("laboratory.results.viewBySamples")}
+          </Toggle>
+          <Toggle
+            pressed={viewMode === 'clients'}
+            onPressedChange={() => setViewMode('clients')}
+            size="sm"
+            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+          >
+            <Users className="h-4 w-4 me-1" />
+            {t("laboratory.results.viewByClients")}
+          </Toggle>
+        </div>
+
         {/* Filter Tabs */}
         <ResultsFilterTabs 
           activeTab={activeTab} 
@@ -217,8 +246,20 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
           )}
         </div>
 
+        {/* Client Grouped View */}
+        {viewMode === 'clients' && (
+          <ResultsClientGroupedView 
+            results={results}
+            samples={samples}
+            onSampleClick={(sampleId) => {
+              const sample = samples.find(s => s.id === sampleId);
+              if (sample) setSelectedSample(sample);
+            }}
+          />
+        )}
+
         {/* Results Grid - Sample-centric */}
-        {filteredGroups.length === 0 ? (
+        {viewMode === 'samples' && filteredGroups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">{t("laboratory.results.noResultsFound")}</h3>
@@ -234,7 +275,9 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
               </Button>
             )}
           </div>
-        ) : (
+        )}
+
+        {viewMode === 'samples' && filteredGroups.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredGroups.map((group) => {
               const { sample, results: sampleResults, templateCount, completedCount } = group;
@@ -287,7 +330,6 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                                 <DropdownMenuItem 
                                   onClick={(e) => { 
                                     e.stopPropagation(); 
-                                    // Review all draft results
                                     sampleResults
                                       .filter(r => r.status === 'draft')
                                       .forEach(r => reviewResult(r.id));
@@ -301,7 +343,6 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                                 <DropdownMenuItem 
                                   onClick={(e) => { 
                                     e.stopPropagation(); 
-                                    // Finalize all reviewed results
                                     sampleResults
                                       .filter(r => r.status === 'reviewed')
                                       .forEach(r => finalizeResult(r.id));
