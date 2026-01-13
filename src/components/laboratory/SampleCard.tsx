@@ -301,7 +301,7 @@ export function SampleCard({
               disabled={requirePricesForCheckout && hasMissingPrices}
             >
               <CreditCard className="h-3 w-3 me-1" />
-              {t("billing.collectIntake")}
+              {t("laboratory.billing.collectIntake")}
             </Button>
           )}
           
@@ -325,7 +325,7 @@ export function SampleCard({
               disabled={requirePricesForCheckout && hasMissingPrices}
             >
               <CreditCard className="h-3 w-3 me-1" />
-              {t("billing.collectFinal")}
+              {t("laboratory.billing.collectFinal")}
             </Button>
           )}
           

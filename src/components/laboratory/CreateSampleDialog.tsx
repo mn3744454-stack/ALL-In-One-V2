@@ -738,11 +738,16 @@ export function CreateSampleDialog({
               <div className="border-b pb-3">
                 <span className="text-muted-foreground text-sm">{t("laboratory.createSample.horse")}</span>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {formData.selectedHorses.map((horse, idx) => (
-                    <Badge key={`${horse.horse_id || idx}-${idx}`} variant="secondary" className="text-xs">
-                      {horse.horse_name}
-                    </Badge>
-                  ))}
+                  {formData.selectedHorses.map((horse, idx) => {
+                    const baseDailyNumber = formData.daily_number ? parseInt(formData.daily_number, 10) : undefined;
+                    const dailyNumber = baseDailyNumber !== undefined ? baseDailyNumber + idx : undefined;
+                    return (
+                      <Badge key={`${horse.horse_id || idx}-${idx}`} variant="secondary" className="text-xs">
+                        {dailyNumber !== undefined && <span className="font-bold me-1">#{dailyNumber}</span>}
+                        {horse.horse_name}
+                      </Badge>
+                    );
+                  })}
                   {formData.selectedHorses.length === 0 && isRetest && retestOfSample?.horse?.name && (
                     <Badge variant="secondary" className="text-xs">{retestOfSample.horse.name}</Badge>
                   )}
@@ -917,7 +922,9 @@ export function CreateSampleDialog({
                   className="flex-1"
                 >
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {t("laboratory.createSample.createSample")}
+                  {formData.selectedHorses.length > 1 
+                    ? t("laboratory.createSample.createSamples") 
+                    : t("laboratory.createSample.createSample")}
                 </Button>
               )}
             </div>
