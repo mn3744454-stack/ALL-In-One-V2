@@ -25,7 +25,7 @@ export interface SampleTemplate {
 export interface LabSample {
   id: string;
   tenant_id: string;
-  horse_id: string;
+  horse_id: string | null;
   related_order_id: string | null;
   client_id: string | null;
   assigned_to: string | null;
@@ -46,8 +46,13 @@ export interface LabSample {
   received_at: string | null;
   received_by: string | null;
   source_lab_tenant_id: string | null;
+  // New columns for daily number and external horses
+  daily_number: number | null;
+  horse_name: string | null;
+  horse_external_id: string | null;
+  horse_metadata: Record<string, unknown> | null;
   // Joined fields
-  horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null };
+  horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
   client?: { id: string; name: string } | null;
   assignee?: { id: string; full_name: string | null; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string | null };

@@ -316,6 +316,20 @@ export const ar = {
       retest: "إعادة",
     },
     
+    // Client Grouped View
+    clientGrouped: {
+      noClient: "بدون عميل",
+      noClients: "لا توجد مجموعات عملاء",
+      noClientsDesc: "ستظهر العينات هنا مجمعة حسب العميل",
+      horses: "خيول",
+      samples: "عينات",
+      tests: "تحاليل",
+      progress: "الإكتمال",
+      showHorses: "عرض الخيول",
+      viewBySamples: "عرض بالعينات",
+      viewByClients: "عرض بالعملاء",
+    },
+    
     // Sample Statuses
     sampleStatus: {
       draft: "مسودة",

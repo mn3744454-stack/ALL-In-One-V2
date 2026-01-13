@@ -315,6 +315,18 @@ export const en = {
       unreceived: "Unreceived",
       retest: "Retest",
     },
+    clientGrouped: {
+      noClient: "No Client",
+      noClients: "No client groups",
+      noClientsDesc: "Samples will appear here grouped by client",
+      horses: "horses",
+      samples: "samples",
+      tests: "tests",
+      progress: "Completion",
+      showHorses: "Show horses",
+      viewBySamples: "View by samples",
+      viewByClients: "View by clients",
+    },
     
     // Sample Statuses
     sampleStatus: {

@@ -17,3 +17,5 @@ export * from "./ResultSharePanel";
 export * from "./HorseLabSection";
 export * from "./CombinedResultsDialog";
 export * from "./GenerateInvoiceDialog";
+export * from "./ResultsFilterTabs";
+export * from "./ClientGroupedView";
