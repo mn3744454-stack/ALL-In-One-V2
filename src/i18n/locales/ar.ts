@@ -283,6 +283,22 @@ export const ar = {
       goToInvoice: "الانتقال للفاتورة",
       multipleInvoicesFound: "توجد فواتير متعددة",
       chooseInvoice: "تم إنشاء عدة فواتير لهذا البند. اختر واحدة للعرض:",
+      collectIntake: "تحصيل دفعة (استلام)",
+      collectFinal: "تحصيل الدفعة النهائية",
+      missingPricesTitle: "أسعار مفقودة",
+      missingPricesDesc: "بعض البنود تفتقر إلى الأسعار. يرجى تحديث أسعار القوالب قبل الدفع.",
+      linkFailed: "تم إنشاء الفاتورة لكن فشل ربطها بالسجل المصدر",
+    },
+    
+    // Checkout step in sample wizard
+    checkout: {
+      title: "الدفع",
+      subtitle: "تحصيل الدفع لهذه العينة",
+      collectNow: "إنشاء العينة وتحصيل الدفع",
+      skip: "تخطي الفوترة",
+      missingPrices: "لا يمكن المتابعة: بعض القوالب تفتقر إلى أسعار",
+      depositLabel: "دفعة الاستلام",
+      finalLabel: "الدفعة النهائية",
     },
     
     // Alerts
@@ -1203,6 +1219,7 @@ export const ar = {
         card: "بطاقة",
         transfer: "تحويل",
         debt: "آجل",
+        credit: "ائتمان",
       },
       actions: {
         addMore: "إضافة المزيد",
