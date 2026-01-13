@@ -319,6 +319,7 @@ export const ar = {
     // Client Grouped View
     clientGrouped: {
       noClient: "بدون عميل",
+      noClientAssigned: "بدون عميل",
       noClients: "لا توجد مجموعات عملاء",
       noClientsDesc: "ستظهر العينات هنا مجمعة حسب العميل",
       horses: "خيول",
@@ -328,6 +329,8 @@ export const ar = {
       showHorses: "عرض الخيول",
       viewBySamples: "عرض بالعينات",
       viewByClients: "عرض بالعملاء",
+      sortAsc: "من الأصغر للأكبر",
+      sortDesc: "من الأكبر للأصغر",
     },
     
     // Horse Selection (Multi-horse)
@@ -366,9 +369,9 @@ export const ar = {
     // Sample Statuses
     sampleStatus: {
       draft: "مسودة",
-      accessioned: "مسجل",
-      processing: "قيد المعالجة",
-      completed: "مكتمل",
+      accessioned: "تم الإستلام",
+      processing: "قيد التحليل",
+      completed: "جاهزة لتسجيل النتائج",
       cancelled: "ملغي",
     },
     
@@ -409,9 +412,9 @@ export const ar = {
     
     // Sample Actions
     sampleActions: {
-      accession: "تسجيل",
-      startProcessing: "بدء المعالجة",
-      complete: "إكمال",
+      accession: "إستلام",
+      startProcessing: "إجراء التحليل الآن",
+      complete: "إكتمال التحليل",
       cancel: "إلغاء",
       createRetest: "إنشاء إعادة",
     },
@@ -555,8 +558,10 @@ export const ar = {
     // Create Sample Dialog
     createSample: {
       title: "إنشاء عينة",
+      createSamples: "إنشاء العينات",
       createRetest: "إنشاء إعادة فحص",
       steps: {
+        horses: "الخيول",
         basic: "المعلومات الأساسية",
         templates: "القوالب",
         details: "التفاصيل",
@@ -1748,5 +1753,10 @@ export const ar = {
     visits: "الزيارات",
     followUps: "المتابعات",
     back: "رجوع",
+  },
+  // Global billing keys (for components using billing.collectFinal etc)
+  billing: {
+    collectIntake: "تحصيل دفعة (استلام)",
+    collectFinal: "تحصيل الدفعة النهائية",
   },
 };

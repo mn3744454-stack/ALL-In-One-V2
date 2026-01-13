@@ -1,22 +1,16 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SampleStatusBadge, ResultFlagsBadge } from "./SampleStatusBadge";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import { format } from "date-fns";
+import { useI18n } from "@/i18n";
 import { 
   FileText, 
   Calendar, 
-  MoreVertical, 
   CheckCircle2, 
   Eye,
   Lock
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ResultCardProps {
   result: LabResult;
@@ -35,9 +29,10 @@ export function ResultCard({
   onView,
   onClick,
 }: ResultCardProps) {
-  const templateName = result.template?.name || "Unknown Template";
+  const { t } = useI18n();
+  const templateName = result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const horseName = result.sample?.horse?.name || "Unknown Horse";
+  const horseName = result.sample?.horse?.name || t("laboratory.results.unknownHorse");
 
   return (
     <Card 
@@ -60,35 +55,6 @@ export function ResultCard({
           <div className="flex items-center gap-2">
             <SampleStatusBadge status={result.status} />
             {result.flags && <ResultFlagsBadge flags={result.flags} />}
-            {canManage && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {onView && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onView(); }}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </DropdownMenuItem>
-                  )}
-                  {result.status === 'draft' && onReview && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReview(); }}>
-                      <CheckCircle2 className="h-4 w-4 mr-2" />
-                      Mark as Reviewed
-                    </DropdownMenuItem>
-                  )}
-                  {result.status === 'reviewed' && onFinalize && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onFinalize(); }}>
-                      <Lock className="h-4 w-4 mr-2" />
-                      Finalize
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </div>
         </div>
       </CardHeader>
@@ -99,15 +65,54 @@ export function ResultCard({
             <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
           </div>
           {result.creator?.full_name && (
-            <span>by {result.creator.full_name}</span>
+            <span>{t("laboratory.results.by")} {result.creator.full_name}</span>
           )}
         </div>
         {result.reviewer?.full_name && result.status !== 'draft' && (
           <p className="text-xs text-muted-foreground mt-2">
-            Reviewed by: {result.reviewer.full_name}
+            {t("laboratory.results.reviewedBy")}: {result.reviewer.full_name}
           </p>
         )}
       </CardContent>
+
+      {/* Action Buttons - visible instead of dropdown */}
+      {canManage && (
+        <CardFooter className="pt-3 border-t flex flex-wrap gap-1.5 justify-end">
+          {onView && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onView(); }}
+            >
+              <Eye className="h-3 w-3 me-1" />
+              {t("laboratory.resultActions.viewDetails")}
+            </Button>
+          )}
+          {result.status === 'draft' && onReview && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onReview(); }}
+            >
+              <CheckCircle2 className="h-3 w-3 me-1" />
+              {t("laboratory.resultActions.markReviewed")}
+            </Button>
+          )}
+          {result.status === 'reviewed' && onFinalize && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 text-xs"
+              onClick={(e) => { e.stopPropagation(); onFinalize(); }}
+            >
+              <Lock className="h-3 w-3 me-1" />
+              {t("laboratory.resultActions.finalize")}
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 }

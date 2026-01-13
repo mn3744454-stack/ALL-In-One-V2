@@ -10,7 +10,7 @@ import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Toggle } from "@/components/ui/toggle";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Select,
   SelectContent,
@@ -19,11 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users } from "lucide-react";
+import { Plus, Search, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 type ViewMode = 'samples' | 'clients';
+type SortOrder = 'asc' | 'desc';
 
 interface SamplesListProps {
   onCreateSample?: () => void;
@@ -54,9 +55,12 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [statusFilter, setStatusFilter] = useState<LabSampleStatus | 'all'>('all');
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // Load preference from localStorage
     const saved = localStorage.getItem('lab-samples-view-mode');
     return (saved === 'clients' ? 'clients' : 'samples') as ViewMode;
+  });
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+    const saved = localStorage.getItem('lab-samples-sort-order');
+    return (saved === 'asc' ? 'asc' : 'desc') as SortOrder;
   });
   const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
@@ -68,6 +72,12 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const handleViewModeChange = (mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('lab-samples-view-mode', mode);
+  };
+
+  const handleSortOrderChange = () => {
+    const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    setSortOrder(newOrder);
+    localStorage.setItem('lab-samples-sort-order', newOrder);
   };
 
   const handleGenerateInvoice = (sample: LabSample) => {
@@ -105,10 +115,18 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     return countMap;
   }, [results]);
 
+  // Sort samples based on daily_number
+  const sortedSamples = useMemo(() => {
+    return [...samples].sort((a, b) => {
+      const aNum = (a as any).daily_number || 0;
+      const bNum = (b as any).daily_number || 0;
+      return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
+    });
+  }, [samples, sortOrder]);
+
   if (loading) {
     return (
       <div className="space-y-4">
-        {/* Filter Tabs Skeleton */}
         <Skeleton className="h-12 w-full" />
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <Skeleton className="h-10 w-full sm:w-64" />
@@ -125,30 +143,50 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
 
   return (
     <div className="space-y-3">
-      {/* View Mode Toggle - separate row */}
-      <div className="flex justify-end">
-        <div className="flex gap-1 bg-muted p-1 rounded-lg">
-          <Toggle
-            pressed={viewMode === 'samples'}
-            onPressedChange={() => handleViewModeChange('samples')}
-            size="sm"
+      {/* View Mode Toggle + Sort - aligned with filter tabs */}
+      <div className="flex items-center justify-between gap-2">
+        <ToggleGroup 
+          type="single" 
+          value={viewMode}
+          onValueChange={(v) => v && handleViewModeChange(v as ViewMode)}
+          className="bg-muted p-1 rounded-lg"
+        >
+          <ToggleGroupItem 
+            value="samples" 
             aria-label={t("laboratory.clientGrouped.viewBySamples")}
-            className="h-8 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
           >
             <LayoutGrid className="h-4 w-4 me-1.5" />
-            <span className="text-xs">{t("laboratory.clientGrouped.viewBySamples")}</span>
-          </Toggle>
-          <Toggle
-            pressed={viewMode === 'clients'}
-            onPressedChange={() => handleViewModeChange('clients')}
-            size="sm"
+            <span className="text-sm">{t("laboratory.clientGrouped.viewBySamples")}</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem 
+            value="clients" 
             aria-label={t("laboratory.clientGrouped.viewByClients")}
-            className="h-8 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
           >
             <Users className="h-4 w-4 me-1.5" />
-            <span className="text-xs">{t("laboratory.clientGrouped.viewByClients")}</span>
-          </Toggle>
-        </div>
+            <span className="text-sm">{t("laboratory.clientGrouped.viewByClients")}</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-9"
+          onClick={handleSortOrderChange}
+        >
+          {sortOrder === 'asc' ? (
+            <>
+              <ArrowUp className="h-4 w-4 me-1.5" />
+              <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortAsc")}</span>
+            </>
+          ) : (
+            <>
+              <ArrowDown className="h-4 w-4 me-1.5" />
+              <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortDesc")}</span>
+            </>
+          )}
+        </Button>
       </div>
 
       {/* Quick Filter Tabs */}
@@ -195,7 +233,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
       </div>
 
       {/* Content based on view mode */}
-      {samples.length === 0 ? (
+      {sortedSamples.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FlaskConical className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium">{t("laboratory.samples.noSamplesFound")}</h3>
@@ -213,12 +251,12 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         </div>
       ) : viewMode === 'clients' ? (
         <ClientGroupedView 
-          samples={samples} 
+          samples={sortedSamples} 
           onSampleClick={onSampleClick}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {samples.map((sample) => {
+          {sortedSamples.map((sample) => {
             // Derive isRetest from retest_of_sample_id
             const isRetest = sample.retest_of_sample_id !== null;
             const isReceived = sample.received_at !== null;

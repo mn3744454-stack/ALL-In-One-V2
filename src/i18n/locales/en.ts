@@ -317,6 +317,7 @@ export const en = {
     },
     clientGrouped: {
       noClient: "No Client",
+      noClientAssigned: "No Client Assigned",
       noClients: "No client groups",
       noClientsDesc: "Samples will appear here grouped by client",
       horses: "horses",
@@ -326,6 +327,8 @@ export const en = {
       showHorses: "Show horses",
       viewBySamples: "View by samples",
       viewByClients: "View by clients",
+      sortAsc: "Smallest to Largest",
+      sortDesc: "Largest to Smallest",
     },
     
     // Horse Selection (Multi-horse)
@@ -552,8 +555,10 @@ export const en = {
     // Create Sample Dialog
     createSample: {
       title: "Create Sample",
+      createSamples: "Create Samples",
       createRetest: "Create Retest",
       steps: {
+        horses: "Horses",
         basic: "Basic Info",
         templates: "Templates",
         details: "Details",
@@ -1745,5 +1750,10 @@ export const en = {
     visits: "Visits",
     followUps: "Follow-ups",
     back: "Back",
+  },
+  // Global billing keys (for components using billing.collectFinal etc)
+  billing: {
+    collectIntake: "Collect Intake Payment",
+    collectFinal: "Collect Final Payment",
   },
 };

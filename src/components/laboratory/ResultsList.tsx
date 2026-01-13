@@ -6,24 +6,16 @@ import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Toggle } from "@/components/ui/toggle";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, 
   Search, 
   FileText, 
-  MoreVertical, 
   CheckCircle2, 
   Eye,
   Calendar,
@@ -31,6 +23,9 @@ import {
   AlertTriangle,
   Users,
   LayoutGrid,
+  ArrowUp,
+  ArrowDown,
+  Lock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useI18n } from "@/i18n";
@@ -53,10 +48,12 @@ interface SampleWithResults {
 }
 
 type ViewMode = 'samples' | 'clients';
+type SortOrder = 'asc' | 'desc';
 
 export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps) {
   const { t, dir } = useI18n();
   const [viewMode, setViewMode] = useState<ViewMode>('samples');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [activeTab, setActiveTab] = useState<ResultFilterTab>('all');
   const [flagsFilter, setFlagsFilter] = useState<LabResultFlags | 'all'>('all');
   const [search, setSearch] = useState("");
@@ -85,6 +82,10 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
   const { samples, loading: samplesLoading } = useLabSamples();
 
   const loading = resultsLoading || samplesLoading;
+
+  const handleSortOrderChange = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
 
   // Group results by sample
   const samplesWithResults = useMemo((): SampleWithResults[] => {
@@ -121,15 +122,15 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
       });
     });
 
-    // Sort by most recent result
+    // Sort by daily_number
     groups.sort((a, b) => {
-      const aDate = a.results[0]?.created_at || '';
-      const bDate = b.results[0]?.created_at || '';
-      return bDate.localeCompare(aDate);
+      const aNum = (a.sample as any).daily_number || 0;
+      const bNum = (b.sample as any).daily_number || 0;
+      return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
     });
 
     return groups;
-  }, [results, samples]);
+  }, [results, samples, sortOrder]);
 
   // Filter by "today" tab
   const filteredGroups = useMemo(() => {
@@ -195,27 +196,51 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
 
   return (
     <>
-      <div className="space-y-4">
-        {/* View Mode Toggle - separate row */}
-        <div className="flex justify-end gap-1">
-          <Toggle
-            pressed={viewMode === 'samples'}
-            onPressedChange={() => setViewMode('samples')}
-            size="sm"
-            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+      <div className="space-y-3">
+        {/* View Mode Toggle + Sort - aligned with filter tabs */}
+        <div className="flex items-center justify-between gap-2">
+          <ToggleGroup 
+            type="single" 
+            value={viewMode}
+            onValueChange={(v) => v && setViewMode(v as ViewMode)}
+            className="bg-muted p-1 rounded-lg"
           >
-            <LayoutGrid className="h-4 w-4 me-1" />
-            {t("laboratory.results.viewBySamples")}
-          </Toggle>
-          <Toggle
-            pressed={viewMode === 'clients'}
-            onPressedChange={() => setViewMode('clients')}
+            <ToggleGroupItem 
+              value="samples" 
+              aria-label={t("laboratory.results.viewBySamples")}
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            >
+              <LayoutGrid className="h-4 w-4 me-1.5" />
+              <span className="text-sm">{t("laboratory.results.viewBySamples")}</span>
+            </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="clients" 
+              aria-label={t("laboratory.results.viewByClients")}
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            >
+              <Users className="h-4 w-4 me-1.5" />
+              <span className="text-sm">{t("laboratory.results.viewByClients")}</span>
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          <Button
+            variant="outline"
             size="sm"
-            className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            className="h-9"
+            onClick={handleSortOrderChange}
           >
-            <Users className="h-4 w-4 me-1" />
-            {t("laboratory.results.viewByClients")}
-          </Toggle>
+            {sortOrder === 'asc' ? (
+              <>
+                <ArrowUp className="h-4 w-4 me-1.5" />
+                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortAsc")}</span>
+              </>
+            ) : (
+              <>
+                <ArrowDown className="h-4 w-4 me-1.5" />
+                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortDesc")}</span>
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Filter Tabs */}
@@ -295,6 +320,12 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
+                        {/* Daily Number Badge */}
+                        {(sample as any).daily_number && (
+                          <div className="flex items-center justify-center min-w-10 h-10 rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+                            #{(sample as any).daily_number}
+                          </div>
+                        )}
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={sample.horse?.avatar_url || undefined} alt={horseName} />
                           <AvatarFallback className="bg-primary/10 text-primary text-sm">
@@ -310,52 +341,9 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={status.color}>
-                          {status.label}
-                        </Badge>
-                        {canManage && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setSelectedSample(sample); }}>
-                                <Eye className="h-4 w-4 me-2" />
-                                {t("laboratory.samples.viewAllResults")}
-                              </DropdownMenuItem>
-                              {group.hasDraft && (
-                                <DropdownMenuItem 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    sampleResults
-                                      .filter(r => r.status === 'draft')
-                                      .forEach(r => reviewResult(r.id));
-                                  }}
-                                >
-                                  <CheckCircle2 className="h-4 w-4 me-2" />
-                                  {t("laboratory.resultActions.markReviewed")}
-                                </DropdownMenuItem>
-                              )}
-                              {group.hasReviewed && !group.allFinal && (
-                                <DropdownMenuItem 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    sampleResults
-                                      .filter(r => r.status === 'reviewed')
-                                      .forEach(r => finalizeResult(r.id));
-                                  }}
-                                >
-                                  <CheckCircle2 className="h-4 w-4 me-2" />
-                                  {t("laboratory.resultActions.finalize")}
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
+                      <Badge className={status.color}>
+                        {status.label}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -405,6 +393,53 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                       </div>
                     </div>
                   </CardContent>
+
+                  {/* Action Buttons - visible instead of dropdown */}
+                  {canManage && (
+                    <CardFooter className="pt-3 border-t flex flex-wrap gap-1.5 justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={(e) => { e.stopPropagation(); setSelectedSample(sample); }}
+                      >
+                        <Eye className="h-3 w-3 me-1" />
+                        {t("laboratory.samples.viewAllResults")}
+                      </Button>
+                      {group.hasDraft && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 text-xs"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            sampleResults
+                              .filter(r => r.status === 'draft')
+                              .forEach(r => reviewResult(r.id));
+                          }}
+                        >
+                          <CheckCircle2 className="h-3 w-3 me-1" />
+                          {t("laboratory.resultActions.markReviewed")}
+                        </Button>
+                      )}
+                      {group.hasReviewed && !group.allFinal && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 text-xs"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            sampleResults
+                              .filter(r => r.status === 'reviewed')
+                              .forEach(r => finalizeResult(r.id));
+                          }}
+                        >
+                          <Lock className="h-3 w-3 me-1" />
+                          {t("laboratory.resultActions.finalize")}
+                        </Button>
+                      )}
+                    </CardFooter>
+                  )}
                 </Card>
               );
             })}
