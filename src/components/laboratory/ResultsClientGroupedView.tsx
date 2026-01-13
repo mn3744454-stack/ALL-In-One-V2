@@ -59,7 +59,7 @@ export function ResultsClientGroupedView({
       if (!sample) return;
 
       const clientId = sample.client_id;
-      const horseName = sample.horse?.name || sample.horse_name || t("laboratory.results.unknownHorse");
+      const horseName = sample.horse?.name || sample.horse?.name_ar || sample.horse_name || t("laboratory.results.unknownHorse");
       
       const existing = sampleGroups.get(clientId) || [];
       existing.push({ sample, results: sampleResults, horseName });
