@@ -19,3 +19,6 @@ export * from "./CombinedResultsDialog";
 export * from "./GenerateInvoiceDialog";
 export * from "./ResultsFilterTabs";
 export * from "./ClientGroupedView";
+export * from "./HorseSelectionStep";
+export * from "./MultiHorseSelector";
+export * from "./WalkInHorseForm";
