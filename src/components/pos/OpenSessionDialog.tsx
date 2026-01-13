@@ -47,14 +47,14 @@ export function OpenSessionDialog({
       <DialogContent className={cn("max-w-sm", isRTL && "rtl")}>
         <DialogHeader>
           <DialogTitle>
-            {t("finance.pos.session.openTitle", "Open POS Session")}
+            {t("finance.pos.session.openTitle")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="opening-cash">
-              {t("finance.pos.session.openingCash", "Opening Cash")}
+              {t("finance.pos.session.openingCash")}
             </Label>
             <Input
               id="opening-cash"
@@ -70,7 +70,7 @@ export function OpenSessionDialog({
 
           <div className="space-y-2">
             <Label htmlFor="session-notes">
-              {t("common.notes", "Notes")} ({t("common.optional", "optional")})
+              {t("common.notes")} ({t("common.optional")})
             </Label>
             <Textarea
               id="session-notes"
@@ -83,10 +83,10 @@ export function OpenSessionDialog({
 
         <DialogFooter className={cn("gap-2", isRTL && "flex-row-reverse")}>
           <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-            {t("common.cancel", "Cancel")}
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={isLoading} className="min-w-[100px]">
-            {isLoading ? "..." : t("finance.pos.session.open", "Open Session")}
+            {isLoading ? "..." : t("finance.pos.session.open")}
           </Button>
         </DialogFooter>
       </DialogContent>

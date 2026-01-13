@@ -60,7 +60,7 @@ export function POSStickyBar({
             variant="secondary"
             className="h-12 touch-manipulation"
           >
-            {t("finance.pos.cart.view", "View Cart")}
+            {t("finance.pos.cart.view")}
             <ChevronIcon className="h-4 w-4 ms-1" />
           </Button>
         )}
@@ -72,14 +72,14 @@ export function POSStickyBar({
               onClick={() => onStepChange("catalog")}
               className="h-12 touch-manipulation"
             >
-              {t("finance.pos.actions.addMore", "Add More")}
+              {t("finance.pos.actions.addMore")}
             </Button>
             <Button
               onClick={() => onStepChange("payment")}
               disabled={!canPay}
               className="h-12 touch-manipulation"
             >
-              {t("finance.pos.actions.pay", "Pay")}
+              {t("finance.pos.actions.pay")}
               <ChevronIcon className="h-4 w-4 ms-1" />
             </Button>
           </>
@@ -91,7 +91,7 @@ export function POSStickyBar({
             onClick={() => onStepChange("cart")}
             className="h-12 touch-manipulation"
           >
-            {t("common.back", "Back")}
+            {t("common.back")}
           </Button>
         )}
       </div>
@@ -102,7 +102,7 @@ export function POSStickyBar({
           onClick={onPay}
           className="h-12 px-6 touch-manipulation font-bold"
         >
-          {t("finance.pos.actions.pay", "Pay")}
+          {t("finance.pos.actions.pay")}
           <ChevronIcon className="h-4 w-4 ms-1" />
         </Button>
       )}

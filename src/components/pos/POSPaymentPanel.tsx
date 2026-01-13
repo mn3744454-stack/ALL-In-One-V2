@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ export function POSPaymentPanel({
       {/* Payment method selection */}
       <div>
         <Label className="text-sm mb-2 block">
-          {t("finance.pos.payment.method", "Payment Method")}
+          {t("finance.pos.payment.method")}
         </Label>
         <div className={cn(
           "grid grid-cols-4 gap-2",
@@ -59,7 +59,7 @@ export function POSPaymentPanel({
             >
               {method.icon}
               <span className="text-xs mt-1 font-medium">
-                {t(method.labelKey, method.id)}
+                {t(method.labelKey)}
               </span>
             </button>
           ))}
@@ -75,11 +75,11 @@ export function POSPaymentPanel({
       >
         {isProcessing ? (
           <span className="animate-pulse">
-            {t("common.processing", "Processing...")}
+            {t("common.processing")}
           </span>
         ) : (
           <>
-            {t("finance.pos.actions.completeSale", "Complete Sale")}
+            {t("finance.pos.actions.completeSale")}
             <span className={cn("ms-2 font-bold", isRTL && "me-2 ms-0")}>
               {total.toFixed(2)}
             </span>

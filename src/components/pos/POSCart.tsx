@@ -33,11 +33,11 @@ export function POSCart({
   discountAmount,
   onDiscountChange,
 }: POSCartProps) {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const { isRTL } = useRTL();
 
   const getDisplayName = (item: POSCartItem) => {
-    if (language === "ar" && item.name_ar) return item.name_ar;
+    if (lang === "ar" && item.name_ar) return item.name_ar;
     return item.name;
   };
 
@@ -45,7 +45,7 @@ export function POSCart({
     return (
       <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
         <ShoppingCart className="h-12 w-12 mb-2 opacity-30" />
-        <p>{t("finance.pos.cart.empty", "Cart is empty")}</p>
+        <p>{t("finance.pos.cart.empty")}</p>
       </div>
     );
   }
@@ -58,7 +58,7 @@ export function POSCart({
         isRTL && "flex-row-reverse"
       )}>
         <span className="font-semibold">
-          {t("finance.pos.cart.title", "Cart")} ({totals.itemCount})
+          {t("finance.pos.cart.title")} ({totals.itemCount})
         </span>
         <Button
           variant="ghost"
@@ -138,7 +138,7 @@ export function POSCart({
           "flex justify-between text-sm",
           isRTL && "flex-row-reverse"
         )}>
-          <span>{t("finance.pos.cart.subtotal", "Subtotal")}</span>
+          <span>{t("finance.pos.cart.subtotal")}</span>
           <span>{totals.subtotal.toFixed(2)}</span>
         </div>
 
@@ -147,7 +147,7 @@ export function POSCart({
           "flex items-center justify-between gap-2 text-sm",
           isRTL && "flex-row-reverse"
         )}>
-          <span>{t("finance.pos.cart.discount", "Discount")}</span>
+          <span>{t("finance.pos.cart.discount")}</span>
           <input
             type="number"
             min="0"
@@ -164,7 +164,7 @@ export function POSCart({
             "flex justify-between text-sm",
             isRTL && "flex-row-reverse"
           )}>
-            <span>{t("finance.pos.cart.tax", "Tax")}</span>
+            <span>{t("finance.pos.cart.tax")}</span>
             <span>{totals.taxAmount.toFixed(2)}</span>
           </div>
         )}
@@ -175,7 +175,7 @@ export function POSCart({
           "flex justify-between font-bold text-lg",
           isRTL && "flex-row-reverse"
         )}>
-          <span>{t("finance.pos.cart.total", "Total")}</span>
+          <span>{t("finance.pos.cart.total")}</span>
           <span>{totals.total.toFixed(2)}</span>
         </div>
       </div>
