@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -48,7 +49,8 @@ export default function DashboardFinancePOS() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
+  const { hasPermission, isOwner, loading: loadingPermissions } = usePermissions();
   const tenantId = activeTenant?.tenant?.id;
 
   // POS State
@@ -121,8 +123,24 @@ export default function DashboardFinancePOS() {
     }
   }, [openSession, lastCreatedInvoice]);
 
-  // Permission check
-  const canAccess = activeRole === "owner" || activeRole === "manager";
+  // Permission check - use hasPermission instead of activeRole
+  const canAccess = isOwner || hasPermission("pos.sale.create");
+  const canOpenSession = isOwner || hasPermission("pos.session.open");
+  const canCloseSession = isOwner || hasPermission("pos.session.close");
+  const canApplyDiscount = isOwner || hasPermission("pos.discount.apply");
+
+  if (loadingPermissions) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-6 text-center">
+            <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4 animate-pulse" />
+            <p className="text-muted-foreground">{t("common.loading")}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!canAccess) {
     return (
