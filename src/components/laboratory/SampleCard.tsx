@@ -64,28 +64,34 @@ export function SampleCard({
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Build checkout line items from sample templates
+  // Try to get price from template.price or a linked service, otherwise null
   const buildCheckoutItems = (): CheckoutLineItem[] => {
     if (!sample.templates || sample.templates.length === 0) {
       return [{
         id: sample.id,
         description: `Lab Sample ${sample.physical_sample_id || sample.id.slice(0, 8)}`,
         quantity: 1,
-        unit_price: 0,
+        unit_price: null as unknown as number, // No price available
         total_price: 0,
         entity_type: "lab_sample",
         entity_id: sample.id,
       }];
     }
-    return sample.templates.map((st) => ({
-      id: st.id,
-      description: st.template?.name || "Lab Test",
-      description_ar: st.template?.name_ar,
-      quantity: 1,
-      unit_price: 0, // Price should come from template or service
-      total_price: 0,
-      entity_type: "lab_sample",
-      entity_id: sample.id,
-    }));
+    return sample.templates.map((st) => {
+      // Try to get price from template (if it has a price field) or linked service
+      const templatePrice = (st.template as any)?.price ?? (st.template as any)?.unit_price ?? null;
+      const unitPrice = templatePrice !== null ? Number(templatePrice) : null;
+      return {
+        id: st.id,
+        description: st.template?.name || "Lab Test",
+        description_ar: st.template?.name_ar,
+        quantity: 1,
+        unit_price: unitPrice as unknown as number, // null means price missing
+        total_price: unitPrice !== null ? unitPrice : 0,
+        entity_type: "lab_sample",
+        entity_id: sample.id,
+      };
+    });
   };
   const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
   
@@ -169,6 +175,15 @@ export function SampleCard({
                         {t("laboratory.billing.generateInvoice")}
                       </DropdownMenuItem>
                     </>
+                  )}
+                  {isBillable && canCreateInvoice && (
+                    <DropdownMenuItem 
+                      onClick={(e) => { e.stopPropagation(); setCheckoutOpen(true); }}
+                      className="text-primary"
+                    >
+                      <CreditCard className="h-4 w-4 me-2" />
+                      {t("finance.pos.quickCheckout")}
+                    </DropdownMenuItem>
                   )}
                   {!['completed', 'cancelled'].includes(sample.status) && onCancel && (
                     <>
@@ -262,6 +277,17 @@ export function SampleCard({
           </p>
         )}
       </CardContent>
+
+      {/* Quick Checkout Sheet */}
+      <EmbeddedCheckout
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        sourceType="lab_sample"
+        sourceId={sample.id}
+        initialLineItems={buildCheckoutItems()}
+        onComplete={() => setCheckoutOpen(false)}
+        onCancel={() => setCheckoutOpen(false)}
+      />
     </Card>
   );
 }

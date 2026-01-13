@@ -169,8 +169,18 @@ export default function DashboardFinancePOS() {
 
   const handleCompleteSale = async () => {
     if (!tenantId || !openSession) return;
+    
+    // Snapshot cart BEFORE the sale clears it
+    const cartSnapshot = cart.map(item => ({
+      description: item.name,
+      description_ar: item.name_ar,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total_price: item.total_price,
+    }));
+    
     try {
-      const invoice = await createSale({
+      await createSale({
         tenant_id: tenantId,
         pos_session_id: openSession.id,
         client_id: selectedClientId,
@@ -178,13 +188,8 @@ export default function DashboardFinancePOS() {
         payment_method: paymentMethod,
         discount_amount: discountAmount,
       });
-      // Store items for receipt
-      setLastInvoiceItems(cart.map(item => ({
-        description: item.name,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price,
-      })));
+      // Use snapshot for receipt (cart is cleared in createSale)
+      setLastInvoiceItems(cartSnapshot);
       setReceiptDialogOpen(true);
       setCurrentStep("receipt");
     } catch (error) {

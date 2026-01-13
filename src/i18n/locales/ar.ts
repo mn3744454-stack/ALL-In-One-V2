@@ -1172,6 +1172,7 @@ export const ar = {
       checkout: {
         success: "تم إتمام المحاسبة",
         error: "فشلت المحاسبة",
+        missingPrices: "بعض العناصر بدون سعر",
       },
       session: {
         openTitle: "فتح جلسة البيع",
@@ -1184,6 +1185,8 @@ export const ar = {
         actualCash: "الرصيد الفعلي",
         variance: "الفرق",
         varianceNote: "اشرح الفرق...",
+        openFirst: "يرجى فتح جلسة أولاً",
+        openToSell: "افتح جلسة لبدء البيع",
       },
       cart: {
         title: "السلة",
@@ -1551,6 +1554,7 @@ export const ar = {
       viewDetails: "عرض التفاصيل",
       edit: "تعديل الطلب",
       markAs: "تحديد كـ",
+      billOrder: "إصدار فاتورة",
     },
     table: {
       horse: "الحصان",
