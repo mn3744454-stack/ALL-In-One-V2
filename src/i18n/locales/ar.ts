@@ -695,6 +695,28 @@ export const ar = {
       // General
       noActiveOrganization: "لا توجد منشأة نشطة",
       notAuthenticated: "غير مسجل الدخول",
+      duplicateDailyNumber: "رقم العينة {{number}} مستخدم بالفعل للخيل: {{horseName}}",
+    },
+    
+    // Progress Stepper
+    progress: {
+      received: "تم الاستلام",
+      accessioned: "تم التسجيل",
+      processing: "جاري التحليل",
+      readyForResults: "جاهز للنتائج",
+      sent: "تم الإرسال",
+    },
+    
+    // Templates
+    templates: {
+      title: "القوالب",
+      add: "إضافة قالب",
+      edit: "تعديل القالب",
+      name: "الاسم",
+      price: "السعر",
+      includedTests: "الفحوصات المشمولة",
+      noFieldsDefined: "لم يتم تحديد حقول لهذا القالب",
+      viewDetails: "عرض تفاصيل القالب",
     },
   },
   movement: {

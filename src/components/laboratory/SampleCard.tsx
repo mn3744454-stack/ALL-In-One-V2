@@ -5,7 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SampleStatusBadge } from "./SampleStatusBadge";
+import { SampleProgressStepper } from "./SampleProgressStepper";
+import { TemplateDetailsDialog } from "./TemplateDetailsDialog";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
+import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { format } from "date-fns";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -62,6 +65,9 @@ export function SampleCard({
   const { getCapabilityForCategory } = useTenantCapabilities();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutLinkKind, setCheckoutLinkKind] = useState<BillingLinkKind>("final");
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
   // Get billing policy from tenant capabilities
   const labCapability = getCapabilityForCategory("laboratory");
@@ -169,11 +175,30 @@ export function SampleCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {/* Templates Badges - RTL-aware alignment */}
+        {/* Progress Stepper */}
+        <SampleProgressStepper
+          status={sample.status}
+          receivedAt={sample.received_at}
+          accessionedAt={(sample as any).accessioned_at}
+          processingStartedAt={(sample as any).processing_started_at}
+          completedAt={sample.completed_at}
+          createdAt={sample.created_at}
+        />
+
+        {/* Templates Badges - RTL-aware alignment, clickable */}
         {sample.templates && sample.templates.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3 rtl:justify-end">
             {sample.templates.map((st) => (
-              <Badge key={st.id} variant="outline" className="text-xs">
+              <Badge 
+                key={st.id} 
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedTemplate(st.template);
+                  setTemplateDialogOpen(true);
+                }}
+              >
                 <FileText className="h-3 w-3 me-1" />
                 {st.template.name_ar || st.template.name}
               </Badge>
@@ -353,6 +378,13 @@ export function SampleCard({
         linkKind={checkoutLinkKind}
         onComplete={() => setCheckoutOpen(false)}
         onCancel={() => setCheckoutOpen(false)}
+      />
+
+      {/* Template Details Dialog */}
+      <TemplateDetailsDialog
+        template={selectedTemplate}
+        open={templateDialogOpen}
+        onOpenChange={setTemplateDialogOpen}
       />
     </Card>
   );
