@@ -3415,6 +3415,7 @@ export type Database = {
           assigned_to: string | null
           client_id: string | null
           collection_date: string
+          collection_date_only: string | null
           completed_at: string | null
           created_at: string
           created_by: string
@@ -3443,6 +3444,7 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           collection_date?: string
+          collection_date_only?: string | null
           completed_at?: string | null
           created_at?: string
           created_by: string
@@ -3471,6 +3473,7 @@ export type Database = {
           assigned_to?: string | null
           client_id?: string | null
           collection_date?: string
+          collection_date_only?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
