@@ -692,6 +692,28 @@ export const en = {
       // General
       noActiveOrganization: "No active organization",
       notAuthenticated: "Not authenticated",
+      duplicateDailyNumber: "Sample number {{number}} is already used for horse: {{horseName}}",
+    },
+    
+    // Progress Stepper
+    progress: {
+      received: "Received",
+      accessioned: "Accessioned",
+      processing: "Processing",
+      readyForResults: "Ready for Results",
+      sent: "Sent",
+    },
+    
+    // Templates
+    templates: {
+      title: "Templates",
+      add: "Add Template",
+      edit: "Edit Template",
+      name: "Name",
+      price: "Price",
+      includedTests: "Included Tests",
+      noFieldsDefined: "No fields defined for this template",
+      viewDetails: "View Template Details",
     },
   },
   movement: {
