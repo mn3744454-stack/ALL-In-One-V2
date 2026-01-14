@@ -188,21 +188,26 @@ export function SampleCard({
         {/* Templates Badges - RTL-aware alignment, clickable */}
         {sample.templates && sample.templates.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3 rtl:justify-end">
-            {sample.templates.map((st) => (
-              <Badge 
-                key={st.id} 
-                variant="outline" 
-                className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedTemplate(st.template);
-                  setTemplateDialogOpen(true);
-                }}
-              >
-                <FileText className="h-3 w-3 me-1" />
-                {st.template.name_ar || st.template.name}
-              </Badge>
-            ))}
+            {sample.templates.map((st) => {
+              // Guard against missing template data
+              if (!st.template) return null;
+              const templateName = st.template.name_ar || st.template.name || '';
+              return (
+                <Badge 
+                  key={st.id} 
+                  variant="outline" 
+                  className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTemplate(st.template);
+                    setTemplateDialogOpen(true);
+                  }}
+                >
+                  <FileText className="h-3 w-3 me-1" />
+                  {templateName}
+                </Badge>
+              );
+            })}
           </div>
         )}
 
