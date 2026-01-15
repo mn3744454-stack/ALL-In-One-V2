@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { tenantSchema, safeValidate } from "@/lib/validations";
 import { debugLog, debugError } from "@/lib/debug";
+import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from "@/lib/withTimeout";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
@@ -46,6 +47,8 @@ interface TenantContextType {
   activeTenant: TenantMembership | null;
   activeRole: TenantRole | null;
   loading: boolean;
+  tenantError: string | null;
+  retryTenantFetch: () => void;
   setActiveTenant: (tenantId: string) => void;
   setActiveRole: (role: TenantRole) => void;
   refreshTenants: () => Promise<void>;
@@ -54,70 +57,116 @@ interface TenantContextType {
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
+const DEV = import.meta.env.DEV;
+const log = (msg: string, data?: unknown) => {
+  if (DEV) console.log(`[TENANT] ${msg}`, data ?? '');
+};
+const logError = (msg: string, error?: unknown) => {
+  if (DEV) console.error(`[TENANT ERROR] ${msg}`, error ?? '');
+};
+
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [tenants, setTenants] = useState<TenantMembership[]>([]);
   const [activeTenant, setActiveTenantState] = useState<TenantMembership | null>(null);
   const [activeRole, setActiveRoleState] = useState<TenantRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tenantError, setTenantError] = useState<string | null>(null);
 
-  const fetchTenants = async () => {
+  const fetchTenants = useCallback(async () => {
+    log('fetchTenants start', { userId: user?.id });
+
     if (!user) {
+      log('fetchTenants: no user, clearing state');
       setTenants([]);
       setActiveTenantState(null);
       setActiveRoleState(null);
       setLoading(false);
+      setTenantError(null);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("tenant_members")
-      .select(`
-        id,
-        tenant_id,
-        user_id,
-        role,
-        can_invite,
-        can_manage_horses,
-        is_active,
-        tenant:tenants(*)
-      `)
-      .eq("user_id", user.id)
-      .eq("is_active", true);
+    setLoading(true);
+    setTenantError(null);
 
-    if (!error && data) {
-      const memberships = data.map((m) => ({
-        ...m,
-        tenant: m.tenant as unknown as Tenant,
-      })) as TenantMembership[];
-      
-      setTenants(memberships);
+    try {
+      log('Fetching tenant_members...');
+      const { data, error } = await withTimeout(
+        async () => supabase
+          .from("tenant_members")
+          .select(`
+            id,
+            tenant_id,
+            user_id,
+            role,
+            can_invite,
+            can_manage_horses,
+            is_active,
+            tenant:tenants(*)
+          `)
+          .eq("user_id", user.id)
+          .eq("is_active", true),
+        BOOTSTRAP_TIMEOUT_MS,
+        'Fetch tenants'
+      );
 
-      // Set active tenant: prefer localStorage, then first tenant
-      if (memberships.length > 0 && !activeTenant) {
-        const storedTenantId = localStorage.getItem('activeTenantId');
-        const storedMembership = storedTenantId 
-          ? memberships.find(m => m.tenant_id === storedTenantId)
-          : null;
+      if (error) {
+        logError('fetchTenants query error', error);
+        setTenantError('فشل في تحميل بيانات المنظمة. تحقق من الاتصال.');
+        return;
+      }
+
+      log('fetchTenants success', { count: data?.length });
+
+      if (data) {
+        const memberships = data.map((m) => ({
+          ...m,
+          tenant: m.tenant as unknown as Tenant,
+        })) as TenantMembership[];
         
-        if (storedMembership) {
-          // Use stored tenant (it's valid)
-          setActiveTenantState(storedMembership);
-          setActiveRoleState(storedMembership.role);
-        } else {
-          // Invalid or no stored tenant - fallback to first
-          if (storedTenantId) {
-            localStorage.removeItem('activeTenantId'); // Clean up invalid value
+        setTenants(memberships);
+
+        // Set active tenant: prefer localStorage, then first tenant
+        if (memberships.length > 0 && !activeTenant) {
+          const storedTenantId = localStorage.getItem('activeTenantId');
+          const storedMembership = storedTenantId 
+            ? memberships.find(m => m.tenant_id === storedTenantId)
+            : null;
+          
+          if (storedMembership) {
+            // Use stored tenant (it's valid)
+            setActiveTenantState(storedMembership);
+            setActiveRoleState(storedMembership.role);
+          } else {
+            // Invalid or no stored tenant - fallback to first
+            if (storedTenantId) {
+              localStorage.removeItem('activeTenantId'); // Clean up invalid value
+            }
+            setActiveTenantState(memberships[0]);
+            setActiveRoleState(memberships[0].role);
+            localStorage.setItem('activeTenantId', memberships[0].tenant_id);
           }
-          setActiveTenantState(memberships[0]);
-          setActiveRoleState(memberships[0].role);
-          localStorage.setItem('activeTenantId', memberships[0].tenant_id);
         }
       }
+    } catch (err) {
+      logError('fetchTenants exception', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      
+      if (errorMessage.includes('timed out')) {
+        setTenantError('انتهت مهلة الاتصال. الاتصال بطيء.');
+      } else {
+        setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
+      }
+    } finally {
+      setLoading(false);
+      log('fetchTenants finally - loading set to false');
     }
+  }, [user, activeTenant]);
 
-    setLoading(false);
-  };
+  const retryTenantFetch = useCallback(() => {
+    log('retryTenantFetch called');
+    fetchTenants();
+  }, [fetchTenants]);
 
   useEffect(() => {
     fetchTenants();
@@ -315,6 +364,8 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         activeTenant,
         activeRole,
         loading,
+        tenantError,
+        retryTenantFetch,
         setActiveTenant,
         setActiveRole,
         refreshTenants,
