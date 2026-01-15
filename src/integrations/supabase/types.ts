@@ -3587,7 +3587,10 @@ export type Database = {
       lab_templates: {
         Row: {
           category: string | null
+          category_ar: string | null
           created_at: string
+          description: string | null
+          description_ar: string | null
           diagnostic_rules: Json | null
           fields: Json
           groups: Json | null
@@ -3604,7 +3607,10 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          category_ar?: string | null
           created_at?: string
+          description?: string | null
+          description_ar?: string | null
           diagnostic_rules?: Json | null
           fields?: Json
           groups?: Json | null
@@ -3621,7 +3627,10 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          category_ar?: string | null
           created_at?: string
+          description?: string | null
+          description_ar?: string | null
           diagnostic_rules?: Json | null
           fields?: Json
           groups?: Json | null
