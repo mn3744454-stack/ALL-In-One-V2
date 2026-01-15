@@ -112,7 +112,7 @@ interface LabTemplatesManagerProps {
 }
 
 export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManagerProps) {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const { templates, loading, canManage, existingCategories, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate, seedDefaultTemplates } = useLabTemplates();
   const [seedingDefaults, setSeedingDefaults] = useState(false);
   
@@ -530,7 +530,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             <CardTitle className="text-lg">{t('laboratory.templates.title')}</CardTitle>
             {templates.length > 0 && (
               <p className="text-sm text-muted-foreground mt-1">
-                {stats.total} {t('laboratory.templates.templatesCount', { count: stats.total })} • {stats.active} {t('common.active')}
+                {stats.total} {t('laboratory.templates.templates')} • {stats.active} {t('common.active')}
               </p>
             )}
           </div>
@@ -593,7 +593,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   <SelectItem value="all">{t('laboratory.templates.allTypes')}</SelectItem>
                   {TEMPLATE_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                      {language === 'ar' ? type.label_ar : type.label}
+                      {lang === 'ar' ? type.label_ar : type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -660,7 +660,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
                         )}
                         <div className="flex flex-wrap gap-1.5 mt-2">
-                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[language === 'ar' ? 'label_ar' : 'label'] || template.template_type}</Badge>
+                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[lang === 'ar' ? 'label_ar' : 'label'] || template.template_type}</Badge>
                           <Badge variant="outline">{template.fields.length} {t('laboratory.templates.fields')}</Badge>
                           {template.category && (
                             <Badge variant="outline">{template.category}</Badge>
@@ -798,7 +798,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   <SelectContent>
                     {TEMPLATE_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
-                        {language === 'ar' ? type.label_ar : type.label}
+                        {lang === 'ar' ? type.label_ar : type.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -949,7 +949,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                                 <SelectContent>
                                   {FIELD_TYPES.map((type) => (
                                     <SelectItem key={type.value} value={type.value}>
-                                      {language === 'ar' ? type.label_ar : type.label}
+                                      {lang === 'ar' ? type.label_ar : type.label}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -982,7 +982,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                                   <SelectItem value="none">{t('laboratory.templates.noGroup')}</SelectItem>
                                   {formData.groups.map((g) => (
                                     <SelectItem key={g.id} value={g.id}>
-                                      {language === 'ar' && g.name_ar ? g.name_ar : g.name}
+                                      {lang === 'ar' && g.name_ar ? g.name_ar : g.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -1076,7 +1076,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                     
                     return (
                       <div key={field.id} className={`flex items-center gap-2 ${isInvalid ? 'text-destructive' : ''}`}>
-                        <span className="text-sm min-w-24 truncate">{language === 'ar' && field.name_ar ? field.name_ar : field.name}</span>
+                        <span className="text-sm min-w-24 truncate">{lang === 'ar' && field.name_ar ? field.name_ar : field.name}</span>
                         <Input
                           type="number"
                           placeholder={t('laboratory.templates.min')}
@@ -1181,7 +1181,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                               <SelectContent>
                                 {DISCOUNT_TYPES.map((dt) => (
                                   <SelectItem key={dt.value} value={dt.value}>
-                                    {language === 'ar' ? dt.label_ar : dt.label}
+                                    {lang === 'ar' ? dt.label_ar : dt.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1304,7 +1304,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                                 <SelectContent>
                                   {INTERPRETATION_TYPES.map((it) => (
                                     <SelectItem key={it.value} value={it.value}>
-                                      {language === 'ar' ? it.label_ar : it.label}
+                                      {lang === 'ar' ? it.label_ar : it.label}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -1371,7 +1371,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              {t('laboratory.templates.duplicateDesc', { name: templateToDuplicate?.name })}
+              {t('laboratory.templates.duplicateDesc')} "{templateToDuplicate?.name}"
             </p>
             <div className="space-y-2">
               <Label>{t('laboratory.templates.newName')}</Label>
@@ -1404,7 +1404,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
           <AlertDialogHeader>
             <AlertDialogTitle>{t('laboratory.templates.deleteTemplate')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('laboratory.templates.deleteConfirm', { name: templateToDelete?.name })}
+              {t('laboratory.templates.deleteConfirm')} "{templateToDelete?.name}"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
