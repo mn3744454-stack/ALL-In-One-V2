@@ -92,7 +92,14 @@ const DISCOUNT_TYPES = [
 ];
 
 // Styled select trigger class for visual distinction
-const selectTriggerClass = "bg-muted/40 border-muted-foreground/20 hover:bg-muted/60 focus:ring-2 focus:ring-primary/20";
+// Styled select trigger class for visual distinction
+const selectTriggerClass = "bg-white dark:bg-muted/40 border-border hover:bg-muted/60 focus:ring-2 focus:ring-primary/20";
+
+// Styled input class for clear visibility
+const inputClass = "bg-white dark:bg-muted/40 border-border";
+
+// Section wrapper class for collapsible sections
+const sectionWrapperClass = "border border-border/60 rounded-xl p-4 bg-card/50 shadow-sm";
 
 interface FormData {
   name: string;
@@ -175,6 +182,9 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   // Options input for select/multiselect fields
   const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
   
+  // Track if reordering is in progress
+  const [isReordering, setIsReordering] = useState(false);
+  
   // Toggle field expansion
   const toggleFieldExpanded = (fieldId: string) => {
     setExpandedFields(prev => {
@@ -186,6 +196,16 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       }
       return next;
     });
+  };
+  
+  // Auto-collapse all except current field during reorder
+  const handleReorderStart = (currentFieldId: string) => {
+    setIsReordering(true);
+    setExpandedFields(new Set([currentFieldId]));
+  };
+  
+  const handleReorderEnd = () => {
+    setIsReordering(false);
   };
   
   // Filtered templates
@@ -347,9 +367,17 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     const newFields = [...formData.fields];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= newFields.length) return;
+    
+    // Auto-collapse during reorder
+    const currentFieldId = newFields[index].id;
+    handleReorderStart(currentFieldId);
+    
     [newFields[index], newFields[targetIndex]] = [newFields[targetIndex], newFields[index]];
     newFields.forEach((f, i) => f.sort_order = i);
     setFormData({ ...formData, fields: newFields });
+    
+    // End reorder after a short delay
+    setTimeout(handleReorderEnd, 300);
   };
 
   const addFieldOption = (fieldId: string) => {
@@ -777,24 +805,28 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
-          <DialogHeader>
+        <DialogContent 
+          className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent" 
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b">
             <div className={`flex items-center justify-between gap-4 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
               <DialogTitle className="text-lg">
                 {editingTemplate ? t('laboratory.templates.editTemplate') : t('laboratory.templates.newTemplate')}
               </DialogTitle>
-              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
                 {/* Preview button */}
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => setPreviewOpen(true)}
+                  className="gap-1.5"
                 >
-                  <Eye className="h-4 w-4 me-1" />
+                  <Eye className="h-4 w-4" />
                   {t('laboratory.templates.preview')}
                 </Button>
                 {/* Active toggle in header */}
-                <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
                   <Switch
                     checked={formData.is_active}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
@@ -805,7 +837,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             </div>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-5 pt-4">
             {/* Basic Info - Bilingual labels */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -814,6 +846,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder={t('laboratory.templates.placeholderTemplateName')}
+                  className={inputClass}
                 />
               </div>
               <div className="space-y-2">
@@ -823,39 +856,44 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
                   placeholder={t('laboratory.templates.placeholderTemplateNameAr')}
                   dir="rtl"
+                  className={inputClass}
                 />
               </div>
             </div>
 
             {/* Description Section */}
             <Collapsible open={sectionsOpen.description} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, description: open })}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-2">
-                  <span className="text-sm font-medium">{t('laboratory.templates.description')}</span>
-                  {sectionsOpen.description ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
-                <div className="space-y-2">
-                  <Label className="text-xs">{t('laboratory.templates.descriptionEn')}</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder={t('laboratory.templates.placeholderDescription')}
-                    rows={2}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">{t('laboratory.templates.descriptionAr')}</Label>
-                  <Textarea
-                    value={formData.description_ar}
-                    onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                    placeholder={t('laboratory.templates.placeholderDescriptionAr')}
-                    dir="rtl"
-                    rows={2}
-                  />
-                </div>
-              </CollapsibleContent>
+              <div className={sectionWrapperClass}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                    <span className="text-sm font-medium">{t('laboratory.templates.description')}</span>
+                    {sectionsOpen.description ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 pt-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs">{t('laboratory.templates.descriptionEn')}</Label>
+                    <Textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder={t('laboratory.templates.placeholderDescription')}
+                      rows={2}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">{t('laboratory.templates.descriptionAr')}</Label>
+                    <Textarea
+                      value={formData.description_ar}
+                      onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
+                      placeholder={t('laboratory.templates.placeholderDescriptionAr')}
+                      dir="rtl"
+                      rows={2}
+                      className={inputClass}
+                    />
+                  </div>
+                </CollapsibleContent>
+              </div>
             </Collapsible>
 
             {/* Type & Category */}
@@ -885,6 +923,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   placeholder="e.g., Routine, Diagnostic"
                   list="category-suggestions"
+                  className={inputClass}
                 />
                 <datalist id="category-suggestions">
                   {existingCategories.map(cat => (
@@ -902,323 +941,347 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   onChange={(e) => setFormData({ ...formData, category_ar: e.target.value })}
                   placeholder="الفئة بالعربية"
                   dir="rtl"
+                  className={inputClass}
                 />
               </div>
             )}
 
             {/* Groups Section */}
             <Collapsible open={sectionsOpen.groups} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, groups: open })}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
-                  <span className="text-sm font-medium">{t('laboratory.templates.groups')} ({formData.groups.length})</span>
-                  {sectionsOpen.groups ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
-                {formData.groups.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-2">{t('laboratory.templates.noGroups')}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {formData.groups.map((group, index) => (
-                      <Card key={group.id} className="p-3 rounded-xl">
-                        <div className="flex items-center gap-2">
-                          <div className="flex flex-col gap-0.5">
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveGroup(index, 'up')} disabled={index === 0}>
-                              <ChevronUp className="h-3 w-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveGroup(index, 'down')} disabled={index === formData.groups.length - 1}>
-                              <ChevronDown className="h-3 w-3" />
+              <div className={sectionWrapperClass}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                    <span className="text-sm font-medium">{t('laboratory.templates.groups')} ({formData.groups.length})</span>
+                    {sectionsOpen.groups ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 pt-3">
+                  {formData.groups.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-2">{t('laboratory.templates.noGroups')}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.groups.map((group, index) => (
+                        <Card key={group.id} className="p-3 rounded-xl bg-white dark:bg-muted/20">
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col gap-0.5">
+                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveGroup(index, 'up')} disabled={index === 0}>
+                                <ChevronUp className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveGroup(index, 'down')} disabled={index === formData.groups.length - 1}>
+                                <ChevronDown className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <div className="flex-1 grid gap-2 sm:grid-cols-2">
+                              <Input
+                                value={group.name}
+                                onChange={(e) => updateGroup(index, { name: e.target.value })}
+                                placeholder={t('laboratory.templates.groupNameEn')}
+                                className={inputClass}
+                              />
+                              <Input
+                                value={group.name_ar || ''}
+                                onChange={(e) => updateGroup(index, { name_ar: e.target.value })}
+                                placeholder={t('laboratory.templates.groupNameAr')}
+                                dir="rtl"
+                                className={inputClass}
+                              />
+                            </div>
+                            <Badge variant="secondary">{getGroupFieldCount(group.id)}</Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => setGroupToDelete(index)}
+                              className="h-8 w-8 rounded-md border border-border/50 hover:border-destructive/50 hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
-                          <div className="flex-1 grid gap-2 sm:grid-cols-2">
-                            <Input
-                              value={group.name}
-                              onChange={(e) => updateGroup(index, { name: e.target.value })}
-                              placeholder={t('laboratory.templates.groupNameEn')}
-                            />
-                            <Input
-                              value={group.name_ar || ''}
-                              onChange={(e) => updateGroup(index, { name_ar: e.target.value })}
-                              placeholder={t('laboratory.templates.groupNameAr')}
-                              dir="rtl"
-                            />
-                          </div>
-                          <Badge variant="secondary">{getGroupFieldCount(group.id)}</Badge>
-                          <Button variant="ghost" size="icon" onClick={() => setGroupToDelete(index)}>
-                            <X className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                <Button size="sm" variant="outline" onClick={addGroup} className="w-full">
-                  <Plus className="h-4 w-4 me-1" />
-                  {t('laboratory.templates.addGroup')}
-                </Button>
-              </CollapsibleContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                  <Button size="sm" variant="outline" onClick={addGroup} className="w-full">
+                    <Plus className="h-4 w-4 me-1" />
+                    {t('laboratory.templates.addGroup')}
+                  </Button>
+                </CollapsibleContent>
+              </div>
             </Collapsible>
 
             {/* Fields Section with per-item collapse */}
             <Collapsible open={sectionsOpen.fields} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, fields: open })}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
-                  <span className="text-sm font-medium">{t('laboratory.templates.fields')} ({formData.fields.length})</span>
-                  {sectionsOpen.fields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
-                {formData.fields.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">{t('laboratory.templates.noFields')}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {formData.fields.map((field, index) => {
-                      const isExpanded = expandedFields.has(field.id);
-                      const needsOptions = field.type === 'select' || field.type === 'multiselect';
-                      const hasNoOptions = needsOptions && (!field.options || field.options.length === 0);
-                      const fieldType = FIELD_TYPES.find(ft => ft.value === field.type);
-                      const assignedGroup = formData.groups.find(g => g.id === field.group_id);
-                      
-                      return (
-                      <Card key={field.id} className={`p-3 rounded-xl ${hasNoOptions ? 'border-destructive' : ''}`}>
-                        {/* Collapsed Summary */}
-                        <div 
-                          className="flex items-center gap-2 cursor-pointer"
-                          onClick={() => toggleFieldExpanded(field.id)}
-                        >
-                          <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'up')} disabled={index === 0}>
-                              <ChevronUp className="h-3 w-3" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'down')} disabled={index === formData.fields.length - 1}>
-                              <ChevronDown className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium truncate">{field.name || t('laboratory.templates.fieldName')}</span>
-                              {field.name_ar && (
-                                <span className="text-sm text-muted-foreground truncate" dir="rtl">({field.name_ar})</span>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                {isRTL ? fieldType?.label_ar : fieldType?.label}
-                              </Badge>
-                              <Badge variant={field.required ? "default" : "secondary"} className="text-xs">
-                                {field.required ? t('laboratory.templates.requiredBadge') : t('laboratory.templates.optionalBadge')}
-                              </Badge>
-                              {assignedGroup ? (
-                                <Badge variant="outline" className="text-xs">
-                                  {isRTL && assignedGroup.name_ar ? assignedGroup.name_ar : assignedGroup.name}
-                                </Badge>
-                              ) : formData.groups.length > 0 && (
-                                <Badge variant="secondary" className="text-xs">{t('laboratory.templates.noGroupBadge')}</Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => setFieldToDelete(index)}>
-                              <X className="h-4 w-4 text-destructive" />
-                            </Button>
-                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </div>
-                        </div>
+              <div className={sectionWrapperClass}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                    <span className="text-sm font-medium">{t('laboratory.templates.fields')} ({formData.fields.length})</span>
+                    {sectionsOpen.fields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 pt-3">
+                  {formData.fields.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('laboratory.templates.noFields')}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {formData.fields.map((field, index) => {
+                        const isExpanded = expandedFields.has(field.id);
+                        const needsOptions = field.type === 'select' || field.type === 'multiselect';
+                        const hasNoOptions = needsOptions && (!field.options || field.options.length === 0);
+                        const fieldType = FIELD_TYPES.find(ft => ft.value === field.type);
+                        const assignedGroup = formData.groups.find(g => g.id === field.group_id);
+                        const normalRange = formData.normal_ranges[field.id] || {};
+                        const isRangeInvalid = normalRange.min !== undefined && normalRange.max !== undefined && normalRange.min >= normalRange.max;
                         
-                        {/* Expanded Details */}
-                        {isExpanded && (
-                          <div className="mt-3 pt-3 border-t space-y-3">
-                            {/* Row A: Field Names EN/AR */}
-                            <div className="grid gap-2 sm:grid-cols-2">
-                              <div className="space-y-1">
-                                <Label className="text-xs">{t('laboratory.templates.fieldNameEn')}</Label>
-                                <Input
-                                  value={field.name}
-                                  onChange={(e) => updateField(index, { name: e.target.value })}
-                                  placeholder={t('laboratory.templates.placeholderFieldName')}
-                                />
+                        return (
+                        <Card key={field.id} className={`p-3 rounded-xl bg-white dark:bg-muted/20 ${hasNoOptions ? 'border-destructive' : ''}`}>
+                          {/* Collapsed Summary */}
+                          <div 
+                            className="flex items-center gap-2 cursor-pointer"
+                            onClick={() => toggleFieldExpanded(field.id)}
+                          >
+                            <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'up')} disabled={index === 0}>
+                                <ChevronUp className="h-3 w-3" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'down')} disabled={index === formData.fields.length - 1}>
+                                <ChevronDown className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium truncate">{field.name || t('laboratory.templates.fieldName')}</span>
+                                {field.name_ar && (
+                                  <span className="text-sm text-muted-foreground truncate" dir="rtl">({field.name_ar})</span>
+                                )}
                               </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs">{t('laboratory.templates.fieldNameAr')}</Label>
-                                <Input
-                                  value={field.name_ar || ''}
-                                  onChange={(e) => updateField(index, { name_ar: e.target.value })}
-                                  placeholder={t('laboratory.templates.placeholderFieldNameAr')}
-                                  dir="rtl"
-                                />
+                              <div className="flex flex-wrap gap-1.5 mt-1">
+                                <Badge variant="outline" className="text-xs">
+                                  {isRTL ? fieldType?.label_ar : fieldType?.label}
+                                </Badge>
+                                <Badge variant={field.required ? "default" : "secondary"} className="text-xs">
+                                  {field.required ? t('laboratory.templates.requiredBadge') : t('laboratory.templates.optionalBadge')}
+                                </Badge>
+                                {assignedGroup ? (
+                                  <Badge variant="outline" className="text-xs">
+                                    {isRTL && assignedGroup.name_ar ? assignedGroup.name_ar : assignedGroup.name}
+                                  </Badge>
+                                ) : formData.groups.length > 0 && (
+                                  <Badge variant="secondary" className="text-xs">{t('laboratory.templates.noGroupBadge')}</Badge>
+                                )}
                               </div>
                             </div>
-                            
-                            {/* Row B: Type + Required + Group */}
-                            <div className="grid gap-3 sm:grid-cols-3">
-                              <div className="space-y-1">
-                                <Label className="text-xs">{t('laboratory.templates.fieldType')}</Label>
-                                <Select
-                                  value={field.type}
-                                  onValueChange={(value) => updateField(index, { type: value as LabFieldType })}
-                                >
-                                  <SelectTrigger className={selectTriggerClass}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {FIELD_TYPES.map((type) => (
-                                      <SelectItem key={type.value} value={type.value}>
-                                        {isRTL ? type.label_ar : type.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="flex items-center gap-2 pt-6">
-                                <Switch
-                                  checked={field.required}
-                                  onCheckedChange={(checked) => updateField(index, { required: checked })}
-                                />
-                                <span className="text-xs">{t('laboratory.templates.required')}</span>
-                              </div>
-                              {formData.groups.length > 0 && (
+                            <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`} onClick={(e) => e.stopPropagation()}>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setFieldToDelete(index)}
+                                className="h-8 w-8 rounded-md border border-border/50 hover:border-destructive/50 hover:bg-destructive/10"
+                              >
+                                <X className="h-4 w-4 text-destructive" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => toggleFieldExpanded(field.id)}
+                                className="h-8 w-8 rounded-md border border-border/50 hover:bg-muted"
+                              >
+                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Expanded Details */}
+                          {isExpanded && (
+                            <div className="mt-3 pt-3 border-t space-y-3">
+                              {/* Row A: Field Names EN/AR */}
+                              <div className="grid gap-2 sm:grid-cols-2">
                                 <div className="space-y-1">
-                                  <Label className="text-xs">{t('laboratory.templates.assignToGroup')}</Label>
+                                  <Label className="text-xs">{t('laboratory.templates.fieldNameEn')}</Label>
+                                  <Input
+                                    value={field.name}
+                                    onChange={(e) => updateField(index, { name: e.target.value })}
+                                    placeholder={t('laboratory.templates.placeholderFieldName')}
+                                    className={inputClass}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-xs">{t('laboratory.templates.fieldNameAr')}</Label>
+                                  <Input
+                                    value={field.name_ar || ''}
+                                    onChange={(e) => updateField(index, { name_ar: e.target.value })}
+                                    placeholder={t('laboratory.templates.placeholderFieldNameAr')}
+                                    dir="rtl"
+                                    className={inputClass}
+                                  />
+                                </div>
+                              </div>
+                              
+                              {/* Row B: Type + Required + Group */}
+                              <div className="grid gap-3 sm:grid-cols-3">
+                                <div className="space-y-1">
+                                  <Label className="text-xs">{t('laboratory.templates.fieldType')}</Label>
                                   <Select
-                                    value={field.group_id || 'none'}
-                                    onValueChange={(value) => updateField(index, { group_id: value === 'none' ? undefined : value })}
+                                    value={field.type}
+                                    onValueChange={(value) => updateField(index, { type: value as LabFieldType })}
                                   >
                                     <SelectTrigger className={selectTriggerClass}>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="none">{t('laboratory.templates.noGroup')}</SelectItem>
-                                      {formData.groups.map((g) => (
-                                        <SelectItem key={g.id} value={g.id}>
-                                          {isRTL && g.name_ar ? g.name_ar : g.name}
+                                      {FIELD_TYPES.map((type) => (
+                                        <SelectItem key={type.value} value={type.value}>
+                                          {isRTL ? type.label_ar : type.label}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
                                 </div>
-                              )}
-                            </div>
-                            
-                            {/* Row C: Type-specific inputs */}
-                            {field.type === 'number' && (
-                              <div className="grid gap-2 sm:grid-cols-2">
-                                <Input
-                                  placeholder={t('laboratory.templates.unit')}
-                                  value={field.unit || ''}
-                                  onChange={(e) => updateField(index, { unit: e.target.value })}
-                                />
-                                <Input
-                                  placeholder={t('laboratory.templates.unitAr')}
-                                  value={field.unit_ar || ''}
-                                  onChange={(e) => updateField(index, { unit_ar: e.target.value })}
-                                  dir="rtl"
-                                />
-                              </div>
-                            )}
-                            
-                            {/* Options editor for select/multiselect */}
-                            {needsOptions && (
-                              <div className="space-y-2">
-                                {hasNoOptions && (
-                                  <div className="flex items-center gap-2 text-destructive text-xs">
-                                    <AlertTriangle className="h-3 w-3" />
-                                    {t('laboratory.templates.optionsRequired')}
+                                <div className="flex items-center gap-2 pt-6">
+                                  <Switch
+                                    checked={field.required}
+                                    onCheckedChange={(checked) => updateField(index, { required: checked })}
+                                  />
+                                  <span className="text-xs">{t('laboratory.templates.required')}</span>
+                                </div>
+                                {formData.groups.length > 0 && (
+                                  <div className="space-y-1">
+                                    <Label className="text-xs">{t('laboratory.templates.assignToGroup')}</Label>
+                                    <Select
+                                      value={field.group_id || 'none'}
+                                      onValueChange={(value) => updateField(index, { group_id: value === 'none' ? undefined : value })}
+                                    >
+                                      <SelectTrigger className={selectTriggerClass}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="none">{t('laboratory.templates.noGroup')}</SelectItem>
+                                        {formData.groups.map((g) => (
+                                          <SelectItem key={g.id} value={g.id}>
+                                            {isRTL && g.name_ar ? g.name_ar : g.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                   </div>
                                 )}
-                                <div className="flex flex-wrap gap-1">
-                                  {(field.options || []).map((opt, optIndex) => (
-                                    <Badge key={optIndex} variant="secondary" className="gap-1">
-                                      {opt}
-                                      <button onClick={() => removeFieldOption(index, optIndex)} className="hover:text-destructive">
-                                        <X className="h-3 w-3" />
-                                      </button>
-                                    </Badge>
-                                  ))}
-                                </div>
-                                <div className="flex gap-2">
-                                  <Input
-                                    placeholder={t('laboratory.templates.addOption')}
-                                    value={optionInputs[field.id] || ''}
-                                    onChange={(e) => setOptionInputs({ ...optionInputs, [field.id]: e.target.value })}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFieldOption(field.id); } }}
-                                    className="flex-1"
-                                  />
-                                  <Button size="sm" variant="outline" onClick={() => addFieldOption(field.id)}>
-                                    <Plus className="h-4 w-4" />
-                                  </Button>
-                                </div>
                               </div>
-                            )}
-                            
-                            {/* File type notice */}
-                            {field.type === 'file' && (
-                              <div className="text-xs text-muted-foreground">
-                                {t('laboratory.templates.fileNotSupported')}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </Card>
-                    );
-                    })}
-                  </div>
-                )}
-                <Button size="sm" variant="outline" onClick={addField} className="w-full">
-                  <Plus className="h-4 w-4 me-1" />
-                  {t('laboratory.templates.addField')}
-                </Button>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Normal Ranges Section */}
-            {formData.fields.filter(f => f.type === 'number').length > 0 && (
-              <Collapsible open={sectionsOpen.normalRanges} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, normalRanges: open })}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
-                    <span className="text-sm font-medium">{t('laboratory.templates.normalRanges')}</span>
-                    {sectionsOpen.normalRanges ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              
+                              {/* Row C: Type-specific inputs for number fields - includes normal ranges */}
+                              {field.type === 'number' && (
+                                <div className="space-y-3">
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    <Input
+                                      placeholder={t('laboratory.templates.unit')}
+                                      value={field.unit || ''}
+                                      onChange={(e) => updateField(index, { unit: e.target.value })}
+                                      className={inputClass}
+                                    />
+                                    <Input
+                                      placeholder={t('laboratory.templates.unitAr')}
+                                      value={field.unit_ar || ''}
+                                      onChange={(e) => updateField(index, { unit_ar: e.target.value })}
+                                      dir="rtl"
+                                      className={inputClass}
+                                    />
+                                  </div>
+                                  {/* Normal Range - now inside the field card */}
+                                  <div className={`p-3 rounded-lg bg-muted/30 border border-border/50 ${isRangeInvalid ? 'border-destructive' : ''}`}>
+                                    <Label className="text-xs font-medium mb-2 block">{t('laboratory.templates.normalRanges')}</Label>
+                                    <div className={`flex items-center gap-2 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-muted-foreground">{t('laboratory.templates.min')}</span>
+                                        <Input
+                                          type="number"
+                                          placeholder="0"
+                                          value={normalRange.min ?? ''}
+                                          onChange={(e) => updateNormalRange(field.id, 'min', e.target.value)}
+                                          className={`w-24 ${inputClass}`}
+                                        />
+                                      </div>
+                                      <span className="text-muted-foreground">-</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-muted-foreground">{t('laboratory.templates.max')}</span>
+                                        <Input
+                                          type="number"
+                                          placeholder="100"
+                                          value={normalRange.max ?? ''}
+                                          onChange={(e) => updateNormalRange(field.id, 'max', e.target.value)}
+                                          className={`w-24 ${inputClass}`}
+                                        />
+                                      </div>
+                                      {field.unit && <span className="text-xs text-muted-foreground ms-2">{field.unit}</span>}
+                                    </div>
+                                    {isRangeInvalid && (
+                                      <p className="text-xs text-destructive mt-1">{t('laboratory.templates.invalidRange')}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* Options editor for select/multiselect */}
+                              {needsOptions && (
+                                <div className="space-y-2">
+                                  {hasNoOptions && (
+                                    <div className="flex items-center gap-2 text-destructive text-xs">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      {t('laboratory.templates.optionsRequired')}
+                                    </div>
+                                  )}
+                                  <div className="flex flex-wrap gap-1">
+                                    {(field.options || []).map((opt, optIndex) => (
+                                      <Badge key={optIndex} variant="secondary" className="gap-1">
+                                        {opt}
+                                        <button onClick={() => removeFieldOption(index, optIndex)} className="hover:text-destructive">
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Input
+                                      placeholder={t('laboratory.templates.addOption')}
+                                      value={optionInputs[field.id] || ''}
+                                      onChange={(e) => setOptionInputs({ ...optionInputs, [field.id]: e.target.value })}
+                                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFieldOption(field.id); } }}
+                                      className={`flex-1 ${inputClass}`}
+                                    />
+                                    <Button size="sm" variant="outline" onClick={() => addFieldOption(field.id)}>
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {/* File type notice */}
+                              {field.type === 'file' && (
+                                <div className="text-xs text-muted-foreground">
+                                  {t('laboratory.templates.fileNotSupported')}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Card>
+                      );
+                      })}
+                    </div>
+                  )}
+                  <Button size="sm" variant="outline" onClick={addField} className="w-full">
+                    <Plus className="h-4 w-4 me-1" />
+                    {t('laboratory.templates.addField')}
                   </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-3 pt-2">
-                  {formData.fields.filter(f => f.type === 'number').map((field) => {
-                    const range = formData.normal_ranges[field.id] || {};
-                    const isInvalid = range.min !== undefined && range.max !== undefined && range.min >= range.max;
-                    
-                    return (
-                      <div key={field.id} className={`flex items-center gap-2 flex-wrap ${isInvalid ? 'text-destructive' : ''}`}>
-                        <span className="text-sm min-w-24 truncate">{isRTL && field.name_ar ? field.name_ar : field.name}</span>
-                        <Input
-                          type="number"
-                          placeholder={t('laboratory.templates.min')}
-                          value={range.min ?? ''}
-                          onChange={(e) => updateNormalRange(field.id, 'min', e.target.value)}
-                          className="w-24"
-                        />
-                        <span className="text-muted-foreground">-</span>
-                        <Input
-                          type="number"
-                          placeholder={t('laboratory.templates.max')}
-                          value={range.max ?? ''}
-                          onChange={(e) => updateNormalRange(field.id, 'max', e.target.value)}
-                          className="w-24"
-                        />
-                        {field.unit && <span className="text-xs text-muted-foreground">{field.unit}</span>}
-                      </div>
-                    );
-                  })}
                 </CollapsibleContent>
-              </Collapsible>
-            )}
+              </div>
+            </Collapsible>
 
             {/* Pricing Section */}
             <Collapsible open={sectionsOpen.pricing} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, pricing: open })}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
-                  <span className="text-sm font-medium">{t('laboratory.templates.pricing')}</span>
-                  {sectionsOpen.pricing ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4 pt-2">
+              <div className={sectionWrapperClass}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                    <span className="text-sm font-medium">{t('laboratory.templates.pricing')}</span>
+                    {sectionsOpen.pricing ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-3">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>{t('laboratory.templates.basePrice')}</Label>
