@@ -91,15 +91,20 @@ const DISCOUNT_TYPES = [
   { value: 'bulk', label: 'Bulk Discount', label_ar: 'خصم الكمية' },
 ];
 
-// Styled select trigger class for visual distinction
-// Styled select trigger class for visual distinction
-const selectTriggerClass = "bg-white dark:bg-muted/40 border-border hover:bg-muted/60 focus:ring-2 focus:ring-primary/20";
+// Unified height class for input-like controls (Task B)
+const inputHeightClass = "h-10";
 
-// Styled input class for clear visibility
-const inputClass = "bg-white dark:bg-muted/40 border-border";
+// Styled select trigger class for visual distinction with unified height
+const selectTriggerClass = `${inputHeightClass} bg-white dark:bg-muted/40 border-border hover:bg-muted/60 focus:ring-2 focus:ring-primary/20`;
 
-// Section wrapper class for collapsible sections
-const sectionWrapperClass = "border border-border/60 rounded-xl p-4 bg-card/50 shadow-sm";
+// Styled input class for clear visibility with unified height
+const inputClass = `${inputHeightClass} bg-white dark:bg-muted/40 border-border`;
+
+// Section wrapper class for collapsible sections - compact (Task A)
+const sectionWrapperClass = "border border-border/60 rounded-lg bg-card/50";
+
+// Compact collapsible trigger style (Task A)
+const collapsibleTriggerClass = "w-full flex items-center justify-between py-2.5 px-3 hover:bg-muted/30 rounded-lg transition-colors";
 
 interface FormData {
   name: string;
@@ -149,11 +154,11 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   const [discountToDelete, setDiscountToDelete] = useState<number | null>(null);
   const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
   
-  // Collapsible sections state
+// Collapsible sections state - start all collapsed for new templates (Task G)
   const [sectionsOpen, setSectionsOpen] = useState({
     description: false,
     groups: false,
-    fields: true,
+    fields: false,
     normalRanges: false,
     pricing: false,
     diagnosticRules: false,
@@ -235,7 +240,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     inactive: templates.filter(t => !t.is_active).length,
   }), [templates]);
 
-  const openCreateDialog = () => {
+const openCreateDialog = () => {
     setEditingTemplate(null);
     setFormData({
       name: '',
@@ -252,8 +257,9 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
       diagnostic_rules: [],
     });
+    // Task G: Start all sections collapsed for new template
     setExpandedFields(new Set());
-    setSectionsOpen({ description: false, groups: false, fields: true, normalRanges: false, pricing: false, diagnosticRules: false });
+    setSectionsOpen({ description: false, groups: false, fields: false, normalRanges: false, pricing: false, diagnosticRules: false });
     setDialogOpen(true);
   };
 
@@ -647,13 +653,14 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
           {/* Search & Filters */}
           {templates.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            {/* Task B: Unified height for search and filter controls */}
               <div className="relative flex-1">
                 <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t('laboratory.templates.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ps-9"
+                  className={`ps-9 ${inputClass}`}
                 />
               </div>
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
@@ -725,44 +732,23 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 return (
                 <Card key={template.id} className="relative rounded-2xl w-full max-w-full overflow-hidden">
                   <CardContent className="pt-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-medium truncate">{template.name}</h4>
-                          <Badge variant="secondary" className="text-xs">v{template.version}</Badge>
-                          {!template.is_active && (
-                            <Badge variant="secondary">{t('common.inactive')}</Badge>
-                          )}
-                        </div>
-                        {template.name_ar && (
-                          <p className="text-sm text-muted-foreground truncate" dir="rtl">{template.name_ar}</p>
-                        )}
-                        {template.description && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[isRTL ? 'label_ar' : 'label'] || template.template_type}</Badge>
-                          <Badge variant="outline">{template.fields.length} {t('laboratory.templates.fields')}</Badge>
-                          {template.category && (
-                            <Badge variant="outline">{template.category}</Badge>
-                          )}
-                          {template.groups?.length > 0 && (
-                            <Badge variant="outline">{template.groups.length} {t('laboratory.templates.groups')}</Badge>
-                          )}
-                          {template.diagnostic_rules?.length > 0 && (
-                            <Badge variant="outline">{template.diagnostic_rules.length} {t('laboratory.templates.rules')}</Badge>
-                          )}
-                          {hasPrice ? (
-                            <Badge variant="default" className="bg-green-600">
-                              {pricing.base_price} {pricing.currency || 'SAR'}
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">{t('laboratory.templates.noPrice')}</Badge>
-                          )}
-                        </div>
-                      </div>
+                    {/* Task E: Improved card layout with preview action and better mobile wrapping */}
+                    <div className={`flex flex-col gap-3 ${isRTL ? 'items-end' : 'items-start'}`}>
+                      {/* Actions row - moved to top for mobile visibility */}
                       {canManage && (
-                        <div className="flex gap-1 ms-2">
+                        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse self-start' : 'self-end'}`}>
+                          {/* Preview button - Task E */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              openEditDialog(template);
+                              setPreviewOpen(true);
+                            }}
+                            title={t('laboratory.templates.preview')}
+                          >
+                            <Eye className="h-4 w-4 text-primary" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -793,6 +779,42 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                           </Button>
                         </div>
                       )}
+                      {/* Template info - allow name to wrap */}
+                      <div className="flex-1 min-w-0 w-full">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-medium break-words">{template.name}</h4>
+                          <Badge variant="secondary" className="text-xs shrink-0">v{template.version}</Badge>
+                          {!template.is_active && (
+                            <Badge variant="secondary" className="shrink-0">{t('common.inactive')}</Badge>
+                          )}
+                        </div>
+                        {template.name_ar && (
+                          <p className="text-sm text-muted-foreground break-words" dir="rtl">{template.name_ar}</p>
+                        )}
+                        {template.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[isRTL ? 'label_ar' : 'label'] || template.template_type}</Badge>
+                          <Badge variant="outline">{template.fields.length} {t('laboratory.templates.fields')}</Badge>
+                          {template.category && (
+                            <Badge variant="outline">{template.category}</Badge>
+                          )}
+                          {template.groups?.length > 0 && (
+                            <Badge variant="outline">{template.groups.length} {t('laboratory.templates.groups')}</Badge>
+                          )}
+                          {template.diagnostic_rules?.length > 0 && (
+                            <Badge variant="outline">{template.diagnostic_rules.length} {t('laboratory.templates.rules')}</Badge>
+                          )}
+                          {hasPrice ? (
+                            <Badge variant="default" className="bg-green-600">
+                              {pricing.base_price} {pricing.currency || 'SAR'}
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">{t('laboratory.templates.noPrice')}</Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -803,18 +825,27 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
         </CardContent>
       </Card>
 
-      {/* Create/Edit Dialog */}
+      {/* Create/Edit Dialog - Task C & D: Sticky header + subtle scrollbar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent 
-          className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent" 
+          className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col" 
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b">
-            <div className={`flex items-center justify-between gap-4 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
+          {/* Task C: Sticky header with solid background, proper z-index, close button included */}
+          <div className={`sticky top-0 z-20 bg-background border-b px-6 py-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex items-center justify-between gap-3 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
               <DialogTitle className="text-lg">
                 {editingTemplate ? t('laboratory.templates.editTemplate') : t('laboratory.templates.newTemplate')}
               </DialogTitle>
-              <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                {/* Active toggle in header */}
+                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                  <span className="text-sm font-medium">{t('laboratory.templates.activeInHeader')}</span>
+                  <Switch
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  />
+                </div>
                 {/* Preview button */}
                 <Button 
                   variant="outline" 
@@ -825,19 +856,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   <Eye className="h-4 w-4" />
                   {t('laboratory.templates.preview')}
                 </Button>
-                {/* Active toggle in header */}
-                <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <Switch
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  />
-                  <span className="text-sm font-medium">{t('laboratory.templates.activeInHeader')}</span>
-                </div>
               </div>
             </div>
-          </DialogHeader>
+          </div>
           
-          <div className="space-y-5 pt-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent">
+          <div className="space-y-5">
             {/* Basic Info - Bilingual labels */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -865,12 +889,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             <Collapsible open={sectionsOpen.description} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, description: open })}>
               <div className={sectionWrapperClass}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                  <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.description')}</span>
                     {sectionsOpen.description ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-3 pt-3">
+                <CollapsibleContent className="space-y-3 px-3 pb-3">
                   <div className="space-y-2">
                     <Label className="text-xs">{t('laboratory.templates.descriptionEn')}</Label>
                     <Textarea
@@ -950,12 +974,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             <Collapsible open={sectionsOpen.groups} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, groups: open })}>
               <div className={sectionWrapperClass}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                  <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.groups')} ({formData.groups.length})</span>
                     {sectionsOpen.groups ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-3 pt-3">
+                <CollapsibleContent className="space-y-3 px-3 pb-3">
                   {formData.groups.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-2">{t('laboratory.templates.noGroups')}</p>
                   ) : (
@@ -1012,12 +1036,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             <Collapsible open={sectionsOpen.fields} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, fields: open })}>
               <div className={sectionWrapperClass}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                  <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.fields')} ({formData.fields.length})</span>
                     {sectionsOpen.fields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-3 pt-3">
+                <CollapsibleContent className="space-y-3 px-3 pb-3">
                   {formData.fields.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">{t('laboratory.templates.noFields')}</p>
                   ) : (
@@ -1276,12 +1300,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             <Collapsible open={sectionsOpen.pricing} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, pricing: open })}>
               <div className={sectionWrapperClass}>
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" className="w-full justify-between px-0 hover:bg-transparent">
+                  <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.pricing')}</span>
                     {sectionsOpen.pricing ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  </button>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4 pt-3">
+                <CollapsibleContent className="space-y-4 px-3 pb-3">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>{t('laboratory.templates.basePrice')}</Label>
@@ -1412,15 +1436,16 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
               </div>
             </Collapsible>
 
-            {/* Diagnostic Rules Section */}
+            {/* Diagnostic Rules Section - Task A: Match style with other sections */}
             <Collapsible open={sectionsOpen.diagnosticRules} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, diagnosticRules: open })}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
-                  <span className="text-sm font-medium">{t('laboratory.templates.diagnosticRules')} ({formData.diagnostic_rules.length})</span>
-                  {sectionsOpen.diagnosticRules ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-3 pt-2">
+              <div className={sectionWrapperClass}>
+                <CollapsibleTrigger asChild>
+                  <button type="button" className={collapsibleTriggerClass}>
+                    <span className="text-sm font-medium">{t('laboratory.templates.diagnosticRules')} ({formData.diagnostic_rules.length})</span>
+                    {sectionsOpen.diagnosticRules ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 px-3 pb-3">
                 {formData.diagnostic_rules.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-2">{t('laboratory.templates.noRules')}</p>
                 ) : (
@@ -1536,10 +1561,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   {t('laboratory.templates.addRule')}
                 </Button>
               </CollapsibleContent>
+              </div>
             </Collapsible>
           </div>
+          </div>
 
-          <div className={`flex gap-3 pt-4 border-t ${isRTL ? 'flex-row-reverse' : ''}`}>
+          {/* Footer - outside scroll area for sticky positioning */}
+          <div className={`flex gap-3 px-6 py-4 border-t bg-background ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
