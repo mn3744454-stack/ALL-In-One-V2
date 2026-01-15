@@ -1409,6 +1409,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   </div>
                 )}
               </CollapsibleContent>
+              </div>
             </Collapsible>
 
             {/* Diagnostic Rules Section */}
