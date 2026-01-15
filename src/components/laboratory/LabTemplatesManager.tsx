@@ -27,8 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, Copy, Pencil, Trash2, FileText, Loader2, X, Sparkles, 
-  ChevronDown, ChevronUp, Search, GripVertical, AlertTriangle,
-  Percent, DollarSign, Package
+  ChevronDown, ChevronUp, Search, AlertTriangle,
+  Percent, DollarSign, Package, Eye
 } from "lucide-react";
 import { 
   useLabTemplates, 
@@ -91,6 +91,9 @@ const DISCOUNT_TYPES = [
   { value: 'bulk', label: 'Bulk Discount', label_ar: 'خصم الكمية' },
 ];
 
+// Styled select trigger class for visual distinction
+const selectTriggerClass = "bg-muted/40 border-muted-foreground/20 hover:bg-muted/60 focus:ring-2 focus:ring-primary/20";
+
 interface FormData {
   name: string;
   name_ar: string;
@@ -113,6 +116,7 @@ interface LabTemplatesManagerProps {
 
 export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManagerProps) {
   const { t, lang } = useI18n();
+  const isRTL = lang === 'ar';
   const { templates, loading, canManage, existingCategories, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate, seedDefaultTemplates } = useLabTemplates();
   const [seedingDefaults, setSeedingDefaults] = useState(false);
   
@@ -125,11 +129,18 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<LabTemplate | null>(null);
   const [templateToDelete, setTemplateToDelete] = useState<LabTemplate | null>(null);
   const [templateToDuplicate, setTemplateToDuplicate] = useState<LabTemplate | null>(null);
   const [duplicateName, setDuplicateName] = useState('');
   const [saving, setSaving] = useState(false);
+  
+  // In-editor delete confirmations
+  const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
+  const [discountToDelete, setDiscountToDelete] = useState<number | null>(null);
+  const [ruleToDelete, setRuleToDelete] = useState<number | null>(null);
   
   // Collapsible sections state
   const [sectionsOpen, setSectionsOpen] = useState({
@@ -140,6 +151,9 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     pricing: false,
     diagnosticRules: false,
   });
+  
+  // Per-field collapse state
+  const [expandedFields, setExpandedFields] = useState<Set<string>>(new Set());
   
   // Form state
   const [formData, setFormData] = useState<FormData>({
@@ -161,10 +175,22 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   // Options input for select/multiselect fields
   const [optionInputs, setOptionInputs] = useState<Record<string, string>>({});
   
+  // Toggle field expansion
+  const toggleFieldExpanded = (fieldId: string) => {
+    setExpandedFields(prev => {
+      const next = new Set(prev);
+      if (next.has(fieldId)) {
+        next.delete(fieldId);
+      } else {
+        next.add(fieldId);
+      }
+      return next;
+    });
+  };
+  
   // Filtered templates
   const filteredTemplates = useMemo(() => {
     return templates.filter(t => {
-      // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = !searchQuery || 
         t.name.toLowerCase().includes(searchLower) ||
@@ -172,12 +198,10 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
         (t.category && t.category.toLowerCase().includes(searchLower)) ||
         (t.description && t.description.toLowerCase().includes(searchLower));
       
-      // Status filter
       const matchesStatus = statusFilter === 'all' ||
         (statusFilter === 'active' && t.is_active) ||
         (statusFilter === 'inactive' && !t.is_active);
       
-      // Type filter
       const matchesType = typeFilter === 'all' || t.template_type === typeFilter;
       
       return matchesSearch && matchesStatus && matchesType;
@@ -208,6 +232,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
       diagnostic_rules: [],
     });
+    setExpandedFields(new Set());
     setSectionsOpen({ description: false, groups: false, fields: true, normalRanges: false, pricing: false, diagnosticRules: false });
     setDialogOpen(true);
   };
@@ -229,6 +254,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       pricing: template.pricing || { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
       diagnostic_rules: template.diagnostic_rules || [],
     });
+    // If more than 5 fields, collapse all except first
+    const fields = template.fields || [];
+    if (fields.length > 5) {
+      setExpandedFields(new Set(fields.length > 0 ? [fields[0].id] : []));
+    } else {
+      setExpandedFields(new Set(fields.map(f => f.id)));
+    }
     setSectionsOpen({ description: true, groups: template.groups?.length > 0, fields: true, normalRanges: Object.keys(template.normal_ranges || {}).length > 0, pricing: true, diagnosticRules: template.diagnostic_rules?.length > 0 });
     setDialogOpen(true);
   };
@@ -250,17 +282,18 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     setFormData({ ...formData, groups: newGroups });
   };
 
-  const removeGroup = (index: number) => {
-    const groupId = formData.groups[index].id;
-    // Unassign fields from this group
+  const confirmRemoveGroup = () => {
+    if (groupToDelete === null) return;
+    const groupId = formData.groups[groupToDelete].id;
     const updatedFields = formData.fields.map(f => 
       f.group_id === groupId ? { ...f, group_id: undefined } : f
     );
     setFormData({ 
       ...formData, 
-      groups: formData.groups.filter((_, i) => i !== index),
+      groups: formData.groups.filter((_, i) => i !== groupToDelete),
       fields: updatedFields
     });
+    setGroupToDelete(null);
   };
 
   const moveGroup = (index: number, direction: 'up' | 'down') => {
@@ -283,6 +316,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       sort_order: formData.fields.length,
     };
     setFormData({ ...formData, fields: [...formData.fields, newField] });
+    // Auto-expand new field
+    setExpandedFields(prev => new Set([...prev, newField.id]));
   };
 
   const updateField = (index: number, updates: Partial<LabTemplateField>) => {
@@ -291,14 +326,21 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     setFormData({ ...formData, fields: newFields });
   };
 
-  const removeField = (index: number) => {
-    const fieldId = formData.fields[index].id;
+  const confirmRemoveField = () => {
+    if (fieldToDelete === null) return;
+    const fieldId = formData.fields[fieldToDelete].id;
     const { [fieldId]: _, ...remainingRanges } = formData.normal_ranges;
     setFormData({ 
       ...formData, 
-      fields: formData.fields.filter((_, i) => i !== index),
+      fields: formData.fields.filter((_, i) => i !== fieldToDelete),
       normal_ranges: remainingRanges
     });
+    setExpandedFields(prev => {
+      const next = new Set(prev);
+      next.delete(fieldId);
+      return next;
+    });
+    setFieldToDelete(null);
   };
 
   const moveField = (index: number, direction: 'up' | 'down') => {
@@ -366,8 +408,10 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     updatePricing({ discounts: newDiscounts });
   };
 
-  const removeDiscount = (index: number) => {
-    updatePricing({ discounts: (formData.pricing.discounts || []).filter((_, i) => i !== index) });
+  const confirmRemoveDiscount = () => {
+    if (discountToDelete === null) return;
+    updatePricing({ discounts: (formData.pricing.discounts || []).filter((_, i) => i !== discountToDelete) });
+    setDiscountToDelete(null);
   };
 
   const calculateFinalPrice = (discount?: TemplateDiscount) => {
@@ -407,8 +451,10 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     setFormData({ ...formData, diagnostic_rules: newRules });
   };
 
-  const removeDiagnosticRule = (index: number) => {
-    setFormData({ ...formData, diagnostic_rules: formData.diagnostic_rules.filter((_, i) => i !== index) });
+  const confirmRemoveRule = () => {
+    if (ruleToDelete === null) return;
+    setFormData({ ...formData, diagnostic_rules: formData.diagnostic_rules.filter((_, i) => i !== ruleToDelete) });
+    setRuleToDelete(null);
   };
 
   const insertFieldIntoCondition = (ruleIndex: number, fieldName: string) => {
@@ -421,22 +467,19 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
     
-    // Validation for select/multiselect
     const invalidSelectFields = formData.fields.filter(
       f => (f.type === 'select' || f.type === 'multiselect') && (!f.options || f.options.length === 0)
     );
     if (invalidSelectFields.length > 0) {
-      return; // Don't submit - show validation error in UI
+      return;
     }
     
-    // Validate normal ranges
     for (const [fieldId, range] of Object.entries(formData.normal_ranges)) {
       if (range.min !== undefined && range.max !== undefined && range.min >= range.max) {
-        return; // Don't submit - show validation error in UI
+        return;
       }
     }
     
-    // Validate discounts
     if (formData.pricing.discounts_enabled && formData.pricing.discounts) {
       for (const discount of formData.pricing.discounts) {
         if (discount.type === 'percentage' && (discount.value < 0 || discount.value > 100)) return;
@@ -501,13 +544,12 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     }
   };
 
-  // Helper to get field count per group
   const getGroupFieldCount = (groupId: string) => 
     formData.fields.filter(f => f.group_id === groupId).length;
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <Skeleton className="h-6 w-40" />
         </CardHeader>
@@ -524,18 +566,29 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="rounded-2xl w-full max-w-full overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+        <CardHeader className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4 sm:px-6 ${isRTL ? 'sm:flex-row-reverse' : ''}`}>
           <div className="flex-1">
             <CardTitle className="text-lg">{t('laboratory.templates.title')}</CardTitle>
+            {/* KPI Stats Widgets */}
             {templates.length > 0 && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {stats.total} {t('laboratory.templates.templates')} • {stats.active} {t('common.active')}
-              </p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Badge variant="secondary" className="px-3 py-1 text-xs font-medium">
+                  {stats.total} {t('laboratory.templates.totalTemplates')}
+                </Badge>
+                <Badge variant="default" className="px-3 py-1 text-xs font-medium bg-green-600">
+                  {stats.active} {t('laboratory.templates.activeTemplates')}
+                </Badge>
+                {stats.inactive > 0 && (
+                  <Badge variant="outline" className="px-3 py-1 text-xs font-medium">
+                    {stats.inactive} {t('laboratory.templates.inactiveTemplates')}
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
           {canManage && (
-            <div className="flex gap-2 flex-wrap">
+            <div className={`flex gap-2 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
               {templates.length === 0 && (
                 <Button 
                   size="sm" 
@@ -562,7 +615,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             </div>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {/* Search & Filters */}
           {templates.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -576,7 +629,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 />
               </div>
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger className="w-full sm:w-32">
+                <SelectTrigger className={`w-full sm:w-32 ${selectTriggerClass}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -586,14 +639,14 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 </SelectContent>
               </Select>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full sm:w-36">
+                <SelectTrigger className={`w-full sm:w-36 ${selectTriggerClass}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('laboratory.templates.allTypes')}</SelectItem>
                   {TEMPLATE_TYPES.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
-                      {lang === 'ar' ? type.label_ar : type.label}
+                      {isRTL ? type.label_ar : type.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -642,7 +695,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 const hasPrice = typeof pricing?.base_price === 'number';
                 
                 return (
-                <Card key={template.id} className="relative">
+                <Card key={template.id} className="relative rounded-2xl w-full max-w-full overflow-hidden">
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
@@ -660,7 +713,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
                         )}
                         <div className="flex flex-wrap gap-1.5 mt-2">
-                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[lang === 'ar' ? 'label_ar' : 'label'] || template.template_type}</Badge>
+                          <Badge variant="outline">{TEMPLATE_TYPES.find(t => t.value === template.template_type)?.[isRTL ? 'label_ar' : 'label'] || template.template_type}</Badge>
                           <Badge variant="outline">{template.fields.length} {t('laboratory.templates.fields')}</Badge>
                           {template.category && (
                             <Badge variant="outline">{template.category}</Badge>
@@ -724,22 +777,43 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
-            <DialogTitle>
-              {editingTemplate ? t('laboratory.templates.editTemplate') : t('laboratory.templates.newTemplate')}
-            </DialogTitle>
+            <div className={`flex items-center justify-between gap-4 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <DialogTitle className="text-lg">
+                {editingTemplate ? t('laboratory.templates.editTemplate') : t('laboratory.templates.newTemplate')}
+              </DialogTitle>
+              <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
+                {/* Preview button */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setPreviewOpen(true)}
+                >
+                  <Eye className="h-4 w-4 me-1" />
+                  {t('laboratory.templates.preview')}
+                </Button>
+                {/* Active toggle in header */}
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={formData.is_active}
+                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                  />
+                  <span className="text-sm font-medium">{t('laboratory.templates.activeInHeader')}</span>
+                </div>
+              </div>
+            </div>
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Basic Info */}
+            {/* Basic Info - Bilingual labels */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>{t('laboratory.templates.name')} *</Label>
+                <Label>{t('laboratory.templates.nameEnRequired')}</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Complete Blood Count"
+                  placeholder={t('laboratory.templates.placeholderTemplateName')}
                 />
               </div>
               <div className="space-y-2">
@@ -747,7 +821,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 <Input
                   value={formData.name_ar}
                   onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                  placeholder="الاسم بالعربية"
+                  placeholder={t('laboratory.templates.placeholderTemplateNameAr')}
                   dir="rtl"
                 />
               </div>
@@ -767,7 +841,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Template description..."
+                    placeholder={t('laboratory.templates.placeholderDescription')}
                     rows={2}
                   />
                 </div>
@@ -776,7 +850,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   <Textarea
                     value={formData.description_ar}
                     onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                    placeholder="وصف القالب..."
+                    placeholder={t('laboratory.templates.placeholderDescriptionAr')}
                     dir="rtl"
                     rows={2}
                   />
@@ -792,13 +866,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                   value={formData.template_type}
                   onValueChange={(value) => setFormData({ ...formData, template_type: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={selectTriggerClass}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {TEMPLATE_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
-                        {lang === 'ar' ? type.label_ar : type.label}
+                        {isRTL ? type.label_ar : type.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -832,18 +906,6 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
               </div>
             )}
 
-            {/* Active Toggle */}
-            <div className="flex items-center justify-between py-2">
-              <div>
-                <Label>{t('common.active')}</Label>
-                <p className="text-sm text-muted-foreground">{t('laboratory.templates.activeDesc')}</p>
-              </div>
-              <Switch
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-            </div>
-
             {/* Groups Section */}
             <Collapsible open={sectionsOpen.groups} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, groups: open })}>
               <CollapsibleTrigger asChild>
@@ -858,7 +920,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 ) : (
                   <div className="space-y-2">
                     {formData.groups.map((group, index) => (
-                      <Card key={group.id} className="p-3">
+                      <Card key={group.id} className="p-3 rounded-xl">
                         <div className="flex items-center gap-2">
                           <div className="flex flex-col gap-0.5">
                             <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveGroup(index, 'up')} disabled={index === 0}>
@@ -872,17 +934,17 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                             <Input
                               value={group.name}
                               onChange={(e) => updateGroup(index, { name: e.target.value })}
-                              placeholder="Group name"
+                              placeholder={t('laboratory.templates.groupNameEn')}
                             />
                             <Input
                               value={group.name_ar || ''}
                               onChange={(e) => updateGroup(index, { name_ar: e.target.value })}
-                              placeholder="اسم المجموعة"
+                              placeholder={t('laboratory.templates.groupNameAr')}
                               dir="rtl"
                             />
                           </div>
                           <Badge variant="secondary">{getGroupFieldCount(group.id)}</Badge>
-                          <Button variant="ghost" size="icon" onClick={() => removeGroup(index)}>
+                          <Button variant="ghost" size="icon" onClick={() => setGroupToDelete(index)}>
                             <X className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>
@@ -897,7 +959,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Fields Section */}
+            {/* Fields Section with per-item collapse */}
             <Collapsible open={sectionsOpen.fields} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, fields: open })}>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full justify-between px-2 border-t pt-4">
@@ -909,145 +971,193 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 {formData.fields.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">{t('laboratory.templates.noFields')}</p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {formData.fields.map((field, index) => {
+                      const isExpanded = expandedFields.has(field.id);
                       const needsOptions = field.type === 'select' || field.type === 'multiselect';
                       const hasNoOptions = needsOptions && (!field.options || field.options.length === 0);
+                      const fieldType = FIELD_TYPES.find(ft => ft.value === field.type);
+                      const assignedGroup = formData.groups.find(g => g.id === field.group_id);
                       
                       return (
-                      <Card key={field.id} className={`p-3 ${hasNoOptions ? 'border-destructive' : ''}`}>
-                        <div className="space-y-3">
-                          {/* Row 1: Reorder + Name + Type + Required + Delete */}
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-col gap-0.5">
-                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'up')} disabled={index === 0}>
-                                <ChevronUp className="h-3 w-3" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'down')} disabled={index === formData.fields.length - 1}>
-                                <ChevronDown className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <div className="flex-1 grid gap-2 sm:grid-cols-3">
-                              <Input
-                                value={field.name}
-                                onChange={(e) => updateField(index, { name: e.target.value })}
-                                placeholder={t('laboratory.templates.fieldName')}
-                              />
-                              <Input
-                                value={field.name_ar || ''}
-                                onChange={(e) => updateField(index, { name_ar: e.target.value })}
-                                placeholder={t('laboratory.templates.fieldNameAr')}
-                                dir="rtl"
-                              />
-                              <Select
-                                value={field.type}
-                                onValueChange={(value) => updateField(index, { type: value as LabFieldType })}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {FIELD_TYPES.map((type) => (
-                                    <SelectItem key={type.value} value={type.value}>
-                                      {lang === 'ar' ? type.label_ar : type.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Switch
-                                checked={field.required}
-                                onCheckedChange={(checked) => updateField(index, { required: checked })}
-                              />
-                              <span className="text-xs">{t('common.required')}</span>
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeField(index)}>
-                              <X className="h-4 w-4 text-destructive" />
+                      <Card key={field.id} className={`p-3 rounded-xl ${hasNoOptions ? 'border-destructive' : ''}`}>
+                        {/* Collapsed Summary */}
+                        <div 
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => toggleFieldExpanded(field.id)}
+                        >
+                          <div className="flex flex-col gap-0.5" onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'up')} disabled={index === 0}>
+                              <ChevronUp className="h-3 w-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => moveField(index, 'down')} disabled={index === formData.fields.length - 1}>
+                              <ChevronDown className="h-3 w-3" />
                             </Button>
                           </div>
-                          
-                          {/* Row 2: Group assignment */}
-                          {formData.groups.length > 0 && (
-                            <div className="flex items-center gap-2 ps-8">
-                              <Label className="text-xs whitespace-nowrap">{t('laboratory.templates.assignToGroup')}</Label>
-                              <Select
-                                value={field.group_id || 'none'}
-                                onValueChange={(value) => updateField(index, { group_id: value === 'none' ? undefined : value })}
-                              >
-                                <SelectTrigger className="w-40">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="none">{t('laboratory.templates.noGroup')}</SelectItem>
-                                  {formData.groups.map((g) => (
-                                    <SelectItem key={g.id} value={g.id}>
-                                      {lang === 'ar' && g.name_ar ? g.name_ar : g.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium truncate">{field.name || t('laboratory.templates.fieldName')}</span>
+                              {field.name_ar && (
+                                <span className="text-sm text-muted-foreground truncate" dir="rtl">({field.name_ar})</span>
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Row 3: Type-specific inputs */}
-                          {field.type === 'number' && (
-                            <div className="grid gap-2 sm:grid-cols-2 ps-8">
-                              <Input
-                                placeholder={t('laboratory.templates.unit')}
-                                value={field.unit || ''}
-                                onChange={(e) => updateField(index, { unit: e.target.value })}
-                              />
-                              <Input
-                                placeholder={t('laboratory.templates.unitAr')}
-                                value={field.unit_ar || ''}
-                                onChange={(e) => updateField(index, { unit_ar: e.target.value })}
-                                dir="rtl"
-                              />
+                            <div className="flex flex-wrap gap-1.5 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                {isRTL ? fieldType?.label_ar : fieldType?.label}
+                              </Badge>
+                              <Badge variant={field.required ? "default" : "secondary"} className="text-xs">
+                                {field.required ? t('laboratory.templates.requiredBadge') : t('laboratory.templates.optionalBadge')}
+                              </Badge>
+                              {assignedGroup ? (
+                                <Badge variant="outline" className="text-xs">
+                                  {isRTL && assignedGroup.name_ar ? assignedGroup.name_ar : assignedGroup.name}
+                                </Badge>
+                              ) : formData.groups.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">{t('laboratory.templates.noGroupBadge')}</Badge>
+                              )}
                             </div>
-                          )}
-                          
-                          {/* Options editor for select/multiselect */}
-                          {needsOptions && (
-                            <div className="ps-8 space-y-2">
-                              {hasNoOptions && (
-                                <div className="flex items-center gap-2 text-destructive text-xs">
-                                  <AlertTriangle className="h-3 w-3" />
-                                  {t('laboratory.templates.optionsRequired')}
+                          </div>
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" onClick={() => setFieldToDelete(index)}>
+                              <X className="h-4 w-4 text-destructive" />
+                            </Button>
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </div>
+                        </div>
+                        
+                        {/* Expanded Details */}
+                        {isExpanded && (
+                          <div className="mt-3 pt-3 border-t space-y-3">
+                            {/* Row A: Field Names EN/AR */}
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs">{t('laboratory.templates.fieldNameEn')}</Label>
+                                <Input
+                                  value={field.name}
+                                  onChange={(e) => updateField(index, { name: e.target.value })}
+                                  placeholder={t('laboratory.templates.placeholderFieldName')}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">{t('laboratory.templates.fieldNameAr')}</Label>
+                                <Input
+                                  value={field.name_ar || ''}
+                                  onChange={(e) => updateField(index, { name_ar: e.target.value })}
+                                  placeholder={t('laboratory.templates.placeholderFieldNameAr')}
+                                  dir="rtl"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Row B: Type + Required + Group */}
+                            <div className="grid gap-3 sm:grid-cols-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">{t('laboratory.templates.fieldType')}</Label>
+                                <Select
+                                  value={field.type}
+                                  onValueChange={(value) => updateField(index, { type: value as LabFieldType })}
+                                >
+                                  <SelectTrigger className={selectTriggerClass}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {FIELD_TYPES.map((type) => (
+                                      <SelectItem key={type.value} value={type.value}>
+                                        {isRTL ? type.label_ar : type.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex items-center gap-2 pt-6">
+                                <Switch
+                                  checked={field.required}
+                                  onCheckedChange={(checked) => updateField(index, { required: checked })}
+                                />
+                                <span className="text-xs">{t('laboratory.templates.required')}</span>
+                              </div>
+                              {formData.groups.length > 0 && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs">{t('laboratory.templates.assignToGroup')}</Label>
+                                  <Select
+                                    value={field.group_id || 'none'}
+                                    onValueChange={(value) => updateField(index, { group_id: value === 'none' ? undefined : value })}
+                                  >
+                                    <SelectTrigger className={selectTriggerClass}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">{t('laboratory.templates.noGroup')}</SelectItem>
+                                      {formData.groups.map((g) => (
+                                        <SelectItem key={g.id} value={g.id}>
+                                          {isRTL && g.name_ar ? g.name_ar : g.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               )}
-                              <div className="flex flex-wrap gap-1">
-                                {(field.options || []).map((opt, optIndex) => (
-                                  <Badge key={optIndex} variant="secondary" className="gap-1">
-                                    {opt}
-                                    <button onClick={() => removeFieldOption(index, optIndex)} className="hover:text-destructive">
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </Badge>
-                                ))}
-                              </div>
-                              <div className="flex gap-2">
+                            </div>
+                            
+                            {/* Row C: Type-specific inputs */}
+                            {field.type === 'number' && (
+                              <div className="grid gap-2 sm:grid-cols-2">
                                 <Input
-                                  placeholder={t('laboratory.templates.addOption')}
-                                  value={optionInputs[field.id] || ''}
-                                  onChange={(e) => setOptionInputs({ ...optionInputs, [field.id]: e.target.value })}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFieldOption(field.id); } }}
-                                  className="flex-1"
+                                  placeholder={t('laboratory.templates.unit')}
+                                  value={field.unit || ''}
+                                  onChange={(e) => updateField(index, { unit: e.target.value })}
                                 />
-                                <Button size="sm" variant="outline" onClick={() => addFieldOption(field.id)}>
-                                  <Plus className="h-4 w-4" />
-                                </Button>
+                                <Input
+                                  placeholder={t('laboratory.templates.unitAr')}
+                                  value={field.unit_ar || ''}
+                                  onChange={(e) => updateField(index, { unit_ar: e.target.value })}
+                                  dir="rtl"
+                                />
                               </div>
-                            </div>
-                          )}
-                          
-                          {/* File type notice */}
-                          {field.type === 'file' && (
-                            <div className="ps-8 text-xs text-muted-foreground">
-                              {t('laboratory.templates.fileNotSupported')}
-                            </div>
-                          )}
-                        </div>
+                            )}
+                            
+                            {/* Options editor for select/multiselect */}
+                            {needsOptions && (
+                              <div className="space-y-2">
+                                {hasNoOptions && (
+                                  <div className="flex items-center gap-2 text-destructive text-xs">
+                                    <AlertTriangle className="h-3 w-3" />
+                                    {t('laboratory.templates.optionsRequired')}
+                                  </div>
+                                )}
+                                <div className="flex flex-wrap gap-1">
+                                  {(field.options || []).map((opt, optIndex) => (
+                                    <Badge key={optIndex} variant="secondary" className="gap-1">
+                                      {opt}
+                                      <button onClick={() => removeFieldOption(index, optIndex)} className="hover:text-destructive">
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </Badge>
+                                  ))}
+                                </div>
+                                <div className="flex gap-2">
+                                  <Input
+                                    placeholder={t('laboratory.templates.addOption')}
+                                    value={optionInputs[field.id] || ''}
+                                    onChange={(e) => setOptionInputs({ ...optionInputs, [field.id]: e.target.value })}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFieldOption(field.id); } }}
+                                    className="flex-1"
+                                  />
+                                  <Button size="sm" variant="outline" onClick={() => addFieldOption(field.id)}>
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* File type notice */}
+                            {field.type === 'file' && (
+                              <div className="text-xs text-muted-foreground">
+                                {t('laboratory.templates.fileNotSupported')}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </Card>
                     );
                     })}
@@ -1075,8 +1185,8 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                     const isInvalid = range.min !== undefined && range.max !== undefined && range.min >= range.max;
                     
                     return (
-                      <div key={field.id} className={`flex items-center gap-2 ${isInvalid ? 'text-destructive' : ''}`}>
-                        <span className="text-sm min-w-24 truncate">{lang === 'ar' && field.name_ar ? field.name_ar : field.name}</span>
+                      <div key={field.id} className={`flex items-center gap-2 flex-wrap ${isInvalid ? 'text-destructive' : ''}`}>
+                        <span className="text-sm min-w-24 truncate">{isRTL && field.name_ar ? field.name_ar : field.name}</span>
                         <Input
                           type="number"
                           placeholder={t('laboratory.templates.min')}
@@ -1127,7 +1237,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                       value={formData.pricing.currency || 'SAR'}
                       onValueChange={(value) => updatePricing({ currency: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className={selectTriggerClass}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1155,33 +1265,39 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 {formData.pricing.discounts_enabled && (
                   <div className="space-y-3">
                     {(formData.pricing.discounts || []).map((discount, index) => (
-                      <Card key={discount.id} className="p-3">
+                      <Card key={discount.id} className="p-3 rounded-xl">
                         <div className="space-y-3">
                           <div className="grid gap-2 sm:grid-cols-2">
-                            <Input
-                              value={discount.name}
-                              onChange={(e) => updateDiscount(index, { name: e.target.value })}
-                              placeholder={t('laboratory.templates.discountName')}
-                            />
-                            <Input
-                              value={discount.name_ar || ''}
-                              onChange={(e) => updateDiscount(index, { name_ar: e.target.value })}
-                              placeholder={t('laboratory.templates.discountNameAr')}
-                              dir="rtl"
-                            />
+                            <div className="space-y-1">
+                              <Label className="text-xs">{t('laboratory.templates.discountNameEn')}</Label>
+                              <Input
+                                value={discount.name}
+                                onChange={(e) => updateDiscount(index, { name: e.target.value })}
+                                placeholder={t('laboratory.templates.placeholderDiscountName')}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">{t('laboratory.templates.discountNameAr')}</Label>
+                              <Input
+                                value={discount.name_ar || ''}
+                                onChange={(e) => updateDiscount(index, { name_ar: e.target.value })}
+                                placeholder={t('laboratory.templates.placeholderDiscountNameAr')}
+                                dir="rtl"
+                              />
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <Select
                               value={discount.type}
                               onValueChange={(value) => updateDiscount(index, { type: value as TemplateDiscount['type'] })}
                             >
-                              <SelectTrigger className="w-36">
+                              <SelectTrigger className={`w-36 ${selectTriggerClass}`}>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 {DISCOUNT_TYPES.map((dt) => (
                                   <SelectItem key={dt.value} value={dt.value}>
-                                    {lang === 'ar' ? dt.label_ar : dt.label}
+                                    {isRTL ? dt.label_ar : dt.label}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1211,7 +1327,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                                 />
                               </div>
                             )}
-                            <Button variant="ghost" size="icon" onClick={() => removeDiscount(index)}>
+                            <Button variant="ghost" size="icon" onClick={() => setDiscountToDelete(index)}>
                               <X className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
@@ -1246,23 +1362,29 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                 ) : (
                   <div className="space-y-3">
                     {formData.diagnostic_rules.map((rule, index) => (
-                      <Card key={rule.id} className="p-3">
+                      <Card key={rule.id} className="p-3 rounded-xl">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 grid gap-2 sm:grid-cols-2">
-                              <Input
-                                value={rule.name}
-                                onChange={(e) => updateDiagnosticRule(index, { name: e.target.value })}
-                                placeholder={t('laboratory.templates.ruleName')}
-                              />
-                              <Input
-                                value={rule.name_ar || ''}
-                                onChange={(e) => updateDiagnosticRule(index, { name_ar: e.target.value })}
-                                placeholder={t('laboratory.templates.ruleNameAr')}
-                                dir="rtl"
-                              />
+                              <div className="space-y-1">
+                                <Label className="text-xs">{t('laboratory.templates.ruleNameEn')}</Label>
+                                <Input
+                                  value={rule.name}
+                                  onChange={(e) => updateDiagnosticRule(index, { name: e.target.value })}
+                                  placeholder={t('laboratory.templates.placeholderRuleName')}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">{t('laboratory.templates.ruleNameAr')}</Label>
+                                <Input
+                                  value={rule.name_ar || ''}
+                                  onChange={(e) => updateDiagnosticRule(index, { name_ar: e.target.value })}
+                                  placeholder={t('laboratory.templates.placeholderRuleNameAr')}
+                                  dir="rtl"
+                                />
+                              </div>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeDiagnosticRule(index)}>
+                            <Button variant="ghost" size="icon" onClick={() => setRuleToDelete(index)}>
                               <X className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>
@@ -1271,7 +1393,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                             <div className="flex items-center gap-2 flex-wrap">
                               <Label className="text-xs">{t('laboratory.templates.condition')}</Label>
                               <Select onValueChange={(fieldName) => insertFieldIntoCondition(index, fieldName)}>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className={`w-40 ${selectTriggerClass}`}>
                                   <SelectValue placeholder={t('laboratory.templates.insertField')} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -1298,13 +1420,13 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                                 value={rule.interpretation}
                                 onValueChange={(value) => updateDiagnosticRule(index, { interpretation: value as DiagnosticRule['interpretation'] })}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className={selectTriggerClass}>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {INTERPRETATION_TYPES.map((it) => (
                                     <SelectItem key={it.value} value={it.value}>
-                                      {lang === 'ar' ? it.label_ar : it.label}
+                                      {isRTL ? it.label_ar : it.label}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -1320,19 +1442,25 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
                           </div>
                           
                           <div className="grid gap-2 sm:grid-cols-2">
-                            <Textarea
-                              value={rule.message || ''}
-                              onChange={(e) => updateDiagnosticRule(index, { message: e.target.value })}
-                              placeholder={t('laboratory.templates.messageEn')}
-                              rows={2}
-                            />
-                            <Textarea
-                              value={rule.message_ar || ''}
-                              onChange={(e) => updateDiagnosticRule(index, { message_ar: e.target.value })}
-                              placeholder={t('laboratory.templates.messageAr')}
-                              dir="rtl"
-                              rows={2}
-                            />
+                            <div className="space-y-1">
+                              <Label className="text-xs">{t('laboratory.templates.messageEn')}</Label>
+                              <Textarea
+                                value={rule.message || ''}
+                                onChange={(e) => updateDiagnosticRule(index, { message: e.target.value })}
+                                placeholder={t('laboratory.templates.messagePlaceholder')}
+                                rows={2}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">{t('laboratory.templates.messageAr')}</Label>
+                              <Textarea
+                                value={rule.message_ar || ''}
+                                onChange={(e) => updateDiagnosticRule(index, { message_ar: e.target.value })}
+                                placeholder={t('laboratory.templates.messageArPlaceholder')}
+                                dir="rtl"
+                                rows={2}
+                              />
+                            </div>
                           </div>
                         </div>
                       </Card>
@@ -1347,7 +1475,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
             </Collapsible>
           </div>
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className={`flex gap-3 pt-4 border-t ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
@@ -1363,9 +1491,122 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
         </DialogContent>
       </Dialog>
 
+      {/* Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="w-[95vw] max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+          <DialogHeader>
+            <DialogTitle>{t('laboratory.templates.preview')}</DialogTitle>
+            <p className="text-sm text-muted-foreground">{t('laboratory.templates.previewDesc')}</p>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Template Name */}
+            <div className="space-y-1">
+              <h3 className="font-semibold text-lg">{formData.name || t('laboratory.templates.newTemplate')}</h3>
+              {formData.name_ar && <p className="text-muted-foreground" dir="rtl">{formData.name_ar}</p>}
+            </div>
+            
+            {/* Description */}
+            {(formData.description || formData.description_ar) && (
+              <div className="space-y-1">
+                {formData.description && <p className="text-sm">{formData.description}</p>}
+                {formData.description_ar && <p className="text-sm text-muted-foreground" dir="rtl">{formData.description_ar}</p>}
+              </div>
+            )}
+            
+            {/* Type & Category */}
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">
+                {TEMPLATE_TYPES.find(t => t.value === formData.template_type)?.[isRTL ? 'label_ar' : 'label']}
+              </Badge>
+              {formData.category && <Badge variant="outline">{formData.category}</Badge>}
+              <Badge variant={formData.is_active ? "default" : "secondary"}>
+                {formData.is_active ? t('common.active') : t('common.inactive')}
+              </Badge>
+            </div>
+            
+            {/* Groups Summary */}
+            {formData.groups.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{t('laboratory.templates.groups')} ({formData.groups.length})</h4>
+                <div className="flex flex-wrap gap-2">
+                  {formData.groups.map(g => (
+                    <Badge key={g.id} variant="secondary">
+                      {isRTL && g.name_ar ? g.name_ar : g.name} ({getGroupFieldCount(g.id)})
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Fields Summary */}
+            {formData.fields.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{t('laboratory.templates.fields')} ({formData.fields.length})</h4>
+                <div className="grid gap-1">
+                  {formData.fields.map(f => {
+                    const fieldType = FIELD_TYPES.find(ft => ft.value === f.type);
+                    return (
+                      <div key={f.id} className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">{isRTL && f.name_ar ? f.name_ar : f.name}</span>
+                        <Badge variant="outline" className="text-xs">{isRTL ? fieldType?.label_ar : fieldType?.label}</Badge>
+                        {f.required && <Badge variant="default" className="text-xs">{t('laboratory.templates.requiredBadge')}</Badge>}
+                        {f.unit && <span className="text-muted-foreground text-xs">({f.unit})</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            {/* Pricing Summary */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">{t('laboratory.templates.pricing')}</h4>
+              {formData.pricing.base_price ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="bg-green-600">
+                    {formData.pricing.base_price} {formData.pricing.currency || 'SAR'}
+                  </Badge>
+                  {formData.pricing.discounts_enabled && formData.pricing.discounts?.length > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      + {formData.pricing.discounts.length} {t('laboratory.templates.discounts')}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <Badge variant="destructive">{t('laboratory.templates.noPrice')}</Badge>
+              )}
+            </div>
+            
+            {/* Diagnostic Rules Summary */}
+            {formData.diagnostic_rules.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{t('laboratory.templates.diagnosticRules')} ({formData.diagnostic_rules.length})</h4>
+                <div className="grid gap-1">
+                  {formData.diagnostic_rules.map(r => (
+                    <div key={r.id} className="flex items-center gap-2 text-sm">
+                      <span>{isRTL && r.name_ar ? r.name_ar : r.name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {INTERPRETATION_TYPES.find(it => it.value === r.interpretation)?.[isRTL ? 'label_ar' : 'label']}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end pt-4">
+            <Button variant="outline" onClick={() => setPreviewOpen(false)}>
+              {t('common.close')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Duplicate Dialog */}
       <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
           <DialogHeader>
             <DialogTitle>{t('laboratory.templates.duplicateTemplate')}</DialogTitle>
           </DialogHeader>
@@ -1382,7 +1623,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
               />
             </div>
           </div>
-          <div className="flex gap-3 pt-4">
+          <div className={`flex gap-3 pt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Button variant="outline" className="flex-1" onClick={() => setDuplicateDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
@@ -1398,19 +1639,91 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* Delete Template Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('laboratory.templates.deleteTemplate')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('laboratory.templates.deleteConfirm')} "{templateToDelete?.name}"?
+              {t('laboratory.templates.deleteConfirm')} "{templateToDelete?.name}"
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Field Confirmation */}
+      <AlertDialog open={fieldToDelete !== null} onOpenChange={(open) => !open && setFieldToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('laboratory.templates.confirmDeleteFieldTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('laboratory.templates.confirmDeleteFieldDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+            <AlertDialogCancel>{t('laboratory.templates.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveField} className="bg-destructive text-destructive-foreground">
+              {t('laboratory.templates.confirmDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Group Confirmation */}
+      <AlertDialog open={groupToDelete !== null} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('laboratory.templates.confirmDeleteGroupTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('laboratory.templates.confirmDeleteGroupDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+            <AlertDialogCancel>{t('laboratory.templates.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveGroup} className="bg-destructive text-destructive-foreground">
+              {t('laboratory.templates.confirmDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Discount Confirmation */}
+      <AlertDialog open={discountToDelete !== null} onOpenChange={(open) => !open && setDiscountToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('laboratory.templates.confirmDeleteDiscountTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('laboratory.templates.confirmDeleteDiscountDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+            <AlertDialogCancel>{t('laboratory.templates.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveDiscount} className="bg-destructive text-destructive-foreground">
+              {t('laboratory.templates.confirmDelete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Rule Confirmation */}
+      <AlertDialog open={ruleToDelete !== null} onOpenChange={(open) => !open && setRuleToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('laboratory.templates.confirmDeleteRuleTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('laboratory.templates.confirmDeleteRuleDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className={isRTL ? 'flex-row-reverse' : ''}>
+            <AlertDialogCancel>{t('laboratory.templates.confirmCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveRule} className="bg-destructive text-destructive-foreground">
+              {t('laboratory.templates.confirmDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
