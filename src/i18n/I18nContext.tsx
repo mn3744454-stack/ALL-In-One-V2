@@ -11,7 +11,27 @@ interface I18nContextType {
   t: (key: string) => string;
 }
 
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
+// HMR-safe context creation: persist context identity across hot reloads
+type HotData = { __I18nContext?: React.Context<I18nContextType | null> };
+
+const hot = import.meta.hot;
+const hotData = hot?.data as HotData | undefined;
+
+// Reuse existing context if available (HMR), otherwise create new one
+const I18nContext: React.Context<I18nContextType | null> =
+  hotData?.__I18nContext ?? createContext<I18nContextType | null>(null);
+
+// Store context in hot data for next HMR cycle
+if (hotData) {
+  hotData.__I18nContext = I18nContext;
+}
+
+// Register dispose handler to preserve context across HMR
+if (hot) {
+  hot.dispose((data: HotData) => {
+    data.__I18nContext = I18nContext;
+  });
+}
 
 const STORAGE_KEY = 'app-language';
 
@@ -133,3 +153,6 @@ export const useI18n = (): I18nContextType => {
   }
   return context;
 };
+
+// Re-export context type for external use
+export type { I18nContextType };

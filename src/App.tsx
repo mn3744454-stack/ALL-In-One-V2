@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { I18nProvider } from "@/i18n";
+import I18nRecoveryBoundary from "@/components/guards/I18nRecoveryBoundary";
 import { ModuleGuard } from "@/components/guards/ModuleGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -450,24 +451,29 @@ const AppRoutes = () => {
   );
 };
 
+// DEV-only wrapper for HMR recovery, no-op in production
+const DevWrapper = import.meta.env.DEV ? I18nRecoveryBoundary : React.Fragment;
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <HelmetProvider>
-      <I18nProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AuthProvider>
-              <TenantProvider>
-                <AppRoutes />
-              </TenantProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </I18nProvider>
-    </HelmetProvider>
-  </QueryClientProvider>
+  <DevWrapper>
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <I18nProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AuthProvider>
+                <TenantProvider>
+                  <AppRoutes />
+                </TenantProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+        </I18nProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
+  </DevWrapper>
 );
 
 export default App;
