@@ -6420,6 +6420,10 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      finalize_invitation_acceptance: {
+        Args: { _token: string }
+        Returns: Json
+      }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
       get_horse_display_name: {
         Args: { _horse_id: string; _use_alias?: boolean }
@@ -6515,6 +6519,7 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      preaccept_invitation: { Args: { _token: string }; Returns: Json }
       record_horse_movement_with_housing: {
         Args: {
           p_clear_housing?: boolean
