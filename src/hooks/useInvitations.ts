@@ -53,7 +53,7 @@ export const useInvitations = () => {
 
     const { data, error } = await supabase
       .from("invitations")
-      .select("*")
+      .select("*, token")
       .eq("tenant_id", activeTenant.tenant_id)
       .order("created_at", { ascending: false });
 

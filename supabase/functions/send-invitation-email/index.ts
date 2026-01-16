@@ -4,7 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const APP_ORIGIN = Deno.env.get("APP_ORIGIN") || "https://khail.app";
+const APP_ORIGIN = Deno.env.get("APP_ORIGIN");
+
+// Validate APP_ORIGIN is set (no fallback for security)
+if (!APP_ORIGIN) {
+  console.error("APP_ORIGIN environment variable is not set");
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -192,6 +197,15 @@ const handler = async (req: Request): Promise<Response> => {
     const senderName = senderProfile?.full_name || "A team member";
     const inviteeEmail = invitation.invitee_email;
     const roleLabel = roleLabels[invitation.proposed_role] || invitation.proposed_role;
+
+    // Validate APP_ORIGIN before building link
+    if (!APP_ORIGIN) {
+      console.error("APP_ORIGIN is not set - cannot build invitation link");
+      return new Response(
+        JSON.stringify({ success: false, error: "Server configuration error: APP_ORIGIN not set" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // Build invitation link server-side using the token
     const invitationLink = `${APP_ORIGIN}/invite/${invitation.token}`;

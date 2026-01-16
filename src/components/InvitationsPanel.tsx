@@ -40,9 +40,12 @@ import {
   Mail, 
   Building2,
   User,
-  Clock
+  Clock,
+  Copy,
+  Users
 } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
@@ -91,6 +94,17 @@ export const InvitationsPanel = () => {
     }
   };
 
+  const handleCopyInviteLink = async (token: string) => {
+    const origin = window.location.origin;
+    const link = `${origin}/invite/${token}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Invite link copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
   const handleAccept = async (invitationId: string) => {
     const { error } = await respondToInvitation(invitationId, true, true);
     if (error) {
@@ -133,105 +147,178 @@ export const InvitationsPanel = () => {
           <SheetHeader>
             <SheetTitle>Invitations</SheetTitle>
             <SheetDescription>
-              Review and respond to organization invitations
+              Manage organization invitations
             </SheetDescription>
           </SheetHeader>
-          <div className="mt-6 space-y-4">
-            {receivedInvitations.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No pending invitations
-              </p>
-            ) : (
-              receivedInvitations.map((invitation) => (
-                <Card key={invitation.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-gold" />
+          <Tabs defaultValue="received" className="mt-6">
+            <TabsList className="w-full">
+              <TabsTrigger value="received" className="flex-1 gap-1">
+                <Bell className="w-4 h-4" />
+                Received
+                {pendingCount > 0 && (
+                  <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {pendingCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="flex-1 gap-1">
+                <Users className="w-4 h-4" />
+                Sent
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Received Invitations Tab */}
+            <TabsContent value="received" className="mt-4 space-y-4">
+              {receivedInvitations.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No pending invitations
+                </p>
+              ) : (
+                receivedInvitations.map((invitation) => (
+                  <Card key={invitation.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-gold" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-navy">
+                            {invitation.tenant?.name || "Organization"}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Invited by {invitation.sender?.full_name || "Unknown"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-navy">
-                          {invitation.tenant?.name || "Organization"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Invited by {invitation.sender?.full_name || "Unknown"}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          Role: <Badge variant="secondary">{roleLabels[invitation.proposed_role]}</Badge>
-                        </span>
-                      </div>
-                      {invitation.assigned_horse_ids.length > 0 && (
+                      
+                      <div className="space-y-2 mb-4">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            {invitation.assigned_horse_ids.length} horse(s) assigned
+                          <User className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm">
+                            Role: <Badge variant="secondary">{roleLabels[invitation.proposed_role]}</Badge>
                           </span>
                         </div>
-                      )}
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        {new Date(invitation.created_at).toLocaleDateString()}
+                        {invitation.assigned_horse_ids.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                              {invitation.assigned_horse_ids.length} horse(s) assigned
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {new Date(invitation.created_at).toLocaleDateString()}
+                        </div>
                       </div>
-                    </div>
 
-                    {respondingTo === invitation.id ? (
-                      <div className="space-y-3">
-                        <Textarea
-                          placeholder="Reason for declining (optional)"
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          rows={2}
-                        />
+                      {respondingTo === invitation.id ? (
+                        <div className="space-y-3">
+                          <Textarea
+                            placeholder="Reason for declining (optional)"
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            rows={2}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleReject(invitation.id)}
+                              className="flex-1"
+                            >
+                              Confirm Decline
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setRespondingTo(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="flex gap-2">
                           <Button
                             size="sm"
-                            variant="destructive"
-                            onClick={() => handleReject(invitation.id)}
+                            variant="gold"
+                            onClick={() => handleAccept(invitation.id)}
                             className="flex-1"
                           >
-                            Confirm Decline
+                            <Check className="w-4 h-4 mr-1" />
+                            Accept
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setRespondingTo(null)}
+                            onClick={() => setRespondingTo(invitation.id)}
+                            className="flex-1"
                           >
-                            Cancel
+                            <X className="w-4 h-4 mr-1" />
+                            Decline
                           </Button>
                         </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+
+            {/* Sent Invitations Tab */}
+            <TabsContent value="sent" className="mt-4 space-y-4">
+              {sentInvitations.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No invitations sent yet
+                </p>
+              ) : (
+                sentInvitations.map((invitation) => (
+                  <Card key={invitation.id} className="overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                          <Mail className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">
+                            {invitation.invitee_email}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={
+                              invitation.status === 'accepted' ? 'default' :
+                              invitation.status === 'rejected' ? 'destructive' :
+                              invitation.status === 'preaccepted' ? 'secondary' :
+                              'outline'
+                            }>
+                              {invitation.status}
+                            </Badge>
+                            <Badge variant="secondary">{roleLabels[invitation.proposed_role]}</Badge>
+                          </div>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="gold"
-                          onClick={() => handleAccept(invitation.id)}
-                          className="flex-1"
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Accept
-                        </Button>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                        <Clock className="w-3 h-3" />
+                        Sent {new Date(invitation.created_at).toLocaleDateString()}
+                      </div>
+
+                      {invitation.status === 'pending' && (invitation as any).token && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setRespondingTo(invitation.id)}
-                          className="flex-1"
+                          onClick={() => handleCopyInviteLink((invitation as any).token)}
+                          className="w-full"
                         >
-                          <X className="w-4 h-4 mr-1" />
-                          Decline
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Invite Link
                         </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          </Tabs>
         </SheetContent>
       </Sheet>
 
