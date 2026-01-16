@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useTenant } from "@/contexts/TenantContext";
@@ -61,9 +62,10 @@ const roleLabels: Record<TenantRole, string> = {
 };
 
 export const InvitationsPanel = () => {
+  const navigate = useNavigate();
   const { receivedInvitations, sentInvitations, createInvitation, respondToInvitation, loading } = useInvitations();
   const { horses } = useHorses();
-  const { activeTenant } = useTenant();
+  const { activeTenant, refreshTenants, setActiveTenant } = useTenant();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
     email: "",
@@ -105,20 +107,26 @@ export const InvitationsPanel = () => {
     }
   };
 
-  const handleAccept = async (invitationId: string) => {
-    const { error } = await respondToInvitation(invitationId, true, true);
+  const handleAccept = async (token: string) => {
+    const { data, error } = await respondToInvitation(token, true);
     if (error) {
-      toast.error("Failed to accept invitation");
-    } else {
-      toast.success("Invitation accepted! You have joined the organization.");
+      console.error("Accept invitation error:", error);
+      toast.error(`Failed to accept invitation: ${error.message}`);
+    } else if (data?.tenant_id) {
+      toast.success("Invitation accepted! Switching to organization...");
+      // Refresh tenants and switch to the new tenant
+      await refreshTenants();
+      setActiveTenant(data.tenant_id);
+      navigate("/dashboard", { replace: true });
     }
     setRespondingTo(null);
   };
 
-  const handleReject = async (invitationId: string) => {
-    const { error } = await respondToInvitation(invitationId, false, false, rejectionReason);
+  const handleReject = async (token: string) => {
+    const { error } = await respondToInvitation(token, false, rejectionReason);
     if (error) {
-      toast.error("Failed to reject invitation");
+      console.error("Reject invitation error:", error);
+      toast.error(`Failed to decline invitation: ${error.message}`);
     } else {
       toast.success("Invitation declined");
     }
@@ -220,14 +228,14 @@ export const InvitationsPanel = () => {
                             rows={2}
                           />
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleReject(invitation.id)}
-                              className="flex-1"
-                            >
-                              Confirm Decline
-                            </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleReject(invitation.token)}
+                            className="flex-1"
+                          >
+                            Confirm Decline
+                          </Button>
                             <Button
                               size="sm"
                               variant="outline"
@@ -242,7 +250,7 @@ export const InvitationsPanel = () => {
                           <Button
                             size="sm"
                             variant="gold"
-                            onClick={() => handleAccept(invitation.id)}
+                            onClick={() => handleAccept(invitation.token)}
                             className="flex-1"
                           >
                             <Check className="w-4 h-4 mr-1" />
@@ -302,11 +310,11 @@ export const InvitationsPanel = () => {
                         Sent {new Date(invitation.created_at).toLocaleDateString()}
                       </div>
 
-                      {invitation.status === 'pending' && (invitation as any).token && (
+                      {invitation.status === 'pending' && invitation.token && (
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleCopyInviteLink((invitation as any).token)}
+                          onClick={() => handleCopyInviteLink(invitation.token)}
                           className="w-full"
                         >
                           <Copy className="w-4 h-4 mr-2" />
