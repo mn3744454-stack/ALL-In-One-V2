@@ -1,7 +1,7 @@
 project_id = "vhxglsvxwwpmoqjabfmj"
 
 [functions.send-invitation-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-ownership-notification]
 verify_jwt = false

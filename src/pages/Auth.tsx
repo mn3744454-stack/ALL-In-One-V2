@@ -30,11 +30,16 @@ const Auth = () => {
     setMode(searchParams.get("mode") === "signup" ? "signup" : "signin");
   }, [searchParams]);
 
+  // Get the 'next' parameter for post-auth redirect (e.g., from invitation flow)
+  const nextPath = searchParams.get("next");
+
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      // If there's a next path (e.g., /invite/:token), redirect there
+      // Otherwise, default to dashboard
+      navigate(nextPath || "/dashboard");
     }
-  }, [user, navigate]);
+  }, [user, navigate, nextPath]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +66,8 @@ const Auth = () => {
         }
 
         toast.success("Account created successfully!");
-        navigate("/dashboard");
+        // Redirect to next path if available, otherwise dashboard
+        navigate(nextPath || "/dashboard");
       } else {
         const { error } = await signIn(formData.email, formData.password);
         
@@ -76,7 +82,8 @@ const Auth = () => {
         }
 
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        // Redirect to next path if available, otherwise dashboard
+        navigate(nextPath || "/dashboard");
       }
     } catch (err) {
       toast.error("An unexpected error occurred");
