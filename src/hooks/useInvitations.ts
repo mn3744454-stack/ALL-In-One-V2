@@ -23,6 +23,7 @@ interface Invitation {
   rejection_reason: string | null;
   responded_at: string | null;
   created_at: string;
+  token: string;
   tenant?: {
     id: string;
     name: string;
@@ -66,15 +67,16 @@ export const useInvitations = () => {
     if (!user || !profile) return;
 
     // RLS policy handles filtering to only show invitations for the current user
-    // No need for client-side .or() filter - this prevents potential query injection
+    // Include token for RPC calls and filter actionable statuses
     const { data, error } = await supabase
       .from("invitations")
       .select(`
         *,
+        token,
         tenant:tenants(id, name, type),
         sender:profiles!invitations_sender_id_fkey(id, full_name, email)
       `)
-      .eq("status", "pending")
+      .in("status", ["pending", "preaccepted"])
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -148,51 +150,61 @@ export const useInvitations = () => {
   };
 
   const respondToInvitation = async (
-    invitationId: string,
-    roleAccepted: boolean,
-    horsesAccepted: boolean,
+    token: string,
+    accept: boolean,
     rejectionReason?: string
-  ) => {
-    const status: InvitationStatus = roleAccepted ? "accepted" : "rejected";
+  ): Promise<{ data: { tenant_id: string } | null; error: Error | null }> => {
+    if (accept) {
+      // Use atomic RPC for acceptance
+      const { data, error } = await supabase.rpc("finalize_invitation_acceptance", {
+        _token: token,
+      });
 
-    const { error: updateError } = await supabase
-      .from("invitations")
-      .update({
-        status,
-        role_accepted: roleAccepted,
-        horses_accepted: horsesAccepted,
-        rejection_reason: rejectionReason,
-        responded_at: new Date().toISOString(),
-        invitee_id: user?.id,
-      })
-      .eq("id", invitationId);
-
-    if (updateError) {
-      return { error: updateError };
-    }
-
-    // If accepted, create tenant membership
-    if (roleAccepted) {
-      const invitation = receivedInvitations.find((i) => i.id === invitationId);
-      if (invitation && user) {
-        const { error: memberError } = await supabase
-          .from("tenant_members")
-          .insert({
-            tenant_id: invitation.tenant_id,
-            user_id: user.id,
-            role: invitation.proposed_role,
-            can_invite: false,
-            can_manage_horses: invitation.proposed_role === "foreman" || invitation.proposed_role === "manager",
-          });
-
-        if (memberError) {
-          return { error: memberError };
-        }
+      if (error) {
+        console.error("finalize_invitation_acceptance RPC error:", error);
+        return { data: null, error };
       }
-    }
 
-    await fetchReceivedInvitations();
-    return { error: null };
+      console.log("finalize_invitation_acceptance result:", data);
+      
+      // RPC returns { success: boolean, tenant_id: string, role: string, message: string }
+      // Cast to expected shape since Supabase types it as Json
+      const result = data as { success: boolean; tenant_id: string; role: string; message: string } | null;
+      
+      if (!result?.success) {
+        const errorMsg = result?.message || "Failed to accept invitation";
+        console.error("finalize_invitation_acceptance failed:", errorMsg);
+        return { data: null, error: new Error(errorMsg) };
+      }
+
+      await fetchReceivedInvitations();
+      return { data: { tenant_id: result.tenant_id }, error: null };
+    } else {
+      // For rejection, still use direct update (no membership creation needed)
+      const invitation = receivedInvitations.find((i) => i.token === token);
+      if (!invitation) {
+        return { data: null, error: new Error("Invitation not found") };
+      }
+
+      const { error: updateError } = await supabase
+        .from("invitations")
+        .update({
+          status: "rejected" as InvitationStatus,
+          role_accepted: false,
+          horses_accepted: false,
+          rejection_reason: rejectionReason,
+          responded_at: new Date().toISOString(),
+          invitee_id: user?.id,
+        })
+        .eq("id", invitation.id);
+
+      if (updateError) {
+        return { data: null, error: updateError };
+      }
+
+      await fetchReceivedInvitations();
+      return { data: null, error: null };
+    }
   };
 
   return {
