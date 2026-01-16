@@ -2677,7 +2677,7 @@ export type Database = {
           sender_id: string
           status?: Database["public"]["Enums"]["invitation_status"]
           tenant_id: string
-          token: string
+          token?: string
           updated_at?: string
         }
         Update: {

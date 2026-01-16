@@ -114,7 +114,8 @@ export const useInvitations = () => {
         sender_id: user.id,
         invitee_email: validatedData.invitee_email,
         proposed_role: validatedData.proposed_role,
-        assigned_horse_ids: validatedData.assigned_horse_ids,
+        assigned_horse_ids: validatedData.assigned_horse_ids ?? [],
+        token: crypto.randomUUID(),
       })
       .select()
       .single();
