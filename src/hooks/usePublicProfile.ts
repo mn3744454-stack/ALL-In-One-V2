@@ -3,9 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
+/**
+ * PublicProfile interface - safe fields only (NO email/phone)
+ * Used for community/public profile display
+ */
 export interface PublicProfile {
   id: string;
-  email: string;
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
@@ -18,19 +21,28 @@ export interface PublicProfile {
   posts_count?: number;
 }
 
+/**
+ * Fetches a user's public profile from public_profile_fields table
+ * This table contains only safe fields (no email/phone PII)
+ */
 export const usePublicProfile = (userId: string | undefined) => {
   return useQuery({
     queryKey: ["public-profile", userId],
     queryFn: async (): Promise<PublicProfile | null> => {
       if (!userId) return null;
 
+      // Query safe public_profile_fields table (NO PII exposure)
       const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
+        .from("public_profile_fields")
+        .select("id, full_name, avatar_url, bio, location, website, social_links, created_at")
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle case where profile doesn't exist in projection table yet
+        if (error.code === "PGRST116") return null;
+        throw error;
+      }
       if (!profile) return null;
 
       // Get followers count

@@ -6,7 +6,8 @@ import { invitationSchema, safeValidate } from "@/lib/validations";
 
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
-type InvitationStatus = "pending" | "accepted" | "rejected";
+// Include new invitation statuses from P0 migration
+type InvitationStatus = "pending" | "preaccepted" | "accepted" | "rejected" | "expired" | "revoked";
 
 interface Invitation {
   id: string;

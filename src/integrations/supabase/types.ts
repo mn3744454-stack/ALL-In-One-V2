@@ -2643,12 +2643,14 @@ export type Database = {
       }
       invitations: {
         Row: {
+          accepted_at: string | null
           assigned_horse_ids: string[] | null
           created_at: string
           horses_accepted: boolean | null
           id: string
           invitee_email: string
           invitee_id: string | null
+          preaccepted_at: string | null
           proposed_role: Database["public"]["Enums"]["tenant_role"]
           rejection_reason: string | null
           responded_at: string | null
@@ -2656,15 +2658,18 @@ export type Database = {
           sender_id: string
           status: Database["public"]["Enums"]["invitation_status"]
           tenant_id: string
+          token: string
           updated_at: string
         }
         Insert: {
+          accepted_at?: string | null
           assigned_horse_ids?: string[] | null
           created_at?: string
           horses_accepted?: boolean | null
           id?: string
           invitee_email: string
           invitee_id?: string | null
+          preaccepted_at?: string | null
           proposed_role: Database["public"]["Enums"]["tenant_role"]
           rejection_reason?: string | null
           responded_at?: string | null
@@ -2672,15 +2677,18 @@ export type Database = {
           sender_id: string
           status?: Database["public"]["Enums"]["invitation_status"]
           tenant_id: string
+          token: string
           updated_at?: string
         }
         Update: {
+          accepted_at?: string | null
           assigned_horse_ids?: string[] | null
           created_at?: string
           horses_accepted?: boolean | null
           id?: string
           invitee_email?: string
           invitee_id?: string | null
+          preaccepted_at?: string | null
           proposed_role?: Database["public"]["Enums"]["tenant_role"]
           rejection_reason?: string | null
           responded_at?: string | null
@@ -2688,6 +2696,7 @@ export type Database = {
           sender_id?: string
           status?: Database["public"]["Enums"]["invitation_status"]
           tenant_id?: string
+          token?: string
           updated_at?: string
         }
         Relationships: [
@@ -4922,6 +4931,39 @@ export type Database = {
         }
         Relationships: []
       }
+      public_profile_fields: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          social_links: Json | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          location?: string | null
+          social_links?: Json | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          social_links?: Json | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       semen_batches: {
         Row: {
           collection_date: string
@@ -6519,7 +6561,13 @@ export type Database = {
         | "farrier"
         | "other"
       internal_unit_type: "stall" | "paddock" | "room" | "cage" | "other"
-      invitation_status: "pending" | "accepted" | "rejected"
+      invitation_status:
+        | "pending"
+        | "accepted"
+        | "rejected"
+        | "preaccepted"
+        | "expired"
+        | "revoked"
       movement_type: "in" | "out" | "transfer"
       occupancy_mode: "single" | "group"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
@@ -6690,7 +6738,14 @@ export const Constants = {
         "other",
       ],
       internal_unit_type: ["stall", "paddock", "room", "cage", "other"],
-      invitation_status: ["pending", "accepted", "rejected"],
+      invitation_status: [
+        "pending",
+        "accepted",
+        "rejected",
+        "preaccepted",
+        "expired",
+        "revoked",
+      ],
       movement_type: ["in", "out", "transfer"],
       occupancy_mode: ["single", "group"],
       payment_intent_type: ["platform_fee", "service_payment", "commission"],
