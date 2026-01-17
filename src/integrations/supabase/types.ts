@@ -2655,6 +2655,7 @@ export type Database = {
           rejection_reason: string | null
           responded_at: string | null
           role_accepted: boolean | null
+          sender_display_name: string | null
           sender_id: string
           status: Database["public"]["Enums"]["invitation_status"]
           tenant_id: string
@@ -2674,6 +2675,7 @@ export type Database = {
           rejection_reason?: string | null
           responded_at?: string | null
           role_accepted?: boolean | null
+          sender_display_name?: string | null
           sender_id: string
           status?: Database["public"]["Enums"]["invitation_status"]
           tenant_id: string
@@ -2693,6 +2695,7 @@ export type Database = {
           rejection_reason?: string | null
           responded_at?: string | null
           role_accepted?: boolean | null
+          sender_display_name?: string | null
           sender_id?: string
           status?: Database["public"]["Enums"]["invitation_status"]
           tenant_id?: string
