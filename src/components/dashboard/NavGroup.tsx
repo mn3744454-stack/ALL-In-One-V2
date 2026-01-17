@@ -45,7 +45,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
         </div>
         <span
           className={cn(
-            "flex-1 text-left font-medium",
+            "flex-1 text-start font-medium",
             isAnyActive ? "text-navy" : "text-navy/70"
           )}
         >

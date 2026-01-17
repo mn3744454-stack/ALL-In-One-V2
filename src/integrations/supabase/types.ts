@@ -4031,6 +4031,48 @@ export type Database = {
           },
         ]
       }
+      member_horse_access: {
+        Row: {
+          access_level: string
+          granted_at: string
+          granted_by: string | null
+          horse_id: string
+          id: string
+          tenant_member_id: string
+        }
+        Insert: {
+          access_level?: string
+          granted_at?: string
+          granted_by?: string | null
+          horse_id: string
+          id?: string
+          tenant_member_id: string
+        }
+        Update: {
+          access_level?: string
+          granted_at?: string
+          granted_by?: string | null
+          horse_id?: string
+          id?: string
+          tenant_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_horse_access_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_horse_access_tenant_member_id_fkey"
+            columns: ["tenant_member_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_permission_bundles: {
         Row: {
           assigned_at: string

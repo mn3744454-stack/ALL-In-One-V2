@@ -16,7 +16,8 @@ interface RtlTabsListProps extends React.ComponentPropsWithoutRef<typeof TabsLis
 
 const RtlTabs = React.forwardRef<HTMLDivElement, RtlTabsProps>(
   ({ className, ...props }, ref) => {
-    return <Tabs ref={ref} className={className} {...props} />;
+    const { dir } = useI18n();
+    return <Tabs ref={ref} dir={dir} className={className} {...props} />;
   }
 );
 RtlTabs.displayName = "RtlTabs";
