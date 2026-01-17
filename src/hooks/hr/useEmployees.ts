@@ -25,6 +25,14 @@ export interface Employee {
   tags: string[];
   created_at: string;
   updated_at: string;
+  // New fields
+  user_id?: string | null;
+  employment_kind?: 'internal' | 'external';
+  salary_amount?: number | null;
+  salary_currency?: string | null;
+  start_date?: string | null;
+  avatar_url?: string | null;
+  documents?: unknown[];
 }
 
 export interface EmployeeFilters {

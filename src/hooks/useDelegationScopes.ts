@@ -46,7 +46,7 @@ export function useDelegationScopes(memberId?: string) {
     scopes.map((s) => [s.permission_key, s.can_delegate])
   );
 
-  // Toggle delegation scope for a permission
+  // Toggle delegation scope for a permission with optimistic updates
   const toggleScopeMutation = useMutation({
     mutationFn: async ({
       permissionKey,
@@ -74,16 +74,69 @@ export function useDelegationScopes(memberId?: string) {
       );
 
       if (error) throw error;
+      return { permissionKey, canDelegate };
     },
-    onSuccess: () => {
+    // Optimistic update for instant UI response
+    onMutate: async ({ permissionKey, canDelegate }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["delegation-scopes", tenantId, memberId],
+      });
+
+      // Snapshot the previous value
+      const previousScopes = queryClient.getQueryData<DelegationScope[]>([
+        "delegation-scopes",
+        tenantId,
+        memberId,
+      ]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData<DelegationScope[]>(
+        ["delegation-scopes", tenantId, memberId],
+        (old = []) => {
+          const existing = old.find((s) => s.permission_key === permissionKey);
+          if (existing) {
+            return old.map((s) =>
+              s.permission_key === permissionKey
+                ? { ...s, can_delegate: canDelegate }
+                : s
+            );
+          }
+          return [
+            ...old,
+            {
+              id: `temp-${Date.now()}`,
+              tenant_id: tenantId!,
+              grantor_member_id: memberId!,
+              permission_key: permissionKey,
+              can_delegate: canDelegate,
+              created_by: user?.id || null,
+              created_at: new Date().toISOString(),
+            },
+          ];
+        }
+      );
+
+      return { previousScopes };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousScopes) {
+        queryClient.setQueryData(
+          ["delegation-scopes", tenantId, memberId],
+          context.previousScopes
+        );
+      }
+      console.error("Toggle scope error:", error);
+      toast.error("Failed to update delegation scope");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["delegation-scopes", tenantId, memberId],
       });
-      toast.success("Delegation scope updated");
     },
-    onError: (error) => {
-      console.error("Toggle scope error:", error);
-      toast.error("Failed to update delegation scope");
+    onSuccess: () => {
+      toast.success("Delegation scope updated");
     },
   });
 

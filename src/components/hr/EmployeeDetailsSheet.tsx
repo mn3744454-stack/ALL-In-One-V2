@@ -2,24 +2,34 @@ import { useI18n } from '@/i18n';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Phone, Mail, Edit, Power, Calendar } from 'lucide-react';
+import { Phone, Mail, Edit, Power, Calendar, Briefcase, DollarSign, ArrowRightLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import type { Employee } from '@/hooks/hr/useEmployees';
 
+interface ExtendedEmployee extends Employee {
+  employment_kind?: 'internal' | 'external';
+  salary_amount?: number | null;
+  salary_currency?: string | null;
+  start_date?: string | null;
+  avatar_url?: string | null;
+}
+
 interface EmployeeDetailsSheetProps {
-  employee: Employee | null;
+  employee: ExtendedEmployee | null;
   onClose: () => void;
   onEdit: () => void;
   onToggleActive: () => Promise<void>;
+  onToggleEmploymentKind?: () => Promise<void>;
+  isTogglingKind?: boolean;
 }
 
 export function EmployeeDetailsSheet({
@@ -27,6 +37,8 @@ export function EmployeeDetailsSheet({
   onClose,
   onEdit,
   onToggleActive,
+  onToggleEmploymentKind,
+  isTogglingKind,
 }: EmployeeDetailsSheetProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
@@ -44,6 +56,8 @@ export function EmployeeDetailsSheet({
     ? employee.employee_type_custom
     : t(`hr.employeeTypes.${employee.employee_type}`);
 
+  const isInternal = employee.employment_kind === 'internal';
+
   const InfoRow = ({ 
     icon: Icon, 
     label, 
@@ -52,7 +66,7 @@ export function EmployeeDetailsSheet({
   }: { 
     icon: React.ElementType; 
     label: string; 
-    value: string | null; 
+    value: string | null | undefined; 
     href?: string;
   }) => {
     if (!value) return null;
@@ -64,7 +78,7 @@ export function EmployeeDetailsSheet({
         </div>
         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
           <span className="text-xs text-muted-foreground">{label}</span>
-          <span className="text-sm text-foreground break-all" dir={href ? 'ltr' : undefined}>
+          <span className="text-sm text-foreground break-words" dir={href ? 'ltr' : undefined}>
             {value}
           </span>
         </div>
@@ -87,13 +101,14 @@ export function EmployeeDetailsSheet({
       <SheetContent 
         side={isMobile ? "bottom" : (dir === 'rtl' ? 'left' : 'right')}
         className={cn(
-          isMobile ? "h-[85vh]" : "sm:max-w-[400px]",
-          "flex flex-col"
+          isMobile ? "h-[85vh]" : "sm:max-w-[420px]",
+          "flex flex-col overflow-hidden"
         )}
       >
-        <SheetHeader className="text-center pb-4 border-b border-border/50">
+        <SheetHeader className="text-center pb-4 border-b border-border/50 shrink-0">
           <div className="flex flex-col items-center gap-3">
             <Avatar className="h-20 w-20">
+              {employee.avatar_url && <AvatarImage src={employee.avatar_url} alt={employee.full_name} />}
               <AvatarFallback className={cn(
                 "text-xl font-semibold",
                 employee.is_active 
@@ -103,12 +118,15 @@ export function EmployeeDetailsSheet({
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <SheetTitle className="text-lg">
                 {employee.full_name}
               </SheetTitle>
-              <div className="flex items-center justify-center gap-2">
-                <Badge variant={employee.is_active ? "secondary" : "outline"}>
+              <div className="flex items-center justify-center gap-2 flex-wrap">
+                <Badge variant={isInternal ? "default" : "secondary"}>
+                  {isInternal ? t('hr.internal') : t('hr.external')}
+                </Badge>
+                <Badge variant="outline">
                   {displayType}
                 </Badge>
                 <Badge variant={employee.is_active ? "default" : "outline"}>
@@ -119,7 +137,7 @@ export function EmployeeDetailsSheet({
           </div>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 overflow-y-auto py-4 overflow-x-hidden">
           {employee.department && (
             <InfoRow
               icon={({ className }: { className?: string }) => (
@@ -144,6 +162,22 @@ export function EmployeeDetailsSheet({
             href={employee.email ? `mailto:${employee.email}` : undefined}
           />
 
+          {employee.start_date && (
+            <InfoRow
+              icon={Calendar}
+              label={t('hr.startDate')}
+              value={format(new Date(employee.start_date), 'PPP')}
+            />
+          )}
+
+          {isInternal && employee.salary_amount && (
+            <InfoRow
+              icon={DollarSign}
+              label={t('hr.salary')}
+              value={`${employee.salary_amount.toLocaleString()} ${employee.salary_currency || 'SAR'}`}
+            />
+          )}
+
           <InfoRow
             icon={Calendar}
             label={t('hr.createdAt')}
@@ -155,7 +189,7 @@ export function EmployeeDetailsSheet({
               <span className="text-xs text-muted-foreground block mb-1">
                 {t('hr.notes')}
               </span>
-              <p className="text-sm text-foreground whitespace-pre-wrap">
+              <p className="text-sm text-foreground whitespace-pre-wrap break-words">
                 {employee.notes}
               </p>
             </div>
@@ -166,23 +200,38 @@ export function EmployeeDetailsSheet({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-          <Button
-            variant="outline"
-            className="flex-1 gap-2"
-            onClick={onEdit}
-          >
-            <Edit className="h-4 w-4" />
-            {t('common.edit')}
-          </Button>
-          <Button
-            variant={employee.is_active ? "destructive" : "default"}
-            className="flex-1 gap-2"
-            onClick={onToggleActive}
-          >
-            <Power className="h-4 w-4" />
-            {employee.is_active ? t('hr.deactivate') : t('hr.activate')}
-          </Button>
+        <div className="flex flex-col gap-2 pt-4 border-t border-border/50 shrink-0">
+          {/* Convert Internal/External */}
+          {onToggleEmploymentKind && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={onToggleEmploymentKind}
+              disabled={isTogglingKind}
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+              {isInternal ? t('hr.convertToExternal') : t('hr.convertToInternal')}
+            </Button>
+          )}
+          
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 gap-2"
+              onClick={onEdit}
+            >
+              <Edit className="h-4 w-4" />
+              {t('common.edit')}
+            </Button>
+            <Button
+              variant={employee.is_active ? "destructive" : "default"}
+              className="flex-1 gap-2"
+              onClick={onToggleActive}
+            >
+              <Power className="h-4 w-4" />
+              {employee.is_active ? t('hr.deactivate') : t('hr.activate')}
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

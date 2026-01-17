@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { invitationSchema, safeValidate } from "@/lib/validations";
+import { useRealtimeTable } from "@/hooks/useRealtimeInvalidation";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
@@ -45,9 +47,65 @@ interface CreateInvitationData {
 export const useInvitations = () => {
   const { activeTenant } = useTenant();
   const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
   const [receivedInvitations, setReceivedInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [realtimeKey, setRealtimeKey] = useState(0);
+
+  // Subscribe to realtime updates for invitations
+  useRealtimeTable(
+    'invitations',
+    [
+      ['invitations-sent', activeTenant?.tenant_id],
+      ['invitations-received', user?.id],
+    ]
+  );
+
+  // Listen to realtime invalidation and refetch
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (
+        event.type === 'updated' &&
+        event.query.queryKey[0] === 'invitations-sent'
+      ) {
+        fetchSentInvitations();
+      }
+      if (
+        event.type === 'updated' &&
+        event.query.queryKey[0] === 'invitations-received'
+      ) {
+        fetchReceivedInvitations();
+      }
+    });
+    return () => unsubscribe();
+  }, [queryClient]);
+
+  // Direct realtime subscription for immediate updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('invitations-realtime')
+      .on(
+        'postgres_changes' as any,
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitations',
+        },
+        () => {
+          // Refetch both on any change
+          fetchSentInvitations();
+          fetchReceivedInvitations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, activeTenant?.tenant_id]);
 
   const fetchSentInvitations = async () => {
     if (!activeTenant) return;

@@ -9,6 +9,7 @@ export interface PermissionDefinition {
   resource: string;
   action: string;
   display_name: string;
+  display_name_ar: string | null;
   description: string | null;
   description_ar: string | null;
   is_delegatable: boolean;
