@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';
+import { SalaryPaymentsSection } from './SalaryPaymentsSection';
 import type { Employee } from '@/hooks/hr/useEmployees';
 
 interface ExtendedEmployee extends Employee {
@@ -207,6 +208,13 @@ export function EmployeeDetailsSheet({
         <EmployeeAssignedHorses 
           employeeId={employee.id} 
           employeeUserId={employee.user_id}
+        />
+
+        {/* Salary Payments Section - only for internal employees */}
+        <SalaryPaymentsSection
+          employeeId={employee.id}
+          employeeName={employee.full_name}
+          isInternal={isInternal}
         />
 
         {/* Employment History Timeline */}

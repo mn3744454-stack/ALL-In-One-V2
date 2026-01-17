@@ -124,11 +124,11 @@ export const useInvitations = () => {
   };
 
   const fetchReceivedInvitations = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile || !activeTenant) return;
 
-    // Fetch invitations where the current user is the invitee
-    // The RLS policy also enforces this, but we filter here for clarity
-    const userEmail = profile.email?.toLowerCase();
+    // Server-side filter: invitee_id = user.id OR invitee_email = profile.email
+    // Using .or() for proper server-side filtering - NO JS filtering
+    const userEmail = profile.email?.toLowerCase() || '';
     
     const { data, error } = await supabase
       .from("invitations")
@@ -138,16 +138,14 @@ export const useInvitations = () => {
         tenant:tenants(id, name, type),
         sender:profiles!invitations_sender_id_fkey(id, full_name, email)
       `)
+      .eq("tenant_id", activeTenant.tenant_id)
       .in("status", ["pending", "preaccepted"])
+      .or(`invitee_id.eq.${user.id},invitee_email.ilike.${userEmail}`)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      // Filter to only show invitations targeted at current user
-      const filtered = (data as unknown as Invitation[]).filter(inv => 
-        inv.invitee_id === user.id || 
-        (inv.invitee_email && inv.invitee_email.toLowerCase() === userEmail)
-      );
-      setReceivedInvitations(filtered);
+      // No client-side filtering needed - server already filtered
+      setReceivedInvitations(data as unknown as Invitation[]);
     }
   };
 
