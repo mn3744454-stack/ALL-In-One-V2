@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -15,6 +16,7 @@ import { EmployeeCard } from './EmployeeCard';
 import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 import { Plus, Search, Users } from 'lucide-react';
+import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import type { Employee, EmployeeFilters, HrEmployeeType, CreateEmployeeData, UpdateEmployeeData } from '@/hooks/hr/useEmployees';
 
 const EMPLOYEE_TYPES: HrEmployeeType[] = [
@@ -49,9 +51,15 @@ export function EmployeesList({
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
+  const { updateEmploymentKind, isUpdating: isTogglingKind } = useEmploymentKind();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+
+  // Summary counts
+  const totalCount = employees.length;
+  const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
+  const externalCount = employees.filter(e => e.employment_kind === 'external').length;
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
@@ -87,13 +95,35 @@ export function EmployeesList({
     setSelectedEmployee(null);
   };
 
+  const handleToggleEmploymentKind = async () => {
+    if (!selectedEmployee) return;
+    const newKind = selectedEmployee.employment_kind === 'internal' ? 'external' : 'internal';
+    await updateEmploymentKind({ employeeId: selectedEmployee.id, employmentKind: newKind });
+    setSelectedEmployee(null);
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-foreground">
-          {t('hr.title')}
-        </h1>
+      {/* Header with counters */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl font-semibold text-foreground">
+            {t('hr.title')}
+          </h1>
+          {!isLoading && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs">
+                {totalCount} {t('hr.total')}
+              </Badge>
+              <Badge variant="default" className="text-xs">
+                {internalCount} {t('hr.internal')}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                {externalCount} {t('hr.external')}
+              </Badge>
+            </div>
+          )}
+        </div>
         <Button
           onClick={() => setShowCreateDialog(true)}
           size={isMobile ? "sm" : "default"}
@@ -219,6 +249,8 @@ export function EmployeesList({
         onClose={() => setSelectedEmployee(null)}
         onEdit={handleEditFromDetails}
         onToggleActive={handleToggleActiveFromDetails}
+        onToggleEmploymentKind={handleToggleEmploymentKind}
+        isTogglingKind={isTogglingKind}
       />
     </div>
   );

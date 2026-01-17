@@ -17,3 +17,9 @@ export { useEmployeeAssignments } from './useEmployeeAssignments';
 export type { EmployeeAssignment } from './useEmployeeAssignments';
 
 export { useHRDemo } from './useHRDemo';
+
+export { useEmploymentKind } from './useEmploymentKind';
+export type { EmploymentKind } from './useEmploymentKind';
+
+export { useSalaryPayments } from './useSalaryPayments';
+export type { SalaryPayment, CreateSalaryPaymentData } from './useSalaryPayments';
