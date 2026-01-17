@@ -199,7 +199,7 @@ export function usePermissionBundles() {
     },
   });
 
-  // Assign bundle to member
+  // Assign bundle to member with optimistic update
   const assignBundleMutation = useMutation({
     mutationFn: async ({
       memberId,
@@ -217,18 +217,35 @@ export function usePermissionBundles() {
       });
 
       if (error) throw error;
+      return { memberId, bundleId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles"] });
-      toast.success("Bundle assigned");
+    onMutate: async ({ memberId, bundleId }) => {
+      await queryClient.cancelQueries({ queryKey: ["member-permission-bundles", memberId] });
+      const previousData = queryClient.getQueryData(["member-permission-bundles", memberId]);
+      
+      // Optimistic update
+      queryClient.setQueryData(["member-permission-bundles", memberId], (old: any[] = []) => {
+        return [...old, { tenant_member_id: memberId, bundle_id: bundleId, assigned_by: user?.id }];
+      });
+      
+      return { previousData, memberId };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      if (context?.previousData !== undefined) {
+        queryClient.setQueryData(["member-permission-bundles", context.memberId], context.previousData);
+      }
       console.error("Assign bundle error:", error);
       toast.error("Failed to assign bundle");
     },
+    onSettled: (_, __, { memberId }) => {
+      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles", memberId] });
+    },
+    onSuccess: () => {
+      toast.success("Bundle assigned");
+    },
   });
 
-  // Remove bundle from member
+  // Remove bundle from member with optimistic update
   const removeBundleMutation = useMutation({
     mutationFn: async ({
       memberId,
@@ -244,14 +261,31 @@ export function usePermissionBundles() {
         .eq("bundle_id", bundleId);
 
       if (error) throw error;
+      return { memberId, bundleId };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles"] });
-      toast.success("Bundle removed");
+    onMutate: async ({ memberId, bundleId }) => {
+      await queryClient.cancelQueries({ queryKey: ["member-permission-bundles", memberId] });
+      const previousData = queryClient.getQueryData(["member-permission-bundles", memberId]);
+      
+      // Optimistic update - remove the bundle
+      queryClient.setQueryData(["member-permission-bundles", memberId], (old: any[] = []) => {
+        return old.filter((b: any) => b.bundle_id !== bundleId);
+      });
+      
+      return { previousData, memberId };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      if (context?.previousData !== undefined) {
+        queryClient.setQueryData(["member-permission-bundles", context.memberId], context.previousData);
+      }
       console.error("Remove bundle error:", error);
       toast.error("Failed to remove bundle");
+    },
+    onSettled: (_, __, { memberId }) => {
+      queryClient.invalidateQueries({ queryKey: ["member-permission-bundles", memberId] });
+    },
+    onSuccess: () => {
+      toast.success("Bundle removed");
     },
   });
 

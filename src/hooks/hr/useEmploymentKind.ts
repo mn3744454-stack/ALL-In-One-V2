@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
 
@@ -15,6 +16,7 @@ interface UpdateEmploymentKindResult {
 
 export function useEmploymentKind() {
   const { activeTenant } = useTenant();
+  const { user } = useAuth();
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
@@ -23,9 +25,11 @@ export function useEmploymentKind() {
     mutationFn: async ({
       employeeId,
       employmentKind,
+      previousKind,
     }: {
       employeeId: string;
       employmentKind: EmploymentKind;
+      previousKind?: EmploymentKind;
     }) => {
       const { data, error } = await supabase.rpc('hr_update_employment_kind', {
         _employee_id: employeeId,
@@ -39,10 +43,25 @@ export function useEmploymentKind() {
         throw new Error(result?.error || t('common.error'));
       }
 
+      // Log employment_kind_changed event
+      if (tenantId && user?.id) {
+        await supabase.from('hr_employee_events').insert({
+          tenant_id: tenantId,
+          employee_id: employeeId,
+          event_type: 'employment_kind_changed',
+          event_payload: {
+            from: previousKind || 'unknown',
+            to: employmentKind,
+          },
+          created_by: user.id,
+        });
+      }
+
       return result;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employee-events', tenantId] });
       toast.success(
         data.employment_kind === 'internal'
           ? t('hr.convertedToInternal')

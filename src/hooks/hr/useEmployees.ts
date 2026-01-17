@@ -115,7 +115,7 @@ export function useEmployees() {
     enabled: !!tenantId,
   });
 
-  // Create employee
+  // Create employee - now also logs event
   const createMutation = useMutation({
     mutationFn: async (data: CreateEmployeeData) => {
       if (!tenantId || !user?.id) throw new Error('No active tenant or user');
@@ -138,6 +138,16 @@ export function useEmployees() {
         .single();
 
       if (error) throw error;
+      
+      // Log employee created event
+      await supabase.from('hr_employee_events').insert({
+        tenant_id: tenantId,
+        employee_id: result.id,
+        event_type: 'created',
+        event_payload: { created_by_user: user.id },
+        created_by: user.id,
+      });
+      
       return result as Employee;
     },
     onSuccess: () => {
@@ -149,10 +159,10 @@ export function useEmployees() {
     },
   });
 
-  // Update employee
+  // Update employee - now logs salary/start_date changes
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateEmployeeData }) => {
-      if (!tenantId) throw new Error('No active tenant');
+    mutationFn: async ({ id, data }: { id: string; data: UpdateEmployeeData & { salary_amount?: number | null; salary_currency?: string; start_date?: string | null } }) => {
+      if (!tenantId || !user?.id) throw new Error('No active tenant');
 
       const updateData: Record<string, unknown> = { ...data };
       
@@ -172,10 +182,33 @@ export function useEmployees() {
       if (error) throw error;
       if (!result) throw new Error(t('common.notFoundInOrg'));
       
+      // Log salary_updated event if salary changed
+      if (data.salary_amount !== undefined) {
+        await supabase.from('hr_employee_events').insert({
+          tenant_id: tenantId,
+          employee_id: id,
+          event_type: 'salary_updated',
+          event_payload: { new_amount: result.salary_amount, currency: result.salary_currency || 'SAR' },
+          created_by: user.id,
+        });
+      }
+      
+      // Log start_date_updated event if start_date changed
+      if (data.start_date !== undefined) {
+        await supabase.from('hr_employee_events').insert({
+          tenant_id: tenantId,
+          employee_id: id,
+          event_type: 'start_date_updated',
+          event_payload: { new_date: result.start_date },
+          created_by: user.id,
+        });
+      }
+      
       return result as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employee-events', tenantId] });
       toast.success(t('hr.employeeUpdated'));
     },
     onError: (error) => {
@@ -183,10 +216,10 @@ export function useEmployees() {
     },
   });
 
-  // Deactivate employee (soft delete)
+  // Deactivate employee (soft delete) - now logs event
   const deactivateMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!tenantId) throw new Error('No active tenant');
+      if (!tenantId || !user?.id) throw new Error('No active tenant');
 
       const { data: result, error } = await supabase
         .from('hr_employees')
@@ -199,10 +232,20 @@ export function useEmployees() {
       if (error) throw error;
       if (!result) throw new Error(t('common.notFoundInOrg'));
       
+      // Log deactivated event
+      await supabase.from('hr_employee_events').insert({
+        tenant_id: tenantId,
+        employee_id: id,
+        event_type: 'deactivated',
+        event_payload: {},
+        created_by: user.id,
+      });
+      
       return result as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employee-events', tenantId] });
       toast.success(t('hr.employeeDeactivated'));
     },
     onError: (error) => {
@@ -210,10 +253,10 @@ export function useEmployees() {
     },
   });
 
-  // Activate employee
+  // Activate employee - now logs event
   const activateMutation = useMutation({
     mutationFn: async (id: string) => {
-      if (!tenantId) throw new Error('No active tenant');
+      if (!tenantId || !user?.id) throw new Error('No active tenant');
 
       const { data: result, error } = await supabase
         .from('hr_employees')
@@ -226,10 +269,20 @@ export function useEmployees() {
       if (error) throw error;
       if (!result) throw new Error(t('common.notFoundInOrg'));
       
+      // Log activated event
+      await supabase.from('hr_employee_events').insert({
+        tenant_id: tenantId,
+        employee_id: id,
+        event_type: 'activated',
+        event_payload: {},
+        created_by: user.id,
+      });
+      
       return result as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['hr-employee-events', tenantId] });
       toast.success(t('hr.employeeActivated'));
     },
     onError: (error) => {

@@ -230,6 +230,18 @@ export const en = {
       salaryUpdated: "Salary updated",
       startDateUpdated: "Start date updated",
     },
+    
+    // Salary Payments
+    salaryPayments: "Salary Payments",
+    addPayment: "Add Payment",
+    noPayments: "No payments recorded",
+    amount: "Amount",
+    paidAt: "Payment Date",
+    paymentPeriod: "Period",
+    paymentPeriodPlaceholder: "e.g. January 2026",
+    createExpenseRecord: "Create Expense Record",
+    createExpenseDesc: "Also record this as a finance expense",
+    linkedToExpense: "Linked to expense",
   },
   language: {
     title: "Language",

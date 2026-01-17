@@ -230,6 +230,18 @@ export const ar = {
       salaryUpdated: "تحديث الراتب",
       startDateUpdated: "تحديث تاريخ البدء",
     },
+    
+    // Salary Payments
+    salaryPayments: "كشف الرواتب",
+    addPayment: "إضافة دفعة",
+    noPayments: "لا توجد دفعات مسجلة",
+    amount: "المبلغ",
+    paidAt: "تاريخ الدفع",
+    paymentPeriod: "الفترة",
+    paymentPeriodPlaceholder: "مثال: يناير 2026",
+    createExpenseRecord: "تسجيل كمصروف",
+    createExpenseDesc: "تسجيل هذه الدفعة كمصروف في المالية",
+    linkedToExpense: "مرتبط بمصروف",
   },
   language: {
     title: "اللغة",
