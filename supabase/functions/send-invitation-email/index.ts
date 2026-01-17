@@ -4,11 +4,38 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const APP_ORIGIN = Deno.env.get("APP_ORIGIN");
+const RAW_APP_ORIGIN = Deno.env.get("APP_ORIGIN");
 
-// Validate APP_ORIGIN is set (no fallback for security)
-if (!APP_ORIGIN) {
-  console.error("APP_ORIGIN environment variable is not set");
+// Validate and normalize APP_ORIGIN
+function validateAppOrigin(origin: string | undefined): { valid: boolean; normalized?: string; error?: string } {
+  if (!origin) {
+    return { valid: false, error: "APP_ORIGIN is not set" };
+  }
+  
+  // Check for invalid characters (@ or whitespace indicate email was pasted instead of URL)
+  if (origin.includes("@") || /\s/.test(origin)) {
+    return { valid: false, error: "APP_ORIGIN contains invalid characters (@ or whitespace)" };
+  }
+  
+  // Must start with https://
+  if (!origin.startsWith("https://")) {
+    return { valid: false, error: "APP_ORIGIN must start with https://" };
+  }
+  
+  // Normalize: remove trailing slash
+  const normalized = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+  
+  return { valid: true, normalized };
+}
+
+const appOriginValidation = validateAppOrigin(RAW_APP_ORIGIN);
+const APP_ORIGIN = appOriginValidation.normalized;
+
+// Log validation result at startup (safe: only length and prefix)
+if (appOriginValidation.valid) {
+  console.log(`APP_ORIGIN validated: length=${APP_ORIGIN!.length}, prefix="${APP_ORIGIN!.substring(0, 30)}..."`);
+} else {
+  console.error(`APP_ORIGIN validation failed: ${appOriginValidation.error}`);
 }
 
 const corsHeaders = {
@@ -199,17 +226,23 @@ const handler = async (req: Request): Promise<Response> => {
     const roleLabel = roleLabels[invitation.proposed_role] || invitation.proposed_role;
 
     // Validate APP_ORIGIN before building link
-    if (!APP_ORIGIN) {
-      console.error("APP_ORIGIN is not set - cannot build invitation link");
+    if (!appOriginValidation.valid || !APP_ORIGIN) {
+      console.error("Invalid APP_ORIGIN:", appOriginValidation.error);
       return new Response(
-        JSON.stringify({ success: false, error: "Server configuration error: APP_ORIGIN not set" }),
+        JSON.stringify({ 
+          success: false, 
+          error: `Invalid APP_ORIGIN: ${appOriginValidation.error}` 
+        }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
     // Build invitation link server-side using the token
     const invitationLink = `${APP_ORIGIN}/invite/${invitation.token}`;
-    console.log("Built invitation link:", invitationLink);
+    
+    // Safe logging: log link structure without exposing full token
+    const tokenPreview = invitation.token.substring(0, 8) + "...";
+    console.log(`Built invitation link: ${APP_ORIGIN}/invite/${tokenPreview} (full length: ${invitationLink.length})`);
 
     if (!RESEND_API_KEY) {
       throw new Error("RESEND_API_KEY is not configured");
