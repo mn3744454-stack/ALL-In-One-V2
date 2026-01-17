@@ -198,6 +198,26 @@ export const en = {
     toasts: {
       noActiveOrganization: "No active organization",
     },
+    
+    // New MVP fields
+    internal: "Internal",
+    external: "External",
+    total: "Total",
+    employmentKind: "Employment Type",
+    internalDesc: "Permanent staff with salary and benefits",
+    externalDesc: "Contractors, freelancers, or service providers",
+    basicInfo: "Basic Information",
+    contactInfo: "Contact Information",
+    employmentDetails: "Employment Details",
+    additionalInfo: "Additional Information",
+    startDate: "Start Date",
+    salary: "Salary",
+    salaryPayment: "Salary Payment",
+    salaryPaymentCreated: "Salary payment recorded",
+    convertToInternal: "Convert to Internal",
+    convertToExternal: "Convert to External",
+    convertedToInternal: "Converted to internal employee",
+    convertedToExternal: "Converted to external employee",
   },
   language: {
     title: "Language",

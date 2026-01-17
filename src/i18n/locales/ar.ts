@@ -198,6 +198,26 @@ export const ar = {
     toasts: {
       noActiveOrganization: "لا توجد منشأة نشطة",
     },
+    
+    // New MVP fields
+    internal: "داخلي",
+    external: "خارجي",
+    total: "الإجمالي",
+    employmentKind: "نوع التوظيف",
+    internalDesc: "موظف دائم براتب ومزايا",
+    externalDesc: "متعاون أو مزود خدمة مستقل",
+    basicInfo: "المعلومات الأساسية",
+    contactInfo: "معلومات الاتصال",
+    employmentDetails: "تفاصيل التوظيف",
+    additionalInfo: "معلومات إضافية",
+    startDate: "تاريخ البدء",
+    salary: "الراتب",
+    salaryPayment: "دفعة راتب",
+    salaryPaymentCreated: "تم تسجيل دفعة الراتب",
+    convertToInternal: "تحويل لموظف داخلي",
+    convertToExternal: "تحويل لموظف خارجي",
+    convertedToInternal: "تم التحويل لموظف داخلي",
+    convertedToExternal: "تم التحويل لموظف خارجي",
   },
   language: {
     title: "اللغة",
