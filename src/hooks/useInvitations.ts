@@ -108,12 +108,14 @@ export const useInvitations = () => {
   }, [user?.id, activeTenant?.tenant_id]);
 
   const fetchSentInvitations = async () => {
-    if (!activeTenant) return;
+    if (!activeTenant || !user) return;
 
+    // Only fetch invitations sent by the current user (RLS enforces this too)
     const { data, error } = await supabase
       .from("invitations")
       .select("*, token")
       .eq("tenant_id", activeTenant.tenant_id)
+      .eq("sender_id", user.id)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -124,8 +126,10 @@ export const useInvitations = () => {
   const fetchReceivedInvitations = async () => {
     if (!user || !profile) return;
 
-    // RLS policy handles filtering to only show invitations for the current user
-    // Include token for RPC calls and filter actionable statuses
+    // Fetch invitations where the current user is the invitee
+    // The RLS policy also enforces this, but we filter here for clarity
+    const userEmail = profile.email?.toLowerCase();
+    
     const { data, error } = await supabase
       .from("invitations")
       .select(`
@@ -138,7 +142,12 @@ export const useInvitations = () => {
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setReceivedInvitations(data as unknown as Invitation[]);
+      // Filter to only show invitations targeted at current user
+      const filtered = (data as unknown as Invitation[]).filter(inv => 
+        inv.invitee_id === user.id || 
+        (inv.invitee_email && inv.invitee_email.toLowerCase() === userEmail)
+      );
+      setReceivedInvitations(filtered);
     }
   };
 

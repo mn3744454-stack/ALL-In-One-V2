@@ -218,6 +218,18 @@ export const ar = {
     convertToExternal: "تحويل لموظف خارجي",
     convertedToInternal: "تم التحويل لموظف داخلي",
     convertedToExternal: "تم التحويل لموظف خارجي",
+    
+    // Employment Timeline
+    timeline: {
+      title: "السجل الوظيفي",
+      noEvents: "لا يوجد سجل وظيفي",
+      created: "تم الإضافة",
+      activated: "تم التفعيل",
+      deactivated: "تم إلغاء التفعيل",
+      employmentKindChanged: "تغيير نوع التوظيف",
+      salaryUpdated: "تحديث الراتب",
+      startDateUpdated: "تحديث تاريخ البدء",
+    },
   },
   language: {
     title: "اللغة",
