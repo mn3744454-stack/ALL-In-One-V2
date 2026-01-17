@@ -23,3 +23,9 @@ export type { EmploymentKind } from './useEmploymentKind';
 
 export { useSalaryPayments } from './useSalaryPayments';
 export type { SalaryPayment, CreateSalaryPaymentData } from './useSalaryPayments';
+
+export { useEmployeeEvents } from './useEmployeeEvents';
+export type { EmployeeEvent, EmployeeEventType, CreateEmployeeEventData } from './useEmployeeEvents';
+
+export { useEmployeeHorseAccess } from './useEmployeeHorseAccess';
+export type { HorseAccessDetails } from './useEmployeeHorseAccess';

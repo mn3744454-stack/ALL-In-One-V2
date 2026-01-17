@@ -5,3 +5,4 @@ export { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 export { HorseAssignedStaff } from './HorseAssignedStaff';
 export { AddAssignmentDialog } from './AddAssignmentDialog';
 export { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
+export { EmployeeTimeline } from './EmployeeTimeline';

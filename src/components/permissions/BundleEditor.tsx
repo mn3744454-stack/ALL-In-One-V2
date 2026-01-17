@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Search, Package, Shield, FolderOpen, Settings, Users, CheckSquare, Square } from "lucide-react";
+import { Search, Package, Shield, FolderOpen, Settings, Users, CheckSquare, Square, DollarSign, Heart, FlaskConical, ClipboardList, Stethoscope, Boxes, Building } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import type { PermissionDefinition, PermissionBundle } from "@/hooks/usePermissions";
@@ -35,6 +35,28 @@ const moduleIcons: Record<string, React.ReactNode> = {
   files: <FolderOpen className="w-5 h-5" />,
   settings: <Settings className="w-5 h-5" />,
   users: <Users className="w-5 h-5" />,
+  finance: <DollarSign className="w-5 h-5" />,
+  horses: <Heart className="w-5 h-5" />,
+  laboratory: <FlaskConical className="w-5 h-5" />,
+  orders: <ClipboardList className="w-5 h-5" />,
+  vet: <Stethoscope className="w-5 h-5" />,
+  inventory: <Boxes className="w-5 h-5" />,
+  housing: <Building className="w-5 h-5" />,
+};
+
+// Arabic translations for module names
+const moduleLabelsAr: Record<string, string> = {
+  admin: "الإدارة",
+  finance: "المالية",
+  files: "الملفات",
+  horses: "الخيول",
+  inventory: "المخزون",
+  laboratory: "المختبر",
+  orders: "الطلبات",
+  vet: "العيادة",
+  settings: "الإعدادات",
+  users: "المستخدمين",
+  housing: "الإسكان",
 };
 
 export function BundleEditor({
@@ -194,6 +216,11 @@ export function BundleEditor({
                 const allSelected = permissions.every((p) => selectedKeys.has(p.key));
                 const selectedCount = permissions.filter((p) => selectedKeys.has(p.key)).length;
                 const ModuleIcon = moduleIcons[module.toLowerCase()] || <Shield className="w-5 h-5" />;
+                
+                // Use Arabic module label if in RTL mode
+                const moduleLabel = dir === 'rtl' 
+                  ? (moduleLabelsAr[module.toLowerCase()] || module)
+                  : module;
 
                 return (
                   <Card key={module} className="overflow-hidden border shadow-sm">
@@ -203,7 +230,7 @@ export function BundleEditor({
                           <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
                             {ModuleIcon}
                           </span>
-                          {module}
+                          {moduleLabel}
                           <Badge variant="outline" className="text-xs font-normal">
                             {selectedCount} / {permissions.length}
                           </Badge>
@@ -230,44 +257,54 @@ export function BundleEditor({
                     </CardHeader>
                     <CardContent className="p-0">
                       <div className="divide-y">
-                        {permissions.map((perm) => (
-                          <label
-                            key={perm.key}
-                            htmlFor={perm.key}
-                            className={cn(
-                              "flex items-start gap-3 p-3 cursor-pointer transition-all",
-                              selectedKeys.has(perm.key) 
-                                ? "bg-primary/10 hover:bg-primary/15" 
-                                : "hover:bg-muted/50"
-                            )}
-                          >
-                            <Checkbox
-                              id={perm.key}
-                              checked={selectedKeys.has(perm.key)}
-                              onCheckedChange={(checked) =>
-                                handleToggle(perm.key, !!checked)
-                              }
-                              className="mt-0.5 h-5 w-5 shrink-0 border-2 border-primary/50 data-[state=checked]:border-primary"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-medium">
-                                  {perm.display_name}
-                                </span>
-                                {!perm.is_delegatable && (
-                                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                                    {t("permissions.ownerOnly")}
-                                  </Badge>
+                        {permissions.map((perm) => {
+                          // Use Arabic display name if available and in RTL mode
+                          const permLabel = dir === 'rtl' && (perm as any).display_name_ar 
+                            ? (perm as any).display_name_ar 
+                            : perm.display_name;
+                          const permDesc = dir === 'rtl' && (perm as any).description_ar 
+                            ? (perm as any).description_ar 
+                            : perm.description;
+                          
+                          return (
+                            <label
+                              key={perm.key}
+                              htmlFor={perm.key}
+                              className={cn(
+                                "flex items-start gap-3 p-3 cursor-pointer transition-all",
+                                selectedKeys.has(perm.key) 
+                                  ? "bg-primary/10 hover:bg-primary/15" 
+                                  : "hover:bg-muted/50"
+                              )}
+                            >
+                              <Checkbox
+                                id={perm.key}
+                                checked={selectedKeys.has(perm.key)}
+                                onCheckedChange={(checked) =>
+                                  handleToggle(perm.key, !!checked)
+                                }
+                                className="mt-0.5 h-5 w-5 shrink-0 border-2 border-primary/50 data-[state=checked]:border-primary"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-medium">
+                                    {permLabel}
+                                  </span>
+                                  {!perm.is_delegatable && (
+                                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                      {t("permissions.ownerOnly")}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {permDesc && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                                    {permDesc}
+                                  </p>
                                 )}
                               </div>
-                              {perm.description && (
-                                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                                  {perm.description}
-                                </p>
-                              )}
-                            </div>
-                          </label>
-                        ))}
+                            </label>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>

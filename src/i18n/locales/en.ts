@@ -218,6 +218,18 @@ export const en = {
     convertToExternal: "Convert to External",
     convertedToInternal: "Converted to internal employee",
     convertedToExternal: "Converted to external employee",
+    
+    // Employment Timeline
+    timeline: {
+      title: "Employment History",
+      noEvents: "No employment history",
+      created: "Created",
+      activated: "Activated",
+      deactivated: "Deactivated",
+      employmentKindChanged: "Employment type changed",
+      salaryUpdated: "Salary updated",
+      startDateUpdated: "Start date updated",
+    },
   },
   language: {
     title: "Language",
