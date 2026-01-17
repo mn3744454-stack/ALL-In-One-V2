@@ -2436,67 +2436,88 @@ export type Database = {
       }
       hr_employees: {
         Row: {
+          avatar_url: string | null
           created_at: string
           created_by: string | null
           custom_fields: Json
           department: string | null
+          documents: Json | null
           email: string | null
           employee_category:
             | Database["public"]["Enums"]["hr_employee_category"]
             | null
           employee_type: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom: string | null
+          employment_kind: string
           full_name: string
           id: string
           is_active: boolean
           job_title: string | null
           notes: string | null
           phone: string | null
+          salary_amount: number | null
+          salary_currency: string | null
+          start_date: string | null
           tags: string[]
           tenant_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           custom_fields?: Json
           department?: string | null
+          documents?: Json | null
           email?: string | null
           employee_category?:
             | Database["public"]["Enums"]["hr_employee_category"]
             | null
           employee_type?: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom?: string | null
+          employment_kind?: string
           full_name: string
           id?: string
           is_active?: boolean
           job_title?: string | null
           notes?: string | null
           phone?: string | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          start_date?: string | null
           tags?: string[]
           tenant_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           custom_fields?: Json
           department?: string | null
+          documents?: Json | null
           email?: string | null
           employee_category?:
             | Database["public"]["Enums"]["hr_employee_category"]
             | null
           employee_type?: Database["public"]["Enums"]["hr_employee_type"]
           employee_type_custom?: string | null
+          employment_kind?: string
           full_name?: string
           id?: string
           is_active?: boolean
           job_title?: string | null
           notes?: string | null
           phone?: string | null
+          salary_amount?: number | null
+          salary_currency?: string | null
+          start_date?: string | null
           tags?: string[]
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2508,6 +2529,77 @@ export type Database = {
           },
           {
             foreignKeyName: "hr_employees_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hr_salary_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          employee_id: string
+          finance_expense_id: string | null
+          id: string
+          notes: string | null
+          paid_at: string
+          payment_period: string | null
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          employee_id: string
+          finance_expense_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_period?: string | null
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          employee_id?: string
+          finance_expense_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          payment_period?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_salary_payments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "hr_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_salary_payments_expense_fk"
+            columns: ["finance_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_salary_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_salary_payments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -4379,6 +4471,7 @@ export type Database = {
           description: string | null
           description_ar: string | null
           display_name: string
+          display_name_ar: string | null
           is_delegatable: boolean
           key: string
           module: string
@@ -4390,6 +4483,7 @@ export type Database = {
           description?: string | null
           description_ar?: string | null
           display_name: string
+          display_name_ar?: string | null
           is_delegatable?: boolean
           key: string
           module: string
@@ -4401,6 +4495,7 @@ export type Database = {
           description?: string | null
           description_ar?: string | null
           display_name?: string
+          display_name_ar?: string | null
           is_delegatable?: boolean
           key?: string
           module?: string
@@ -6546,6 +6641,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      hr_update_employment_kind: {
+        Args: { _employee_id: string; _employment_kind: string }
+        Returns: Json
       }
       initialize_tenant_defaults: {
         Args: { p_tenant_id: string; p_tenant_type: string }
