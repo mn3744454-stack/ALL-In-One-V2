@@ -175,7 +175,7 @@ const DashboardPermissionsSettings = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-64">
+                  <ScrollArea className="h-[min(60vh,28rem)] min-h-[14rem]">
                     <div className="space-y-2">
                       {bundles.map((bundle) => {
                         const permCount = getBundlePermissions(bundle.id).length;

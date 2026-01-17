@@ -259,7 +259,7 @@ export function MemberPermissionsPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-48">
+                <ScrollArea className="h-[min(50vh,20rem)] min-h-[12rem]">
                   <div className="space-y-2">
                     {bundles.map((bundle) => {
                       const isAssigned = memberBundleIds.has(bundle.id);
@@ -311,7 +311,7 @@ export function MemberPermissionsPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-48">
+                <ScrollArea className="h-[min(50vh,20rem)] min-h-[12rem]">
                   <div className="space-y-1">
                     {allDefinitions.map((perm) => {
                       const override = memberOverrideMap.get(perm.key);
@@ -393,7 +393,7 @@ export function MemberPermissionsPanel() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-48">
+                <ScrollArea className="h-[min(50vh,20rem)] min-h-[12rem]">
                   <div className="space-y-1">
                     {allDefinitions
                       .filter((perm) => perm.is_delegatable !== false)
