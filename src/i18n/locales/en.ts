@@ -42,6 +42,8 @@ export const en = {
     columns4: "4 Columns",
     viewAll: "View All",
     duplicate: "Duplicate",
+    of: "of",
+    tryAdjustingFilters: "Try adjusting your filters",
   },
   settings: {
     permissionsRoles: {

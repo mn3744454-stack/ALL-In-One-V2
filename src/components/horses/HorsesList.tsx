@@ -5,6 +5,9 @@ import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { Button } from "@/components/ui/button";
 import { Heart, Plus } from "lucide-react";
+import { useI18n } from "@/i18n";
+import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface Horse {
   id: string;
@@ -31,6 +34,8 @@ interface HorsesListProps {
 }
 
 export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesListProps) => {
+  const { t } = useI18n();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('horses');
   const [filters, setFilters] = useState<HorseFiltersState>({
     search: "",
     gender: "",
@@ -96,18 +101,25 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-semibold text-navy">
-            Horses
+          <h2 className="font-display text-xl font-semibold text-foreground">
+            {t('horses.title')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {filteredHorses.length} of {horses.length} horses
+            {filteredHorses.length} {t('common.of')} {horses.length} {t('horses.horses')}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable={false}
+          />
           <HorseExport horses={filteredHorses} />
           <Button onClick={() => setWizardOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Horse</span>
+            <span className="hidden sm:inline">{t('horses.addHorse')}</span>
           </Button>
         </div>
       </div>
@@ -123,26 +135,26 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           </div>
           {horses.length === 0 ? (
             <>
-              <h3 className="font-semibold text-navy mb-2">No horses yet</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('horses.noHorses')}</h3>
               <p className="text-muted-foreground mb-4 max-w-sm">
-                Add your first horse to start managing your stable.
+                {t('horses.addFirstHorse')}
               </p>
               <Button onClick={() => setWizardOpen(true)} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Add Your First Horse
+                {t('horses.addHorse')}
               </Button>
             </>
           ) : (
             <>
-              <h3 className="font-semibold text-navy mb-2">No matches found</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('common.noResults')}</h3>
               <p className="text-muted-foreground">
-                Try adjusting your filters.
+                {t('common.tryAdjustingFilters')}
               </p>
             </>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {filteredHorses.map((horse) => (
             <HorseCard
               key={horse.id}
