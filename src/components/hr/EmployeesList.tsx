@@ -17,6 +17,8 @@ import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 import { Plus, Search, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
+import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
+import { useViewPreference } from '@/hooks/useViewPreference';
 import type { Employee, EmployeeFilters, HrEmployeeType, CreateEmployeeData, UpdateEmployeeData } from '@/hooks/hr/useEmployees';
 
 const EMPLOYEE_TYPES: HrEmployeeType[] = [
@@ -51,6 +53,7 @@ export function EmployeesList({
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('hr_employees');
   const { updateEmploymentKind, isUpdating: isTogglingKind } = useEmploymentKind();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -106,7 +109,7 @@ export function EmployeesList({
     <div className="flex flex-col gap-4">
       {/* Header with counters */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-xl font-semibold text-foreground">
             {t('hr.title')}
           </h1>
@@ -124,28 +127,37 @@ export function EmployeesList({
             </div>
           )}
         </div>
-        <Button
-          onClick={() => setShowCreateDialog(true)}
-          size={isMobile ? "sm" : "default"}
-          className="gap-2 shrink-0"
-        >
-          <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">{t('hr.addEmployee')}</span>
-          <span className="sm:hidden">{t('common.add')}</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable={false}
+          />
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            size={isMobile ? "sm" : "default"}
+            className="gap-2 shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('hr.addEmployee')}</span>
+            <span className="sm:hidden">{t('common.add')}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={t('hr.searchPlaceholder')}
             value={filters.search || ''}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
 
@@ -185,9 +197,9 @@ export function EmployeesList({
 
       {/* Employee List */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-[72px] rounded-xl" />
+            <Skeleton key={i} className="h-[80px] rounded-xl" />
           ))}
         </div>
       ) : employees.length === 0 ? (
@@ -207,7 +219,7 @@ export function EmployeesList({
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {employees.map((employee) => (
             <EmployeeCard
               key={employee.id}

@@ -42,6 +42,8 @@ export const ar = {
     columns4: "٤ أعمدة",
     viewAll: "عرض الكل",
     duplicate: "تكرار",
+    of: "من",
+    tryAdjustingFilters: "جرب تعديل الفلاتر",
   },
   settings: {
     permissionsRoles: {
