@@ -31,6 +31,7 @@ import DashboardLaboratory from "./pages/DashboardLaboratory";
 import DashboardHR from "./pages/DashboardHR";
 import DashboardHRSettings from "./pages/DashboardHRSettings";
 import DashboardHRAttendance from "./pages/DashboardHRAttendance";
+import DashboardHRPayroll from "./pages/DashboardHRPayroll";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
 import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
@@ -288,6 +289,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <DashboardHRAttendance />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/hr/payroll"
+        element={
+          <ProtectedRoute>
+            <DashboardHRPayroll />
           </ProtectedRoute>
         }
       />
