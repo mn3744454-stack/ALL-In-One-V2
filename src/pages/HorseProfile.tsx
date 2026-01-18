@@ -38,6 +38,7 @@ import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
 import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
+import { useI18n } from "@/i18n";
 
 interface Horse {
   id: string;
@@ -75,6 +76,7 @@ interface Horse {
 const HorseProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, dir } = useI18n();
   const [horse, setHorse] = useState<Horse | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -186,53 +188,54 @@ const HorseProfile = () => {
 
   const typeBadgeProps = getHorseTypeBadgeProps(horseType);
   const formattedAge = formatCurrentAge(ageParts);
-  const breedName = horse.breed_data?.name || horse.breed || "Unknown breed";
+  const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-background" dir={dir}>
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
-        <div className="flex items-center justify-between h-16 px-4 lg:px-8 max-w-6xl mx-auto">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4 lg:px-8 max-w-6xl mx-auto">
           <Button 
             variant="ghost" 
+            size="sm"
             onClick={() => navigate("/dashboard/horses")}
-            className="gap-2"
+            className="gap-1 sm:gap-2"
           >
-            <ChevronLeft className="w-4 h-4" />
-            Back to Horses
+            <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+            <span className="hidden sm:inline">{t('horses.backToHorses')}</span>
           </Button>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Button 
               variant="outline" 
               size="sm" 
-              className="gap-2"
+              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
               onClick={() => setShowEditWizard(true)}
             >
               <Pencil className="w-4 h-4" />
-              <span className="hidden sm:inline">Edit</span>
+              <span className="hidden sm:inline">{t('common.edit')}</span>
             </Button>
             <Button 
               variant="destructive" 
               size="sm" 
-              className="gap-2"
+              className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
               onClick={() => setShowDeleteDialog(true)}
             >
               <Trash2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Delete</span>
+              <span className="hidden sm:inline">{t('common.delete')}</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 lg:p-8 space-y-6">
+      <main className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6">
         {/* Hero Section */}
         <Card variant="elevated">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row items-start gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
               {/* Avatar */}
-              <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden mx-auto md:mx-0">
+              <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden">
                 {horse.avatar_url ? (
                   <img 
                     src={horse.avatar_url} 
@@ -240,13 +243,13 @@ const HorseProfile = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <Heart className="w-16 h-16 text-gold" />
+                  <Heart className="w-10 sm:w-16 h-10 sm:h-16 text-gold" />
                 )}
               </div>
 
               {/* Info */}
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+              <div className="flex-1 text-center sm:text-start">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                   <Badge className={typeBadgeProps.className}>
                     {typeBadgeProps.label}
                   </Badge>
@@ -255,30 +258,30 @@ const HorseProfile = () => {
                   </Badge>
                 </div>
                 
-                <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
+                <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">
                   {horse.name}
                 </h1>
                 {horse.name_ar && (
-                  <p className="text-lg text-muted-foreground mb-3" dir="rtl">
+                  <p className="text-base sm:text-lg text-muted-foreground mb-3" dir="rtl">
                     {horse.name_ar}
                   </p>
                 )}
 
-                <p className="text-muted-foreground mb-4">
+                <p className="text-sm sm:text-base text-muted-foreground mb-4">
                   {breedName}
                   {colorName && ` • ${colorName}`}
                 </p>
 
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   {ageParts && (
                     <span className="flex items-center gap-1.5">
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       {formattedAge}
                     </span>
                   )}
                   {horse.branch_data?.name && (
                     <span className="flex items-center gap-1.5">
-                      <MapPin className="w-4 h-4" />
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       {horse.branch_data.name}
                     </span>
                   )}
@@ -289,117 +292,117 @@ const HorseProfile = () => {
         </Card>
 
         {/* Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Physical Specs */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Ruler className="w-5 h-5 text-gold" />
-                Physical Specifications
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <Ruler className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                {t('horses.profile.physicalSpecs')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3">
               {horse.height && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Height</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.height')}</span>
                   <span className="font-medium">{horse.height} cm</span>
                 </div>
               )}
               {horse.weight && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Weight</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.weight')}</span>
                   <span className="font-medium">{horse.weight} kg</span>
                 </div>
               )}
               {!horse.height && !horse.weight && (
-                <p className="text-muted-foreground text-sm">No physical specs recorded</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noPhysicalSpecs')}</p>
               )}
             </CardContent>
           </Card>
 
           {/* Identification */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="w-5 h-5 text-gold" />
-                Identification
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                {t('horses.profile.identification')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3">
               {horse.microchip_number && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Microchip</span>
-                  <span className="font-mono text-sm">{horse.microchip_number}</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.microchip')}</span>
+                  <span className="font-mono text-xs sm:text-sm">{horse.microchip_number}</span>
                 </div>
               )}
               {horse.passport_number && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Passport</span>
-                  <span className="font-mono text-sm">{horse.passport_number}</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.passport')}</span>
+                  <span className="font-mono text-xs sm:text-sm">{horse.passport_number}</span>
                 </div>
               )}
               {horse.ueln && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">UELN</span>
-                  <span className="font-mono text-sm">{horse.ueln}</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.ueln')}</span>
+                  <span className="font-mono text-xs sm:text-sm">{horse.ueln}</span>
                 </div>
               )}
               {!horse.microchip_number && !horse.passport_number && !horse.ueln && (
-                <p className="text-muted-foreground text-sm">No identification recorded</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noIdentification')}</p>
               )}
             </CardContent>
           </Card>
 
           {/* Pedigree */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="w-5 h-5 text-gold" />
-                Pedigree
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                {t('horses.profile.pedigree')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3">
               {horse.father_name && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sire (Father)</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.sire')}</span>
                   <span className="font-medium">{horse.father_name}</span>
                 </div>
               )}
               {horse.mother_name && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Dam (Mother)</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.dam')}</span>
                   <span className="font-medium">{horse.mother_name}</span>
                 </div>
               )}
               {!horse.father_name && !horse.mother_name && (
-                <p className="text-muted-foreground text-sm">No pedigree information recorded</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noPedigree')}</p>
               )}
             </CardContent>
           </Card>
 
           {/* Location */}
           <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-gold" />
-                Location
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
+                {t('horses.profile.location')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2 sm:space-y-3">
               {horse.branch_data?.name && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Branch</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.branch')}</span>
                   <span className="font-medium">{horse.branch_data.name}</span>
                 </div>
               )}
               {horse.stable_data?.name && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Stable</span>
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('horses.profile.stable')}</span>
                   <span className="font-medium">{horse.stable_data.name}</span>
                 </div>
               )}
               {!horse.branch_data?.name && !horse.stable_data?.name && (
-                <p className="text-muted-foreground text-sm">No location assigned</p>
+                <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noLocation')}</p>
               )}
             </CardContent>
           </Card>
@@ -409,17 +412,17 @@ const HorseProfile = () => {
         {((horse.images && horse.images.length > 0) || (horse.videos && horse.videos.length > 0)) && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Media Gallery</CardTitle>
+              <CardTitle className="text-base sm:text-lg">{t('horses.profile.mediaGallery')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
                 {horse.images?.map((url, index) => (
-                  <div key={`img-${index}`} className="aspect-square rounded-xl overflow-hidden bg-muted">
+                  <div key={`img-${index}`} className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-muted">
                     <img src={url} alt={`${horse.name} ${index + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
                 {horse.videos?.map((url, index) => (
-                  <div key={`vid-${index}`} className="aspect-square rounded-xl overflow-hidden bg-muted">
+                  <div key={`vid-${index}`} className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-muted">
                     <video src={url} className="w-full h-full object-cover" controls />
                   </div>
                 ))}
@@ -432,10 +435,10 @@ const HorseProfile = () => {
         {horse.notes && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Notes</CardTitle>
+              <CardTitle className="text-base sm:text-lg">{t('horses.profile.notes')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap">{horse.notes}</p>
+              <p className="text-muted-foreground text-sm whitespace-pre-wrap">{horse.notes}</p>
             </CardContent>
           </Card>
         )}
@@ -464,7 +467,7 @@ const HorseProfile = () => {
         existingHorse={horse as HorseData}
         onSuccess={() => {
           setShowEditWizard(false);
-          fetchHorse(); // Refresh data
+          fetchHorse();
         }}
       />
 
@@ -472,20 +475,19 @@ const HorseProfile = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {horse.name}?</AlertDialogTitle>
+            <AlertDialogTitle>{t('horses.deleteConfirm.title').replace('{{name}}', horse.name)}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the horse
-              and all associated data.
+              {t('horses.deleteConfirm.description')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? t('horses.deleteConfirm.deleting') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
