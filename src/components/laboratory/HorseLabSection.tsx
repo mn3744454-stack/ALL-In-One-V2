@@ -10,6 +10,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   FlaskConical, 
   ChevronRight, 
@@ -17,18 +23,22 @@ import {
   AlertTriangle, 
   XCircle,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n";
 
 interface LabResult {
   id: string;
   status: string;
   flags: string | null;
   created_at: string;
-  template: { name: string } | null;
+  result_data: Record<string, unknown> | null;
+  template_id: string | null;
+  template: { id: string; name: string; fields: unknown[] } | null;
   sample: { physical_sample_id: string | null } | null;
 }
 
@@ -39,9 +49,11 @@ interface HorseLabSectionProps {
 
 export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const [results, setResults] = useState<LabResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
 
   useEffect(() => {
     if (activeTenant?.tenant.id && horseId) {
@@ -68,7 +80,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
 
       const sampleIds = samples.map(s => s.id);
 
-      // Then get results for those samples
+      // Then get results for those samples with full template data
       const { data, error } = await supabase
         .from("lab_results")
         .select(`
@@ -76,7 +88,9 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
           status,
           flags,
           created_at,
-          template:lab_templates(name),
+          result_data,
+          template_id,
+          template:lab_templates(id, name, fields),
           sample:lab_samples(physical_sample_id)
         `)
         .eq("tenant_id", activeTenant!.tenant.id)
@@ -114,17 +128,146 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'final':
-        return <Badge variant="secondary" className="bg-green-100 text-green-800">Final</Badge>;
+        return <Badge variant="secondary" className="bg-green-100 text-green-800">{t('laboratory.results.status.final')}</Badge>;
       case 'reviewed':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Reviewed</Badge>;
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{t('laboratory.results.status.reviewed')}</Badge>;
       default:
-        return <Badge variant="secondary">Draft</Badge>;
+        return <Badge variant="secondary">{t('laboratory.results.status.draft')}</Badge>;
     }
   };
 
   const handleViewAll = () => {
-    navigate("/dashboard/laboratory");
+    // Navigate with horse filter
+    navigate(`/dashboard/laboratory?tab=results&horse=${horseId}`);
   };
+
+  const handleResultClick = (result: LabResult) => {
+    setSelectedResult(result);
+  };
+
+  // Result Preview Dialog
+  const ResultPreviewDialog = () => {
+    if (!selectedResult) return null;
+
+    const templateFields = (selectedResult.template?.fields || []) as Array<{
+      key: string;
+      label: string;
+      type: string;
+      unit?: string;
+      reference_range?: { min?: number; max?: number };
+    }>;
+
+    const resultData = (selectedResult.result_data || {}) as Record<string, unknown>;
+
+    return (
+      <Dialog open={!!selectedResult} onOpenChange={() => setSelectedResult(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {getFlagIcon(selectedResult.flags)}
+              {selectedResult.template?.name || t('laboratory.results.unknownTest')}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Meta info */}
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                {format(new Date(selectedResult.created_at), "PPP")}
+              </div>
+              {getStatusBadge(selectedResult.status)}
+            </div>
+
+            {/* Result fields */}
+            {templateFields.length > 0 ? (
+              <div className="space-y-3">
+                {templateFields.map((field) => {
+                  const value = resultData[field.key];
+                  const numValue = typeof value === 'number' ? value : null;
+                  const refRange = field.reference_range;
+                  
+                  let valueColor = '';
+                  if (numValue !== null && refRange) {
+                    if (refRange.min !== undefined && numValue < refRange.min) {
+                      valueColor = 'text-orange-600';
+                    } else if (refRange.max !== undefined && numValue > refRange.max) {
+                      valueColor = 'text-red-600';
+                    } else {
+                      valueColor = 'text-green-600';
+                    }
+                  }
+
+                  return (
+                    <div key={field.key} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div>
+                        <p className="font-medium text-sm">{field.label}</p>
+                        {refRange && (
+                          <p className="text-xs text-muted-foreground">
+                            {t('laboratory.results.refRange')}: {refRange.min ?? '-'} - {refRange.max ?? '-'} {field.unit || ''}
+                          </p>
+                        )}
+                      </div>
+                      <div className={`font-mono text-lg ${valueColor}`}>
+                        {value !== undefined && value !== null ? String(value) : '-'} 
+                        {field.unit && <span className="text-xs text-muted-foreground ms-1">{field.unit}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-4">
+                {t('laboratory.results.noFields')}
+              </p>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setSelectedResult(null)}>
+                {t('common.close')}
+              </Button>
+              <Button onClick={() => navigate(`/dashboard/laboratory?tab=results&resultId=${selectedResult.id}`)}>
+                {t('laboratory.results.viewDetails')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Result row component (clickable)
+  const ResultRow = ({ result, compact = false }: { result: LabResult; compact?: boolean }) => (
+    <div 
+      key={result.id}
+      className={`flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ${compact ? 'bg-muted/30' : ''}`}
+      onClick={() => handleResultClick(result)}
+    >
+      <div className="flex items-center gap-3">
+        {getFlagIcon(result.flags)}
+        <div>
+          <p className={`font-medium ${compact ? 'text-sm' : ''}`}>{result.template?.name || t('laboratory.results.unknownTest')}</p>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            {format(new Date(result.created_at), "MMM d, yyyy")}
+            {result.sample?.physical_sample_id && (
+              <span className="font-mono">#{result.sample.physical_sample_id}</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {result.flags && (
+          <Badge className={getFlagColor(result.flags)} variant="secondary">
+            {result.flags}
+          </Badge>
+        )}
+        {!compact && getStatusBadge(result.status)}
+        <Eye className="h-4 w-4 text-muted-foreground" />
+      </div>
+    </div>
+  );
 
   // Desktop view
   const DesktopView = () => (
@@ -132,10 +275,10 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-2">
           <FlaskConical className="w-5 h-5 text-primary" />
-          Laboratory Results
+          {t('laboratory.results.title')}
         </CardTitle>
         <Button variant="outline" size="sm" onClick={handleViewAll}>
-          View All
+          {t('common.viewAll')}
           <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
         </Button>
       </CardHeader>
@@ -149,44 +292,19 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
         ) : results.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <FlaskConical className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p>No laboratory results yet</p>
+            <p>{t('laboratory.results.noResults')}</p>
             <Button 
               variant="link" 
               className="mt-2"
               onClick={handleViewAll}
             >
-              Create a sample <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+              {t('laboratory.samples.create')} <ArrowRight className="h-4 w-4 ms-1 rtl:rotate-180" />
             </Button>
           </div>
         ) : (
           <div className="space-y-3">
             {results.map((result) => (
-              <div 
-                key={result.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {getFlagIcon(result.flags)}
-                  <div>
-                    <p className="font-medium">{result.template?.name || 'Unknown Test'}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {format(new Date(result.created_at), "MMM d, yyyy")}
-                      {result.sample?.physical_sample_id && (
-                        <span className="font-mono">#{result.sample.physical_sample_id}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {result.flags && (
-                    <Badge className={getFlagColor(result.flags)} variant="secondary">
-                      {result.flags}
-                    </Badge>
-                  )}
-                  {getStatusBadge(result.status)}
-                </div>
-              </div>
+              <ResultRow key={result.id} result={result} />
             ))}
           </div>
         )}
@@ -201,7 +319,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
         <AccordionTrigger className="px-4 hover:no-underline">
           <div className="flex items-center gap-2">
             <FlaskConical className="w-5 h-5 text-primary" />
-            <span className="font-medium">Laboratory Results</span>
+            <span className="font-medium">{t('laboratory.results.title')}</span>
             {results.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {results.length}
@@ -218,44 +336,20 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
             </div>
           ) : results.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              <p className="text-sm">No laboratory results yet</p>
+              <p className="text-sm">{t('laboratory.results.noResults')}</p>
               <Button 
                 variant="link" 
                 size="sm"
                 className="mt-1"
                 onClick={handleViewAll}
               >
-                Create a sample
+                {t('laboratory.samples.create')}
               </Button>
             </div>
           ) : (
             <div className="space-y-3">
               {results.map((result) => (
-                <div 
-                  key={result.id}
-                  className="p-3 border rounded-lg bg-muted/30"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {getFlagIcon(result.flags)}
-                      <span className="font-medium text-sm">
-                        {result.template?.name || 'Unknown Test'}
-                      </span>
-                    </div>
-                    {getStatusBadge(result.status)}
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {format(new Date(result.created_at), "MMM d, yyyy")}
-                    </div>
-                    {result.flags && (
-                      <Badge className={getFlagColor(result.flags)} variant="secondary">
-                        {result.flags}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+                <ResultRow key={result.id} result={result} compact />
               ))}
               <Button 
                 variant="outline" 
@@ -263,7 +357,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                 className="w-full mt-2"
                 onClick={handleViewAll}
               >
-                View All Results
+                {t('common.viewAll')}
                 <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
               </Button>
             </div>
@@ -277,6 +371,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
     <>
       <DesktopView />
       <MobileView />
+      <ResultPreviewDialog />
     </>
   );
 }

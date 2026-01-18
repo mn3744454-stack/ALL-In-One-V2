@@ -487,6 +487,7 @@ export const en = {
     
     // Results List & Card
     results: {
+      title: "Laboratory Results",
       searchPlaceholder: "Search results...",
       statusFilter: "Status",
       allStatus: "All Status",
@@ -494,10 +495,12 @@ export const en = {
       allFlags: "All Flags",
       newResult: "New Result",
       enterResult: "Enter Result",
+      noResults: "No laboratory results yet",
       noResultsFound: "No results found",
       adjustFilters: "Try adjusting your filters",
       createFirst: "Create your first result to get started",
       unknownHorse: "Unknown Horse",
+      unknownTest: "Unknown Test",
       unknownTemplate: "Unknown Template",
       deleteResult: "Delete Result",
       deleteConfirmation: "Are you sure you want to delete this result? This action cannot be undone.",
@@ -509,6 +512,14 @@ export const en = {
       resultsCount: "{{count}} results",
       finalizedProgress: "Finalized",
       showSamples: "Show samples",
+      refRange: "Ref. range",
+      noFields: "No fields for this template",
+      viewDetails: "View Details",
+      status: {
+        draft: "Draft",
+        reviewed: "Reviewed",
+        final: "Final",
+      },
     },
     
     // Result Actions

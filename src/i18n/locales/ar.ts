@@ -490,6 +490,7 @@ export const ar = {
     
     // Results List & Card
     results: {
+      title: "نتائج المختبر",
       searchPlaceholder: "البحث في النتائج...",
       statusFilter: "الحالة",
       allStatus: "جميع الحالات",
@@ -497,10 +498,12 @@ export const ar = {
       allFlags: "جميع التصنيفات",
       newResult: "نتيجة جديدة",
       enterResult: "إدخال نتيجة",
+      noResults: "لا توجد نتائج مختبرية",
       noResultsFound: "لا توجد نتائج",
       adjustFilters: "جرب تعديل عوامل التصفية",
       createFirst: "أنشئ نتيجتك الأولى للبدء",
       unknownHorse: "خيل غير معروف",
+      unknownTest: "فحص غير معروف",
       unknownTemplate: "قالب غير معروف",
       deleteResult: "حذف النتيجة",
       deleteConfirmation: "هل أنت متأكد من حذف هذه النتيجة؟ لا يمكن التراجع عن هذا الإجراء.",
@@ -512,6 +515,14 @@ export const ar = {
       resultsCount: "{{count}} نتائج",
       finalizedProgress: "معتمد",
       showSamples: "عرض العينات",
+      refRange: "النطاق المرجعي",
+      noFields: "لا توجد حقول لهذا القالب",
+      viewDetails: "عرض التفاصيل",
+      status: {
+        draft: "مسودة",
+        reviewed: "مراجع",
+        final: "نهائي",
+      },
     },
     
     // Result Actions
