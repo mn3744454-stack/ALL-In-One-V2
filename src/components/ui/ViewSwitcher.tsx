@@ -44,11 +44,9 @@ export function ViewSwitcher({
 }: ViewSwitcherProps) {
   const { t } = useI18n();
 
-  const CurrentIcon = VIEW_ICONS[viewMode];
-
   return (
     <div className={cn("flex items-center gap-1", className)}>
-      {/* Quick toggle buttons for mobile */}
+      {/* Quick toggle buttons */}
       <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/30">
         {showTable && (
           <Button

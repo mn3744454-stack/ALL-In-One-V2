@@ -841,66 +841,71 @@ export function CreateSampleDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               {isRetest ? t("laboratory.createSample.createRetest") : t("laboratory.createSample.title")}
             </DialogTitle>
           </DialogHeader>
 
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center gap-2 py-4">
-            {effectiveSteps.map((s, i) => (
-              <div key={s.key} className="flex items-center">
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                    i === step
-                      ? "bg-primary text-primary-foreground"
-                      : i < step
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {i < step ? <Check className="h-4 w-4" /> : i + 1}
-                </div>
-                {i < effectiveSteps.length - 1 && (
+          {/* Step Indicator - scrollable on mobile */}
+          <div className="flex-shrink-0 overflow-x-auto scrollbar-hide py-4">
+            <div className="flex items-center justify-center gap-1 sm:gap-2 min-w-max px-2">
+              {effectiveSteps.map((s, i) => (
+                <div key={s.key} className="flex items-center">
                   <div
                     className={cn(
-                      "w-8 h-0.5 mx-1",
-                      i < step ? "bg-primary" : "bg-muted"
+                      "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-colors",
+                      i === step
+                        ? "bg-primary text-primary-foreground"
+                        : i < step
+                        ? "bg-primary/20 text-primary"
+                        : "bg-muted text-muted-foreground"
                     )}
-                  />
-                )}
-              </div>
-            ))}
+                  >
+                    {i < step ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : i + 1}
+                  </div>
+                  {i < effectiveSteps.length - 1 && (
+                    <div
+                      className={cn(
+                        "w-4 sm:w-8 h-0.5 mx-0.5 sm:mx-1",
+                        i < step ? "bg-primary" : "bg-muted"
+                      )}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="text-center mb-4">
-            <h3 className="font-semibold">
+          <div className="text-center mb-2 sm:mb-4 flex-shrink-0">
+            <h3 className="font-semibold text-sm sm:text-base">
               {t(`laboratory.createSample.steps.${effectiveSteps[step]?.key}`)}
             </h3>
           </div>
 
-          {/* Step Content */}
-          <div className="min-h-[200px]">
-            {renderStepContent()}
-          </div>
+          {/* Step Content - scrollable */}
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="px-1 pb-4">
+              {renderStepContent()}
+            </div>
+          </ScrollArea>
 
           {/* Navigation - hide for checkout step (has its own buttons) */}
           {effectiveSteps[step]?.key !== 'checkout' && (
-            <div className="flex gap-3 pt-4 border-t">
+            <div className="flex-shrink-0 flex gap-2 sm:gap-3 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"
                 onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
                 className="flex-1"
+                size="sm"
               >
                 {step === 0 ? (
                   t("common.cancel")
                 ) : (
                   <>
-                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    <ChevronLeft className="h-4 w-4 me-1" />
                     {t("common.back")}
                   </>
                 )}
@@ -911,17 +916,19 @@ export function CreateSampleDialog({
                   onClick={handleNext}
                   disabled={!canProceed()}
                   className="flex-1"
+                  size="sm"
                 >
                   {t("common.next")}
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-4 w-4 ms-1" />
                 </Button>
               ) : (
                 <Button
                   onClick={handleSubmit}
                   disabled={loading || !canProceed()}
                   className="flex-1"
+                  size="sm"
                 >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {loading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
                   {formData.selectedHorses.length > 1 
                     ? t("laboratory.createSample.createSamples") 
                     : t("laboratory.createSample.createSample")}

@@ -124,11 +124,6 @@ interface DashboardSidebarProps {
 
 export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
   const isDesktop = useIsDesktop();
-  
-  // Don't render sidebar at all on mobile/tablet (<1024px)
-  // This is the single-point fix for mobile sidebar isolation
-  if (!isDesktop) return null;
-  
   const location = useLocation();
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
@@ -141,14 +136,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     breedingEnabled 
   } = useModuleAccess();
   const { t, dir } = useI18n();
-
-  const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  const isActive = (path: string) => location.pathname === path;
 
   // Build horses nav items conditionally based on module access
   const horsesNavItems = useMemo(() => {
@@ -175,6 +162,30 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     
     return items;
   }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);
+
+  // Build HR nav items
+  const hrNavItems = useMemo(() => [
+    { icon: Users, label: t('hr.title'), href: "/dashboard/hr" },
+    { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
+  ], [t]);
+
+  // Build Finance nav items
+  const financeNavItems = useMemo(() => [
+    { icon: TrendingUp, label: t('finance.overview'), href: "/dashboard/finance" },
+    { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
+    { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
+  ], [t]);
+
+  // Don't render sidebar at all on mobile/tablet (<1024px)
+  if (!isDesktop) return null;
+
+  const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const isActive = (path: string) => location.pathname === path;
 
   // RTL-aware sidebar positioning
   const sidebarPositionClasses = dir === 'rtl'
@@ -263,13 +274,12 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               onNavigate={onClose} 
             />
             
-            {/* HR / Team - for owners and managers */}
+            {/* HR / Team NavGroup - for owners and managers */}
             {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavItem
+              <NavGroup
                 icon={Users}
                 label={t('sidebar.hr')}
-                href="/dashboard/hr"
-                active={isActive("/dashboard/hr")}
+                items={hrNavItems}
                 onNavigate={onClose}
               />
             )}
@@ -285,38 +295,36 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               />
             )}
 
-            {/* Services & Revenue - for owners and managers */}
+            {/* Services - for owners and managers */}
             {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <>
-                <NavItem
-                  icon={Package}
-                  label={t('sidebar.services')}
-                  href="/dashboard/services"
-                  active={isActive("/dashboard/services")}
-                  onNavigate={onClose}
-                />
-                <NavItem
-                  icon={TrendingUp}
-                  label={t('sidebar.revenue')}
-                  href="/dashboard/revenue"
-                  active={isActive("/dashboard/revenue")}
-                  onNavigate={onClose}
-                />
-                <NavItem
-                  icon={Wallet}
-                  label={t('finance.title')}
-                  href="/dashboard/finance"
-                  active={isActive("/dashboard/finance")}
-                  onNavigate={onClose}
-                />
-                <NavItem
-                  icon={FolderOpen}
-                  label={t('files.title')}
-                  href="/dashboard/files"
-                  active={isActive("/dashboard/files")}
-                  onNavigate={onClose}
-                />
-              </>
+              <NavItem
+                icon={Package}
+                label={t('sidebar.services')}
+                href="/dashboard/services"
+                active={isActive("/dashboard/services")}
+                onNavigate={onClose}
+              />
+            )}
+            
+            {/* Finance NavGroup - for owners and managers */}
+            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
+              <NavGroup
+                icon={Wallet}
+                label={t('finance.title')}
+                items={financeNavItems}
+                onNavigate={onClose}
+              />
+            )}
+
+            {/* Files - for owners and managers */}
+            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
+              <NavItem
+                icon={FolderOpen}
+                label={t('files.title')}
+                href="/dashboard/files"
+                active={isActive("/dashboard/files")}
+                onNavigate={onClose}
+              />
             )}
 
             {/* Academy sessions & bookings - for academy owners/managers */}

@@ -109,13 +109,16 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ViewSwitcher
-            viewMode={viewMode}
-            gridColumns={gridColumns}
-            onViewModeChange={setViewMode}
-            onGridColumnsChange={setGridColumns}
-            showTable={false}
-          />
+          {/* Hide ViewSwitcher on mobile */}
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={true}
+            />
+          </div>
           <HorseExport horses={filteredHorses} />
           <Button onClick={() => setWizardOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
