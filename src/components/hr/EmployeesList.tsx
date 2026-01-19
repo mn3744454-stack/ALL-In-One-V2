@@ -128,13 +128,16 @@ export function EmployeesList({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <ViewSwitcher
-            viewMode={viewMode}
-            gridColumns={gridColumns}
-            onViewModeChange={setViewMode}
-            onGridColumnsChange={setGridColumns}
-            showTable={false}
-          />
+          {/* Hide ViewSwitcher on mobile */}
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={true}
+            />
+          </div>
           <Button
             onClick={() => setShowCreateDialog(true)}
             size={isMobile ? "sm" : "default"}
