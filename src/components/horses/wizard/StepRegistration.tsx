@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Search, Loader2, Heart } from "lucide-react";
 import { useHorseSearch } from "@/hooks/useHorseSearch";
+import { useI18n } from "@/i18n";
 import type { HorseWizardData } from "../HorseWizard";
 
 interface StepRegistrationProps {
@@ -12,6 +13,7 @@ interface StepRegistrationProps {
 }
 
 export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const { results, loading, search, clear } = useHorseSearch();
 
@@ -34,9 +36,9 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="font-semibold text-navy mb-2">Is this horse already registered?</h3>
+        <h3 className="font-semibold text-navy mb-2">{t('horses.wizard.alreadyRegistered')}</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Check if the horse is already in the platform by microchip or passport number.
+          {t('horses.wizard.checkRegistrationDesc')}
         </p>
       </div>
 
@@ -54,15 +56,15 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
         <div className="flex items-center gap-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
           <RadioGroupItem value="no" id="no" />
           <Label htmlFor="no" className="cursor-pointer flex-1">
-            <div className="font-medium">No, this is a new horse</div>
-            <div className="text-sm text-muted-foreground">Register a new horse from scratch</div>
+            <div className="font-medium">{t('horses.wizard.newHorse')}</div>
+            <div className="text-sm text-muted-foreground">{t('horses.wizard.newHorseDesc')}</div>
           </Label>
         </div>
         <div className="flex items-center gap-3 p-4 border rounded-xl hover:bg-muted/50 cursor-pointer">
           <RadioGroupItem value="yes" id="yes" />
           <Label htmlFor="yes" className="cursor-pointer flex-1">
-            <div className="font-medium">Yes, search existing horse</div>
-            <div className="text-sm text-muted-foreground">Find by name, microchip, passport, or UELN</div>
+            <div className="font-medium">{t('horses.wizard.existingHorse')}</div>
+            <div className="text-sm text-muted-foreground">{t('horses.wizard.existingHorseDesc')}</div>
           </Label>
         </div>
       </RadioGroup>
@@ -70,15 +72,15 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
       {data.isRegistered && (
         <div className="space-y-4 pt-4 border-t">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name (EN/AR), microchip, passport, or UELN..."
-              className="pl-10"
+              placeholder={t('horses.wizard.searchPlaceholder')}
+              className="ps-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {loading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+              <Loader2 className="absolute end-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
             )}
           </div>
 
@@ -87,11 +89,11 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
             <div className="space-y-2">
               {loading ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  Searching...
+                  {t('common.loading')}
                 </p>
               ) : results.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No horses found matching "{searchQuery}"
+                  {t('horses.wizard.noSearchResults')} "{searchQuery}"
                 </p>
               ) : (
                 <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -141,7 +143,7 @@ export const StepRegistration = ({ data, onChange }: StepRegistrationProps) => {
 
           {searchQuery.length < 2 && (
             <p className="text-sm text-muted-foreground text-center">
-              Type at least 2 characters to search
+              {t('horses.wizard.minSearchChars')}
             </p>
           )}
         </div>
