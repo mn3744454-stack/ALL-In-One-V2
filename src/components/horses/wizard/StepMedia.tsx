@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { SecureImage } from "@/components/ui/SecureImage";
 import type { HorseWizardData } from "../HorseWizard";
+import { useI18n } from "@/i18n";
 
 // Interface for media asset references stored in wizard data
 export interface MediaAssetRef {
@@ -27,6 +28,7 @@ interface StepMediaProps {
 }
 
 export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: StepMediaProps) => {
+  const { t } = useI18n();
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [dragOverImages, setDragOverImages] = useState(false);
@@ -159,7 +161,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('image/')) {
           toast({
-            title: "Invalid file type",
+            title: t('common.error'),
             description: `${file.name} is not an image`,
             variant: "destructive",
           });
@@ -176,13 +178,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
         // Also update legacy images array for backward compatibility
         onChange({ images: [...data.images, ...uploadedAssets.map(a => a.path)] });
         toast({
-          title: "Images uploaded",
+          title: t('common.success'),
           description: `${uploadedAssets.length} image(s) uploaded successfully`,
         });
       }
     } catch (error: any) {
       toast({
-        title: "Upload failed",
+        title: t('common.error'),
         description: error.message || "Failed to upload images",
         variant: "destructive",
       });
@@ -201,7 +203,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       for (const file of Array.from(files)) {
         if (!file.type.startsWith('video/')) {
           toast({
-            title: "Invalid file type",
+            title: t('common.error'),
             description: `${file.name} is not a video`,
             variant: "destructive",
           });
@@ -211,7 +213,7 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
         // Check file size (50MB limit)
         if (file.size > 50 * 1024 * 1024) {
           toast({
-            title: "File too large",
+            title: t('common.error'),
             description: `${file.name} exceeds 50MB limit`,
             variant: "destructive",
           });
@@ -228,13 +230,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
         // Also update legacy videos array for backward compatibility
         onChange({ videos: [...(data.videos || []), ...uploadedAssets.map(a => a.path)] });
         toast({
-          title: "Videos uploaded",
+          title: t('common.success'),
           description: `${uploadedAssets.length} video(s) uploaded successfully`,
         });
       }
     } catch (error: any) {
       toast({
-        title: "Upload failed",
+        title: t('common.error'),
         description: error.message || "Failed to upload videos",
         variant: "destructive",
       });
@@ -275,13 +277,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       onChange({ images: data.images.filter((_, i) => i !== index) });
       
       toast({
-        title: "Image removed",
-        description: "Image has been deleted",
+        title: t('common.success'),
+        description: t('common.deleted'),
       });
     } catch (error: any) {
       console.error("Error removing image:", error);
       toast({
-        title: "Failed to remove image",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -305,13 +307,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       onChange({ videos: (data.videos || []).filter((_, i) => i !== index) });
       
       toast({
-        title: "Video removed",
-        description: "Video has been deleted",
+        title: t('common.success'),
+        description: t('common.deleted'),
       });
     } catch (error: any) {
       console.error("Error removing video:", error);
       toast({
-        title: "Failed to remove video",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -338,8 +340,8 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <Label className="text-base">Images</Label>
-            <p className="text-sm text-muted-foreground">Upload or drag-and-drop images</p>
+            <Label className="text-base">{t('horses.wizard.images')}</Label>
+            <p className="text-sm text-muted-foreground">{t('horses.wizard.uploadOrDragImages')}</p>
           </div>
         </div>
 
@@ -357,13 +359,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
           {uploadingImages ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 text-gold animate-spin" />
-              <p className="text-sm text-muted-foreground">Uploading...</p>
+              <p className="text-sm text-muted-foreground">{t('horses.wizard.uploading')}</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Upload className="w-8 h-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Drop images here or click to browse</p>
-              <p className="text-xs text-muted-foreground">JPG, PNG, WebP, GIF</p>
+              <p className="text-sm font-medium">{t('horses.wizard.dropImagesHere')}</p>
+              <p className="text-xs text-muted-foreground">{t('horses.wizard.imageFormats')}</p>
             </div>
           )}
           <input
@@ -404,8 +406,8 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <Label className="text-base">Videos</Label>
-            <p className="text-sm text-muted-foreground">Upload or drag-and-drop videos (max 50MB)</p>
+            <Label className="text-base">{t('horses.wizard.videos')}</Label>
+            <p className="text-sm text-muted-foreground">{t('horses.wizard.uploadOrDragVideos')}</p>
           </div>
         </div>
 
@@ -423,13 +425,13 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
           {uploadingVideos ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="w-8 h-8 text-gold animate-spin" />
-              <p className="text-sm text-muted-foreground">Uploading...</p>
+              <p className="text-sm text-muted-foreground">{t('horses.wizard.uploading')}</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Video className="w-8 h-8 text-muted-foreground" />
-              <p className="text-sm font-medium">Drop videos here or click to browse</p>
-              <p className="text-xs text-muted-foreground">MP4, WebM, MOV (max 50MB)</p>
+              <p className="text-sm font-medium">{t('horses.wizard.dropVideosHere')}</p>
+              <p className="text-xs text-muted-foreground">{t('horses.wizard.videoFormats')}</p>
             </div>
           )}
           <input
@@ -470,24 +472,24 @@ export const StepMedia = ({ data, onChange, tenantId, horseId, tempEntityId }: S
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <Label className="text-base">External Links</Label>
-            <p className="text-sm text-muted-foreground">Add related links (pedigree, social, etc.)</p>
+            <Label className="text-base">{t('horses.wizard.externalLinks')}</Label>
+            <p className="text-sm text-muted-foreground">{t('horses.wizard.addRelatedLinks')}</p>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={addLink} className="gap-2">
-            <Plus className="w-4 h-4" /> Add Link
+            <Plus className="w-4 h-4" /> {t('horses.wizard.addLink')}
           </Button>
         </div>
 
         {data.external_links.length === 0 ? (
           <div className="border-2 border-dashed rounded-xl p-6 text-center text-muted-foreground">
             <Link className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No links added yet</p>
+            <p className="text-sm">{t('horses.wizard.noLinksYet')}</p>
           </div>
         ) : (
           <div className="space-y-2">
             {data.external_links.map((url, index) => (
               <div key={index} className="flex gap-2">
-                <Input value={url} onChange={(e) => updateLink(index, e.target.value)} placeholder="https://example.com" />
+                <Input value={url} onChange={(e) => updateLink(index, e.target.value)} placeholder={t('horses.wizard.linkPlaceholder')} />
                 <Button type="button" variant="ghost" size="icon" onClick={() => removeLink(index)}>
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </Button>

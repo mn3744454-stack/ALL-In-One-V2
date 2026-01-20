@@ -14,6 +14,7 @@ import {
   getHorseTypeLabel, 
   getHorseTypeBadgeProps 
 } from "@/lib/horseClassification";
+import { useI18n } from "@/i18n";
 
 interface StepBasicInfoProps {
   data: HorseWizardData;
@@ -21,6 +22,7 @@ interface StepBasicInfoProps {
 }
 
 export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
+  const { t } = useI18n();
   const { colors, breeds, createColor, createBreed } = useHorseMasterData();
   const [dialogType, setDialogType] = useState<MasterDataType | null>(null);
 
@@ -108,21 +110,21 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Horse Name (English) *</Label>
+          <Label htmlFor="name">{t('horses.wizard.name')} *</Label>
           <Input
             id="name"
             value={data.name}
             onChange={(e) => onChange({ name: e.target.value })}
-            placeholder="Enter horse name"
+            placeholder={t('horses.wizard.namePlaceholder')}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name_ar">Horse Name (Arabic)</Label>
+          <Label htmlFor="name_ar">{t('horses.wizard.nameAr')}</Label>
           <Input
             id="name_ar"
             value={data.name_ar}
             onChange={(e) => onChange({ name_ar: e.target.value })}
-            placeholder="أدخل اسم الحصان"
+            placeholder={t('horses.wizard.nameArPlaceholder')}
             dir="rtl"
           />
         </div>
@@ -130,7 +132,7 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Gender *</Label>
+          <Label>{t('horses.wizard.gender')} *</Label>
           <Select 
             value={data.gender} 
             onValueChange={(v: "male" | "female") => {
@@ -144,18 +146,18 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
               onChange(updates);
             }}
           >
-            <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectGender')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male (Stallion/Colt)</SelectItem>
-              <SelectItem value="female">Female (Mare/Filly)</SelectItem>
+              <SelectItem value="male">{t('horses.wizard.maleDesc')}</SelectItem>
+              <SelectItem value="female">{t('horses.wizard.femaleDesc')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Breed</Label>
+          <Label>{t('horses.wizard.breed')}</Label>
           <div className="flex gap-2">
             <Select value={data.breed_id} onValueChange={(v) => onChange({ breed_id: v })}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Select breed" /></SelectTrigger>
+              <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectBreed')} /></SelectTrigger>
               <SelectContent>
                 {breeds.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
               </SelectContent>
@@ -169,10 +171,10 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Color</Label>
+          <Label>{t('horses.wizard.color')}</Label>
           <div className="flex gap-2">
             <Select value={data.color_id} onValueChange={(v) => onChange({ color_id: v })}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Select color" /></SelectTrigger>
+              <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectColor')} /></SelectTrigger>
               <SelectContent>
                 {colors.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
@@ -187,7 +189,7 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
       {/* Birth Date & Time Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="birth_date">Birth Date</Label>
+          <Label htmlFor="birth_date">{t('horses.wizard.birthDate')}</Label>
           <Input 
             id="birth_date" 
             type="date" 
@@ -198,7 +200,7 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
         <div className="space-y-2">
           <Label htmlFor="birth_time" className="flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            Birth Time (Optional)
+            {t('horses.wizard.birthTime')}
           </Label>
           <Input 
             id="birth_time" 
@@ -216,11 +218,11 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
         <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Current Age:</span>
+              <span className="text-sm text-muted-foreground">{t('horses.wizard.currentAge')}:</span>
               <span className="font-medium text-foreground">{agePreview.formattedAge}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Type:</span>
+              <span className="text-sm text-muted-foreground">{t('horses.wizard.type')}:</span>
               <Badge className={agePreview.badgeProps.className}>
                 {agePreview.badgeProps.label}
               </Badge>
@@ -231,15 +233,15 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="microchip">Microchip Number</Label>
+          <Label htmlFor="microchip">{t('horses.wizard.microchip')}</Label>
           <Input id="microchip" value={data.microchip_number} onChange={(e) => onChange({ microchip_number: e.target.value })} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="passport">Passport Number</Label>
+          <Label htmlFor="passport">{t('horses.wizard.passport')}</Label>
           <Input id="passport" value={data.passport_number} onChange={(e) => onChange({ passport_number: e.target.value })} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="ueln">UELN</Label>
+          <Label htmlFor="ueln">{t('horses.wizard.ueln')}</Label>
           <Input id="ueln" value={data.ueln} onChange={(e) => onChange({ ueln: e.target.value })} />
         </div>
       </div>
