@@ -27,6 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import { useHorses } from "@/hooks/useHorses";
 import { useClients } from "@/hooks/useClients";
 import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks/laboratory/useLabSamples";
@@ -473,7 +474,37 @@ export function CreateSampleDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t("laboratory.createSample.dailyNumber")}</Label>
+                <div className="flex items-center justify-between">
+                  <Label>{t("laboratory.createSample.dailyNumber")}</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs"
+                    onClick={async () => {
+                      // Fetch highest daily number for today and increment
+                      const today = new Date();
+                      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                      
+                      const { data: samples } = await supabase
+                        .from("lab_samples")
+                        .select("daily_number")
+                        .gte("collection_date", startOfDay)
+                        .lte("collection_date", endOfDay)
+                        .not("daily_number", "is", null)
+                        .order("daily_number", { ascending: false })
+                        .limit(1);
+                      
+                      const nextNumber = samples && samples.length > 0 && samples[0].daily_number 
+                        ? samples[0].daily_number + 1 
+                        : 1;
+                      setFormData(prev => ({ ...prev, daily_number: String(nextNumber) }));
+                    }}
+                  >
+                    {t("laboratory.createSample.useNext")}
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   min="1"
@@ -481,11 +512,11 @@ export function CreateSampleDialog({
                   onChange={(e) => setFormData({ ...formData, daily_number: e.target.value })}
                   placeholder={t("laboratory.createSample.dailyNumberPlaceholder")}
                 />
-              <span className="text-xs text-muted-foreground">
-                {formData.selectedHorses.length > 1 && formData.daily_number && (
-                  <>#{formData.daily_number} - #{parseInt(formData.daily_number) + formData.selectedHorses.length - 1}</>
-                )}
-              </span>
+                <span className="text-xs text-muted-foreground">
+                  {formData.selectedHorses.length > 1 && formData.daily_number && (
+                    <>#{formData.daily_number} - #{parseInt(formData.daily_number) + formData.selectedHorses.length - 1}</>
+                  )}
+                </span>
               </div>
 
               <div className="space-y-2">

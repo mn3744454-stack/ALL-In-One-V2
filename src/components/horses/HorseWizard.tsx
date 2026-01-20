@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useI18n } from "@/i18n";
 
 // Step components
 import { StepRegistration } from "./wizard/StepRegistration";
@@ -28,14 +29,14 @@ import { StepPedigree } from "./wizard/StepPedigree";
 import { StepOwnership } from "./wizard/StepOwnership";
 import { StepMedia } from "./wizard/StepMedia";
 
-const STEPS = [
-  { id: "registration", title: "Registration Check" },
-  { id: "basic", title: "Basic Info" },
-  { id: "details", title: "Location & Details" },
-  { id: "physical", title: "Physical Specs" },
-  { id: "pedigree", title: "Pedigree" },
-  { id: "ownership", title: "Ownership" },
-  { id: "media", title: "Media" },
+const STEP_KEYS = [
+  { id: "registration", titleKey: "horses.wizard.steps.registration" },
+  { id: "basic", titleKey: "horses.wizard.steps.basic" },
+  { id: "details", titleKey: "horses.wizard.steps.details" },
+  { id: "physical", titleKey: "horses.wizard.steps.physical" },
+  { id: "pedigree", titleKey: "horses.wizard.steps.pedigree" },
+  { id: "ownership", titleKey: "horses.wizard.steps.ownership" },
+  { id: "media", titleKey: "horses.wizard.steps.media" },
 ];
 
 export interface HorseWizardData {
@@ -247,6 +248,7 @@ const mapHorseToWizardData = (horse: HorseData): HorseWizardData => ({
 export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", existingHorse }: HorseWizardProps) => {
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
+  const { t } = useI18n();
   const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
@@ -254,6 +256,12 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   // Single source of truth: stable temp UUID for entire wizard session (create mode only)
   // Initialized once on mount, regenerated only when wizard opens fresh in create mode
   const [mediaTempUUID, setMediaTempUUID] = useState<string>(() => crypto.randomUUID());
+  
+  // Translated steps
+  const STEPS = useMemo(() => 
+    STEP_KEYS.map(step => ({ id: step.id, title: t(step.titleKey) })),
+    [t]
+  );
 
   // Pre-fill data when in edit mode, regenerate temp UUID when wizard opens fresh in create mode
   useEffect(() => {
@@ -532,7 +540,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-muted-foreground">
-            Step {currentStep + 1} of {STEPS.length}
+            {t('horses.wizard.step')} {currentStep + 1} {t('common.of')} {STEPS.length}
           </span>
           <span className="text-sm font-medium text-navy">
             {STEPS[currentStep].title}
@@ -574,27 +582,26 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
           disabled={currentStep === 0 || saving}
           className="min-w-[100px]"
         >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back
+          <ChevronLeft className="w-4 h-4 me-2" />
+          {t('horses.wizard.back')}
         </Button>
 
         {currentStep === STEPS.length - 1 ? (
           <Button onClick={handleSave} disabled={!canGoNext() || saving} className="min-w-[120px]">
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {mode === "edit" ? "Save Changes" : "Save Horse"}
+            {saving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+            {saving ? t('horses.wizard.saving') : (mode === "edit" ? t('horses.wizard.saveChanges') : t('horses.wizard.save'))}
           </Button>
         ) : (
           <Button onClick={goNext} disabled={!canGoNext() || saving} className="min-w-[100px]">
-            Next
-            <ChevronRight className="w-4 h-4 ml-2" />
+            {t('horses.wizard.next')}
+            <ChevronRight className="w-4 h-4 ms-2" />
           </Button>
         )}
       </div>
     </div>
   );
 
-  const wizardTitle = mode === "edit" ? "Edit Horse" : "Add New Horse";
-  const saveButtonText = mode === "edit" ? "Save Changes" : "Save Horse";
+  const wizardTitle = mode === "edit" ? t('horses.wizard.editTitle') : t('horses.wizard.addTitle');
 
   if (isMobile) {
     return (

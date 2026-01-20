@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
@@ -18,6 +17,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ar as arLocale, enUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
@@ -27,7 +36,8 @@ import {
   Calendar, 
   FileText,
   TrendingUp,
-  Search
+  Search,
+  Loader2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -37,22 +47,47 @@ interface PayrollFilters {
   search: string;
 }
 
+interface PaymentFormData {
+  employee_id: string;
+  amount: string;
+  currency: string;
+  payment_period: string;
+  notes: string;
+  create_expense: boolean;
+}
+
+const initialFormData: PaymentFormData = {
+  employee_id: '',
+  amount: '',
+  currency: 'SAR',
+  payment_period: '',
+  notes: '',
+  create_expense: false,
+};
+
 export default function DashboardHRPayroll() {
   const { t, dir, lang } = useI18n();
-  const navigate = useNavigate();
   const { activeRole } = useTenant();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
   const [filters, setFilters] = useState<PayrollFilters>({
     employeeId: '',
     period: '',
     search: '',
   });
   
-  const { payments, isLoading } = useSalaryPayments();
+  const { payments, isLoading, createPayment, isCreating } = useSalaryPayments();
   const { employees } = useEmployees();
   
   const canManage = activeRole === 'owner' || activeRole === 'manager';
   const dateLocale: Locale = lang === 'ar' ? arLocale : enUS;
+  
+  // Internal employees for salary payments
+  const internalEmployees = useMemo(() => 
+    employees.filter(e => e.employment_kind === 'internal' && e.is_active),
+    [employees]
+  );
 
   // Get unique periods from payments
   const periods = useMemo(() => {
@@ -94,6 +129,22 @@ export default function DashboardHRPayroll() {
     }).format(amount);
   };
 
+  const handleSubmit = async () => {
+    if (!formData.employee_id || !formData.amount) return;
+    
+    await createPayment({
+      employee_id: formData.employee_id,
+      amount: parseFloat(formData.amount),
+      currency: formData.currency,
+      payment_period: formData.payment_period || undefined,
+      notes: formData.notes || undefined,
+      create_expense: formData.create_expense,
+    });
+    
+    setFormData(initialFormData);
+    setShowAddDialog(false);
+  };
+
   return (
     <>
       <Helmet>
@@ -120,7 +171,7 @@ export default function DashboardHRPayroll() {
             </div>
             {canManage && (
               <Button
-                onClick={() => navigate('/dashboard/hr', { state: { openPaymentDialog: true } })}
+                onClick={() => setShowAddDialog(true)}
                 className="gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -274,7 +325,7 @@ export default function DashboardHRPayroll() {
             {/* Mobile FAB */}
             {canManage && (
               <Button
-                onClick={() => navigate('/dashboard/hr', { state: { openPaymentDialog: true } })}
+                onClick={() => setShowAddDialog(true)}
                 className="lg:hidden fixed bottom-20 end-4 h-14 w-14 rounded-full shadow-lg z-50"
                 size="icon"
               >
@@ -284,6 +335,107 @@ export default function DashboardHRPayroll() {
           </div>
         </main>
       </div>
+
+      {/* Add Payment Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('hr.payroll.addPayment')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>{t('hr.employees.name')} *</Label>
+              <Select
+                value={formData.employee_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('hr.payroll.selectEmployee')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {internalEmployees.map((emp) => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      {emp.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('finance.expenses.amount')} *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('finance.common.currency')}</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SAR">SAR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('hr.payroll.period')}</Label>
+              <Input
+                value={formData.payment_period}
+                onChange={(e) => setFormData(prev => ({ ...prev, payment_period: e.target.value }))}
+                placeholder={t('hr.payroll.periodPlaceholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t('common.notes')}</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder={t('common.notesPlaceholder')}
+                rows={2}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <Label className="font-medium">{t('hr.payroll.createExpense')}</Label>
+                <p className="text-xs text-muted-foreground">{t('hr.payroll.createExpenseDesc')}</p>
+              </div>
+              <Switch
+                checked={formData.create_expense}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_expense: checked }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              disabled={!formData.employee_id || !formData.amount || isCreating}
+            >
+              {isCreating && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t('common.save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
