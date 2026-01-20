@@ -7,6 +7,7 @@ import { useHorseMasterData } from "@/hooks/useHorseMasterData";
 import { isAdultHorse } from "@/lib/horseClassification";
 import type { HorseWizardData } from "../HorseWizard";
 import { useMemo } from "react";
+import { useI18n } from "@/i18n";
 
 interface StepDetailsProps {
   data: HorseWizardData;
@@ -14,6 +15,7 @@ interface StepDetailsProps {
 }
 
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
+  const { t } = useI18n();
   const { branches, stables, housingUnits } = useHorseMasterData();
 
   // Check if horse is adult for broodmare toggle
@@ -29,18 +31,18 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Branch</Label>
+          <Label>{t('horses.wizard.branch')}</Label>
           <Select value={data.branch_id} onValueChange={(v) => onChange({ branch_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectBranch')} /></SelectTrigger>
             <SelectContent>
               {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Stable</Label>
+          <Label>{t('horses.wizard.stable')}</Label>
           <Select value={data.stable_id} onValueChange={(v) => onChange({ stable_id: v })}>
-            <SelectTrigger><SelectValue placeholder="Select stable" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectStable')} /></SelectTrigger>
             <SelectContent>
               {stables.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
             </SelectContent>
@@ -49,9 +51,9 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label>Housing Unit</Label>
+        <Label>{t('horses.wizard.housingUnit')}</Label>
         <Select value={data.housing_unit_id} onValueChange={(v) => onChange({ housing_unit_id: v })}>
-          <SelectTrigger><SelectValue placeholder="Select housing unit" /></SelectTrigger>
+          <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectHousingUnit')} /></SelectTrigger>
           <SelectContent>
             {housingUnits.filter(u => u.status === 'available').map((u) => (
               <SelectItem key={u.id} value={u.id}>{u.code} ({u.unit_type})</SelectItem>
@@ -61,12 +63,12 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label>Status</Label>
+        <Label>{t('horses.wizard.status')}</Label>
         <Select value={data.status} onValueChange={(v: "active" | "inactive") => onChange({ status: v })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="active">{t('horses.wizard.active')}</SelectItem>
+            <SelectItem value="inactive">{t('horses.wizard.inactive')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -76,8 +78,8 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="gelded" className="text-sm font-medium">Is Gelded?</Label>
-              <p className="text-xs text-muted-foreground">Mark if this horse has been castrated</p>
+              <Label htmlFor="gelded" className="text-sm font-medium">{t('horses.wizard.isGelded')}</Label>
+              <p className="text-xs text-muted-foreground">{t('horses.wizard.geldedDesc')}</p>
             </div>
             <Switch 
               id="gelded" 
@@ -93,8 +95,8 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="broodmare" className="text-sm font-medium">Broodmare Role</Label>
-              <p className="text-xs text-muted-foreground">Mark if this mare is used for breeding</p>
+              <Label htmlFor="broodmare" className="text-sm font-medium">{t('horses.wizard.breedingRole')}</Label>
+              <p className="text-xs text-muted-foreground">{t('horses.wizard.broodmareDesc')}</p>
             </div>
             <Switch 
               id="broodmare" 
@@ -109,12 +111,12 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
       {data.gender === "female" && data.breeding_role === 'broodmare' && (
         <div className="p-4 bg-muted/50 rounded-xl border border-border/50 space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="pregnant">Is Pregnant?</Label>
+            <Label htmlFor="pregnant">{t('horses.wizard.isPregnant')}</Label>
             <Switch id="pregnant" checked={data.is_pregnant} onCheckedChange={(c) => onChange({ is_pregnant: c })} />
           </div>
           {data.is_pregnant && (
             <div className="space-y-2">
-              <Label>Pregnancy Months</Label>
+              <Label>{t('horses.wizard.pregnancyMonths')}</Label>
               <Input type="number" min={1} max={12} value={data.pregnancy_months || ""} onChange={(e) => onChange({ pregnancy_months: parseInt(e.target.value) || 0 })} />
             </div>
           )}
@@ -122,8 +124,8 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
       )}
 
       <div className="space-y-2">
-        <Label>Housing Notes</Label>
-        <Textarea value={data.housing_notes} onChange={(e) => onChange({ housing_notes: e.target.value })} placeholder="Additional notes..." />
+        <Label>{t('horses.wizard.housingNotes')}</Label>
+        <Textarea value={data.housing_notes} onChange={(e) => onChange({ housing_notes: e.target.value })} placeholder={t('horses.wizard.additionalNotesPlaceholder')} />
       </div>
     </div>
   );
