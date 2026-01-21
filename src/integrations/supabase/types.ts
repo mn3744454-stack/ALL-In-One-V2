@@ -2790,6 +2790,7 @@ export type Database = {
           accepted_at: string | null
           assigned_horse_ids: string[] | null
           created_at: string
+          expires_at: string
           horses_accepted: boolean | null
           id: string
           invitee_email: string
@@ -2810,6 +2811,7 @@ export type Database = {
           accepted_at?: string | null
           assigned_horse_ids?: string[] | null
           created_at?: string
+          expires_at?: string
           horses_accepted?: boolean | null
           id?: string
           invitee_email: string
@@ -2830,6 +2832,7 @@ export type Database = {
           accepted_at?: string | null
           assigned_horse_ids?: string[] | null
           created_at?: string
+          expires_at?: string
           horses_accepted?: boolean | null
           id?: string
           invitee_email?: string
@@ -6736,6 +6739,11 @@ export type Database = {
         }
         Returns: Json
       }
+      reject_invitation: {
+        Args: { _invitation_id: string; _reason?: string }
+        Returns: Json
+      }
+      revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
       set_tenant_role_access: {
         Args: {
           _bundle_ids: string[]

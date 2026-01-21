@@ -43,8 +43,20 @@ import {
   User,
   Clock,
   Copy,
-  Users
+  Users,
+  Trash2,
+  Loader2
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -63,7 +75,7 @@ const roleLabels: Record<TenantRole, string> = {
 
 export const InvitationsPanel = () => {
   const navigate = useNavigate();
-  const { receivedInvitations, sentInvitations, createInvitation, respondToInvitation, loading } = useInvitations();
+  const { receivedInvitations, sentInvitations, createInvitation, respondToInvitation, revokeInvitation, loading } = useInvitations();
   const { horses } = useHorses();
   const { activeTenant, refreshTenants, setActiveTenant } = useTenant();
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -74,6 +86,9 @@ export const InvitationsPanel = () => {
   });
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const [invitationToRevoke, setInvitationToRevoke] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
   const handleSendInvite = async () => {
     if (!inviteData.email) {
@@ -132,6 +147,29 @@ export const InvitationsPanel = () => {
     }
     setRespondingTo(null);
     setRejectionReason("");
+  };
+
+  const handleRevoke = async () => {
+    if (!invitationToRevoke) return;
+    
+    setRevoking(true);
+    const { success, error } = await revokeInvitation(invitationToRevoke);
+    setRevoking(false);
+    
+    if (error) {
+      console.error("Revoke invitation error:", error);
+      toast.error(`Failed to revoke invitation: ${error.message}`);
+    } else if (success) {
+      toast.success("Invitation revoked");
+    }
+    
+    setRevokeDialogOpen(false);
+    setInvitationToRevoke(null);
+  };
+
+  const openRevokeDialog = (invitationId: string) => {
+    setInvitationToRevoke(invitationId);
+    setRevokeDialogOpen(true);
   };
 
   const canInvite = activeTenant?.can_invite || activeTenant?.role === "owner";
@@ -310,16 +348,27 @@ export const InvitationsPanel = () => {
                         Sent {new Date(invitation.created_at).toLocaleDateString()}
                       </div>
 
-                      {invitation.status === 'pending' && invitation.token && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleCopyInviteLink(invitation.token)}
-                          className="w-full"
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copy Invite Link
-                        </Button>
+                      {(invitation.status === 'pending' || invitation.status === 'preaccepted') && (
+                        <div className="flex gap-2">
+                          {invitation.token && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCopyInviteLink(invitation.token)}
+                              className="flex-1"
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Link
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => openRevokeDialog(invitation.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -416,6 +465,35 @@ export const InvitationsPanel = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Revoke Confirmation Dialog */}
+      <AlertDialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke Invitation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to revoke this invitation? The recipient will no longer be able to accept it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={revoking}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevoke}
+              disabled={revoking}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {revoking ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Revoking...
+                </>
+              ) : (
+                "Revoke"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
