@@ -6633,6 +6633,20 @@ export type Database = {
           path: string
         }[]
       }
+      get_my_pending_invitations: {
+        Args: never
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          proposed_role: Database["public"]["Enums"]["tenant_role"]
+          sender_display_name: string
+          status: Database["public"]["Enums"]["invitation_status"]
+          tenant_id: string
+          tenant_name: string
+          token: string
+        }[]
+      }
       get_public_tenant: {
         Args: { tenant_slug: string }
         Returns: {
