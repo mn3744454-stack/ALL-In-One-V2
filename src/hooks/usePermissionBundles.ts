@@ -362,12 +362,36 @@ export function usePermissionBundles() {
       .map((bp) => bp.permission_key);
   };
 
+  // Explicitly fetch bundle permissions if not already cached
+  const ensureBundlePermissionsLoaded = async (bundleId: string): Promise<string[]> => {
+    // Check if already in cache
+    const cached = allBundlePermissions.filter((bp) => bp.bundle_id === bundleId);
+    if (cached.length > 0) {
+      return cached.map((bp) => bp.permission_key);
+    }
+
+    // Fetch from database
+    const { data, error } = await supabase
+      .from("bundle_permissions" as any)
+      .select("*")
+      .eq("bundle_id", bundleId);
+
+    if (error) {
+      console.error("Error fetching bundle permissions:", error);
+      return [];
+    }
+
+    const permissions = (data || []) as unknown as BundlePermission[];
+    return permissions.map((bp) => bp.permission_key);
+  };
+
   return {
     // Data
     bundles,
     allBundlePermissions,
     auditLog,
     getBundlePermissions,
+    ensureBundlePermissionsLoaded,
 
     // Loading states
     loading: loadingBundles || loadingBundlePerms || loadingAuditLog,
