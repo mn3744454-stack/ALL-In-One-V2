@@ -72,6 +72,77 @@ export function usePermissions() {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
+  // =============================================
+  // ROLE-BASED PERMISSIONS (NEW - P1 fix)
+  // =============================================
+
+  // Fetch role-based direct permissions (tenant_role_permissions)
+  const { data: rolePermissions = [], isLoading: loadingRolePerms } = useQuery({
+    queryKey: ["tenant-role-permissions", tenantId, activeRole],
+    queryFn: async (): Promise<{ permission_key: string }[]> => {
+      if (!tenantId || !activeRole || isOwner) return [];
+
+      const { data, error } = await supabase
+        .from("tenant_role_permissions" as any)
+        .select("permission_key")
+        .eq("tenant_id", tenantId)
+        .eq("role_key", activeRole)
+        .eq("granted", true);
+
+      if (error) {
+        console.error("Error fetching role permissions:", error);
+        return [];
+      }
+      return (data || []) as unknown as { permission_key: string }[];
+    },
+    enabled: !!tenantId && !!activeRole && !isOwner,
+  });
+
+  // Fetch role-based bundles (tenant_role_bundles)
+  const { data: roleBundleIds = [], isLoading: loadingRoleBundleIds } = useQuery({
+    queryKey: ["tenant-role-bundles", tenantId, activeRole],
+    queryFn: async (): Promise<string[]> => {
+      if (!tenantId || !activeRole || isOwner) return [];
+
+      const { data, error } = await supabase
+        .from("tenant_role_bundles" as any)
+        .select("bundle_id")
+        .eq("tenant_id", tenantId)
+        .eq("role_key", activeRole);
+
+      if (error) {
+        console.error("Error fetching role bundles:", error);
+        return [];
+      }
+      return (data || []).map((d: any) => d.bundle_id) as string[];
+    },
+    enabled: !!tenantId && !!activeRole && !isOwner,
+  });
+
+  // Fetch permissions from role bundles
+  const { data: roleBundlePermissions = [], isLoading: loadingRoleBundlePerms } = useQuery({
+    queryKey: ["role-bundle-permissions", tenantId, activeRole, roleBundleIds],
+    queryFn: async (): Promise<{ permission_key: string }[]> => {
+      if (roleBundleIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from("bundle_permissions" as any)
+        .select("permission_key")
+        .in("bundle_id", roleBundleIds);
+
+      if (error) {
+        console.error("Error fetching role bundle permissions:", error);
+        return [];
+      }
+      return (data || []) as unknown as { permission_key: string }[];
+    },
+    enabled: roleBundleIds.length > 0,
+  });
+
+  // =============================================
+  // MEMBER-SPECIFIC PERMISSIONS (existing)
+  // =============================================
+
   // Fetch member's assigned bundles
   const { data: assignedBundles = [], isLoading: loadingBundles } = useQuery({
     queryKey: ["member-permission-bundles", memberId],
@@ -92,17 +163,17 @@ export function usePermissions() {
     enabled: !!memberId,
   });
 
-  // Fetch bundle permissions for assigned bundles
-  const bundleIds = assignedBundles.map((b) => b.bundle_id);
-  const { data: bundlePermissions = [], isLoading: loadingBundlePerms } = useQuery({
-    queryKey: ["bundle-permissions", bundleIds],
+  // Fetch bundle permissions for member's assigned bundles
+  const memberBundleIds = assignedBundles.map((b) => b.bundle_id);
+  const { data: memberBundlePermissions = [], isLoading: loadingMemberBundlePerms } = useQuery({
+    queryKey: ["bundle-permissions", memberBundleIds],
     queryFn: async (): Promise<BundlePermission[]> => {
-      if (bundleIds.length === 0) return [];
+      if (memberBundleIds.length === 0) return [];
 
       const { data, error } = await supabase
         .from("bundle_permissions" as any)
         .select("*")
-        .in("bundle_id", bundleIds);
+        .in("bundle_id", memberBundleIds);
 
       if (error) {
         console.error("Error fetching bundle permissions:", error);
@@ -110,7 +181,7 @@ export function usePermissions() {
       }
       return (data || []) as unknown as BundlePermission[];
     },
-    enabled: bundleIds.length > 0,
+    enabled: memberBundleIds.length > 0,
   });
 
   // Fetch member's permission overrides
@@ -133,17 +204,32 @@ export function usePermissions() {
     enabled: !!memberId,
   });
 
-  // Compute effective permissions
+  // =============================================
+  // COMPUTE EFFECTIVE PERMISSIONS
+  // Order matches server-side has_permission():
+  // 1. Owner = all permissions
+  // 2. Role direct permissions (tenant_role_permissions)
+  // 3. Role bundle permissions (tenant_role_bundles -> bundle_permissions)
+  // 4. Member bundle permissions (member_permission_bundles -> bundle_permissions)
+  // 5. Member overrides (member_permissions) - applied last
+  // =============================================
+
   const effectivePermissions = new Set<string>();
 
   if (isOwner) {
     // Owner has all permissions
     allDefinitions.forEach((def) => effectivePermissions.add(def.key));
   } else {
-    // Start with bundle permissions
-    bundlePermissions.forEach((bp) => effectivePermissions.add(bp.permission_key));
+    // 1. Role-based direct permissions
+    rolePermissions.forEach((rp) => effectivePermissions.add(rp.permission_key));
 
-    // Apply overrides
+    // 2. Role bundle permissions
+    roleBundlePermissions.forEach((rbp) => effectivePermissions.add(rbp.permission_key));
+
+    // 3. Member-specific bundle permissions
+    memberBundlePermissions.forEach((bp) => effectivePermissions.add(bp.permission_key));
+
+    // 4. Member overrides (highest priority for non-owner)
     permissionOverrides.forEach((override) => {
       if (override.granted) {
         effectivePermissions.add(override.permission_key);
@@ -197,14 +283,20 @@ export function usePermissions() {
     const definition = allDefinitions.find((d) => d.key === key);
     if (definition && !definition.is_delegatable) return false;
 
-    // NEW: Non-owner must have explicit delegation scope from owner
+    // Non-owner must have explicit delegation scope from owner
     if (!delegatableScopeSet.has(key)) return false;
 
     return true;
   };
 
   const loading =
-    loadingDefinitions || loadingBundles || loadingBundlePerms || loadingOverrides;
+    loadingDefinitions ||
+    loadingBundles ||
+    loadingMemberBundlePerms ||
+    loadingOverrides ||
+    loadingRolePerms ||
+    loadingRoleBundleIds ||
+    loadingRoleBundlePerms;
 
   return {
     // Permission checks
