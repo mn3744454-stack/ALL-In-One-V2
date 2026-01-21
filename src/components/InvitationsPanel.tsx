@@ -229,10 +229,10 @@ export const InvitationsPanel = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-navy">
-                            {invitation.tenant?.name || "Organization"}
+                            {invitation.tenant_name || "Organization"}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Invited by {invitation.sender?.full_name || "Unknown"}
+                            Invited by {invitation.sender_display_name || "Unknown"}
                           </p>
                         </div>
                       </div>
@@ -244,16 +244,15 @@ export const InvitationsPanel = () => {
                             Role: <Badge variant="secondary">{roleLabels[invitation.proposed_role]}</Badge>
                           </span>
                         </div>
-                        {invitation.assigned_horse_ids.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {invitation.assigned_horse_ids.length} horse(s) assigned
-                            </span>
+                        {invitation.expires_at && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            Expires: {new Date(invitation.expires_at).toLocaleDateString()}
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Clock className="w-3 h-3" />
-                          {new Date(invitation.created_at).toLocaleDateString()}
+                          Invited: {new Date(invitation.created_at).toLocaleDateString()}
                         </div>
                       </div>
 

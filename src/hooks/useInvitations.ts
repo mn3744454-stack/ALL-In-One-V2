@@ -11,6 +11,7 @@ type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" 
 // Include new invitation statuses from P0 migration
 type InvitationStatus = "pending" | "preaccepted" | "accepted" | "rejected" | "expired" | "revoked";
 
+// Full invitation type for sent invitations (fetched via RLS)
 interface Invitation {
   id: string;
   tenant_id: string;
@@ -38,6 +39,19 @@ interface Invitation {
   };
 }
 
+// Received invitation type from RPC (minimal safe fields)
+interface ReceivedInvitation {
+  id: string;
+  token: string;
+  status: InvitationStatus;
+  proposed_role: TenantRole;
+  tenant_id: string;
+  tenant_name: string;
+  sender_display_name: string;
+  created_at: string;
+  expires_at: string;
+}
+
 interface CreateInvitationData {
   invitee_email: string;
   proposed_role: TenantRole;
@@ -49,7 +63,7 @@ export const useInvitations = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
-  const [receivedInvitations, setReceivedInvitations] = useState<Invitation[]>([]);
+  const [receivedInvitations, setReceivedInvitations] = useState<ReceivedInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [realtimeKey, setRealtimeKey] = useState(0);
 
@@ -124,28 +138,14 @@ export const useInvitations = () => {
   };
 
   const fetchReceivedInvitations = async () => {
-    if (!user || !profile || !activeTenant) return;
+    if (!user) return;
 
-    // Server-side filter: invitee_id = user.id OR invitee_email = profile.email
-    // Using .or() for proper server-side filtering - NO JS filtering
-    const userEmail = profile.email?.toLowerCase() || '';
-    
-    const { data, error } = await supabase
-      .from("invitations")
-      .select(`
-        *,
-        token,
-        tenant:tenants(id, name, type),
-        sender:profiles!invitations_sender_id_fkey(id, full_name, email)
-      `)
-      .eq("tenant_id", activeTenant.tenant_id)
-      .in("status", ["pending", "preaccepted"])
-      .or(`invitee_id.eq.${user.id},invitee_email.ilike.${userEmail}`)
-      .order("created_at", { ascending: false });
+    // Use SECURITY DEFINER RPC to fetch pending invitations
+    // This works even before user is a tenant member
+    const { data, error } = await supabase.rpc("get_my_pending_invitations");
 
     if (!error && data) {
-      // No client-side filtering needed - server already filtered
-      setReceivedInvitations(data as unknown as Invitation[]);
+      setReceivedInvitations(data as ReceivedInvitation[]);
     }
   };
 
@@ -159,7 +159,7 @@ export const useInvitations = () => {
     if (user) {
       fetchAll();
     }
-  }, [activeTenant?.tenant_id, user?.id, profile?.email]);
+  }, [activeTenant?.tenant_id, user?.id]);
 
   const createInvitation = async (data: CreateInvitationData) => {
     if (!activeTenant || !user) {
