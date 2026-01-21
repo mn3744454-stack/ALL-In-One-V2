@@ -2084,6 +2084,7 @@ export const ar = {
       settings: "الإعدادات",
       admin: "الإدارة",
     },
+    noDescriptionAvailable: "—",
   },
   sharedMedia: {
     invalidLink: "رابط غير صالح أو منتهي",
