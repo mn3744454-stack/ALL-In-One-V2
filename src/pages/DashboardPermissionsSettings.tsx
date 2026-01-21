@@ -363,10 +363,15 @@ const DashboardPermissionsSettings = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent dir={dir} className={isRTL ? "text-end" : "text-start"}>
-          <AlertDialogHeader className={isRTL ? "text-end" : "text-start"}>
-            <AlertDialogTitle>{t("permissions.deleteBundle")}</AlertDialogTitle>
-            <AlertDialogDescription className={isRTL ? "text-end" : "text-start"}>
+        <AlertDialogContent dir={dir}>
+          <AlertDialogHeader className={cn(
+            "gap-2",
+            isRTL ? "items-end text-right" : "items-start text-left"
+          )}>
+            <AlertDialogTitle className={isRTL ? "text-right w-full" : "text-left w-full"}>
+              {t("permissions.deleteBundle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className={isRTL ? "text-right w-full" : "text-left w-full"}>
               {t("permissions.confirmDeleteBundle")}
             </AlertDialogDescription>
           </AlertDialogHeader>
