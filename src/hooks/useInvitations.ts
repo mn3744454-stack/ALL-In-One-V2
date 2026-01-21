@@ -245,31 +245,51 @@ export const useInvitations = () => {
       await fetchReceivedInvitations();
       return { data: { tenant_id: result.tenant_id }, error: null };
     } else {
-      // For rejection, still use direct update (no membership creation needed)
+      // Use RPC for rejection (secure, server-validated)
       const invitation = receivedInvitations.find((i) => i.token === token);
       if (!invitation) {
         return { data: null, error: new Error("Invitation not found") };
       }
 
-      const { error: updateError } = await supabase
-        .from("invitations")
-        .update({
-          status: "rejected" as InvitationStatus,
-          role_accepted: false,
-          horses_accepted: false,
-          rejection_reason: rejectionReason,
-          responded_at: new Date().toISOString(),
-          invitee_id: user?.id,
-        })
-        .eq("id", invitation.id);
+      const { data, error: rpcError } = await supabase.rpc("reject_invitation", {
+        _invitation_id: invitation.id,
+        _reason: rejectionReason || null,
+      });
 
-      if (updateError) {
-        return { data: null, error: updateError };
+      if (rpcError) {
+        console.error("reject_invitation RPC error:", rpcError);
+        return { data: null, error: rpcError };
+      }
+
+      const result = data as { success: boolean; error?: string } | null;
+      if (!result?.success) {
+        const errorMsg = result?.error || "Failed to reject invitation";
+        return { data: null, error: new Error(errorMsg) };
       }
 
       await fetchReceivedInvitations();
       return { data: null, error: null };
     }
+  };
+
+  const revokeInvitation = async (invitationId: string): Promise<{ success: boolean; error: Error | null }> => {
+    const { data, error: rpcError } = await supabase.rpc("revoke_invitation", {
+      _invitation_id: invitationId,
+    });
+
+    if (rpcError) {
+      console.error("revoke_invitation RPC error:", rpcError);
+      return { success: false, error: rpcError };
+    }
+
+    const result = data as { success: boolean; error?: string } | null;
+    if (!result?.success) {
+      const errorMsg = result?.error || "Failed to revoke invitation";
+      return { success: false, error: new Error(errorMsg) };
+    }
+
+    await fetchSentInvitations();
+    return { success: true, error: null };
   };
 
   return {
@@ -278,6 +298,7 @@ export const useInvitations = () => {
     loading,
     createInvitation,
     respondToInvitation,
+    revokeInvitation,
     refresh: async () => {
       await Promise.all([fetchSentInvitations(), fetchReceivedInvitations()]);
     },

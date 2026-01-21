@@ -88,7 +88,16 @@ export default function InviteLandingPage() {
 
       const result = data as unknown as PreacceptResult;
       if (!result.success) {
-        setError(result.error || "Invitation not found or has already been processed");
+        // Map specific error codes to user-friendly messages
+        let errorMessage = "Invitation not found or has already been processed";
+        if (result.error === "expired") {
+          errorMessage = "This invitation has expired";
+        } else if (result.error === "revoked") {
+          errorMessage = "This invitation has been revoked";
+        } else if (result.error === "already_processed") {
+          errorMessage = "This invitation has already been processed";
+        }
+        setError(errorMessage);
         setLoading(false);
         return;
       }
@@ -125,7 +134,20 @@ export default function InviteLandingPage() {
 
       const result = data as unknown as FinalizeResult;
       if (!result.success) {
-        setError(result.error || "Failed to accept invitation");
+        // Map specific error codes to user-friendly messages
+        let errorMessage = "Failed to accept invitation";
+        if (result.error === "expired") {
+          errorMessage = "This invitation has expired";
+        } else if (result.error === "revoked") {
+          errorMessage = "This invitation has been revoked";
+        } else if (result.error === "rejected") {
+          errorMessage = "This invitation was already declined";
+        } else if (result.error === "email_mismatch") {
+          errorMessage = "This invitation was sent to a different email address";
+        } else if (result.error === "email_unavailable") {
+          errorMessage = "Unable to verify your email. Please update your profile.";
+        }
+        setError(errorMessage);
         setFinalizing(false);
         return;
       }
