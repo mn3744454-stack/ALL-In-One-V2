@@ -73,17 +73,17 @@ export function BundleEditor({
   isLoading,
 }: BundleEditorProps) {
   const { t, dir } = useI18n();
-  const [name, setName] = useState(bundle?.name || "");
-  const [description, setDescription] = useState(bundle?.description || "");
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(
-    new Set(bundlePermissions)
-  );
+  const isRTL = dir === "rtl";
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
-  // Reset form when dialog opens
+  // Update form when bundle or bundlePermissions change
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
+      // Reset form with bundle data when opening
       setName(bundle?.name || "");
       setDescription(bundle?.description || "");
       setSelectedKeys(new Set(bundlePermissions));
@@ -93,6 +93,22 @@ export function BundleEditor({
     }
     onOpenChange(newOpen);
   };
+
+  // Sync selectedKeys when bundlePermissions changes (for when data loads after dialog opens)
+  if (open && bundlePermissions.length > 0 && selectedKeys.size === 0) {
+    const permSet = new Set(bundlePermissions);
+    if (permSet.size > 0) {
+      setSelectedKeys(permSet);
+    }
+  }
+
+  // Sync name/description when bundle changes
+  if (open && bundle && name === "" && bundle.name) {
+    setName(bundle.name);
+    if (bundle.description) {
+      setDescription(bundle.description);
+    }
+  }
 
   // Group permissions by module
   const groupedPermissions = useMemo(() => {
@@ -169,7 +185,6 @@ export function BundleEditor({
   const isEdit = !!bundle;
   const totalPermissions = allDefinitions.length;
   const progressValue = totalPermissions > 0 ? (selectedKeys.size / totalPermissions) * 100 : 0;
-  const isRTL = dir === "rtl";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
