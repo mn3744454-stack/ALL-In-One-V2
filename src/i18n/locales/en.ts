@@ -2081,6 +2081,7 @@ export const en = {
       settings: "Settings",
       admin: "Admin",
     },
+    noDescriptionAvailable: "—",
   },
   sharedMedia: {
     invalidLink: "Invalid or Expired Link",

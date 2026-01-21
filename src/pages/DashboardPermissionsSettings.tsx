@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RtlTabs, RtlTabsList, RtlTabsTrigger, RtlTabsContent } from "@/components/ui/RtlTabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Menu, Shield, Package, Plus } from "lucide-react";
+import { Menu, Shield, Package, Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -15,12 +15,30 @@ import { MemberPermissionsPanel, BundleEditor, DelegationAuditLog } from "@/comp
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { BackButton } from "@/components/ui/BackButton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { PermissionBundle } from "@/hooks/usePermissions";
 
 const DashboardPermissionsSettings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bundleEditorOpen, setBundleEditorOpen] = useState(false);
   const [editingBundle, setEditingBundle] = useState<PermissionBundle | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bundleToDelete, setBundleToDelete] = useState<PermissionBundle | null>(null);
   
   const { activeTenant, activeRole } = useTenant();
   const { allDefinitions, canDelegate, loading } = usePermissions();
@@ -29,10 +47,13 @@ const DashboardPermissionsSettings = () => {
     getBundlePermissions, 
     createBundle, 
     updateBundlePermissions,
+    deleteBundle,
     isCreating,
-    isUpdating 
+    isUpdating,
+    isDeleting,
   } = usePermissionBundles();
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const isRTL = dir === "rtl";
   const navigate = useNavigate();
 
   const isOwner = activeRole === "owner";
@@ -60,6 +81,25 @@ const DashboardPermissionsSettings = () => {
         description: data.description,
         permissionKeys: data.permissionKeys,
       });
+    }
+  };
+
+  const handleViewBundle = (bundle: typeof bundles[0]) => {
+    setEditingBundle(bundle);
+    setBundleEditorOpen(true);
+  };
+
+  const handleDeleteClick = (bundle: typeof bundles[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBundleToDelete(bundle);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (bundleToDelete) {
+      await deleteBundle(bundleToDelete.id);
+      setDeleteDialogOpen(false);
+      setBundleToDelete(null);
     }
   };
 
@@ -182,26 +222,59 @@ const DashboardPermissionsSettings = () => {
                         return (
                           <div
                             key={bundle.id}
-                            className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/50 hover:bg-accent/30 transition-colors cursor-pointer"
-                            onClick={() => isOwner && handleEditBundle(bundle)}
+                            className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/50 hover:bg-accent/30 transition-colors"
                           >
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                                 <Package className="w-5 h-5 text-primary" />
                               </div>
-                              <div>
-                                <p className="font-medium">{bundle.name}</p>
+                              <div className="min-w-0 text-start">
+                                <p className="font-medium truncate">{bundle.name}</p>
                                 {bundle.description && (
-                                  <p className="text-sm text-muted-foreground">{bundle.description}</p>
+                                  <p className="text-sm text-muted-foreground truncate">{bundle.description}</p>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary">
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge variant="secondary" className="whitespace-nowrap">
                                 {permCount} {t("permissions.permissionsSelected")}
                               </Badge>
                               {bundle.is_system && (
                                 <Badge variant="outline">{t("common.system")}</Badge>
+                              )}
+                              {isOwner && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <MoreHorizontal className="w-4 h-4" />
+                                      <span className="sr-only">{t("common.openMenu")}</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align={isRTL ? "start" : "end"}>
+                                    <DropdownMenuItem onClick={() => handleViewBundle(bundle)}>
+                                      <Eye className="w-4 h-4 me-2" />
+                                      {t("common.view")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleEditBundle(bundle)}>
+                                      <Pencil className="w-4 h-4 me-2" />
+                                      {t("common.edit")}
+                                    </DropdownMenuItem>
+                                    {!bundle.is_system && (
+                                      <DropdownMenuItem
+                                        onClick={(e) => handleDeleteClick(bundle, e as any)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="w-4 h-4 me-2" />
+                                        {t("common.delete")}
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               )}
                             </div>
                           </div>
@@ -243,6 +316,28 @@ const DashboardPermissionsSettings = () => {
         onSave={handleSaveBundle}
         isLoading={isCreating || isUpdating}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("permissions.deleteBundle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("permissions.confirmDeleteBundle")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? t("common.loading") : t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

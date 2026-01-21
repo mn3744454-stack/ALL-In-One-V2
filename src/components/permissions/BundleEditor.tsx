@@ -300,9 +300,17 @@ export function BundleEditor({
                               const permLabel = isRTL && perm.display_name_ar 
                                 ? perm.display_name_ar 
                                 : perm.display_name;
-                              const permDesc = isRTL && perm.description_ar 
-                                ? perm.description_ar 
-                                : perm.description;
+                              
+                              // Use Arabic description if available, otherwise fallback
+                              let permDesc = perm.description;
+                              if (isRTL) {
+                                if (perm.description_ar) {
+                                  permDesc = perm.description_ar;
+                                } else if (perm.description) {
+                                  // Fallback: show a generic Arabic placeholder instead of English
+                                  permDesc = t("permissions.noDescriptionAvailable");
+                                }
+                              }
                               
                               return (
                                 <label
@@ -323,7 +331,7 @@ export function BundleEditor({
                                     }
                                     className="mt-0.5 h-5 w-5 shrink-0 border-2 border-primary/50 data-[state=checked]:border-primary"
                                   />
-                                  <div className="flex-1 min-w-0">
+                                  <div className="flex-1 min-w-0 text-start">
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <span className="text-sm font-medium">
                                         {permLabel}

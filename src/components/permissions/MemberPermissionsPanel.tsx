@@ -52,6 +52,21 @@ const moduleIcons: Record<string, React.ReactNode> = {
   users: <UsersIcon className="w-4 h-4" />,
 };
 
+// Arabic translations for module names
+const moduleLabelsAr: Record<string, string> = {
+  admin: "الإدارة",
+  finance: "المالية",
+  files: "الملفات",
+  horses: "الخيول",
+  inventory: "المخزون",
+  laboratory: "المختبر",
+  orders: "الطلبات",
+  vet: "العيادة",
+  settings: "الإعدادات",
+  users: "المستخدمين",
+  housing: "الإسكان",
+};
+
 export function MemberPermissionsPanel() {
   const { t, dir } = useI18n();
   const queryClient = useQueryClient();
@@ -379,6 +394,11 @@ export function MemberPermissionsPanel() {
                   const isExpanded = expandedModules.has(module);
                   const ModuleIcon = moduleIcons[module.toLowerCase()] || <Shield className="w-4 h-4" />;
                   
+                  // Use Arabic module label if in RTL mode
+                  const moduleLabel = isRTL 
+                    ? (moduleLabelsAr[module.toLowerCase()] || module)
+                    : module;
+                  
                   return (
                     <Collapsible
                       key={module}
@@ -393,7 +413,7 @@ export function MemberPermissionsPanel() {
                                 <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
                                   {ModuleIcon}
                                 </span>
-                                {module}
+                                {moduleLabel}
                                 <Badge variant="outline" className="text-xs font-normal">
                                   {permissions.length}
                                 </Badge>
@@ -417,7 +437,7 @@ export function MemberPermissionsPanel() {
                                     key={perm.key}
                                     className="flex items-center justify-between py-2.5 gap-3"
                                   >
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 text-start">
                                       <p className="text-sm font-medium">
                                         {getPermissionName(perm)}
                                       </p>
@@ -435,8 +455,8 @@ export function MemberPermissionsPanel() {
                                           disabled={!canDelegateThis || isUpdating}
                                           className={cn(
                                             "w-24 justify-center shrink-0",
-                                            override === true && "text-green-600",
-                                            override === false && "text-red-600"
+                                            override === true && "text-success",
+                                            override === false && "text-destructive"
                                           )}
                                         >
                                           {override === true && (
