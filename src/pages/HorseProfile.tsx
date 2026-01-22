@@ -38,6 +38,7 @@ import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
 import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
+import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
 
 interface Horse {
@@ -457,6 +458,9 @@ const HorseProfile = () => {
 
         {/* Ownership Timeline */}
         <OwnershipTimeline horseId={horse.id} />
+
+        {/* Sharing Links */}
+        <HorseSharesPanel horseId={horse.id} horseName={horse.name} />
       </main>
 
       {/* Edit Wizard */}

@@ -1874,6 +1874,141 @@ export type Database = {
           },
         ]
       }
+      horse_share_packs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          key: string
+          name: string
+          scope: Json
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key: string
+          name: string
+          scope?: Json
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key?: string
+          name?: string
+          scope?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_share_packs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_share_packs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_shares: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date_from: string | null
+          date_to: string | null
+          expires_at: string | null
+          horse_id: string
+          id: string
+          pack_id: string | null
+          recipient_email: string | null
+          revoked_at: string | null
+          scope: Json
+          status: string
+          tenant_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date_from?: string | null
+          date_to?: string | null
+          expires_at?: string | null
+          horse_id: string
+          id?: string
+          pack_id?: string | null
+          recipient_email?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          tenant_id: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date_from?: string | null
+          date_to?: string | null
+          expires_at?: string | null
+          horse_id?: string
+          id?: string
+          pack_id?: string | null
+          recipient_email?: string | null
+          revoked_at?: string | null
+          scope?: Json
+          status?: string
+          tenant_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_shares_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_shares_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "horse_share_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_vaccinations: {
         Row: {
           administered_by: string | null
@@ -6666,6 +6801,22 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      create_horse_share: {
+        Args: {
+          _custom_scope?: Json
+          _date_from?: string
+          _date_to?: string
+          _expires_at?: string
+          _horse_id: string
+          _pack_key?: string
+          _recipient_email?: string
+        }
+        Returns: Json
+      }
+      ensure_horse_share_packs: {
+        Args: { _tenant_id: string }
+        Returns: undefined
+      }
       finalize_invitation_acceptance: {
         Args: { _token: string }
         Returns: Json
@@ -6675,6 +6826,7 @@ export type Database = {
         Args: { _horse_id: string; _use_alias?: boolean }
         Returns: string
       }
+      get_horse_share_view: { Args: { _token: string }; Returns: Json }
       get_media_share_info: {
         Args: { _token: string }
         Returns: {
@@ -6808,6 +6960,7 @@ export type Database = {
         Args: { _invitation_id: string; _reason?: string }
         Returns: Json
       }
+      revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
       set_tenant_role_access: {
         Args: {
