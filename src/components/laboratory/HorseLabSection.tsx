@@ -68,7 +68,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
       // Get sample IDs for this horse within the active tenant (MVP-scoped)
       const { data: samples, error: samplesError } = await supabase
         .from("lab_samples")
-        .select("id, tenant_id")
+        .select("id")
         .eq("horse_id", horseId)
         .eq("tenant_id", activeTenant!.tenant.id);
 
