@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -112,8 +111,8 @@ export function MultiHorseSelector({
       )}
 
       {/* Horses List */}
-      <ScrollArea className="max-h-[40vh] sm:max-h-[280px] w-full rounded-md border">
-        <div className="p-2 space-y-1">
+      <div className="max-h-[40vh] sm:max-h-[280px] w-full overflow-y-auto rounded-md border">
+        <div className="p-2 space-y-1 w-full">
           {filteredHorses.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {search ? t("laboratory.horseSelection.noMatchingHorses") : t("laboratory.horseSelection.noHorses")}
@@ -125,7 +124,7 @@ export function MultiHorseSelector({
                 <div
                   key={horse.id}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors",
+                    "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors w-full",
                     "hover:bg-muted/50",
                     isSelected && "bg-primary/10 border border-primary/20",
                     disabled && "opacity-50 cursor-not-allowed"
@@ -159,7 +158,7 @@ export function MultiHorseSelector({
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Selected Summary */}
       {selectedHorseIds.length > 0 && (
