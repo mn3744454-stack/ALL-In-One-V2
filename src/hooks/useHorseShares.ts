@@ -125,6 +125,11 @@ export function useHorseShares(horseId?: string) {
     if (!activeTenant?.tenant.id) return;
 
     try {
+      // Ensure packs are seeded for this tenant before fetching
+      await supabase.rpc("ensure_horse_share_packs", {
+        _tenant_id: activeTenant.tenant.id,
+      });
+
       const { data, error } = await supabase
         .from("horse_share_packs")
         .select("*")
