@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,20 +20,34 @@ interface VetTreatmentCardProps {
 
 export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCardProps) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const horseName = treatment.horse?.name || "Unknown Horse";
   const horseAvatar = treatment.horse?.avatar_url;
+  const horseId = treatment.horse?.id;
+
+  const handleHorseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (horseId) {
+      navigate(`/horses/${horseId}`);
+    }
+  };
 
   return (
     <Card variant="elevated" className="hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          {/* Horse Avatar */}
-          <Avatar className="w-12 h-12 rounded-xl">
-            <AvatarImage src={horseAvatar || undefined} alt={horseName} />
-            <AvatarFallback className="bg-gold/20 text-gold-dark font-semibold rounded-xl">
-              {horseName[0]}
-            </AvatarFallback>
-          </Avatar>
+          {/* Horse Avatar - Clickable to open horse profile */}
+          <div 
+            className={horseId ? "cursor-pointer group" : ""}
+            onClick={horseId ? handleHorseClick : undefined}
+          >
+            <Avatar className="w-12 h-12 rounded-xl transition-transform group-hover:scale-105">
+              <AvatarImage src={horseAvatar || undefined} alt={horseName} />
+              <AvatarFallback className="bg-gold/20 text-gold-dark font-semibold rounded-xl">
+                {horseName[0]}
+              </AvatarFallback>
+            </Avatar>
+          </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
@@ -40,7 +55,12 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
             <div className="flex items-start justify-between gap-2 mb-2">
               <div>
                 <h3 className="font-semibold text-navy truncate">{treatment.title}</h3>
-                <p className="text-sm text-muted-foreground">{horseName}</p>
+                <p 
+                  className={`text-sm text-muted-foreground ${horseId ? "cursor-pointer hover:text-primary hover:underline" : ""}`}
+                  onClick={horseId ? handleHorseClick : undefined}
+                >
+                  {horseName}
+                </p>
               </div>
               <VetStatusBadge status={treatment.status} />
             </div>

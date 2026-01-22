@@ -16,6 +16,10 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const { activeRole, activeTenant } = useTenant();
   const moduleAccess = useModuleAccess();
 
+  // Determine if this tenant type "owns" horses (stable-centric feature)
+  const tenantType = activeTenant?.tenant.type;
+  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
   // Helper to check if a module is enabled
   const isModuleEnabled = (moduleKey: string): boolean => {
     switch (moduleKey) {
@@ -39,6 +43,9 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const visibleModules = NAV_MODULES.filter((module) => {
     // Skip dashboard - user is already there
     if (module.key === "dashboard") return false;
+
+    // Hide "horses" module for non-horse-owning tenants (Lab, Clinic, etc.)
+    if (module.key === "horses" && !isHorseOwningTenant) return false;
     
     // Check role restriction
     if (module.roles && !module.roles.includes(activeRole || "")) {
