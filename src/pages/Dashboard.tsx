@@ -48,6 +48,11 @@ const Dashboard = () => {
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
+  // Determine if this tenant type "owns" horses (stable-centric feature)
+  // Lab and Clinic tenants don't own horses - they provide services to horses
+  const tenantType = activeTenant?.tenant.type;
+  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
   return (
     <div className="h-dvh w-full bg-cream flex overflow-hidden" dir={dir}>
       {/* Desktop Sidebar - hidden on mobile */}
@@ -250,14 +255,17 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Stats Grid */}
+            {/* Stats Grid - Conditional based on tenant type */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <StatCard
-                icon={Heart}
-                label={t("dashboard.totalHorses")}
-                value={horses.length.toString()}
-                change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
-              />
+              {/* Total Horses - only for horse-owning tenants */}
+              {isHorseOwningTenant && (
+                <StatCard
+                  icon={Heart}
+                  label={t("dashboard.totalHorses")}
+                  value={horses.length.toString()}
+                  change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
+                />
+              )}
               <StatCard
                 icon={Activity}
                 label={t("dashboard.healthCheckups")}
@@ -289,8 +297,8 @@ const Dashboard = () => {
 
             {/* Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Horses List - Only show if user has a tenant */}
-              {activeTenant ? (
+              {/* Horses List - Only show for horse-owning tenant types */}
+              {activeTenant && isHorseOwningTenant ? (
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -332,7 +340,7 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 </div>
-              ) : (
+              ) : !activeTenant ? (
                 /* Available Services - Show for users without tenant */
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
@@ -372,6 +380,20 @@ const Dashboard = () => {
                       >
                         {t("dashboard.startFreeTrial")}
                       </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                /* Default content for non-horse-owning tenants (Lab, Clinic, etc.) */
+                <div className="lg:col-span-2">
+                  <Card variant="elevated">
+                    <CardHeader>
+                      <CardTitle className="text-navy">{t("dashboard.overview")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground text-center py-8">
+                        {t("dashboard.welcomeMessage")}
+                      </p>
                     </CardContent>
                   </Card>
                 </div>

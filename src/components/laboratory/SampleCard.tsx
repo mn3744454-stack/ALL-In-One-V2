@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -61,6 +62,7 @@ export function SampleCard({
   onGenerateInvoice,
 }: SampleCardProps) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { hasPermission, isOwner } = usePermissions();
   const { getCapabilityForCategory } = useTenantCapabilities();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -68,6 +70,15 @@ export function SampleCard({
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+
+  // Horse profile navigation
+  const horseId = sample.horse?.id;
+  const handleHorseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (horseId) {
+      navigate(`/horses/${horseId}`);
+    }
+  };
 
   // Get billing policy from tenant capabilities
   const labCapability = getCapabilityForCategory("laboratory");
@@ -156,14 +167,24 @@ export function SampleCard({
                 #{(sample as any).daily_number}
               </div>
             )}
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={sample.horse?.avatar_url || undefined} alt={horseName} />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                {horseInitials}
-              </AvatarFallback>
-            </Avatar>
+            <div 
+              className={horseId ? "cursor-pointer group" : ""}
+              onClick={horseId ? handleHorseClick : undefined}
+            >
+              <Avatar className="h-10 w-10 transition-transform group-hover:scale-105">
+                <AvatarImage src={sample.horse?.avatar_url || undefined} alt={horseName} />
+                <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                  {horseInitials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
             <div>
-              <h3 className="font-semibold text-sm">{horseName}</h3>
+              <h3 
+                className={`font-semibold text-sm ${horseId ? "cursor-pointer hover:text-primary hover:underline" : ""}`}
+                onClick={horseId ? handleHorseClick : undefined}
+              >
+                {horseName}
+              </h3>
               {sample.physical_sample_id && (
                 <p className="text-xs text-muted-foreground font-mono">
                   {sample.physical_sample_id}

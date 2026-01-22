@@ -137,6 +137,10 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   } = useModuleAccess();
   const { t, dir } = useI18n();
 
+  // Determine if this tenant type "owns" horses (stable-centric feature)
+  const tenantType = activeTenant?.tenant.type;
+  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
   // Build horses nav items conditionally based on module access
   const horsesNavItems = useMemo(() => {
     const items = [
@@ -251,13 +255,37 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               onNavigate={onClose}
             />
 
-            {/* Horses NavGroup */}
-            <NavGroup
-              icon={Heart}
-              label={t('sidebar.horses')}
-              items={horsesNavItems}
-              onNavigate={onClose}
-            />
+            {/* Horses NavGroup - Only show for horse-owning tenant types */}
+            {isHorseOwningTenant && (
+              <NavGroup
+                icon={Heart}
+                label={t('sidebar.horses')}
+                items={horsesNavItems}
+                onNavigate={onClose}
+              />
+            )}
+
+            {/* Vet - Show for Clinic tenants even when not in horses group */}
+            {!isHorseOwningTenant && vetEnabled && (
+              <NavItem
+                icon={Stethoscope}
+                label={t('sidebar.vetHealth')}
+                href="/dashboard/vet"
+                active={isActive("/dashboard/vet")}
+                onNavigate={onClose}
+              />
+            )}
+
+            {/* Lab - Show for Lab tenants even when not in horses group */}
+            {!isHorseOwningTenant && labMode !== 'none' && (
+              <NavItem
+                icon={FlaskConical}
+                label={t('sidebar.laboratory')}
+                href="/dashboard/laboratory"
+                active={isActive("/dashboard/laboratory")}
+                onNavigate={onClose}
+              />
+            )}
 
             <NavItem 
               icon={Calendar} 
