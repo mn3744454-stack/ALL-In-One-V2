@@ -44,6 +44,8 @@ export const ar = {
     duplicate: "تكرار",
     of: "من",
     tryAdjustingFilters: "جرب تعديل الفلاتر",
+    source: "المصدر",
+    unknownOrganization: "منشأة غير معروفة",
   },
   settings: {
     permissionsRoles: {
@@ -1352,6 +1354,9 @@ export const ar = {
     subtitle: "إدارة العلاجات والتطعيمات والمتابعات",
     newTreatment: "علاج جديد",
     vaccinationPrograms: "برامج التطعيم",
+    noRecords: "لا توجد سجلات صحية بعد",
+    addFirstTreatment: "أضف أول علاج",
+    recentTreatments: "العلاجات الأخيرة",
     tabs: {
       treatments: "العلاجات",
       vaccinations: "التطعيمات",

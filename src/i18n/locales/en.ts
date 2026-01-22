@@ -44,6 +44,8 @@ export const en = {
     duplicate: "Duplicate",
     of: "of",
     tryAdjustingFilters: "Try adjusting your filters",
+    source: "Source",
+    unknownOrganization: "Unknown Organization",
   },
   settings: {
     permissionsRoles: {
@@ -1349,6 +1351,9 @@ export const en = {
     subtitle: "Manage treatments, vaccinations, and follow-ups",
     newTreatment: "New Treatment",
     vaccinationPrograms: "Vaccination Programs",
+    noRecords: "No health records yet",
+    addFirstTreatment: "Add First Treatment",
+    recentTreatments: "Recent Treatments",
     tabs: {
       treatments: "Treatments",
       vaccinations: "Vaccinations",

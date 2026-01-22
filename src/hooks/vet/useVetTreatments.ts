@@ -40,6 +40,7 @@ export interface VetTreatment {
   provider?: { id: string; name: string } | null;
   assignee?: { id: string; full_name: string; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string; avatar_url: string | null };
+  source_tenant?: { id: string; name: string } | null;
 }
 
 export interface VetTreatmentFilters {
@@ -85,7 +86,8 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
           horse:horses!vet_treatments_horse_id_fkey(id, name, avatar_url),
           provider:service_providers!vet_treatments_external_provider_id_fkey(id, name),
           assignee:profiles!vet_treatments_assigned_to_fkey(id, full_name, avatar_url),
-          creator:profiles!vet_treatments_created_by_fkey(id, full_name, avatar_url)
+          creator:profiles!vet_treatments_created_by_fkey(id, full_name, avatar_url),
+          source_tenant:tenants!vet_treatments_tenant_id_fkey(id, name)
         `)
         .eq("tenant_id", tenantId!)
         .order("created_at", { ascending: false });
