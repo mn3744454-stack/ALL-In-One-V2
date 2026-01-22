@@ -37,7 +37,7 @@ export function CreateHorseShareDialog({
   horseId,
   horseName,
 }: CreateHorseShareDialogProps) {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const { packs, fetchPacks, createShare, getShareUrl } = useHorseShares(horseId);
 
   const [packsLoading, setPacksLoading] = useState(false);
@@ -134,8 +134,7 @@ export function CreateHorseShareDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="w-[95vw] sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden rounded-2xl p-0" 
-        dir={dir}
+        className="w-[95vw] sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden rounded-2xl p-0"
       >
         {/* Header - fixed at top */}
         <DialogHeader className="flex-shrink-0 px-5 pt-5 pb-2">
