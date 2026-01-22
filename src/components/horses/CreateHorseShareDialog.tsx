@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import { Copy, Check, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface CreateHorseShareDialogProps {
@@ -40,6 +40,7 @@ export function CreateHorseShareDialog({
   const { t, dir } = useI18n();
   const { packs, fetchPacks, createShare, getShareUrl } = useHorseShares(horseId);
 
+  const [packsLoading, setPacksLoading] = useState(false);
   const [selectedPackKey, setSelectedPackKey] = useState("medical_summary");
   const [lockToEmail, setLockToEmail] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -57,7 +58,6 @@ export function CreateHorseShareDialog({
 
   useEffect(() => {
     if (open) {
-      fetchPacks();
       // Reset state
       setCreatedShareUrl(null);
       setCopied(false);
@@ -68,6 +68,10 @@ export function CreateHorseShareDialog({
       setDateTo("");
       setExpiresIn("7");
       setCustomizeScope(false);
+      
+      // Fetch packs with loading state
+      setPacksLoading(true);
+      fetchPacks().finally(() => setPacksLoading(false));
     }
   }, [open, fetchPacks]);
 
@@ -129,7 +133,7 @@ export function CreateHorseShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" dir={dir}>
+      <DialogContent className="sm:max-w-md rounded-2xl" dir={dir}>
         <DialogHeader>
           <DialogTitle>{t("horseShare.createTitle")}</DialogTitle>
           <DialogDescription>
@@ -138,22 +142,32 @@ export function CreateHorseShareDialog({
         </DialogHeader>
 
         {!createdShareUrl ? (
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-4">
             {/* Pack Selection */}
             <div className="space-y-2">
               <Label>{t("horseShare.pack")}</Label>
-              <Select value={selectedPackKey} onValueChange={setSelectedPackKey}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {packs.map((pack) => (
-                    <SelectItem key={pack.key} value={pack.key}>
-                      {pack.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {packsLoading ? (
+                <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : packs.length === 0 ? (
+                <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
+                  <span className="text-sm text-muted-foreground">{t("common.noData")}</span>
+                </div>
+              ) : (
+                <Select value={selectedPackKey} onValueChange={setSelectedPackKey}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("horseShare.selectPack")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {packs.map((pack) => (
+                      <SelectItem key={pack.key} value={pack.key}>
+                        {pack.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {packs.find((p) => p.key === selectedPackKey)?.description && (
                 <p className="text-xs text-muted-foreground">
                   {packs.find((p) => p.key === selectedPackKey)?.description}
@@ -288,7 +302,7 @@ export function CreateHorseShareDialog({
                   className="shrink-0"
                 >
                   {copied ? (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4 text-primary" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
@@ -309,18 +323,26 @@ export function CreateHorseShareDialog({
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-2">
           {!createdShareUrl ? (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button onClick={handleCreate} disabled={creating}>
+              <Button 
+                onClick={handleCreate} 
+                disabled={creating || packsLoading || packs.length === 0}
+                className="w-full sm:w-auto"
+              >
                 {creating ? t("common.loading") : t("horseShare.createShare")}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto"
+              >
+                {t("common.cancel")}
               </Button>
             </>
           ) : (
-            <Button onClick={() => onOpenChange(false)}>
+            <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
               {t("common.close")}
             </Button>
           )}
