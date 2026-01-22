@@ -79,8 +79,8 @@ const translations: Record<Language, Record<string, string>> = {
     gelding: "Gelding",
   },
   ar: {
-    title: "تقرير الحصان المشترك",
-    horseInfo: "معلومات الحصان",
+    title: "تقرير الخيل المشترك",
+    horseInfo: "معلومات الخيل",
     name: "الاسم",
     gender: "الجنس",
     birthDate: "تاريخ الميلاد",
