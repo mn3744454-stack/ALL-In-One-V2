@@ -917,7 +917,7 @@ export function CreateSampleDialog({
 
           {/* Step Content - scrollable */}
           <ScrollArea className="flex-1 min-h-0">
-            <div className="px-1 pb-4">
+            <div className="px-1 pb-6">
               {renderStepContent()}
             </div>
           </ScrollArea>
