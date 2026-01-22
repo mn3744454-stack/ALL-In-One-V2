@@ -39,7 +39,8 @@ interface LabResult {
   result_data: Record<string, unknown> | null;
   template_id: string | null;
   template: { id: string; name: string; fields: unknown[] } | null;
-  sample: { physical_sample_id: string | null } | null;
+  sample: { physical_sample_id: string | null; tenant_id: string } | null;
+  source_tenant: { id: string; name: string } | null;
 }
 
 interface HorseLabSectionProps {
@@ -64,11 +65,10 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const fetchResults = async () => {
     setLoading(true);
     try {
-      // First get sample IDs for this horse
+      // First get sample IDs for this horse (across all tenants for unified view)
       const { data: samples, error: samplesError } = await supabase
         .from("lab_samples")
-        .select("id")
-        .eq("tenant_id", activeTenant!.tenant.id)
+        .select("id, tenant_id")
         .eq("horse_id", horseId);
 
       if (samplesError) throw samplesError;
@@ -80,7 +80,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
 
       const sampleIds = samples.map(s => s.id);
 
-      // Then get results for those samples with full template data
+      // Then get results for those samples with full template data and source tenant
       const { data, error } = await supabase
         .from("lab_results")
         .select(`
@@ -91,9 +91,9 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
           result_data,
           template_id,
           template:lab_templates(id, name, fields),
-          sample:lab_samples(physical_sample_id)
+          sample:lab_samples(physical_sample_id, tenant_id),
+          source_tenant:tenants!lab_results_tenant_id_fkey(id, name)
         `)
-        .eq("tenant_id", activeTenant!.tenant.id)
         .in("sample_id", sampleIds)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -238,36 +238,47 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   };
 
   // Result row component (clickable)
-  const ResultRow = ({ result, compact = false }: { result: LabResult; compact?: boolean }) => (
-    <div 
-      key={result.id}
-      className={`flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ${compact ? 'bg-muted/30' : ''}`}
-      onClick={() => handleResultClick(result)}
-    >
-      <div className="flex items-center gap-3">
-        {getFlagIcon(result.flags)}
-        <div>
-          <p className={`font-medium ${compact ? 'text-sm' : ''}`}>{result.template?.name || t('laboratory.results.unknownTest')}</p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3" />
-            {format(new Date(result.created_at), "MMM d, yyyy")}
-            {result.sample?.physical_sample_id && (
-              <span className="font-mono">#{result.sample.physical_sample_id}</span>
-            )}
+  const ResultRow = ({ result, compact = false }: { result: LabResult; compact?: boolean }) => {
+    const sourceName = result.source_tenant?.name || t('common.unknownOrganization');
+    
+    return (
+      <div 
+        key={result.id}
+        className={`flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer ${compact ? 'bg-muted/30' : ''}`}
+        onClick={() => handleResultClick(result)}
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          {getFlagIcon(result.flags)}
+          <div className="min-w-0">
+            <p className={`font-medium truncate ${compact ? 'text-sm' : ''}`}>
+              {result.template?.name || t('laboratory.results.unknownTest')}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 shrink-0" />
+                {format(new Date(result.created_at), "MMM d, yyyy")}
+              </span>
+              <span className="text-primary/80 truncate">
+                {t('common.source')}: {sourceName}
+              </span>
+              {result.sample?.physical_sample_id && !compact && (
+                <span className="font-mono">#{result.sample.physical_sample_id}</span>
+              )}
+            </div>
           </div>
         </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {result.flags && (
+            <Badge className={getFlagColor(result.flags)} variant="secondary">
+              {result.flags}
+            </Badge>
+          )}
+          {!compact && getStatusBadge(result.status)}
+          <Eye className="h-4 w-4 text-muted-foreground" />
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        {result.flags && (
-          <Badge className={getFlagColor(result.flags)} variant="secondary">
-            {result.flags}
-          </Badge>
-        )}
-        {!compact && getStatusBadge(result.status)}
-        <Eye className="h-4 w-4 text-muted-foreground" />
-      </div>
-    </div>
-  );
+    );
+  };
 
   // Desktop view
   const DesktopView = () => (

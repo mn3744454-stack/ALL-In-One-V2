@@ -19,6 +19,7 @@ import { VetCategoryBadge } from "./VetCategoryBadge";
 import { CreateVetTreatmentDialog } from "./CreateVetTreatmentDialog";
 import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useI18n } from "@/i18n";
 
 interface HorseVetSectionProps {
   horseId: string;
@@ -27,6 +28,7 @@ interface HorseVetSectionProps {
 
 export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   const { treatments, loading: treatmentsLoading, canManage, refresh: refreshTreatments } = useVetTreatments({ 
@@ -61,13 +63,13 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Stethoscope className="w-5 h-5 text-gold" />
-            Vet & Health
+            <Stethoscope className="w-5 h-5 text-primary" />
+            {t('sidebar.vetHealth')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="w-6 h-6 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         </CardContent>
       </Card>
@@ -81,14 +83,14 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Stethoscope className="w-5 h-5 text-gold" />
-            Vet & Health
+            <Stethoscope className="w-5 h-5 text-primary" />
+            {t('sidebar.vetHealth')}
           </CardTitle>
           <div className="flex items-center gap-2">
             {canManage && (
               <Button size="sm" onClick={() => setShowCreateDialog(true)} className="gap-1.5">
                 <Plus className="w-4 h-4" />
-                New Treatment
+                <span className="hidden sm:inline">{t('vet.newTreatment')}</span>
               </Button>
             )}
             <Button 
@@ -97,8 +99,8 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
               onClick={() => navigate('/dashboard/vet')}
               className="gap-1.5"
             >
-              View All
-              <ChevronRight className="w-4 h-4" />
+              {t('common.viewAll')}
+              <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </Button>
           </div>
         </CardHeader>
@@ -106,7 +108,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
           {hasNoData ? (
             <div className="text-center py-8 text-muted-foreground">
               <Stethoscope className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No health records yet</p>
+              <p>{t('vet.noRecords')}</p>
               {canManage && (
                 <Button 
                   variant="outline" 
@@ -114,7 +116,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                   className="mt-3"
                   onClick={() => setShowCreateDialog(true)}
                 >
-                  Add First Treatment
+                  {t('vet.addFirstTreatment')}
                 </Button>
               )}
             </div>
@@ -125,29 +127,35 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <Stethoscope className="w-4 h-4" />
-                    Recent Treatments
+                    {t('vet.recentTreatments')}
                   </h4>
                   <div className="space-y-2">
-                    {recentTreatments.map((treatment) => (
-                      <div 
-                        key={treatment.id} 
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <VetCategoryBadge category={treatment.category} />
-                          <div className="min-w-0">
-                            <p className="font-medium truncate">{treatment.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(treatment.requested_at), 'MMM d, yyyy')}
-                            </p>
+                    {recentTreatments.map((treatment) => {
+                      const sourceName = treatment.source_tenant?.name || t('common.unknownOrganization');
+                      return (
+                        <div 
+                          key={treatment.id} 
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <VetCategoryBadge category={treatment.category} />
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{treatment.title}</p>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                                <span>{format(new Date(treatment.requested_at), 'MMM d, yyyy')}</span>
+                                <span className="text-primary/80 truncate">
+                                  {t('common.source')}: {sourceName}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <VetPriorityBadge priority={treatment.priority} />
+                            <VetStatusBadge status={treatment.status} />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <VetPriorityBadge priority={treatment.priority} />
-                          <VetStatusBadge status={treatment.status} />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
