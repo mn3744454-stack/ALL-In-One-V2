@@ -65,11 +65,12 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const fetchResults = async () => {
     setLoading(true);
     try {
-      // First get sample IDs for this horse (across all tenants for unified view)
+      // Get sample IDs for this horse within the active tenant (MVP-scoped)
       const { data: samples, error: samplesError } = await supabase
         .from("lab_samples")
         .select("id, tenant_id")
-        .eq("horse_id", horseId);
+        .eq("horse_id", horseId)
+        .eq("tenant_id", activeTenant!.tenant.id);
 
       if (samplesError) throw samplesError;
 
@@ -80,7 +81,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
 
       const sampleIds = samples.map(s => s.id);
 
-      // Then get results for those samples with full template data and source tenant
+      // Get results for those samples with full template data and source tenant
       const { data, error } = await supabase
         .from("lab_results")
         .select(`
@@ -95,6 +96,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
           source_tenant:tenants!lab_results_tenant_id_fkey(id, name)
         `)
         .in("sample_id", sampleIds)
+        .eq("tenant_id", activeTenant!.tenant.id)
         .order("created_at", { ascending: false })
         .limit(5);
 
