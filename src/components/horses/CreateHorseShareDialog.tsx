@@ -133,220 +133,230 @@ export function CreateHorseShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-2xl" dir={dir}>
-        <DialogHeader>
-          <DialogTitle>{t("horseShare.createTitle")}</DialogTitle>
-          <DialogDescription>
-            {t("horseShare.createDescription").replace("{{name}}", horseName)}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent 
+        className="w-[95vw] sm:max-w-md max-h-[85vh] overflow-hidden rounded-2xl p-0" 
+        dir={dir}
+      >
+        <div className="p-5 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle>{t("horseShare.createTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("horseShare.createDescription").replace("{{name}}", horseName)}
+            </DialogDescription>
+          </DialogHeader>
 
-        {!createdShareUrl ? (
-          <div className="space-y-5 py-4">
-            {/* Pack Selection */}
-            <div className="space-y-2">
-              <Label>{t("horseShare.pack")}</Label>
-              {packsLoading ? (
-                <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          {!createdShareUrl ? (
+            <div className="overflow-y-auto max-h-[calc(85vh-180px)] pr-1 space-y-5 py-4">
+              {/* Pack Selection */}
+              <div className="space-y-2">
+                <Label>{t("horseShare.pack")}</Label>
+                {packsLoading ? (
+                  <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : packs.length === 0 ? (
+                  <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
+                    <span className="text-sm text-muted-foreground">{t("common.noData")}</span>
+                  </div>
+                ) : (
+                  <Select value={selectedPackKey} onValueChange={setSelectedPackKey}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("horseShare.selectPack")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {packs.map((pack) => (
+                        <SelectItem key={pack.key} value={pack.key}>
+                          {pack.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                {packs.find((p) => p.key === selectedPackKey)?.description && (
+                  <p className="text-xs text-muted-foreground">
+                    {packs.find((p) => p.key === selectedPackKey)?.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Customize Scope Toggle */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="customize-scope">{t("horseShare.customize")}</Label>
+                <Switch
+                  id="customize-scope"
+                  checked={customizeScope}
+                  onCheckedChange={setCustomizeScope}
+                  dir={dir}
+                />
+              </div>
+
+              {/* Scope Toggles */}
+              {(customizeScope || selectedPackKey === "custom") && (
+                <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="include-vet" className="font-normal">
+                      {t("horseShare.includeVet")}
+                    </Label>
+                    <Checkbox
+                      id="include-vet"
+                      checked={includeVet}
+                      onCheckedChange={(c) => setIncludeVet(c === true)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="include-lab" className="font-normal">
+                      {t("horseShare.includeLab")}
+                    </Label>
+                    <Checkbox
+                      id="include-lab"
+                      checked={includeLab}
+                      onCheckedChange={(c) => setIncludeLab(c === true)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="include-files" className="font-normal">
+                      {t("horseShare.includeFiles")}
+                    </Label>
+                    <Checkbox
+                      id="include-files"
+                      checked={includeFiles}
+                      onCheckedChange={(c) => setIncludeFiles(c === true)}
+                    />
+                  </div>
                 </div>
-              ) : packs.length === 0 ? (
-                <div className="flex items-center justify-center h-10 border rounded-md bg-muted/30">
-                  <span className="text-sm text-muted-foreground">{t("common.noData")}</span>
+              )}
+
+              {/* Date Range */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>{t("horseShare.dateFrom")}</Label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
                 </div>
-              ) : (
-                <Select value={selectedPackKey} onValueChange={setSelectedPackKey}>
+                <div className="space-y-2">
+                  <Label>{t("horseShare.dateTo")}</Label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Expiration */}
+              <div className="space-y-2">
+                <Label>{t("horseShare.expiresIn")}</Label>
+                <Select value={expiresIn} onValueChange={setExpiresIn}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("horseShare.selectPack")} />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {packs.map((pack) => (
-                      <SelectItem key={pack.key} value={pack.key}>
-                        {pack.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="1">{t("horseShare.expires1Day")}</SelectItem>
+                    <SelectItem value="7">{t("horseShare.expires7Days")}</SelectItem>
+                    <SelectItem value="30">{t("horseShare.expires30Days")}</SelectItem>
+                    <SelectItem value="90">{t("horseShare.expires90Days")}</SelectItem>
+                    <SelectItem value="never">{t("horseShare.expiresNever")}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Email Lock */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="lock-email">{t("horseShare.lockToEmail")}</Label>
+                <Switch
+                  id="lock-email"
+                  checked={lockToEmail}
+                  onCheckedChange={setLockToEmail}
+                  dir={dir}
+                />
+              </div>
+
+              {lockToEmail && (
+                <div className="space-y-2">
+                  <Label>{t("horseShare.recipientEmail")}</Label>
+                  <Input
+                    type="email"
+                    placeholder="recipient@example.com"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("horseShare.emailLockHint")}
+                  </p>
+                </div>
               )}
-              {packs.find((p) => p.key === selectedPackKey)?.description && (
-                <p className="text-xs text-muted-foreground">
-                  {packs.find((p) => p.key === selectedPackKey)?.description}
-                </p>
-              )}
+              
+              {/* Bottom padding for scroll area */}
+              <div className="h-2" />
             </div>
-
-            {/* Customize Scope Toggle */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="customize-scope">{t("horseShare.customize")}</Label>
-              <Switch
-                id="customize-scope"
-                checked={customizeScope}
-                onCheckedChange={setCustomizeScope}
-              />
-            </div>
-
-            {/* Scope Toggles */}
-            {(customizeScope || selectedPackKey === "custom") && (
-              <div className="space-y-3 rounded-md border p-3">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="include-vet"
-                    checked={includeVet}
-                    onCheckedChange={(c) => setIncludeVet(c === true)}
-                  />
-                  <Label htmlFor="include-vet" className="font-normal">
-                    {t("horseShare.includeVet")}
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="include-lab"
-                    checked={includeLab}
-                    onCheckedChange={(c) => setIncludeLab(c === true)}
-                  />
-                  <Label htmlFor="include-lab" className="font-normal">
-                    {t("horseShare.includeLab")}
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="include-files"
-                    checked={includeFiles}
-                    onCheckedChange={(c) => setIncludeFiles(c === true)}
-                  />
-                  <Label htmlFor="include-files" className="font-normal">
-                    {t("horseShare.includeFiles")}
-                  </Label>
-                </div>
-              </div>
-            )}
-
-            {/* Date Range */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>{t("horseShare.dateFrom")}</Label>
-                <Input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("horseShare.dateTo")}</Label>
-                <Input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Expiration */}
-            <div className="space-y-2">
-              <Label>{t("horseShare.expiresIn")}</Label>
-              <Select value={expiresIn} onValueChange={setExpiresIn}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">{t("horseShare.expires1Day")}</SelectItem>
-                  <SelectItem value="7">{t("horseShare.expires7Days")}</SelectItem>
-                  <SelectItem value="30">{t("horseShare.expires30Days")}</SelectItem>
-                  <SelectItem value="90">{t("horseShare.expires90Days")}</SelectItem>
-                  <SelectItem value="never">{t("horseShare.expiresNever")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Email Lock */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="lock-email">{t("horseShare.lockToEmail")}</Label>
-              <Switch
-                id="lock-email"
-                checked={lockToEmail}
-                onCheckedChange={setLockToEmail}
-              />
-            </div>
-
-            {lockToEmail && (
-              <div className="space-y-2">
-                <Label>{t("horseShare.recipientEmail")}</Label>
-                <Input
-                  type="email"
-                  placeholder="recipient@example.com"
-                  value={recipientEmail}
-                  onChange={(e) => setRecipientEmail(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {t("horseShare.emailLockHint")}
-                </p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4 py-4">
-            <div className="rounded-md border bg-muted/50 p-4">
-              <Label className="text-sm text-muted-foreground mb-2 block">
-                {t("horseShare.shareLink")}
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  readOnly
-                  value={createdShareUrl}
-                  className="font-mono text-xs"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopy}
-                  className="shrink-0"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4 text-primary" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleOpenLink}
-                  className="shrink-0"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {t("horseShare.linkCreatedHint")}
-            </p>
-          </div>
-        )}
-
-        <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end pt-2">
-          {!createdShareUrl ? (
-            <>
-              <Button 
-                onClick={handleCreate} 
-                disabled={creating || packsLoading || packs.length === 0}
-                className="w-full sm:w-auto"
-              >
-                {creating ? t("common.loading") : t("horseShare.createShare")}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                className="w-full sm:w-auto"
-              >
-                {t("common.cancel")}
-              </Button>
-            </>
           ) : (
-            <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
-              {t("common.close")}
-            </Button>
+            <div className="space-y-4 py-4">
+              <div className="rounded-xl border bg-muted/50 p-4">
+                <Label className="text-sm text-muted-foreground mb-2 block">
+                  {t("horseShare.shareLink")}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={createdShareUrl}
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopy}
+                    className="shrink-0"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleOpenLink}
+                    className="shrink-0"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t("horseShare.linkCreatedHint")}
+              </p>
+            </div>
           )}
-        </DialogFooter>
+
+          <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4 border-t mt-4">
+            {!createdShareUrl ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="w-full sm:w-auto"
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button 
+                  onClick={handleCreate} 
+                  disabled={creating || packsLoading || packs.length === 0}
+                  className="w-full sm:w-auto"
+                >
+                  {creating ? t("common.loading") : t("horseShare.createShare")}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+                {t("common.close")}
+              </Button>
+            )}
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
