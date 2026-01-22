@@ -112,7 +112,7 @@ export function MultiHorseSelector({
       )}
 
       {/* Horses List */}
-      <ScrollArea className="h-[280px] rounded-md border">
+      <ScrollArea className="max-h-[40vh] sm:max-h-[280px] w-full rounded-md border">
         <div className="p-2 space-y-1">
           {filteredHorses.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">

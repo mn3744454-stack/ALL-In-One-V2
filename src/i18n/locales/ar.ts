@@ -2133,7 +2133,7 @@ export const ar = {
       billOrder: "إصدار فاتورة",
     },
     table: {
-      horse: "الحصان",
+      horse: "الخيل",
       type: "النوع",
       status: "الحالة",
       priority: "الأولوية",
@@ -2256,7 +2256,7 @@ export const ar = {
   horseShare: {
     title: "روابط المشاركة",
     create: "مشاركة",
-    createTitle: "مشاركة سجل الحصان",
+    createTitle: "مشاركة سجل الخيل",
     createDescription: "إنشاء رابط مشاركة للسجلات الطبية لـ {{name}}.",
     createShare: "إنشاء رابط مشاركة",
     pack: "قالب المشاركة",
@@ -2299,10 +2299,10 @@ export const ar = {
       failedToRevoke: "فشل في إلغاء رابط المشاركة",
     },
     errors: {
-      noHorseSelected: "لم يتم تحديد حصان",
+      noHorseSelected: "لم يتم تحديد الخيل",
       not_authenticated: "يجب تسجيل الدخول",
-      horse_not_found: "الحصان غير موجود",
-      permission_denied: "ليس لديك صلاحية لمشاركة هذا الحصان",
+      horse_not_found: "الخيل غير موجود",
+      permission_denied: "ليس لديك صلاحية لمشاركة سجل هذا الخيل",
       share_not_found: "رابط المشاركة غير موجود",
     },
   },
