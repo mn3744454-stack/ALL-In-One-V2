@@ -134,19 +134,21 @@ export function CreateHorseShareDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="w-[95vw] sm:max-w-md max-h-[85vh] overflow-hidden rounded-2xl p-0" 
+        className="w-[95vw] sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden rounded-2xl p-0" 
         dir={dir}
       >
-        <div className="p-5 sm:p-6">
-          <DialogHeader className="pb-2">
-            <DialogTitle>{t("horseShare.createTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("horseShare.createDescription").replace("{{name}}", horseName)}
-            </DialogDescription>
-          </DialogHeader>
+        {/* Header - fixed at top */}
+        <DialogHeader className="flex-shrink-0 px-5 pt-5 pb-2">
+          <DialogTitle>{t("horseShare.createTitle")}</DialogTitle>
+          <DialogDescription>
+            {t("horseShare.createDescription").replace("{{name}}", horseName)}
+          </DialogDescription>
+        </DialogHeader>
 
+        {/* Scrollable body */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5">
           {!createdShareUrl ? (
-            <div className="overflow-y-auto max-h-[calc(85vh-180px)] pr-1 space-y-5 py-4">
+            <div className="space-y-5 pb-6">
               {/* Pack Selection */}
               <div className="space-y-2">
                 <Label>{t("horseShare.pack")}</Label>
@@ -186,7 +188,6 @@ export function CreateHorseShareDialog({
                   id="customize-scope"
                   checked={customizeScope}
                   onCheckedChange={setCustomizeScope}
-                  dir={dir}
                 />
               </div>
 
@@ -270,7 +271,6 @@ export function CreateHorseShareDialog({
                   id="lock-email"
                   checked={lockToEmail}
                   onCheckedChange={setLockToEmail}
-                  dir={dir}
                 />
               </div>
 
@@ -288,12 +288,9 @@ export function CreateHorseShareDialog({
                   </p>
                 </div>
               )}
-              
-              {/* Bottom padding for scroll area */}
-              <div className="h-2" />
             </div>
           ) : (
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 pb-6">
               <div className="rounded-xl border bg-muted/50 p-4">
                 <Label className="text-sm text-muted-foreground mb-2 block">
                   {t("horseShare.shareLink")}
@@ -331,32 +328,33 @@ export function CreateHorseShareDialog({
               </p>
             </div>
           )}
-
-          <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4 border-t mt-4">
-            {!createdShareUrl ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => onOpenChange(false)}
-                  className="w-full sm:w-auto"
-                >
-                  {t("common.cancel")}
-                </Button>
-                <Button 
-                  onClick={handleCreate} 
-                  disabled={creating || packsLoading || packs.length === 0}
-                  className="w-full sm:w-auto"
-                >
-                  {creating ? t("common.loading") : t("horseShare.createShare")}
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
-                {t("common.close")}
-              </Button>
-            )}
-          </DialogFooter>
         </div>
+
+        {/* Footer - always visible at bottom */}
+        <DialogFooter className="flex-shrink-0 px-5 py-4 border-t bg-background flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          {!createdShareUrl ? (
+            <>
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto"
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button 
+                onClick={handleCreate} 
+                disabled={creating || packsLoading || packs.length === 0}
+                className="w-full sm:w-auto"
+              >
+                {creating ? t("common.loading") : t("horseShare.createShare")}
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+              {t("common.close")}
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
