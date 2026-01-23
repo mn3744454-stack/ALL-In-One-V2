@@ -484,6 +484,7 @@ export const ar = {
       complete: "مكتمل",
       viewAllResults: "عرض جميع النتائج",
       unknownHorse: "خيل غير معروف",
+      manualEntry: "إدخال يدوي",
     },
     
     // Sample Actions

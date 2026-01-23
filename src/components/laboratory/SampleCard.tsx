@@ -71,12 +71,15 @@ export function SampleCard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
 
-  // Horse profile navigation
+  // Horse profile navigation - platform horses only
   const horseId = sample.horse?.id;
+  const isPlatformHorse = !!horseId;
+  const isManualEntry = !isPlatformHorse && !!sample.horse_name;
+  
   const handleHorseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (horseId) {
-      navigate(`/horses/${horseId}`);
+    if (isPlatformHorse) {
+      navigate(`/dashboard/horses/${horseId}`);
     }
   };
 
@@ -169,8 +172,8 @@ export function SampleCard({
               </div>
             )}
             <div 
-              className={horseId ? "cursor-pointer group" : ""}
-              onClick={horseId ? handleHorseClick : undefined}
+              className={isPlatformHorse ? "cursor-pointer group" : ""}
+              onClick={isPlatformHorse ? handleHorseClick : undefined}
             >
               <Avatar className="h-10 w-10 transition-transform group-hover:scale-105">
                 <AvatarImage src={sample.horse?.avatar_url || undefined} alt={horseName} />
@@ -180,12 +183,19 @@ export function SampleCard({
               </Avatar>
             </div>
             <div>
-              <h3 
-                className={`font-semibold text-sm ${horseId ? "cursor-pointer hover:text-primary hover:underline" : ""}`}
-                onClick={horseId ? handleHorseClick : undefined}
-              >
-                {horseName}
-              </h3>
+              <div className="flex items-center gap-1.5">
+                <h3 
+                  className={`font-semibold text-sm ${isPlatformHorse ? "cursor-pointer hover:text-primary hover:underline" : ""}`}
+                  onClick={isPlatformHorse ? handleHorseClick : undefined}
+                >
+                  {horseName}
+                </h3>
+                {isManualEntry && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-muted/50">
+                    {t("laboratory.samples.manualEntry")}
+                  </Badge>
+                )}
+              </div>
               {sample.physical_sample_id && (
                 <p className="text-xs text-muted-foreground font-mono">
                   {sample.physical_sample_id}
