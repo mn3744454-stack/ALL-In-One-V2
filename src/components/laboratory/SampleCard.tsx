@@ -126,7 +126,8 @@ export function SampleCard({
 
   // Check for missing prices
   const hasMissingPrices = checkoutItems.some(item => item.unit_price === null);
-  const horseName = sample.horse?.name || t("laboratory.samples.unknownHorse");
+  // Resolve horse name: prefer joined horse record, fall back to walk-in name
+  const horseName = sample.horse?.name || sample.horse_name || t("laboratory.samples.unknownHorse");
   
   // Determine billability based on policy
   const isIntakeBillable = 
