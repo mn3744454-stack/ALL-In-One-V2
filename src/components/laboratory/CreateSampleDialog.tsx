@@ -916,11 +916,9 @@ export function CreateSampleDialog({
           </div>
 
           {/* Step Content - scrollable */}
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="px-1 pb-6">
-              {renderStepContent()}
-            </div>
-          </ScrollArea>
+          <div className="flex-1 min-h-0 overflow-y-auto px-1 pb-6">
+            {renderStepContent()}
+          </div>
 
           {/* Navigation - hide for checkout step (has its own buttons) */}
           {effectiveSteps[step]?.key !== 'checkout' && (
