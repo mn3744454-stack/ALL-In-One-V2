@@ -481,6 +481,7 @@ export const en = {
       complete: "Complete",
       viewAllResults: "View All Results",
       unknownHorse: "Unknown Horse",
+      manualEntry: "Manual Entry",
     },
     
     // Sample Actions

@@ -28,7 +28,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
   const handleHorseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (horseId) {
-      navigate(`/horses/${horseId}`);
+      navigate(`/dashboard/horses/${horseId}`);
     }
   };
 
