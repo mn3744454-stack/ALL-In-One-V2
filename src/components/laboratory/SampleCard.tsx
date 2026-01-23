@@ -191,7 +191,7 @@ export function SampleCard({
                   {horseName}
                 </h3>
                 {isManualEntry && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-muted/50">
+                  <Badge className="text-[10px] px-1.5 py-0.5 h-auto bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-medium">
                     {t("laboratory.samples.manualEntry")}
                   </Badge>
                 )}
