@@ -74,7 +74,7 @@ export function MultiHorseSelector({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full min-w-0 space-y-3">
       {/* Search Input */}
       <div className="relative">
         <Search className={cn(
@@ -111,7 +111,7 @@ export function MultiHorseSelector({
       )}
 
       {/* Horses List */}
-      <div className="max-h-[40vh] sm:max-h-[280px] w-full overflow-y-auto rounded-md border">
+      <div className="max-h-[40vh] sm:max-h-[280px] w-full min-w-0 overflow-y-auto rounded-md border">
         <div className="p-2 space-y-1 w-full">
           {filteredHorses.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -124,7 +124,7 @@ export function MultiHorseSelector({
                 <div
                   key={horse.id}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors w-full",
+                    "flex w-full min-w-0 items-center gap-3 p-2 rounded-md cursor-pointer transition-colors",
                     "hover:bg-muted/50",
                     isSelected && "bg-primary/10 border border-primary/20",
                     disabled && "opacity-50 cursor-not-allowed"
@@ -135,8 +135,9 @@ export function MultiHorseSelector({
                     checked={isSelected}
                     onCheckedChange={() => handleToggleHorse({ id: horse.id, name: horse.name })}
                     disabled={disabled}
+                    className="shrink-0"
                   />
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={horse.avatar_url || undefined} alt={horse.name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
                       {horse.name.slice(0, 2).toUpperCase()}
