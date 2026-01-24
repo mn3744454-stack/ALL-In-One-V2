@@ -25,6 +25,7 @@ import {
   ShoppingCart,
   Tags,
   BarChart3,
+  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -232,6 +233,12 @@ export const NAV_MODULES: NavModule[] = [
         icon: Tags,
         labelKey: "finance.categories.title",
         route: "/dashboard/finance/categories",
+      },
+      {
+        key: "clients",
+        icon: UserCircle,
+        labelKey: "clients.title",
+        route: "/dashboard/clients",
       },
     ],
   },

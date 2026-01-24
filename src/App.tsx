@@ -50,6 +50,7 @@ import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
 import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
+import DashboardClients from "./pages/DashboardClients";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
 
@@ -319,6 +320,14 @@ const AppRoutes = () => {
             <ModuleGuard module="housing">
               <DashboardHousing />
             </ModuleGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/clients"
+        element={
+          <ProtectedRoute>
+            <DashboardClients />
           </ProtectedRoute>
         }
       />

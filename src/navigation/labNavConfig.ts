@@ -5,6 +5,7 @@ import {
   FileStack, 
   Settings,
   Clock,
+  Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -62,6 +63,13 @@ export const LAB_NAV_SECTIONS: LabNavSection[] = [
     icon: Settings, 
     labelKey: "laboratory.nav.settings",
     route: "/dashboard/laboratory?tab=settings",
+  },
+  { 
+    key: "clients", 
+    tab: null as unknown as string, // Not a lab tab, standalone page
+    icon: Users, 
+    labelKey: "clients.title",
+    route: "/dashboard/clients",
   },
 ];
 
