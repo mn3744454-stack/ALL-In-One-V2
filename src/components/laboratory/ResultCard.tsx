@@ -4,12 +4,14 @@ import { SampleStatusBadge, ResultFlagsBadge } from "./SampleStatusBadge";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import { format } from "date-fns";
 import { useI18n } from "@/i18n";
+import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 import { 
   FileText, 
   Calendar, 
   CheckCircle2, 
   Eye,
-  Lock
+  Lock,
+  User
 } from "lucide-react";
 
 interface ResultCardProps {
@@ -32,7 +34,13 @@ export function ResultCard({
   const { t } = useI18n();
   const templateName = result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const horseName = result.sample?.horse?.name || t("laboratory.results.unknownHorse");
+  const horseName = result.sample?.horse?.name || (result.sample as any)?.horse_name || t("laboratory.results.unknownHorse");
+  // Use centralized helper for client name resolution - cast sample to match interface
+  const sampleForClient = result.sample ? {
+    client: (result.sample as any)?.client,
+    client_name: (result.sample as any)?.client_name,
+  } : null;
+  const clientName = getLabClientDisplayName(sampleForClient);
 
   return (
     <Card 
@@ -59,11 +67,17 @@ export function ResultCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
           </div>
+          {clientName && (
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              <span>{clientName}</span>
+            </div>
+          )}
           {result.creator?.full_name && (
             <span>{t("laboratory.results.by")} {result.creator.full_name}</span>
           )}

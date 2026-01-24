@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
+import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 import { 
   FlaskConical, 
   Calendar, 
@@ -133,8 +134,8 @@ export function SampleCard({
   // Resolve horse name: prefer joined horse record, fall back to walk-in name
   const horseName = sample.horse?.name || sample.horse_name || t("laboratory.samples.unknownHorse");
   
-  // Resolve client name: prefer joined client record, fall back to walk-in name
-  const clientName = sample.client?.name || sample.client_name || null;
+  // Resolve client name using centralized helper
+  const clientName = getLabClientDisplayName(sample);
   
   // Determine billability based on policy
   const isIntakeBillable = 
