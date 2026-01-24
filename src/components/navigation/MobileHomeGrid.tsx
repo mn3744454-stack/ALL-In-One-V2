@@ -3,6 +3,7 @@ import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { NAV_MODULES, type NavModule } from "@/navigation/navConfig";
+import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import { cn } from "@/lib/utils";
 import { ModuleIconCard, getModuleColorScheme } from "./ModuleIconCard";
 
@@ -14,7 +15,7 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { activeRole, activeTenant } = useTenant();
-  const moduleAccess = useModuleAccess();
+  const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled } = useModuleAccess();
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -24,19 +25,39 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const isModuleEnabled = (moduleKey: string): boolean => {
     switch (moduleKey) {
       case "breeding":
-        return moduleAccess.breedingEnabled;
+        return breedingEnabled;
       case "vet":
-        return moduleAccess.vetEnabled;
+        return vetEnabled;
       case "lab":
-        return moduleAccess.canViewLabRequests;
+        return canViewLabRequests;
       case "movement":
-        return moduleAccess.movementEnabled;
+        return movementEnabled;
       case "housing":
-        return moduleAccess.housingEnabled;
+        return housingEnabled;
       default:
         return true;
     }
   };
+
+  // For Lab tenants with full mode, show Lab sections directly instead of modules
+  if (isLabTenant && labMode === 'full') {
+    return (
+      <div className={cn("lg:hidden", className)}>
+        <div className="grid grid-cols-3 gap-3">
+          {LAB_NAV_SECTIONS.map((section, index) => (
+            <ModuleIconCard
+              key={section.key}
+              icon={section.icon}
+              label={t(section.labelKey)}
+              colorScheme={getModuleColorScheme('lab')}
+              onClick={() => navigate(section.route)}
+              index={index}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Filter modules based on role, tenant type, and module access
   // Exclude "dashboard" since user is already on dashboard

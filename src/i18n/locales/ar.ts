@@ -284,6 +284,17 @@ export const ar = {
     title: "إدارة المختبر",
     subtitle: "إدارة العينات والنتائج والقوالب",
     
+    // Primary nav labels (for Lab tenant sidebar/bottom nav)
+    nav: {
+      samples: "العينات",
+      results: "النتائج",
+      compare: "المقارنة",
+      timeline: "السجل الزمني",
+      templates: "القوالب",
+      settings: "الإعدادات",
+      clients: "العملاء",
+    },
+    
     // Tabs
     tabs: {
       samples: "العينات",

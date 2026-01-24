@@ -8,8 +8,9 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { NAV_MODULES, type NavModule, type NavModuleChild } from "@/navigation/navConfig";
+import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, FlaskConical } from "lucide-react";
 
 interface MobileLauncherProps {
   open: boolean;
@@ -21,7 +22,7 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
-  const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled } = useModuleAccess();
+  const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, isLabTenant } = useModuleAccess();
   const [selectedModule, setSelectedModule] = useState<NavModule | null>(null);
 
   const isRTL = dir === "rtl";
@@ -29,6 +30,14 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
 
   // Filter modules based on role, tenant type, and module access
   const visibleModules = NAV_MODULES.filter((mod) => {
+    // For Lab tenants, hide horses and show lab sections instead
+    if (isLabTenant && labMode === 'full') {
+      // Hide horses group for lab tenants
+      if (mod.key === 'horses') return false;
+      // Hide standalone lab module (we show sections instead)
+      if (mod.key === 'lab') return false;
+    }
+
     // Role check
     if (mod.roles && !mod.roles.includes(activeRole || "")) {
       if (!activeTenant) return false;
@@ -113,6 +122,32 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   // Module grid view
   const ModuleGrid = () => (
     <div className="grid grid-cols-3 gap-3 p-4">
+      {/* For Lab tenants, show Lab sections first */}
+      {isLabTenant && labMode === 'full' && LAB_NAV_SECTIONS.map((section) => {
+        const Icon = section.icon;
+        return (
+          <button
+            key={`lab-${section.key}`}
+            onClick={() => {
+              navigate(section.route);
+              onOpenChange(false);
+            }}
+            className={cn(
+              "flex flex-col items-center justify-center p-4 rounded-2xl bg-muted/50 hover:bg-muted transition-all min-h-[100px] gap-2",
+              "active:scale-95"
+            )}
+          >
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Icon className="w-6 h-6 text-primary" />
+            </div>
+            <span className="text-xs font-medium text-center leading-tight">
+              {t(section.labelKey)}
+            </span>
+          </button>
+        );
+      })}
+      
+      {/* Regular modules */}
       {visibleModules.map((mod) => {
         const Icon = mod.icon;
         const hasChildren = mod.children && mod.children.length > 0;

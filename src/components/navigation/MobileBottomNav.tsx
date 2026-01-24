@@ -1,7 +1,9 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Heart, Calendar, LayoutGrid } from "lucide-react";
+import { useMemo } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Home, Heart, Calendar, LayoutGrid, FlaskConical, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 interface MobileBottomNavProps {
   onOpenLauncher?: () => void;
@@ -10,18 +12,48 @@ interface MobileBottomNavProps {
 export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, dir } = useI18n();
+  const { isLabTenant, labMode } = useModuleAccess();
 
-  const items = [
-    { key: "home", icon: Home, labelKey: "nav.home", route: "/dashboard" },
-    { key: "horses", icon: Heart, labelKey: "sidebar.horses", route: "/dashboard/horses" },
-    { key: "schedule", icon: Calendar, labelKey: "sidebar.schedule", route: "/dashboard/schedule" },
-    { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null },
-  ];
+  // Hide this nav on Lab pages when labMode=full (LabBottomNavigation handles it)
+  const isOnLabPage = location.pathname.startsWith('/dashboard/laboratory');
+  const shouldHideForLabPage = isLabTenant && labMode === 'full' && isOnLabPage;
 
-  const isActive = (route: string | null) => {
+  // Define items based on tenant type
+  const items = useMemo(() => {
+    if (isLabTenant && labMode === 'full') {
+      // Lab tenant: Home, Samples, Results, More
+      return [
+        { key: "home", icon: Home, labelKey: "nav.home", route: "/dashboard", tab: null },
+        { key: "samples", icon: FlaskConical, labelKey: "laboratory.nav.samples", route: "/dashboard/laboratory?tab=samples", tab: "samples" },
+        { key: "results", icon: FileText, labelKey: "laboratory.nav.results", route: "/dashboard/laboratory?tab=results", tab: "results" },
+        { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null, tab: null },
+      ];
+    }
+    // Default: stable-centric items
+    return [
+      { key: "home", icon: Home, labelKey: "nav.home", route: "/dashboard", tab: null },
+      { key: "horses", icon: Heart, labelKey: "sidebar.horses", route: "/dashboard/horses", tab: null },
+      { key: "schedule", icon: Calendar, labelKey: "sidebar.schedule", route: "/dashboard/schedule", tab: null },
+      { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null, tab: null },
+    ];
+  }, [isLabTenant, labMode]);
+
+  const isActive = (route: string | null, tab: string | null) => {
     if (!route) return false;
-    return location.pathname === route || location.pathname.startsWith(route + "/");
+    
+    // For lab tab routes, check the tab query param
+    if (tab && location.pathname.startsWith('/dashboard/laboratory')) {
+      return searchParams.get('tab') === tab;
+    }
+    
+    // For exact dashboard match
+    if (route === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+    
+    return location.pathname === route || location.pathname.startsWith(route.split('?')[0] + "/");
   };
 
   const handleClick = (route: string | null) => {
@@ -32,6 +64,11 @@ export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
     }
   };
 
+  // Don't render if we should hide for lab page (LabBottomNavigation is shown instead)
+  if (shouldHideForLabPage) {
+    return null;
+  }
+
   return (
     <nav 
       className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
@@ -39,7 +76,7 @@ export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
     >
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
         {items.map((item) => {
-          const active = item.route ? isActive(item.route) : false;
+          const active = isActive(item.route, item.tab);
           const Icon = item.icon;
 
           return (
