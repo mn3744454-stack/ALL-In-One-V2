@@ -24,15 +24,20 @@ import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults"
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
+import { useNavigate } from "react-router-dom";
 
 export default function DashboardLaboratory() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { labMode, loading: moduleLoading } = useModuleAccess();
+  const { labMode, isLabTenant, loading: moduleLoading } = useModuleAccess();
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
   const [createResultOpen, setCreateResultOpen] = useState(false);
   const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // Lab tenant with full mode = primary business, uses sidebar/mobile nav instead of internal tabs
+  const isPrimaryLabTenant = isLabTenant && labMode === "full";
   const location = useLocation();
 
   const { results } = useLabResults();
@@ -56,15 +61,23 @@ export default function DashboardLaboratory() {
     return availableTabs[0]; // Smart default to first available
   }, [searchParams, availableTabs]);
 
-  // Sync URL when tab is not valid
+  // Sync URL when tab is not valid or missing for primary lab tenants
   useEffect(() => {
     const urlTab = searchParams.get('tab');
+    
+    // For primary lab tenants, ensure tab is always in URL (default to samples)
+    if (isPrimaryLabTenant && !urlTab) {
+      navigate(`/dashboard/laboratory?tab=samples`, { replace: true });
+      return;
+    }
+    
+    // Redirect to first available tab if current tab is invalid
     if (urlTab && !availableTabs.includes(urlTab)) {
       const next = new URLSearchParams(searchParams);
       next.set('tab', availableTabs[0]);
       setSearchParams(next, { replace: true });
     }
-  }, [availableTabs, searchParams, setSearchParams]);
+  }, [availableTabs, searchParams, setSearchParams, isPrimaryLabTenant, navigate]);
 
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
@@ -147,47 +160,50 @@ export default function DashboardLaboratory() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="mb-6 hidden lg:flex">
-              {labMode === 'requests' ? (
-                <>
-                  <TabsTrigger value="requests" className="gap-2">
-                    <ClipboardList className="h-4 w-4" />
-                    {t("laboratory.tabs.requests") || "Requests"}
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    {t("laboratory.tabs.settings")}
-                  </TabsTrigger>
-                </>
-              ) : (
-                <>
-                  <TabsTrigger value="samples" className="gap-2">
-                    <FlaskConical className="h-4 w-4" />
-                    {t("laboratory.tabs.samples")}
-                  </TabsTrigger>
-                  <TabsTrigger value="results" className="gap-2">
-                    <FileText className="h-4 w-4" />
-                    {t("laboratory.tabs.results")}
-                  </TabsTrigger>
-                  <TabsTrigger value="compare" className="gap-2">
-                    <GitCompare className="h-4 w-4" />
-                    {t("laboratory.tabs.compare")}
-                  </TabsTrigger>
-                  <TabsTrigger value="timeline" className="gap-2">
-                    <Clock className="h-4 w-4" />
-                    {t("laboratory.tabs.timeline")}
-                  </TabsTrigger>
-                  <TabsTrigger value="templates" className="gap-2">
-                    <FileStack className="h-4 w-4" />
-                    {t("laboratory.tabs.templates")}
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    {t("laboratory.tabs.settings")}
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
+            {/* Hide internal tabs for primary lab tenants - they use sidebar/mobile nav instead */}
+            {!isPrimaryLabTenant && (
+              <TabsList className="mb-6 hidden lg:flex">
+                {labMode === 'requests' ? (
+                  <>
+                    <TabsTrigger value="requests" className="gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      {t("laboratory.tabs.requests") || "Requests"}
+                    </TabsTrigger>
+                    <TabsTrigger value="settings" className="gap-2">
+                      <Settings className="h-4 w-4" />
+                      {t("laboratory.tabs.settings")}
+                    </TabsTrigger>
+                  </>
+                ) : (
+                  <>
+                    <TabsTrigger value="samples" className="gap-2">
+                      <FlaskConical className="h-4 w-4" />
+                      {t("laboratory.tabs.samples")}
+                    </TabsTrigger>
+                    <TabsTrigger value="results" className="gap-2">
+                      <FileText className="h-4 w-4" />
+                      {t("laboratory.tabs.results")}
+                    </TabsTrigger>
+                    <TabsTrigger value="compare" className="gap-2">
+                      <GitCompare className="h-4 w-4" />
+                      {t("laboratory.tabs.compare")}
+                    </TabsTrigger>
+                    <TabsTrigger value="timeline" className="gap-2">
+                      <Clock className="h-4 w-4" />
+                      {t("laboratory.tabs.timeline")}
+                    </TabsTrigger>
+                    <TabsTrigger value="templates" className="gap-2">
+                      <FileStack className="h-4 w-4" />
+                      {t("laboratory.tabs.templates")}
+                    </TabsTrigger>
+                    <TabsTrigger value="settings" className="gap-2">
+                      <Settings className="h-4 w-4" />
+                      {t("laboratory.tabs.settings")}
+                    </TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+            )}
 
             {/* Requests Tab - for requests mode */}
             <TabsContent value="requests">
