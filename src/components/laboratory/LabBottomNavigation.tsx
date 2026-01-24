@@ -9,20 +9,19 @@ import {
   GitCompare,
   ClipboardList
 } from "lucide-react";
-import type { LabMode } from "@/hooks/useModuleAccess";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 interface LabBottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  labMode?: LabMode;
 }
 
 export function LabBottomNavigation({
   activeTab,
   onTabChange,
-  labMode = 'full',
 }: LabBottomNavigationProps) {
   const { t } = useI18n();
+  const { labMode } = useModuleAccess();
 
   const tabs = useMemo(() => {
     if (labMode === 'requests') {
@@ -39,6 +38,12 @@ export function LabBottomNavigation({
       { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
     ];
   }, [labMode]);
+
+  // Only render for primary lab tenants (labMode="full")
+  // Stable/clinic (requests mode) use global MobileBottomNav + internal tabs
+  if (labMode !== 'full') {
+    return null;
+  }
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border/50 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">

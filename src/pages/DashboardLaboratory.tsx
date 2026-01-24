@@ -249,11 +249,10 @@ export default function DashboardLaboratory() {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - only renders for labMode="full" */}
       <LabBottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
-        labMode={labMode}
       />
 
       {/* Dialogs - only for full mode */}
