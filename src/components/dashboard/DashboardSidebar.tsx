@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import Logo from "@/components/Logo";
@@ -11,6 +11,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import {
   Building2,
   Home,
@@ -125,11 +126,13 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
   const isDesktop = useIsDesktop();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { signOut, profile } = useAuth();
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
   const { 
     labMode, 
+    isLabTenant,
     vetEnabled, 
     housingEnabled, 
     movementEnabled, 
@@ -140,6 +143,12 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+  
+  // Check if a lab tab route is active
+  const isLabTabActive = (tab: string) => {
+    if (!location.pathname.startsWith('/dashboard/laboratory')) return false;
+    return searchParams.get('tab') === tab;
+  };
 
   // Build horses nav items conditionally based on module access
   const horsesNavItems = useMemo(() => {
@@ -255,8 +264,24 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               onNavigate={onClose}
             />
 
-            {/* Horses NavGroup - Only show for horse-owning tenant types */}
-            {isHorseOwningTenant && (
+            {/* LAB TENANT PRIMARY NAV - Lab sections as top-level items */}
+            {isLabTenant && labMode === 'full' && (
+              <>
+                {LAB_NAV_SECTIONS.map((section) => (
+                  <NavItem
+                    key={section.key}
+                    icon={section.icon}
+                    label={t(section.labelKey)}
+                    href={section.route}
+                    active={isLabTabActive(section.tab)}
+                    onNavigate={onClose}
+                  />
+                ))}
+              </>
+            )}
+
+            {/* Horses NavGroup - Only show for horse-owning tenant types (NOT lab tenants) */}
+            {isHorseOwningTenant && !isLabTenant && (
               <NavGroup
                 icon={Heart}
                 label={t('sidebar.horses')}
@@ -266,7 +291,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             )}
 
             {/* Vet - Show for Clinic tenants even when not in horses group */}
-            {!isHorseOwningTenant && vetEnabled && (
+            {!isHorseOwningTenant && !isLabTenant && vetEnabled && (
               <NavItem
                 icon={Stethoscope}
                 label={t('sidebar.vetHealth')}
@@ -276,8 +301,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               />
             )}
 
-            {/* Lab - Show for Lab tenants even when not in horses group */}
-            {!isHorseOwningTenant && labMode !== 'none' && (
+            {/* Lab - Show for Clinic/other tenants as single entry (NOT for lab tenants who have expanded nav) */}
+            {!isHorseOwningTenant && !isLabTenant && labMode !== 'none' && (
               <NavItem
                 icon={FlaskConical}
                 label={t('sidebar.laboratory')}

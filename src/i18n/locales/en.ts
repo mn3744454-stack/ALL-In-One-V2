@@ -284,6 +284,17 @@ export const en = {
     title: "Laboratory Management",
     subtitle: "Manage lab samples, results, and templates",
     
+    // Primary nav labels (for Lab tenant sidebar/bottom nav)
+    nav: {
+      samples: "Samples",
+      results: "Results",
+      compare: "Compare",
+      timeline: "Timeline",
+      templates: "Templates",
+      settings: "Settings",
+      clients: "Clients",
+    },
+    
     // Tabs
     tabs: {
       samples: "Samples",
