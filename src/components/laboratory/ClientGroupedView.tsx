@@ -9,6 +9,7 @@ import { ChevronDown, ChevronUp, User, FlaskConical } from "lucide-react";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 
 interface ClientGroup {
   clientId: string | null;
@@ -40,7 +41,8 @@ export function ClientGroupedView({ samples, onSampleClick }: ClientGroupedViewP
 
     samples.forEach(sample => {
       const clientKey = sample.client_id || 'no-client';
-      const clientName = sample.client?.name || t("laboratory.clientGrouped.noClient");
+      // Use centralized helper for client name resolution
+      const clientName = getLabClientDisplayName(sample, { fallback: t("laboratory.clientGrouped.noClient") }) || t("laboratory.clientGrouped.noClient");
 
       if (!groupMap.has(clientKey)) {
         groupMap.set(clientKey, {

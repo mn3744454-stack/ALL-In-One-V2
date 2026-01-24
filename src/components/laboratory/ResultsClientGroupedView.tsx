@@ -9,6 +9,7 @@ import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 
 interface ClientResultGroup {
   clientId: string | null;
@@ -70,8 +71,9 @@ export function ResultsClientGroupedView({
     const groups: ClientResultGroup[] = [];
     
     sampleGroups.forEach((clientSamples, clientId) => {
-      // Get client name from first sample
-      const clientName = clientSamples[0]?.sample.client?.name || t("laboratory.clientGrouped.noClientAssigned");
+      // Use centralized helper for client name resolution
+      const firstSample = clientSamples[0]?.sample;
+      const clientName = getLabClientDisplayName(firstSample, { fallback: t("laboratory.clientGrouped.noClientAssigned") }) || t("laboratory.clientGrouped.noClientAssigned");
       
       let draftCount = 0;
       let reviewedCount = 0;

@@ -220,6 +220,7 @@ export function CreateSampleDialog({
           });
         }
       } else if (retestOfSample?.horse_id) {
+        // Internal horse retest
         const horse = horses.find(h => h.id === retestOfSample.horse_id);
         if (horse) {
           initialHorses.push({
@@ -228,6 +229,20 @@ export function CreateSampleDialog({
             horse_name: horse.name,
           });
         }
+      } else if (retestOfSample?.horse_name) {
+        // Walk-in horse retest - prefill from original sample's inline data
+        const horseMetadata = retestOfSample.horse_metadata as Record<string, unknown> | null;
+        initialHorses.push({
+          horse_id: undefined,
+          horse_type: 'walk_in',
+          horse_name: retestOfSample.horse_name,
+          horse_data: {
+            passport_number: retestOfSample.horse_external_id || undefined,
+            microchip: (horseMetadata?.microchip as string) || undefined,
+            breed: (horseMetadata?.breed as string) || undefined,
+            color: (horseMetadata?.color as string) || undefined,
+          },
+        });
       }
       
       // Determine initial client mode based on retest or defaults

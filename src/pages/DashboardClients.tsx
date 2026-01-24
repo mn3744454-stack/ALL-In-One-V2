@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,9 +16,12 @@ import { useI18n } from "@/i18n";
 import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "@/hooks/useClients";
 import { ClientsList, ClientFilters, ClientFormDialog } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
-import { Plus, Search, Users } from "lucide-react";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { Plus, Search, Users, Menu } from "lucide-react";
 
 export default function DashboardClients() {
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t } = useI18n();
   const { clients, loading, canManage, createClient, updateClient, deleteClient } = useClients();
 
@@ -91,20 +95,37 @@ export default function DashboardClients() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Mobile Header */}
-      <MobilePageHeader title={t("clients.title")} showBack />
+    <div className="min-h-screen bg-background flex">
+      {/* Desktop Sidebar */}
+      <DashboardSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentPath={location.pathname}
+      />
+      
+      <main className="flex-1 flex flex-col min-w-0 pb-24 lg:pb-0">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t("clients.title")} showBack />
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{t("clients.title")}</h1>
-              <p className="text-sm text-muted-foreground">{t("clients.description")}</p>
+        {/* Desktop Header with Sidebar trigger */}
+        <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+              className="shrink-0"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">{t("clients.title")}</h1>
+                <p className="text-sm text-muted-foreground">{t("clients.description")}</p>
+              </div>
             </div>
           </div>
           {canManage && (
@@ -113,7 +134,9 @@ export default function DashboardClients() {
               {t("clients.create")}
             </Button>
           )}
-        </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 w-full">
 
         {/* Mobile Add Button */}
         {canManage && (
@@ -158,7 +181,8 @@ export default function DashboardClients() {
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
-      </div>
+        </div>
+      </main>
 
       {/* Form Dialog */}
       <ClientFormDialog
