@@ -3707,7 +3707,11 @@ export type Database = {
         Row: {
           accessioned_at: string | null
           assigned_to: string | null
+          client_email: string | null
           client_id: string | null
+          client_metadata: Json
+          client_name: string | null
+          client_phone: string | null
           collection_date: string
           collection_date_only: string | null
           completed_at: string | null
@@ -3736,7 +3740,11 @@ export type Database = {
         Insert: {
           accessioned_at?: string | null
           assigned_to?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_metadata?: Json
+          client_name?: string | null
+          client_phone?: string | null
           collection_date?: string
           collection_date_only?: string | null
           completed_at?: string | null
@@ -3765,7 +3773,11 @@ export type Database = {
         Update: {
           accessioned_at?: string | null
           assigned_to?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_metadata?: Json
+          client_name?: string | null
+          client_phone?: string | null
           collection_date?: string
           collection_date_only?: string | null
           completed_at?: string | null

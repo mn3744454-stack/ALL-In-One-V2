@@ -25,7 +25,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ClientSelector } from "@/components/horses/orders/ClientSelector";
+import { WalkInClientForm } from "./WalkInClientForm";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useHorses } from "@/hooks/useHorses";
@@ -71,12 +74,23 @@ const ALL_STEPS: StepDef[] = [
   { key: 'review', title: 'Review', titleAr: 'مراجعة', icon: Check },
 ];
 
+type ClientMode = 'existing' | 'walkin' | 'none';
+
+interface WalkInClientData {
+  client_name: string;
+  client_phone: string;
+  client_email: string;
+  notes: string;
+}
+
 interface FormData {
   selectedHorses: SelectedHorse[];
   collection_date: Date;
   daily_number: string;
   physical_sample_id: string;
   client_id: string;
+  clientMode: ClientMode;
+  walkInClient: WalkInClientData;
   notes: string;
   template_ids: string[];
 }
@@ -110,6 +124,8 @@ export function CreateSampleDialog({
     daily_number: '',
     physical_sample_id: '',
     client_id: retestOfSample?.client_id || '',
+    clientMode: retestOfSample?.client_id ? 'existing' : 'none',
+    walkInClient: { client_name: '', client_phone: '', client_email: '', notes: '' },
     notes: '',
     template_ids: [],
   });
@@ -214,12 +230,26 @@ export function CreateSampleDialog({
         }
       }
       
+      // Determine initial client mode based on retest or defaults
+      const initialClientMode: ClientMode = retestOfSample?.client_id 
+        ? 'existing' 
+        : retestOfSample?.client_name 
+          ? 'walkin' 
+          : 'none';
+      
       setFormData({
         selectedHorses: initialHorses,
         collection_date: new Date(),
         daily_number: '',
         physical_sample_id: retestOfSample?.physical_sample_id ? `${retestOfSample.physical_sample_id}-R${(retestOfSample.retest_count || 0) + 1}` : '',
         client_id: retestOfSample?.client_id || '',
+        clientMode: initialClientMode,
+        walkInClient: {
+          client_name: retestOfSample?.client_name || '',
+          client_phone: retestOfSample?.client_phone || '',
+          client_email: retestOfSample?.client_email || '',
+          notes: '',
+        },
         notes: isRetest ? `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}` : '',
         template_ids: retestTemplateIds,
       });
@@ -245,9 +275,35 @@ export function CreateSampleDialog({
     }
   };
 
+  // Build client data based on client mode
+  const getClientData = (): { 
+    client_id?: string; 
+    client_name?: string | null; 
+    client_phone?: string | null; 
+    client_email?: string | null; 
+    client_metadata?: { notes?: string };
+  } => {
+    if (formData.clientMode === 'existing' && formData.client_id) {
+      return { client_id: formData.client_id };
+    }
+    if (formData.clientMode === 'walkin' && formData.walkInClient.client_name.trim()) {
+      return {
+        client_name: formData.walkInClient.client_name.trim(),
+        client_phone: formData.walkInClient.client_phone.trim() || null,
+        client_email: formData.walkInClient.client_email.trim() || null,
+        client_metadata: formData.walkInClient.notes.trim() 
+          ? { notes: formData.walkInClient.notes.trim() } 
+          : undefined,
+      };
+    }
+    // No client
+    return {};
+  };
+
   const createSamplesForAllHorses = async (): Promise<string[]> => {
     const createdIds: string[] = [];
     const horsesToProcess = formData.selectedHorses.length > 0 ? formData.selectedHorses : [];
+    const clientData = getClientData();
     
     // For retests, use the original sample's horse
     if (horsesToProcess.length === 0 && isRetest && retestOfSample?.horse_id) {
@@ -256,7 +312,7 @@ export function CreateSampleDialog({
         collection_date: formData.collection_date.toISOString(),
         daily_number: formData.daily_number ? parseInt(formData.daily_number, 10) : undefined,
         physical_sample_id: formData.physical_sample_id || generateSampleId(),
-        client_id: formData.client_id || undefined,
+        ...clientData,
         notes: formData.notes || undefined,
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
@@ -291,7 +347,7 @@ export function CreateSampleDialog({
         collection_date: formData.collection_date.toISOString(),
         daily_number: dailyNumber,
         physical_sample_id: formData.physical_sample_id || generateSampleId(),
-        client_id: formData.client_id || undefined,
+        ...clientData,
         notes: formData.notes || undefined,
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
@@ -390,6 +446,10 @@ export function CreateSampleDialog({
       case 'templates':
         return true; // Templates are optional
       case 'details':
+        // For walk-in client mode, require client_name
+        if (formData.clientMode === 'walkin') {
+          return formData.walkInClient.client_name.trim().length > 0;
+        }
         return true;
       case 'checkout':
         // Can proceed if skipping OR if prices are valid
@@ -619,27 +679,76 @@ export function CreateSampleDialog({
 
       case 'details':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="space-y-4 pb-24 lg:pb-0">
+            {/* Client Mode Selector */}
+            <div className="space-y-3">
               <Label>{t("laboratory.createSample.client")}</Label>
-              <Select
-                value={formData.client_id || "none"}
-                onValueChange={(value) => setFormData({ ...formData, client_id: value === "none" ? "" : value })}
+              <RadioGroup
+                value={formData.clientMode}
+                onValueChange={(value: ClientMode) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    clientMode: value,
+                    // Clear other client data when switching modes
+                    client_id: value === 'existing' ? prev.client_id : '',
+                    walkInClient: value === 'walkin' 
+                      ? prev.walkInClient 
+                      : { client_name: '', client_phone: '', client_email: '', notes: '' },
+                  }));
+                }}
+                className="flex flex-col gap-2"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder={t("laboratory.createSample.selectClient")} />
-                </SelectTrigger>
-                <SelectContent className="z-[200]">
-                  <SelectItem value="none">{t("laboratory.createSample.noClient")}</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {/* Existing Client Option */}
+                <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <RadioGroupItem value="existing" id="client-existing" className="h-5 w-5" />
+                  <Label htmlFor="client-existing" className="flex items-center gap-2 cursor-pointer font-normal">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.existing")}
+                  </Label>
+                </div>
+                
+                {/* Walk-in Client Option */}
+                <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <RadioGroupItem value="walkin" id="client-walkin" className="h-5 w-5" />
+                  <Label htmlFor="client-walkin" className="flex items-center gap-2 cursor-pointer font-normal">
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.walkin")}
+                  </Label>
+                </div>
+                
+                {/* No Client Option */}
+                <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <RadioGroupItem value="none" id="client-none" className="h-5 w-5" />
+                  <Label htmlFor="client-none" className="flex items-center gap-2 cursor-pointer font-normal">
+                    <UserX className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.none")}
+                  </Label>
+                </div>
+              </RadioGroup>
             </div>
+            
+            {/* Existing Client Selector */}
+            {formData.clientMode === 'existing' && (
+              <div className="space-y-2">
+                <ClientSelector
+                  selectedClientId={formData.client_id || null}
+                  onClientSelect={(clientId) => {
+                    setFormData(prev => ({ ...prev, client_id: clientId || '' }));
+                  }}
+                  placeholder={t("laboratory.createSample.selectClient")}
+                />
+              </div>
+            )}
+            
+            {/* Walk-in Client Form */}
+            {formData.clientMode === 'walkin' && (
+              <WalkInClientForm
+                data={formData.walkInClient}
+                onChange={(walkInClient) => setFormData(prev => ({ ...prev, walkInClient }))}
+              />
+            )}
 
+            {/* Notes */}
             <div className="space-y-2">
               <Label>{t("laboratory.createSample.notes")}</Label>
               <Textarea

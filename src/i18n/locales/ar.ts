@@ -708,6 +708,25 @@ export const ar = {
       fields: "حقول",
     },
     
+    // Client Mode Selector
+    clientMode: {
+      existing: "عميل مسجل",
+      walkin: "عميل زائر",
+      none: "بدون عميل",
+    },
+    
+    // Walk-in Client Form
+    walkInClient: {
+      name: "اسم العميل",
+      namePlaceholder: "أدخل اسم العميل",
+      phone: "رقم الهاتف",
+      phonePlaceholder: "+966 5XX XXX XXXX",
+      email: "البريد الإلكتروني",
+      emailPlaceholder: "client@example.com",
+      notes: "ملاحظات",
+      notesPlaceholder: "ملاحظات إضافية عن العميل...",
+    },
+    
     // Create Result Dialog
     createResult: {
       title: "إدخال النتائج",
