@@ -12,6 +12,7 @@ import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
+import { Users as UsersIcon } from "lucide-react";
 import {
   Building2,
   Home,
@@ -182,11 +183,12 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
   ], [t]);
 
-  // Build Finance nav items
+  // Build Finance nav items (includes Clients for non-lab tenants)
   const financeNavItems = useMemo(() => [
     { icon: TrendingUp, label: t('finance.overview'), href: "/dashboard/finance" },
     { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
     { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
+    { icon: UsersIcon, label: t('clients.title'), href: "/dashboard/clients" },
   ], [t]);
 
   // Don't render sidebar at all on mobile/tablet (<1024px)

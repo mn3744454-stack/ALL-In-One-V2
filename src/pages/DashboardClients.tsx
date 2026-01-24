@@ -174,7 +174,7 @@ export default function DashboardClients() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("clients.deleteConfirm.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("clients.deleteConfirm.description", { name: deleteConfirm?.name })}
+              {t("clients.deleteConfirm.description").replace("{{name}}", deleteConfirm?.name || "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
