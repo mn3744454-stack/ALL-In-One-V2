@@ -25,7 +25,8 @@ import {
   AlertTriangle,
   Eye,
   Receipt,
-  CreditCard
+  CreditCard,
+  User
 } from "lucide-react";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 import type { BillingLinkKind } from "@/hooks/billing/useBillingLinks";
@@ -131,6 +132,9 @@ export function SampleCard({
   const hasMissingPrices = checkoutItems.some(item => item.unit_price === null);
   // Resolve horse name: prefer joined horse record, fall back to walk-in name
   const horseName = sample.horse?.name || sample.horse_name || t("laboratory.samples.unknownHorse");
+  
+  // Resolve client name: prefer joined client record, fall back to walk-in name
+  const clientName = sample.client?.name || sample.client_name || null;
   
   // Determine billability based on policy
   const isIntakeBillable = 
@@ -286,7 +290,14 @@ export function SampleCard({
           </div>
         )}
         
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {/* Client name */}
+          {clientName && (
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              <span>{clientName}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>{format(new Date(sample.collection_date), "MMM d, yyyy")}</span>

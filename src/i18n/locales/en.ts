@@ -705,6 +705,25 @@ export const en = {
       fields: "fields",
     },
     
+    // Client Mode Selector
+    clientMode: {
+      existing: "Existing Client",
+      walkin: "Walk-in Client",
+      none: "No Client",
+    },
+    
+    // Walk-in Client Form
+    walkInClient: {
+      name: "Client Name",
+      namePlaceholder: "Enter client name",
+      phone: "Phone Number",
+      phonePlaceholder: "+966 5XX XXX XXXX",
+      email: "Email Address",
+      emailPlaceholder: "client@example.com",
+      notes: "Notes",
+      notesPlaceholder: "Additional client notes...",
+    },
+    
     // Create Result Dialog
     createResult: {
       title: "Enter Results",

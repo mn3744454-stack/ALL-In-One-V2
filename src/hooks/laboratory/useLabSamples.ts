@@ -51,6 +51,11 @@ export interface LabSample {
   horse_name: string | null;
   horse_external_id: string | null;
   horse_metadata: Record<string, unknown> | null;
+  // Walk-in client fields (used when client_id is null)
+  client_name: string | null;
+  client_phone: string | null;
+  client_email: string | null;
+  client_metadata: Record<string, unknown> | null;
   // Joined fields
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
   client?: { id: string; name: string } | null;
@@ -79,6 +84,11 @@ export interface CreateLabSampleData {
   daily_number?: number;
   related_order_id?: string;
   client_id?: string;
+  // Walk-in client fields (used when client_id is null)
+  client_name?: string | null;
+  client_phone?: string | null;
+  client_email?: string | null;
+  client_metadata?: Json;
   assigned_to?: string;
   physical_sample_id?: string;
   collection_date?: string;

@@ -25,3 +25,4 @@ export * from "./HorseSelectionStep";
 export * from "./MultiHorseSelector";
 export * from "./WalkInHorseForm";
 export * from "./TemplateDetailsDialog";
+export * from "./WalkInClientForm";
