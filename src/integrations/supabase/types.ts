@@ -6891,6 +6891,7 @@ export type Database = {
       get_shared_lab_result: {
         Args: { _share_token: string }
         Returns: {
+          client_display_name: string
           created_at: string
           flags: string
           horse_display_name: string

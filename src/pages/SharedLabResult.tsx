@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
 import type { Language } from "@/i18n";
 
-// Interface matching ACTUAL RPC output (9 fields only)
+// Interface matching ACTUAL RPC output (10 fields)
 interface SharedResultData {
   result_id: string;
   status: string;
@@ -34,6 +34,7 @@ interface SharedResultData {
   horse_display_name: string;
   template_name: string;
   tenant_display_name: string;
+  client_display_name: string | null;
 }
 
 // Get nested translation value
@@ -415,6 +416,12 @@ export default function SharedLabResult() {
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.testType")}</p>
               <p className="font-medium">{result.template_name}</p>
             </div>
+            {result.client_display_name && (
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.client")}</p>
+                <p className="font-medium">{result.client_display_name}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.reportDate")}</p>
               <p>{format(new Date(result.created_at), "MMM d, yyyy")}</p>
