@@ -7213,6 +7213,15 @@ export type Database = {
     }
     Functions: {
       accept_connection: { Args: { _token: string }; Returns: string }
+      can_access_shared_resource: {
+        Args: {
+          _actor_user_id: string
+          _required_access?: string
+          _resource_id: string
+          _resource_type: string
+        }
+        Returns: boolean
+      }
       can_delegate_permission: {
         Args: { _permission_key: string; _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -7450,6 +7459,14 @@ export type Database = {
       is_tenant_owner: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_data_access: {
+        Args: {
+          _grant_id: string
+          _resource_ids: string[]
+          _resource_type: string
+        }
+        Returns: undefined
       }
       log_sharing_event: {
         Args: {
