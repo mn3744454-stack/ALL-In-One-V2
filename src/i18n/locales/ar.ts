@@ -2448,6 +2448,7 @@ export const ar = {
       tokenFromLink: "تم تحميل الرمز من رابط الدعوة",
       secureLabel: "صفحة آمنة",
       domainLabel: "النطاق:",
+      loginRequired: "يجب عليك تسجيل الدخول بحساب المستلم المدعو لقبول أو رفض هذا الاتصال.",
     },
     status: {
       pending: "قيد الانتظار",

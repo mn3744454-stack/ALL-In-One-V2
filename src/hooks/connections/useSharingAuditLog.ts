@@ -21,7 +21,7 @@ export function useSharingAuditLog(filters?: AuditLogFilters, pageSize = DEFAULT
   const [loadedCount, setLoadedCount] = useState(pageSize);
 
   const {
-    data: logs,
+    data: rawData,
     isLoading,
     error,
     refetch,
@@ -31,12 +31,13 @@ export function useSharingAuditLog(filters?: AuditLogFilters, pageSize = DEFAULT
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Fetch pageSize+1 to accurately detect if more data exists
       let query = supabase
         .from("sharing_audit_log")
         .select("*")
         .or(`actor_tenant_id.eq.${tenantId},target_tenant_id.eq.${tenantId}`)
         .order("created_at", { ascending: false })
-        .range(0, loadedCount - 1);
+        .range(0, loadedCount); // Fetch one extra row
 
       if (filters?.connectionId) {
         query = query.eq("connection_id", filters.connectionId);
@@ -58,6 +59,10 @@ export function useSharingAuditLog(filters?: AuditLogFilters, pageSize = DEFAULT
     enabled: !!tenantId,
   });
 
+  // Slice to requested size; hasMore = fetched more than pageSize
+  const logs = rawData?.slice(0, loadedCount) ?? [];
+  const hasMore = (rawData?.length ?? 0) > loadedCount;
+
   const loadMore = useCallback(() => {
     setLoadedCount((prev) => prev + pageSize);
   }, [pageSize]);
@@ -67,8 +72,7 @@ export function useSharingAuditLog(filters?: AuditLogFilters, pageSize = DEFAULT
     queryClient.invalidateQueries({ queryKey: ["sharing_audit_log", tenantId] });
   }, [pageSize, queryClient, tenantId]);
 
-  // Check if there might be more to load
-  const hasMore = (logs?.length ?? 0) >= loadedCount;
+  // hasMore is now computed above from the +1 fetch approach
 
   return {
     logs: logs || [],
