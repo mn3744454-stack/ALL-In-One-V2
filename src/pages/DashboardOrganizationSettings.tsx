@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key } from "lucide-react";
+import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key, Link2 } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -143,7 +143,33 @@ const DashboardOrganizationSettings = () => {
               </Card>
             )}
 
-            {/* Modules Card */}
+            {/* Connections & Sharing Card */}
+            {(activeRole === "owner" || activeRole === "manager") && (
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Link2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>{t("connections.title")}</CardTitle>
+                        <CardDescription>
+                          {t("connections.description")}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/dashboard/settings/connections")}
+                      className="gap-2"
+                    >
+                      {t("settings.permissionsRoles.open")}
+                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle>{t("organizationSettings.modules")}</CardTitle>
