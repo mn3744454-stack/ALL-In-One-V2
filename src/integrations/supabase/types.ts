@@ -488,19 +488,100 @@ export type Database = {
           },
         ]
       }
+      client_claim_tokens: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          status: string
+          tenant_id: string
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          status?: string
+          tenant_id: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          status?: string
+          tenant_id?: string
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_claim_tokens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_claim_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_claim_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_claim_tokens_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_claim_tokens_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
+          claimed_at: string | null
           created_at: string
           credit_limit: number | null
           email: string | null
           id: string
+          linked_profile_id: string | null
           name: string
           name_ar: string | null
           notes: string | null
           outstanding_balance: number | null
           phone: string | null
           preferred_payment_method: string | null
+          profile_id: string | null
           status: string
           tax_number: string | null
           tenant_id: string
@@ -509,16 +590,19 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          claimed_at?: string | null
           created_at?: string
           credit_limit?: number | null
           email?: string | null
           id?: string
+          linked_profile_id?: string | null
           name: string
           name_ar?: string | null
           notes?: string | null
           outstanding_balance?: number | null
           phone?: string | null
           preferred_payment_method?: string | null
+          profile_id?: string | null
           status?: string
           tax_number?: string | null
           tenant_id: string
@@ -527,16 +611,19 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          claimed_at?: string | null
           created_at?: string
           credit_limit?: number | null
           email?: string | null
           id?: string
+          linked_profile_id?: string | null
           name?: string
           name_ar?: string | null
           notes?: string | null
           outstanding_balance?: number | null
           phone?: string | null
           preferred_payment_method?: string | null
+          profile_id?: string | null
           status?: string
           tax_number?: string | null
           tenant_id?: string
@@ -544,6 +631,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_linked_profile_id_fkey"
+            columns: ["linked_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -556,6 +657,225 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      connections: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          connection_type: Database["public"]["Enums"]["connection_type"]
+          created_at: string
+          expires_at: string | null
+          id: string
+          initiator_tenant_id: string
+          initiator_user_id: string
+          metadata: Json | null
+          recipient_email: string | null
+          recipient_phone: string | null
+          recipient_profile_id: string | null
+          recipient_tenant_id: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          connection_type: Database["public"]["Enums"]["connection_type"]
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          initiator_tenant_id: string
+          initiator_user_id: string
+          metadata?: Json | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          recipient_profile_id?: string | null
+          recipient_tenant_id?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          connection_type?: Database["public"]["Enums"]["connection_type"]
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          initiator_tenant_id?: string
+          initiator_user_id?: string
+          metadata?: Json | null
+          recipient_email?: string | null
+          recipient_phone?: string | null
+          recipient_profile_id?: string | null
+          recipient_tenant_id?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_initiator_user_id_fkey"
+            columns: ["initiator_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_recipient_tenant_id_fkey"
+            columns: ["recipient_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_recipient_tenant_id_fkey"
+            columns: ["recipient_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_grants: {
+        Row: {
+          access_level: string
+          connection_id: string
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          excluded_fields: string[] | null
+          expires_at: string | null
+          forward_only: boolean
+          grantor_tenant_id: string
+          grantor_user_id: string
+          id: string
+          metadata: Json | null
+          resource_ids: string[] | null
+          resource_type: string
+          revoked_at: string | null
+          revoked_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: string
+          connection_id: string
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          excluded_fields?: string[] | null
+          expires_at?: string | null
+          forward_only?: boolean
+          grantor_tenant_id: string
+          grantor_user_id: string
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          resource_type: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: string
+          connection_id?: string
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          excluded_fields?: string[] | null
+          expires_at?: string | null
+          forward_only?: boolean
+          grantor_tenant_id?: string
+          grantor_user_id?: string
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          resource_type?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_grants_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_grants_grantor_tenant_id_fkey"
+            columns: ["grantor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_grants_grantor_tenant_id_fkey"
+            columns: ["grantor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_grants_grantor_user_id_fkey"
+            columns: ["grantor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_grants_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -5569,6 +5889,108 @@ export type Database = {
           },
         ]
       }
+      sharing_audit_log: {
+        Row: {
+          actor_tenant_id: string | null
+          actor_user_id: string | null
+          connection_id: string | null
+          created_at: string
+          event_type: string
+          grant_id: string | null
+          id: string
+          metadata: Json | null
+          resource_ids: string[] | null
+          resource_type: string | null
+          target_profile_id: string | null
+          target_tenant_id: string | null
+        }
+        Insert: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          event_type: string
+          grant_id?: string | null
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          resource_type?: string | null
+          target_profile_id?: string | null
+          target_tenant_id?: string | null
+        }
+        Update: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          event_type?: string
+          grant_id?: string | null
+          id?: string
+          metadata?: Json | null
+          resource_ids?: string[] | null
+          resource_type?: string | null
+          target_profile_id?: string | null
+          target_tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sharing_audit_log_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "consent_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_target_profile_id_fkey"
+            columns: ["target_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_target_tenant_id_fkey"
+            columns: ["target_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_audit_log_target_tenant_id_fkey"
+            columns: ["target_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stables: {
         Row: {
           branch_id: string | null
@@ -6769,6 +7191,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_connection: { Args: { _token: string }; Returns: string }
       can_delegate_permission: {
         Args: { _permission_key: string; _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -6813,6 +7236,39 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      check_tenant_permission: {
+        Args: { _permission_key: string; _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      claim_client_portal: { Args: { _token: string }; Returns: string }
+      create_connection_request: {
+        Args: {
+          _connection_type: string
+          _expires_at?: string
+          _initiator_tenant_id: string
+          _metadata?: Json
+          _recipient_email?: string
+          _recipient_phone?: string
+          _recipient_profile_id?: string
+          _recipient_tenant_id?: string
+        }
+        Returns: string
+      }
+      create_consent_grant: {
+        Args: {
+          _access_level?: string
+          _connection_id: string
+          _date_from?: string
+          _date_to?: string
+          _excluded_fields?: string[]
+          _expires_at?: string
+          _forward_only?: boolean
+          _metadata?: Json
+          _resource_ids?: string[]
+          _resource_type: string
+        }
+        Returns: string
+      }
       create_horse_share: {
         Args: {
           _custom_scope?: Json
@@ -6833,7 +7289,15 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      generate_client_claim_token: {
+        Args: { _client_id: string }
+        Returns: string
+      }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_granted_data: {
+        Args: { _date_from?: string; _date_to?: string; _grant_id: string }
+        Returns: Json
+      }
       get_horse_display_name: {
         Args: { _horse_id: string; _use_alias?: boolean }
         Returns: string
@@ -6935,6 +7399,10 @@ export type Database = {
         Args: { p_tenant_id: string; p_tenant_type: string }
         Returns: undefined
       }
+      is_active_tenant_member: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_following: {
         Args: { _follower_id: string; _following_id: string }
         Returns: boolean
@@ -6947,6 +7415,25 @@ export type Database = {
       is_tenant_member: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
+      }
+      is_tenant_owner: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      log_sharing_event: {
+        Args: {
+          _actor_tenant_id?: string
+          _actor_user_id?: string
+          _connection_id?: string
+          _event_type: string
+          _grant_id?: string
+          _metadata?: Json
+          _resource_ids?: string[]
+          _resource_type?: string
+          _target_profile_id?: string
+          _target_tenant_id?: string
+        }
+        Returns: string
       }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
       record_horse_movement_with_housing: {
@@ -6973,6 +7460,9 @@ export type Database = {
         Args: { _invitation_id: string; _reason?: string }
         Returns: Json
       }
+      revoke_client_claim_token: { Args: { _token: string }; Returns: string }
+      revoke_connection: { Args: { _token: string }; Returns: string }
+      revoke_consent_grant: { Args: { _grant_id: string }; Returns: string }
       revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
       set_tenant_role_access: {
@@ -6988,6 +7478,7 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
+      connection_type: "b2b" | "b2c" | "employment"
       hr_employee_category: "field" | "office" | "mixed"
       hr_employee_type:
         | "trainer"
@@ -7164,6 +7655,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      connection_type: ["b2b", "b2c", "employment"],
       hr_employee_category: ["field", "office", "mixed"],
       hr_employee_type: [
         "trainer",
