@@ -2423,6 +2423,10 @@ export const en = {
     viaEmail: "Via Email",
     viaPhone: "Via Phone",
     copyToken: "Copy Token",
+    copyInviteLink: "Copy Invite Link",
+    inviteLinkCopied: "Invite link copied to clipboard",
+    showQr: "Show QR Code",
+    qrTitle: "Scan to Accept Connection",
     revoke: "Revoke",
     accept: "Accept",
     reject: "Reject",
@@ -2433,6 +2437,7 @@ export const en = {
       title: "Accept Connection",
       description: "Enter the token to accept or reject a connection request.",
       tokenLabel: "Token",
+      tokenFromLink: "Token loaded from invite link",
     },
     status: {
       pending: "Pending",

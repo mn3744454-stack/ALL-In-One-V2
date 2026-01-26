@@ -16,6 +16,7 @@ const AcceptConnectionPage = () => {
   const { t } = useI18n();
 
   const initialToken = searchParams.get("token") || "";
+  const hasTokenFromUrl = Boolean(searchParams.get("token"));
   const [token, setToken] = useState(initialToken);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -111,7 +112,13 @@ const AcceptConnectionPage = () => {
               onChange={(e) => setToken(e.target.value)}
               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               disabled={isLoading}
+              autoFocus={!hasTokenFromUrl}
             />
+            {hasTokenFromUrl && token && (
+              <p className="text-xs text-muted-foreground">
+                {t("connections.acceptPage.tokenFromLink")}
+              </p>
+            )}
           </div>
 
           <div className="flex gap-3">

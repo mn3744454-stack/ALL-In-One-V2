@@ -2426,6 +2426,10 @@ export const ar = {
     viaEmail: "عبر البريد الإلكتروني",
     viaPhone: "عبر الهاتف",
     copyToken: "نسخ الرمز",
+    copyInviteLink: "نسخ رابط الدعوة",
+    inviteLinkCopied: "تم نسخ رابط الدعوة إلى الحافظة",
+    showQr: "عرض رمز QR",
+    qrTitle: "امسح الرمز للقبول",
     revoke: "إلغاء",
     accept: "قبول",
     reject: "رفض",
@@ -2436,6 +2440,7 @@ export const ar = {
       title: "قبول الاتصال",
       description: "أدخل الرمز لقبول أو رفض طلب الاتصال.",
       tokenLabel: "الرمز",
+      tokenFromLink: "تم تحميل الرمز من رابط الدعوة",
     },
     status: {
       pending: "قيد الانتظار",
