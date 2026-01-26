@@ -29,6 +29,7 @@ export const ar = {
     selectAll: "تحديد الكل",
     deselectAll: "إلغاء التحديد",
     unknown: "غير معروف",
+    unknownError: "حدث خطأ غير معروف",
     view: "عرض",
     clear: "مسح",
     more: "المزيد",
@@ -2449,6 +2450,7 @@ export const ar = {
       secureLabel: "صفحة آمنة",
       domainLabel: "النطاق:",
       loginRequired: "يجب عليك تسجيل الدخول بحساب المستلم المدعو لقبول أو رفض هذا الاتصال.",
+      loginCta: "تسجيل الدخول للمتابعة",
     },
     status: {
       pending: "قيد الانتظار",

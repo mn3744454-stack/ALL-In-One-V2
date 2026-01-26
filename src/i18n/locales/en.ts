@@ -29,6 +29,7 @@ export const en = {
     selectAll: "Select All",
     deselectAll: "Deselect All",
     unknown: "Unknown",
+    unknownError: "An unknown error occurred",
     view: "View",
     clear: "Clear",
     more: "More",
@@ -2446,6 +2447,7 @@ export const en = {
       secureLabel: "Secure page",
       domainLabel: "Domain:",
       loginRequired: "You must be logged in as the invited recipient to accept or reject this connection.",
+      loginCta: "Log in to continue",
     },
     status: {
       pending: "Pending",
