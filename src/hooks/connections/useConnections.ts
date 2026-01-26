@@ -45,6 +45,7 @@ export function useConnections() {
       }
       if (userId) {
         filters.push(`recipient_profile_id.eq.${userId}`);
+        filters.push(`initiator_user_id.eq.${userId}`);
       }
 
       if (filters.length === 0) return [];

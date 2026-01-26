@@ -58,7 +58,8 @@ export function useConsentGrants(connectionId?: string, options: UseConsentGrant
 
       if (recipientView) {
         // Recipient view: fetch by connection_id, RLS ensures authorization
-        query = query.eq("connection_id", connectionId);
+        // Filter to active grants only for recipient view
+        query = query.eq("connection_id", connectionId).eq("status", "active");
       } else {
         // Grantor view: fetch grants this tenant created
         query = query.eq("grantor_tenant_id", tenantId);
