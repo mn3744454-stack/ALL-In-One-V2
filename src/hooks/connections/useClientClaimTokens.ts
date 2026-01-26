@@ -116,8 +116,8 @@ export function useClientClaimTokens(clientId?: string) {
     },
   });
 
-  // Get active token (if any)
-  const activeToken = tokens?.find((t) => t.status === "active");
+  // Get active (pending) token - the most recent one that hasn't been used or revoked
+  const activeToken = tokens?.find((t) => t.status === "pending");
 
   return {
     tokens: tokens || [],

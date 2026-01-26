@@ -65,7 +65,7 @@ export function ConnectionCard({
     }
   };
 
-  const canRevoke = connection.status !== "revoked" && connection.status !== "expired";
+  const canRevoke = connection.status !== "revoked" && connection.status !== "expired" && connection.status !== "rejected";
 
   return (
     <Card

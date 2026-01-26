@@ -72,7 +72,7 @@ export function ConnectionsList({
         >
           <option value="all">{t("common.all")}</option>
           <option value="pending">{t("connections.status.pending")}</option>
-          <option value="accepted">{t("connections.status.accepted")}</option>
+          <option value="active">{t("connections.status.active")}</option>
           <option value="revoked">{t("connections.status.revoked")}</option>
           <option value="expired">{t("connections.status.expired")}</option>
         </select>

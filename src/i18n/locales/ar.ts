@@ -2431,7 +2431,7 @@ export const ar = {
     expiresIn: "ينتهي خلال",
     status: {
       pending: "قيد الانتظار",
-      accepted: "مقبول",
+      active: "نشط",
       revoked: "ملغى",
       expired: "منتهي الصلاحية",
       rejected: "مرفوض",
