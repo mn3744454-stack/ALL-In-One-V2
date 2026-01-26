@@ -91,6 +91,9 @@ export function CreateConnectionDialog({
                 </option>
               ))}
             </select>
+            <p className="text-xs text-muted-foreground">
+              {t(`connections.typesHelp.${connectionType}` as keyof typeof t)}
+            </p>
           </div>
 
           <div className="space-y-2">

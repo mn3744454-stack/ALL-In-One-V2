@@ -7,10 +7,19 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+  const startTime = Date.now();
+  const requestId = crypto.randomUUID();
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  console.info(JSON.stringify({
+    event: "expire_stale_connections_start",
+    requestId,
+    timestamp: new Date().toISOString(),
+  }));
 
   try {
     // Create Supabase client with service role for privileged access
@@ -27,9 +36,21 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase.rpc("expire_stale_connections");
 
     if (error) {
-      console.error("Error expiring stale connections:", error);
+      const durationMs = Date.now() - startTime;
+      console.error(JSON.stringify({
+        event: "expire_stale_connections_error",
+        requestId,
+        error: error.message,
+        duration_ms: durationMs,
+        timestamp: new Date().toISOString(),
+      }));
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
+        JSON.stringify({
+          success: false,
+          error: error.message,
+          duration_ms: durationMs,
+          timestamp: new Date().toISOString(),
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -37,12 +58,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Expired stale connections:", data);
+    const durationMs = Date.now() - startTime;
+    console.info(JSON.stringify({
+      event: "expire_stale_connections_done",
+      requestId,
+      expired_count: data,
+      duration_ms: durationMs,
+      timestamp: new Date().toISOString(),
+    }));
 
     return new Response(
       JSON.stringify({
         success: true,
         expired_count: data,
+        duration_ms: durationMs,
         timestamp: new Date().toISOString(),
       }),
       {
@@ -51,11 +80,20 @@ Deno.serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Unexpected error:", error);
+    const durationMs = Date.now() - startTime;
+    console.error(JSON.stringify({
+      event: "expire_stale_connections_failure",
+      requestId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      duration_ms: durationMs,
+      timestamp: new Date().toISOString(),
+    }));
     return new Response(
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
+        duration_ms: durationMs,
+        timestamp: new Date().toISOString(),
       }),
       {
         status: 500,

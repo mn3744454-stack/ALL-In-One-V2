@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { Link2, Check, X, Loader2 } from "lucide-react";
-
+import { Link2, Check, X, Loader2, Lock } from "lucide-react";
 const AcceptConnectionPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -104,6 +103,17 @@ const AcceptConnectionPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Security Indicator */}
+          <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border/50">
+            <Lock className="h-4 w-4 text-primary flex-shrink-0" />
+            <div className="text-sm">
+              <span className="font-medium text-primary">{t("connections.acceptPage.secureLabel")}</span>
+              <span className="text-muted-foreground mx-1">—</span>
+              <span className="text-muted-foreground">{t("connections.acceptPage.domainLabel")}</span>
+              <span className="font-mono text-xs ms-1">{window.location.host}</span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="token">{t("connections.acceptPage.tokenLabel")}</Label>
             <Input

@@ -2422,6 +2422,11 @@ export const ar = {
       b2c: "منشأة إلى عميل",
       employment: "توظيف",
     },
+    typesHelp: {
+      b2b: "اتصال مع منشأة/جهة أخرى (مثل اسطبل، عيادة، مختبر).",
+      b2c: "دعوة عميل/فرد (مثل مالك الخيل) عبر البريد أو الهاتف.",
+      employment: "ربط علاقة موظف لاستخدام صلاحيات وتدفقات العمل الداخلية.",
+    },
     recipientMethod: "طريقة التواصل",
     viaEmail: "عبر البريد الإلكتروني",
     viaPhone: "عبر الهاتف",
@@ -2441,6 +2446,8 @@ export const ar = {
       description: "أدخل الرمز لقبول أو رفض طلب الاتصال.",
       tokenLabel: "الرمز",
       tokenFromLink: "تم تحميل الرمز من رابط الدعوة",
+      secureLabel: "صفحة آمنة",
+      domainLabel: "النطاق:",
     },
     status: {
       pending: "قيد الانتظار",
@@ -2500,6 +2507,7 @@ export const ar = {
       title: "سجل النشاط",
       noLogs: "لا يوجد سجل نشاط",
       resources: "موارد",
+      loadMore: "تحميل المزيد",
     },
     tabs: {
       connections: "الاتصالات",

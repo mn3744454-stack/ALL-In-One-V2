@@ -48,7 +48,7 @@ const DashboardConnectionsSettings = () => {
     revokeGrant,
   } = useConsentGrants(selectedConnection?.id);
 
-  const { logs, isLoading: logsLoading } = useSharingAuditLog(
+  const { logs, isLoading: logsLoading, isFetching: logsFetching, hasMore, loadMore } = useSharingAuditLog(
     selectedConnection ? { connectionId: selectedConnection.id } : undefined
   );
 
@@ -188,7 +188,13 @@ const DashboardConnectionsSettings = () => {
               </TabsContent>
 
               <TabsContent value="audit" className="space-y-6">
-                <SharingAuditLog logs={logs} isLoading={logsLoading} />
+                <SharingAuditLog 
+                  logs={logs} 
+                  isLoading={logsLoading}
+                  isFetching={logsFetching}
+                  hasMore={hasMore}
+                  onLoadMore={loadMore}
+                />
               </TabsContent>
 
               <TabsContent value="sharedWithMe" className="space-y-6">

@@ -2419,6 +2419,11 @@ export const en = {
       b2c: "Business to Customer",
       employment: "Employment",
     },
+    typesHelp: {
+      b2b: "Connect with another organization (e.g., stable, clinic, lab).",
+      b2c: "Invite an individual client (e.g., horse owner) via email or phone.",
+      employment: "Link an employee relationship for internal access workflows.",
+    },
     recipientMethod: "Contact Method",
     viaEmail: "Via Email",
     viaPhone: "Via Phone",
@@ -2438,6 +2443,8 @@ export const en = {
       description: "Enter the token to accept or reject a connection request.",
       tokenLabel: "Token",
       tokenFromLink: "Token loaded from invite link",
+      secureLabel: "Secure page",
+      domainLabel: "Domain:",
     },
     status: {
       pending: "Pending",
@@ -2497,6 +2504,7 @@ export const en = {
       title: "Activity Log",
       noLogs: "No activity logs yet",
       resources: "resources",
+      loadMore: "Load more",
     },
     tabs: {
       connections: "Connections",
