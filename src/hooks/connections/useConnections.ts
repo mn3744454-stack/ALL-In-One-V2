@@ -112,7 +112,8 @@ export function useConnections() {
   // Reject connection via RPC
   const rejectConnection = useMutation({
     mutationFn: async (token: string) => {
-      const { data, error } = await supabase.rpc("reject_connection", {
+      // Type assertion needed - reject_connection RPC was added in latest migration
+      const { data, error } = await (supabase.rpc as Function)("reject_connection", {
         _token: token,
       });
 
@@ -129,7 +130,7 @@ export function useConnections() {
     onError: (error) => {
       toast({
         title: t("common.error"),
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       });
     },

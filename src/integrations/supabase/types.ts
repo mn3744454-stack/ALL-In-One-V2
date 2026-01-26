@@ -7457,6 +7457,7 @@ export type Database = {
         }
         Returns: Json
       }
+      reject_connection: { Args: { _token: string }; Returns: string }
       reject_invitation: {
         Args: { _invitation_id: string; _reason?: string }
         Returns: Json

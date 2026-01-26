@@ -51,6 +51,7 @@ import PublicProfile from "./pages/PublicProfile";
 import Directory from "./pages/Directory";
 import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
+import AcceptConnectionPage from "./pages/AcceptConnectionPage";
 import DashboardClients from "./pages/DashboardClients";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
@@ -478,6 +479,8 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Connection accept/reject via token landing page */}
+      <Route path="/connections/accept" element={<AcceptConnectionPage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
