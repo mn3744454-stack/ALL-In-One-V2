@@ -7285,6 +7285,7 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: undefined
       }
+      expire_stale_connections: { Args: never; Returns: number }
       finalize_invitation_acceptance: {
         Args: { _token: string }
         Returns: Json
