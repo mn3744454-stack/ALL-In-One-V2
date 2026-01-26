@@ -10,7 +10,7 @@ export function ConnectionStatusBadge({ status }: ConnectionStatusBadgeProps) {
 
   const getVariant = () => {
     switch (status) {
-      case "accepted":
+      case "active":
         return "default";
       case "pending":
         return "secondary";

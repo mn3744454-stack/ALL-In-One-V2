@@ -2428,7 +2428,7 @@ export const en = {
     expiresIn: "Expires in",
     status: {
       pending: "Pending",
-      accepted: "Accepted",
+      active: "Active",
       revoked: "Revoked",
       expired: "Expired",
       rejected: "Rejected",
