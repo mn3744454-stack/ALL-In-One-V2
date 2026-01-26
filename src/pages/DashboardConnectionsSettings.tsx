@@ -70,6 +70,14 @@ const DashboardConnectionsSettings = () => {
     await revokeConnection.mutateAsync(token);
   };
 
+  const handleAcceptConnection = async (token: string) => {
+    await acceptConnection.mutateAsync(token);
+  };
+
+  const handleRejectConnection = async (token: string) => {
+    await rejectConnection.mutateAsync(token);
+  };
+
   const handleCreateGrant = async (data: {
     connectionId: string;
     resourceType: string;
@@ -156,6 +164,8 @@ const DashboardConnectionsSettings = () => {
                   connections={connections}
                   isLoading={connectionsLoading}
                   onRevoke={handleRevokeConnection}
+                  onAccept={handleAcceptConnection}
+                  onReject={handleRejectConnection}
                   onSelect={setSelectedConnection}
                   selectedConnectionId={selectedConnection?.id}
                   onCreateClick={() => setCreateConnectionOpen(true)}
