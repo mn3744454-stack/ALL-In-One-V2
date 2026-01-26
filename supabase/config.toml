@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.shared-media-sign]
 verify_jwt = false
+
+[functions.expire-stale-connections]
+verify_jwt = false

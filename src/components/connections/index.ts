@@ -6,3 +6,5 @@ export { ConsentGrantsList } from "./ConsentGrantsList";
 export { CreateGrantDialog } from "./CreateGrantDialog";
 export { SharingAuditLog } from "./SharingAuditLog";
 export { ClientPortalSection } from "./ClientPortalSection";
+export { SharedWithMeTab } from "./SharedWithMeTab";
+export { GrantedDataPreviewDialog } from "./GrantedDataPreviewDialog";
