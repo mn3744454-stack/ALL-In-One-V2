@@ -48,13 +48,13 @@ export function SharedWithMeTab({
         c.recipient_profile_id === user?.id)
   );
 
-  // Fetch grants for the selected connection
+  // Fetch grants for the selected connection in recipient mode
+  // recipientView=true: fetches grants shared WITH us, not grants we created
   const { grants, isLoading: grantsLoading } = useConsentGrants(
-    selectedConnection?.id
+    selectedConnection?.id,
+    { recipientView: true }
   );
 
-  // For recipient view, we need to see grants where this connection was used to share with us
-  // The grants are created by the grantor (initiator) for us (recipient)
   const visibleGrants = grants;
 
   if (isLoading) {
