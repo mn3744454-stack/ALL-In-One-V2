@@ -20,32 +20,51 @@ export interface CreateGrantParams {
   metadata?: Record<string, unknown>;
 }
 
-export function useConsentGrants(connectionId?: string) {
+interface UseConsentGrantsOptions {
+  recipientView?: boolean;
+}
+
+export function useConsentGrants(connectionId?: string, options: UseConsentGrantsOptions = {}) {
+  const { recipientView = false } = options;
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant_id;
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
 
-  // Fetch grants for a connection or all grants for tenant
+  // Fetch grants for a connection
+  // recipientView=true: fetch by connection_id only (RLS enforces auth)
+  // recipientView=false: fetch grants created by this tenant (grantor view)
   const {
     data: grants,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["consent_grants", tenantId, connectionId],
+    queryKey: ["consent_grants", tenantId, connectionId, recipientView],
     queryFn: async () => {
-      if (!tenantId) return [];
+      // For recipient view, we only need connectionId
+      // For grantor view, we need tenantId
+      if (recipientView) {
+        if (!connectionId) return [];
+      } else {
+        if (!tenantId) return [];
+      }
 
       let query = supabase
         .from("consent_grants")
         .select("*")
-        .eq("grantor_tenant_id", tenantId)
         .order("created_at", { ascending: false });
 
-      if (connectionId) {
+      if (recipientView) {
+        // Recipient view: fetch by connection_id, RLS ensures authorization
         query = query.eq("connection_id", connectionId);
+      } else {
+        // Grantor view: fetch grants this tenant created
+        query = query.eq("grantor_tenant_id", tenantId);
+        if (connectionId) {
+          query = query.eq("connection_id", connectionId);
+        }
       }
 
       const { data, error } = await query;
@@ -53,7 +72,7 @@ export function useConsentGrants(connectionId?: string) {
       if (error) throw error;
       return data as ConsentGrant[];
     },
-    enabled: !!tenantId,
+    enabled: recipientView ? !!connectionId : !!tenantId,
   });
 
   // Create grant via RPC
