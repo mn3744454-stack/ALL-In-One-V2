@@ -661,6 +661,27 @@ export type Database = {
           },
         ]
       }
+      connection_rate_limits: {
+        Row: {
+          action: string
+          attempted_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          attempted_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          attempted_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           accepted_at: string | null
@@ -7241,6 +7262,7 @@ export type Database = {
         Returns: boolean
       }
       claim_client_portal: { Args: { _token: string }; Returns: string }
+      cleanup_connection_rate_limits: { Args: never; Returns: number }
       create_connection_request: {
         Args: {
           _connection_type: string
@@ -7280,6 +7302,14 @@ export type Database = {
           _recipient_email?: string
         }
         Returns: Json
+      }
+      enforce_rate_limit: {
+        Args: {
+          _action: string
+          _max_attempts: number
+          _window_seconds: number
+        }
+        Returns: undefined
       }
       ensure_horse_share_packs: {
         Args: { _tenant_id: string }

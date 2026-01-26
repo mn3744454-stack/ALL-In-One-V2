@@ -2445,6 +2445,7 @@ export const en = {
       tokenFromLink: "Token loaded from invite link",
       secureLabel: "Secure page",
       domainLabel: "Domain:",
+      loginRequired: "You must be logged in as the invited recipient to accept or reject this connection.",
     },
     status: {
       pending: "Pending",

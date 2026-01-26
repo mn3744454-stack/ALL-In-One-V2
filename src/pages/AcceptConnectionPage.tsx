@@ -4,15 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Link2, Check, X, Loader2, Lock } from "lucide-react";
+import { Link2, Check, X, Loader2, Lock, AlertCircle } from "lucide-react";
+
 const AcceptConnectionPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { t } = useI18n();
+  const { user } = useAuth();
 
   const initialToken = searchParams.get("token") || "";
   const hasTokenFromUrl = Boolean(searchParams.get("token"));
@@ -103,6 +107,16 @@ const AcceptConnectionPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Auth Required Banner */}
+          {!user && (
+            <Alert variant="default" className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <AlertDescription className="text-amber-800 dark:text-amber-200">
+                {t("connections.acceptPage.loginRequired")}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Security Indicator */}
           <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border/50">
             <Lock className="h-4 w-4 text-primary flex-shrink-0" />
