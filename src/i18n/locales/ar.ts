@@ -2500,6 +2500,17 @@ export const ar = {
       connections: "الاتصالات",
       grants: "صلاحيات البيانات",
       audit: "سجل النشاط",
+      sharedWithMe: "المشارك معي",
+    },
+    sharedWithMe: {
+      title: "الاتصالات الواردة",
+      selectConnection: "اختر اتصالاً لعرض البيانات المشاركة",
+      previewData: "معاينة البيانات",
+      previewTitle: "معاينة البيانات المشاركة",
+      noInboundConnections: "لم تتم مشاركة أي بيانات معك بعد",
+      noGrants: "لم تتم مشاركة أي بيانات عبر هذا الاتصال",
+      labResultsCount: "نتائج المختبر",
+      horsesCount: "خيول",
     },
   },
 };

@@ -3,7 +3,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Link2, FileText, Activity } from "lucide-react";
+import { Shield, Link2, FileText, Activity, ArrowDownLeft } from "lucide-react";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import {
@@ -17,6 +17,7 @@ import {
   ConsentGrantsList,
   CreateGrantDialog,
   SharingAuditLog,
+  SharedWithMeTab,
 } from "@/components/connections";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -157,6 +158,10 @@ const DashboardConnectionsSettings = () => {
                   <Activity className="h-4 w-4" />
                   {t("connections.tabs.audit")}
                 </TabsTrigger>
+                <TabsTrigger value="sharedWithMe" className="gap-2">
+                  <ArrowDownLeft className="h-4 w-4" />
+                  {t("connections.tabs.sharedWithMe")}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="connections" className="space-y-6">
@@ -184,6 +189,13 @@ const DashboardConnectionsSettings = () => {
 
               <TabsContent value="audit" className="space-y-6">
                 <SharingAuditLog logs={logs} isLoading={logsLoading} />
+              </TabsContent>
+
+              <TabsContent value="sharedWithMe" className="space-y-6">
+                <SharedWithMeTab
+                  connections={connections}
+                  isLoading={connectionsLoading}
+                />
               </TabsContent>
             </Tabs>
           </div>

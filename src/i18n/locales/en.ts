@@ -2497,6 +2497,17 @@ export const en = {
       connections: "Connections",
       grants: "Data Grants",
       audit: "Activity Log",
+      sharedWithMe: "Shared With Me",
+    },
+    sharedWithMe: {
+      title: "Inbound Connections",
+      selectConnection: "Select a connection to view shared data",
+      previewData: "Preview Data",
+      previewTitle: "Shared Data Preview",
+      noInboundConnections: "No organizations have shared data with you yet",
+      noGrants: "No data has been shared through this connection",
+      labResultsCount: "Lab Results",
+      horsesCount: "horses",
     },
   },
 };
