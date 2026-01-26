@@ -66,8 +66,7 @@ const AcceptConnectionPage = () => {
 
     setIsRejecting(true);
     try {
-      // Type assertion needed - reject_connection RPC was added in latest migration
-      const { error } = await (supabase.rpc as Function)("reject_connection", {
+      const { error } = await supabase.rpc("reject_connection", {
         _token: token.trim(),
       });
 
