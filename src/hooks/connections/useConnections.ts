@@ -109,6 +109,32 @@ export function useConnections() {
     },
   });
 
+  // Reject connection via RPC
+  const rejectConnection = useMutation({
+    mutationFn: async (token: string) => {
+      const { data, error } = await supabase.rpc("reject_connection", {
+        _token: token,
+      });
+
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["connections", tenantId] });
+      toast({
+        title: t("common.success"),
+        description: t("connections.rejected"),
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: t("common.error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Revoke connection via RPC
   const revokeConnection = useMutation({
     mutationFn: async (token: string) => {
@@ -142,6 +168,7 @@ export function useConnections() {
     refetch,
     createConnection,
     acceptConnection,
+    rejectConnection,
     revokeConnection,
   };
 }

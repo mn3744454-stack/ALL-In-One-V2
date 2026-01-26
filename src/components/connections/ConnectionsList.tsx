@@ -13,6 +13,8 @@ interface ConnectionsListProps {
   connections: Connection[];
   isLoading: boolean;
   onRevoke: (token: string) => void;
+  onAccept: (token: string) => void;
+  onReject: (token: string) => void;
   onSelect?: (connection: Connection) => void;
   selectedConnectionId?: string;
   onCreateClick: () => void;
@@ -22,6 +24,8 @@ export function ConnectionsList({
   connections,
   isLoading,
   onRevoke,
+  onAccept,
+  onReject,
   onSelect,
   selectedConnectionId,
   onCreateClick,
@@ -73,6 +77,7 @@ export function ConnectionsList({
           <option value="all">{t("common.all")}</option>
           <option value="pending">{t("connections.status.pending")}</option>
           <option value="active">{t("connections.status.active")}</option>
+          <option value="rejected">{t("connections.status.rejected")}</option>
           <option value="revoked">{t("connections.status.revoked")}</option>
           <option value="expired">{t("connections.status.expired")}</option>
         </select>
@@ -96,6 +101,8 @@ export function ConnectionsList({
               key={connection.id}
               connection={connection}
               onRevoke={onRevoke}
+              onAccept={onAccept}
+              onReject={onReject}
               onSelect={onSelect}
               isSelected={selectedConnectionId === connection.id}
             />
