@@ -30,8 +30,8 @@ const Auth = () => {
     setMode(searchParams.get("mode") === "signup" ? "signup" : "signin");
   }, [searchParams]);
 
-  // Get the 'next' parameter for post-auth redirect (e.g., from invitation flow)
-  const nextPath = searchParams.get("next");
+  // Get redirect parameter for post-auth redirect (supports both 'next' and 'redirect' params)
+  const nextPath = searchParams.get("redirect") || searchParams.get("next");
 
   useEffect(() => {
     if (user) {
