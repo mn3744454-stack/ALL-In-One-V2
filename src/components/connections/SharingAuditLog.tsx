@@ -1,8 +1,9 @@
 import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Activity, Link2, Shield, Eye, XCircle, CheckCircle } from "lucide-react";
+import { Activity, Link2, Shield, Eye, XCircle, CheckCircle, Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Database } from "@/integrations/supabase/types";
@@ -12,6 +13,9 @@ type SharingAuditLog = Database["public"]["Tables"]["sharing_audit_log"]["Row"];
 interface SharingAuditLogProps {
   logs: SharingAuditLog[];
   isLoading: boolean;
+  isFetching?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 const eventIcons: Record<string, typeof Activity> = {
@@ -23,7 +27,13 @@ const eventIcons: Record<string, typeof Activity> = {
   data_accessed: Eye,
 };
 
-export function SharingAuditLog({ logs, isLoading }: SharingAuditLogProps) {
+export function SharingAuditLog({ 
+  logs, 
+  isLoading, 
+  isFetching,
+  hasMore,
+  onLoadMore,
+}: SharingAuditLogProps) {
   const { t } = useI18n();
 
   if (isLoading) {
@@ -82,6 +92,23 @@ export function SharingAuditLog({ logs, isLoading }: SharingAuditLogProps) {
             </Card>
           );
         })}
+
+        {/* Load More Button */}
+        {hasMore && onLoadMore && (
+          <div className="pt-2 pb-4 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLoadMore}
+              disabled={isFetching}
+            >
+              {isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
+              ) : null}
+              {t("connections.audit.loadMore")}
+            </Button>
+          </div>
+        )}
       </div>
     </ScrollArea>
   );
