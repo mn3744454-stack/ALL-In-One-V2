@@ -8,3 +8,4 @@ export { SharingAuditLog } from "./SharingAuditLog";
 export { ClientPortalSection } from "./ClientPortalSection";
 export { SharedWithMeTab } from "./SharedWithMeTab";
 export { GrantedDataPreviewDialog } from "./GrantedDataPreviewDialog";
+export { QRCodeDialog } from "./QRCodeDialog";

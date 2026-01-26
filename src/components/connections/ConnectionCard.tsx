@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
-import { Copy, Link2, MoreVertical, Trash2, Check, X } from "lucide-react";
+import { QRCodeDialog } from "./QRCodeDialog";
+import { Copy, Link2, MoreVertical, Trash2, Check, X, QrCode, LinkIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,8 +40,10 @@ export function ConnectionCard({
   const { activeTenant } = useTenant();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   const isInitiator = connection.initiator_tenant_id === activeTenant?.tenant_id;
+  const inviteUrl = `${window.location.origin}/connections/accept?token=${connection.token}`;
   const direction = isInitiator ? "outbound" : "inbound";
 
   const getRecipientDisplay = () => {
@@ -60,6 +63,22 @@ export function ConnectionCard({
         description: t("connections.tokenCopied"),
       });
       setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: t("common.error"),
+        description: "Failed to copy",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCopyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      toast({
+        title: t("common.success"),
+        description: t("connections.inviteLinkCopied"),
+      });
     } catch {
       toast({
         title: t("common.error"),
@@ -99,10 +118,20 @@ export function ConnectionCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isPendingOutbound && (
-                <DropdownMenuItem onClick={handleCopyToken}>
-                  <Copy className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-                  {t("connections.copyToken")}
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={handleCopyInviteLink}>
+                    <LinkIcon className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("connections.copyInviteLink")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleCopyToken}>
+                    <Copy className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("connections.copyToken")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowQr(true)}>
+                    <QrCode className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                    {t("connections.showQr")}
+                  </DropdownMenuItem>
+                </>
               )}
               {canRevoke && !isPendingInbound && (
                 <DropdownMenuItem
@@ -169,6 +198,13 @@ export function ConnectionCard({
           )}
         </div>
       </CardContent>
+
+      {/* QR Code Dialog */}
+      <QRCodeDialog
+        open={showQr}
+        onOpenChange={setShowQr}
+        url={inviteUrl}
+      />
     </Card>
   );
 }
