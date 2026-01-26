@@ -35,6 +35,8 @@ const DashboardConnectionsSettings = () => {
     connections,
     isLoading: connectionsLoading,
     createConnection,
+    acceptConnection,
+    rejectConnection,
     revokeConnection,
   } = useConnections();
 

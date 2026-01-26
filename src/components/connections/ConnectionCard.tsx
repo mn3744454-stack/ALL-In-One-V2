@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
-import { Copy, Link2, MoreVertical, Trash2 } from "lucide-react";
+import { Copy, Link2, MoreVertical, Trash2, Check, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,8 @@ type Connection = Database["public"]["Tables"]["connections"]["Row"];
 interface ConnectionCardProps {
   connection: Connection;
   onRevoke: (token: string) => void;
+  onAccept?: (token: string) => void;
+  onReject?: (token: string) => void;
   onSelect?: (connection: Connection) => void;
   isSelected?: boolean;
 }
@@ -28,6 +30,8 @@ interface ConnectionCardProps {
 export function ConnectionCard({
   connection,
   onRevoke,
+  onAccept,
+  onReject,
   onSelect,
   isSelected,
 }: ConnectionCardProps) {
@@ -66,6 +70,8 @@ export function ConnectionCard({
   };
 
   const canRevoke = connection.status !== "revoked" && connection.status !== "expired" && connection.status !== "rejected";
+  const isPendingInbound = connection.status === "pending" && !isInitiator;
+  const isPendingOutbound = connection.status === "pending" && isInitiator;
 
   return (
     <Card
@@ -92,13 +98,13 @@ export function ConnectionCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {connection.status === "pending" && isInitiator && (
+              {isPendingOutbound && (
                 <DropdownMenuItem onClick={handleCopyToken}>
                   <Copy className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
                   {t("connections.copyToken")}
                 </DropdownMenuItem>
               )}
-              {canRevoke && (
+              {canRevoke && !isPendingInbound && (
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={(e) => {
@@ -129,6 +135,36 @@ export function ConnectionCard({
             <div className="text-xs text-orange-600">
               {t("connections.expiresIn")}{" "}
               {formatDistanceToNow(new Date(connection.expires_at))}
+            </div>
+          )}
+          
+          {/* Accept/Reject buttons for inbound pending connections */}
+          {isPendingInbound && (
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                size="sm"
+                variant="default"
+                className="flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAccept?.(connection.token);
+                }}
+              >
+                <Check className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                {t("connections.accept")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReject?.(connection.token);
+                }}
+              >
+                <X className="h-4 w-4 ltr:mr-1 rtl:ml-1" />
+                {t("connections.reject")}
+              </Button>
             </div>
           )}
         </div>
