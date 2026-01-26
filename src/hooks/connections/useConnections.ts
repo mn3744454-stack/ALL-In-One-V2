@@ -112,13 +112,12 @@ export function useConnections() {
   // Reject connection via RPC
   const rejectConnection = useMutation({
     mutationFn: async (token: string) => {
-      // Type assertion needed - reject_connection RPC was added in latest migration
-      const { data, error } = await (supabase.rpc as Function)("reject_connection", {
+      const { data, error } = await supabase.rpc("reject_connection", {
         _token: token,
       });
 
       if (error) throw error;
-      return data as string;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["connections", tenantId] });
