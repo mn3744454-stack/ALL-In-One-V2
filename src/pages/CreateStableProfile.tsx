@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n/I18nContext";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy";
 
@@ -28,16 +29,12 @@ interface CreateStableProfileProps {
   tenantType?: TenantType;
 }
 
-const tenantTypeConfig: Record<TenantType, { title: string; description: string; icon: React.ElementType }> = {
-  stable: { title: "Stable", description: "Manage your stable and horses", icon: Building2 },
-  clinic: { title: "Clinic", description: "Veterinary clinic management", icon: Stethoscope },
-  lab: { title: "Laboratory", description: "Lab and testing management", icon: FlaskConical },
-  academy: { title: "Academy", description: "Training and education center", icon: GraduationCap },
-};
-
 const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps) => {
   const navigate = useNavigate();
   const { createTenant } = useTenant();
+  const { t, dir } = useI18n();
+  const isRTL = dir === 'rtl';
+  
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -45,15 +42,23 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     description: "",
     address: "",
     city: "",
-    country: "Saudi Arabia",
+    country: t('createProfile.saudiArabia'),
     phone: "",
     email: "",
     capacity: "",
     website: "",
   });
 
+  const tenantTypeConfig: Record<TenantType, { titleKey: string; descriptionKey: string; icon: React.ElementType }> = {
+    stable: { titleKey: "createProfile.tenantTypes.stable", descriptionKey: "createProfile.tenantTypes.stableDesc", icon: Building2 },
+    clinic: { titleKey: "createProfile.tenantTypes.clinic", descriptionKey: "createProfile.tenantTypes.clinicDesc", icon: Stethoscope },
+    lab: { titleKey: "createProfile.tenantTypes.lab", descriptionKey: "createProfile.tenantTypes.labDesc", icon: FlaskConical },
+    academy: { titleKey: "createProfile.tenantTypes.academy", descriptionKey: "createProfile.tenantTypes.academyDesc", icon: GraduationCap },
+  };
+
   const config = tenantTypeConfig[tenantType];
   const Icon = config.icon;
+  const tenantTitle = t(config.titleKey);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,12 +76,12 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     if (error) {
       // Build detailed error message from structured error
       const stepLabels: Record<string, string> = {
-        validation: "Validation Error",
-        tenant_insert: "Failed to create organization",
-        member_insert: "Failed to assign ownership",
+        validation: t('createProfile.errors.validation'),
+        tenant_insert: t('createProfile.errors.tenantInsert'),
+        member_insert: t('createProfile.errors.memberInsert'),
       };
       
-      const title = stepLabels[error.step] || "Error";
+      const title = stepLabels[error.step] || t('common.error');
       const description = [
         error.message,
         error.code && `Code: ${error.code}`,
@@ -92,7 +97,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
       return;
     }
 
-    toast.success(`${config.title} profile created successfully!`);
+    toast.success(`${tenantTitle} ${t('createProfile.profileCreatedSuffix')}`);
     navigate("/dashboard");
     setLoading(false);
   };
@@ -100,6 +105,9 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
   const updateField = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const BackArrow = isRTL ? ArrowRight : ArrowLeft;
+  const ForwardArrow = isRTL ? ArrowLeft : ArrowRight;
 
   return (
     <div className="min-h-screen w-full bg-cream pattern-arabian py-8 sm:py-12 px-4 overflow-x-hidden">
@@ -110,35 +118,35 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
           <div className="flex items-center justify-center gap-2 mb-3 sm:mb-4">
             <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-gold shrink-0" />
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-navy">
-              Create Your {config.title} Profile
+              {t('createProfile.createYourProfile')} {tenantTitle}
             </h1>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base">
-            {config.description}
+            {t(config.descriptionKey)}
           </p>
         </div>
 
         {/* Progress Indicator */}
         <div className="flex items-center justify-center gap-1 sm:gap-2 mb-6 sm:mb-8">
-          <StepIndicator step={1} current={step} label="Basic Info" />
+          <StepIndicator step={1} current={step} label={t('createProfile.steps.basicInfo')} />
           <div className="w-6 sm:w-12 h-0.5 bg-border" />
-          <StepIndicator step={2} current={step} label="Location" />
+          <StepIndicator step={2} current={step} label={t('createProfile.steps.location')} />
           <div className="w-6 sm:w-12 h-0.5 bg-border" />
-          <StepIndicator step={3} current={step} label="Contact" />
+          <StepIndicator step={3} current={step} label={t('createProfile.steps.contact')} />
         </div>
 
         {/* Form Card */}
         <Card variant="elevated" className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-navy">
-              {step === 1 && "Basic Information"}
-              {step === 2 && "Location Details"}
-              {step === 3 && "Contact Information"}
+              {step === 1 && t('createProfile.basicInformation')}
+              {step === 2 && t('createProfile.locationDetails')}
+              {step === 3 && t('createProfile.contactInformation')}
             </CardTitle>
             <CardDescription>
-              {step === 1 && `Start with your ${config.title.toLowerCase()}'s name and description`}
-              {step === 2 && `Help clients find your ${config.title.toLowerCase()}`}
-              {step === 3 && "How can people reach you?"}
+              {step === 1 && `${t('createProfile.startWithName')} ${tenantTitle}`}
+              {step === 2 && `${t('createProfile.helpClientsFind')} ${tenantTitle}`}
+              {step === 3 && t('createProfile.howCanPeopleReach')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -154,25 +162,25 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                       </div>
                       <button
                         type="button"
-                        className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gold text-navy flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                        className={`absolute -bottom-2 ${isRTL ? '-left-2' : '-right-2'} w-8 h-8 rounded-full bg-gold text-navy flex items-center justify-center shadow-md hover:scale-110 transition-transform`}
                       >
                         <Upload className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                   <p className="text-center text-sm text-muted-foreground">
-                    Upload your {config.title.toLowerCase()} logo
+                    {t('createProfile.uploadLogo')} {tenantTitle}
                   </p>
 
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-navy font-medium">
-                      {config.title} Name *
+                      {t('createProfile.nameLabel')} {tenantTitle} *
                     </Label>
                     <div className="relative">
-                      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Icon className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="name"
-                        placeholder={`Enter your ${config.title.toLowerCase()} name`}
+                        placeholder={`${t('createProfile.enterName')} ${tenantTitle}`}
                         value={formData.name}
                         onChange={(e) => updateField("name", e.target.value)}
                         className="ps-10"
@@ -183,11 +191,11 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="description" className="text-navy font-medium">
-                      Description
+                      {t('createProfile.description')}
                     </Label>
                     <Textarea
                       id="description"
-                      placeholder={`Tell us about your ${config.title.toLowerCase()}, facilities, and services...`}
+                      placeholder={`${t('createProfile.descriptionPlaceholder')} ${tenantTitle}...`}
                       value={formData.description}
                       onChange={(e) => updateField("description", e.target.value)}
                       rows={4}
@@ -198,12 +206,12 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   {tenantType === "stable" && (
                     <div className="space-y-2">
                       <Label htmlFor="capacity" className="text-navy font-medium">
-                        Horse Capacity
+                        {t('createProfile.horseCapacity')}
                       </Label>
                       <Input
                         id="capacity"
                         type="number"
-                        placeholder="Maximum number of horses"
+                        placeholder={t('createProfile.maxHorses')}
                         value={formData.capacity}
                         onChange={(e) => updateField("capacity", e.target.value)}
                       />
@@ -217,13 +225,13 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="address" className="text-navy font-medium">
-                      Street Address *
+                      {t('createProfile.streetAddress')} *
                     </Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <MapPin className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="address"
-                        placeholder="Enter your street address"
+                        placeholder={t('createProfile.enterStreetAddress')}
                         value={formData.address}
                         onChange={(e) => updateField("address", e.target.value)}
                         className="ps-10"
@@ -235,11 +243,11 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="city" className="text-navy font-medium">
-                        City *
+                        {t('createProfile.city')} *
                       </Label>
                       <Input
                         id="city"
-                        placeholder="City"
+                        placeholder={t('createProfile.city')}
                         value={formData.city}
                         onChange={(e) => updateField("city", e.target.value)}
                         required
@@ -247,11 +255,11 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="country" className="text-navy font-medium">
-                        Country *
+                        {t('createProfile.country')} *
                       </Label>
                       <Input
                         id="country"
-                        placeholder="Country"
+                        placeholder={t('createProfile.country')}
                         value={formData.country}
                         onChange={(e) => updateField("country", e.target.value)}
                         required
@@ -262,7 +270,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   {/* Map Placeholder */}
                   <div className="w-full h-48 rounded-xl bg-muted border border-border flex items-center justify-center">
                     <p className="text-muted-foreground text-sm">
-                      📍 Map integration coming soon
+                      📍 {t('createProfile.mapComingSoon')}
                     </p>
                   </div>
                 </div>
@@ -273,10 +281,10 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-navy font-medium">
-                      Phone Number *
+                      {t('createProfile.phoneNumber')} *
                     </Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Phone className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="phone"
                         type="tel"
@@ -291,14 +299,14 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="contactEmail" className="text-navy font-medium">
-                      Business Email *
+                      {t('createProfile.businessEmail')} *
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Mail className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="contactEmail"
                         type="email"
-                        placeholder={`${config.title.toLowerCase()}@example.com`}
+                        placeholder={`${tenantTitle.toLowerCase()}@example.com`}
                         value={formData.email}
                         onChange={(e) => updateField("email", e.target.value)}
                         className="ps-10"
@@ -309,12 +317,12 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="website" className="text-navy font-medium">
-                      Website (Optional)
+                      {t('createProfile.websiteOptional')}
                     </Label>
                     <Input
                       id="website"
                       type="url"
-                      placeholder={`https://www.your${config.title.toLowerCase()}.com`}
+                      placeholder={`https://www.your${tenantTitle.toLowerCase()}.com`}
                       value={formData.website}
                       onChange={(e) => updateField("website", e.target.value)}
                     />
@@ -330,8 +338,8 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   className="w-full sm:w-auto"
                   onClick={() => step > 1 ? setStep(step - 1) : navigate("/select-role")}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back
+                  <BackArrow className={`w-4 h-4 ${isRTL ? 'ms-2' : 'me-2'}`} />
+                  {t('common.back')}
                 </Button>
 
                 {step < 3 ? (
@@ -342,20 +350,20 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                     onClick={() => setStep(step + 1)}
                     disabled={step === 1 && !formData.name}
                   >
-                    Continue
-                    <ArrowRight className="w-4 h-4 ml-2" />
+                    {t('createProfile.continue')}
+                    <ForwardArrow className={`w-4 h-4 ${isRTL ? 'me-2' : 'ms-2'}`} />
                   </Button>
                 ) : (
                   <Button type="submit" variant="gold" className="w-full sm:w-auto" disabled={loading}>
                     {loading ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
-                        Creating...
+                        {t('createProfile.creating')}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        Complete Setup
-                        <ArrowRight className="w-4 h-4" />
+                        {t('createProfile.completeSetup')}
+                        <ForwardArrow className="w-4 h-4" />
                       </span>
                     )}
                   </Button>

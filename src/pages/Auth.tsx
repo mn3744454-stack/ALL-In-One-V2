@@ -8,12 +8,16 @@ import Logo from "@/components/Logo";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/i18n/I18nContext";
 import heroImage from "@/assets/hero-horse.jpg";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { signIn, signUp, user } = useAuth();
+  const { t, dir } = useI18n();
+  const isRTL = dir === 'rtl';
+  
   const [mode, setMode] = useState<"signin" | "signup">(
     searchParams.get("mode") === "signup" ? "signup" : "signin"
   );
@@ -55,17 +59,17 @@ const Auth = () => {
           
           // Show safe, generic messages to prevent information disclosure
           if (error.message?.includes("already registered")) {
-            toast.error("This email is already registered. Please sign in.");
+            toast.error(t('auth.errors.emailExists'));
           } else if (error.message?.includes("Password")) {
-            toast.error("Password does not meet requirements. Please use a stronger password.");
+            toast.error(t('auth.errors.weakPassword'));
           } else {
-            toast.error("Unable to create account. Please try again.");
+            toast.error(t('auth.errors.createFailed'));
           }
           setLoading(false);
           return;
         }
 
-        toast.success("Account created successfully!");
+        toast.success(t('auth.accountCreated'));
         // Redirect to next path if available, otherwise dashboard
         navigate(nextPath || "/dashboard");
       } else {
@@ -76,17 +80,17 @@ const Auth = () => {
           console.error("Sign in error:", error);
           
           // Generic message to prevent user enumeration attacks
-          toast.error("Invalid email or password. Please try again.");
+          toast.error(t('auth.errors.invalidCredentials'));
           setLoading(false);
           return;
         }
 
-        toast.success("Welcome back!");
+        toast.success(t('auth.welcomeBack'));
         // Redirect to next path if available, otherwise dashboard
         navigate(nextPath || "/dashboard");
       }
     } catch (err) {
-      toast.error("An unexpected error occurred");
+      toast.error(t('common.unknownError'));
     }
 
     setLoading(false);
@@ -100,12 +104,12 @@ const Auth = () => {
           <div className="mb-8">
             <Logo className="mb-8" />
             <h1 className="font-display text-3xl font-bold text-navy mb-2">
-              {mode === "signup" ? "Create your account" : "Welcome back"}
+              {mode === "signup" ? t('auth.createAccount') : t('auth.welcomeBackTitle')}
             </h1>
             <p className="text-muted-foreground">
               {mode === "signup"
-                ? "Start managing your equestrian business today"
-                : "Sign in to continue to your dashboard"}
+                ? t('auth.startManaging')
+                : t('auth.signInToContinue')}
             </p>
           </div>
 
@@ -115,14 +119,14 @@ const Auth = () => {
                 {mode === "signup" && (
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-navy font-medium">
-                      Full Name
+                      {t('auth.fullName')}
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <User className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="name"
                         type="text"
-                        placeholder="Enter your full name"
+                        placeholder={t('auth.enterFullName')}
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="ps-10"
@@ -134,14 +138,14 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-navy font-medium">
-                    Email Address
+                    {t('auth.emailAddress')}
                   </Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Mail className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t('auth.enterEmail')}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="ps-10"
@@ -152,14 +156,14 @@ const Auth = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-navy font-medium">
-                    Password
+                    {t('auth.password')}
                   </Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <Lock className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t('auth.enterPassword')}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="ps-10 pe-10"
@@ -169,7 +173,7 @@ const Auth = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -177,9 +181,9 @@ const Auth = () => {
                 </div>
 
                 {mode === "signin" && (
-                  <div className="flex justify-end">
+                  <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>
                     <Link to="/forgot-password" className="text-sm text-gold hover:text-gold-dark transition-colors">
-                      Forgot password?
+                      {t('auth.forgotPassword')}
                     </Link>
                   </div>
                 )}
@@ -188,12 +192,12 @@ const Auth = () => {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
-                      {mode === "signup" ? "Creating account..." : "Signing in..."}
+                      {mode === "signup" ? t('auth.creatingAccount') : t('auth.signingIn')}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      {mode === "signup" ? "Create Account" : "Sign In"}
-                      <ArrowRight className="w-4 h-4" />
+                      {mode === "signup" ? t('auth.createAccountBtn') : t('auth.signIn')}
+                      <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
                     </span>
                   )}
                 </Button>
@@ -201,12 +205,12 @@ const Auth = () => {
 
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
-                  {mode === "signup" ? "Already have an account?" : "Don't have an account?"}{" "}
+                  {mode === "signup" ? t('auth.hasAccount') : t('auth.noAccount')}{" "}
                   <Link
                     to={mode === "signup" ? "/auth" : "/auth?mode=signup"}
                     className="text-gold font-semibold hover:text-gold-dark transition-colors"
                   >
-                    {mode === "signup" ? "Sign in" : "Sign up"}
+                    {mode === "signup" ? t('auth.signIn') : t('auth.signUp')}
                   </Link>
                 </p>
               </div>
@@ -214,9 +218,9 @@ const Auth = () => {
           </Card>
 
           <p className="text-xs text-muted-foreground text-center mt-6">
-            By continuing, you agree to our{" "}
-            <Link to="#" className="text-navy hover:underline">Terms of Service</Link> and{" "}
-            <Link to="#" className="text-navy hover:underline">Privacy Policy</Link>.
+            {t('auth.termsAgreement')}{" "}
+            <Link to="#" className="text-navy hover:underline">{t('auth.termsOfService')}</Link> {t('auth.and')}{" "}
+            <Link to="#" className="text-navy hover:underline">{t('auth.privacyPolicy')}</Link>.
           </p>
         </div>
       </div>
@@ -228,14 +232,14 @@ const Auth = () => {
           alt="Arabian horse"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-navy/80 to-navy/40" />
+        <div className={`absolute inset-0 ${isRTL ? 'bg-gradient-to-r' : 'bg-gradient-to-l'} from-navy/80 to-navy/40`} />
         <div className="relative z-10 flex items-end p-12">
           <div className="max-w-md">
             <blockquote className="text-2xl font-display font-semibold text-cream mb-4">
-              "Khail has transformed how we manage our stable. The efficiency gains are incredible."
+              "{t('auth.testimonial')}"
             </blockquote>
             <cite className="text-cream/80 not-italic">
-              — Mohammed Al-Faisal, Al-Faisal Stables, Riyadh
+              — {t('auth.testimonialAuthor')}
             </cite>
           </div>
         </div>
