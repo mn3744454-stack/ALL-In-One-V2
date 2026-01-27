@@ -14,55 +14,58 @@ import {
   Check
 } from "lucide-react";
 import { toast } from "sonner";
-
-const roles = [
-  {
-    id: "horse-owner",
-    icon: Heart,
-    title: "Horse Owner",
-    description: "I own one or more horses and want to manage their health and care.",
-    color: "from-rose-500 to-rose-400",
-  },
-  {
-    id: "stable-owner",
-    icon: Building2,
-    title: "Stable Owner",
-    description: "I own or manage a stable and need to manage horses, staff, and clients.",
-    color: "from-gold to-gold-light",
-  },
-  {
-    id: "veterinarian",
-    icon: Stethoscope,
-    title: "Veterinarian",
-    description: "I provide veterinary services and need to manage cases and records.",
-    color: "from-emerald-500 to-emerald-400",
-  },
-  {
-    id: "lab-owner",
-    icon: FlaskConical,
-    title: "Lab Owner / Staff",
-    description: "I work in a laboratory and need to manage samples and test results.",
-    color: "from-blue-500 to-blue-400",
-  },
-  {
-    id: "trainer",
-    icon: GraduationCap,
-    title: "Trainer / Academy",
-    description: "I provide training services and manage students and lessons.",
-    color: "from-purple-500 to-purple-400",
-  },
-  {
-    id: "employee",
-    icon: User,
-    title: "Employee",
-    description: "I work at a stable, clinic, or other equestrian business.",
-    color: "from-teal-500 to-teal-400",
-  },
-];
+import { useI18n } from "@/i18n/I18nContext";
 
 const SelectRole = () => {
   const navigate = useNavigate();
+  const { t, dir } = useI18n();
+  const isRTL = dir === 'rtl';
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+
+  const roles = [
+    {
+      id: "horse-owner",
+      icon: Heart,
+      titleKey: "selectRole.horseOwner",
+      descriptionKey: "selectRole.horseOwnerDesc",
+      color: "from-rose-500 to-rose-400",
+    },
+    {
+      id: "stable-owner",
+      icon: Building2,
+      titleKey: "selectRole.stableOwner",
+      descriptionKey: "selectRole.stableOwnerDesc",
+      color: "from-gold to-gold-light",
+    },
+    {
+      id: "veterinarian",
+      icon: Stethoscope,
+      titleKey: "selectRole.veterinarian",
+      descriptionKey: "selectRole.veterinarianDesc",
+      color: "from-emerald-500 to-emerald-400",
+    },
+    {
+      id: "lab-owner",
+      icon: FlaskConical,
+      titleKey: "selectRole.labOwner",
+      descriptionKey: "selectRole.labOwnerDesc",
+      color: "from-blue-500 to-blue-400",
+    },
+    {
+      id: "trainer",
+      icon: GraduationCap,
+      titleKey: "selectRole.trainer",
+      descriptionKey: "selectRole.trainerDesc",
+      color: "from-purple-500 to-purple-400",
+    },
+    {
+      id: "employee",
+      icon: User,
+      titleKey: "selectRole.employee",
+      descriptionKey: "selectRole.employeeDesc",
+      color: "from-teal-500 to-teal-400",
+    },
+  ];
 
   const toggleRole = (roleId: string) => {
     setSelectedRoles((prev) =>
@@ -74,7 +77,7 @@ const SelectRole = () => {
 
   const handleContinue = () => {
     if (selectedRoles.length === 0) {
-      toast.error("Please select at least one role");
+      toast.error(t('selectRole.selectAtLeastOne'));
       return;
     }
 
@@ -99,10 +102,10 @@ const SelectRole = () => {
         <div className="text-center mb-12">
           <Logo className="justify-center mb-8" />
           <h1 className="font-display text-3xl md:text-4xl font-bold text-navy mb-4">
-            What describes you best?
+            {t('selectRole.title')}
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Select all roles that apply. You can always add more roles later or join additional organizations.
+            {t('selectRole.subtitle')}
           </p>
         </div>
 
@@ -123,7 +126,7 @@ const SelectRole = () => {
               >
                 <CardContent className="p-6 relative">
                   {isSelected && (
-                    <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-gold flex items-center justify-center">
+                    <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} w-6 h-6 rounded-full bg-gold flex items-center justify-center`}>
                       <Check className="w-4 h-4 text-navy" />
                     </div>
                   )}
@@ -131,10 +134,10 @@ const SelectRole = () => {
                     <role.icon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="font-display text-lg font-semibold text-navy mb-2">
-                    {role.title}
+                    {t(role.titleKey)}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {role.description}
+                    {t(role.descriptionKey)}
                   </p>
                 </CardContent>
               </Card>
@@ -151,15 +154,15 @@ const SelectRole = () => {
             disabled={selectedRoles.length === 0}
             className="min-w-[200px]"
           >
-            Continue
-            <ArrowRight className="w-5 h-5" />
+            {t('selectRole.continue')}
+            <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
           </Button>
         </div>
 
         {/* Selected Count */}
         {selectedRoles.length > 0 && (
           <p className="text-center text-sm text-muted-foreground mt-4">
-            {selectedRoles.length} role{selectedRoles.length > 1 ? "s" : ""} selected
+            {selectedRoles.length} {selectedRoles.length > 1 ? t('selectRole.rolesSelected') : t('selectRole.roleSelected')}
           </p>
         )}
       </div>
