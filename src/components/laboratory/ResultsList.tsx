@@ -4,6 +4,10 @@ import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples"
 import { ResultsFilterTabs, type ResultFilterTab } from "./ResultsFilterTabs";
 import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
+import { ResultsTable } from "./ResultsTable";
+import { DateRangeFilter } from "./DateRangeFilter";
+import { ViewSwitcher, getGridClass, type ViewMode as DisplayMode } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
@@ -47,17 +51,24 @@ interface SampleWithResults {
   allFinal: boolean;
 }
 
-type ViewMode = 'samples' | 'clients';
+type GroupViewMode = 'samples' | 'clients';
 type SortOrder = 'asc' | 'desc';
 
 export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps) {
   const { t, dir } = useI18n();
-  const [viewMode, setViewMode] = useState<ViewMode>('samples');
+  const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>('samples');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [activeTab, setActiveTab] = useState<ResultFilterTab>('all');
   const [flagsFilter, setFlagsFilter] = useState<LabResultFlags | 'all'>('all');
   const [search, setSearch] = useState("");
   const [selectedSample, setSelectedSample] = useState<LabSample | null>(null);
+  
+  // Date range filters
+  const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<string | undefined>(undefined);
+  
+  // View preference (Grid/List/Table)
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-results');
 
   // Get status filter from tab
   const getStatusFromTab = (tab: ResultFilterTab): LabResultStatus | undefined => {
@@ -76,6 +87,8 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
   } = useLabResults({ 
     status: getStatusFromTab(activeTab),
     flags: flagsFilter !== 'all' ? flagsFilter : undefined,
+    dateFrom,
+    dateTo,
   });
 
   // Also fetch samples to get template counts
@@ -201,8 +214,8 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         <div className="flex items-center justify-between gap-2">
           <ToggleGroup 
             type="single" 
-            value={viewMode}
-            onValueChange={(v) => v && setViewMode(v as ViewMode)}
+            value={groupViewMode}
+            onValueChange={(v) => v && setGroupViewMode(v as GroupViewMode)}
             className="bg-muted p-1 rounded-lg"
           >
             <ToggleGroupItem 
@@ -272,7 +285,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         </div>
 
         {/* Client Grouped View */}
-        {viewMode === 'clients' && (
+        {groupViewMode === 'clients' && (
           <ResultsClientGroupedView 
             results={results}
             samples={samples}
@@ -284,7 +297,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         )}
 
         {/* Results Grid - Sample-centric */}
-        {viewMode === 'samples' && filteredGroups.length === 0 && (
+        {groupViewMode === 'samples' && filteredGroups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">{t("laboratory.results.noResultsFound")}</h3>
@@ -302,7 +315,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
           </div>
         )}
 
-        {viewMode === 'samples' && filteredGroups.length > 0 && (
+        {groupViewMode === 'samples' && filteredGroups.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredGroups.map((group) => {
               const { sample, results: sampleResults, templateCount, completedCount } = group;

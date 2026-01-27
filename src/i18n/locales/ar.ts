@@ -824,6 +824,29 @@ export const ar = {
       duplicateDailyNumber: "رقم العينة {{number}} مستخدم بالفعل للخيل: {{horseName}}",
     },
     
+    // Filters
+    filters: {
+      fromDate: "من تاريخ",
+      toDate: "إلى تاريخ",
+      clearDates: "مسح التواريخ",
+    },
+    
+    // Table Headers
+    table: {
+      number: "#",
+      client: "العميل",
+      horse: "الخيل",
+      sampleId: "رقم العينة",
+      status: "الحالة",
+      collectionDate: "تاريخ الجمع",
+      templates: "القوالب",
+      actions: "الإجراءات",
+      resultDate: "تاريخ النتيجة",
+      template: "القالب",
+      flags: "العلامات",
+      createdBy: "المنشئ",
+    },
+    
     // Progress Stepper
     progress: {
       received: "تم الاستلام",

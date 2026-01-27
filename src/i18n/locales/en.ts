@@ -821,6 +821,29 @@ export const en = {
       duplicateDailyNumber: "Sample number {{number}} is already used for horse: {{horseName}}",
     },
     
+    // Filters
+    filters: {
+      fromDate: "From Date",
+      toDate: "To Date",
+      clearDates: "Clear Dates",
+    },
+    
+    // Table Headers
+    table: {
+      number: "#",
+      client: "Client",
+      horse: "Horse",
+      sampleId: "Sample ID",
+      status: "Status",
+      collectionDate: "Collection Date",
+      templates: "Templates",
+      actions: "Actions",
+      resultDate: "Result Date",
+      template: "Template",
+      flags: "Flags",
+      createdBy: "Created By",
+    },
+    
     // Progress Stepper
     progress: {
       received: "Received",
