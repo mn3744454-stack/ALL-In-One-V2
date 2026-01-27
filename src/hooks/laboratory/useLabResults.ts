@@ -26,6 +26,7 @@ export interface LabResult {
   sample?: {
     id: string;
     physical_sample_id: string | null;
+    horse_name?: string | null;
     horse?: { id: string; name: string };
   };
   template?: { id: string; name: string; name_ar: string | null };
@@ -91,6 +92,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
           sample:lab_samples!lab_results_sample_id_fkey(
             id, 
             physical_sample_id,
+            horse_name,
             horse:horses!lab_samples_horse_id_fkey(id, name)
           ),
           template:lab_templates!lab_results_template_id_fkey(id, name, name_ar),
