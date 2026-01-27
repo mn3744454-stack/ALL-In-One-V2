@@ -1998,6 +1998,7 @@ export const en = {
       onePrimary: "1 primary owner",
       multiplePrimary: "{{count}} primary owners",
       ownerNumber: "Owner {{number}}",
+      createNewOwner: "Create new owner",
       // Details step additional keys
       isGelded: "Is Gelded?",
       geldedDesc: "Mark if this horse has been castrated",
@@ -2024,6 +2025,62 @@ export const en = {
       birthTime: "Birth Time (Optional)",
       currentAge: "Current Age",
       type: "Type",
+    },
+    // Master data dialog translations
+    masterData: {
+      color: {
+        title: "Add New Color",
+        nameEn: "Name (English)",
+        nameAr: "Name (Arabic)",
+      },
+      breed: {
+        title: "Add New Breed",
+        nameEn: "Name (English)",
+        nameAr: "Name (Arabic)",
+      },
+      owner: {
+        title: "Add New Owner",
+        name: "Name",
+        nameAr: "Name (Arabic)",
+        phone: "Phone",
+        email: "Email",
+      },
+      breeder: {
+        title: "Add New Breeder",
+        name: "Name",
+        nameAr: "Name (Arabic)",
+        phone: "Phone",
+        email: "Email",
+      },
+      branch: {
+        title: "Add New Branch",
+        name: "Branch Name",
+        address: "Address",
+      },
+      stable: {
+        title: "Add New Stable",
+        name: "Stable Name",
+      },
+      housingUnit: {
+        title: "Add New Housing Unit",
+        code: "Unit Code (e.g., A1, Stall-5)",
+        unitType: "Type (stall/room/paddock)",
+      },
+      missingFields: "Missing required fields",
+      pleaseFillIn: "Please fill in",
+      createdSuccess: "Created successfully",
+      hasBeenAdded: "Item has been added",
+      errorCreating: "Error creating item",
+    },
+    // Table view column headers
+    table: {
+      name: "Name",
+      breed: "Breed",
+      type: "Type",
+      age: "Age",
+      color: "Color",
+      owner: "Owner",
+      status: "Status",
     },
     profile: {
       physicalSpecs: "Physical Specifications",

@@ -2001,6 +2001,7 @@ export const ar = {
       onePrimary: "مالك رئيسي واحد",
       multiplePrimary: "{{count}} ملاك رئيسيين",
       ownerNumber: "مالك {{number}}",
+      createNewOwner: "إنشاء مالك جديد",
       // Details step additional keys
       isGelded: "هل مخصي؟",
       geldedDesc: "حدد إذا كان الخيل مخصياً",
@@ -2027,6 +2028,62 @@ export const ar = {
       birthTime: "وقت الميلاد (اختياري)",
       currentAge: "العمر الحالي",
       type: "النوع",
+    },
+    // Master data dialog translations
+    masterData: {
+      color: {
+        title: "إضافة لون جديد",
+        nameEn: "الاسم (إنجليزي)",
+        nameAr: "الاسم (عربي)",
+      },
+      breed: {
+        title: "إضافة سلالة جديدة",
+        nameEn: "الاسم (إنجليزي)",
+        nameAr: "الاسم (عربي)",
+      },
+      owner: {
+        title: "إضافة مالك جديد",
+        name: "الاسم",
+        nameAr: "الاسم (عربي)",
+        phone: "الهاتف",
+        email: "البريد الإلكتروني",
+      },
+      breeder: {
+        title: "إضافة مربي جديد",
+        name: "الاسم",
+        nameAr: "الاسم (عربي)",
+        phone: "الهاتف",
+        email: "البريد الإلكتروني",
+      },
+      branch: {
+        title: "إضافة فرع جديد",
+        name: "اسم الفرع",
+        address: "العنوان",
+      },
+      stable: {
+        title: "إضافة إسطبل جديد",
+        name: "اسم الإسطبل",
+      },
+      housingUnit: {
+        title: "إضافة وحدة سكن جديدة",
+        code: "رمز الوحدة (مثال: A1, Stall-5)",
+        unitType: "النوع (بوكس/غرفة/حظيرة)",
+      },
+      missingFields: "حقول مطلوبة مفقودة",
+      pleaseFillIn: "يرجى تعبئة",
+      createdSuccess: "تم الإنشاء بنجاح",
+      hasBeenAdded: "تمت الإضافة",
+      errorCreating: "خطأ في الإنشاء",
+    },
+    // Table view column headers
+    table: {
+      name: "الاسم",
+      breed: "السلالة",
+      type: "النوع",
+      age: "العمر",
+      color: "اللون",
+      owner: "المالك",
+      status: "الحالة",
     },
     profile: {
       physicalSpecs: "المواصفات الجسدية",
