@@ -2155,6 +2155,16 @@ export const ar = {
       mediaGallery: "معرض الوسائط",
       notes: "الملاحظات",
     },
+    mediaGallery: {
+      zoomIn: "تكبير",
+      zoomOut: "تصغير",
+      close: "إغلاق",
+      previous: "السابق",
+      next: "التالي",
+      noMedia: "لا توجد وسائط",
+      videoError: "تعذر تحميل الفيديو",
+      imageError: "تعذر تحميل الصورة",
+    },
     deleteConfirm: {
       title: "حذف {{name}}؟",
       description: "لا يمكن التراجع عن هذا الإجراء. سيتم حذف الخيل وجميع البيانات المرتبطة به نهائياً.",

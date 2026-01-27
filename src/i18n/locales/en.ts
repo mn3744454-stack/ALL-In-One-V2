@@ -2152,6 +2152,16 @@ export const en = {
       mediaGallery: "Media Gallery",
       notes: "Notes",
     },
+    mediaGallery: {
+      zoomIn: "Zoom In",
+      zoomOut: "Zoom Out",
+      close: "Close",
+      previous: "Previous",
+      next: "Next",
+      noMedia: "No media",
+      videoError: "Failed to load video",
+      imageError: "Failed to load image",
+    },
     deleteConfirm: {
       title: "Delete {{name}}?",
       description: "This action cannot be undone. This will permanently delete the horse and all associated data.",
