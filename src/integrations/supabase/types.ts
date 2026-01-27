@@ -7225,9 +7225,9 @@ export type Database = {
           }
         | {
             Args: {
-              _connection_id: string
               _resource_id: string
               _resource_type: string
+              _tenant_id: string
             }
             Returns: boolean
           }
