@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -12,9 +11,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { 
   getCurrentAgeParts, 
-  formatAgeCompact, 
   getHorseTypeLabel, 
-  getHorseTypeBadgeProps 
+  getHorseTypeBadgeProps,
+  type AgeParts 
 } from "@/lib/horseClassification";
 
 interface Horse {
@@ -43,7 +42,8 @@ interface HorsesTableProps {
 }
 
 export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const isRTL = dir === 'rtl';
 
   const getStatusColor = (status?: string | null) => {
     if (status === "active") return "bg-success/10 text-success";
@@ -51,8 +51,57 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
     return "bg-muted text-muted-foreground";
   };
 
+  const getStatusLabel = (status?: string | null) => {
+    if (status === "active") return t('common.active');
+    if (status === "inactive") return t('common.inactive');
+    return t('common.unknown');
+  };
+
   const getGenderIcon = (gender: string) => {
     return gender === "female" ? "♀" : "♂";
+  };
+
+  // Localized age formatting
+  const formatAgeLocalized = (ageParts: AgeParts | null): string => {
+    if (!ageParts) return t('horses.age.unknownAge');
+    
+    const parts: string[] = [];
+    
+    if (ageParts.years >= 1) {
+      if (ageParts.years === 1) {
+        parts.push(`${ageParts.years} ${t('horses.age.year')}`);
+      } else {
+        parts.push(`${ageParts.years} ${t('horses.age.years')}`);
+      }
+      if (ageParts.months > 0) {
+        if (ageParts.months === 1) {
+          parts.push(`${ageParts.months} ${t('horses.age.month')}`);
+        } else {
+          parts.push(`${ageParts.months} ${t('horses.age.months')}`);
+        }
+      }
+      return parts.join(' ');
+    }
+    
+    if (ageParts.months >= 1) {
+      if (ageParts.months === 1) {
+        return `${ageParts.months} ${t('horses.age.month')}`;
+      }
+      return `${ageParts.months} ${t('horses.age.months')}`;
+    }
+    
+    if (ageParts.days >= 7) {
+      const weeks = Math.floor(ageParts.days / 7);
+      if (weeks === 1) {
+        return `${weeks} ${t('horses.age.week')}`;
+      }
+      return `${weeks} ${t('horses.age.weeks')}`;
+    }
+    
+    if (ageParts.days === 1) {
+      return `${ageParts.days} ${t('horses.age.day')}`;
+    }
+    return `${ageParts.days} ${t('horses.age.days')}`;
   };
 
   return (
@@ -88,8 +137,9 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
               breeding_role: horse.breeding_role,
             });
             
-            const formattedAge = formatAgeCompact(ageParts);
+            const formattedAge = formatAgeLocalized(ageParts);
             const typeBadgeProps = getHorseTypeBadgeProps(horseType);
+            const typeLabel = isRTL ? typeBadgeProps.labelAr : typeBadgeProps.label;
             const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
             const colorName = horse.color_data?.name || horse.color || "-";
             const ownerName = horse.primary_owner?.name || "-";
@@ -100,12 +150,12 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => onHorseClick?.(horse)}
               >
-                <TableCell>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center text-xs font-bold">
+                <TableCell className="text-center">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center text-xs font-bold mx-auto">
                     {getGenderIcon(horse.gender)}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{horse.name}</div>
                     {horse.name_ar && (
@@ -115,21 +165,21 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{breedName}</TableCell>
-                <TableCell>
+                <TableCell className="text-center text-muted-foreground">{breedName}</TableCell>
+                <TableCell className="text-center">
                   <Badge className={cn("text-xs", typeBadgeProps.className)}>
-                    {typeBadgeProps.label}
+                    {typeLabel}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{formattedAge || "-"}</TableCell>
-                <TableCell className="text-muted-foreground">{colorName}</TableCell>
-                <TableCell className="text-muted-foreground">{ownerName}</TableCell>
-                <TableCell>
+                <TableCell className="text-center text-muted-foreground">{formattedAge}</TableCell>
+                <TableCell className="text-center text-muted-foreground">{colorName}</TableCell>
+                <TableCell className="text-center text-muted-foreground">{ownerName}</TableCell>
+                <TableCell className="text-center">
                   <Badge 
                     variant="secondary" 
                     className={cn("text-xs", getStatusColor(horse.status))}
                   >
-                    {horse.status || "draft"}
+                    {getStatusLabel(horse.status)}
                   </Badge>
                 </TableCell>
               </TableRow>
