@@ -37,6 +37,9 @@ export interface LabResultFilters {
   status?: LabResultStatus | 'all';
   flags?: LabResultFlags | 'all';
   sample_id?: string;
+  // Date range filters
+  dateFrom?: string;            // ISO date string (YYYY-MM-DD)
+  dateTo?: string;              // ISO date string (YYYY-MM-DD)
 }
 
 export interface CreateLabResultData {
@@ -105,6 +108,17 @@ export function useLabResults(filters: LabResultFilters = {}) {
       }
       if (filters.sample_id) {
         query = query.eq("sample_id", filters.sample_id);
+      }
+
+      // Date range filters
+      if (filters.dateFrom) {
+        query = query.gte("created_at", filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        // Add one day to include the end date fully
+        const endDate = new Date(filters.dateTo);
+        endDate.setDate(endDate.getDate() + 1);
+        query = query.lt("created_at", endDate.toISOString().split('T')[0]);
       }
 
       const { data, error } = await query;
