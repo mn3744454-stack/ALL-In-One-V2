@@ -1,293 +1,177 @@
 
-# Fix Plan: Ownership UX + i18n + Grid/List/Table Layout Bugs
+# خطة الإصلاح: ترجمة واجهة الخيول وتنسيق الجدول RTL
 
-## Problem Summary
+## ملخص المشاكل
 
-Based on the screenshots and code analysis, there are **3 groups of issues**:
+بناءً على الصورة المرفقة، هناك مجموعتان من المشاكل:
 
-| Issue Group | Problem | Root Cause |
-|-------------|---------|------------|
-| **A) Ownership UX** | Button responsibilities are swapped | `StepOwnership.tsx` - inline "+" opens modal, top button adds row |
-| **A) Owner Labeling** | "Owner 1" shown when primary exists; wrong numbering | Badge logic uses `index + 1` instead of sequential non-primary count |
-| **B) Missing i18n** | Add Owner/Breed/Color dialogs show English labels | `AddMasterDataDialog.tsx` uses hardcoded strings in `typeConfig` |
-| **C) Table View** | Table mode shows cards, not a real table | `HorsesList.tsx` renders `HorseCard` for all view modes |
-| **C) Grid 4-col** | Cards may overflow/compress on 4 columns | CSS grid configuration and card min-width constraints |
+| المشكلة | الوصف | الملفات المتأثرة |
+|---------|-------|-----------------|
+| **1) كلمات إنجليزية** | فلاتر (Gender, Status, Breed) + حالة (active) + أنواع الخيول (Broodmare, Gelding, Mare) + العمر (Unknown age, 8y 8m) | `HorseFilters.tsx`, `HorsesTable.tsx`, `horseClassification.ts` |
+| **2) محاذاة الجدول RTL** | عناوين الأعمدة لا تتوسط فوق المحتوى في وضع RTL | `table.tsx`, `HorsesTable.tsx` |
 
 ---
 
-## Implementation Plan
+## التغييرات المطلوبة
 
-### Part A: Fix Step 6 Ownership UX
+### الجزء الأول: ترجمة الفلاتر (HorseFilters.tsx)
 
-**File:** `src/components/horses/wizard/StepOwnership.tsx`
+**المشكلة:** الفلاتر تستخدم نصوص إنجليزية مباشرة:
+- "Gender", "Status", "Breed" (placeholders)
+- "All Genders", "Male", "Female"
+- "All Status", "Active", "Inactive"
+- "All Breeds", "All Colors"
+- "Clear Filters", "Filter Horses"
+- "Search horses..."
 
-#### Changes:
+**الحل:**
+1. إضافة `useI18n` hook
+2. استبدال جميع النصوص بـ `t()` keys
+3. إضافة مفاتيح جديدة في `en.ts` و `ar.ts`
 
-1. **Swap button responsibilities:**
-   - **Top button** (currently `addOwner`) → Opens "Create new owner" modal (`setShowAddOwner(true)`)
-   - **Inline "+" beside dropdown** → Adds another owner row (`addOwner()`)
-
-2. **Update button labels (i18n):**
-   - Top button: `horses.wizard.createNewOwner` / "Create new owner" / "إنشاء مالك جديد"
-   - Inline "+": remains as icon-only (adds row)
-
-3. **Fix owner labeling logic:**
-   - Primary owner shows: "Primary Owner" / "المالك الأساسي"
-   - Non-primary owners indexed starting from 2: "Owner 2", "Owner 3"...
-   - Never show "Owner 1" when a primary owner exists
-
-**Current code (lines 85-87):**
-```typescript
-<Button type="button" variant="outline" size="sm" onClick={addOwner} className="gap-2">
-  <Plus className="w-4 h-4" /> {t('horses.wizard.addOwner')}
-</Button>
+**المفاتيح الجديدة:**
 ```
-
-**New behavior:**
-```typescript
-<Button type="button" variant="outline" size="sm" onClick={() => setShowAddOwner(true)} className="gap-2">
-  <Plus className="w-4 h-4" /> {t('horses.wizard.createNewOwner')}
-</Button>
+horses.filters.gender: "الجنس" / "Gender"
+horses.filters.status: "الحالة" / "Status"  
+horses.filters.breed: "السلالة" / "Breed"
+horses.filters.color: "اللون" / "Color"
+horses.filters.allGenders: "جميع الجنس" / "All Genders"
+horses.filters.male: "ذكر" / "Male"
+horses.filters.female: "أنثى" / "Female"
+horses.filters.allStatus: "جميع الحالات" / "All Status"
+horses.filters.allBreeds: "جميع السلالات" / "All Breeds"
+horses.filters.allColors: "جميع الألوان" / "All Colors"
+horses.filters.clearFilters: "مسح الفلاتر" / "Clear Filters"
+horses.filters.filterHorses: "تصفية الخيول" / "Filter Horses"
 ```
-
-**Current inline button (line 121-123):**
-```typescript
-<Button type="button" size="icon" variant="outline" onClick={() => setShowAddOwner(true)}>
-  <Plus className="w-4 h-4" />
-</Button>
-```
-
-**New behavior:**
-```typescript
-<Button type="button" size="icon" variant="outline" onClick={addOwner}>
-  <Plus className="w-4 h-4" />
-</Button>
-```
-
-**Fix labeling (lines 103-105):**
-Current: `t('horses.wizard.ownerNumber').replace('{{number}}', String(index + 1))`
-
-New logic:
-- Count non-primary owners before current index
-- Label: "Owner (count + 2)" since Owner 1 is conceptually replaced by "Primary Owner"
 
 ---
 
-### Part B: Fix Missing i18n in Master Data Dialogs
+### الجزء الثاني: ترجمة حالة الخيل وأنواعه (HorsesTable.tsx)
 
-**File:** `src/components/horses/AddMasterDataDialog.tsx`
+**المشكلة الأولى - حالة الخيل:**
+- `{horse.status || "draft"}` يعرض "active" بالإنجليزي
 
-The dialog currently has hardcoded English strings in `typeConfig`. We need to:
+**الحل:**
+- استخدام `t('common.active')` و `t('common.inactive')` بدلاً من القيمة المباشرة
 
-1. **Use i18n hook** for all titles and labels
-2. **Add new i18n keys** for dialog content
+**المشكلة الثانية - نوع الخيل (Broodmare, Gelding, Mare):**
+- `getHorseTypeBadgeProps()` يُرجع `label` (إنجليزي) و `labelAr` (عربي)
+- الكود الحالي يستخدم `typeBadgeProps.label` فقط
 
-**Current hardcoded config (lines 31-82):**
-```typescript
-const typeConfig: Record<MasterDataType, { title: string; fields: ... }> = {
-  color: { title: "Add New Color", fields: [{ key: "name", label: "Name (English)" }, ...] },
-  // etc.
-};
-```
+**الحل:**
+- استخدام `dir === 'rtl' ? typeBadgeProps.labelAr : typeBadgeProps.label`
 
-**New approach:**
-- Move config inside component to access `t()` hook
-- Use i18n keys like `horses.masterData.color.title`, `horses.masterData.color.nameEn`, etc.
+**المشكلة الثالثة - العمر (Unknown age, 8y 8m):**
+- `formatAgeCompact()` في `horseClassification.ts` يُرجع نصوص إنجليزية
 
-**New i18n keys to add:**
-
-| Key Path | English | Arabic |
-|----------|---------|--------|
-| `horses.masterData.color.title` | Add New Color | إضافة لون جديد |
-| `horses.masterData.color.nameEn` | Name (English) | الاسم (إنجليزي) |
-| `horses.masterData.color.nameAr` | Name (Arabic) | الاسم (عربي) |
-| `horses.masterData.breed.title` | Add New Breed | إضافة سلالة جديدة |
-| `horses.masterData.breed.nameEn` | Name (English) | الاسم (إنجليزي) |
-| `horses.masterData.breed.nameAr` | Name (Arabic) | الاسم (عربي) |
-| `horses.masterData.owner.title` | Add New Owner | إضافة مالك جديد |
-| `horses.masterData.owner.name` | Name | الاسم |
-| `horses.masterData.owner.nameAr` | Name (Arabic) | الاسم (عربي) |
-| `horses.masterData.owner.phone` | Phone | الهاتف |
-| `horses.masterData.owner.email` | Email | البريد الإلكتروني |
-| `horses.masterData.breeder.title` | Add New Breeder | إضافة مربي جديد |
-| `horses.masterData.breeder.name` | Name | الاسم |
-| `horses.masterData.breeder.nameAr` | Name (Arabic) | الاسم (عربي) |
-| `horses.masterData.breeder.phone` | Phone | الهاتف |
-| `horses.masterData.breeder.email` | Email | البريد الإلكتروني |
-| `horses.masterData.branch.title` | Add New Branch | إضافة فرع جديد |
-| `horses.masterData.branch.name` | Branch Name | اسم الفرع |
-| `horses.masterData.branch.address` | Address | العنوان |
-| `horses.masterData.stable.title` | Add New Stable | إضافة إسطبل جديد |
-| `horses.masterData.stable.name` | Stable Name | اسم الإسطبل |
-| `horses.masterData.housingUnit.title` | Add New Housing Unit | إضافة وحدة سكن جديدة |
-| `horses.masterData.housingUnit.code` | Unit Code | رمز الوحدة |
-| `horses.masterData.housingUnit.unitType` | Type | النوع |
-| `horses.masterData.missingFields` | Missing required fields | حقول مطلوبة مفقودة |
-| `horses.masterData.pleaseFillIn` | Please fill in | يرجى تعبئة |
-| `horses.masterData.createdSuccess` | Created successfully | تم الإنشاء بنجاح |
-| `horses.masterData.hasBeenAdded` | has been added | تمت الإضافة |
-| `horses.masterData.errorCreating` | Error creating item | خطأ في الإنشاء |
-| `horses.wizard.createNewOwner` | Create new owner | إنشاء مالك جديد |
+**الحل:**
+- تعديل `formatAgeCompact()` لقبول معامل اللغة
+- أو إنشاء دالة مترجمة في المكون
 
 ---
 
-### Part C: Fix Horses View Toggle (Grid/List/Table)
+### الجزء الثالث: محاذاة الجدول RTL (table.tsx)
 
-#### C1: Create HorsesTable Component
+**المشكلة:**
+- `TableHead` يستخدم `text-left` ثابت
+- في RTL يجب أن يكون `text-right` أو `text-start`
 
-**New file:** `src/components/horses/HorsesTable.tsx`
+**الحل:**
+- تغيير `text-left` إلى `text-start` (يتحول تلقائياً مع direction)
+- إضافة `text-center` للعناوين لتتوسط فوق المحتوى
 
-Create a proper table component following the existing pattern from `OrdersList.tsx`:
+---
 
-```typescript
-// Structure:
-<Table>
-  <TableHeader>
-    <TableRow>
-      <TableHead>Name</TableHead>
-      <TableHead>Breed</TableHead>
-      <TableHead>Type</TableHead>
-      <TableHead>Status</TableHead>
-      <TableHead>Age</TableHead>
-      <TableHead>Actions</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    {horses.map(horse => <TableRow>...</TableRow>)}
-  </TableBody>
-</Table>
-```
+## التفاصيل التقنية
 
-#### C2: Update HorsesList.tsx
-
-**File:** `src/components/horses/HorsesList.tsx`
-
-Add conditional rendering for table view:
+### تعديل table.tsx
 
 ```typescript
-{viewMode === 'table' ? (
-  <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} />
-) : (
-  <div className={getGridClass(gridColumns, viewMode)}>
-    {filteredHorses.map((horse) => (
-      <HorseCard
-        key={horse.id}
-        horse={horse}
-        onClick={() => onHorseClick?.(horse)}
-        compact={viewMode === 'list'}
-      />
-    ))}
-  </div>
+// الحالي:
+className={cn(
+  "h-12 px-4 text-left align-middle font-medium...",
+  className,
+)}
+
+// الجديد:
+className={cn(
+  "h-12 px-4 text-center align-middle font-medium...",
+  className,
 )}
 ```
 
-#### C3: Fix HorseCard for List Mode
-
-**File:** `src/components/horses/HorseCard.tsx`
-
-Ensure `compact` prop is passed when `viewMode === 'list'`:
-- Currently `HorsesList` doesn't pass `compact={true}` for list mode
-- Need to add: `compact={viewMode === 'list'}`
-
-#### C4: Fix Grid 4-Column Layout
-
-**File:** `src/components/ui/ViewSwitcher.tsx` or `src/components/horses/HorseCard.tsx`
-
-Current grid class for 4 columns (line 155):
-```typescript
-case 4:
-  return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4';
-```
-
-This is correct for responsive breakpoints. The issue may be in card sizing.
-
-**Card fix in `HorseCard.tsx`:**
-- Ensure card content doesn't overflow
-- Add `min-w-0` to flex containers to prevent content from pushing card wider
-- Consider adding `overflow-hidden` to card container
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/components/horses/wizard/StepOwnership.tsx` | Swap button logic, fix labeling |
-| `src/components/horses/AddMasterDataDialog.tsx` | Use i18n for all strings |
-| `src/components/horses/HorsesList.tsx` | Add table view rendering, pass `compact` prop |
-| `src/components/horses/HorseCard.tsx` | Minor CSS fixes for 4-col grid |
-| `src/components/horses/HorsesTable.tsx` | **NEW FILE** - Table view component |
-| `src/components/horses/index.ts` | Export new HorsesTable |
-| `src/i18n/locales/en.ts` | Add new i18n keys |
-| `src/i18n/locales/ar.ts` | Add new Arabic translations |
-
----
-
-## New i18n Keys Summary
-
-**Total new keys: ~28 keys**
-
-Categories:
-- `horses.masterData.*` (dialog titles, field labels)
-- `horses.wizard.createNewOwner` (new button label)
-- `horses.table.*` (table column headers for new table view)
-
----
-
-## Verification Gates
-
-| Gate | Test | Expected Result |
-|------|------|-----------------|
-| **Gate 1** | Click inline "+" in ownership step | Adds new owner row (does NOT open modal) |
-| **Gate 1** | Click top "Create new owner" button | Opens Add New Owner modal |
-| **Gate 1** | Create owner in modal | New owner appears in dropdown |
-| **Gate 2** | Add 2 owners, set one as primary | Shows "Primary Owner" + "Owner 2" |
-| **Gate 2** | Toggle primary to other owner | Labels swap correctly, no "Owner 1" |
-| **Gate 3** | Switch to Arabic, open Add Owner dialog | All labels in Arabic |
-| **Gate 3** | Switch to Arabic, open Add Breed dialog | All labels in Arabic |
-| **Gate 4** | Select Table view in horses list | Real table with columns renders |
-| **Gate 5** | Select Grid 4-columns | Cards render properly, no overflow |
-
----
-
-## Technical Details
-
-### Owner Labeling Algorithm
+### تعديل HorsesTable.tsx
 
 ```typescript
-// Calculate non-primary index (0-based, excluding primary owners)
-const getNonPrimaryIndex = (owners, currentIndex) => {
-  let count = 0;
-  for (let i = 0; i < currentIndex; i++) {
-    if (!owners[i].is_primary) count++;
-  }
-  return count;
-};
+const { t, dir } = useI18n();
 
-// Label: "Owner {index + 2}" since Owner 1 = Primary
-const label = owner.is_primary 
-  ? t('horses.wizard.primaryOwner')
-  : t('horses.wizard.ownerNumber').replace('{{number}}', String(getNonPrimaryIndex(owners, index) + 2));
-```
+// للنوع:
+<Badge className={cn("text-xs", typeBadgeProps.className)}>
+  {dir === 'rtl' ? typeBadgeProps.labelAr : typeBadgeProps.label}
+</Badge>
 
-### AddMasterDataDialog i18n Approach
+// للحالة:
+<Badge ...>
+  {horse.status === 'active' ? t('common.active') : 
+   horse.status === 'inactive' ? t('common.inactive') : 
+   t('common.draft')}
+</Badge>
 
-```typescript
-export const AddMasterDataDialog = ({ ... }: AddMasterDataDialogProps) => {
-  const { t } = useI18n();
-  
-  // Move config inside component to use t()
-  const typeConfig = useMemo(() => ({
-    color: {
-      title: t('horses.masterData.color.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.color.nameEn'), required: true },
-        { key: "name_ar", label: t('horses.masterData.color.nameAr') },
-      ],
-    },
-    // ... other types
-  }), [t]);
-  
-  // ... rest of component
+// للعمر:
+const formatAgeLocalized = (ageParts: AgeParts | null) => {
+  if (!ageParts) return t('horses.unknownAge');
+  // تنسيق مترجم
 };
 ```
+
+### تعديل horseClassification.ts
+
+إضافة دالة جديدة `formatAgeCompactLocalized` أو تحديث الدالة الحالية لتقبل ترجمات:
+
+```typescript
+export function formatAgeCompactLocalized(
+  ageParts: AgeParts | null, 
+  translations: { year: string; years: string; month: string; months: string; week: string; weeks: string; day: string; days: string; unknown: string }
+): string {
+  if (!ageParts) return translations.unknown;
+  // ... logic with translated labels
+}
+```
+
+---
+
+## الملفات المطلوب تعديلها
+
+| الملف | التغييرات |
+|-------|----------|
+| `src/components/horses/HorseFilters.tsx` | إضافة i18n للفلاتر |
+| `src/components/horses/HorsesTable.tsx` | ترجمة النوع والحالة والعمر + محاذاة RTL |
+| `src/components/ui/table.tsx` | تغيير `text-left` إلى `text-center` أو `text-start` |
+| `src/lib/horseClassification.ts` | إضافة دالة عمر مترجمة |
+| `src/i18n/locales/en.ts` | إضافة مفاتيح الفلاتر والعمر |
+| `src/i18n/locales/ar.ts` | إضافة ترجمات الفلاتر والعمر |
+
+---
+
+## المفاتيح الجديدة (ملخص)
+
+**~20 مفتاح جديد:**
+
+```
+horses.filters.*: gender, status, breed, color, allGenders, male, female, allStatus, allBreeds, allColors, clearFilters, filterHorses
+
+horses.age.*: year, years, month, months, week, weeks, day, days, unknownAge
+```
+
+---
+
+## معايير القبول
+
+| الاختبار | النتيجة المتوقعة |
+|----------|-----------------|
+| الفلاتر بالعربي | Gender → الجنس، Status → الحالة، وجميع الخيارات مترجمة |
+| حالة الخيل | "active" → "نشط" |
+| نوع الخيل | "Broodmare" → "فرس تربية"، "Mare" → "فرس"، "Gelding" → "حصان مخصي" |
+| العمر | "8y 8m" → "8 سنوات 8 أشهر" أو "8س 8ش"، "Unknown age" → "عمر غير معروف" |
+| محاذاة الجدول | عناوين الأعمدة تتوسط فوق المحتوى في RTL |
