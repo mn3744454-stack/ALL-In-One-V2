@@ -11,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowDown, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { HorseOwnership } from "@/hooks/useHorseOwnership";
+import { useI18n } from "@/i18n";
 
 interface Owner {
   id: string;
@@ -44,6 +45,7 @@ export const TransferOwnershipDialog = ({
   horseName,
   onSuccess,
 }: TransferOwnershipDialogProps) => {
+  const { t } = useI18n();
   const [recipientType, setRecipientType] = useState<"existing" | "new">("existing");
   const [recipientId, setRecipientId] = useState("");
   const [transferPercentage, setTransferPercentage] = useState("");
@@ -64,14 +66,14 @@ export const TransferOwnershipDialog = ({
     const percentage = parseFloat(transferPercentage);
     
     if (!recipientId) {
-      toast({ title: "Error", description: "Please select a recipient", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('horses.ownership.selectRecipientError'), variant: "destructive" });
       return;
     }
 
     if (isNaN(percentage) || percentage <= 0 || percentage > maxTransfer) {
       toast({ 
-        title: "Error", 
-        description: `Invalid percentage. Max: ${maxTransfer}%`, 
+        title: t('common.error'), 
+        description: t('horses.ownership.invalidPercentageMax').replace('{{max}}', String(maxTransfer)), 
         variant: "destructive" 
       });
       return;
@@ -144,16 +146,19 @@ export const TransferOwnershipDialog = ({
       // 4. Send notifications
       await sendTransferNotifications(recipientId, percentage);
 
+      const recipientName = getRecipientName();
       toast({ 
-        title: "Transfer successful", 
-        description: `${percentage}% transferred to ${getRecipientName()}` 
+        title: t('horses.ownership.transferSuccess'), 
+        description: t('horses.ownership.transferSuccessDesc')
+          .replace('{{percentage}}', String(percentage))
+          .replace('{{recipient}}', recipientName)
       });
       
       onSuccess();
       resetForm();
     } catch (error: any) {
       console.error("Transfer error:", error);
-      toast({ title: "Transfer failed", description: error.message, variant: "destructive" });
+      toast({ title: t('horses.ownership.transferFailed'), description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -162,10 +167,10 @@ export const TransferOwnershipDialog = ({
   const getRecipientName = () => {
     if (recipientType === "existing") {
       const owner = existingOwners.find(o => o.owner_id === recipientId);
-      return owner?.owner?.name || "recipient";
+      return owner?.owner?.name || t('horses.ownership.recipient');
     } else {
       const owner = availableOwners.find(o => o.id === recipientId);
-      return owner?.name || "recipient";
+      return owner?.name || t('horses.ownership.recipient');
     }
   };
 
@@ -214,47 +219,49 @@ export const TransferOwnershipDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
-            Transfer Ownership
+            {t('horses.ownership.transferOwnership')}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 py-4">
           {/* From */}
           <div className="p-3 rounded-lg bg-muted/50">
-            <Label className="text-xs text-muted-foreground">From</Label>
+            <Label className="text-xs text-muted-foreground">{t('horses.ownership.from')}</Label>
             <p className="font-medium">{fromOwnership.owner?.name}</p>
-            <p className="text-sm text-muted-foreground">Current: {fromOwnership.ownership_percentage}%</p>
+            <p className="text-sm text-muted-foreground">
+              {t('horses.ownership.current')}: {fromOwnership.ownership_percentage}%
+            </p>
           </div>
 
-          {/* Arrow */}
-          <div className="flex justify-center">
-            <ArrowRight className="w-6 h-6 text-gold" />
+          {/* Arrow - using ArrowDown for RTL compatibility */}
+          <div className="flex justify-center py-1">
+            <ArrowDown className="w-6 h-6 text-gold" />
           </div>
 
           {/* Recipient Type */}
           <div className="space-y-2">
-            <Label>Transfer To</Label>
+            <Label>{t('horses.ownership.transferTo')}</Label>
             <RadioGroup value={recipientType} onValueChange={(v) => { setRecipientType(v as any); setRecipientId(""); }}>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="existing" id="existing" />
-                <Label htmlFor="existing" className="font-normal">Existing Owner</Label>
+                <Label htmlFor="existing" className="font-normal">{t('horses.ownership.existingOwner')}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <RadioGroupItem value="new" id="new" />
-                <Label htmlFor="new" className="font-normal">New Owner</Label>
+                <Label htmlFor="new" className="font-normal">{t('horses.ownership.newOwner')}</Label>
               </div>
             </RadioGroup>
           </div>
 
           {/* Recipient Selection */}
           <div className="space-y-2">
-            <Label>Select Recipient</Label>
+            <Label>{t('horses.ownership.selectRecipient')}</Label>
             <Select value={recipientId} onValueChange={setRecipientId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select recipient" />
+                <SelectValue placeholder={t('horses.ownership.selectRecipientPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {recipientType === "existing" ? (
@@ -265,7 +272,7 @@ export const TransferOwnershipDialog = ({
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="none" disabled>No other owners</SelectItem>
+                    <SelectItem value="none" disabled>{t('horses.ownership.noOtherOwners')}</SelectItem>
                   )
                 ) : (
                   newOwnerOptions.length > 0 ? (
@@ -275,7 +282,7 @@ export const TransferOwnershipDialog = ({
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="none" disabled>No available owners</SelectItem>
+                    <SelectItem value="none" disabled>{t('horses.ownership.noAvailableOwners')}</SelectItem>
                   )
                 )}
               </SelectContent>
@@ -284,14 +291,14 @@ export const TransferOwnershipDialog = ({
 
           {/* Transfer Amount */}
           <div className="space-y-2">
-            <Label>Percentage to Transfer</Label>
+            <Label>{t('horses.ownership.percentageToTransfer')}</Label>
             <Input
               type="number"
               min={1}
               max={maxTransfer}
               value={transferPercentage}
               onChange={(e) => setTransferPercentage(e.target.value)}
-              placeholder={`Max: ${maxTransfer}%`}
+              placeholder={t('horses.ownership.maxPlaceholder').replace('{{max}}', String(maxTransfer))}
             />
           </div>
 
@@ -299,7 +306,7 @@ export const TransferOwnershipDialog = ({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              Effective Date
+              {t('horses.ownership.effectiveDate')}
             </Label>
             <Input
               type="date"
@@ -309,12 +316,12 @@ export const TransferOwnershipDialog = ({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0 gap-2 sm:gap-0 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleTransfer} disabled={saving || !recipientId || !transferPercentage}>
-            {saving ? "Transferring..." : "Transfer"}
+            {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
           </Button>
         </DialogFooter>
       </DialogContent>

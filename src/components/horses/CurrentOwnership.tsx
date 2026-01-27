@@ -30,6 +30,7 @@ import { useHorseMasterData } from "@/hooks/useHorseMasterData";
 import { TransferOwnershipDialog } from "./TransferOwnershipDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useI18n } from "@/i18n";
 
 interface CurrentOwnershipProps {
   horseId: string;
@@ -37,6 +38,7 @@ interface CurrentOwnershipProps {
 }
 
 export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) => {
+  const { t } = useI18n();
   const { 
     ownerships, 
     loading, 
@@ -66,24 +68,24 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
   }, [horseId]);
 
   const totalPercentage = getTotalPercentage();
-  const hasPrimary = ownerships.some(o => o.is_primary);
+  const remainingPercentage = 100 - totalPercentage;
 
   const handleAddOwner = async () => {
     if (!newOwnerId || !newPercentage) {
-      toast({ title: "Error", description: "Please fill all fields", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('horses.ownership.fillAllFields'), variant: "destructive" });
       return;
     }
 
     const percentage = parseFloat(newPercentage);
     if (isNaN(percentage) || percentage <= 0 || percentage > 100) {
-      toast({ title: "Error", description: "Invalid percentage", variant: "destructive" });
+      toast({ title: t('common.error'), description: t('horses.ownership.invalidPercentage'), variant: "destructive" });
       return;
     }
 
     if (totalPercentage + percentage > 100) {
       toast({ 
-        title: "Error", 
-        description: `Cannot exceed 100%. Remaining: ${100 - totalPercentage}%`, 
+        title: t('common.error'), 
+        description: t('horses.ownership.cannotExceed100').replace('{{remaining}}', String(remainingPercentage)), 
         variant: "destructive" 
       });
       return;
@@ -97,11 +99,11 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       // Send notification
       await sendOwnershipNotification(newOwnerId, "added", percentage);
 
-      toast({ title: "Owner added successfully" });
+      toast({ title: t('horses.ownership.ownerAdded') });
       setShowAddDialog(false);
       resetForm();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -115,10 +117,11 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       .filter(o => o.id !== selectedOwnership.id)
       .reduce((sum, o) => sum + Number(o.ownership_percentage), 0);
 
+    const maxAllowed = 100 - otherPercentage;
     if (otherPercentage + percentage > 100) {
       toast({ 
-        title: "Error", 
-        description: `Cannot exceed 100%. Max allowed: ${100 - otherPercentage}%`, 
+        title: t('common.error'), 
+        description: t('horses.ownership.maxAllowed').replace('{{max}}', String(maxAllowed)), 
         variant: "destructive" 
       });
       return;
@@ -135,11 +138,11 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       // Send notification
       await sendOwnershipNotification(selectedOwnership.owner_id, "updated", percentage);
 
-      toast({ title: "Ownership updated" });
+      toast({ title: t('horses.ownership.ownerUpdated') });
       setShowEditDialog(false);
       resetForm();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -156,11 +159,11 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       const { error } = await removeOwnership(selectedOwnership.id);
       if (error) throw error;
 
-      toast({ title: "Owner removed" });
+      toast({ title: t('horses.ownership.ownerRemoved') });
       setShowDeleteDialog(false);
       setSelectedOwnership(null);
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -225,21 +228,22 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
           <CardTitle className="text-lg flex items-center gap-2">
             <Users className="w-5 h-5 text-gold" />
-            Current Ownership
+            {t('horses.ownership.currentOwnership')}
           </CardTitle>
           <Button size="sm" variant="outline" onClick={() => setShowAddDialog(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            Add Owner
+            <span className="hidden sm:inline">{t('horses.ownership.addOwner')}</span>
+            <span className="sm:hidden">{t('common.add')}</span>
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Ownership</span>
+              <span className="text-muted-foreground">{t('horses.ownership.totalOwnership')}</span>
               <span className={totalPercentage === 100 ? "text-success font-medium" : "text-warning font-medium"}>
                 {totalPercentage}%
               </span>
@@ -251,7 +255,7 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
             {totalPercentage !== 100 && (
               <p className="text-xs text-warning flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                Total should be 100% ({100 - totalPercentage}% remaining)
+                {t('horses.ownership.totalShouldBe100').replace('{{remaining}}', String(remainingPercentage))}
               </p>
             )}
           </div>
@@ -260,64 +264,67 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
           {ownerships.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>No owners assigned yet</p>
+              <p>{t('horses.ownership.noOwnersAssigned')}</p>
             </div>
           ) : (
             <div className="space-y-3">
               {ownerships.map((ownership) => (
                 <div 
                   key={ownership.id} 
-                  className="flex items-center justify-between p-4 rounded-xl border bg-card hover:shadow-sm transition-shadow"
+                  className="flex flex-col gap-3 p-4 rounded-xl border bg-card hover:shadow-sm transition-shadow overflow-hidden"
                 >
+                  {/* Top row: Avatar + Name + Percentage */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
                       {ownership.is_primary ? (
                         <Crown className="w-5 h-5 text-gold" />
                       ) : (
                         <Users className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{ownership.owner?.name || "Unknown"}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium truncate">{ownership.owner?.name || t('common.unknown')}</span>
                         {ownership.is_primary && (
-                          <Badge variant="default" className="text-xs">Primary</Badge>
+                          <Badge variant="default" className="text-xs shrink-0">{t('horses.ownership.primary')}</Badge>
                         )}
                       </div>
                       {ownership.owner?.name_ar && (
-                        <p className="text-sm text-muted-foreground" dir="rtl">{ownership.owner.name_ar}</p>
+                        <p className="text-sm text-muted-foreground truncate" dir="rtl">{ownership.owner.name_ar}</p>
                       )}
                     </div>
+                    <span className="font-bold text-lg text-gold shrink-0">{ownership.ownership_percentage}%</span>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold text-lg text-gold">{ownership.ownership_percentage}%</span>
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => openTransferDialog(ownership)}
-                        title="Transfer ownership"
-                      >
-                        <ArrowRightLeft className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => openEditDialog(ownership)}
-                        title="Edit"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => openDeleteDialog(ownership)}
-                        title="Remove"
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </div>
+                  {/* Bottom row: Action buttons */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/50">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => openTransferDialog(ownership)}
+                      className="gap-1.5 h-8 px-2 sm:px-3"
+                    >
+                      <ArrowRightLeft className="w-4 h-4" />
+                      <span className="hidden sm:inline">{t('horses.ownership.transfer')}</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => openEditDialog(ownership)}
+                      className="gap-1.5 h-8 px-2 sm:px-3"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      <span className="hidden sm:inline">{t('common.edit')}</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => openDeleteDialog(ownership)}
+                      className="gap-1.5 h-8 px-2 sm:px-3 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">{t('common.delete')}</span>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -328,16 +335,16 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
 
       {/* Add Owner Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Owner</DialogTitle>
+            <DialogTitle>{t('horses.ownership.addOwner')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Owner</Label>
+              <Label>{t('horses.ownership.owner')}</Label>
               <Select value={newOwnerId} onValueChange={setNewOwnerId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select owner" />
+                  <SelectValue placeholder={t('horses.ownership.selectOwner')} />
                 </SelectTrigger>
                 <SelectContent>
                   {owners
@@ -351,27 +358,27 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Percentage (%)</Label>
+              <Label>{t('horses.ownership.percentage')}</Label>
               <Input 
                 type="number" 
                 min={1} 
-                max={100 - totalPercentage}
+                max={remainingPercentage}
                 value={newPercentage} 
                 onChange={(e) => setNewPercentage(e.target.value)}
-                placeholder={`Max: ${100 - totalPercentage}%`}
+                placeholder={t('horses.ownership.maxPlaceholder').replace('{{max}}', String(remainingPercentage))}
               />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
-              <Label>Primary Owner</Label>
+              <Label>{t('horses.ownership.primaryOwner')}</Label>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); }}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddOwner} disabled={saving}>
-              {saving ? "Adding..." : "Add Owner"}
+              {saving ? t('common.loading') : t('horses.ownership.addOwner')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -379,17 +386,17 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
 
       {/* Edit Owner Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Ownership</DialogTitle>
+            <DialogTitle>{t('horses.ownership.editOwnership')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Owner</Label>
+              <Label>{t('horses.ownership.owner')}</Label>
               <Input value={selectedOwnership?.owner?.name || ""} disabled />
             </div>
             <div className="space-y-2">
-              <Label>Percentage (%)</Label>
+              <Label>{t('horses.ownership.percentage')}</Label>
               <Input 
                 type="number" 
                 min={1} 
@@ -400,15 +407,15 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
-              <Label>Primary Owner</Label>
+              <Label>{t('horses.ownership.primaryOwner')}</Label>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => { setShowEditDialog(false); resetForm(); }}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleEditOwner} disabled={saving}>
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t('common.loading') : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -418,20 +425,21 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Owner?</AlertDialogTitle>
+            <AlertDialogTitle>{t('horses.ownership.removeOwner')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Remove {selectedOwnership?.owner?.name} from {horseName}'s ownership? 
-              This action cannot be undone.
+              {t('horses.ownership.removeOwnerConfirm')
+                .replace('{{owner}}', selectedOwnership?.owner?.name || '')
+                .replace('{{horse}}', horseName)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={saving}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleRemoveOwner}
               disabled={saving}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {saving ? "Removing..." : "Remove"}
+              {saving ? t('horses.ownership.removing') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
