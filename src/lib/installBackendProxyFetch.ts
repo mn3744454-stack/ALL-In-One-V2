@@ -7,8 +7,9 @@
  * 
  * How it works:
  * - Intercepts all fetch calls
- * - If the URL targets the Supabase domain, rewrites it to go through /functions/v1/backend-proxy/
+ * - If the URL targets Supabase auth/rest/storage paths, rewrites to go through backend-proxy
  * - The backend proxy then forwards the request server-side
+ * - Edge functions (/functions/v1/) are NOT proxied to avoid circular calls
  */
 
 // Store the original fetch
@@ -20,6 +21,9 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 // Flag to track if proxy is installed
 let isInstalled = false;
 
+// Paths that should be proxied (core Supabase services)
+const PROXY_PATHS = ['/auth/', '/rest/', '/storage/', '/graphql/'];
+
 /**
  * Check if a URL should be proxied
  */
@@ -30,8 +34,20 @@ function shouldProxy(url: string): boolean {
     const targetUrl = new URL(url);
     const supabaseUrl = new URL(SUPABASE_URL);
     
-    // Proxy if the request is going to our Supabase project
-    return targetUrl.origin === supabaseUrl.origin;
+    // Must be same origin as Supabase project
+    if (targetUrl.origin !== supabaseUrl.origin) {
+      return false;
+    }
+    
+    const pathname = targetUrl.pathname;
+    
+    // Never proxy edge functions (prevents circular calls)
+    if (pathname.startsWith('/functions/v1/')) {
+      return false;
+    }
+    
+    // Only proxy specific Supabase service paths
+    return PROXY_PATHS.some(path => pathname.startsWith(path));
   } catch {
     return false;
   }
@@ -39,19 +55,20 @@ function shouldProxy(url: string): boolean {
 
 /**
  * Rewrite a Supabase URL to go through the proxy
+ * Uses SUPABASE_URL/functions/v1/backend-proxy/... instead of window.location.origin
  */
 function rewriteUrl(url: string): string {
   if (!SUPABASE_URL) return url;
   
   try {
     const targetUrl = new URL(url);
-    const supabaseUrl = new URL(SUPABASE_URL);
     
     // Get the path after the origin (e.g., /auth/v1/token?grant_type=password)
     const pathWithQuery = targetUrl.pathname + targetUrl.search;
     
-    // Construct the proxy URL using current origin
-    const proxyUrl = `${window.location.origin}/functions/v1/backend-proxy${pathWithQuery}`;
+    // Construct the proxy URL using Supabase functions URL (NOT window.location.origin)
+    // This ensures we hit the actual edge function, not the preview domain
+    const proxyUrl = `${SUPABASE_URL}/functions/v1/backend-proxy${pathWithQuery}`;
     
     if (import.meta.env.DEV) {
       console.log(`[BackendProxy] Rewriting: ${url.substring(0, 80)}...`);

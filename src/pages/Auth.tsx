@@ -68,8 +68,22 @@ const Auth = () => {
       msg.includes('fetch') ||
       msg.includes('connection') ||
       msg.includes('timeout') ||
+      msg.includes('unexpected end of json') ||
+      msg.includes('json') ||
       name.includes('fetcherror') ||
-      name.includes('authretryablefetcherror')
+      name.includes('authretryablefetcherror') ||
+      name.includes('syntaxerror')
+    );
+  };
+
+  // Helper to detect proxy-specific errors (404/502 from proxy)
+  const isProxyError = (error: Error): boolean => {
+    const msg = error.message?.toLowerCase() || '';
+    return (
+      msg.includes('unexpected end of json') ||
+      msg.includes('404') ||
+      msg.includes('502') ||
+      msg.includes('backend-proxy')
     );
   };
 
@@ -138,7 +152,15 @@ const Auth = () => {
           // Log full error for debugging (only visible in dev console)
           console.error("Sign in error:", error);
           
-          // Check for connection errors first
+          // Check for proxy errors first (more specific)
+          if (isProxyError(error)) {
+            setShowConnectionError(true);
+            toast.error(t('auth.errors.proxyError') || 'فشل الوصول لخدمة المصادقة - تحقق من اتصالك');
+            setLoading(false);
+            return;
+          }
+          
+          // Check for connection errors
           if (isConnectionError(error)) {
             setShowConnectionError(true);
             toast.error(t('auth.errors.connectionError'));
@@ -158,7 +180,7 @@ const Auth = () => {
       }
     } catch (err) {
       console.error("Auth exception:", err);
-      if (err instanceof Error && isConnectionError(err)) {
+      if (err instanceof Error && (isProxyError(err) || isConnectionError(err))) {
         setShowConnectionError(true);
         toast.error(t('auth.errors.connectionError'));
       } else {

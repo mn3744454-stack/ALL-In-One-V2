@@ -29,6 +29,23 @@ Deno.serve(async (req) => {
     }
 
     const targetPath = pathMatch[1];
+
+    // Health check endpoint for diagnostics
+    if (targetPath === "health") {
+      return new Response(
+        JSON.stringify({ 
+          ok: true, 
+          time: new Date().toISOString(), 
+          version: "1.0.0",
+          message: "Backend proxy is operational"
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
