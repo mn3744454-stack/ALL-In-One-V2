@@ -51,19 +51,38 @@ const Auth = () => {
 
     try {
       if (mode === "signup") {
+        // Client-side validation
+        if (formData.password.length < 6) {
+          toast.error(t('auth.errors.weakPassword'));
+          setLoading(false);
+          return;
+        }
+
         const { error } = await signUp(formData.email, formData.password, formData.name);
         
         if (error) {
           // Log full error for debugging (only visible in dev console)
-          console.error("Sign up error:", error);
+          console.error("Sign up error details:", {
+            message: error.message,
+            name: error.name,
+          });
           
-          // Show safe, generic messages to prevent information disclosure
-          if (error.message?.includes("already registered")) {
+          // Show specific error messages based on error type
+          const errorMsg = error.message?.toLowerCase() || '';
+          if (errorMsg.includes("already registered") || errorMsg.includes("already exists")) {
             toast.error(t('auth.errors.emailExists'));
-          } else if (error.message?.includes("Password")) {
+          } else if (errorMsg.includes("password") || errorMsg.includes("6 characters")) {
             toast.error(t('auth.errors.weakPassword'));
+          } else if (errorMsg.includes("invalid email") || errorMsg.includes("email")) {
+            toast.error(t('auth.errors.invalidEmail'));
+          } else if (errorMsg.includes("rate limit") || errorMsg.includes("too many")) {
+            toast.error(t('auth.errors.rateLimited'));
+          } else if (errorMsg.includes("network") || errorMsg.includes("fetch")) {
+            toast.error(t('auth.errors.networkError'));
           } else {
-            toast.error(t('auth.errors.createFailed'));
+            // Show actual error for debugging - will help identify unknown issues
+            console.error("Unknown signup error:", error.message);
+            toast.error(`${t('auth.errors.createFailed')}: ${error.message || 'Unknown error'}`);
           }
           setLoading(false);
           return;

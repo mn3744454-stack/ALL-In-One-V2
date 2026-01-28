@@ -2737,9 +2737,12 @@ export const en = {
     testimonialAuthor: "Mohammed Al-Faisal, Al-Faisal Stables, Riyadh",
     errors: {
       emailExists: "This email is already registered. Please sign in.",
-      weakPassword: "Password does not meet requirements. Please use a stronger password.",
-      createFailed: "Unable to create account. Please try again.",
+      weakPassword: "Password must be at least 6 characters.",
+      createFailed: "Unable to create account",
       invalidCredentials: "Invalid email or password. Please try again.",
+      invalidEmail: "Invalid email address. Please check it.",
+      rateLimited: "Too many attempts. Please wait a moment.",
+      networkError: "Network connection issue. Please check your connection.",
     },
   },
   
