@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Logo from "@/components/Logo";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, RefreshCw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
+import { clearAuthDataAndReload } from "@/lib/clearAuthData";
 import heroImage from "@/assets/hero-horse.jpg";
 
 const Auth = () => {
@@ -23,6 +24,8 @@ const Auth = () => {
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConnectionError, setShowConnectionError] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -45,20 +48,51 @@ const Auth = () => {
     }
   }, [user, navigate, nextPath]);
 
+  const handleClearData = async () => {
+    setClearingData(true);
+    try {
+      await clearAuthDataAndReload();
+    } catch (e) {
+      console.error("Failed to clear data:", e);
+      setClearingData(false);
+    }
+  };
+
+  // Helper to detect connection/fetch errors
+  const isConnectionError = (error: Error): boolean => {
+    const msg = error.message?.toLowerCase() || '';
+    const name = error.name?.toLowerCase() || '';
+    return (
+      msg.includes('failed to fetch') ||
+      msg.includes('network') ||
+      msg.includes('fetch') ||
+      msg.includes('connection') ||
+      msg.includes('timeout') ||
+      name.includes('fetcherror') ||
+      name.includes('authretryablefetcherror')
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowConnectionError(false);
+
+    // Trim whitespace from inputs
+    const email = formData.email.trim();
+    const password = formData.password;
+    const name = formData.name.trim();
 
     try {
       if (mode === "signup") {
         // Client-side validation
-        if (formData.password.length < 6) {
+        if (password.length < 6) {
           toast.error(t('auth.errors.weakPassword'));
           setLoading(false);
           return;
         }
 
-        const { error } = await signUp(formData.email, formData.password, formData.name);
+        const { error } = await signUp(email, password, name);
         
         if (error) {
           // Log full error for debugging (only visible in dev console)
@@ -66,6 +100,14 @@ const Auth = () => {
             message: error.message,
             name: error.name,
           });
+          
+          // Check for connection errors first
+          if (isConnectionError(error)) {
+            setShowConnectionError(true);
+            toast.error(t('auth.errors.connectionError'));
+            setLoading(false);
+            return;
+          }
           
           // Show specific error messages based on error type
           const errorMsg = error.message?.toLowerCase() || '';
@@ -77,8 +119,6 @@ const Auth = () => {
             toast.error(t('auth.errors.invalidEmail'));
           } else if (errorMsg.includes("rate limit") || errorMsg.includes("too many")) {
             toast.error(t('auth.errors.rateLimited'));
-          } else if (errorMsg.includes("network") || errorMsg.includes("fetch")) {
-            toast.error(t('auth.errors.networkError'));
           } else {
             // Show actual error for debugging - will help identify unknown issues
             console.error("Unknown signup error:", error.message);
@@ -92,11 +132,19 @@ const Auth = () => {
         // Redirect to next path if available, otherwise dashboard
         navigate(nextPath || "/dashboard");
       } else {
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(email, password);
         
         if (error) {
           // Log full error for debugging (only visible in dev console)
           console.error("Sign in error:", error);
+          
+          // Check for connection errors first
+          if (isConnectionError(error)) {
+            setShowConnectionError(true);
+            toast.error(t('auth.errors.connectionError'));
+            setLoading(false);
+            return;
+          }
           
           // Generic message to prevent user enumeration attacks
           toast.error(t('auth.errors.invalidCredentials'));
@@ -109,7 +157,13 @@ const Auth = () => {
         navigate(nextPath || "/dashboard");
       }
     } catch (err) {
-      toast.error(t('common.unknownError'));
+      console.error("Auth exception:", err);
+      if (err instanceof Error && isConnectionError(err)) {
+        setShowConnectionError(true);
+        toast.error(t('auth.errors.connectionError'));
+      } else {
+        toast.error(t('common.unknownError'));
+      }
     }
 
     setLoading(false);
@@ -220,6 +274,40 @@ const Auth = () => {
                     </span>
                   )}
                 </Button>
+
+                {/* Connection Error Help Section */}
+                {showConnectionError && (
+                  <div className="mt-4 p-4 bg-warning/10 border border-warning/30 rounded-xl">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-foreground font-medium mb-2">
+                          {t('auth.connectionHelp')}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleClearData}
+                          disabled={clearingData}
+                          className="w-full border-warning/50 text-foreground hover:bg-warning/10"
+                        >
+                          {clearingData ? (
+                            <span className="flex items-center gap-2">
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              {t('auth.clearingData')}
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                              <RefreshCw className="w-4 h-4" />
+                              {t('auth.clearDataAndRetry')}
+                            </span>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </form>
 
               <div className="mt-6 text-center">

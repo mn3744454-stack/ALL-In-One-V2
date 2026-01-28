@@ -2743,7 +2743,11 @@ export const en = {
       invalidEmail: "Invalid email address. Please check it.",
       rateLimited: "Too many attempts. Please wait a moment.",
       networkError: "Network connection issue. Please check your connection.",
+      connectionError: "Unable to connect to server. There may be stale data in your browser.",
     },
+    clearDataAndRetry: "Clear Data & Retry",
+    clearingData: "Clearing data...",
+    connectionHelp: "If the problem persists, try clearing old browser data:",
     passwordReset: {
       title: "Forgot your password?",
       subtitle: "Enter your email and we'll send you a link to reset your password",
