@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { tenantSchema, safeValidate } from "@/lib/validations";
@@ -65,29 +65,22 @@ const logError = (msg: string, error?: unknown) => {
 };
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [tenants, setTenants] = useState<TenantMembership[]>([]);
   const [activeTenant, setActiveTenantState] = useState<TenantMembership | null>(null);
   const [activeRole, setActiveRoleState] = useState<TenantRole | null>(null);
   const [loading, setLoading] = useState(true);
   const [tenantError, setTenantError] = useState<string | null>(null);
+  
+  // Track if we've ever had a user - to distinguish "not logged in yet" from "logged out"
+  const hadUserRef = useRef(false);
 
   const fetchTenants = useCallback(async () => {
-    log('fetchTenants start', { userId: user?.id, authLoading });
+    log('fetchTenants start', { userId: user?.id });
 
-    // Wait for auth to complete loading
-    if (authLoading) {
-      log('fetchTenants: auth still loading, waiting...');
-      return;
-    }
-
+    // No user = no need to fetch tenants (don't clear state here!)
     if (!user) {
-      log('fetchTenants: no user, clearing state');
-      setTenants([]);
-      setActiveTenantState(null);
-      setActiveRoleState(null);
-      setLoading(false);
-      setTenantError(null);
+      log('fetchTenants: no user, skipping fetch');
       return;
     }
 
@@ -158,16 +151,35 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       log('fetchTenants finally - loading set to false');
     }
-  }, [user, authLoading]);
+  }, [user]);
 
   const retryTenantFetch = useCallback(() => {
     log('retryTenantFetch called');
     fetchTenants();
   }, [fetchTenants]);
 
+  // Smart user tracking effect - handles login, logout, and initial load
   useEffect(() => {
-    fetchTenants();
-  }, [fetchTenants]);
+    if (user) {
+      // User is present → fetch tenants
+      hadUserRef.current = true;
+      fetchTenants();
+    } else if (hadUserRef.current) {
+      // Had a user before, now null = genuine logout
+      log('User signed out, clearing tenant state');
+      setTenants([]);
+      setActiveTenantState(null);
+      setActiveRoleState(null);
+      setLoading(false);
+      setTenantError(null);
+      localStorage.removeItem('activeTenantId');
+      hadUserRef.current = false;
+    } else {
+      // Never had a user - just waiting for auth to initialize
+      log('No user yet, waiting for auth...');
+      // Keep loading = true (default state)
+    }
+  }, [user, fetchTenants]);
 
   const setActiveTenant = (tenantId: string) => {
     const membership = tenants.find((t) => t.tenant_id === tenantId);
