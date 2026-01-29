@@ -1,107 +1,99 @@
 
-الهدف: إصلاح خطأ **TypeError: Failed to fetch** الذي يظهر عند **إنشاء منشأة/منظمة** (وخاصة عند الاشتراك في المختبر)، بحيث يعمل النظام حتى لو كان الاتصال المباشر يتذبذب أو يتغير نص الخطأ على أجهزة/شبكات مختلفة.
+# خطة إصلاح: القوالب لا تظهر عند إنشاء عينة جديدة
+
+## تشخيص المشكلة
+
+المستخدم يرى 3 قوالب نشطة في شاشة "القوالب"، لكن عند فتح حوار "إنشاء عينة" تظهر رسالة "لا توجد قوالب متاحة".
+
+### السبب الجذري
+مشكلة في توقيت التحميل (Race Condition) بين `TenantContext` و `useLabTemplates`:
+
+1. عند تحميل صفحة المختبر، يتم render `CreateSampleDialog` حتى وهو مغلق
+2. في تلك اللحظة، قد يكون `TenantContext` ما زال يحمّل البيانات (`loading = true`)
+3. `useLabTemplates` يتحقق من `activeTenant?.tenant.id`:
+   - إذا كان `undefined`، يُعيد قائمة فارغة ويتوقف (`loading = false`)
+   - لكنه لا يعيد الاستعلام بشكل صحيح عندما يصبح `activeTenant` متاحاً لاحقاً
+
+**لماذا `LabTemplatesManager` يعمل؟**
+لأنه يُعرض فقط عندما ينتقل المستخدم إلى tab "القوالب"، وفي تلك اللحظة يكون `activeTenant` قد تم تحميله بالفعل.
 
 ---
 
-## ما الذي يحدث الآن (التشخيص المبني على الكود)
-1) إنشاء المنشأة يتم عبر `createTenant()` داخل:
-- `src/contexts/TenantContext.tsx`
-  - Step A: insert في جدول `tenants` عبر PostgREST (`/rest/v1/...`)
-  - Step B: insert في `tenant_members`
-  - Step C: rpc `initialize_tenant_defaults`
+## الحل المقترح
 
-2) لدينا “Smart Proxy” يركّب `window.fetch`:
-- `src/lib/installBackendProxyFetch.ts`
-- المنطق الحالي يعتبر “الانقطاع الشبكي” فقط إذا كان:
-  - `error instanceof TypeError` **و** `error.message.includes('Failed to fetch')`
+### التعديل الرئيسي على `useLabTemplates.ts`
 
-3) على بعض الأجهزة/الشبكات (خصوصًا موبايل)، قد تكون رسالة الخطأ مختلفة (مثل NetworkError / Load failed / …) وبالتالي **لن يتم تفعيل التحويل إلى البروكسي** رغم أن المشكلة فعليًا شبكة/حجب/CORS، فتظهر للمستخدم كـ `TypeError: Failed to fetch`.
+إضافة اعتماد على `loading` من `TenantContext` لمنع إرجاع قائمة فارغة أثناء التحميل:
 
-4) `createTenant()` لا يحيط عمليات الإدخال بـ `try/catch` شامل؛ لذلك في حالات “فشل fetch” قد يخرج خطأ غير مُهيكل، وتظهر رسالة عامة بدل رسالة خطوة واضحة + بدل إعادة المحاولة بشكل أذكى.
+```typescript
+export function useLabTemplates() {
+  const [templates, setTemplates] = useState<LabTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { activeTenant, activeRole, loading: tenantLoading } = useTenant();
 
----
+  const canManage = activeRole === "owner" || activeRole === "manager";
 
-## النتيجة المطلوبة
-- أي فشل fetch على طلبات `/auth`, `/rest`, `/storage`, `/graphql` يتم اعتباره “فشل اتصال” ويتم **إعادة المحاولة عبر البروكسي** تلقائيًا حتى لو كانت رسالة الخطأ ليست حرفيًا “Failed to fetch”.
-- عند فشل إنشاء المنشأة، تظهر للمستخدم رسالة واضحة (هل المشكلة اتصال؟ هل هي صلاحيات؟ هل هي تحقق بيانات؟) بدل TypeError خام.
-- إضافة سجلات Debug بسيطة (في وضع التطوير) تُظهر: هل الطلب ذهب Direct أم Proxy؟ وأي خطوة فشلت؟ لتسهيل تأكيد الحل.
+  const fetchTemplates = useCallback(async () => {
+    // انتظر حتى يكتمل تحميل الـ tenant
+    if (tenantLoading) {
+      return; // لا تفعل شيء أثناء التحميل
+    }
+    
+    if (!activeTenant?.tenant.id) {
+      setTemplates([]);
+      setLoading(false);
+      return;
+    }
 
----
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("lab_templates")
+        .select("*")
+        .eq("tenant_id", activeTenant.tenant.id)
+        .order("name", { ascending: true });
 
-## التغييرات المقترحة (على مستوى الملفات)
+      if (error) throw error;
+      // ... باقي الكود
+    } catch (error) {
+      // ... معالجة الأخطاء
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTenant?.tenant.id, tenantLoading]); // إضافة tenantLoading للاعتمادات
 
-### 1) تقوية كشف أخطاء الشبكة في Smart Proxy
-**الملف:** `src/lib/installBackendProxyFetch.ts`
-
-- تعديل `isNetworkError()` ليعتبر الشبكة فاشلة في الحالات التالية (بدون الاعتماد على نص واحد فقط):
-  - `error instanceof TypeError` بشكل عام (مع استثناءات بسيطة إن وجدت)
-  - أو `error.message` يحتوي أحد الأنماط الشائعة:  
-    `failed to fetch`, `networkerror`, `load failed`, `fetch`, `cors`, `ERR_NETWORK`, `ERR_FAILED` (case-insensitive)
-- إضافة Log موحد (في DEV فقط) يطبع:
-  - `direct|proxy`, path, method
-  - هل تم ضبط `directConnectionBlocked`؟
-- (اختياري لكن مفيد) عند فشل البروكسي أيضًا: إعادة `directConnectionBlocked=false` كما هو موجود، لكن مع log يوضح السبب.
-
-**لماذا هذا ضروري؟** لأنه يضمن تفعيل التحويل إلى البروكسي حتى لو تغيّر نص الخطأ على موبايل/متصفح مختلف.
-
----
-
-### 2) جعل createTenant أكثر “مقاوم للأخطاء” (تجربة مستخدم أفضل + تشخيص أدق)
-**الملف:** `src/contexts/TenantContext.tsx`
-
-- تغليف منطق Step A/B/C داخل `try/catch` شامل.
-- في `catch`:
-  - إذا كان الخطأ من نوع شبكة (TypeError / أو يحمل مؤشرات fetch):
-    - نُرجع `TenantOperationError` بخطوة منطقية (مثل `tenant_insert`) ورسالة عربية واضحة مثل:
-      - “تعذر الاتصال بالخادم أثناء إنشاء المنشأة. تحقق من الاتصال أو جرّب إعادة المحاولة.”
-    - (اختياري) استدعاء `refreshTenants()` فقط إذا كنا متأكدين أن الإدخال تم (لكن عادة لن يحدث عند فشل fetch).
-  - إذا كان الخطأ PostgrestError (فيه `code/message/details/hint`):
-    - نُرجعه كما هو (موجود جزئيًا الآن).
-- (تحسين إضافي) إضافة retry بسيط داخل createTenant للخطوة A فقط عند اكتشاف خطأ شبكة:
-  - محاولة واحدة إضافية بعد 300–600ms (بدون loop) لأن بعض الشبكات تتعافى فورًا.
-  - لكن نعتمد أساسًا على Smart Proxy لإعادة توجيه الطلبات.
-
-**لماذا هذا ضروري؟** حتى لو حصل فشل مفاجئ، المستخدم يحصل على رسالة مفهومة، ويكون لدينا خطوات واضحة أي جزء فشل.
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+  
+  // ...
+}
+```
 
 ---
 
-### 3) (اختياري) تحسين واجهة فحص الاتصال لتأكيد المسار المستخدم
-**الملف:** `src/components/auth/ConnectionHealthCheck.tsx`
+## ملخص التغييرات
 
-- إضافة سطر واضح: “آخر محاولة إنشاء منشأة استخدمت: Direct/Proxy” (إذا كنا نخزن ذلك في memory بسيطة)
-- أو على الأقل عرض حالة `isDirectBlocked()` بشكل بارز + شرح: “إذا ظهرت أخطاء أثناء عمليات الحفظ، سيتم التحويل للبروكسي تلقائيًا.”
-
-> هذا الجزء اختياري؛ الهدف الأساسي هو أن الإنشاء يعمل، ثم نفكر في تحسين التشخيص.
+| الملف | التغيير |
+|-------|---------|
+| `src/hooks/laboratory/useLabTemplates.ts` | إضافة `tenantLoading` من `useTenant()` والتحقق منه قبل الاستعلام |
 
 ---
 
-## خطوات التحقق (Testing)
-1) اختبار “إنشاء منشأة” من جهازك الحالي (الذي كان يفشل) مع نفس البيانات:
-   - يجب أن ينجح بدون ظهور TypeError.
-2) لو كان الاتصال المباشر متذبذب:
-   - يفترض أن ترى في DEV logs:  
-     “Direct failed → Fallback to proxy …”
-3) اختبار إنشاء منشأة “مختبر” تحديدًا (المسار `/create-lab` أو ما يقابله في UI).
-4) اختبار بعد الإنشاء:
-   - التأكد أن العضوية `tenant_members` تم إنشاؤها وأن الانتقال للوحة التحكم `/dashboard` يعمل بدون RLS errors.
+## التفاصيل التقنية
 
----
+### لماذا هذا الحل يعمل؟
 
-## المخاطر والحالات الطرفية
-- إذا كان البروكسي نفسه لا يدعم headers اللازمة أو لديه CORS خاطئ، التحويل للبروكسي لن يحل المشكلة. لكن في هذه الحالة سنرى log “Proxy also failed” بوضوح.
-- إذا كان سبب الفشل ليس شبكة بل RLS/سياسات صلاحيات، فالتعديل لن “يخفي” الخطأ؛ سيظهر كرسالة خطوة واضحة من Step A أو B مع `code/hint` (وهذا المطلوب).
+1. **منع الاستعلام المبكر**: عندما يكون `tenantLoading = true`، الـ hook ينتظر ولا يُعيد قائمة فارغة
+2. **إعادة الاستعلام التلقائية**: عندما يتغير `tenantLoading` من `true` إلى `false`، يتم إنشاء `fetchTemplates` جديدة، مما يُشغّل `useEffect` ويستعلم عن القوالب
+3. **حالة التحميل الصحيحة**: `loading` يبقى `true` أثناء انتظار الـ tenant، مما يُظهر مؤشر التحميل بدلاً من رسالة "لا توجد قوالب"
 
----
+### الملفات الأخرى التي قد تحتاج نفس الإصلاح
 
-## قائمة التنفيذ المختصرة (Sequencing)
-1) تعديل `isNetworkError()` في `installBackendProxyFetch.ts` ليصبح أكثر شمولًا.
-2) إضافة try/catch شامل في `TenantContext.tsx` وإرجاع خطأ مُهيكل بدل TypeError خام.
-3) (اختياري) تحسين ConnectionHealthCheck لعرض معلومات مسار الاتصال.
-4) اختبار إنشاء المنشأة (Stable + Lab) على نفس الجهاز/الشبكة التي كانت تفشل.
+هناك hooks أخرى تستخدم نفس النمط وقد تعاني من نفس المشكلة:
+- `useLabSamples`
+- `useLabResults`
+- `useLabCredits`
+- `useLabTestTypes`
 
----
-
-## مخرجات النجاح
-- المستخدم ينشئ منشأة بدون TypeError.
-- في أسوأ الحالات (تعطل اتصال فعلي)، تظهر رسالة عربية واضحة “مشكلة اتصال” بدل خطأ تقني.
-- النظام يتحول للبروكسي تلقائيًا عند أي فشل fetch شائع، وليس فقط عند نص “Failed to fetch”.
+يُنصح بتطبيق نفس الإصلاح عليها بعد التأكد من أن هذا الحل يعمل.
