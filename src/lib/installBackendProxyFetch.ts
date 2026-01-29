@@ -2,21 +2,25 @@
  * Backend Proxy Fetch Installer
  * 
  * This module patches the global `window.fetch` to automatically route
- * Supabase API requests through our backend proxy, bypassing any network
+ * Supabase API requests through our proxy, bypassing any network
  * blocks that might prevent direct browser-to-Supabase connections.
+ * 
+ * Priority:
+ * 1. If VITE_SUPABASE_PROXY_URL is set (Cloudflare Worker), use that
+ * 2. Otherwise, use the Edge Function backend-proxy (same domain, less effective)
  * 
  * How it works:
  * - Intercepts all fetch calls
- * - If the URL targets Supabase auth/rest/storage paths, rewrites to go through backend-proxy
- * - The backend proxy then forwards the request server-side
+ * - If the URL targets Supabase auth/rest/storage paths, rewrites to go through proxy
  * - Edge functions (/functions/v1/) are NOT proxied to avoid circular calls
  */
 
 // Store the original fetch
 const originalFetch = window.fetch;
 
-// Get Supabase URL from environment
+// Get configuration from environment
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const EXTERNAL_PROXY_URL = import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined;
 
 // Flag to track if proxy is installed
 let isInstalled = false;
@@ -55,7 +59,9 @@ function shouldProxy(url: string): boolean {
 
 /**
  * Rewrite a Supabase URL to go through the proxy
- * Uses SUPABASE_URL/functions/v1/backend-proxy/... instead of window.location.origin
+ * Priority:
+ * 1. External proxy (Cloudflare Worker) if VITE_SUPABASE_PROXY_URL is set
+ * 2. Edge Function backend-proxy as fallback
  */
 function rewriteUrl(url: string): string {
   if (!SUPABASE_URL) return url;
@@ -66,18 +72,30 @@ function rewriteUrl(url: string): string {
     // Get the path after the origin (e.g., /auth/v1/token?grant_type=password)
     const pathWithQuery = targetUrl.pathname + targetUrl.search;
     
-    // Construct the proxy URL using Supabase functions URL (NOT window.location.origin)
-    // This ensures we hit the actual edge function, not the preview domain
-    const proxyUrl = `${SUPABASE_URL}/functions/v1/backend-proxy${pathWithQuery}`;
+    let proxyUrl: string;
     
-    if (import.meta.env.DEV) {
-      console.log(`[BackendProxy] Rewriting: ${url.substring(0, 80)}...`);
-      console.log(`[BackendProxy] To: ${proxyUrl.substring(0, 80)}...`);
+    // Priority 1: Use external proxy (Cloudflare Worker) if configured
+    if (EXTERNAL_PROXY_URL && EXTERNAL_PROXY_URL.trim()) {
+      const cleanProxyUrl = EXTERNAL_PROXY_URL.trim().replace(/\/$/, '');
+      proxyUrl = `${cleanProxyUrl}${pathWithQuery}`;
+      
+      if (import.meta.env.DEV) {
+        console.log(`[ExternalProxy] Rewriting: ${url.substring(0, 60)}...`);
+        console.log(`[ExternalProxy] To: ${proxyUrl.substring(0, 60)}...`);
+      }
+    } else {
+      // Priority 2: Use Edge Function backend-proxy (same domain - less effective for blocks)
+      proxyUrl = `${SUPABASE_URL}/functions/v1/backend-proxy${pathWithQuery}`;
+      
+      if (import.meta.env.DEV) {
+        console.log(`[BackendProxy] Rewriting: ${url.substring(0, 60)}...`);
+        console.log(`[BackendProxy] To: ${proxyUrl.substring(0, 60)}...`);
+      }
     }
     
     return proxyUrl;
   } catch (e) {
-    console.error("[BackendProxy] Failed to rewrite URL:", e);
+    console.error("[Proxy] Failed to rewrite URL:", e);
     return url;
   }
 }
@@ -137,12 +155,12 @@ async function proxiedFetch(
  */
 export function installBackendProxyFetch(): void {
   if (isInstalled) {
-    console.warn("[BackendProxy] Already installed, skipping...");
+    console.warn("[Proxy] Already installed, skipping...");
     return;
   }
   
   if (!SUPABASE_URL) {
-    console.warn("[BackendProxy] No SUPABASE_URL found, skipping proxy installation");
+    console.warn("[Proxy] No SUPABASE_URL found, skipping proxy installation");
     return;
   }
   
@@ -150,8 +168,13 @@ export function installBackendProxyFetch(): void {
   window.fetch = proxiedFetch;
   isInstalled = true;
   
-  console.log("[BackendProxy] ✅ Installed successfully");
-  console.log(`[BackendProxy] Proxying requests to: ${SUPABASE_URL}`);
+  if (EXTERNAL_PROXY_URL && EXTERNAL_PROXY_URL.trim()) {
+    console.log("[Proxy] ✅ Installed with EXTERNAL proxy (Cloudflare Worker)");
+    console.log(`[Proxy] Routing via: ${EXTERNAL_PROXY_URL}`);
+  } else {
+    console.log("[Proxy] ✅ Installed with Edge Function proxy");
+    console.log(`[Proxy] Routing via: ${SUPABASE_URL}/functions/v1/backend-proxy`);
+  }
 }
 
 /**

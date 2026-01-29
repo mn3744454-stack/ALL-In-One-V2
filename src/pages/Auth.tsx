@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
 import { clearAuthDataAndReload } from "@/lib/clearAuthData";
+import { ConnectionHealthCheck } from "@/components/auth/ConnectionHealthCheck";
 import heroImage from "@/assets/hero-horse.jpg";
 
 const Auth = () => {
@@ -346,6 +347,9 @@ const Auth = () => {
                   </Link>
                 </p>
               </div>
+              
+              {/* Connection Health Check */}
+              <ConnectionHealthCheck />
             </CardContent>
           </Card>
 
