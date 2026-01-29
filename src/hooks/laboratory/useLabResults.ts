@@ -26,6 +26,7 @@ export interface LabResult {
   sample?: {
     id: string;
     physical_sample_id: string | null;
+    horse_name?: string | null;
     horse?: { id: string; name: string };
   };
   template?: { id: string; name: string; name_ar: string | null };
@@ -37,6 +38,9 @@ export interface LabResultFilters {
   status?: LabResultStatus | 'all';
   flags?: LabResultFlags | 'all';
   sample_id?: string;
+  // Date range filters
+  dateFrom?: string;            // ISO date string (YYYY-MM-DD)
+  dateTo?: string;              // ISO date string (YYYY-MM-DD)
 }
 
 export interface CreateLabResultData {
@@ -88,6 +92,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
           sample:lab_samples!lab_results_sample_id_fkey(
             id, 
             physical_sample_id,
+            horse_name,
             horse:horses!lab_samples_horse_id_fkey(id, name)
           ),
           template:lab_templates!lab_results_template_id_fkey(id, name, name_ar),
@@ -105,6 +110,17 @@ export function useLabResults(filters: LabResultFilters = {}) {
       }
       if (filters.sample_id) {
         query = query.eq("sample_id", filters.sample_id);
+      }
+
+      // Date range filters
+      if (filters.dateFrom) {
+        query = query.gte("created_at", filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        // Add one day to include the end date fully
+        const endDate = new Date(filters.dateTo);
+        endDate.setDate(endDate.getDate() + 1);
+        query = query.lt("created_at", endDate.toISOString().split('T')[0]);
       }
 
       const { data, error } = await query;

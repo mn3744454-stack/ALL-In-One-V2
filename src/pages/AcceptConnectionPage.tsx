@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Link2, Check, X, Loader2, Lock, AlertCircle } from "lucide-react";
+import { Link2, Check, X, Loader2, Lock, AlertCircle, LogIn } from "lucide-react";
 
 const AcceptConnectionPage = () => {
   const [searchParams] = useSearchParams();
@@ -48,9 +48,14 @@ const AcceptConnectionPage = () => {
       });
       navigate("/dashboard/settings/connections");
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : typeof error === 'object' && error !== null 
+          ? JSON.stringify(error) 
+          : t("common.unknownError");
       toast({
         title: t("common.error"),
-        description: error instanceof Error ? error.message : "Failed to accept connection",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -82,9 +87,14 @@ const AcceptConnectionPage = () => {
       });
       navigate("/dashboard/settings/connections");
     } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : typeof error === 'object' && error !== null 
+          ? JSON.stringify(error) 
+          : t("common.unknownError");
       toast({
         title: t("common.error"),
-        description: error instanceof Error ? error.message : "Failed to reject connection",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -93,6 +103,12 @@ const AcceptConnectionPage = () => {
   };
 
   const isLoading = isAccepting || isRejecting;
+  const isLoggedIn = Boolean(user);
+
+  const handleLoginRedirect = () => {
+    const currentPath = `/connections/accept?token=${encodeURIComponent(token)}`;
+    navigate(`/auth?redirect=${encodeURIComponent(currentPath)}`);
+  };
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
@@ -145,11 +161,12 @@ const AcceptConnectionPage = () => {
             )}
           </div>
 
+          {/* Action buttons */}
           <div className="flex gap-3">
             <Button
               className="flex-1"
               onClick={handleAccept}
-              disabled={isLoading || !token.trim()}
+              disabled={isLoading || !token.trim() || !isLoggedIn}
             >
               {isAccepting ? (
                 <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
@@ -162,7 +179,7 @@ const AcceptConnectionPage = () => {
               variant="outline"
               className="flex-1"
               onClick={handleReject}
-              disabled={isLoading || !token.trim()}
+              disabled={isLoading || !token.trim() || !isLoggedIn}
             >
               {isRejecting ? (
                 <Loader2 className="h-4 w-4 animate-spin ltr:mr-2 rtl:ml-2" />
@@ -172,6 +189,18 @@ const AcceptConnectionPage = () => {
               {t("connections.reject")}
             </Button>
           </div>
+
+          {/* Login CTA for logged-out users */}
+          {!isLoggedIn && (
+            <Button
+              variant="default"
+              className="w-full"
+              onClick={handleLoginRedirect}
+            >
+              <LogIn className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              {t("connections.acceptPage.loginCta")}
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>

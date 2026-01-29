@@ -7,15 +7,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export function LanguageSelector() {
-  const { lang, setLang, t } = useI18n();
+interface LanguageSelectorProps {
+  variant?: 'default' | 'hero';
+}
+
+export function LanguageSelector({ variant = 'default' }: LanguageSelectorProps) {
+  const { lang, setLang } = useI18n();
   const enabledLanguages = getEnabledLanguages();
+
+  const triggerClasses = variant === 'hero'
+    ? 'bg-cream/10 border-cream/30 text-cream hover:bg-cream/20 [&>svg]:text-cream/70'
+    : 'bg-white/50 border-border/30';
 
   return (
     <Select value={lang} onValueChange={(value) => setLang(value as typeof lang)}>
-      <SelectTrigger className="w-auto gap-2 bg-white/50 border-border/30 h-9">
-        <Globe className="h-4 w-4 text-muted-foreground" />
+      <SelectTrigger className={cn("w-auto gap-2 h-9", triggerClasses)}>
+        <Globe className="h-4 w-4" />
         <SelectValue>
           {enabledLanguages.find((l) => l.code === lang)?.nativeName || lang}
         </SelectValue>

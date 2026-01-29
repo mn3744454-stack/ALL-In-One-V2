@@ -135,10 +135,10 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
   return (
     <Card 
       variant="elevated" 
-      className="group cursor-pointer hover:shadow-lg transition-all duration-300"
+      className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden min-w-0"
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-4 min-w-0">
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden">
