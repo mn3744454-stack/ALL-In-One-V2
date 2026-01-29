@@ -91,7 +91,14 @@ const Auth = () => {
         
         if (error) {
           console.error("Sign in error:", error);
-          toast.error(t('auth.errors.invalidCredentials'));
+          
+          const errorMsg = error.message?.toLowerCase() || '';
+          if (errorMsg.includes('failed to fetch') || errorMsg.includes('timed out') || errorMsg.includes('network')) {
+            toast.error(t('auth.errors.networkError'));
+          } else {
+            toast.error(t('auth.errors.invalidCredentials'));
+          }
+          
           setLoading(false);
           return;
         }
