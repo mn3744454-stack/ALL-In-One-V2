@@ -20,7 +20,9 @@ const originalFetch = window.fetch;
 
 // Get configuration from environment
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const EXTERNAL_PROXY_URL = import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined;
+// Hardcoded Cloudflare Worker URL to bypass network blocks
+// This is a public URL, not a secret - safe to hardcode
+const EXTERNAL_PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
 
 // Flag to track if proxy is installed
 let isInstalled = false;
