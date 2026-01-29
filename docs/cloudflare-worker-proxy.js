@@ -36,6 +36,10 @@ const FORWARD_HEADERS = [
   'prefer',
   'x-client-info',
   'x-supabase-api-version',
+  'x-supabase-client-platform',
+  'x-supabase-client-platform-version',
+  'x-supabase-client-runtime',
+  'x-supabase-client-runtime-version',
   'range',
   'if-match',
   'if-none-match',
@@ -58,7 +62,7 @@ function isOriginAllowed(origin) {
 function getCorsHeaders(origin) {
   const headers = {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, range, if-match, if-none-match',
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, range, if-match, if-none-match',
     'Access-Control-Expose-Headers': 'content-type, content-range, x-supabase-api-version, etag',
     'Access-Control-Max-Age': '86400',
   };
