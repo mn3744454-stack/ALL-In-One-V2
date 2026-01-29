@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { tenantSchema, safeValidate } from "@/lib/validations";
 import { debugLog, debugError } from "@/lib/debug";
-import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from "@/lib/withTimeout";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
@@ -91,24 +90,20 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       log('Fetching tenant_members...');
-      const { data, error } = await withTimeout(
-        async () => supabase
-          .from("tenant_members")
-          .select(`
-            id,
-            tenant_id,
-            user_id,
-            role,
-            can_invite,
-            can_manage_horses,
-            is_active,
-            tenant:tenants(*)
-          `)
-          .eq("user_id", user.id)
-          .eq("is_active", true),
-        BOOTSTRAP_TIMEOUT_MS,
-        'Fetch tenants'
-      );
+      const { data, error } = await supabase
+        .from("tenant_members")
+        .select(`
+          id,
+          tenant_id,
+          user_id,
+          role,
+          can_invite,
+          can_manage_horses,
+          is_active,
+          tenant:tenants(*)
+        `)
+        .eq("user_id", user.id)
+        .eq("is_active", true);
 
       if (error) {
         logError('fetchTenants query error', error);
@@ -150,13 +145,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       logError('fetchTenants exception', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      
-      if (errorMessage.includes('timed out')) {
-        setTenantError('انتهت مهلة الاتصال. الاتصال بطيء.');
-      } else {
-        setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
-      }
+      setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
     } finally {
       setLoading(false);
       log('fetchTenants finally - loading set to false');
@@ -188,18 +177,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const refreshTenants = async () => {
     setLoading(true);
     await fetchTenants();
-  };
-
-  /**
-   * Helper to detect network errors in createTenant context
-   */
-  const isNetworkFailure = (error: unknown): boolean => {
-    if (error instanceof TypeError) {
-      const message = error.message?.toLowerCase() || '';
-      const patterns = ['fetch', 'network', 'cors', 'load failed', 'aborted', 'timeout', 'connection'];
-      return patterns.some(p => message.includes(p)) || message === '';
-    }
-    return false;
   };
 
   const createTenant = async (tenantData: Partial<Tenant>): Promise<{
@@ -258,56 +235,19 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       // Step A: INSERT into tenants
       debugLog("Step A: Inserting into tenants...");
       
-      const insertTenant = async (userId: string) => {
-        return await supabase
-          .from("tenants")
-          .insert({
-            name: validatedData.name,
-            type: validatedData.type,
-            description: validatedData.description,
-            address: validatedData.address,
-            phone: validatedData.phone,
-            email: validatedData.email || null,
-            owner_id: userId,
-          })
-          .select()
-          .single();
-      };
-
-      let tenant: Tenant | null = null;
-      let tenantError: { message: string; code?: string; details?: string; hint?: string } | null = null;
-
-      // Try insert with simple retry on network failure
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          const result = await insertTenant(currentUserId);
-          if (result.error) {
-            tenantError = result.error;
-            debugError(`Step A attempt ${attempt} DB error`, result.error);
-          } else {
-            tenant = result.data as Tenant;
-            tenantError = null;
-            break;
-          }
-        } catch (fetchErr) {
-          debugError(`Step A attempt ${attempt} fetch exception`, fetchErr);
-          if (isNetworkFailure(fetchErr)) {
-            if (attempt < 2) {
-              debugLog("Network failure detected, retrying after 500ms...");
-              await new Promise(r => setTimeout(r, 500));
-              continue;
-            }
-            return {
-              data: null,
-              error: {
-                step: "tenant_insert",
-                message: "تعذر الاتصال بالخادم أثناء إنشاء المنشأة. تحقق من الاتصال وحاول مرة أخرى.",
-              },
-            };
-          }
-          throw fetchErr; // Re-throw non-network errors
-        }
-      }
+      const { data: tenant, error: tenantError } = await supabase
+        .from("tenants")
+        .insert({
+          name: validatedData.name,
+          type: validatedData.type,
+          description: validatedData.description,
+          address: validatedData.address,
+          phone: validatedData.phone,
+          email: validatedData.email || null,
+          owner_id: currentUserId,
+        })
+        .select()
+        .single();
 
       if (tenantError || !tenant) {
         debugError("Step A FAILED", tenantError);
@@ -327,38 +267,15 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       // Step B: INSERT into tenant_members
       debugLog("Step B: Inserting into tenant_members...");
       
-      let memberError: { message: string; code?: string; details?: string; hint?: string } | null = null;
-      
-      try {
-        const memberResult = await supabase
-          .from("tenant_members")
-          .insert({
-            tenant_id: tenant.id,
-            user_id: currentUserId,
-            role: "owner",
-            can_invite: true,
-            can_manage_horses: true,
-          });
-        
-        if (memberResult.error) {
-          memberError = memberResult.error;
-        }
-      } catch (fetchErr) {
-        debugError("Step B fetch exception", fetchErr);
-        if (isNetworkFailure(fetchErr)) {
-          // Rollback tenant
-          debugLog("Rolling back tenant due to network failure...", { id: tenant.id });
-          await supabase.from("tenants").delete().eq("id", tenant.id);
-          return {
-            data: null,
-            error: {
-              step: "member_insert",
-              message: "انقطع الاتصال أثناء إضافة العضوية. حاول مرة أخرى.",
-            },
-          };
-        }
-        throw fetchErr;
-      }
+      const { error: memberError } = await supabase
+        .from("tenant_members")
+        .insert({
+          tenant_id: tenant.id,
+          user_id: currentUserId,
+          role: "owner",
+          can_invite: true,
+          can_manage_horses: true,
+        });
 
       if (memberError) {
         debugError("Step B FAILED", memberError);
@@ -419,21 +336,11 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       await refreshTenants();
       debugLog("=== CREATE TENANT COMPLETE ===");
       
-      return { data: tenant, error: null };
+      return { data: tenant as Tenant, error: null };
       
     } catch (unexpectedError) {
       // Catch-all for any unexpected errors
       debugError("=== CREATE TENANT UNEXPECTED ERROR ===", unexpectedError);
-      
-      if (isNetworkFailure(unexpectedError)) {
-        return {
-          data: null,
-          error: {
-            step: "tenant_insert",
-            message: "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.",
-          },
-        };
-      }
       
       const errorMessage = unexpectedError instanceof Error 
         ? unexpectedError.message 

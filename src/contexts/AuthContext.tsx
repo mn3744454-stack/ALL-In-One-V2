@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from "@/lib/withTimeout";
 
 interface Profile {
   id: string;
@@ -16,8 +15,6 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  bootstrapError: string | null;
-  retryBootstrap: () => void;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -38,20 +35,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [bootstrapError, setBootstrapError] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string): Promise<void> => {
     log('fetchProfile start', { userId });
     try {
-      const { data, error } = await withTimeout(
-        async () => supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle(),
-        10000,
-        'Fetch profile'
-      );
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
 
       if (error) {
         logError('fetchProfile query error', error);
@@ -72,20 +64,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const bootstrap = useCallback(async () => {
     log('bootstrap start');
     setLoading(true);
-    setBootstrapError(null);
 
     try {
       log('getSession start');
-      const { data: { session: currentSession }, error: sessionError } = await withTimeout(
-        async () => supabase.auth.getSession(),
-        BOOTSTRAP_TIMEOUT_MS,
-        'Get session'
-      );
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
       log('getSession end', { hasSession: !!currentSession, error: sessionError?.message });
 
       if (sessionError) {
         logError('getSession error', sessionError);
-        setBootstrapError('فشل في الاتصال بالخادم. تحقق من اتصال الإنترنت.');
+        setLoading(false);
         return;
       }
 
@@ -102,23 +89,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       log('bootstrap complete');
     } catch (err) {
       logError('bootstrap exception', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      
-      if (errorMessage.includes('timed out')) {
-        setBootstrapError('انتهت مهلة الاتصال. يبدو أن الاتصال بطيء.');
-      } else {
-        setBootstrapError('فشل في تحميل الجلسة. حاول مرة أخرى.');
-      }
     } finally {
       setLoading(false);
       log('bootstrap finally - loading set to false');
     }
   }, []);
-
-  const retryBootstrap = useCallback(() => {
-    log('retryBootstrap called');
-    bootstrap();
-  }, [bootstrap]);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -191,8 +166,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         profile,
         loading,
-        bootstrapError,
-        retryBootstrap,
         signUp,
         signIn,
         signOut,
