@@ -1,105 +1,107 @@
 
-# خطة إصلاح مشكلة "Failed to fetch" في Cloudflare Worker
-
-## المشكلة المُشخّصة
-
-| العنصر | الحالة |
-|--------|--------|
-| تسجيل الدخول | ✅ يعمل عبر البروكسي |
-| إنشاء منشأة جديدة | ❌ فشل مع "Failed to fetch" |
-| Cloudflare Worker `/proxy-health` | ✅ يعمل - `target: configured` |
-
-### السبب الجذري
-
-Cloudflare Worker **لا يدعم كل الـ headers** التي يرسلها Supabase SDK الحديث.
-
-**Headers مفقودة في Worker:**
-- `x-supabase-client-platform`
-- `x-supabase-client-platform-version`
-- `x-supabase-client-runtime`
-- `x-supabase-client-runtime-version`
-
-عندما المتصفح يرسل **CORS preflight** (OPTIONS) ويجد أن الـ Worker لا يسمح بهذه الـ headers، يرفض إكمال الطلب ويُظهر "Failed to fetch".
+الهدف: إصلاح خطأ **TypeError: Failed to fetch** الذي يظهر عند **إنشاء منشأة/منظمة** (وخاصة عند الاشتراك في المختبر)، بحيث يعمل النظام حتى لو كان الاتصال المباشر يتذبذب أو يتغير نص الخطأ على أجهزة/شبكات مختلفة.
 
 ---
 
-## الحل: تحديث كود Cloudflare Worker
+## ما الذي يحدث الآن (التشخيص المبني على الكود)
+1) إنشاء المنشأة يتم عبر `createTenant()` داخل:
+- `src/contexts/TenantContext.tsx`
+  - Step A: insert في جدول `tenants` عبر PostgREST (`/rest/v1/...`)
+  - Step B: insert في `tenant_members`
+  - Step C: rpc `initialize_tenant_defaults`
 
-### التغيير المطلوب
+2) لدينا “Smart Proxy” يركّب `window.fetch`:
+- `src/lib/installBackendProxyFetch.ts`
+- المنطق الحالي يعتبر “الانقطاع الشبكي” فقط إذا كان:
+  - `error instanceof TypeError` **و** `error.message.includes('Failed to fetch')`
 
-يجب تحديث الـ `Access-Control-Allow-Headers` في ملف `docs/cloudflare-worker-proxy.js` ليدعم **كل headers الـ Supabase SDK**:
+3) على بعض الأجهزة/الشبكات (خصوصًا موبايل)، قد تكون رسالة الخطأ مختلفة (مثل NetworkError / Load failed / …) وبالتالي **لن يتم تفعيل التحويل إلى البروكسي** رغم أن المشكلة فعليًا شبكة/حجب/CORS، فتظهر للمستخدم كـ `TypeError: Failed to fetch`.
 
-**من:**
-```javascript
-'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, range, if-match, if-none-match',
-```
-
-**إلى:**
-```javascript
-'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, range, if-match, if-none-match',
-```
-
-**وكذلك** تحديث `FORWARD_HEADERS` لتمرير هذه الـ headers إلى Supabase:
-
-**من:**
-```javascript
-const FORWARD_HEADERS = [
-  'authorization',
-  'apikey',
-  'content-type',
-  'accept',
-  'prefer',
-  'x-client-info',
-  'x-supabase-api-version',
-  'range',
-  'if-match',
-  'if-none-match',
-];
-```
-
-**إلى:**
-```javascript
-const FORWARD_HEADERS = [
-  'authorization',
-  'apikey',
-  'content-type',
-  'accept',
-  'prefer',
-  'x-client-info',
-  'x-supabase-api-version',
-  'x-supabase-client-platform',
-  'x-supabase-client-platform-version',
-  'x-supabase-client-runtime',
-  'x-supabase-client-runtime-version',
-  'range',
-  'if-match',
-  'if-none-match',
-];
-```
+4) `createTenant()` لا يحيط عمليات الإدخال بـ `try/catch` شامل؛ لذلك في حالات “فشل fetch” قد يخرج خطأ غير مُهيكل، وتظهر رسالة عامة بدل رسالة خطوة واضحة + بدل إعادة المحاولة بشكل أذكى.
 
 ---
 
-## خطوات التطبيق
-
-### الخطوة 1: تحديث الكود (سأقوم به)
-سأعدّل ملف `docs/cloudflare-worker-proxy.js` بالتغييرات أعلاه.
-
-### الخطوة 2: نشر الكود على Cloudflare (مطلوب منك)
-1. افتح [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. اذهب إلى **Workers & Pages** → اختر Worker الخاص بك
-3. اضغط **Edit Code**
-4. استبدل الكود بالكامل بالكود المحدث من `docs/cloudflare-worker-proxy.js`
-5. اضغط **Save and Deploy**
-
-### الخطوة 3: اختبار
-1. ارجع لصفحة `/create-lab` أو `/create-stable`
-2. أكمل النموذج واضغط "إكمال الإعداد"
-3. يجب أن يعمل الآن بدون أخطاء
+## النتيجة المطلوبة
+- أي فشل fetch على طلبات `/auth`, `/rest`, `/storage`, `/graphql` يتم اعتباره “فشل اتصال” ويتم **إعادة المحاولة عبر البروكسي** تلقائيًا حتى لو كانت رسالة الخطأ ليست حرفيًا “Failed to fetch”.
+- عند فشل إنشاء المنشأة، تظهر للمستخدم رسالة واضحة (هل المشكلة اتصال؟ هل هي صلاحيات؟ هل هي تحقق بيانات؟) بدل TypeError خام.
+- إضافة سجلات Debug بسيطة (في وضع التطوير) تُظهر: هل الطلب ذهب Direct أم Proxy؟ وأي خطوة فشلت؟ لتسهيل تأكيد الحل.
 
 ---
 
-## ملخص التغييرات
+## التغييرات المقترحة (على مستوى الملفات)
 
-| الملف | التغيير |
-|-------|---------|
-| `docs/cloudflare-worker-proxy.js` | إضافة 4 headers جديدة لدعم Supabase SDK الحديث |
+### 1) تقوية كشف أخطاء الشبكة في Smart Proxy
+**الملف:** `src/lib/installBackendProxyFetch.ts`
+
+- تعديل `isNetworkError()` ليعتبر الشبكة فاشلة في الحالات التالية (بدون الاعتماد على نص واحد فقط):
+  - `error instanceof TypeError` بشكل عام (مع استثناءات بسيطة إن وجدت)
+  - أو `error.message` يحتوي أحد الأنماط الشائعة:  
+    `failed to fetch`, `networkerror`, `load failed`, `fetch`, `cors`, `ERR_NETWORK`, `ERR_FAILED` (case-insensitive)
+- إضافة Log موحد (في DEV فقط) يطبع:
+  - `direct|proxy`, path, method
+  - هل تم ضبط `directConnectionBlocked`؟
+- (اختياري لكن مفيد) عند فشل البروكسي أيضًا: إعادة `directConnectionBlocked=false` كما هو موجود، لكن مع log يوضح السبب.
+
+**لماذا هذا ضروري؟** لأنه يضمن تفعيل التحويل إلى البروكسي حتى لو تغيّر نص الخطأ على موبايل/متصفح مختلف.
+
+---
+
+### 2) جعل createTenant أكثر “مقاوم للأخطاء” (تجربة مستخدم أفضل + تشخيص أدق)
+**الملف:** `src/contexts/TenantContext.tsx`
+
+- تغليف منطق Step A/B/C داخل `try/catch` شامل.
+- في `catch`:
+  - إذا كان الخطأ من نوع شبكة (TypeError / أو يحمل مؤشرات fetch):
+    - نُرجع `TenantOperationError` بخطوة منطقية (مثل `tenant_insert`) ورسالة عربية واضحة مثل:
+      - “تعذر الاتصال بالخادم أثناء إنشاء المنشأة. تحقق من الاتصال أو جرّب إعادة المحاولة.”
+    - (اختياري) استدعاء `refreshTenants()` فقط إذا كنا متأكدين أن الإدخال تم (لكن عادة لن يحدث عند فشل fetch).
+  - إذا كان الخطأ PostgrestError (فيه `code/message/details/hint`):
+    - نُرجعه كما هو (موجود جزئيًا الآن).
+- (تحسين إضافي) إضافة retry بسيط داخل createTenant للخطوة A فقط عند اكتشاف خطأ شبكة:
+  - محاولة واحدة إضافية بعد 300–600ms (بدون loop) لأن بعض الشبكات تتعافى فورًا.
+  - لكن نعتمد أساسًا على Smart Proxy لإعادة توجيه الطلبات.
+
+**لماذا هذا ضروري؟** حتى لو حصل فشل مفاجئ، المستخدم يحصل على رسالة مفهومة، ويكون لدينا خطوات واضحة أي جزء فشل.
+
+---
+
+### 3) (اختياري) تحسين واجهة فحص الاتصال لتأكيد المسار المستخدم
+**الملف:** `src/components/auth/ConnectionHealthCheck.tsx`
+
+- إضافة سطر واضح: “آخر محاولة إنشاء منشأة استخدمت: Direct/Proxy” (إذا كنا نخزن ذلك في memory بسيطة)
+- أو على الأقل عرض حالة `isDirectBlocked()` بشكل بارز + شرح: “إذا ظهرت أخطاء أثناء عمليات الحفظ، سيتم التحويل للبروكسي تلقائيًا.”
+
+> هذا الجزء اختياري؛ الهدف الأساسي هو أن الإنشاء يعمل، ثم نفكر في تحسين التشخيص.
+
+---
+
+## خطوات التحقق (Testing)
+1) اختبار “إنشاء منشأة” من جهازك الحالي (الذي كان يفشل) مع نفس البيانات:
+   - يجب أن ينجح بدون ظهور TypeError.
+2) لو كان الاتصال المباشر متذبذب:
+   - يفترض أن ترى في DEV logs:  
+     “Direct failed → Fallback to proxy …”
+3) اختبار إنشاء منشأة “مختبر” تحديدًا (المسار `/create-lab` أو ما يقابله في UI).
+4) اختبار بعد الإنشاء:
+   - التأكد أن العضوية `tenant_members` تم إنشاؤها وأن الانتقال للوحة التحكم `/dashboard` يعمل بدون RLS errors.
+
+---
+
+## المخاطر والحالات الطرفية
+- إذا كان البروكسي نفسه لا يدعم headers اللازمة أو لديه CORS خاطئ، التحويل للبروكسي لن يحل المشكلة. لكن في هذه الحالة سنرى log “Proxy also failed” بوضوح.
+- إذا كان سبب الفشل ليس شبكة بل RLS/سياسات صلاحيات، فالتعديل لن “يخفي” الخطأ؛ سيظهر كرسالة خطوة واضحة من Step A أو B مع `code/hint` (وهذا المطلوب).
+
+---
+
+## قائمة التنفيذ المختصرة (Sequencing)
+1) تعديل `isNetworkError()` في `installBackendProxyFetch.ts` ليصبح أكثر شمولًا.
+2) إضافة try/catch شامل في `TenantContext.tsx` وإرجاع خطأ مُهيكل بدل TypeError خام.
+3) (اختياري) تحسين ConnectionHealthCheck لعرض معلومات مسار الاتصال.
+4) اختبار إنشاء المنشأة (Stable + Lab) على نفس الجهاز/الشبكة التي كانت تفشل.
+
+---
+
+## مخرجات النجاح
+- المستخدم ينشئ منشأة بدون TypeError.
+- في أسوأ الحالات (تعطل اتصال فعلي)، تظهر رسالة عربية واضحة “مشكلة اتصال” بدل خطأ تقني.
+- النظام يتحول للبروكسي تلقائيًا عند أي فشل fetch شائع، وليس فقط عند نص “Failed to fetch”.
