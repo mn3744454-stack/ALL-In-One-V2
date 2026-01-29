@@ -58,7 +58,13 @@ import ResetPassword from "./pages/ResetPassword";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
