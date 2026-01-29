@@ -1,18 +1,13 @@
 /**
- * Backend Proxy Fetch Installer
+ * Smart Backend Proxy Fetch Installer
  * 
- * This module patches the global `window.fetch` to automatically route
- * Supabase API requests through our proxy, bypassing any network
- * blocks that might prevent direct browser-to-Supabase connections.
+ * This module patches the global `window.fetch` to automatically handle
+ * Supabase API requests with fallback to proxy when direct connection fails.
  * 
- * Priority:
- * 1. If VITE_SUPABASE_PROXY_URL is set (Cloudflare Worker), use that
- * 2. Otherwise, use the Edge Function backend-proxy (same domain, less effective)
- * 
- * How it works:
- * - Intercepts all fetch calls
- * - If the URL targets Supabase auth/rest/storage paths, rewrites to go through proxy
- * - Edge functions (/functions/v1/) are NOT proxied to avoid circular calls
+ * Strategy: Try Direct First, Fallback to Proxy
+ * 1. Try direct Supabase connection
+ * 2. If network error (blocked), retry via Cloudflare Worker proxy
+ * 3. If proxy also fails, return the error
  */
 
 // Store the original fetch
@@ -20,20 +15,23 @@ const originalFetch = window.fetch;
 
 // Get configuration from environment
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-// Hardcoded Cloudflare Worker URL to bypass network blocks
-// This is a public URL, not a secret - safe to hardcode
+
+// Cloudflare Worker proxy URL - public, not secret
 const EXTERNAL_PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
 
 // Flag to track if proxy is installed
 let isInstalled = false;
 
-// Paths that should be proxied (core Supabase services)
+// Track if direct connection is known to be blocked
+let directConnectionBlocked = false;
+
+// Paths that should use fallback logic (core Supabase services)
 const PROXY_PATHS = ['/auth/', '/rest/', '/storage/', '/graphql/'];
 
 /**
- * Check if a URL should be proxied
+ * Check if a URL is a Supabase request that should use fallback
  */
-function shouldProxy(url: string): boolean {
+function isSupabaseRequest(url: string): boolean {
   if (!SUPABASE_URL) return false;
   
   try {
@@ -52,7 +50,7 @@ function shouldProxy(url: string): boolean {
       return false;
     }
     
-    // Only proxy specific Supabase service paths
+    // Only handle specific Supabase service paths
     return PROXY_PATHS.some(path => pathname.startsWith(path));
   } catch {
     return false;
@@ -60,52 +58,33 @@ function shouldProxy(url: string): boolean {
 }
 
 /**
- * Rewrite a Supabase URL to go through the proxy
- * Priority:
- * 1. External proxy (Cloudflare Worker) if VITE_SUPABASE_PROXY_URL is set
- * 2. Edge Function backend-proxy as fallback
+ * Convert direct Supabase URL to proxy URL
  */
-function rewriteUrl(url: string): string {
-  if (!SUPABASE_URL) return url;
-  
+function toProxyUrl(url: string): string {
   try {
     const targetUrl = new URL(url);
-    
-    // Get the path after the origin (e.g., /auth/v1/token?grant_type=password)
     const pathWithQuery = targetUrl.pathname + targetUrl.search;
-    
-    let proxyUrl: string;
-    
-    // Priority 1: Use external proxy (Cloudflare Worker) if configured
-    if (EXTERNAL_PROXY_URL && EXTERNAL_PROXY_URL.trim()) {
-      const cleanProxyUrl = EXTERNAL_PROXY_URL.trim().replace(/\/$/, '');
-      proxyUrl = `${cleanProxyUrl}${pathWithQuery}`;
-      
-      if (import.meta.env.DEV) {
-        console.log(`[ExternalProxy] Rewriting: ${url.substring(0, 60)}...`);
-        console.log(`[ExternalProxy] To: ${proxyUrl.substring(0, 60)}...`);
-      }
-    } else {
-      // Priority 2: Use Edge Function backend-proxy (same domain - less effective for blocks)
-      proxyUrl = `${SUPABASE_URL}/functions/v1/backend-proxy${pathWithQuery}`;
-      
-      if (import.meta.env.DEV) {
-        console.log(`[BackendProxy] Rewriting: ${url.substring(0, 60)}...`);
-        console.log(`[BackendProxy] To: ${proxyUrl.substring(0, 60)}...`);
-      }
-    }
-    
-    return proxyUrl;
-  } catch (e) {
-    console.error("[Proxy] Failed to rewrite URL:", e);
+    const cleanProxyUrl = EXTERNAL_PROXY_URL.replace(/\/$/, '');
+    return `${cleanProxyUrl}${pathWithQuery}`;
+  } catch {
     return url;
   }
 }
 
 /**
- * Proxied fetch function
+ * Check if an error is a network/fetch failure (likely blocked)
  */
-async function proxiedFetch(
+function isNetworkError(error: unknown): boolean {
+  if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Smart fetch with automatic fallback
+ */
+async function smartFetch(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
@@ -119,80 +98,115 @@ async function proxiedFetch(
   } else if (input instanceof Request) {
     url = input.url;
   } else {
-    // Fallback - shouldn't happen but just in case
     return originalFetch(input, init);
   }
   
-  // Check if we should proxy this request
-  if (shouldProxy(url)) {
-    const proxiedUrl = rewriteUrl(url);
-    
-    // If input was a Request object, we need to create a new one with the new URL
-    if (input instanceof Request) {
-      const newRequest = new Request(proxiedUrl, {
-        method: input.method,
-        headers: input.headers,
-        body: input.body,
-        mode: input.mode,
-        credentials: input.credentials,
-        cache: input.cache,
-        redirect: input.redirect,
-        referrer: input.referrer,
-        integrity: input.integrity,
-      });
-      return originalFetch(newRequest, init);
-    }
-    
-    // Otherwise just use the new URL
-    return originalFetch(proxiedUrl, init);
+  // If not a Supabase request, use original fetch
+  if (!isSupabaseRequest(url)) {
+    return originalFetch(input, init);
   }
   
-  // Not a Supabase request, use original fetch
-  return originalFetch(input, init);
+  // If we already know direct is blocked, go straight to proxy
+  if (directConnectionBlocked) {
+    const proxyUrl = toProxyUrl(url);
+    if (import.meta.env.DEV) {
+      console.log(`[SmartProxy] Using cached proxy route: ${proxyUrl.substring(0, 60)}...`);
+    }
+    return executeRequest(proxyUrl, input, init);
+  }
+  
+  // Try direct first
+  try {
+    const response = await executeRequest(url, input, init);
+    return response;
+  } catch (error) {
+    // If network error, try proxy
+    if (isNetworkError(error)) {
+      console.warn('[SmartProxy] Direct connection failed, trying proxy...');
+      directConnectionBlocked = true;
+      
+      const proxyUrl = toProxyUrl(url);
+      if (import.meta.env.DEV) {
+        console.log(`[SmartProxy] Fallback to proxy: ${proxyUrl.substring(0, 60)}...`);
+      }
+      
+      try {
+        return await executeRequest(proxyUrl, input, init);
+      } catch (proxyError) {
+        console.error('[SmartProxy] Proxy also failed:', proxyError);
+        // Reset blocked flag - maybe it's a temporary issue
+        directConnectionBlocked = false;
+        throw proxyError;
+      }
+    }
+    
+    throw error;
+  }
 }
 
 /**
- * Install the backend proxy fetch interceptor
- * Call this BEFORE initializing Supabase client or any other code that makes fetch calls
+ * Execute the actual fetch request
+ */
+async function executeRequest(
+  url: string,
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> {
+  // If input was a Request object, we need to clone it with new URL
+  if (input instanceof Request) {
+    const newRequest = new Request(url, {
+      method: input.method,
+      headers: input.headers,
+      body: input.body,
+      mode: input.mode,
+      credentials: input.credentials,
+      cache: input.cache,
+      redirect: input.redirect,
+      referrer: input.referrer,
+      integrity: input.integrity,
+    });
+    return originalFetch(newRequest, init);
+  }
+  
+  return originalFetch(url, init);
+}
+
+/**
+ * Install the smart proxy fetch interceptor
+ * Call this BEFORE initializing Supabase client
  */
 export function installBackendProxyFetch(): void {
   if (isInstalled) {
-    console.warn("[Proxy] Already installed, skipping...");
+    console.warn("[SmartProxy] Already installed, skipping...");
     return;
   }
   
   if (!SUPABASE_URL) {
-    console.warn("[Proxy] No SUPABASE_URL found, skipping proxy installation");
+    console.warn("[SmartProxy] No SUPABASE_URL found, skipping installation");
     return;
   }
   
   // Replace global fetch
-  window.fetch = proxiedFetch;
+  window.fetch = smartFetch;
   isInstalled = true;
   
-  if (EXTERNAL_PROXY_URL && EXTERNAL_PROXY_URL.trim()) {
-    console.log("[Proxy] ✅ Installed with EXTERNAL proxy (Cloudflare Worker)");
-    console.log(`[Proxy] Routing via: ${EXTERNAL_PROXY_URL}`);
-  } else {
-    console.log("[Proxy] ✅ Installed with Edge Function proxy");
-    console.log(`[Proxy] Routing via: ${SUPABASE_URL}/functions/v1/backend-proxy`);
-  }
+  console.log("[SmartProxy] ✅ Installed - Direct first, proxy fallback enabled");
 }
 
 /**
  * Uninstall the proxy (restore original fetch)
- * Useful for testing or if you need to disable the proxy
  */
 export function uninstallBackendProxyFetch(): void {
   if (!isInstalled) {
-    console.warn("[BackendProxy] Not installed, nothing to uninstall");
+    console.warn("[SmartProxy] Not installed, nothing to uninstall");
     return;
   }
   
   window.fetch = originalFetch;
   isInstalled = false;
+  directConnectionBlocked = false;
   
-  console.log("[BackendProxy] Uninstalled, original fetch restored");
+  console.log("[SmartProxy] Uninstalled, original fetch restored");
 }
 
 /**
@@ -200,4 +214,19 @@ export function uninstallBackendProxyFetch(): void {
  */
 export function isProxyInstalled(): boolean {
   return isInstalled;
+}
+
+/**
+ * Force reset the connection state (useful for testing)
+ */
+export function resetConnectionState(): void {
+  directConnectionBlocked = false;
+  console.log("[SmartProxy] Connection state reset");
+}
+
+/**
+ * Check if direct connection is currently blocked
+ */
+export function isDirectBlocked(): boolean {
+  return directConnectionBlocked;
 }

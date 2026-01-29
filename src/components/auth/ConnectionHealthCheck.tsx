@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Wifi, WifiOff, Loader2, CheckCircle2, XCircle } from 'lucide-react';
-import { testConnectivity, isUsingProxy, getProxyUrl } from '@/lib/proxyConfig';
-import { useI18n } from '@/i18n/I18nContext';
+import { Wifi, Loader2, CheckCircle2, XCircle, Zap, Shield } from 'lucide-react';
+import { testConnectivity } from '@/lib/proxyConfig';
+import { isDirectBlocked } from '@/lib/installBackendProxyFetch';
 
 interface ConnectionStatus {
   success: boolean;
@@ -12,7 +12,6 @@ interface ConnectionStatus {
 }
 
 export function ConnectionHealthCheck() {
-  const { t } = useI18n();
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [testing, setTesting] = useState(false);
   
@@ -23,7 +22,7 @@ export function ConnectionHealthCheck() {
     try {
       const result = await testConnectivity();
       setStatus(result);
-    } catch (e) {
+    } catch {
       setStatus({
         success: false,
         source: 'none',
@@ -34,8 +33,7 @@ export function ConnectionHealthCheck() {
     }
   };
   
-  const usingProxy = isUsingProxy();
-  const proxyUrl = getProxyUrl();
+  const usingProxyFallback = isDirectBlocked();
   
   return (
     <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
@@ -67,7 +65,11 @@ export function ConnectionHealthCheck() {
             : 'bg-destructive/10 text-destructive'
         }`}>
           {status.success ? (
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+            status.source === 'direct' ? (
+              <Zap className="w-4 h-4 flex-shrink-0" />
+            ) : (
+              <Shield className="w-4 h-4 flex-shrink-0" />
+            )
           ) : (
             <XCircle className="w-4 h-4 flex-shrink-0" />
           )}
@@ -84,9 +86,9 @@ export function ConnectionHealthCheck() {
       
       {!status && !testing && (
         <p className="text-xs text-muted-foreground">
-          {usingProxy 
-            ? `البروكسي: ${proxyUrl?.replace('https://', '').substring(0, 30)}...`
-            : 'اضغط "اختبار" للتحقق من الاتصال بالخادم'
+          {usingProxyFallback 
+            ? '✓ يستخدم البروكسي تلقائياً (الاتصال المباشر محجوب)'
+            : 'اضغط "اختبار" للتحقق من الاتصال'
           }
         </p>
       )}
