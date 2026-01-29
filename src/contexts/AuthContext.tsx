@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from "@/lib/withTimeout";
 
 interface Profile {
   id: string;
@@ -144,12 +145,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    return { error: error as Error | null };
+    log('signIn start');
+    try {
+      const { error } = await withTimeout(
+        () => supabase.auth.signInWithPassword({ email, password }),
+        BOOTSTRAP_TIMEOUT_MS,
+        'Sign in'
+      );
+      log('signIn complete', { hasError: !!error });
+      return { error: error as Error | null };
+    } catch (err) {
+      logError('signIn timeout or exception', err);
+      return { error: err as Error };
+    }
   };
 
   const signOut = async () => {
