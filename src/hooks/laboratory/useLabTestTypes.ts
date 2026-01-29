@@ -28,11 +28,16 @@ export interface CreateLabTestTypeData {
 export function useLabTestTypes() {
   const [testTypes, setTestTypes] = useState<LabTestType[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant, activeRole, loading: tenantLoading } = useTenant();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const fetchTestTypes = useCallback(async () => {
+    // Wait for tenant context to finish loading
+    if (tenantLoading) {
+      return;
+    }
+
     if (!activeTenant?.tenant.id) {
       setTestTypes([]);
       setLoading(false);
@@ -55,7 +60,7 @@ export function useLabTestTypes() {
     } finally {
       setLoading(false);
     }
-  }, [activeTenant?.tenant.id]);
+  }, [activeTenant?.tenant.id, tenantLoading]);
 
   useEffect(() => {
     fetchTestTypes();
