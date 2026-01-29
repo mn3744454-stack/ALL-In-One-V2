@@ -5,12 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Logo from "@/components/Logo";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight, RefreshCw, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
-import { clearAuthDataAndReload } from "@/lib/clearAuthData";
-import { ConnectionHealthCheck } from "@/components/auth/ConnectionHealthCheck";
 import heroImage from "@/assets/hero-horse.jpg";
 
 const Auth = () => {
@@ -25,8 +23,6 @@ const Auth = () => {
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showConnectionError, setShowConnectionError] = useState(false);
-  const [clearingData, setClearingData] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,60 +45,9 @@ const Auth = () => {
     }
   }, [user, navigate, nextPath]);
 
-  const handleClearData = async () => {
-    setClearingData(true);
-    try {
-      await clearAuthDataAndReload();
-    } catch (e) {
-      console.error("Failed to clear data:", e);
-      setClearingData(false);
-    }
-  };
-
-  // Helper to detect connection/fetch errors (indicates network block)
-  const isConnectionError = (error: Error): boolean => {
-    const msg = error.message?.toLowerCase() || '';
-    const name = error.name?.toLowerCase() || '';
-    return (
-      msg.includes('failed to fetch') ||
-      msg.includes('network') ||
-      msg.includes('fetch') ||
-      msg.includes('connection') ||
-      msg.includes('timeout') ||
-      msg.includes('unexpected end of json') ||
-      msg.includes('json') ||
-      msg.includes('cors') ||
-      msg.includes('load failed') ||
-      msg.includes('networkerror') ||
-      name.includes('fetcherror') ||
-      name.includes('authretryablefetcherror') ||
-      name.includes('syntaxerror') ||
-      name.includes('typeerror')
-    );
-  };
-
-  // Helper to detect proxy-specific errors (404/502 from proxy)
-  const isProxyError = (error: Error): boolean => {
-    const msg = error.message?.toLowerCase() || '';
-    return (
-      msg.includes('unexpected end of json') ||
-      msg.includes('404') ||
-      msg.includes('502') ||
-      msg.includes('backend-proxy') ||
-      msg.includes('proxy')
-    );
-  };
-
-  // Get the appropriate error message for network/proxy issues
-  const getNetworkErrorMessage = (): string => {
-    return t('auth.errors.networkBlocked') || 
-      'تعذر الاتصال بالخادم. يبدو أن نطاق supabase.co محجوب على شبكتك. جرّب VPN أو شبكة أخرى (مثل بيانات الجوال).';
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setShowConnectionError(false);
 
     // Trim whitespace from inputs
     const email = formData.email.trim();
@@ -121,21 +66,8 @@ const Auth = () => {
         const { error } = await signUp(email, password, name);
         
         if (error) {
-          // Log full error for debugging (only visible in dev console)
-          console.error("Sign up error details:", {
-            message: error.message,
-            name: error.name,
-          });
+          console.error("Sign up error:", error);
           
-          // Check for connection/proxy errors first (indicates network block)
-          if (isProxyError(error) || isConnectionError(error)) {
-            setShowConnectionError(true);
-            toast.error(getNetworkErrorMessage());
-            setLoading(false);
-            return;
-          }
-          
-          // Show specific error messages based on error type
           const errorMsg = error.message?.toLowerCase() || '';
           if (errorMsg.includes("already registered") || errorMsg.includes("already exists")) {
             toast.error(t('auth.errors.emailExists'));
@@ -146,50 +78,30 @@ const Auth = () => {
           } else if (errorMsg.includes("rate limit") || errorMsg.includes("too many")) {
             toast.error(t('auth.errors.rateLimited'));
           } else {
-            // Show actual error for debugging - will help identify unknown issues
-            console.error("Unknown signup error:", error.message);
-            toast.error(`${t('auth.errors.createFailed')}: ${error.message || 'Unknown error'}`);
+            toast.error(t('auth.errors.createFailed'));
           }
           setLoading(false);
           return;
         }
 
         toast.success(t('auth.accountCreated'));
-        // Redirect to next path if available, otherwise dashboard
         navigate(nextPath || "/dashboard");
       } else {
         const { error } = await signIn(email, password);
         
         if (error) {
-          // Log full error for debugging (only visible in dev console)
           console.error("Sign in error:", error);
-          
-          // Check for proxy or connection errors (indicates network block)
-          if (isProxyError(error) || isConnectionError(error)) {
-            setShowConnectionError(true);
-            toast.error(getNetworkErrorMessage());
-            setLoading(false);
-            return;
-          }
-          
-          // Generic message to prevent user enumeration attacks
           toast.error(t('auth.errors.invalidCredentials'));
           setLoading(false);
           return;
         }
 
         toast.success(t('auth.welcomeBack'));
-        // Redirect to next path if available, otherwise dashboard
         navigate(nextPath || "/dashboard");
       }
     } catch (err) {
       console.error("Auth exception:", err);
-      if (err instanceof Error && (isProxyError(err) || isConnectionError(err))) {
-        setShowConnectionError(true);
-        toast.error(getNetworkErrorMessage());
-      } else {
-        toast.error(t('common.unknownError'));
-      }
+      toast.error(t('common.unknownError'));
     }
 
     setLoading(false);
@@ -300,40 +212,6 @@ const Auth = () => {
                     </span>
                   )}
                 </Button>
-
-                {/* Connection Error Help Section */}
-                {showConnectionError && (
-                  <div className="mt-4 p-4 bg-warning/10 border border-warning/30 rounded-xl">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm text-foreground font-medium mb-2">
-                          {t('auth.connectionHelp')}
-                        </p>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={handleClearData}
-                          disabled={clearingData}
-                          className="w-full border-warning/50 text-foreground hover:bg-warning/10"
-                        >
-                          {clearingData ? (
-                            <span className="flex items-center gap-2">
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                              {t('auth.clearingData')}
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <RefreshCw className="w-4 h-4" />
-                              {t('auth.clearDataAndRetry')}
-                            </span>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </form>
 
               <div className="mt-6 text-center">
@@ -347,9 +225,6 @@ const Auth = () => {
                   </Link>
                 </p>
               </div>
-              
-              {/* Connection Health Check */}
-              <ConnectionHealthCheck />
             </CardContent>
           </Card>
 
