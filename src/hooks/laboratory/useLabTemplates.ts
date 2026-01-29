@@ -106,11 +106,16 @@ export interface CreateLabTemplateData {
 export function useLabTemplates() {
   const [templates, setTemplates] = useState<LabTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant, activeRole, loading: tenantLoading } = useTenant();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const fetchTemplates = useCallback(async () => {
+    // Wait for tenant context to finish loading
+    if (tenantLoading) {
+      return;
+    }
+
     if (!activeTenant?.tenant.id) {
       setTemplates([]);
       setLoading(false);
@@ -146,7 +151,7 @@ export function useLabTemplates() {
     } finally {
       setLoading(false);
     }
-  }, [activeTenant?.tenant.id]);
+  }, [activeTenant?.tenant.id, tenantLoading]);
 
   useEffect(() => {
     fetchTemplates();
