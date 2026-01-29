@@ -190,6 +190,18 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     await fetchTenants();
   };
 
+  /**
+   * Helper to detect network errors in createTenant context
+   */
+  const isNetworkFailure = (error: unknown): boolean => {
+    if (error instanceof TypeError) {
+      const message = error.message?.toLowerCase() || '';
+      const patterns = ['fetch', 'network', 'cors', 'load failed', 'aborted', 'timeout', 'connection'];
+      return patterns.some(p => message.includes(p)) || message === '';
+    }
+    return false;
+  };
+
   const createTenant = async (tenantData: Partial<Tenant>): Promise<{
     data: Tenant | null;
     error: TenantOperationError | null;
@@ -197,164 +209,244 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     debugLog("=== CREATE TENANT START ===");
     debugLog("Input data", tenantData);
 
-    // Ensure we are authenticated (avoid running inserts with anon role)
-    const {
-      data: { user: authUser },
-      error: authUserError,
-    } = await supabase.auth.getUser();
+    try {
+      // Ensure we are authenticated (avoid running inserts with anon role)
+      const {
+        data: { user: authUser },
+        error: authUserError,
+      } = await supabase.auth.getUser();
 
-    if (authUserError || !authUser) {
-      debugError("Not authenticated", authUserError);
+      if (authUserError || !authUser) {
+        debugError("Not authenticated", authUserError);
+        return {
+          data: null,
+          error: {
+            step: "validation",
+            message: "يجب تسجيل الدخول قبل إنشاء منظمة جديدة",
+          },
+        };
+      }
+
+      const currentUserId = authUser.id;
+      debugLog("Using authenticated user", { user_id: currentUserId });
+
+      // Prepare and validate input data
+      const dataToValidate = {
+        name: tenantData.name || "",
+        type: tenantData.type || "stable",
+        description: tenantData.description || null,
+        address: tenantData.address || null,
+        phone: tenantData.phone || null,
+        email: tenantData.email || null,
+        logo_url: tenantData.logo_url || null,
+      };
+
+      debugLog("Data to validate", dataToValidate);
+
+      const validation = safeValidate(tenantSchema, dataToValidate);
+      if (!validation.success) {
+        debugError("Validation failed", validation.errors);
+        return { 
+          data: null, 
+          error: { step: "validation", message: validation.errors.join(", ") } 
+        };
+      }
+      debugLog("Validation passed");
+
+      const validatedData = validation.data;
+
+      // Step A: INSERT into tenants
+      debugLog("Step A: Inserting into tenants...");
+      
+      const insertTenant = async (userId: string) => {
+        return await supabase
+          .from("tenants")
+          .insert({
+            name: validatedData.name,
+            type: validatedData.type,
+            description: validatedData.description,
+            address: validatedData.address,
+            phone: validatedData.phone,
+            email: validatedData.email || null,
+            owner_id: userId,
+          })
+          .select()
+          .single();
+      };
+
+      let tenant: Tenant | null = null;
+      let tenantError: { message: string; code?: string; details?: string; hint?: string } | null = null;
+
+      // Try insert with simple retry on network failure
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const result = await insertTenant(currentUserId);
+          if (result.error) {
+            tenantError = result.error;
+            debugError(`Step A attempt ${attempt} DB error`, result.error);
+          } else {
+            tenant = result.data as Tenant;
+            tenantError = null;
+            break;
+          }
+        } catch (fetchErr) {
+          debugError(`Step A attempt ${attempt} fetch exception`, fetchErr);
+          if (isNetworkFailure(fetchErr)) {
+            if (attempt < 2) {
+              debugLog("Network failure detected, retrying after 500ms...");
+              await new Promise(r => setTimeout(r, 500));
+              continue;
+            }
+            return {
+              data: null,
+              error: {
+                step: "tenant_insert",
+                message: "تعذر الاتصال بالخادم أثناء إنشاء المنشأة. تحقق من الاتصال وحاول مرة أخرى.",
+              },
+            };
+          }
+          throw fetchErr; // Re-throw non-network errors
+        }
+      }
+
+      if (tenantError || !tenant) {
+        debugError("Step A FAILED", tenantError);
+        return { 
+          data: null, 
+          error: {
+            step: "tenant_insert",
+            message: tenantError?.message || "فشل إنشاء المنشأة",
+            code: tenantError?.code,
+            details: tenantError?.details,
+            hint: tenantError?.hint,
+          }
+        };
+      }
+      debugLog("Step A SUCCESS", { id: tenant.id, name: tenant.name });
+
+      // Step B: INSERT into tenant_members
+      debugLog("Step B: Inserting into tenant_members...");
+      
+      let memberError: { message: string; code?: string; details?: string; hint?: string } | null = null;
+      
+      try {
+        const memberResult = await supabase
+          .from("tenant_members")
+          .insert({
+            tenant_id: tenant.id,
+            user_id: currentUserId,
+            role: "owner",
+            can_invite: true,
+            can_manage_horses: true,
+          });
+        
+        if (memberResult.error) {
+          memberError = memberResult.error;
+        }
+      } catch (fetchErr) {
+        debugError("Step B fetch exception", fetchErr);
+        if (isNetworkFailure(fetchErr)) {
+          // Rollback tenant
+          debugLog("Rolling back tenant due to network failure...", { id: tenant.id });
+          await supabase.from("tenants").delete().eq("id", tenant.id);
+          return {
+            data: null,
+            error: {
+              step: "member_insert",
+              message: "انقطع الاتصال أثناء إضافة العضوية. حاول مرة أخرى.",
+            },
+          };
+        }
+        throw fetchErr;
+      }
+
+      if (memberError) {
+        debugError("Step B FAILED", memberError);
+        
+        // Rollback: Delete orphan tenant
+        debugLog("Rolling back: Deleting orphan tenant...", { id: tenant.id });
+        const { error: rollbackError } = await supabase
+          .from("tenants")
+          .delete()
+          .eq("id", tenant.id);
+        
+        if (rollbackError) {
+          debugError("Rollback FAILED - Orphan tenant may exist", {
+            tenant_id: tenant.id,
+            rollbackError: rollbackError.message,
+          });
+        } else {
+          debugLog("Rollback SUCCESS - Orphan tenant deleted");
+        }
+        
+        return { 
+          data: null, 
+          error: {
+            step: "member_insert",
+            message: memberError.message,
+            code: memberError.code,
+            details: memberError.details,
+            hint: memberError.hint,
+          }
+        };
+      }
+      debugLog("Step B SUCCESS - Member created as owner");
+
+      // Step C: Initialize tenant capability defaults
+      debugLog("Step C: Initializing tenant capability defaults...");
+      
+      try {
+        const { error: rpcError } = await supabase.rpc('initialize_tenant_defaults', {
+          p_tenant_id: tenant.id,
+          p_tenant_type: tenant.type
+        });
+
+        if (rpcError) {
+          // Non-blocking - log warning but don't fail onboarding
+          debugError("Step C WARNING - Failed to initialize defaults (non-blocking)", {
+            message: rpcError.message,
+          });
+        } else {
+          debugLog("Step C SUCCESS - Tenant capability defaults initialized");
+        }
+      } catch (rpcFetchErr) {
+        // Non-blocking for Step C
+        debugError("Step C fetch exception (non-blocking)", rpcFetchErr);
+      }
+
+      // Refresh tenants and return success
+      debugLog("Refreshing tenants...");
+      await refreshTenants();
+      debugLog("=== CREATE TENANT COMPLETE ===");
+      
+      return { data: tenant, error: null };
+      
+    } catch (unexpectedError) {
+      // Catch-all for any unexpected errors
+      debugError("=== CREATE TENANT UNEXPECTED ERROR ===", unexpectedError);
+      
+      if (isNetworkFailure(unexpectedError)) {
+        return {
+          data: null,
+          error: {
+            step: "tenant_insert",
+            message: "تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.",
+          },
+        };
+      }
+      
+      const errorMessage = unexpectedError instanceof Error 
+        ? unexpectedError.message 
+        : "حدث خطأ غير متوقع";
+      
       return {
         data: null,
         error: {
-          step: "validation",
-          message: "يجب تسجيل الدخول قبل إنشاء منظمة جديدة",
+          step: "tenant_insert",
+          message: errorMessage,
         },
       };
     }
-
-    const currentUserId = authUser.id;
-    debugLog("Using authenticated user", { user_id: currentUserId });
-
-    // Prepare and validate input data
-    const dataToValidate = {
-      name: tenantData.name || "",
-      type: tenantData.type || "stable",
-      description: tenantData.description || null,
-      address: tenantData.address || null,
-      phone: tenantData.phone || null,
-      email: tenantData.email || null,
-      logo_url: tenantData.logo_url || null,
-    };
-
-    debugLog("Data to validate", dataToValidate);
-
-    const validation = safeValidate(tenantSchema, dataToValidate);
-    if (!validation.success) {
-      debugError("Validation failed", validation.errors);
-      return { 
-        data: null, 
-        error: { step: "validation", message: validation.errors.join(", ") } 
-      };
-    }
-    debugLog("Validation passed");
-
-    const validatedData = validation.data;
-
-    // Step A: INSERT into tenants with retry on RLS error
-    debugLog("Step A: Inserting into tenants...");
-    
-    const insertTenant = async (userId: string) => {
-      return await supabase
-        .from("tenants")
-        .insert({
-          name: validatedData.name,
-          type: validatedData.type,
-          description: validatedData.description,
-          address: validatedData.address,
-          phone: validatedData.phone,
-          email: validatedData.email || null,
-          owner_id: userId,
-        })
-        .select()
-        .single();
-    };
-
-    const { data: tenant, error: tenantError } = await insertTenant(currentUserId);
-
-    if (tenantError) {
-      debugError("Step A FAILED", {
-        message: tenantError.message,
-        code: tenantError.code,
-        details: tenantError.details,
-        hint: tenantError.hint,
-      });
-      return { 
-        data: null, 
-        error: {
-          step: "tenant_insert",
-          message: tenantError.message,
-          code: tenantError.code,
-          details: tenantError.details,
-          hint: tenantError.hint,
-        }
-      };
-    }
-    debugLog("Step A SUCCESS", { id: tenant.id, name: tenant.name });
-
-    // Step B: INSERT into tenant_members
-    debugLog("Step B: Inserting into tenant_members...");
-    const { error: memberError } = await supabase
-      .from("tenant_members")
-      .insert({
-        tenant_id: tenant.id,
-        user_id: currentUserId,
-        role: "owner",
-        can_invite: true,
-        can_manage_horses: true,
-      });
-
-    if (memberError) {
-      debugError("Step B FAILED", {
-        message: memberError.message,
-        code: memberError.code,
-        details: memberError.details,
-        hint: memberError.hint,
-      });
-      
-      // Rollback: Delete orphan tenant (debug-only, no user-facing toast)
-      debugLog("Rolling back: Deleting orphan tenant...", { id: tenant.id });
-      const { error: rollbackError } = await supabase
-        .from("tenants")
-        .delete()
-        .eq("id", tenant.id);
-      
-      if (rollbackError) {
-        debugError("Rollback FAILED - Orphan tenant may exist", {
-          tenant_id: tenant.id,
-          rollbackError: rollbackError.message,
-        });
-      } else {
-        debugLog("Rollback SUCCESS - Orphan tenant deleted");
-      }
-      
-      return { 
-        data: null, 
-        error: {
-          step: "member_insert",
-          message: memberError.message,
-          code: memberError.code,
-          details: memberError.details,
-          hint: memberError.hint,
-        }
-      };
-    }
-    debugLog("Step B SUCCESS - Member created as owner");
-
-    // Step C: Initialize tenant capability defaults
-    debugLog("Step C: Initializing tenant capability defaults...");
-    const { error: rpcError } = await supabase.rpc('initialize_tenant_defaults', {
-      p_tenant_id: tenant.id,
-      p_tenant_type: tenant.type
-    });
-
-    if (rpcError) {
-      // Non-blocking - log warning but don't fail onboarding
-      debugError("Step C WARNING - Failed to initialize defaults (non-blocking)", {
-        message: rpcError.message,
-      });
-      // Continue with tenant creation - defaults will apply at runtime via useModuleAccess fallbacks
-    } else {
-      debugLog("Step C SUCCESS - Tenant capability defaults initialized");
-    }
-
-    // Refresh tenants and return success
-    debugLog("Refreshing tenants...");
-    await refreshTenants();
-    debugLog("=== CREATE TENANT COMPLETE ===");
-    
-    return { data: tenant as Tenant, error: null };
   };
 
   return (
