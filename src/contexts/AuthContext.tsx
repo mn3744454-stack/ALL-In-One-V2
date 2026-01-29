@@ -160,6 +160,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
 
+    // Ensure a visible response even on public routes (e.g. '/')
+    // We don't rely on router hooks here since this is a context file.
+    try {
+      if (window.location.pathname !== "/auth") {
+        // Replace to avoid back button returning to an authenticated-only page.
+        window.history.replaceState(null, "", "/auth");
+      }
+    } catch {
+      // no-op
+    }
+
     try {
       // Try global sign out with timeout (non-blocking)
       await Promise.race([
