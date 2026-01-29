@@ -1,60 +1,75 @@
 
-# إصلاح: التراجع عن التغيير الذي سبب البطء وعدم ظهور المنشأة
 
-## سبب المشكلة
-التعديل الأخير على `TenantContext.tsx` جعل الكود يبقي `loading = true` عندما لا يوجد مستخدم، بدلاً من إنهاء التحميل. هذا يسبب:
-- تعليق الواجهة
-- بطء شديد في التنقل
-- عدم تحميل المنشأة حتى بعد تسجيل الدخول
+# إصلاح: رسالة الخطأ الخاطئة عند فشل الاتصال
+
+## المشكلة
+الكود يعرض "البريد الإلكتروني أو كلمة المرور غير صحيحة" حتى عندما تكون المشكلة **فشل اتصال بالشبكة** وليس بيانات خاطئة.
+
+## السبب التقني
+```typescript
+// Auth.tsx - السطر 92-94
+if (error) {
+  toast.error(t('auth.errors.invalidCredentials')); // يعرض هذا لكل الأخطاء!
+}
+```
 
 ## الحل
-تعديل بسيط في `useEffect` داخل `TenantContext.tsx`:
-- عندما لا يوجد مستخدم ولم يكن هناك مستخدم سابق → نضع `loading = false` (ننهي التحميل)
-- بدلاً من ترك `loading = true` للأبد
+تمييز نوع الخطأ وعرض الرسالة المناسبة:
+- **`Failed to fetch`** أو **`timed out`** → "مشكلة في الاتصال بالشبكة"
+- **خطأ آخر** → "البريد الإلكتروني أو كلمة المرور غير صحيحة"
 
-## التغيير المطلوب
+## التغييرات المطلوبة
 
-### الملف: `src/contexts/TenantContext.tsx`
+### 1. إضافة مفاتيح ترجمة جديدة
+إضافة رسائل للأخطاء الشبكية في ملفات الترجمة.
 
-**قبل (الكود الحالي المعيب):**
+### 2. تعديل `src/pages/Auth.tsx`
 ```typescript
-} else {
-  // Never had a user - just waiting for auth to initialize
-  log('No user yet, waiting for auth...');
-  // Keep loading = true (default state)
-}
-```
-
-**بعد (الإصلاح):**
-```typescript
-} else {
-  // Never had a user - no user logged in
-  log('No user yet, setting loading to false');
+// قبل
+if (error) {
+  console.error("Sign in error:", error);
+  toast.error(t('auth.errors.invalidCredentials'));
   setLoading(false);
+  return;
+}
+
+// بعد
+if (error) {
+  console.error("Sign in error:", error);
+  
+  const errorMsg = error.message?.toLowerCase() || '';
+  if (errorMsg.includes('failed to fetch') || errorMsg.includes('timed out') || errorMsg.includes('network')) {
+    toast.error(t('auth.errors.networkError'));
+  } else {
+    toast.error(t('auth.errors.invalidCredentials'));
+  }
+  
+  setLoading(false);
+  return;
 }
 ```
 
-## لماذا هذا يحل المشكلة؟
+### 3. إضافة رسالة الترجمة
+في ملفات الترجمة (ar.ts و en.ts):
+```typescript
+// العربية
+'auth.errors.networkError': 'تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مرة أخرى.'
 
-| الحالة | السلوك الحالي (معيب) | السلوك بعد الإصلاح |
-|--------|---------------------|-------------------|
-| فتح `/auth` بدون تسجيل دخول | `loading = true` للأبد ❌ | `loading = false` ✅ |
-| تسجيل الدخول | قد لا يتفاعل لأنه عالق | `user` يتغير → `fetchTenants()` ✅ |
-| بعد تسجيل الدخول | المنشأة لا تظهر | المنشأة تظهر ✅ |
+// الإنجليزية  
+'auth.errors.networkError': 'Unable to connect to server. Check your internet connection and try again.'
+```
+
+## لماذا هذا مهم؟
+| نوع الخطأ | الرسالة الحالية | الرسالة الصحيحة |
+|-----------|-----------------|-----------------|
+| فشل شبكة | "بيانات خاطئة" ❌ | "مشكلة اتصال" ✅ |
+| بيانات خاطئة | "بيانات خاطئة" ✅ | "بيانات خاطئة" ✅ |
+
+## ملاحظة مهمة
+هذا الإصلاح **لن يحل مشكلة الاتصال نفسها** (التي قد تكون بسبب حجب الشبكة أو بطء مؤقت)، لكنه سيعطيك معلومة صحيحة عن سبب الفشل بدلاً من رسالة مضللة.
 
 ## الملفات المتأثرة
-- `src/contexts/TenantContext.tsx` فقط (تعديل سطر واحد)
+- `src/pages/Auth.tsx`
+- `src/i18n/locales/ar.ts`
+- `src/i18n/locales/en.ts`
 
-## القسم التقني
-
-### السبب العميق
-الكود كان يفترض أن "عدم وجود user + عدم وجود hadUser سابق = انتظر". لكن هذا خطأ لأن:
-- على صفحة `/auth` لا يوجد user من البداية
-- الانتظار للأبد يجمّد الواجهة
-
-### الإصلاح الصحيح
-"عدم وجود user + عدم وجود hadUser سابق = لا يوجد مستخدم مسجل → أنهِ التحميل"
-
-هذا يحافظ على:
-- التمييز بين "لم يسجل دخول بعد" و "سجل خروج" (عبر `hadUserRef`)
-- تفاعل صحيح عند تسجيل الدخول (لأن `user` سيتغير ويُشغّل الـ effect)
