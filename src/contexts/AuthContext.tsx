@@ -153,10 +153,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    log('signOut start - clearing state immediately');
+    
+    // Clear state immediately (optimistic UI) - this triggers redirect via ProtectedRoute
     setUser(null);
     setSession(null);
     setProfile(null);
+
+    try {
+      // Try global sign out with timeout (non-blocking)
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Sign out timed out')), 5000)
+        )
+      ]);
+      log('signOut global success');
+    } catch (err) {
+      logError('signOut global failed, using local fallback', err);
+      try {
+        // Fallback: local-only sign out (no network required)
+        await supabase.auth.signOut({ scope: 'local' });
+        log('signOut local fallback success');
+      } catch (localErr) {
+        logError('signOut local fallback also failed', localErr);
+      }
+    }
   };
 
   return (
