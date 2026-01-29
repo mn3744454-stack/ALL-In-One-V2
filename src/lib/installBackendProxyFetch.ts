@@ -72,12 +72,54 @@ function toProxyUrl(url: string): string {
 }
 
 /**
+ * Network error detection patterns (case-insensitive)
+ * Covers various browser/network error messages across different environments
+ */
+const NETWORK_ERROR_PATTERNS = [
+  /failed to fetch/i,
+  /networkerror/i,
+  /network error/i,
+  /load failed/i,
+  /fetch failed/i,
+  /cors/i,
+  /err_network/i,
+  /err_failed/i,
+  /err_connection/i,
+  /err_internet/i,
+  /net::err/i,
+  /aborted/i,
+  /timeout/i,
+  /connection refused/i,
+  /network request failed/i,
+];
+
+/**
  * Check if an error is a network/fetch failure (likely blocked)
+ * Broadened to detect various browser-specific error messages
  */
 function isNetworkError(error: unknown): boolean {
-  if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-    return true;
+  // TypeError is the most common wrapper for fetch failures
+  if (error instanceof TypeError) {
+    const message = error.message || '';
+    // Check against all known network error patterns
+    if (NETWORK_ERROR_PATTERNS.some(pattern => pattern.test(message))) {
+      return true;
+    }
+    // Fallback: if it's a TypeError with an empty or generic message during fetch
+    // (some browsers/mobile don't provide detailed messages)
+    if (message === '' || message.toLowerCase().includes('fetch')) {
+      return true;
+    }
   }
+  
+  // Check for error objects with message property (non-TypeError)
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = String((error as { message: unknown }).message);
+    if (NETWORK_ERROR_PATTERNS.some(pattern => pattern.test(message))) {
+      return true;
+    }
+  }
+  
   return false;
 }
 
