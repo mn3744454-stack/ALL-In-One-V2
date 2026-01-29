@@ -1,99 +1,95 @@
 
-# خطة إصلاح: القوالب لا تظهر عند إنشاء عينة جديدة
+# خطة إصلاح: المنظمة لا تظهر بعد تسجيل الدخول
 
-## تشخيص المشكلة
+## المشكلة
+عند تسجيل الدخول بحساب جديد، المنظمة لا تظهر رغم وجودها في قاعدة البيانات.
 
-المستخدم يرى 3 قوالب نشطة في شاشة "القوالب"، لكن عند فتح حوار "إنشاء عينة" تظهر رسالة "لا توجد قوالب متاحة".
+## السبب
+ثلاث مشكلات في `TenantContext.tsx`:
 
-### السبب الجذري
-مشكلة في توقيت التحميل (Race Condition) بين `TenantContext` و `useLabTemplates`:
+1. **useEffect لا يتضمن fetchTenants** - السطر 160-162 يستخدم `[user]` فقط، لكن عندما يتغير `user`، يتم إنشاء نسخة جديدة من `fetchTenants` لا يتم استدعاؤها
+2. **Stale Closure** - الشرط `!activeTenant` في السطر 125 يمنع تعيين المنظمة إذا كان هناك قيمة قديمة
+3. **عدم انتظار Auth** - لا يوجد تحقق من أن `AuthContext` اكتمل تحميله
 
-1. عند تحميل صفحة المختبر، يتم render `CreateSampleDialog` حتى وهو مغلق
-2. في تلك اللحظة، قد يكون `TenantContext` ما زال يحمّل البيانات (`loading = true`)
-3. `useLabTemplates` يتحقق من `activeTenant?.tenant.id`:
-   - إذا كان `undefined`، يُعيد قائمة فارغة ويتوقف (`loading = false`)
-   - لكنه لا يعيد الاستعلام بشكل صحيح عندما يصبح `activeTenant` متاحاً لاحقاً
+## الحل
 
-**لماذا `LabTemplatesManager` يعمل؟**
-لأنه يُعرض فقط عندما ينتقل المستخدم إلى tab "القوالب"، وفي تلك اللحظة يكون `activeTenant` قد تم تحميله بالفعل.
+### التغييرات في `src/contexts/TenantContext.tsx`
 
----
+| السطر | التغيير |
+|-------|---------|
+| 68 | إضافة `loading: authLoading` من `useAuth()` |
+| 75-86 | إضافة تحقق من `authLoading` قبل بدء الجلب |
+| 125 | إزالة شرط `!activeTenant` ليتم تعيين المنظمة دائماً |
+| 153 | إزالة `activeTenant` من dependencies وإضافة `authLoading` |
+| 160-162 | تغيير dependency array إلى `[fetchTenants]` |
 
-## الحل المقترح
-
-### التعديل الرئيسي على `useLabTemplates.ts`
-
-إضافة اعتماد على `loading` من `TenantContext` لمنع إرجاع قائمة فارغة أثناء التحميل:
+### الكود الجديد
 
 ```typescript
-export function useLabTemplates() {
-  const [templates, setTemplates] = useState<LabTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { activeTenant, activeRole, loading: tenantLoading } = useTenant();
+// السطر 68
+const { user, loading: authLoading } = useAuth();
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+// السطر 75-86 (بداية fetchTenants)
+const fetchTenants = useCallback(async () => {
+  log('fetchTenants start', { userId: user?.id, authLoading });
 
-  const fetchTemplates = useCallback(async () => {
-    // انتظر حتى يكتمل تحميل الـ tenant
-    if (tenantLoading) {
-      return; // لا تفعل شيء أثناء التحميل
-    }
-    
-    if (!activeTenant?.tenant.id) {
-      setTemplates([]);
-      setLoading(false);
-      return;
-    }
+  // انتظر حتى يكتمل تحميل Auth
+  if (authLoading) {
+    log('fetchTenants: auth still loading, waiting...');
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("lab_templates")
-        .select("*")
-        .eq("tenant_id", activeTenant.tenant.id)
-        .order("name", { ascending: true });
+  if (!user) {
+    log('fetchTenants: no user, clearing state');
+    setTenants([]);
+    setActiveTenantState(null);
+    setActiveRoleState(null);
+    setLoading(false);
+    setTenantError(null);
+    return;
+  }
+  // ... باقي الكود
+```
 
-      if (error) throw error;
-      // ... باقي الكود
-    } catch (error) {
-      // ... معالجة الأخطاء
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTenant?.tenant.id, tenantLoading]); // إضافة tenantLoading للاعتمادات
-
-  useEffect(() => {
-    fetchTemplates();
-  }, [fetchTemplates]);
+```typescript
+// السطر 124-144 - إزالة شرط !activeTenant
+if (memberships.length > 0) {
+  const storedTenantId = localStorage.getItem('activeTenantId');
+  const storedMembership = storedTenantId 
+    ? memberships.find(m => m.tenant_id === storedTenantId)
+    : null;
   
-  // ...
+  if (storedMembership) {
+    setActiveTenantState(storedMembership);
+    setActiveRoleState(storedMembership.role);
+  } else {
+    if (storedTenantId) {
+      localStorage.removeItem('activeTenantId');
+    }
+    setActiveTenantState(memberships[0]);
+    setActiveRoleState(memberships[0].role);
+    localStorage.setItem('activeTenantId', memberships[0].tenant_id);
+  }
+} else {
+  setActiveTenantState(null);
+  setActiveRoleState(null);
+  localStorage.removeItem('activeTenantId');
 }
 ```
 
----
+```typescript
+// السطر 153 - تحديث dependencies
+}, [user, authLoading]);
 
-## ملخص التغييرات
+// السطر 160-162 - تحديث useEffect
+useEffect(() => {
+  fetchTenants();
+}, [fetchTenants]);
+```
 
-| الملف | التغيير |
-|-------|---------|
-| `src/hooks/laboratory/useLabTemplates.ts` | إضافة `tenantLoading` من `useTenant()` والتحقق منه قبل الاستعلام |
-
----
-
-## التفاصيل التقنية
-
-### لماذا هذا الحل يعمل؟
-
-1. **منع الاستعلام المبكر**: عندما يكون `tenantLoading = true`، الـ hook ينتظر ولا يُعيد قائمة فارغة
-2. **إعادة الاستعلام التلقائية**: عندما يتغير `tenantLoading` من `true` إلى `false`، يتم إنشاء `fetchTemplates` جديدة، مما يُشغّل `useEffect` ويستعلم عن القوالب
-3. **حالة التحميل الصحيحة**: `loading` يبقى `true` أثناء انتظار الـ tenant، مما يُظهر مؤشر التحميل بدلاً من رسالة "لا توجد قوالب"
-
-### الملفات الأخرى التي قد تحتاج نفس الإصلاح
-
-هناك hooks أخرى تستخدم نفس النمط وقد تعاني من نفس المشكلة:
-- `useLabSamples`
-- `useLabResults`
-- `useLabCredits`
-- `useLabTestTypes`
-
-يُنصح بتطبيق نفس الإصلاح عليها بعد التأكد من أن هذا الحل يعمل.
+## النتيجة المتوقعة
+بعد تسجيل الدخول:
+1. `AuthContext` يُحمّل المستخدم
+2. `fetchTenants` تُعاد إنشاؤها (بسبب تغير `user`)
+3. `useEffect` يستدعي النسخة الجديدة
+4. المنظمة تظهر بشكل صحيح ✅
