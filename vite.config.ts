@@ -13,74 +13,12 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt"],
-      manifest: {
-        name: "Khail - Horse Management Ecosystem",
-        short_name: "Khail",
-        description: "Multi-Tenant Horse Management Ecosystem for Stables, Clinics, Labs & More",
-        theme_color: "#1a2744",
-        background_color: "#faf8f5",
-        display: "standalone",
-        orientation: "portrait-primary",
-        scope: "/",
-        start_url: "/",
-        icons: [
-          {
-            src: "/icons/icon-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-          },
-          {
-            src: "/icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-          },
-          {
-            src: "/icons/icon-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-      },
-      workbox: {
-        // Avoid caching JS bundles aggressively to prevent mixed React/runtime versions
-        // which can cause hook dispatcher errors like "Cannot read properties of null (reading 'useEffect')".
-        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}"],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "gstatic-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-        ],
-      },
-    }),
+    // PWA TEMPORARILY DISABLED to diagnose caching issues
+    // VitePWA({
+    //   registerType: "autoUpdate",
+    //   ...
+    // }),
+    // Uncomment above when cache issues are resolved
   ].filter(Boolean),
   resolve: {
     alias: {

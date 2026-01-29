@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
 import heroImage from "@/assets/hero-horse.jpg";
+import { BuildStamp } from "@/components/BuildStamp";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -240,6 +241,14 @@ const Auth = () => {
             <Link to="#" className="text-navy hover:underline">{t('auth.termsOfService')}</Link> {t('auth.and')}{" "}
             <Link to="#" className="text-navy hover:underline">{t('auth.privacyPolicy')}</Link>.
           </p>
+
+          {/* Build Stamp for debugging cache issues */}
+          <div className="mt-4 text-center">
+            <BuildStamp />
+            <Link to="/debug/auth" className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground ml-2">
+              [Debug]
+            </Link>
+          </div>
         </div>
       </div>
 

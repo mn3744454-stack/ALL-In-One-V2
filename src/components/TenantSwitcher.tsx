@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronDown, Plus, Check } from "lucide-react";
+import { Building2, ChevronDown, Plus, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const tenantTypeLabels: Record<string, string> = {
@@ -22,8 +22,43 @@ const tenantTypeLabels: Record<string, string> = {
 };
 
 export const TenantSwitcher = () => {
-  const { tenants, activeTenant, setActiveTenant } = useTenant();
+  const { tenants, activeTenant, setActiveTenant, tenantError, retryTenantFetch, loading } = useTenant();
   const navigate = useNavigate();
+
+  // Show error state if there's an error loading tenants
+  if (tenantError && tenants.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+          <AlertCircle className="w-4 h-4 text-destructive" />
+        </div>
+        <div className="flex flex-col items-start text-left">
+          <span className="text-sm font-medium text-destructive">Load Error</span>
+          <button 
+            onClick={retryTenantFetch}
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (loading && tenants.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+          <RefreshCw className="w-4 h-4 text-muted-foreground animate-spin" />
+        </div>
+        <div className="flex flex-col items-start text-left">
+          <span className="text-sm font-medium text-foreground">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (tenants.length === 0) {
     return (

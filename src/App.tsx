@@ -55,6 +55,7 @@ import AcceptConnectionPage from "./pages/AcceptConnectionPage";
 import DashboardClients from "./pages/DashboardClients";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import DebugAuth from "./pages/DebugAuth";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
 
@@ -131,6 +132,8 @@ const AppRoutes = () => {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
+      {/* Debug route for diagnosing auth/cache issues */}
+      <Route path="/debug/auth" element={<DebugAuth />} />
       <Route
         path="/select-role"
         element={

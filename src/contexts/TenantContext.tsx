@@ -158,15 +158,16 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     fetchTenants();
   }, [fetchTenants]);
 
-  // Smart user tracking effect - handles login, logout, and initial load
+  // Simplified user tracking - fetch on user present, clear on user absent
   useEffect(() => {
     if (user) {
-      // User is present → fetch tenants
+      // User is present → always fetch fresh memberships
       hadUserRef.current = true;
+      log('User present, fetching tenants');
       fetchTenants();
-    } else if (hadUserRef.current) {
-      // Had a user before, now null = genuine logout
-      log('User signed out, clearing tenant state');
+    } else {
+      // No user = clear everything
+      log('No user, clearing tenant state');
       setTenants([]);
       setActiveTenantState(null);
       setActiveRoleState(null);
@@ -174,11 +175,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setTenantError(null);
       localStorage.removeItem('activeTenantId');
       hadUserRef.current = false;
-  } else {
-    // Never had a user - no user logged in
-    log('No user yet, setting loading to false');
-    setLoading(false);
-  }
+    }
   }, [user, fetchTenants]);
 
   const setActiveTenant = (tenantId: string) => {
