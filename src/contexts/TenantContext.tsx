@@ -65,7 +65,7 @@ const logError = (msg: string, error?: unknown) => {
 };
 
 export const TenantProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [tenants, setTenants] = useState<TenantMembership[]>([]);
   const [activeTenant, setActiveTenantState] = useState<TenantMembership | null>(null);
   const [activeRole, setActiveRoleState] = useState<TenantRole | null>(null);
@@ -73,7 +73,13 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const [tenantError, setTenantError] = useState<string | null>(null);
 
   const fetchTenants = useCallback(async () => {
-    log('fetchTenants start', { userId: user?.id });
+    log('fetchTenants start', { userId: user?.id, authLoading });
+
+    // Wait for auth to complete loading
+    if (authLoading) {
+      log('fetchTenants: auth still loading, waiting...');
+      return;
+    }
 
     if (!user) {
       log('fetchTenants: no user, clearing state');
@@ -122,25 +128,27 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         setTenants(memberships);
 
         // Set active tenant: prefer localStorage, then first tenant
-        if (memberships.length > 0 && !activeTenant) {
+        if (memberships.length > 0) {
           const storedTenantId = localStorage.getItem('activeTenantId');
           const storedMembership = storedTenantId 
             ? memberships.find(m => m.tenant_id === storedTenantId)
             : null;
           
           if (storedMembership) {
-            // Use stored tenant (it's valid)
             setActiveTenantState(storedMembership);
             setActiveRoleState(storedMembership.role);
           } else {
-            // Invalid or no stored tenant - fallback to first
             if (storedTenantId) {
-              localStorage.removeItem('activeTenantId'); // Clean up invalid value
+              localStorage.removeItem('activeTenantId');
             }
             setActiveTenantState(memberships[0]);
             setActiveRoleState(memberships[0].role);
             localStorage.setItem('activeTenantId', memberships[0].tenant_id);
           }
+        } else {
+          setActiveTenantState(null);
+          setActiveRoleState(null);
+          localStorage.removeItem('activeTenantId');
         }
       }
     } catch (err) {
@@ -150,7 +158,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       log('fetchTenants finally - loading set to false');
     }
-  }, [user, activeTenant]);
+  }, [user, authLoading]);
 
   const retryTenantFetch = useCallback(() => {
     log('retryTenantFetch called');
@@ -159,7 +167,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     fetchTenants();
-  }, [user]);
+  }, [fetchTenants]);
 
   const setActiveTenant = (tenantId: string) => {
     const membership = tenants.find((t) => t.tenant_id === tenantId);
