@@ -1,197 +1,60 @@
 
-# خطة إصلاح: المنظمة لا تظهر بسبب Race Condition العميق
+# إصلاح: التراجع عن التغيير الذي سبب البطء وعدم ظهور المنشأة
 
-## تشخيص المشكلة
+## سبب المشكلة
+التعديل الأخير على `TenantContext.tsx` جعل الكود يبقي `loading = true` عندما لا يوجد مستخدم، بدلاً من إنهاء التحميل. هذا يسبب:
+- تعليق الواجهة
+- بطء شديد في التنقل
+- عدم تحميل المنشأة حتى بعد تسجيل الدخول
 
-### البيانات في قاعدة البيانات (مؤكدة)
-- **المستخدم**: `abdullah@gmail.com` (ID: `2a1593d8-2397-4d1f-90f5-aba5983a9b57`)
-- **المنظمة**: "المتميز لتحاليل الخيل" (ID: `348ce41c-1102-4295-bf6a-2ea0203c1036`)
-- **العضوية**: نشطة بدور `owner`
+## الحل
+تعديل بسيط في `useEffect` داخل `TenantContext.tsx`:
+- عندما لا يوجد مستخدم ولم يكن هناك مستخدم سابق → نضع `loading = false` (ننهي التحميل)
+- بدلاً من ترك `loading = true` للأبد
 
-### المشكلة الحقيقية
+## التغيير المطلوب
 
-الإصلاح السابق الذي اعتمد على `authLoading` لا يكفي لأن:
+### الملف: `src/contexts/TenantContext.tsx`
 
-```text
-التسلسل الحالي (المعيب):
-
-AuthContext                          TenantContext
-    │                                     │
-    ▼                                     │
-bootstrap() starts                        │
-    │                                     │
-    ▼                                     │
-getSession() → قد يُرجع null             │
-    │                                     │
-    ▼                                     │
-setLoading(false) ←────────────────────── authLoading = false
-    │                                     │ لكن user = null بعد!
-    ▼                                     ▼
-onAuthStateChange يُطلق لاحقاً       fetchTenants() ← user = null
-setUser(session.user)                    │ يُنظف الحالة! ❌
-    │                                     │
-    ▼                                     │
-user = abdullah ← لكن متأخر جداً!        │
-```
-
-**السبب**: `AuthContext.loading` يصبح `false` قبل أن `onAuthStateChange` يُطلق حدث `SIGNED_IN` ويُحدّث `user`.
-
----
-
-## الحل المقترح
-
-### الفكرة الأساسية
-بدلاً من الاعتماد على `authLoading`، سنستخدم نمط "تتبع المستخدم السابق" (`hadUserRef`) للتمييز بين:
-- **"لا مستخدم بعد"** → انتظر (لا تُنظف الحالة)
-- **"تسجيل خروج"** → نظّف الحالة
-- **"مستخدم جديد"** → اجلب البيانات
-
-### التغييرات المطلوبة
-
-#### الملف: `src/contexts/TenantContext.tsx`
-
-**التغيير 1**: إضافة `useRef` لتتبع وجود مستخدم سابق
-
+**قبل (الكود الحالي المعيب):**
 ```typescript
-import { useRef } from "react"; // إضافة للـ import
-
-const hadUserRef = useRef(false);
+} else {
+  // Never had a user - just waiting for auth to initialize
+  log('No user yet, waiting for auth...');
+  // Keep loading = true (default state)
+}
 ```
 
-**التغيير 2**: تبسيط `fetchTenants` - إزالة منطق التنظيف
-
+**بعد (الإصلاح):**
 ```typescript
-const fetchTenants = useCallback(async () => {
-  log('fetchTenants start', { userId: user?.id });
-
-  // لا يوجد مستخدم = لا حاجة للبحث عن منظمات
-  if (!user) {
-    log('fetchTenants: no user, skipping fetch');
-    return; // لا تُنظف الحالة هنا!
-  }
-
-  setLoading(true);
-  setTenantError(null);
-
-  try {
-    // ... باقي كود الـ fetch كما هو
-  } finally {
-    setLoading(false);
-  }
-}, [user]); // إزالة authLoading
+} else {
+  // Never had a user - no user logged in
+  log('No user yet, setting loading to false');
+  setLoading(false);
+}
 ```
 
-**التغيير 3**: تعديل `useEffect` لاستخدام نمط التتبع الذكي
+## لماذا هذا يحل المشكلة؟
 
-```typescript
-useEffect(() => {
-  if (user) {
-    // مستخدم موجود → اجلب المنظمات
-    hadUserRef.current = true;
-    fetchTenants();
-  } else if (hadUserRef.current) {
-    // كان هناك مستخدم والآن لا يوجد = تسجيل خروج
-    log('User signed out, clearing tenant state');
-    setTenants([]);
-    setActiveTenantState(null);
-    setActiveRoleState(null);
-    setLoading(false);
-    setTenantError(null);
-    localStorage.removeItem('activeTenantId');
-    hadUserRef.current = false;
-  } else {
-    // لم يكن هناك مستخدم من البداية - انتظر
-    log('No user yet, waiting for auth...');
-    // نبقي loading = true (القيمة الافتراضية)
-  }
-}, [user, fetchTenants]);
-```
-
----
-
-## التسلسل بعد الإصلاح
-
-```text
-التسلسل الجديد (الصحيح):
-
-AuthContext                          TenantContext
-    │                                     │
-    ▼                                     │
-bootstrap() starts                        │
-    │                                     │
-    ▼                                     │
-getSession() → null                       │
-    │                                     │
-    ▼                                     │
-setLoading(false)                         │
-setUser(null) ─────────────────────────▶ useEffect: user = null
-    │                                     │ hadUserRef = false
-    │                                     │ → "No user yet, waiting..." ✓
-    │                                     │ (لا تنظيف!)
-    ▼                                     │
-onAuthStateChange(SIGNED_IN)              │
-    │                                     │
-    ▼                                     │
-setUser(session.user) ─────────────────▶ useEffect: user = abdullah
-                                          │ hadUserRef.current = true
-                                          │ fetchTenants() ✓
-                                          │ → المنظمة تظهر! ✅
-```
-
----
-
-## ملخص التغييرات
-
-| السطر | التغيير |
-|-------|---------|
-| 1 | إضافة `useRef` للـ imports |
-| 68 | إزالة `loading: authLoading` من `useAuth()` |
-| 70 | إضافة `const hadUserRef = useRef(false);` |
-| 75-92 | تبسيط `fetchTenants` - إزالة منطق التنظيف عند `!user` |
-| 161 | تغيير dependencies إلى `[user]` فقط |
-| 168-186 | إعادة كتابة `useEffect` لاستخدام نمط التتبع الذكي |
-
----
-
-## لماذا هذا الحل يعمل؟
-
-| الحالة | السلوك السابق | السلوك الجديد |
-|--------|--------------|--------------|
-| تحميل أولي، لا مستخدم | ينظف الحالة ❌ | ينتظر بهدوء ✅ |
-| `onAuthStateChange` بعد login | لا يُعاد الجلب | يجلب البيانات ✅ |
-| تسجيل خروج | قد لا ينظف | ينظف بشكل صحيح ✅ |
-| تبديل مستخدم | سلوك غير متوقع | يجلب للمستخدم الجديد ✅ |
-
----
-
-## تحسين إضافي: سرعة تسجيل الدخول
-
-المشكلة الثانية (البطء) قد تكون بسبب:
-1. **شبكة بطيئة** → سنضيف timeout للـ `signIn`
-2. **انتظار غير ضروري** → تم إصلاحه بإزالة الاعتماد على `authLoading`
-
-سنضيف timeout للـ `signIn` في `AuthContext`:
-
-```typescript
-import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from '@/lib/withTimeout';
-
-const signIn = async (email: string, password: string) => {
-  try {
-    const { error } = await withTimeout(
-      () => supabase.auth.signInWithPassword({ email, password }),
-      BOOTSTRAP_TIMEOUT_MS,
-      'Sign in'
-    );
-    return { error: error as Error | null };
-  } catch (err) {
-    return { error: err as Error };
-  }
-};
-```
-
----
+| الحالة | السلوك الحالي (معيب) | السلوك بعد الإصلاح |
+|--------|---------------------|-------------------|
+| فتح `/auth` بدون تسجيل دخول | `loading = true` للأبد ❌ | `loading = false` ✅ |
+| تسجيل الدخول | قد لا يتفاعل لأنه عالق | `user` يتغير → `fetchTenants()` ✅ |
+| بعد تسجيل الدخول | المنشأة لا تظهر | المنشأة تظهر ✅ |
 
 ## الملفات المتأثرة
+- `src/contexts/TenantContext.tsx` فقط (تعديل سطر واحد)
 
-1. `src/contexts/TenantContext.tsx` - التغيير الرئيسي
-2. `src/contexts/AuthContext.tsx` - إضافة timeout (اختياري لتحسين السرعة)
+## القسم التقني
+
+### السبب العميق
+الكود كان يفترض أن "عدم وجود user + عدم وجود hadUser سابق = انتظر". لكن هذا خطأ لأن:
+- على صفحة `/auth` لا يوجد user من البداية
+- الانتظار للأبد يجمّد الواجهة
+
+### الإصلاح الصحيح
+"عدم وجود user + عدم وجود hadUser سابق = لا يوجد مستخدم مسجل → أنهِ التحميل"
+
+هذا يحافظ على:
+- التمييز بين "لم يسجل دخول بعد" و "سجل خروج" (عبر `hadUserRef`)
+- تفاعل صحيح عند تسجيل الدخول (لأن `user` سيتغير ويُشغّل الـ effect)
