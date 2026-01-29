@@ -58,7 +58,7 @@ const Auth = () => {
     }
   };
 
-  // Helper to detect connection/fetch errors
+  // Helper to detect connection/fetch errors (indicates network block)
   const isConnectionError = (error: Error): boolean => {
     const msg = error.message?.toLowerCase() || '';
     const name = error.name?.toLowerCase() || '';
@@ -70,9 +70,13 @@ const Auth = () => {
       msg.includes('timeout') ||
       msg.includes('unexpected end of json') ||
       msg.includes('json') ||
+      msg.includes('cors') ||
+      msg.includes('load failed') ||
+      msg.includes('networkerror') ||
       name.includes('fetcherror') ||
       name.includes('authretryablefetcherror') ||
-      name.includes('syntaxerror')
+      name.includes('syntaxerror') ||
+      name.includes('typeerror')
     );
   };
 
@@ -83,8 +87,15 @@ const Auth = () => {
       msg.includes('unexpected end of json') ||
       msg.includes('404') ||
       msg.includes('502') ||
-      msg.includes('backend-proxy')
+      msg.includes('backend-proxy') ||
+      msg.includes('proxy')
     );
+  };
+
+  // Get the appropriate error message for network/proxy issues
+  const getNetworkErrorMessage = (): string => {
+    return t('auth.errors.networkBlocked') || 
+      'تعذر الاتصال بالخادم. يبدو أن نطاق supabase.co محجوب على شبكتك. جرّب VPN أو شبكة أخرى (مثل بيانات الجوال).';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -115,10 +126,10 @@ const Auth = () => {
             name: error.name,
           });
           
-          // Check for connection errors first
-          if (isConnectionError(error)) {
+          // Check for connection/proxy errors first (indicates network block)
+          if (isProxyError(error) || isConnectionError(error)) {
             setShowConnectionError(true);
-            toast.error(t('auth.errors.connectionError'));
+            toast.error(getNetworkErrorMessage());
             setLoading(false);
             return;
           }
@@ -152,18 +163,10 @@ const Auth = () => {
           // Log full error for debugging (only visible in dev console)
           console.error("Sign in error:", error);
           
-          // Check for proxy errors first (more specific)
-          if (isProxyError(error)) {
+          // Check for proxy or connection errors (indicates network block)
+          if (isProxyError(error) || isConnectionError(error)) {
             setShowConnectionError(true);
-            toast.error(t('auth.errors.proxyError') || 'فشل الوصول لخدمة المصادقة - تحقق من اتصالك');
-            setLoading(false);
-            return;
-          }
-          
-          // Check for connection errors
-          if (isConnectionError(error)) {
-            setShowConnectionError(true);
-            toast.error(t('auth.errors.connectionError'));
+            toast.error(getNetworkErrorMessage());
             setLoading(false);
             return;
           }
@@ -182,7 +185,7 @@ const Auth = () => {
       console.error("Auth exception:", err);
       if (err instanceof Error && (isProxyError(err) || isConnectionError(err))) {
         setShowConnectionError(true);
-        toast.error(t('auth.errors.connectionError'));
+        toast.error(getNetworkErrorMessage());
       } else {
         toast.error(t('common.unknownError'));
       }
