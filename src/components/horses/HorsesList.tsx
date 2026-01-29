@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { HorseCard } from "./HorseCard";
-import { HorsesTable } from "./HorsesTable";
 import { HorseFilters, HorseFiltersState } from "./HorseFilters";
 import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
@@ -131,7 +130,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
       {/* Filters */}
       <HorseFilters filters={filters} onChange={setFilters} />
 
-      {/* Content */}
+      {/* Grid */}
       {filteredHorses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -157,8 +156,6 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
             </>
           )}
         </div>
-      ) : viewMode === 'table' ? (
-        <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} />
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredHorses.map((horse) => (
@@ -166,7 +163,6 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
               key={horse.id}
               horse={horse}
               onClick={() => onHorseClick?.(horse)}
-              compact={viewMode === 'list'}
             />
           ))}
         </div>

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { useConsentGrants } from "@/hooks/connections";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -34,27 +33,22 @@ export function SharedWithMeTab({
 }: SharedWithMeTabProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
-  const { user } = useAuth();
   const [selectedConnection, setSelectedConnection] =
     useState<Connection | null>(null);
   const [previewGrant, setPreviewGrant] = useState<ConsentGrant | null>(null);
 
-  // Filter inbound connections: where we are the recipient (by tenant OR by profile)
-  // These are ACCEPTED connections where data has been shared with us
+  // Filter inbound connections only (where tenant is recipient)
   const inboundConnections = connections.filter(
-    (c) =>
-      c.status === "accepted" &&
-      (c.recipient_tenant_id === activeTenant?.tenant_id ||
-        c.recipient_profile_id === user?.id)
+    (c) => c.recipient_tenant_id === activeTenant?.tenant_id
   );
 
-  // Fetch grants for the selected connection in recipient mode
-  // recipientView=true: fetches grants shared WITH us, not grants we created
+  // Fetch grants for the selected connection
   const { grants, isLoading: grantsLoading } = useConsentGrants(
-    selectedConnection?.id,
-    { recipientView: true }
+    selectedConnection?.id
   );
 
+  // For recipient view, we need to see grants where this connection was used to share with us
+  // The grants are created by the grantor (initiator) for us (recipient)
   const visibleGrants = grants;
 
   if (isLoading) {

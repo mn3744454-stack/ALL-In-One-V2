@@ -23,8 +23,17 @@ interface GrantedDataPreviewDialogProps {
   dateTo?: string;
 }
 
-// The get_granted_data RPC now returns a JSONB array directly
-type GrantedDataItem = Record<string, unknown>;
+interface GrantedDataResponse {
+  grant_id: string;
+  resource_type: string;
+  access_level: string;
+  horse_ids: string[] | null;
+  effective_from: string | null;
+  effective_to: string | null;
+  lab_results?: unknown[];
+  vet_records?: unknown[];
+  breeding_records?: unknown[];
+}
 
 export function GrantedDataPreviewDialog({
   open,
@@ -36,7 +45,7 @@ export function GrantedDataPreviewDialog({
 }: GrantedDataPreviewDialogProps) {
   const { t } = useI18n();
   const { getGrantedData } = useConsentGrants();
-  const [dataArray, setDataArray] = useState<GrantedDataItem[]>([]);
+  const [data, setData] = useState<GrantedDataResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,20 +59,10 @@ export function GrantedDataPreviewDialog({
     setIsLoading(true);
     setError(null);
     try {
-      // get_granted_data now returns a JSONB array directly
       const result = await getGrantedData(grantId, dateFrom, dateTo);
-      // Result is a JSONB array of records
-      if (Array.isArray(result)) {
-        setDataArray(result as GrantedDataItem[]);
-      } else if (result && typeof result === "object") {
-        // Handle legacy format if still returned
-        setDataArray([result as GrantedDataItem]);
-      } else {
-        setDataArray([]);
-      }
+      setData(result as unknown as GrantedDataResponse);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
-      setDataArray([]);
     } finally {
       setIsLoading(false);
     }
@@ -81,6 +80,25 @@ export function GrantedDataPreviewDialog({
         return <Shield className="h-5 w-5" />;
     }
   };
+
+  const getDataArray = (): unknown[] => {
+    if (!data) return [];
+    if (resourceType === "lab_results" && Array.isArray(data.lab_results)) {
+      return data.lab_results;
+    }
+    if (resourceType === "vet_records" && Array.isArray(data.vet_records)) {
+      return data.vet_records;
+    }
+    if (
+      resourceType === "breeding_records" &&
+      Array.isArray(data.breeding_records)
+    ) {
+      return data.breeding_records;
+    }
+    return [];
+  };
+
+  const dataArray = getDataArray();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,7 +122,7 @@ export function GrantedDataPreviewDialog({
           <div className="text-center py-8 text-destructive">
             <p>{error}</p>
           </div>
-        ) : (
+        ) : data ? (
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4">
               {/* Summary Card */}
@@ -116,15 +134,25 @@ export function GrantedDataPreviewDialog({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Records: </span>
-                      <span className="font-medium">{dataArray.length}</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{data.access_level}</Badge>
                     </div>
-                    {(dateFrom || dateTo) && (
+                    {data.horse_ids && data.horse_ids.length > 0 && (
+                      <div>
+                        <span className="text-muted-foreground">
+                          {t("connections.sharedWithMe.horsesCount")}:{" "}
+                        </span>
+                        <span className="font-medium">
+                          {data.horse_ids.length}
+                        </span>
+                      </div>
+                    )}
+                    {(data.effective_from || data.effective_to) && (
                       <div className="col-span-2 flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {dateFrom || "∞"} → {dateTo || "∞"}
+                          {data.effective_from || "∞"} →{" "}
+                          {data.effective_to || "∞"}
                         </span>
                       </div>
                     )}
@@ -168,7 +196,7 @@ export function GrantedDataPreviewDialog({
               )}
             </div>
           </ScrollArea>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );

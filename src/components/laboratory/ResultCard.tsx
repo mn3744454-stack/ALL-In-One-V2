@@ -34,7 +34,7 @@ export function ResultCard({
   const { t } = useI18n();
   const templateName = result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const horseName = result.sample?.horse?.name || result.sample?.horse_name || t("laboratory.results.unknownHorse");
+  const horseName = result.sample?.horse?.name || (result.sample as any)?.horse_name || t("laboratory.results.unknownHorse");
   // Use centralized helper for client name resolution - cast sample to match interface
   const sampleForClient = result.sample ? {
     client: (result.sample as any)?.client,

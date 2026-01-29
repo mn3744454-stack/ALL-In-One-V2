@@ -11,6 +11,3 @@ verify_jwt = false
 
 [functions.expire-stale-connections]
 verify_jwt = false
-
-[functions.backend-proxy]
-verify_jwt = false

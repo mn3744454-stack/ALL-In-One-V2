@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, AlertCircle, CheckCircle2, UserPlus } from "lucide-react";
+import { Plus, Trash2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useHorseMasterData } from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import type { HorseWizardData } from "../HorseWizard";
@@ -20,7 +20,6 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
   const { t } = useI18n();
   const { owners, createOwner } = useHorseMasterData();
   const [showAddOwner, setShowAddOwner] = useState(false);
-  const [newlyCreatedOwnerId, setNewlyCreatedOwnerId] = useState<string | null>(null);
 
   const totalPercentage = data.owners.reduce((sum, o) => sum + o.percentage, 0);
   const primaryCount = data.owners.filter((o) => o.is_primary).length;
@@ -40,16 +39,14 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
     }));
   };
 
-  // Add another owner row (inline "+" button)
-  const addOwnerRow = () => {
+  const addOwner = () => {
     const newOwner = { 
-      owner_id: newlyCreatedOwnerId || "", 
+      owner_id: "", 
       percentage: 0, 
       is_primary: data.owners.length === 0 
     };
     const newOwners = redistributePercentages([...data.owners, newOwner]);
     onChange({ owners: newOwners });
-    setNewlyCreatedOwnerId(null); // Reset after using
   };
 
   const updateOwner = (index: number, updates: Partial<typeof data.owners[0]>) => {
@@ -78,35 +75,6 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
     return t('horses.wizard.multiplePrimary').replace('{{count}}', String(primaryCount));
   };
 
-  // Calculate non-primary owner index (for labeling as Owner 2, Owner 3, etc.)
-  const getNonPrimaryLabel = (index: number): string => {
-    // Count how many non-primary owners appear before this index
-    let nonPrimaryCount = 0;
-    for (let i = 0; i < index; i++) {
-      if (!data.owners[i].is_primary) {
-        nonPrimaryCount++;
-      }
-    }
-    // Labels start at 2 since "Primary Owner" replaces Owner 1
-    return t('horses.wizard.ownerNumber').replace('{{number}}', String(nonPrimaryCount + 2));
-  };
-
-  // Handle successful owner creation from dialog
-  const handleOwnerCreated = (newData: unknown) => {
-    if (newData && typeof newData === 'object' && 'id' in newData) {
-      setNewlyCreatedOwnerId((newData as { id: string }).id);
-      // Auto-add a row with the new owner if we have no owners yet, or let user click inline +
-      if (data.owners.length === 0) {
-        const newOwner = { 
-          owner_id: (newData as { id: string }).id, 
-          percentage: 100, 
-          is_primary: true 
-        };
-        onChange({ owners: [newOwner] });
-      }
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -114,16 +82,8 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
           <h4 className="font-semibold text-navy">{t('horses.wizard.owners')}</h4>
           <p className="text-sm text-muted-foreground">{t('horses.wizard.ownershipDescription')}</p>
         </div>
-        {/* Top button: Opens "Create new owner" modal */}
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setShowAddOwner(true)} 
-          className="gap-2"
-        >
-          <UserPlus className="w-4 h-4" /> 
-          {t('horses.wizard.createNewOwner')}
+        <Button type="button" variant="outline" size="sm" onClick={addOwner} className="gap-2">
+          <Plus className="w-4 h-4" /> {t('horses.wizard.addOwner')}
         </Button>
       </div>
 
@@ -141,7 +101,7 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
         <div key={index} className="p-4 border rounded-xl space-y-3">
           <div className="flex items-center justify-between">
             <Badge variant={owner.is_primary ? "default" : "secondary"}>
-              {owner.is_primary ? t('horses.wizard.primaryOwner') : getNonPrimaryLabel(index)}
+              {owner.is_primary ? t('horses.wizard.primaryOwner') : t('horses.wizard.ownerNumber').replace('{{number}}', String(index + 1))}
             </Badge>
             <Button type="button" variant="ghost" size="icon" onClick={() => removeOwner(index)}>
               <Trash2 className="w-4 h-4 text-destructive" />
@@ -150,7 +110,7 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>{t('horses.wizard.selectOwner')}</Label>
+              <Label>{t('horses.wizard.owners')}</Label>
               <div className="flex gap-2">
                 <Select value={owner.owner_id} onValueChange={(v) => updateOwner(index, { owner_id: v })}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectOwner')} /></SelectTrigger>
@@ -158,8 +118,7 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
                     {owners.map((o) => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                {/* Inline "+" button: Adds another owner row */}
-                <Button type="button" size="icon" variant="outline" onClick={addOwnerRow} title={t('horses.wizard.addOwner')}>
+                <Button type="button" size="icon" variant="outline" onClick={() => setShowAddOwner(true)}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -178,12 +137,8 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
       ))}
 
       {data.owners.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground space-y-3">
+        <div className="text-center py-8 text-muted-foreground">
           <p>{t('horses.wizard.noOwnersYet')}</p>
-          <Button type="button" variant="outline" onClick={addOwnerRow} className="gap-2">
-            <Plus className="w-4 h-4" />
-            {t('horses.wizard.addOwner')}
-          </Button>
         </div>
       )}
 
@@ -192,7 +147,6 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
         onOpenChange={setShowAddOwner}
         type="owner"
         onCreate={(formData) => createOwner(formData.name, formData.name_ar, formData.phone, formData.email)}
-        onSuccess={handleOwnerCreated}
       />
     </div>
   );

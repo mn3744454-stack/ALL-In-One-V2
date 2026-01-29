@@ -74,9 +74,6 @@ export interface LabSampleFilters {
   received?: boolean;           // true = received, false = unreceived
   isRetest?: boolean;           // retest_of_sample_id not null
   collectionDateToday?: boolean; // collection_date is today (timezone-aware +03)
-  // Date range filters
-  dateFrom?: string;            // ISO date string (YYYY-MM-DD)
-  dateTo?: string;              // ISO date string (YYYY-MM-DD)
 }
 
 export interface CreateLabSampleData {
@@ -204,17 +201,6 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
             .gte("collection_date", bounds.start)
             .lt("collection_date", bounds.end);
         }
-      }
-
-      // Date range filters
-      if (filters.dateFrom) {
-        query = query.gte("collection_date", filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        // Add one day to include the end date fully
-        const endDate = new Date(filters.dateTo);
-        endDate.setDate(endDate.getDate() + 1);
-        query = query.lt("collection_date", endDate.toISOString().split('T')[0]);
       }
 
       const { data, error } = await query;

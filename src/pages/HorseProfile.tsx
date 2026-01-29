@@ -35,7 +35,6 @@ import {
 import { HorseWizard, HorseData } from "@/components/horses/HorseWizard";
 import { OwnershipTimeline } from "@/components/horses/OwnershipTimeline";
 import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
-import { HorseMediaGallery } from "@/components/horses/HorseMediaGallery";
 import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
@@ -411,11 +410,27 @@ const HorseProfile = () => {
         </div>
 
         {/* Media Gallery */}
-        <HorseMediaGallery 
-          images={horse.images}
-          videos={horse.videos}
-          horseName={horse.name}
-        />
+        {((horse.images && horse.images.length > 0) || (horse.videos && horse.videos.length > 0)) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">{t('horses.profile.mediaGallery')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
+                {horse.images?.map((url, index) => (
+                  <div key={`img-${index}`} className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-muted">
+                    <img src={url} alt={`${horse.name} ${index + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {horse.videos?.map((url, index) => (
+                  <div key={`vid-${index}`} className="aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-muted">
+                    <video src={url} className="w-full h-full object-cover" controls />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Notes */}
         {horse.notes && (

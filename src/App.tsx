@@ -53,8 +53,6 @@ import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
 import AcceptConnectionPage from "./pages/AcceptConnectionPage";
 import DashboardClients from "./pages/DashboardClients";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
 
@@ -116,15 +114,6 @@ const AppRoutes = () => {
           </AuthRoute>
         }
       />
-      <Route
-        path="/forgot-password"
-        element={
-          <AuthRoute>
-            <ForgotPassword />
-          </AuthRoute>
-        }
-      />
-      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/select-role"
         element={

@@ -3,14 +3,10 @@ import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSam
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useTenant } from "@/contexts/TenantContext";
 import { SampleCard } from "./SampleCard";
-import { SamplesTable } from "./SamplesTable";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
 import { ClientGroupedView } from "./ClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
-import { DateRangeFilter } from "./DateRangeFilter";
-import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
-import { useViewPreference } from "@/hooks/useViewPreference";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-type GroupViewMode = 'samples' | 'clients';
+type ViewMode = 'samples' | 'clients';
 type SortOrder = 'asc' | 'desc';
 
 interface SamplesListProps {
@@ -41,9 +37,9 @@ const getFiltersForTab = (tab: SampleFilterTab): Partial<LabSampleFilters> => {
     case 'today':
       return { collectionDateToday: true };
     case 'received':
-      return { status: 'accessioned' };
+      return { received: true };
     case 'unreceived':
-      return { status: 'draft' };
+      return { received: false };
     case 'retest':
       return { isRetest: true };
     case 'all':
@@ -58,9 +54,9 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [activeTab, setActiveTab] = useState<SampleFilterTab>('all');
   const [statusFilter, setStatusFilter] = useState<LabSampleStatus | 'all'>('all');
   const [search, setSearch] = useState("");
-  const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>(() => {
-    const saved = localStorage.getItem('lab-samples-group-view-mode');
-    return (saved === 'clients' ? 'clients' : 'samples') as GroupViewMode;
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('lab-samples-view-mode');
+    return (saved === 'clients' ? 'clients' : 'samples') as ViewMode;
   });
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
     const saved = localStorage.getItem('lab-samples-sort-order');
@@ -69,20 +65,13 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
-  
-  // Date range filters
-  const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<string | undefined>(undefined);
-  
-  // View preference (Grid/List/Table)
-  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-samples');
 
   // Permission check for invoice creation
   const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
 
-  const handleGroupViewModeChange = (mode: GroupViewMode) => {
-    setGroupViewMode(mode);
-    localStorage.setItem('lab-samples-group-view-mode', mode);
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('lab-samples-view-mode', mode);
   };
 
   const handleSortOrderChange = () => {
@@ -111,8 +100,6 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   } = useLabSamples({ 
     status: statusFilter !== 'all' ? statusFilter : undefined,
     search: search || undefined,
-    dateFrom,
-    dateTo,
     ...tabFilters,
   });
 
@@ -156,44 +143,31 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
 
   return (
     <div className="space-y-3">
-      {/* View Mode Toggle + Sort */}
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
-          <ToggleGroup 
-            type="single" 
-            value={groupViewMode}
-            onValueChange={(v) => v && handleGroupViewModeChange(v as GroupViewMode)}
-            className="bg-muted p-1 rounded-lg"
+      {/* View Mode Toggle + Sort - aligned with filter tabs */}
+      <div className="flex items-center justify-between gap-2">
+        <ToggleGroup 
+          type="single" 
+          value={viewMode}
+          onValueChange={(v) => v && handleViewModeChange(v as ViewMode)}
+          className="bg-muted p-1 rounded-lg"
+        >
+          <ToggleGroupItem 
+            value="samples" 
+            aria-label={t("laboratory.clientGrouped.viewBySamples")}
+            className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
           >
-            <ToggleGroupItem 
-              value="samples" 
-              aria-label={t("laboratory.clientGrouped.viewBySamples")}
-              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
-            >
-              <LayoutGrid className="h-4 w-4 me-1.5" />
-              <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewBySamples")}</span>
-            </ToggleGroupItem>
-            <ToggleGroupItem 
-              value="clients" 
-              aria-label={t("laboratory.clientGrouped.viewByClients")}
-              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
-            >
-              <Users className="h-4 w-4 me-1.5" />
-              <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewByClients")}</span>
-            </ToggleGroupItem>
-          </ToggleGroup>
-          
-          {/* ViewSwitcher for Grid/List/Table */}
-          {groupViewMode === 'samples' && (
-            <ViewSwitcher
-              viewMode={viewMode}
-              gridColumns={gridColumns}
-              onViewModeChange={setViewMode}
-              onGridColumnsChange={setGridColumns}
-              showTable={true}
-            />
-          )}
-        </div>
+            <LayoutGrid className="h-4 w-4 me-1.5" />
+            <span className="text-sm">{t("laboratory.clientGrouped.viewBySamples")}</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem 
+            value="clients" 
+            aria-label={t("laboratory.clientGrouped.viewByClients")}
+            className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+          >
+            <Users className="h-4 w-4 me-1.5" />
+            <span className="text-sm">{t("laboratory.clientGrouped.viewByClients")}</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
 
         <Button
           variant="outline"
@@ -219,14 +193,6 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
       <SamplesFilterTabs 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
-      />
-
-      {/* Date Range Filters */}
-      <DateRangeFilter
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
       />
 
       {/* Secondary Filters */}
@@ -272,45 +238,32 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           <FlaskConical className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium">{t("laboratory.samples.noSamplesFound")}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {activeTab !== 'all' || statusFilter !== 'all' || search || dateFrom || dateTo
+            {activeTab !== 'all' || statusFilter !== 'all' || search 
               ? t("laboratory.samples.adjustFilters")
               : t("laboratory.samples.createFirst")}
           </p>
-          {canManage && onCreateSample && !search && statusFilter === 'all' && activeTab === 'all' && !dateFrom && !dateTo && (
+          {canManage && onCreateSample && !search && statusFilter === 'all' && activeTab === 'all' && (
             <Button onClick={onCreateSample} className="mt-4">
               <Plus className="h-4 w-4 me-2" />
               {t("laboratory.samples.createSample")}
             </Button>
           )}
         </div>
-      ) : groupViewMode === 'clients' ? (
+      ) : viewMode === 'clients' ? (
         <ClientGroupedView 
           samples={sortedSamples} 
           onSampleClick={onSampleClick}
         />
-      ) : viewMode === 'table' ? (
-        <SamplesTable
-          samples={sortedSamples}
-          canManage={canManage}
-          canCreateInvoice={canCreateInvoice}
-          resultsCountBySample={resultsCountBySample}
-          onSampleClick={onSampleClick}
-          onAccession={(sample) => accessionSample(sample.id)}
-          onStartProcessing={(sample) => startProcessing(sample.id)}
-          onComplete={(sample) => completeSample(sample.id)}
-          onCancel={(sample) => cancelSample(sample.id)}
-          onRetest={(sample) => createRetest(sample.id)}
-          onViewAllResults={(sample) => setCombinedResultsSample(sample)}
-          onGenerateInvoice={handleGenerateInvoice}
-        />
       ) : (
-        <div className={getGridClass(gridColumns, viewMode)}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sortedSamples.map((sample) => {
+            // Derive isRetest from retest_of_sample_id
             const isRetest = sample.retest_of_sample_id !== null;
             const isReceived = sample.received_at !== null;
 
             return (
               <div key={sample.id} className="relative">
+                {/* Badges overlay */}
                 <div className={cn(
                   "absolute top-2 z-10 flex gap-1",
                   dir === 'rtl' ? 'left-2' : 'right-2'

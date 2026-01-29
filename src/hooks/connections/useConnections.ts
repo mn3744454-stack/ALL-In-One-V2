@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import type { Database } from "@/integrations/supabase/types";
@@ -21,45 +20,32 @@ export interface CreateConnectionParams {
 
 export function useConnections() {
   const { activeTenant } = useTenant();
-  const { user } = useAuth();
   const tenantId = activeTenant?.tenant_id;
-  const userId = user?.id;
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { t } = useI18n();
 
-  // Fetch connections where tenant is initiator/recipient OR user is profile-based recipient
+  // Fetch connections where tenant is initiator or recipient
   const {
     data: connections,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["connections", tenantId, userId],
+    queryKey: ["connections", tenantId],
     queryFn: async () => {
-      // Build OR filter: tenant-based + profile-based
-      const filters: string[] = [];
-      if (tenantId) {
-        filters.push(`initiator_tenant_id.eq.${tenantId}`);
-        filters.push(`recipient_tenant_id.eq.${tenantId}`);
-      }
-      if (userId) {
-        filters.push(`recipient_profile_id.eq.${userId}`);
-        filters.push(`initiator_user_id.eq.${userId}`);
-      }
-
-      if (filters.length === 0) return [];
+      if (!tenantId) return [];
 
       const { data, error } = await supabase
         .from("connections")
         .select("*")
-        .or(filters.join(","))
+        .or(`initiator_tenant_id.eq.${tenantId},recipient_tenant_id.eq.${tenantId}`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Connection[];
     },
-    enabled: !!(tenantId || userId),
+    enabled: !!tenantId,
   });
 
   // Create connection via RPC

@@ -37,7 +37,6 @@ import { cn } from "@/lib/utils";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabTemplates, type LabTemplate, type LabTemplateField } from "@/hooks/laboratory/useLabTemplates";
 import { useLabResults, type CreateLabResultData, type LabResultFlags, type LabResult } from "@/hooks/laboratory/useLabResults";
-import { useI18n } from "@/i18n";
 import type { Json } from "@/integrations/supabase/types";
 
 interface CreateResultDialogProps {
@@ -61,7 +60,6 @@ export function CreateResultDialog({
   preselectedSample,
   onSuccess,
 }: CreateResultDialogProps) {
-  const { t } = useI18n();
   const { samples } = useLabSamples({ status: 'processing' });
   const { activeTemplates } = useLabTemplates();
   const { results, createResult, updateResult, refresh: refreshResults } = useLabResults();
@@ -373,7 +371,7 @@ export function CreateResultDialog({
                 </AlertDescription>
               </Alert>
             ) : (
-              <div className="grid gap-3">
+              <div className="grid gap-3 max-h-[300px] overflow-y-auto">
                 {samples.map((sample) => {
                   const sampleTemplateCount = sample.templates?.length || 0;
                   const sampleResultsCount = results.filter(r => r.sample_id === sample.id).length;
@@ -391,9 +389,7 @@ export function CreateResultDialog({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="font-medium">
-                            {sample.horse?.name || sample.horse_name || t("laboratory.results.unknownHorse")}
-                          </p>
+                          <p className="font-medium">{sample.horse?.name || 'Unknown Horse'}</p>
                           <p className="text-sm text-muted-foreground font-mono">
                             {sample.physical_sample_id || sample.id.slice(0, 8)}
                           </p>
@@ -449,7 +445,7 @@ export function CreateResultDialog({
                 </AlertDescription>
               </Alert>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid gap-2 max-h-[300px] overflow-y-auto">
                 {orderedTemplates.map((template, index) => {
                   const existingResult = sampleResults.find(r => r.template_id === template.id);
                   const isCompleted = !!existingResult;
@@ -535,7 +531,7 @@ export function CreateResultDialog({
               </div>
             </div>
             
-            <div className="grid gap-4">
+            <div className="grid gap-4 max-h-[350px] overflow-y-auto pr-2">
               {selectedTemplate?.fields.map(field => renderFieldInput(field))}
             </div>
 
@@ -573,9 +569,7 @@ export function CreateResultDialog({
             <Card className="p-4 space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">العينة</span>
-                <span className="font-medium">
-                  {selectedSample?.horse?.name || selectedSample?.horse_name || t("laboratory.results.unknownHorse")}
-                </span>
+                <span className="font-medium">{selectedSample?.horse?.name}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">رقم العينة</span>
@@ -727,91 +721,86 @@ export function CreateResultDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0">
-        {/* Fixed Header */}
-        <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b">
-          <DialogHeader>
-            <DialogTitle>إدخال نتائج المختبر</DialogTitle>
-          </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>إدخال نتائج المختبر</DialogTitle>
+        </DialogHeader>
 
-          {/* Step Indicator */}
-          <div className="flex items-center justify-center gap-2 pt-4">
-            {STEPS.slice(0, 4).map((s, i) => (
-              <div key={s.key} className="flex items-center">
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center gap-2 py-4">
+          {STEPS.slice(0, 4).map((s, i) => (
+            <div key={s.key} className="flex items-center">
+              <div
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
+                  i === step || (step === 4 && i === 3)
+                    ? "bg-primary text-primary-foreground"
+                    : i < step
+                    ? "bg-primary/20 text-primary"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {i < step || (step === 4 && i < 4) ? <Check className="h-4 w-4" /> : i + 1}
+              </div>
+              {i < 3 && (
                 <div
                   className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                    i === step || (step === 4 && i === 3)
-                      ? "bg-primary text-primary-foreground"
-                      : i < step
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground"
+                    "w-8 h-0.5 mx-1",
+                    i < step ? "bg-primary" : "bg-muted"
                   )}
-                >
-                  {i < step || (step === 4 && i < 4) ? <Check className="h-4 w-4" /> : i + 1}
-                </div>
-                {i < 3 && (
-                  <div
-                    className={cn(
-                      "w-8 h-0.5 mx-1",
-                      i < step ? "bg-primary" : "bg-muted"
-                    )}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center pt-3">
-            <h3 className="font-semibold">{STEPS[step].title}</h3>
-          </div>
+                />
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <div className="text-center mb-4">
+          <h3 className="font-semibold">{STEPS[step].title}</h3>
+        </div>
+
+        {/* Step Content */}
+        <div className="min-h-[200px]">
           {renderStepContent()}
         </div>
 
-        {/* Fixed Footer - hide on "next" step since it has its own buttons */}
+        {/* Navigation - hide on "next" step since it has its own buttons */}
         {!isNextStep && (
-          <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
-            <div className="flex gap-3">
+          <div className="flex gap-3 pt-4 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
+              className="flex-1 min-h-11"
+            >
+              {step === 0 ? (
+                'إلغاء'
+              ) : (
+                <>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  السابق
+                </>
+              )}
+            </Button>
+            
+            {step < STEPS.findIndex(s => s.key === 'review') ? (
               <Button
-                type="button"
-                variant="outline"
-                onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
+                onClick={handleNext}
+                disabled={!canProceed()}
                 className="flex-1 min-h-11"
               >
-                {step === 0 ? (
-                  'إلغاء'
-                ) : (
-                  <>
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    السابق
-                  </>
-                )}
+                التالي
+                <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
-              
-              {step < STEPS.findIndex(s => s.key === 'review') ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="flex-1 min-h-11"
-                >
-                  التالي
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              ) : step === STEPS.findIndex(s => s.key === 'review') ? (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={loading || !canProceed()}
-                  className="flex-1 min-h-11"
-                >
-                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  {editingResultId ? 'تحديث النتيجة' : 'حفظ النتيجة'}
-                </Button>
-              ) : null}
-            </div>
+            ) : step === STEPS.findIndex(s => s.key === 'review') ? (
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !canProceed()}
+                className="flex-1 min-h-11"
+              >
+                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {editingResultId ? 'تحديث النتيجة' : 'حفظ النتيجة'}
+              </Button>
+            ) : null}
           </div>
         )}
       </DialogContent>

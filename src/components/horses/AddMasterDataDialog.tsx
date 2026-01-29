@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useI18n } from "@/i18n";
 
 export type MasterDataType =
   | "color"
@@ -29,6 +28,59 @@ interface AddMasterDataDialogProps {
   onSuccess?: (data: unknown) => void;
 }
 
+const typeConfig: Record<MasterDataType, { title: string; fields: { key: string; label: string; required?: boolean }[] }> = {
+  color: {
+    title: "Add New Color",
+    fields: [
+      { key: "name", label: "Name (English)", required: true },
+      { key: "name_ar", label: "Name (Arabic)" },
+    ],
+  },
+  breed: {
+    title: "Add New Breed",
+    fields: [
+      { key: "name", label: "Name (English)", required: true },
+      { key: "name_ar", label: "Name (Arabic)" },
+    ],
+  },
+  branch: {
+    title: "Add New Branch",
+    fields: [
+      { key: "name", label: "Branch Name", required: true },
+      { key: "address", label: "Address" },
+    ],
+  },
+  stable: {
+    title: "Add New Stable",
+    fields: [{ key: "name", label: "Stable Name", required: true }],
+  },
+  housing_unit: {
+    title: "Add New Housing Unit",
+    fields: [
+      { key: "code", label: "Unit Code (e.g., A1, Stall-5)", required: true },
+      { key: "unit_type", label: "Type (stall/room/paddock)" },
+    ],
+  },
+  breeder: {
+    title: "Add New Breeder",
+    fields: [
+      { key: "name", label: "Name", required: true },
+      { key: "name_ar", label: "Name (Arabic)" },
+      { key: "phone", label: "Phone" },
+      { key: "email", label: "Email" },
+    ],
+  },
+  owner: {
+    title: "Add New Owner",
+    fields: [
+      { key: "name", label: "Name", required: true },
+      { key: "name_ar", label: "Name (Arabic)" },
+      { key: "phone", label: "Phone" },
+      { key: "email", label: "Email" },
+    ],
+  },
+};
+
 export const AddMasterDataDialog = ({
   open,
   onOpenChange,
@@ -36,63 +88,8 @@ export const AddMasterDataDialog = ({
   onCreate,
   onSuccess,
 }: AddMasterDataDialogProps) => {
-  const { t } = useI18n();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-
-  // Config is now inside component to access t() hook
-  const typeConfig = useMemo(() => ({
-    color: {
-      title: t('horses.masterData.color.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.color.nameEn'), required: true },
-        { key: "name_ar", label: t('horses.masterData.color.nameAr') },
-      ],
-    },
-    breed: {
-      title: t('horses.masterData.breed.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.breed.nameEn'), required: true },
-        { key: "name_ar", label: t('horses.masterData.breed.nameAr') },
-      ],
-    },
-    branch: {
-      title: t('horses.masterData.branch.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.branch.name'), required: true },
-        { key: "address", label: t('horses.masterData.branch.address') },
-      ],
-    },
-    stable: {
-      title: t('horses.masterData.stable.title'),
-      fields: [{ key: "name", label: t('horses.masterData.stable.name'), required: true }],
-    },
-    housing_unit: {
-      title: t('horses.masterData.housingUnit.title'),
-      fields: [
-        { key: "code", label: t('horses.masterData.housingUnit.code'), required: true },
-        { key: "unit_type", label: t('horses.masterData.housingUnit.unitType') },
-      ],
-    },
-    breeder: {
-      title: t('horses.masterData.breeder.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.breeder.name'), required: true },
-        { key: "name_ar", label: t('horses.masterData.breeder.nameAr') },
-        { key: "phone", label: t('horses.masterData.breeder.phone') },
-        { key: "email", label: t('horses.masterData.breeder.email') },
-      ],
-    },
-    owner: {
-      title: t('horses.masterData.owner.title'),
-      fields: [
-        { key: "name", label: t('horses.masterData.owner.name'), required: true },
-        { key: "name_ar", label: t('horses.masterData.owner.nameAr') },
-        { key: "phone", label: t('horses.masterData.owner.phone') },
-        { key: "email", label: t('horses.masterData.owner.email') },
-      ],
-    },
-  }), [t]);
 
   const config = typeConfig[type];
 
@@ -104,8 +101,8 @@ export const AddMasterDataDialog = ({
     
     if (missingFields.length > 0) {
       toast({
-        title: t('horses.masterData.missingFields'),
-        description: `${t('horses.masterData.pleaseFillIn')}: ${missingFields.map((f) => f.label).join(", ")}`,
+        title: "Missing required fields",
+        description: `Please fill in: ${missingFields.map((f) => f.label).join(", ")}`,
         variant: "destructive",
       });
       return;
@@ -117,7 +114,7 @@ export const AddMasterDataDialog = ({
 
     if (error) {
       toast({
-        title: t('horses.masterData.errorCreating'),
+        title: "Error creating item",
         description: error.message,
         variant: "destructive",
       });
@@ -125,8 +122,8 @@ export const AddMasterDataDialog = ({
     }
 
     toast({
-      title: t('horses.masterData.createdSuccess'),
-      description: t('horses.masterData.hasBeenAdded'),
+      title: "Created successfully",
+      description: `${config.title.replace("Add New ", "")} has been added.`,
     });
 
     setFormData({});
@@ -166,11 +163,11 @@ export const AddMasterDataDialog = ({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              {t('common.cancel')}
+              Cancel
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t('common.create')}
+              Create
             </Button>
           </div>
         </form>

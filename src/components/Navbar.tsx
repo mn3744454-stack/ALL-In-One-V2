@@ -3,14 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
-import { LanguageSelector } from "@/components/ui/language-selector";
-import { useI18n } from "@/i18n";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const { t } = useI18n();
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -24,12 +21,11 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <NavLinks variant={isHome ? "light" : "default"} />
             <div className="flex items-center gap-3">
-              <LanguageSelector variant={isHome ? "hero" : "default"} />
               <Button variant={isHome ? "hero-outline" : "ghost"} asChild>
-                <Link to="/auth">{t('landing.nav.signIn')}</Link>
+                <Link to="/auth">Sign In</Link>
               </Button>
               <Button variant={isHome ? "hero" : "gold"} asChild>
-                <Link to="/auth?mode=signup">{t('landing.nav.getStarted')}</Link>
+                <Link to="/auth?mode=signup">Get Started</Link>
               </Button>
             </div>
           </div>
@@ -50,14 +46,11 @@ const Navbar = () => {
           <div className="container mx-auto px-4 py-4 space-y-4">
             <NavLinks variant="default" mobile onLinkClick={() => setIsOpen(false)} />
             <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-              <div className="py-2">
-                <LanguageSelector variant="default" />
-              </div>
               <Button variant="ghost" asChild className="justify-start">
-                <Link to="/auth" onClick={() => setIsOpen(false)}>{t('landing.nav.signIn')}</Link>
+                <Link to="/auth" onClick={() => setIsOpen(false)}>Sign In</Link>
               </Button>
               <Button variant="gold" asChild>
-                <Link to="/auth?mode=signup" onClick={() => setIsOpen(false)}>{t('landing.nav.getStarted')}</Link>
+                <Link to="/auth?mode=signup" onClick={() => setIsOpen(false)}>Get Started</Link>
               </Button>
             </div>
           </div>
@@ -76,13 +69,11 @@ const NavLinks = ({
   mobile?: boolean;
   onLinkClick?: () => void;
 }) => {
-  const { t } = useI18n();
-  
   const links = [
-    { label: t('landing.nav.features'), href: "#features" },
-    { label: t('landing.nav.directory'), href: "/directory" },
-    { label: t('landing.nav.solutions'), href: "#solutions" },
-    { label: t('landing.nav.pricing'), href: "#pricing" },
+    { label: "Features", href: "#features" },
+    { label: "Directory", href: "/directory" },
+    { label: "Solutions", href: "#solutions" },
+    { label: "Pricing", href: "#pricing" },
   ];
 
   const baseClass = variant === "light" 
