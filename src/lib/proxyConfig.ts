@@ -8,8 +8,8 @@
  * all Supabase requests will be routed through it instead of directly to supabase.co.
  */
 
-// Get the configured proxy URL (if any)
-const PROXY_URL = import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined;
+// Hardcoded Cloudflare Worker URL - public, not secret
+const PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
 
 // The original Supabase URL
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
