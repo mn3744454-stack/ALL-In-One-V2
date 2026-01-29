@@ -1,39 +1,17 @@
 /**
  * Proxy Configuration
- * Build trigger: 2026-01-29 - External Cloudflare Worker activation
- * 
- * This module handles the proxy URL configuration for bypassing network blocks.
- * 
- * When a Cloudflare Worker proxy is configured via VITE_SUPABASE_PROXY_URL,
- * all Supabase requests will be routed through it instead of directly to supabase.co.
+ * Smart fallback system - tries direct first, falls back to proxy
  */
 
-// Hardcoded Cloudflare Worker URL - public, not secret
+// Cloudflare Worker proxy URL - public, not secret
 const PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
 
 // The original Supabase URL
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
 /**
- * Get the effective Supabase URL to use.
- * Returns the proxy URL if configured, otherwise the direct Supabase URL.
- */
-export function getEffectiveSupabaseUrl(): string {
-  if (PROXY_URL && PROXY_URL.trim()) {
-    return PROXY_URL.trim().replace(/\/$/, ''); // Remove trailing slash
-  }
-  return SUPABASE_URL;
-}
-
-/**
- * Check if we're using a proxy
- */
-export function isUsingProxy(): boolean {
-  return !!(PROXY_URL && PROXY_URL.trim());
-}
-
-/**
- * Get the proxy URL (or null if not configured)
+ * Get the proxy URL
  */
 export function getProxyUrl(): string | null {
   if (PROXY_URL && PROXY_URL.trim()) {
@@ -50,17 +28,55 @@ export function getOriginalSupabaseUrl(): string {
 }
 
 /**
- * Test connectivity to the proxy or direct Supabase
+ * Check if proxy is configured
+ */
+export function isUsingProxy(): boolean {
+  return !!(PROXY_URL && PROXY_URL.trim());
+}
+
+/**
+ * For backward compatibility - returns direct URL always
+ * The smart fetch handles proxy fallback automatically
+ */
+export function getEffectiveSupabaseUrl(): string {
+  return SUPABASE_URL;
+}
+
+/**
+ * Test connectivity to both direct and proxy
  */
 export async function testConnectivity(): Promise<{
   success: boolean;
-  source: 'proxy' | 'direct' | 'none';
+  source: 'direct' | 'proxy' | 'none';
   message: string;
   latencyMs?: number;
 }> {
   const startTime = Date.now();
   
-  // First try proxy if configured
+  // Try direct Supabase first
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
+      method: 'GET',
+      headers: { 
+        'Accept': 'application/json',
+        'apikey': SUPABASE_KEY,
+      },
+    });
+    
+    if (response.ok) {
+      const latencyMs = Date.now() - startTime;
+      return {
+        success: true,
+        source: 'direct',
+        message: 'متصل مباشرة بالخادم',
+        latencyMs,
+      };
+    }
+  } catch (e) {
+    console.warn('Direct connection test failed:', e);
+  }
+  
+  // Try proxy
   if (PROXY_URL && PROXY_URL.trim()) {
     try {
       const proxyUrl = PROXY_URL.trim().replace(/\/$/, '');
@@ -74,7 +90,7 @@ export async function testConnectivity(): Promise<{
         return {
           success: true,
           source: 'proxy',
-          message: 'متصل عبر البروكسي',
+          message: 'متصل عبر البروكسي (الاتصال المباشر محجوب)',
           latencyMs,
         };
       }
@@ -83,32 +99,9 @@ export async function testConnectivity(): Promise<{
     }
   }
   
-  // Try direct Supabase
-  try {
-    const response = await fetch(`${SUPABASE_URL}/auth/v1/health`, {
-      method: 'GET',
-      headers: { 
-        'Accept': 'application/json',
-        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-    });
-    
-    if (response.ok) {
-      const latencyMs = Date.now() - startTime;
-      return {
-        success: true,
-        source: 'direct',
-        message: 'متصل مباشرة',
-        latencyMs,
-      };
-    }
-  } catch (e) {
-    console.warn('Direct Supabase health check failed:', e);
-  }
-  
   return {
     success: false,
     source: 'none',
-    message: 'تعذر الاتصال. شبكتك قد تحجب الخادم.',
+    message: 'تعذر الاتصال. جرب VPN أو بيانات الجوال.',
   };
 }
