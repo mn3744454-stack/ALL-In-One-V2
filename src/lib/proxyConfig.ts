@@ -1,5 +1,6 @@
 /**
  * Proxy Configuration
+ * Build trigger: 2026-01-29 - External Cloudflare Worker activation
  * 
  * This module handles the proxy URL configuration for bypassing network blocks.
  * 
