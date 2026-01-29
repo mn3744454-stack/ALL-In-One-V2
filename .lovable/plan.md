@@ -1,81 +1,105 @@
 
+# خطة إصلاح مشكلة "Failed to fetch" في Cloudflare Worker
 
-## خطة الحل النهائي: تثبيت رابط البروكسي مباشرة في الكود
-
-### المشكلة المُشخَّصة
+## المشكلة المُشخّصة
 
 | العنصر | الحالة |
 |--------|--------|
-| الـ Secret `VITE_SUPABASE_PROXY_URL` | ✅ موجود في إعدادات المشروع |
-| البروكسي الفعلي المُستخدم | ❌ Edge Function الداخلي |
-| سجل المتصفح يُظهر | `[Proxy] Routing via: https://...supabase.co/functions/v1/backend-proxy` |
+| تسجيل الدخول | ✅ يعمل عبر البروكسي |
+| إنشاء منشأة جديدة | ❌ فشل مع "Failed to fetch" |
+| Cloudflare Worker `/proxy-health` | ✅ يعمل - `target: configured` |
 
-**السبب الجذري**: متغيرات البيئة `VITE_*` تُحقن وقت البناء فقط. رغم وجود الـ Secret، عملية البناء لا تقرأه بشكل صحيح.
+### السبب الجذري
 
-### الحل: Hardcoded Proxy URL
+Cloudflare Worker **لا يدعم كل الـ headers** التي يرسلها Supabase SDK الحديث.
 
-بدلاً من الاعتماد على Secret قد لا يُحقن، سنضع رابط Cloudflare Worker مباشرة في الكود.
+**Headers مفقودة في Worker:**
+- `x-supabase-client-platform`
+- `x-supabase-client-platform-version`
+- `x-supabase-client-runtime`
+- `x-supabase-client-runtime-version`
 
-**ملاحظة أمنية**: هذا آمن لأن الرابط عام (public URL) وليس مفتاح سري.
+عندما المتصفح يرسل **CORS preflight** (OPTIONS) ويجد أن الـ Worker لا يسمح بهذه الـ headers، يرفض إكمال الطلب ويُظهر "Failed to fetch".
 
 ---
 
-### التغييرات المطلوبة
+## الحل: تحديث كود Cloudflare Worker
 
-#### 1. تعديل `src/lib/installBackendProxyFetch.ts`
+### التغيير المطلوب
 
-```typescript
-// السطر 21-23: تغيير من
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const EXTERNAL_PROXY_URL = import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined;
+يجب تحديث الـ `Access-Control-Allow-Headers` في ملف `docs/cloudflare-worker-proxy.js` ليدعم **كل headers الـ Supabase SDK**:
 
-// إلى
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-// Hardcoded Cloudflare Worker URL to bypass network blocks
-// This is a public URL, not a secret - safe to hardcode
-const EXTERNAL_PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
+**من:**
+```javascript
+'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, range, if-match, if-none-match',
 ```
 
-#### 2. تعديل `src/lib/proxyConfig.ts`
+**إلى:**
+```javascript
+'Access-Control-Allow-Headers': 'authorization, apikey, content-type, accept, prefer, x-client-info, x-supabase-api-version, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version, range, if-match, if-none-match',
+```
 
-```typescript
-// السطر 11-12: تغيير من
-const PROXY_URL = import.meta.env.VITE_SUPABASE_PROXY_URL as string | undefined;
+**وكذلك** تحديث `FORWARD_HEADERS` لتمرير هذه الـ headers إلى Supabase:
 
-// إلى
-// Hardcoded Cloudflare Worker URL - public, not secret
-const PROXY_URL = 'https://plain-bonus-b3f7.mn3766687.workers.dev';
+**من:**
+```javascript
+const FORWARD_HEADERS = [
+  'authorization',
+  'apikey',
+  'content-type',
+  'accept',
+  'prefer',
+  'x-client-info',
+  'x-supabase-api-version',
+  'range',
+  'if-match',
+  'if-none-match',
+];
+```
+
+**إلى:**
+```javascript
+const FORWARD_HEADERS = [
+  'authorization',
+  'apikey',
+  'content-type',
+  'accept',
+  'prefer',
+  'x-client-info',
+  'x-supabase-api-version',
+  'x-supabase-client-platform',
+  'x-supabase-client-platform-version',
+  'x-supabase-client-runtime',
+  'x-supabase-client-runtime-version',
+  'range',
+  'if-match',
+  'if-none-match',
+];
 ```
 
 ---
 
-### النتيجة المتوقعة
+## خطوات التطبيق
 
-بعد التطبيق:
-1. سجل المتصفح سيُظهر:
-   - `[Proxy] ✅ Installed with EXTERNAL proxy (Cloudflare Worker)`
-   - `[Proxy] Routing via: https://plain-bonus-b3f7.mn3766687.workers.dev`
+### الخطوة 1: تحديث الكود (سأقوم به)
+سأعدّل ملف `docs/cloudflare-worker-proxy.js` بالتغييرات أعلاه.
 
-2. لوحة فحص الاتصال في `/auth` ستعرض:
-   - **"متصل عبر البروكسي"**
+### الخطوة 2: نشر الكود على Cloudflare (مطلوب منك)
+1. افتح [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. اذهب إلى **Workers & Pages** → اختر Worker الخاص بك
+3. اضغط **Edit Code**
+4. استبدل الكود بالكامل بالكود المحدث من `docs/cloudflare-worker-proxy.js`
+5. اضغط **Save and Deploy**
 
-3. طلبات التسجيل/الدخول ستذهب إلى `*.workers.dev` بدلاً من `*.supabase.co` المحجوب
-
----
-
-### التحقق بعد التطبيق
-
-1. افتح `/auth`
-2. اضغط زر **"اختبار"**
-3. يجب أن ترى: **"متصل عبر البروكسي"**
-4. جرب تسجيل الدخول - يجب أن يعمل الآن من شبكتك
+### الخطوة 3: اختبار
+1. ارجع لصفحة `/create-lab` أو `/create-stable`
+2. أكمل النموذج واضغط "إكمال الإعداد"
+3. يجب أن يعمل الآن بدون أخطاء
 
 ---
 
-### لماذا هذا الحل أفضل؟
+## ملخص التغييرات
 
-| الطريقة | المشكلة |
-|---------|---------|
-| Secret + إعادة بناء | لا يُحقن بشكل صحيح في كل الحالات |
-| **Hardcoded في الكود** | ✅ يعمل دائماً، لا يعتمد على إعدادات خارجية |
-
+| الملف | التغيير |
+|-------|---------|
+| `docs/cloudflare-worker-proxy.js` | إضافة 4 headers جديدة لدعم Supabase SDK الحديث |
