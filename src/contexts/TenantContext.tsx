@@ -174,11 +174,11 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setTenantError(null);
       localStorage.removeItem('activeTenantId');
       hadUserRef.current = false;
-    } else {
-      // Never had a user - just waiting for auth to initialize
-      log('No user yet, waiting for auth...');
-      // Keep loading = true (default state)
-    }
+  } else {
+    // Never had a user - no user logged in
+    log('No user yet, setting loading to false');
+    setLoading(false);
+  }
   }, [user, fetchTenants]);
 
   const setActiveTenant = (tenantId: string) => {
