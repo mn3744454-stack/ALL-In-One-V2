@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "@/hooks/use-toast";
 
 export interface Comment {
@@ -8,6 +9,7 @@ export interface Comment {
   post_id: string;
   author_id: string;
   content: string;
+  tenant_id: string | null;
   created_at: string;
   updated_at: string;
   author?: {
@@ -18,11 +20,14 @@ export interface Comment {
 }
 
 export const usePostComments = (postId: string | undefined) => {
+  const { workspaceMode, activeTenant } = useTenant();
+
   return useQuery({
     queryKey: ["post-comments", postId],
     queryFn: async (): Promise<Comment[]> => {
       if (!postId) return [];
 
+      // Comments are scoped by post, and RLS will handle visibility
       const { data, error } = await supabase
         .from("post_comments")
         .select(`

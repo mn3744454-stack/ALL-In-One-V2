@@ -10,6 +10,7 @@ import { TenantProvider } from "@/contexts/TenantContext";
 import { I18nProvider } from "@/i18n";
 import I18nRecoveryBoundary from "@/components/guards/I18nRecoveryBoundary";
 import { ModuleGuard } from "@/components/guards/ModuleGuard";
+import { WorkspaceRouteGuard } from "@/components/guards/WorkspaceRouteGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
@@ -198,11 +199,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Org-only routes with WorkspaceRouteGuard */}
       <Route
         path="/dashboard/public-profile"
         element={
           <ProtectedRoute>
-            <DashboardPublicProfile />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardPublicProfile />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -210,10 +214,13 @@ const AppRoutes = () => {
         path="/dashboard/services"
         element={
           <ProtectedRoute>
-            <DashboardServices />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardServices />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
+      {/* Personal workspace routes */}
       <Route
         path="/dashboard/my-bookings"
         element={
@@ -222,11 +229,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Org-only academy routes */}
       <Route
         path="/dashboard/academy/sessions"
         element={
           <ProtectedRoute>
-            <DashboardAcademySessions />
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="academy.sessions.manage">
+              <DashboardAcademySessions />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -234,7 +244,9 @@ const AppRoutes = () => {
         path="/dashboard/academy/bookings"
         element={
           <ProtectedRoute>
-            <DashboardAcademyBookings />
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="bookings.manage">
+              <DashboardAcademyBookings />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -247,11 +259,14 @@ const AppRoutes = () => {
         path="/dashboard/revenue"
         element={<Navigate to="/dashboard/finance/revenue" replace />}
       />
+      {/* Org-only horses route */}
       <Route
         path="/dashboard/horses"
         element={
           <ProtectedRoute>
-            <DashboardHorses />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHorses />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -259,7 +274,9 @@ const AppRoutes = () => {
         path="/dashboard/horse-orders"
         element={
           <ProtectedRoute>
-            <DashboardHorseOrders />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHorseOrders />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -267,9 +284,11 @@ const AppRoutes = () => {
         path="/dashboard/breeding"
         element={
           <ProtectedRoute>
-            <ModuleGuard module="breeding">
-              <DashboardBreeding />
-            </ModuleGuard>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <ModuleGuard module="breeding">
+                <DashboardBreeding />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -277,9 +296,11 @@ const AppRoutes = () => {
         path="/dashboard/vet"
         element={
           <ProtectedRoute>
-            <ModuleGuard module="vet">
-              <DashboardVet />
-            </ModuleGuard>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <ModuleGuard module="vet">
+                <DashboardVet />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -287,9 +308,11 @@ const AppRoutes = () => {
         path="/dashboard/laboratory"
         element={
           <ProtectedRoute>
-            <ModuleGuard module="laboratory">
-              <DashboardLaboratory />
-            </ModuleGuard>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <ModuleGuard module="laboratory">
+                <DashboardLaboratory />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -297,7 +320,9 @@ const AppRoutes = () => {
         path="/dashboard/hr"
         element={
           <ProtectedRoute>
-            <DashboardHR />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHR />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -305,7 +330,9 @@ const AppRoutes = () => {
         path="/dashboard/hr/settings"
         element={
           <ProtectedRoute>
-            <DashboardHRSettings />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHRSettings />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -313,7 +340,9 @@ const AppRoutes = () => {
         path="/dashboard/hr/attendance"
         element={
           <ProtectedRoute>
-            <DashboardHRAttendance />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHRAttendance />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -321,7 +350,9 @@ const AppRoutes = () => {
         path="/dashboard/hr/payroll"
         element={
           <ProtectedRoute>
-            <DashboardHRPayroll />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardHRPayroll />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -329,9 +360,11 @@ const AppRoutes = () => {
         path="/dashboard/movement"
         element={
           <ProtectedRoute>
-            <ModuleGuard module="movement">
-              <DashboardMovement />
-            </ModuleGuard>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <ModuleGuard module="movement">
+                <DashboardMovement />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -339,9 +372,11 @@ const AppRoutes = () => {
         path="/dashboard/housing"
         element={
           <ProtectedRoute>
-            <ModuleGuard module="housing">
-              <DashboardHousing />
-            </ModuleGuard>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <ModuleGuard module="housing">
+                <DashboardHousing />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -349,7 +384,9 @@ const AppRoutes = () => {
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
-            <DashboardClients />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardClients />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -357,7 +394,9 @@ const AppRoutes = () => {
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
-            <DashboardOrganizationSettings />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardOrganizationSettings />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -365,7 +404,9 @@ const AppRoutes = () => {
         path="/dashboard/settings/permissions"
         element={
           <ProtectedRoute>
-            <DashboardPermissionsSettings />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardPermissionsSettings />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -373,7 +414,9 @@ const AppRoutes = () => {
         path="/dashboard/settings/connections"
         element={
           <ProtectedRoute>
-            <DashboardConnectionsSettings />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardConnectionsSettings />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -381,7 +424,9 @@ const AppRoutes = () => {
         path="/dashboard/schedule"
         element={
           <ProtectedRoute>
-            <DashboardSchedule />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardSchedule />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -389,7 +434,9 @@ const AppRoutes = () => {
         path="/dashboard/records"
         element={
           <ProtectedRoute>
-            <DashboardRecords />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardRecords />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -397,16 +444,20 @@ const AppRoutes = () => {
         path="/dashboard/files"
         element={
           <ProtectedRoute>
-            <DashboardFileManager />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFileManager />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
-      {/* Finance module routes */}
+      {/* Finance module routes - org only */}
       <Route
         path="/dashboard/finance"
         element={
           <ProtectedRoute>
-            <DashboardFinance />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinance />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -414,7 +465,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/invoices"
         element={
           <ProtectedRoute>
-            <DashboardFinance initialTab="invoices" />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinance initialTab="invoices" />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -422,7 +475,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/expenses"
         element={
           <ProtectedRoute>
-            <DashboardFinance initialTab="expenses" />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinance initialTab="expenses" />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -430,7 +485,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/ledger"
         element={
           <ProtectedRoute>
-            <DashboardFinance initialTab="ledger" />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinance initialTab="ledger" />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -438,7 +495,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/payments"
         element={
           <ProtectedRoute>
-            <DashboardPayments />
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="payments.view">
+              <DashboardPayments />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -446,7 +505,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/revenue"
         element={
           <ProtectedRoute>
-            <DashboardRevenue />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardRevenue />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -454,7 +515,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/pos"
         element={
           <ProtectedRoute>
-            <DashboardFinancePOS />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinancePOS />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -462,7 +525,9 @@ const AppRoutes = () => {
         path="/dashboard/finance/categories"
         element={
           <ProtectedRoute>
-            <DashboardFinanceCategories />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinanceCategories />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
