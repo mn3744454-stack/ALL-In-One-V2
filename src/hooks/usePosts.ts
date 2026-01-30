@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "@/hooks/use-toast";
 
 export interface Post {
@@ -9,6 +10,7 @@ export interface Post {
   content: string;
   media_urls: string[];
   visibility: "public" | "private" | "followers";
+  tenant_id: string | null;
   created_at: string;
   updated_at: string;
   author?: {
@@ -21,14 +23,18 @@ export interface Post {
   is_liked?: boolean;
 }
 
+// Personal feed: tenant_id IS NULL (global/personal posts)
 export const useFeedPosts = () => {
   const { user } = useAuth();
+  const { workspaceMode, activeTenant } = useTenant();
+
+  const tenantId = workspaceMode === "organization" ? activeTenant?.tenant.id : null;
 
   return useQuery({
-    queryKey: ["feed-posts"],
+    queryKey: ["feed-posts", workspaceMode, tenantId],
     queryFn: async (): Promise<Post[]> => {
-      // Get posts
-      const { data: posts, error } = await supabase
+      // Build query based on workspace mode
+      let query = supabase
         .from("posts")
         .select(`
           *,
@@ -36,6 +42,16 @@ export const useFeedPosts = () => {
         `)
         .order("created_at", { ascending: false })
         .limit(50);
+
+      if (workspaceMode === "organization" && tenantId) {
+        // Organization mode: show posts for this tenant
+        query = query.eq("tenant_id", tenantId);
+      } else {
+        // Personal mode: show posts where tenant_id IS NULL
+        query = query.is("tenant_id", null);
+      }
+
+      const { data: posts, error } = await query;
 
       if (error) throw error;
 
@@ -110,6 +126,7 @@ export const useUserPosts = (userId: string | undefined) => {
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceMode, activeTenant } = useTenant();
 
   return useMutation({
     mutationFn: async ({
@@ -123,6 +140,11 @@ export const useCreatePost = () => {
     }) => {
       if (!user) throw new Error("Not authenticated");
 
+      // Set tenant_id based on workspace mode
+      const tenant_id = workspaceMode === "organization" && activeTenant?.tenant.id
+        ? activeTenant.tenant.id
+        : null;
+
       const { data, error } = await supabase
         .from("posts")
         .insert({
@@ -130,6 +152,7 @@ export const useCreatePost = () => {
           content,
           visibility,
           media_urls,
+          tenant_id,
         })
         .select()
         .single();
