@@ -41,7 +41,7 @@ export function SampleProgressStepper({
     {
       key: "accessioned",
       label: t("laboratory.progress.accessioned"),
-      timestamp: accessionedAt || (status !== "draft" ? createdAt : null),
+      timestamp: accessionedAt || (["accessioned", "processing", "completed"].includes(status) ? createdAt : null),
       isCompleted: ["accessioned", "processing", "completed"].includes(status),
       isCurrent: status === "draft" && !!receivedAt,
     },
@@ -115,9 +115,9 @@ export function SampleProgressStepper({
                 {step.label}
               </span>
               
-              {/* Timestamp */}
-              {step.timestamp && (
-                <span className="mt-0.5 text-[9px] text-muted-foreground">
+              {/* Timestamp - Show HH:MM when available */}
+              {step.timestamp && step.isCompleted && (
+                <span className="mt-0.5 text-[9px] text-muted-foreground font-medium">
                   {formatTime(step.timestamp)}
                 </span>
               )}

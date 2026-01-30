@@ -143,13 +143,14 @@ export function HorseSelectionStep({
         </RadioGroup>
       </div>
 
-      {/* Internal Horse Selector - Full width wrapper */}
+      {/* Internal Horse Selector - Full width wrapper, hide IDs for cleaner selection */}
       {selectionMode === 'internal' && (
         <div className="w-full">
           <MultiHorseSelector
             selectedHorseIds={selectedHorses.filter(h => h.horse_type === 'internal').map(h => h.horse_id!)}
             onSelectionChange={handleAddInternalHorses}
             disabled={disabled}
+            hideIds={true}
           />
         </div>
       )}

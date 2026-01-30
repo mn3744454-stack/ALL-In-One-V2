@@ -511,10 +511,13 @@ export const ar = {
     // Sample Actions
     sampleActions: {
       accession: "إستلام",
-      startProcessing: "إجراء التحليل الآن",
+      startProcessing: "بدء التحليل",
       complete: "إكتمال التحليل",
       cancel: "إلغاء",
       createRetest: "إنشاء إعادة",
+      edit: "تعديل العينة",
+      delete: "حذف العينة",
+      confirmDelete: "هل أنت متأكد من حذف هذه العينة؟ لا يمكن التراجع عن هذا الإجراء.",
     },
     
     // Results List & Card
@@ -847,12 +850,14 @@ export const ar = {
       status: "الحالة",
       collectionDate: "تاريخ الجمع",
       templates: "القوالب",
+      results: "النتائج",
       actions: "الإجراءات",
       resultDate: "تاريخ النتيجة",
       template: "القالب",
       flags: "العلامات",
       createdBy: "المنشئ",
     },
+    
     
     // Progress Stepper
     progress: {
