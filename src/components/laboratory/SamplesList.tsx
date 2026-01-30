@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useTenant } from "@/contexts/TenantContext";
@@ -8,22 +8,14 @@ import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
 import { ClientGroupedView } from "./ClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
-import { DateRangeFilter } from "./DateRangeFilter";
+import { AdvancedFilters } from "./AdvancedFilters";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +48,6 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const { t, dir } = useI18n();
   const { activeRole } = useTenant();
   const [activeTab, setActiveTab] = useState<SampleFilterTab>('all');
-  const [statusFilter, setStatusFilter] = useState<LabSampleStatus | 'all'>('all');
   const [search, setSearch] = useState("");
   const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>(() => {
     const saved = localStorage.getItem('lab-samples-group-view-mode');
@@ -70,15 +61,27 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
   
-  // Date range filters
+  // Advanced filters
   const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
   const [dateTo, setDateTo] = useState<string | undefined>(undefined);
+  const [clientId, setClientId] = useState<string | undefined>(undefined);
+  const [horseId, setHorseId] = useState<string | undefined>(undefined);
+  const [selectedStatuses, setSelectedStatuses] = useState<LabSampleStatus[]>([]);
   
   // View preference (Grid/List/Table)
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-samples');
 
   // Permission check for invoice creation
   const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
+
+  // Status options for multi-select
+  const statusOptions: { value: LabSampleStatus; label: string }[] = [
+    { value: 'draft', label: t("laboratory.sampleStatus.draft") },
+    { value: 'accessioned', label: t("laboratory.sampleStatus.accessioned") },
+    { value: 'processing', label: t("laboratory.sampleStatus.processing") },
+    { value: 'completed', label: t("laboratory.sampleStatus.completed") },
+    { value: 'cancelled', label: t("laboratory.sampleStatus.cancelled") },
+  ];
 
   const handleGroupViewModeChange = (mode: GroupViewMode) => {
     setGroupViewMode(mode);
@@ -96,11 +99,31 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     setInvoiceDialogOpen(true);
   };
 
+  const handleClearAllFilters = useCallback(() => {
+    setSearch("");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setClientId(undefined);
+    setHorseId(undefined);
+    setSelectedStatuses([]);
+  }, []);
+
   // Get tab-based filters
   const tabFilters = getFiltersForTab(activeTab);
 
+  // Build combined filters
+  const combinedFilters: LabSampleFilters = useMemo(() => ({
+    search: search || undefined,
+    dateFrom,
+    dateTo,
+    horse_id: horseId,
+    // Status filter: use multi-select if any selected, otherwise use tab filter
+    status: selectedStatuses.length === 1 ? selectedStatuses[0] : tabFilters.status,
+    ...tabFilters,
+  }), [search, dateFrom, dateTo, horseId, selectedStatuses, tabFilters]);
+
   const { 
-    samples, 
+    samples: rawSamples, 
     loading, 
     canManage,
     accessionSample,
@@ -109,13 +132,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     cancelSample,
     createRetest,
     deleteSample,
-  } = useLabSamples({ 
-    status: statusFilter !== 'all' ? statusFilter : undefined,
-    search: search || undefined,
-    dateFrom,
-    dateTo,
-    ...tabFilters,
-  });
+  } = useLabSamples(combinedFilters);
 
   // Handler for sample deletion
   const handleDeleteSample = async (sample: LabSample) => {
@@ -134,14 +151,31 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     return countMap;
   }, [results]);
 
+  // Apply client filter on client-side (since hook doesn't support it directly)
+  const filteredSamples = useMemo(() => {
+    let filtered = rawSamples;
+    
+    // Client filter
+    if (clientId) {
+      filtered = filtered.filter(s => s.client_id === clientId);
+    }
+    
+    // Multi-status filter (if more than 1 status selected)
+    if (selectedStatuses.length > 1) {
+      filtered = filtered.filter(s => selectedStatuses.includes(s.status));
+    }
+    
+    return filtered;
+  }, [rawSamples, clientId, selectedStatuses]);
+
   // Sort samples based on daily_number
   const sortedSamples = useMemo(() => {
-    return [...samples].sort((a, b) => {
+    return [...filteredSamples].sort((a, b) => {
       const aNum = (a as any).daily_number || 0;
       const bNum = (b as any).daily_number || 0;
       return sortOrder === 'asc' ? aNum - bNum : bNum - aNum;
     });
-  }, [samples, sortOrder]);
+  }, [filteredSamples, sortOrder]);
 
   if (loading) {
     return (
@@ -201,24 +235,33 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           )}
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9"
-          onClick={handleSortOrderChange}
-        >
-          {sortOrder === 'asc' ? (
-            <>
-              <ArrowUp className="h-4 w-4 me-1.5" />
-              <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortAsc")}</span>
-            </>
-          ) : (
-            <>
-              <ArrowDown className="h-4 w-4 me-1.5" />
-              <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortDesc")}</span>
-            </>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9"
+            onClick={handleSortOrderChange}
+          >
+            {sortOrder === 'asc' ? (
+              <>
+                <ArrowUp className="h-4 w-4 me-1.5" />
+                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortAsc")}</span>
+              </>
+            ) : (
+              <>
+                <ArrowDown className="h-4 w-4 me-1.5" />
+                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortDesc")}</span>
+              </>
+            )}
+          </Button>
+          
+          {canManage && onCreateSample && (
+            <Button onClick={onCreateSample} size="sm" className="h-9">
+              <Plus className="h-4 w-4 me-2" />
+              <span className="hidden sm:inline">{t("laboratory.samples.newSample")}</span>
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
 
       {/* Quick Filter Tabs */}
@@ -227,50 +270,24 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         onTabChange={setActiveTab}
       />
 
-      {/* Date Range Filters */}
-      <DateRangeFilter
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("laboratory.samples.searchPlaceholder")}
         dateFrom={dateFrom}
         dateTo={dateTo}
         onDateFromChange={setDateFrom}
         onDateToChange={setDateTo}
+        clientId={clientId}
+        onClientChange={setClientId}
+        horseId={horseId}
+        onHorseChange={setHorseId}
+        selectedStatuses={selectedStatuses}
+        onStatusesChange={setSelectedStatuses}
+        statusOptions={statusOptions}
+        onClearAll={handleClearAllFilters}
       />
-
-      {/* Secondary Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex flex-1 gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className={cn(
-              "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground",
-              dir === 'rtl' ? 'right-3' : 'left-3'
-            )} />
-            <Input
-              placeholder={t("laboratory.samples.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={cn(dir === 'rtl' ? 'pr-9' : 'pl-9')}
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as LabSampleStatus | 'all')}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={t("laboratory.samples.statusFilter")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("laboratory.samples.allStatus")}</SelectItem>
-              <SelectItem value="draft">{t("laboratory.sampleStatus.draft")}</SelectItem>
-              <SelectItem value="accessioned">{t("laboratory.sampleStatus.accessioned")}</SelectItem>
-              <SelectItem value="processing">{t("laboratory.sampleStatus.processing")}</SelectItem>
-              <SelectItem value="completed">{t("laboratory.sampleStatus.completed")}</SelectItem>
-              <SelectItem value="cancelled">{t("laboratory.sampleStatus.cancelled")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {canManage && onCreateSample && (
-          <Button onClick={onCreateSample}>
-            <Plus className="h-4 w-4 me-2" />
-            {t("laboratory.samples.newSample")}
-          </Button>
-        )}
-      </div>
 
       {/* Content based on view mode */}
       {sortedSamples.length === 0 ? (
@@ -278,11 +295,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           <FlaskConical className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium">{t("laboratory.samples.noSamplesFound")}</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {activeTab !== 'all' || statusFilter !== 'all' || search || dateFrom || dateTo
+            {activeTab !== 'all' || selectedStatuses.length > 0 || search || dateFrom || dateTo || clientId || horseId
               ? t("laboratory.samples.adjustFilters")
               : t("laboratory.samples.createFirst")}
           </p>
-          {canManage && onCreateSample && !search && statusFilter === 'all' && activeTab === 'all' && !dateFrom && !dateTo && (
+          {canManage && onCreateSample && !search && selectedStatuses.length === 0 && activeTab === 'all' && !dateFrom && !dateTo && !clientId && !horseId && (
             <Button onClick={onCreateSample} className="mt-4">
               <Plus className="h-4 w-4 me-2" />
               {t("laboratory.samples.createSample")}

@@ -87,6 +87,7 @@ interface FormData {
   selectedHorses: SelectedHorse[];
   collection_date: Date;
   daily_number: string;
+  per_sample_daily_numbers: Record<number, string>; // Index -> daily number for multi-sample
   physical_sample_id: string;
   client_id: string;
   clientMode: ClientMode;
@@ -122,6 +123,7 @@ export function CreateSampleDialog({
     selectedHorses: [],
     collection_date: new Date(),
     daily_number: '',
+    per_sample_daily_numbers: {},
     physical_sample_id: '',
     client_id: retestOfSample?.client_id || '',
     clientMode: retestOfSample?.client_id ? 'existing' : 'none',
@@ -256,6 +258,7 @@ export function CreateSampleDialog({
         selectedHorses: initialHorses,
         collection_date: new Date(),
         daily_number: '',
+        per_sample_daily_numbers: {},
         physical_sample_id: retestOfSample?.physical_sample_id ? `${retestOfSample.physical_sample_id}-R${(retestOfSample.retest_count || 0) + 1}` : '',
         client_id: retestOfSample?.client_id || '',
         clientMode: initialClientMode,
@@ -347,8 +350,13 @@ export function CreateSampleDialog({
     
     for (let i = 0; i < horsesToProcess.length; i++) {
       const selectedHorse = horsesToProcess[i];
-      const baseDailyNumber = formData.daily_number ? parseInt(formData.daily_number, 10) : undefined;
-      const dailyNumber = baseDailyNumber !== undefined ? baseDailyNumber + i : undefined;
+      // Use per-sample daily number if set, otherwise fallback to base + index
+      let dailyNumber: number | undefined;
+      if (formData.per_sample_daily_numbers[i]) {
+        dailyNumber = parseInt(formData.per_sample_daily_numbers[i], 10);
+      } else if (formData.daily_number) {
+        dailyNumber = parseInt(formData.daily_number, 10) + i;
+      }
       
       const sampleData: CreateLabSampleData = {
         horse_id: selectedHorse.horse_type === 'internal' ? selectedHorse.horse_id : undefined,

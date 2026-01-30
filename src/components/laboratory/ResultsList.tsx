@@ -1,15 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useLabResults, type LabResultStatus, type LabResultFlags, type LabResult } from "@/hooks/laboratory/useLabResults";
-import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
+import { useLabSamples, type LabSample, type LabSampleStatus } from "@/hooks/laboratory/useLabSamples";
 import { ResultsFilterTabs, type ResultFilterTab } from "./ResultsFilterTabs";
 import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { ResultsTable } from "./ResultsTable";
-import { DateRangeFilter } from "./DateRangeFilter";
+import { AdvancedFilters } from "./AdvancedFilters";
 import { ViewSwitcher, getGridClass, type ViewMode as DisplayMode } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -18,7 +17,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, 
-  Search, 
   FileText, 
   CheckCircle2, 
   Eye,
@@ -59,16 +57,25 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
   const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>('samples');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [activeTab, setActiveTab] = useState<ResultFilterTab>('all');
-  const [flagsFilter, setFlagsFilter] = useState<LabResultFlags | 'all'>('all');
   const [search, setSearch] = useState("");
   const [selectedSample, setSelectedSample] = useState<LabSample | null>(null);
   
-  // Date range filters
+  // Advanced filters
   const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
   const [dateTo, setDateTo] = useState<string | undefined>(undefined);
+  const [clientId, setClientId] = useState<string | undefined>(undefined);
+  const [horseId, setHorseId] = useState<string | undefined>(undefined);
+  const [selectedStatuses, setSelectedStatuses] = useState<LabSampleStatus[]>([]);
   
   // View preference (Grid/List/Table)
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-results');
+
+  // Status options for result statuses (different from sample)
+  const statusOptions: { value: LabSampleStatus; label: string }[] = [
+    { value: 'draft' as LabSampleStatus, label: t("laboratory.resultStatus.draft") },
+    { value: 'processing' as LabSampleStatus, label: t("laboratory.resultStatus.reviewed") },
+    { value: 'completed' as LabSampleStatus, label: t("laboratory.resultStatus.final") },
+  ];
 
   // Get status filter from tab
   const getStatusFromTab = (tab: ResultFilterTab): LabResultStatus | undefined => {
@@ -78,15 +85,23 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     return undefined;
   };
 
+  const handleClearAllFilters = useCallback(() => {
+    setSearch("");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setClientId(undefined);
+    setHorseId(undefined);
+    setSelectedStatuses([]);
+  }, []);
+
   const { 
-    results, 
+    results: rawResults, 
     loading: resultsLoading, 
     canManage,
     reviewResult,
     finalizeResult,
   } = useLabResults({ 
     status: getStatusFromTab(activeTab),
-    flags: flagsFilter !== 'all' ? flagsFilter : undefined,
     dateFrom,
     dateTo,
   });
@@ -100,11 +115,44 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
-  // Group results by sample
+  // Apply client/horse filters client-side and group results by sample
   const samplesWithResults = useMemo((): SampleWithResults[] => {
+    // Filter results first
+    let filteredResults = rawResults;
+    
+    // Client filter
+    if (clientId) {
+      filteredResults = filteredResults.filter(r => {
+        const sample = samples.find(s => s.id === r.sample_id);
+        return sample?.client_id === clientId;
+      });
+    }
+    
+    // Horse filter
+    if (horseId) {
+      filteredResults = filteredResults.filter(r => {
+        const sample = samples.find(s => s.id === r.sample_id);
+        return sample?.horse_id === horseId;
+      });
+    }
+    
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredResults = filteredResults.filter(r => {
+        const sample = samples.find(s => s.id === r.sample_id);
+        const horseName = sample?.horse?.name?.toLowerCase() || (sample as any)?.horse_name?.toLowerCase() || '';
+        const sampleId = sample?.physical_sample_id?.toLowerCase() || '';
+        const templateName = r.template?.name?.toLowerCase() || '';
+        return horseName.includes(searchLower) || 
+               sampleId.includes(searchLower) || 
+               templateName.includes(searchLower);
+      });
+    }
+    
     // Create a map of sample_id -> results
     const resultsBySample = new Map<string, LabResult[]>();
-    results.forEach(r => {
+    filteredResults.forEach(r => {
       const existing = resultsBySample.get(r.sample_id) || [];
       existing.push(r);
       resultsBySample.set(r.sample_id, existing);
@@ -114,7 +162,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     const groups: SampleWithResults[] = [];
     
     // Get unique sample IDs from results
-    const sampleIds = new Set(results.map(r => r.sample_id));
+    const sampleIds = new Set(filteredResults.map(r => r.sample_id));
     
     sampleIds.forEach(sampleId => {
       const sample = samples.find(s => s.id === sampleId);
@@ -143,7 +191,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     });
 
     return groups;
-  }, [results, samples, sortOrder]);
+  }, [rawResults, samples, sortOrder, clientId, horseId, search]);
 
   // Filter by "today" tab
   const filteredGroups = useMemo(() => {
@@ -160,23 +208,8 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
       });
     }
 
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(g => {
-        const horseName = g.sample.horse?.name?.toLowerCase() || '';
-        const sampleId = g.sample.physical_sample_id?.toLowerCase() || '';
-        const templateNames = g.results
-          .map(r => r.template?.name?.toLowerCase() || '')
-          .join(' ');
-        return horseName.includes(searchLower) || 
-               sampleId.includes(searchLower) || 
-               templateNames.includes(searchLower);
-      });
-    }
-
     return filtered;
-  }, [samplesWithResults, activeTab, search]);
+  }, [samplesWithResults, activeTab]);
 
   const getOverallStatus = (group: SampleWithResults): { label: string; color: string } => {
     if (group.allFinal) {
@@ -262,32 +295,39 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
           onTabChange={setActiveTab}
         />
 
-        {/* Secondary Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="relative flex-1 max-w-sm">
-            <Search className={cn(
-              "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground",
-              dir === 'rtl' ? 'right-3' : 'left-3'
-            )} />
-            <Input
-              placeholder={t("laboratory.results.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={cn(dir === 'rtl' ? 'pr-9' : 'pl-9')}
-            />
-          </div>
-          {canManage && onCreateResult && (
+        {/* Advanced Filters */}
+        <AdvancedFilters
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={t("laboratory.results.searchPlaceholder")}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          clientId={clientId}
+          onClientChange={setClientId}
+          horseId={horseId}
+          onHorseChange={setHorseId}
+          selectedStatuses={selectedStatuses}
+          onStatusesChange={setSelectedStatuses}
+          statusOptions={statusOptions}
+          onClearAll={handleClearAllFilters}
+        />
+
+        {/* Create Button */}
+        {canManage && onCreateResult && (
+          <div className="flex justify-end">
             <Button onClick={onCreateResult}>
               <Plus className="h-4 w-4 me-2" />
               {t("laboratory.results.newResult")}
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Client Grouped View */}
         {groupViewMode === 'clients' && (
           <ResultsClientGroupedView 
-            results={results}
+            results={rawResults}
             samples={samples}
             onSampleClick={(sampleId) => {
               const sample = samples.find(s => s.id === sampleId);
