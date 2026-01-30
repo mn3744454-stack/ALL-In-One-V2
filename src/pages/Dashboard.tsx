@@ -100,9 +100,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Desktop Header - Single row */}
-          <div className="hidden lg:flex items-center justify-between h-16 px-8">
-            <div className="flex items-center gap-3 min-w-0">
+          {/* Desktop Header - Responsive layout to prevent overlap */}
+          <div className="hidden lg:flex flex-wrap items-center justify-between gap-4 min-h-16 py-3 px-8">
+            {/* Left side: Workspace and Tenant controls */}
+            <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
               {/* Workspace Mode Toggle */}
               <WorkspaceModeToggle />
               {/* Tenant Switcher - only in organization mode */}
@@ -114,14 +115,15 @@ const Dashboard = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Search */}
+            {/* Right side: Search and actions */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Search - constrained width */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder={t("dashboard.searchPlaceholder")}
-                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  className="w-48 xl:w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
               

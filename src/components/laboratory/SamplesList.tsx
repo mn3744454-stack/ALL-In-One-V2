@@ -108,6 +108,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     completeSample,
     cancelSample,
     createRetest,
+    deleteSample,
   } = useLabSamples({ 
     status: statusFilter !== 'all' ? statusFilter : undefined,
     search: search || undefined,
@@ -115,6 +116,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     dateTo,
     ...tabFilters,
   });
+
+  // Handler for sample deletion
+  const handleDeleteSample = async (sample: LabSample) => {
+    await deleteSample(sample.id);
+  };
 
   // Fetch all results to calculate progress per sample
   const { results, reviewResult, finalizeResult } = useLabResults();
@@ -302,6 +308,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           onRetest={(sample) => createRetest(sample.id)}
           onViewAllResults={(sample) => setCombinedResultsSample(sample)}
           onGenerateInvoice={handleGenerateInvoice}
+          onEdit={(sample) => {
+            // TODO: Open edit dialog for sample
+            console.log("Edit sample:", sample.id);
+          }}
+          onDelete={handleDeleteSample}
         />
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>

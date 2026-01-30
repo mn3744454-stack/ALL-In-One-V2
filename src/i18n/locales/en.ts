@@ -507,11 +507,14 @@ export const en = {
     
     // Sample Actions
     sampleActions: {
-      accession: "Accession",
+      accession: "Receive",
       startProcessing: "Start Processing",
-      complete: "Complete",
+      complete: "Complete Analysis",
       cancel: "Cancel",
       createRetest: "Create Retest",
+      edit: "Edit Sample",
+      delete: "Delete Sample",
+      confirmDelete: "Are you sure you want to delete this sample? This action cannot be undone.",
     },
     
     // Results List & Card
@@ -844,12 +847,14 @@ export const en = {
       status: "Status",
       collectionDate: "Collection Date",
       templates: "Templates",
+      results: "Results",
       actions: "Actions",
       resultDate: "Result Date",
       template: "Template",
       flags: "Flags",
       createdBy: "Created By",
     },
+    
     
     // Progress Stepper
     progress: {

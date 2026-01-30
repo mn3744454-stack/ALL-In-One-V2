@@ -13,12 +13,15 @@ interface MultiHorseSelectorProps {
   selectedHorseIds: string[];
   onSelectionChange: (horses: Array<{ id: string; name: string }>) => void;
   disabled?: boolean;
+  /** When true, hides long IDs (passport, microchip) in the list - used in Create Sample Step 1 */
+  hideIds?: boolean;
 }
 
 export function MultiHorseSelector({ 
   selectedHorseIds, 
   onSelectionChange,
-  disabled = false 
+  disabled = false,
+  hideIds = false,
 }: MultiHorseSelectorProps) {
   const { t, dir } = useI18n();
   const { horses, loading } = useHorses();
@@ -145,6 +148,12 @@ export function MultiHorseSelector({
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{horse.name}</div>
+                    {/* Only show IDs when hideIds is false */}
+                    {!hideIds && (horse.passport_number || horse.microchip_number) && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {horse.passport_number || horse.microchip_number}
+                      </div>
+                    )}
                   </div>
                   {horse.gender && (
                     <Badge variant="outline" className="text-xs shrink-0">
