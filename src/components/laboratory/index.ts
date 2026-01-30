@@ -29,3 +29,4 @@ export * from "./WalkInHorseForm";
 export * from "./TemplateDetailsDialog";
 export * from "./WalkInClientForm";
 export * from "./DateRangeFilter";
+export * from "./AdvancedFilters";
