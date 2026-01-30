@@ -207,14 +207,20 @@ export const useDeletePost = () => {
 export const useLikePost = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceMode, activeTenant } = useTenant();
 
   return useMutation({
     mutationFn: async (postId: string) => {
       if (!user) throw new Error("Not authenticated");
 
+      // Set tenant_id based on workspace mode
+      const tenant_id = workspaceMode === "organization" && activeTenant?.tenant.id
+        ? activeTenant.tenant.id
+        : null;
+
       const { error } = await supabase
         .from("post_likes")
-        .insert({ post_id: postId, user_id: user.id });
+        .insert({ post_id: postId, user_id: user.id, tenant_id });
 
       if (error) throw error;
     },

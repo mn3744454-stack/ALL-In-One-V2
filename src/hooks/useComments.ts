@@ -47,6 +47,7 @@ export const usePostComments = (postId: string | undefined) => {
 export const useCreateComment = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { workspaceMode, activeTenant } = useTenant();
 
   return useMutation({
     mutationFn: async ({
@@ -58,12 +59,18 @@ export const useCreateComment = () => {
     }) => {
       if (!user) throw new Error("Not authenticated");
 
+      // Set tenant_id based on workspace mode
+      const tenant_id = workspaceMode === "organization" && activeTenant?.tenant.id
+        ? activeTenant.tenant.id
+        : null;
+
       const { data, error } = await supabase
         .from("post_comments")
         .insert({
           post_id: postId,
           author_id: user.id,
           content,
+          tenant_id,
         })
         .select()
         .single();
