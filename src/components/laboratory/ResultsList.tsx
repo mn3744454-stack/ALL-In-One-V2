@@ -245,12 +245,12 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
             {sortOrder === 'asc' ? (
               <>
                 <ArrowUp className="h-4 w-4 me-1.5" />
-                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortAsc")}</span>
+                <span className="hidden sm:inline">{t("common.sortAsc")}</span>
               </>
             ) : (
               <>
                 <ArrowDown className="h-4 w-4 me-1.5" />
-                <span className="hidden sm:inline">{t("laboratory.clientGrouped.sortDesc")}</span>
+                <span className="hidden sm:inline">{t("common.sortDesc")}</span>
               </>
             )}
           </Button>
@@ -319,7 +319,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredGroups.map((group) => {
               const { sample, results: sampleResults, templateCount, completedCount } = group;
-              const horseName = sample.horse?.name || t("laboratory.results.unknownHorse");
+              const horseName = sample.horse?.name || (sample as any).horse_name || t("laboratory.results.unknownHorse");
               const horseInitials = horseName.slice(0, 2).toUpperCase();
               const progressPercent = templateCount > 0 ? (completedCount / templateCount) * 100 : 0;
               const status = getOverallStatus(group);

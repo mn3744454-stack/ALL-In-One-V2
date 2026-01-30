@@ -49,6 +49,13 @@ export const en = {
     unknownOrganization: "Unknown Organization",
     select: "Select",
     noPreference: "No Preference",
+    sortAsc: "Ascending",
+    sortDesc: "Descending",
+    comingSoon: "Coming Soon",
+  },
+  workspace: {
+    personal: "Personal",
+    organization: "Organization",
   },
   settings: {
     permissionsRoles: {
@@ -2709,6 +2716,8 @@ export const en = {
   
   // Auth Page
   auth: {
+    logoutConfirmTitle: "Sign Out",
+    logoutConfirmMessage: "Are you sure you want to sign out?",
     welcomeBackTitle: "Welcome back",
     createAccount: "Create your account",
     startManaging: "Start managing your equestrian business today",

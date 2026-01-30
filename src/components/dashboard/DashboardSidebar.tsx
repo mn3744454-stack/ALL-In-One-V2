@@ -1,17 +1,20 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import Logo from "@/components/Logo";
 import { NavGroup } from "@/components/dashboard/NavGroup";
+import { LogoutConfirmDialog } from "@/components/LogoutConfirmDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
+import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES } from "@/navigation/workspaceNavConfig";
 import { Users as UsersIcon } from "lucide-react";
 import {
   Building2,
@@ -129,8 +132,9 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { signOut, profile } = useAuth();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant, activeRole, workspaceMode } = useTenant();
   const { horses } = useHorses();
+  const { hasPermission } = usePermissions();
   const { 
     labMode, 
     isLabTenant,
@@ -140,6 +144,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     breedingEnabled 
   } = useModuleAccess();
   const { t, dir } = useI18n();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -196,11 +201,29 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
   const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
 
-  const handleSignOut = async () => {
+  const handleSignOutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleSignOutConfirm = async () => {
+    setShowLogoutConfirm(false);
     await signOut();
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Check if module is enabled
+  const isModuleEnabled = (moduleKey?: string): boolean => {
+    if (!moduleKey) return true;
+    switch (moduleKey) {
+      case "breeding": return breedingEnabled;
+      case "vet": return vetEnabled;
+      case "lab": return labMode !== "none";
+      case "movement": return movementEnabled;
+      case "housing": return housingEnabled;
+      default: return true;
+    }
+  };
 
   // RTL-aware sidebar positioning
   const sidebarPositionClasses = dir === 'rtl'
@@ -453,7 +476,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start gap-2 text-navy/60 hover:text-navy hover:bg-navy/5"
-                onClick={handleSignOut}
+                onClick={handleSignOutClick}
               >
                 <LogOut className="w-4 h-4" />
                 {t('sidebar.signOut')}
@@ -462,6 +485,13 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           </div>
         </div>
       </aside>
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={handleSignOutConfirm}
+      />
 
       {/* Mobile Overlay */}
       {isOpen && (
