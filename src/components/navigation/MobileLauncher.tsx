@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
-import { NAV_MODULES, type NavModule, type NavModuleChild } from "@/navigation/navConfig";
+import { usePermissions } from "@/hooks/usePermissions";
+import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES, type WorkspaceNavModule, type NavModuleChild } from "@/navigation/workspaceNavConfig";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft, FlaskConical } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 interface MobileLauncherProps {
   open: boolean;
@@ -20,37 +20,43 @@ interface MobileLauncherProps {
 export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   const { t, dir } = useI18n();
   const navigate = useNavigate();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant, activeRole, workspaceMode } = useTenant();
   const { horses } = useHorses();
+  const { hasPermission } = usePermissions();
   const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, isLabTenant } = useModuleAccess();
-  const [selectedModule, setSelectedModule] = useState<NavModule | null>(null);
+  const [selectedModule, setSelectedModule] = useState<WorkspaceNavModule | null>(null);
 
   const isRTL = dir === "rtl";
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
 
-  // Filter modules based on role, tenant type, and module access
-  const visibleModules = NAV_MODULES.filter((mod) => {
-    // For Lab tenants, hide horses and show lab sections instead
-    if (isLabTenant && labMode === 'full') {
-      // Hide horses group for lab tenants
+  // Get nav modules based on workspace mode
+  const navModules = workspaceMode === "personal" ? PERSONAL_NAV_MODULES : ORG_NAV_MODULES;
+
+  // Filter modules based on role, tenant type, module access, and permissions
+  const visibleModules = navModules.filter((mod) => {
+    // For Lab tenants in org mode, hide horses and show lab sections instead
+    if (workspaceMode === "organization" && isLabTenant && labMode === 'full') {
       if (mod.key === 'horses') return false;
-      // Hide standalone lab module (we show sections instead)
-      if (mod.key === 'lab') return false;
+    }
+
+    // In org mode, require activeTenant
+    if (workspaceMode === "organization" && !activeTenant) {
+      // Only show dashboard in org mode without tenant
+      return mod.key === "dashboard";
     }
 
     // Role check
-    if (mod.roles && !mod.roles.includes(activeRole || "")) {
-      if (!activeTenant) return false;
-      return false;
+    if (mod.roles && workspaceMode === "organization") {
+      if (!mod.roles.includes(activeRole || "")) return false;
     }
 
     // Tenant type check
-    if (mod.tenantType && activeTenant?.tenant.type !== mod.tenantType) {
-      return false;
+    if (mod.tenantType && workspaceMode === "organization") {
+      if (activeTenant?.tenant.type !== mod.tenantType) return false;
     }
 
     // Module access check
-    if (mod.moduleKey) {
+    if (mod.moduleKey && workspaceMode === "organization") {
       switch (mod.moduleKey) {
         case "breeding":
           if (!breedingEnabled) return false;
@@ -68,6 +74,11 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
           if (!housingEnabled) return false;
           break;
       }
+    }
+
+    // Permission check (only in organization mode)
+    if (mod.permissionKey && workspaceMode === "organization") {
+      if (!hasPermission(mod.permissionKey)) return false;
     }
 
     return true;
@@ -90,11 +101,15 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
             return housingEnabled;
         }
       }
+      // Permission check for children
+      if (child.permissionKey && workspaceMode === "organization") {
+        if (!hasPermission(child.permissionKey)) return false;
+      }
       return true;
     });
   };
 
-  const handleModuleClick = (mod: NavModule) => {
+  const handleModuleClick = (mod: WorkspaceNavModule) => {
     if (mod.children && mod.children.length > 0) {
       setSelectedModule(mod);
     } else if (mod.route) {
@@ -122,8 +137,8 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   // Module grid view
   const ModuleGrid = () => (
     <div className="grid grid-cols-3 gap-3 p-4">
-      {/* For Lab tenants, show Lab sections first */}
-      {isLabTenant && labMode === 'full' && LAB_NAV_SECTIONS.map((section) => {
+      {/* For Lab tenants in org mode, show Lab sections first */}
+      {workspaceMode === "organization" && isLabTenant && labMode === 'full' && LAB_NAV_SECTIONS.map((section) => {
         const Icon = section.icon;
         return (
           <button
@@ -150,7 +165,6 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
       {/* Regular modules */}
       {visibleModules.map((mod) => {
         const Icon = mod.icon;
-        const hasChildren = mod.children && mod.children.length > 0;
 
         return (
           <button

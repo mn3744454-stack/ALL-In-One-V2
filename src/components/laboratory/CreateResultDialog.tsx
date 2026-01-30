@@ -62,7 +62,7 @@ export function CreateResultDialog({
   onSuccess,
 }: CreateResultDialogProps) {
   const { t } = useI18n();
-  const { samples } = useLabSamples({ status: 'processing' });
+  const { samples: allSamples } = useLabSamples({ status: 'processing' });
   const { activeTemplates } = useLabTemplates();
   const { results, createResult, updateResult, refresh: refreshResults } = useLabResults();
 
@@ -75,6 +75,28 @@ export function CreateResultDialog({
   const [interpretation, setInterpretation] = useState('');
   const [editingResultId, setEditingResultId] = useState<string | null>(null);
   const [savedInSession, setSavedInSession] = useState<string[]>([]);
+  const [sampleSearch, setSampleSearch] = useState('');
+
+  // Filter out fully completed samples (results_count >= templates_count)
+  const samples = useMemo(() => {
+    return allSamples.filter(sample => {
+      const templateCount = sample.templates?.length || 0;
+      const resultsCount = results.filter(r => r.sample_id === sample.id).length;
+      // Only show samples that still have pending templates
+      return templateCount === 0 || resultsCount < templateCount;
+    });
+  }, [allSamples, results]);
+
+  // Filter samples by search
+  const filteredSamples = useMemo(() => {
+    if (!sampleSearch.trim()) return samples;
+    const search = sampleSearch.toLowerCase();
+    return samples.filter(sample => {
+      const horseName = (sample.horse?.name || sample.horse_name || '').toLowerCase();
+      const physicalId = (sample.physical_sample_id || '').toLowerCase();
+      return horseName.includes(search) || physicalId.includes(search);
+    });
+  }, [samples, sampleSearch]);
 
   // Get ordered templates for the selected sample
   const orderedTemplates = useMemo(() => {
@@ -365,16 +387,26 @@ export function CreateResultDialog({
               اختر عينة في مرحلة المعالجة / Select a sample that is currently being processed.
             </p>
             
-            {samples.length === 0 ? (
+            {/* Search Input */}
+            <Input
+              placeholder={t("laboratory.results.searchSamples") || "البحث بالخيل أو رقم العينة..."}
+              value={sampleSearch}
+              onChange={(e) => setSampleSearch(e.target.value)}
+              className="w-full"
+            />
+            
+            {filteredSamples.length === 0 ? (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  لا توجد عينات في مرحلة المعالجة. ابدأ بمعالجة عينة أولاً.
+                  {sampleSearch 
+                    ? "لا توجد عينات مطابقة للبحث."
+                    : "لا توجد عينات في مرحلة المعالجة أو جميعها مكتملة."}
                 </AlertDescription>
               </Alert>
             ) : (
-              <div className="grid gap-3">
-                {samples.map((sample) => {
+              <div className="grid gap-3 max-h-[40vh] overflow-y-auto">
+                {filteredSamples.map((sample) => {
                   const sampleTemplateCount = sample.templates?.length || 0;
                   const sampleResultsCount = results.filter(r => r.sample_id === sample.id).length;
                   

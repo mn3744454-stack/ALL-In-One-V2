@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Home, Heart, Calendar, LayoutGrid, FlaskConical, FileText } from "lucide-react";
+import { Home, Heart, Calendar, LayoutGrid, FlaskConical, FileText, MessageSquare, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 interface MobileBottomNavProps {
@@ -14,14 +15,26 @@ export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t, dir } = useI18n();
+  const { workspaceMode } = useTenant();
   const { isLabTenant, labMode } = useModuleAccess();
 
   // Hide this nav on Lab pages when labMode=full (LabBottomNavigation handles it)
   const isOnLabPage = location.pathname.startsWith('/dashboard/laboratory');
   const shouldHideForLabPage = isLabTenant && labMode === 'full' && isOnLabPage;
 
-  // Define items based on tenant type
+  // Define items based on workspace mode and tenant type
   const items = useMemo(() => {
+    // Personal workspace mode - user-centric items
+    if (workspaceMode === "personal") {
+      return [
+        { key: "home", icon: Home, labelKey: "nav.home", route: "/dashboard", tab: null },
+        { key: "community", icon: MessageSquare, labelKey: "sidebar.community", route: "/community", tab: null },
+        { key: "bookings", icon: Ticket, labelKey: "sidebar.myBookings", route: "/dashboard/my-bookings", tab: null },
+        { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null, tab: null },
+      ];
+    }
+
+    // Organization workspace mode
     if (isLabTenant && labMode === 'full') {
       // Lab tenant: Home, Samples, Results, More
       return [
@@ -31,14 +44,15 @@ export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
         { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null, tab: null },
       ];
     }
-    // Default: stable-centric items
+    
+    // Default: stable-centric items for organization mode
     return [
       { key: "home", icon: Home, labelKey: "nav.home", route: "/dashboard", tab: null },
       { key: "horses", icon: Heart, labelKey: "sidebar.horses", route: "/dashboard/horses", tab: null },
       { key: "schedule", icon: Calendar, labelKey: "sidebar.schedule", route: "/dashboard/schedule", tab: null },
       { key: "more", icon: LayoutGrid, labelKey: "nav.more", route: null, tab: null },
     ];
-  }, [isLabTenant, labMode]);
+  }, [workspaceMode, isLabTenant, labMode]);
 
   const isActive = (route: string | null, tab: string | null) => {
     if (!route) return false;

@@ -145,9 +145,6 @@ export function MultiHorseSelector({
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{horse.name}</div>
-                    {horse.name_ar && (
-                      <div className="text-xs text-muted-foreground truncate">{horse.name_ar}</div>
-                    )}
                   </div>
                   {horse.gender && (
                     <Badge variant="outline" className="text-xs shrink-0">

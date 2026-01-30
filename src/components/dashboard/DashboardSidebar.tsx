@@ -260,6 +260,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
           {/* Navigation */}
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            {/* Dashboard - always visible */}
             <NavItem
               icon={Home}
               label={t('sidebar.dashboard')}
@@ -267,189 +268,248 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               active={isActive("/dashboard")}
               onNavigate={onClose}
             />
-            <NavItem
-              icon={MessageSquare}
-              label={t('sidebar.community')}
-              href="/community"
-              active={isActive("/community")}
-              onNavigate={onClose}
-            />
-            <NavItem
-              icon={Ticket}
-              label={t('sidebar.myBookings')}
-              href="/dashboard/my-bookings"
-              active={isActive("/dashboard/my-bookings")}
-              onNavigate={onClose}
-            />
-            <NavItem
-              icon={CreditCard}
-              label={t('sidebar.payments')}
-              href="/dashboard/payments"
-              active={isActive("/dashboard/payments")}
-              onNavigate={onClose}
-            />
 
-            {/* LAB TENANT PRIMARY NAV - Lab sections as top-level items */}
-            {isLabTenant && labMode === 'full' && (
+            {/* PERSONAL WORKSPACE MODE - show personal nav items */}
+            {workspaceMode === "personal" && (
               <>
-                {LAB_NAV_SECTIONS.map((section) => (
-                  <NavItem
-                    key={section.key}
-                    icon={section.icon}
-                    label={t(section.labelKey)}
-                    href={section.route}
-                    active={isLabTabActive(section.tab)}
-                    onNavigate={onClose}
-                  />
-                ))}
+                <NavItem
+                  icon={MessageSquare}
+                  label={t('sidebar.community')}
+                  href="/community"
+                  active={isActive("/community")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={Ticket}
+                  label={t('sidebar.myBookings')}
+                  href="/dashboard/my-bookings"
+                  active={isActive("/dashboard/my-bookings")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={CreditCard}
+                  label={t('sidebar.myPayments')}
+                  href="/dashboard/my-payments"
+                  active={isActive("/dashboard/my-payments")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={Calendar}
+                  label={t('sidebar.schedule')}
+                  href="/dashboard/schedule"
+                  active={isActive("/dashboard/schedule")}
+                  onNavigate={onClose}
+                />
+                <NavItem
+                  icon={FileText}
+                  label={t('sidebar.records')}
+                  href="/dashboard/records"
+                  active={isActive("/dashboard/records")}
+                  onNavigate={onClose}
+                />
               </>
             )}
 
-            {/* Horses NavGroup - Only show for horse-owning tenant types (NOT lab tenants) */}
-            {isHorseOwningTenant && !isLabTenant && (
-              <NavGroup
-                icon={Heart}
-                label={t('sidebar.horses')}
-                items={horsesNavItems}
-                onNavigate={onClose}
-              />
-            )}
-
-            {/* Vet - Show for Clinic tenants even when not in horses group */}
-            {!isHorseOwningTenant && !isLabTenant && vetEnabled && (
-              <NavItem
-                icon={Stethoscope}
-                label={t('sidebar.vetHealth')}
-                href="/dashboard/vet"
-                active={isActive("/dashboard/vet")}
-                onNavigate={onClose}
-              />
-            )}
-
-            {/* Lab - Show for Clinic/other tenants as single entry (NOT for lab tenants who have expanded nav) */}
-            {!isHorseOwningTenant && !isLabTenant && labMode !== 'none' && (
-              <NavItem
-                icon={FlaskConical}
-                label={t('sidebar.laboratory')}
-                href="/dashboard/laboratory"
-                active={isActive("/dashboard/laboratory")}
-                onNavigate={onClose}
-              />
-            )}
-
-            <NavItem 
-              icon={Calendar} 
-              label={t('sidebar.schedule')} 
-              href="/dashboard/schedule"
-              active={isActive("/dashboard/schedule")}
-              onNavigate={onClose} 
-            />
-            <NavItem 
-              icon={FileText} 
-              label={t('sidebar.records')} 
-              href="/dashboard/records"
-              active={isActive("/dashboard/records")}
-              onNavigate={onClose} 
-            />
-            
-            {/* HR / Team NavGroup - for owners and managers */}
-            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavGroup
-                icon={Users}
-                label={t('sidebar.hr')}
-                items={hrNavItems}
-                onNavigate={onClose}
-              />
-            )}
-            
-            {/* Housing - for owners and managers AND if housing is enabled */}
-            {housingEnabled && ["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavItem
-                icon={Warehouse}
-                label={t('sidebar.housing')}
-                href="/dashboard/housing"
-                active={isActive("/dashboard/housing")}
-                onNavigate={onClose}
-              />
-            )}
-
-            {/* Services - for owners and managers */}
-            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavItem
-                icon={Package}
-                label={t('sidebar.services')}
-                href="/dashboard/services"
-                active={isActive("/dashboard/services")}
-                onNavigate={onClose}
-              />
-            )}
-            
-            {/* Finance NavGroup - for owners and managers */}
-            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavGroup
-                icon={Wallet}
-                label={t('finance.title')}
-                items={financeNavItems}
-                onNavigate={onClose}
-              />
-            )}
-
-            {/* Files - for owners and managers */}
-            {["owner", "manager"].includes(activeRole || "") && activeTenant && (
-              <NavItem
-                icon={FolderOpen}
-                label={t('files.title')}
-                href="/dashboard/files"
-                active={isActive("/dashboard/files")}
-                onNavigate={onClose}
-              />
-            )}
-
-            {/* Academy sessions & bookings - for academy owners/managers */}
-            {["owner", "manager"].includes(activeRole || "") &&
-              activeTenant?.tenant.type === "academy" && (
-                <>
+            {/* ORGANIZATION WORKSPACE MODE - show org nav items */}
+            {workspaceMode === "organization" && activeTenant && (
+              <>
+                {/* Community - requires permission */}
+                {hasPermission('community.view') && (
                   <NavItem
-                    icon={GraduationCap}
-                    label={t('sidebar.sessions')}
-                    href="/dashboard/academy/sessions"
-                    active={isActive("/dashboard/academy/sessions")}
+                    icon={MessageSquare}
+                    label={t('sidebar.community')}
+                    href="/community"
+                    active={isActive("/community")}
                     onNavigate={onClose}
                   />
+                )}
+                
+                {/* Bookings - requires permission */}
+                {hasPermission('bookings.view') && (
                   <NavItem
                     icon={Ticket}
-                    label={t('sidebar.manageBookings')}
-                    href="/dashboard/academy/bookings"
-                    active={isActive("/dashboard/academy/bookings")}
+                    label={t('sidebar.myBookings')}
+                    href="/dashboard/my-bookings"
+                    active={isActive("/dashboard/my-bookings")}
                     onNavigate={onClose}
                   />
-                </>
-              )}
+                )}
+                
+                {/* Payments - requires permission */}
+                {hasPermission('payments.view') && (
+                  <NavItem
+                    icon={CreditCard}
+                    label={t('sidebar.payments')}
+                    href="/dashboard/payments"
+                    active={isActive("/dashboard/payments")}
+                    onNavigate={onClose}
+                  />
+                )}
 
-            {/* Public Profile - only for owners */}
-            {activeRole === "owner" && activeTenant && (
-              <NavItem
-                icon={Globe}
-                label={t('sidebar.publicProfile')}
-                href="/dashboard/public-profile"
-                active={isActive("/dashboard/public-profile")}
-                onNavigate={onClose}
-                highlight={needsPublicProfileSetup}
-              />
-            )}
+                {/* LAB TENANT PRIMARY NAV - Lab sections as top-level items */}
+                {isLabTenant && labMode === 'full' && (
+                  <>
+                    {LAB_NAV_SECTIONS.map((section) => (
+                      <NavItem
+                        key={section.key}
+                        icon={section.icon}
+                        label={t(section.labelKey)}
+                        href={section.route}
+                        active={isLabTabActive(section.tab)}
+                        onNavigate={onClose}
+                      />
+                    ))}
+                  </>
+                )}
 
-            {activeRole === "owner" && activeTenant && (
-              <div className="pt-4 mt-4 border-t border-border/50">
+                {/* Horses NavGroup - Only show for horse-owning tenant types (NOT lab tenants) */}
+                {isHorseOwningTenant && !isLabTenant && (
+                  <NavGroup
+                    icon={Heart}
+                    label={t('sidebar.horses')}
+                    items={horsesNavItems}
+                    onNavigate={onClose}
+                  />
+                )}
+
+                {/* Vet - Show for Clinic tenants even when not in horses group */}
+                {!isHorseOwningTenant && !isLabTenant && vetEnabled && (
+                  <NavItem
+                    icon={Stethoscope}
+                    label={t('sidebar.vetHealth')}
+                    href="/dashboard/vet"
+                    active={isActive("/dashboard/vet")}
+                    onNavigate={onClose}
+                  />
+                )}
+
+                {/* Lab - Show for Clinic/other tenants as single entry (NOT for lab tenants who have expanded nav) */}
+                {!isHorseOwningTenant && !isLabTenant && labMode !== 'none' && (
+                  <NavItem
+                    icon={FlaskConical}
+                    label={t('sidebar.laboratory')}
+                    href="/dashboard/laboratory"
+                    active={isActive("/dashboard/laboratory")}
+                    onNavigate={onClose}
+                  />
+                )}
+
                 <NavItem 
-                  icon={Settings} 
-                  label={t('sidebar.settings')} 
-                  href="/dashboard/settings"
-                  active={isActive("/dashboard/settings")}
+                  icon={Calendar} 
+                  label={t('sidebar.schedule')} 
+                  href="/dashboard/schedule"
+                  active={isActive("/dashboard/schedule")}
                   onNavigate={onClose} 
                 />
-              </div>
+                <NavItem 
+                  icon={FileText} 
+                  label={t('sidebar.records')} 
+                  href="/dashboard/records"
+                  active={isActive("/dashboard/records")}
+                  onNavigate={onClose} 
+                />
+                
+                {/* HR / Team NavGroup - for owners and managers */}
+                {["owner", "manager"].includes(activeRole || "") && (
+                  <NavGroup
+                    icon={Users}
+                    label={t('sidebar.hr')}
+                    items={hrNavItems}
+                    onNavigate={onClose}
+                  />
+                )}
+                
+                {/* Housing - for owners and managers AND if housing is enabled */}
+                {housingEnabled && ["owner", "manager"].includes(activeRole || "") && (
+                  <NavItem
+                    icon={Warehouse}
+                    label={t('sidebar.housing')}
+                    href="/dashboard/housing"
+                    active={isActive("/dashboard/housing")}
+                    onNavigate={onClose}
+                  />
+                )}
+
+                {/* Services - for owners and managers */}
+                {["owner", "manager"].includes(activeRole || "") && (
+                  <NavItem
+                    icon={Package}
+                    label={t('sidebar.services')}
+                    href="/dashboard/services"
+                    active={isActive("/dashboard/services")}
+                    onNavigate={onClose}
+                  />
+                )}
+                
+                {/* Finance NavGroup - for owners and managers */}
+                {["owner", "manager"].includes(activeRole || "") && (
+                  <NavGroup
+                    icon={Wallet}
+                    label={t('finance.title')}
+                    items={financeNavItems}
+                    onNavigate={onClose}
+                  />
+                )}
+
+                {/* Files - for owners and managers */}
+                {["owner", "manager"].includes(activeRole || "") && (
+                  <NavItem
+                    icon={FolderOpen}
+                    label={t('files.title')}
+                    href="/dashboard/files"
+                    active={isActive("/dashboard/files")}
+                    onNavigate={onClose}
+                  />
+                )}
+
+                {/* Academy sessions & bookings - for academy owners/managers */}
+                {["owner", "manager"].includes(activeRole || "") &&
+                  activeTenant?.tenant.type === "academy" && (
+                    <>
+                      <NavItem
+                        icon={GraduationCap}
+                        label={t('sidebar.sessions')}
+                        href="/dashboard/academy/sessions"
+                        active={isActive("/dashboard/academy/sessions")}
+                        onNavigate={onClose}
+                      />
+                      <NavItem
+                        icon={Ticket}
+                        label={t('sidebar.manageBookings')}
+                        href="/dashboard/academy/bookings"
+                        active={isActive("/dashboard/academy/bookings")}
+                        onNavigate={onClose}
+                      />
+                    </>
+                  )}
+
+                {/* Public Profile - only for owners */}
+                {activeRole === "owner" && (
+                  <NavItem
+                    icon={Globe}
+                    label={t('sidebar.publicProfile')}
+                    href="/dashboard/public-profile"
+                    active={isActive("/dashboard/public-profile")}
+                    onNavigate={onClose}
+                    highlight={needsPublicProfileSetup}
+                  />
+                )}
+
+                {activeRole === "owner" && (
+                  <div className="pt-4 mt-4 border-t border-border/50">
+                    <NavItem 
+                      icon={Settings} 
+                      label={t('sidebar.settings')} 
+                      href="/dashboard/settings"
+                      active={isActive("/dashboard/settings")}
+                      onNavigate={onClose} 
+                    />
+                  </div>
+                )}
+              </>
             )}
           </nav>
+
 
           {/* User Section with Language Selector */}
           <div className="p-4 border-t border-border/50 bg-white/30">
