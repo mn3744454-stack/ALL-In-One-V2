@@ -7,6 +7,7 @@ import { debugLog, debugError } from "@/lib/debug";
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
+export type WorkspaceMode = "personal" | "organization";
 
 interface Tenant {
   id: string;
@@ -45,6 +46,8 @@ interface TenantContextType {
   tenants: TenantMembership[];
   activeTenant: TenantMembership | null;
   activeRole: TenantRole | null;
+  workspaceMode: WorkspaceMode;
+  setWorkspaceMode: (mode: WorkspaceMode) => void;
   loading: boolean;
   tenantError: string | null;
   retryTenantFetch: () => void;
@@ -69,11 +72,21 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   const [tenants, setTenants] = useState<TenantMembership[]>([]);
   const [activeTenant, setActiveTenantState] = useState<TenantMembership | null>(null);
   const [activeRole, setActiveRoleState] = useState<TenantRole | null>(null);
+  const [workspaceMode, setWorkspaceModeState] = useState<WorkspaceMode>(() => {
+    const stored = localStorage.getItem("workspaceMode");
+    return (stored === "personal" || stored === "organization") ? stored : "organization";
+  });
   const [loading, setLoading] = useState(true);
   const [tenantError, setTenantError] = useState<string | null>(null);
   
   // Track if we've ever had a user - to distinguish "not logged in yet" from "logged out"
   const hadUserRef = useRef(false);
+
+  // Workspace mode setter with persistence
+  const setWorkspaceMode = useCallback((mode: WorkspaceMode) => {
+    setWorkspaceModeState(mode);
+    localStorage.setItem("workspaceMode", mode);
+  }, []);
 
   const fetchTenants = useCallback(async () => {
     log('fetchTenants start', { userId: user?.id });
@@ -174,9 +187,19 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
       setTenantError(null);
       localStorage.removeItem('activeTenantId');
+      localStorage.removeItem('workspaceMode');
+      setWorkspaceModeState("organization");
       hadUserRef.current = false;
     }
   }, [user, fetchTenants]);
+
+  // Set default workspace mode based on tenants
+  useEffect(() => {
+    if (!loading && tenants.length === 0) {
+      // No tenants => force personal mode
+      setWorkspaceMode("personal");
+    }
+  }, [loading, tenants.length, setWorkspaceMode]);
 
   const setActiveTenant = (tenantId: string) => {
     const membership = tenants.find((t) => t.tenant_id === tenantId);
@@ -379,6 +402,8 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         tenants,
         activeTenant,
         activeRole,
+        workspaceMode,
+        setWorkspaceMode,
         loading,
         tenantError,
         retryTenantFetch,

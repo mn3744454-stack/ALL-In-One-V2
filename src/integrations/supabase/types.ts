@@ -4068,6 +4068,7 @@ export type Database = {
           metadata: Json | null
           notes: string | null
           physical_sample_id: string | null
+          processing_started_at: string | null
           received_at: string | null
           received_by: string | null
           related_order_id: string | null
@@ -4101,6 +4102,7 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
+          processing_started_at?: string | null
           received_at?: string | null
           received_by?: string | null
           related_order_id?: string | null
@@ -4134,6 +4136,7 @@ export type Database = {
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
+          processing_started_at?: string | null
           received_at?: string | null
           received_by?: string | null
           related_order_id?: string | null
@@ -5129,6 +5132,7 @@ export type Database = {
           created_at: string
           id: string
           post_id: string
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -5137,6 +5141,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id: string
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -5145,6 +5150,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id?: string
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -5162,6 +5168,20 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "post_comments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_comments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
         ]
       }
       post_likes: {
@@ -5169,18 +5189,21 @@ export type Database = {
           created_at: string
           id: string
           post_id: string
+          tenant_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           post_id: string
+          tenant_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           post_id?: string
+          tenant_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -5189,6 +5212,20 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_likes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -5207,6 +5244,7 @@ export type Database = {
           created_at: string
           id: string
           media_urls: string[] | null
+          tenant_id: string | null
           updated_at: string
           visibility: Database["public"]["Enums"]["post_visibility"]
         }
@@ -5216,6 +5254,7 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: string[] | null
+          tenant_id?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["post_visibility"]
         }
@@ -5225,6 +5264,7 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: string[] | null
+          tenant_id?: string | null
           updated_at?: string
           visibility?: Database["public"]["Enums"]["post_visibility"]
         }
@@ -5234,6 +5274,20 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]

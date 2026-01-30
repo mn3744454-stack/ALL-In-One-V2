@@ -49,6 +49,13 @@ export const ar = {
     unknownOrganization: "منشأة غير معروفة",
     select: "اختر",
     noPreference: "بدون تفضيل",
+    sortAsc: "تصاعدي",
+    sortDesc: "تنازلي",
+    comingSoon: "قريباً",
+  },
+  workspace: {
+    personal: "شخصي",
+    organization: "منشأة",
   },
   settings: {
     permissionsRoles: {
@@ -2712,6 +2719,8 @@ export const ar = {
   
   // Auth Page
   auth: {
+    logoutConfirmTitle: "تسجيل الخروج",
+    logoutConfirmMessage: "هل أنت متأكد من رغبتك في تسجيل الخروج؟",
     welcomeBackTitle: "أهلاً بعودتك",
     createAccount: "إنشاء حسابك",
     startManaging: "ابدأ بإدارة أعمال الفروسية الخاصة بك اليوم",
