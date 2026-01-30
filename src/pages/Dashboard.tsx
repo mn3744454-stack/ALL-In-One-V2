@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { WorkspaceModeToggle } from "@/components/WorkspaceModeToggle";
 import { InvitationsPanel } from "@/components/InvitationsPanel";
 import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -37,7 +38,7 @@ const Dashboard = () => {
   const [launcherOpen, setLauncherOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
-  const { activeTenant, activeRole, tenants, loading: tenantsLoading } = useTenant();
+  const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { t, dir } = useI18n();
 
@@ -89,19 +90,28 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {/* Row 2: Account Name */}
-            <div className="flex items-center justify-between h-12 px-4">
-              <TenantSwitcher />
-              <RoleSwitcher />
+            {/* Row 2: Workspace + Account */}
+            <div className="flex items-center justify-between h-12 px-4 gap-2">
+              <WorkspaceModeToggle />
+              <div className="flex items-center gap-2">
+                <TenantSwitcher />
+                <RoleSwitcher />
+              </div>
             </div>
           </div>
 
           {/* Desktop Header - Single row */}
           <div className="hidden lg:flex items-center justify-between h-16 px-8">
             <div className="flex items-center gap-3 min-w-0">
-              {/* Tenant Switcher */}
-              <TenantSwitcher />
-              <RoleSwitcher />
+              {/* Workspace Mode Toggle */}
+              <WorkspaceModeToggle />
+              {/* Tenant Switcher - only in organization mode */}
+              {workspaceMode === "organization" && (
+                <>
+                  <TenantSwitcher />
+                  <RoleSwitcher />
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
