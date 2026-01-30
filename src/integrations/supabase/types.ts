@@ -7297,6 +7297,10 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      can_manage_community: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_horses: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
@@ -7318,6 +7322,10 @@ export type Database = {
         Returns: boolean
       }
       can_manage_tenant_services: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_community: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
