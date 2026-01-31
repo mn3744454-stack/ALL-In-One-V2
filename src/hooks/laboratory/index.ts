@@ -8,3 +8,4 @@ export * from "./useLabResultShares";
 export * from "./useHorseAliases";
 export * from "./useLabFeatures";
 export * from "./useLabInvoiceDraft";
+export * from "./useLabHorses";

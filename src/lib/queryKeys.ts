@@ -22,6 +22,8 @@ export const queryKeys = {
   // Laboratory
   labSamples: (tenantId?: string, filters?: Record<string, unknown>) => 
     ['lab-samples', tenantId, stableStringify(filters)] as const,
+  labHorses: (tenantId?: string, filters?: Record<string, unknown>) => 
+    ['lab-horses', tenantId, stableStringify(filters)] as const,
   labResults: (tenantId?: string) => ['lab-results', tenantId] as const,
   labRequests: (tenantId?: string) => ['lab-requests', tenantId] as const,
   labTemplates: (tenantId?: string) => ['lab-templates', tenantId] as const,
