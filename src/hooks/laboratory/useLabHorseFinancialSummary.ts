@@ -2,6 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 
+export interface LabHorseInvoiceItem {
+  itemId: string;
+  description: string;
+  sampleId: string;
+  sampleDailyNumber: number | null;
+  physicalSampleId: string | null;
+  templateNames: string[];
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
 export interface LabHorseInvoiceSummary {
   invoiceId: string;
   invoiceNumber: string;
@@ -9,6 +21,7 @@ export interface LabHorseInvoiceSummary {
   totalAmount: number;
   issueDate: string;
   clientName: string | null;
+  items: LabHorseInvoiceItem[];
 }
 
 export interface LabHorseFinancialSummary {
@@ -22,6 +35,7 @@ export interface LabHorseFinancialSummary {
 /**
  * Hook to fetch financial summary for a lab horse.
  * Uses the authoritative linkage: lab_samples → invoice_items (entity_type='lab_sample') → invoices
+ * Enhanced to include sample details for human-readable invoice item labels.
  */
 export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
   const { activeTenant } = useTenant();
@@ -34,10 +48,14 @@ export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
         return { totalSamples: 0, totalBilled: 0, totalPaid: 0, outstanding: 0, invoices: [] };
       }
 
-      // Step 1: Get all samples for this lab horse (tenant-scoped)
+      // Step 1: Get all samples for this lab horse
       const { data: samples, error: samplesError } = await supabase
         .from("lab_samples")
-        .select("id")
+        .select(`
+          id,
+          daily_number,
+          physical_sample_id
+        `)
         .eq("tenant_id", tenantId)
         .eq("lab_horse_id", labHorseId);
 
@@ -53,12 +71,17 @@ export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
         return { totalSamples: 0, totalBilled: 0, totalPaid: 0, outstanding: 0, invoices: [] };
       }
 
+      // Build sample lookup for quick access
+      const sampleMap = new Map(samples!.map(s => [s.id, s]));
+
       // Step 2: Get invoice_items where entity_type='lab_sample' and entity_id in sampleIds
-      // Also join to invoices to get status and details
       const { data: invoiceItems, error: itemsError } = await supabase
         .from("invoice_items")
         .select(`
           id,
+          description,
+          unit_price,
+          quantity,
           total_price,
           entity_id,
           invoice_id,
@@ -82,25 +105,43 @@ export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
       // Step 3: Aggregate financial data
       let totalBilled = 0;
       let totalPaid = 0;
-      const invoiceMap = new Map<string, LabHorseInvoiceSummary>();
+      const invoiceDataMap = new Map<string, LabHorseInvoiceSummary>();
 
       for (const item of invoiceItems || []) {
         const lineTotal = item.total_price || 0;
         totalBilled += lineTotal;
 
-        // Access the joined invoice data
         const invoice = item.invoice as any;
         if (invoice) {
+          // Get sample info for this item
+          const sample = sampleMap.get(item.entity_id);
+
+          // Create invoice item with sample details
+          const invoiceItem: LabHorseInvoiceItem = {
+            itemId: item.id,
+            description: item.description || '',
+            sampleId: item.entity_id,
+            sampleDailyNumber: sample?.daily_number || null,
+            physicalSampleId: sample?.physical_sample_id || null,
+            templateNames: [], // Will be populated from description or later
+            unitPrice: item.unit_price || 0,
+            quantity: item.quantity || 1,
+            totalPrice: lineTotal,
+          };
+
           // Track unique invoices
-          if (!invoiceMap.has(invoice.id)) {
-            invoiceMap.set(invoice.id, {
+          if (!invoiceDataMap.has(invoice.id)) {
+            invoiceDataMap.set(invoice.id, {
               invoiceId: invoice.id,
               invoiceNumber: invoice.invoice_number || '',
               status: invoice.status || 'draft',
               totalAmount: invoice.total_amount || 0,
               issueDate: invoice.issue_date || '',
               clientName: invoice.client_name || null,
+              items: [invoiceItem],
             });
+          } else {
+            invoiceDataMap.get(invoice.id)!.items.push(invoiceItem);
           }
 
           // If invoice is paid, count this line as paid
@@ -111,7 +152,7 @@ export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
       }
 
       const outstanding = totalBilled - totalPaid;
-      const invoices = Array.from(invoiceMap.values());
+      const invoices = Array.from(invoiceDataMap.values());
 
       return {
         totalSamples,
@@ -122,6 +163,6 @@ export function useLabHorseFinancialSummary(labHorseId: string | undefined) {
       };
     },
     enabled: !!tenantId && !!labHorseId,
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 30000,
   });
 }
