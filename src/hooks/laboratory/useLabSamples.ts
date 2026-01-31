@@ -26,6 +26,7 @@ export interface LabSample {
   id: string;
   tenant_id: string;
   horse_id: string | null;
+  lab_horse_id: string | null; // For lab tenants using lab_horses registry
   related_order_id: string | null;
   client_id: string | null;
   assigned_to: string | null;
@@ -58,6 +59,7 @@ export interface LabSample {
   client_metadata: Record<string, unknown> | null;
   // Joined fields
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
+  lab_horse?: { id: string; name: string; name_ar: string | null } | null; // Lab horses registry
   client?: { id: string; name: string } | null;
   assignee?: { id: string; full_name: string | null; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string | null };
@@ -167,6 +169,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         .select(`
           *,
           horse:horses!lab_samples_horse_id_fkey(id, name, name_ar, avatar_url),
+          lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar),
           client:clients!lab_samples_client_id_fkey(id, name),
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),

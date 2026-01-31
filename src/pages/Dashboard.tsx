@@ -12,6 +12,7 @@ import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleW
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
 import { MobileHomeGrid, MobileBottomNav, MobileLauncher } from "@/components/navigation";
+import { LogoutConfirmDialog } from "@/components/LogoutConfirmDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -36,6 +37,7 @@ import { LanguageSelector } from "@/components/ui/language-selector";
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
@@ -48,6 +50,13 @@ const Dashboard = () => {
 
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
+
+  // Handle logout with confirmation
+  const handleLogoutClick = () => setShowLogoutConfirm(true);
+  const handleLogoutConfirm = () => {
+    setShowLogoutConfirm(false);
+    signOut();
+  };
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   // Lab and Clinic tenants don't own horses - they provide services to horses
@@ -81,7 +90,7 @@ const Dashboard = () => {
                 
                 {/* Logout */}
                 <button
-                  onClick={() => signOut()}
+                  onClick={handleLogoutClick}
                   className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
                   aria-label="Sign out"
                 >
@@ -138,7 +147,7 @@ const Dashboard = () => {
               
               {/* Logout */}
               <button
-                onClick={() => signOut()}
+                onClick={handleLogoutClick}
                 className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
                 aria-label="Sign out"
               >
@@ -435,6 +444,13 @@ const Dashboard = () => {
       
       {/* Mobile Launcher Drawer */}
       <MobileLauncher open={launcherOpen} onOpenChange={setLauncherOpen} />
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={handleLogoutConfirm}
+      />
     </div>
   );
 };
