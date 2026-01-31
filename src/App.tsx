@@ -11,6 +11,7 @@ import { I18nProvider } from "@/i18n";
 import I18nRecoveryBoundary from "@/components/guards/I18nRecoveryBoundary";
 import { ModuleGuard } from "@/components/guards/ModuleGuard";
 import { WorkspaceRouteGuard } from "@/components/guards/WorkspaceRouteGuard";
+import { CommunityRouteGuard } from "@/components/guards/CommunityRouteGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SelectRole from "./pages/SelectRole";
