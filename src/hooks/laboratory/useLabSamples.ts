@@ -60,7 +60,7 @@ export interface LabSample {
   // Joined fields
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
   lab_horse?: { id: string; name: string; name_ar: string | null } | null; // Lab horses registry
-  client?: { id: string; name: string } | null;
+  client?: { id: string; name: string; name_ar?: string | null } | null;
   assignee?: { id: string; full_name: string | null; avatar_url: string | null } | null;
   creator?: { id: string; full_name: string | null };
   receiver?: { id: string; full_name: string | null } | null;
@@ -170,7 +170,7 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           *,
           horse:horses!lab_samples_horse_id_fkey(id, name, name_ar, avatar_url),
           lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar),
-          client:clients!lab_samples_client_id_fkey(id, name),
+          client:clients!lab_samples_client_id_fkey(id, name, name_ar),
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),
           receiver:profiles!lab_samples_received_by_fkey(id, full_name),

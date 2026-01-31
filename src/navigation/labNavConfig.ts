@@ -6,6 +6,7 @@ import {
   Settings,
   Clock,
   Users,
+  Heart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -35,6 +36,13 @@ export const LAB_NAV_SECTIONS: LabNavSection[] = [
     icon: FileText, 
     labelKey: "laboratory.nav.results",
     route: "/dashboard/laboratory?tab=results",
+  },
+  { 
+    key: "horses", 
+    tab: "horses", 
+    icon: Heart, 
+    labelKey: "laboratory.labHorses.title",
+    route: "/dashboard/laboratory?tab=horses",
   },
   { 
     key: "compare", 
