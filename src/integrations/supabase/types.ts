@@ -3680,6 +3680,96 @@ export type Database = {
           },
         ]
       }
+      lab_horses: {
+        Row: {
+          approx_age: string | null
+          breed_text: string | null
+          color_text: string | null
+          created_at: string
+          created_by: string | null
+          gender: string | null
+          id: string
+          is_archived: boolean
+          linked_at: string | null
+          linked_horse_id: string | null
+          metadata: Json
+          microchip_number: string | null
+          name: string
+          name_ar: string | null
+          notes: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          passport_number: string | null
+          source: string
+          tenant_id: string
+          ueln: string | null
+          updated_at: string
+        }
+        Insert: {
+          approx_age?: string | null
+          breed_text?: string | null
+          color_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          linked_at?: string | null
+          linked_horse_id?: string | null
+          metadata?: Json
+          microchip_number?: string | null
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          passport_number?: string | null
+          source?: string
+          tenant_id: string
+          ueln?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approx_age?: string | null
+          breed_text?: string | null
+          color_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          linked_at?: string | null
+          linked_horse_id?: string | null
+          metadata?: Json
+          microchip_number?: string | null
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          passport_number?: string | null
+          source?: string
+          tenant_id?: string
+          ueln?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_requests: {
         Row: {
           created_at: string | null
@@ -4065,6 +4155,7 @@ export type Database = {
           horse_metadata: Json | null
           horse_name: string | null
           id: string
+          lab_horse_id: string | null
           metadata: Json | null
           notes: string | null
           physical_sample_id: string | null
@@ -4099,6 +4190,7 @@ export type Database = {
           horse_metadata?: Json | null
           horse_name?: string | null
           id?: string
+          lab_horse_id?: string | null
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
@@ -4133,6 +4225,7 @@ export type Database = {
           horse_metadata?: Json | null
           horse_name?: string | null
           id?: string
+          lab_horse_id?: string | null
           metadata?: Json | null
           notes?: string | null
           physical_sample_id?: string | null
@@ -4181,6 +4274,13 @@ export type Database = {
             columns: ["horse_id"]
             isOneToOne: false
             referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_lab_horse_id_fkey"
+            columns: ["lab_horse_id"]
+            isOneToOne: false
+            referencedRelation: "lab_horses"
             referencedColumns: ["id"]
           },
           {

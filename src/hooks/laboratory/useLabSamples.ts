@@ -84,6 +84,7 @@ export interface CreateLabSampleData {
   horse_name?: string;
   horse_external_id?: string;
   horse_metadata?: Json;
+  lab_horse_id?: string; // For lab tenants using lab_horses registry
   daily_number?: number;
   related_order_id?: string;
   client_id?: string;

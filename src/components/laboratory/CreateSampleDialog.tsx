@@ -38,12 +38,14 @@ import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 import { HorseSelectionStep, type SelectedHorse } from "./HorseSelectionStep";
+import { LabHorsePicker } from "./LabHorsePicker";
 
 interface CreateSampleDialogProps {
   open: boolean;
@@ -112,6 +114,10 @@ export function CreateSampleDialog({
   const { activeTemplates, loading: templatesLoading } = useLabTemplates();
   const { getCapabilityForCategory } = useTenantCapabilities();
   const { hasPermission, isOwner } = usePermissions();
+  const { isLabTenant, labMode } = useModuleAccess();
+  
+  // Lab tenants with full mode use lab_horses instead of stable horses
+  const isPrimaryLabTenant = isLabTenant && labMode === 'full';
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -358,10 +364,19 @@ export function CreateSampleDialog({
         dailyNumber = parseInt(formData.daily_number, 10) + i;
       }
       
+      // Build sample data based on horse type
       const sampleData: CreateLabSampleData = {
+        // For lab_horse type, use lab_horse_id and also set horse_name for display
+        lab_horse_id: selectedHorse.horse_type === 'lab_horse' ? selectedHorse.horse_id : undefined,
+        // For internal horses, use horse_id FK
         horse_id: selectedHorse.horse_type === 'internal' ? selectedHorse.horse_id : undefined,
-        horse_name: selectedHorse.horse_type !== 'internal' ? selectedHorse.horse_name : undefined,
-        horse_external_id: selectedHorse.horse_type === 'walk_in' ? selectedHorse.horse_data?.passport_number : undefined,
+        // For walk-in and lab_horse, store name for display
+        horse_name: (selectedHorse.horse_type === 'walk_in' || selectedHorse.horse_type === 'lab_horse') 
+          ? selectedHorse.horse_name 
+          : undefined,
+        horse_external_id: selectedHorse.horse_type === 'walk_in' 
+          ? selectedHorse.horse_data?.passport_number 
+          : undefined,
         horse_metadata: selectedHorse.horse_type === 'walk_in' ? {
           microchip: selectedHorse.horse_data?.microchip,
           breed: selectedHorse.horse_data?.breed,
@@ -493,10 +508,18 @@ export function CreateSampleDialog({
       case 'horses':
         return (
           <div className="space-y-4">
-            <HorseSelectionStep
-              selectedHorses={formData.selectedHorses}
-              onHorsesChange={(horses) => setFormData(prev => ({ ...prev, selectedHorses: horses }))}
-            />
+            {/* Lab tenants use LabHorsePicker instead of stable horses */}
+            {isPrimaryLabTenant ? (
+              <LabHorsePicker
+                selectedHorses={formData.selectedHorses}
+                onHorsesChange={(horses) => setFormData(prev => ({ ...prev, selectedHorses: horses }))}
+              />
+            ) : (
+              <HorseSelectionStep
+                selectedHorses={formData.selectedHorses}
+                onHorsesChange={(horses) => setFormData(prev => ({ ...prev, selectedHorses: horses }))}
+              />
+            )}
           </div>
         );
 

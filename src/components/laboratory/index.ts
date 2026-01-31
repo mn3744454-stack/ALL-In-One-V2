@@ -30,3 +30,4 @@ export * from "./TemplateDetailsDialog";
 export * from "./WalkInClientForm";
 export * from "./DateRangeFilter";
 export * from "./AdvancedFilters";
+export * from "./LabHorsePicker";

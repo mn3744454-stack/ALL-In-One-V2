@@ -11,7 +11,7 @@ import { MultiHorseSelector } from "./MultiHorseSelector";
 import { WalkInHorseForm } from "./WalkInHorseForm";
 import { toast } from "sonner";
 
-export type HorseType = 'internal' | 'platform' | 'walk_in';
+export type HorseType = 'internal' | 'platform' | 'walk_in' | 'lab_horse';
 
 export interface SelectedHorse {
   horse_id?: string;
