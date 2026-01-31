@@ -265,7 +265,7 @@ const AppRoutes = () => {
         path="/dashboard/horses"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="horses.view">
               <DashboardHorses />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -309,7 +309,7 @@ const AppRoutes = () => {
         path="/dashboard/laboratory"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="laboratory.samples.view">
               <ModuleGuard module="laboratory">
                 <DashboardLaboratory />
               </ModuleGuard>
@@ -321,7 +321,7 @@ const AppRoutes = () => {
         path="/dashboard/hr"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="hr.view">
               <DashboardHR />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -331,7 +331,7 @@ const AppRoutes = () => {
         path="/dashboard/hr/settings"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="hr.manage">
               <DashboardHRSettings />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -341,7 +341,7 @@ const AppRoutes = () => {
         path="/dashboard/hr/attendance"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="hr.view">
               <DashboardHRAttendance />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -351,7 +351,7 @@ const AppRoutes = () => {
         path="/dashboard/hr/payroll"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="hr.manage">
               <DashboardHRPayroll />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -373,7 +373,7 @@ const AppRoutes = () => {
         path="/dashboard/housing"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="housing.view">
               <ModuleGuard module="housing">
                 <DashboardHousing />
               </ModuleGuard>
@@ -425,7 +425,7 @@ const AppRoutes = () => {
         path="/dashboard/schedule"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="schedule.view">
               <DashboardSchedule />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -445,7 +445,7 @@ const AppRoutes = () => {
         path="/dashboard/files"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="files.assets.manage">
               <DashboardFileManager />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -545,7 +545,9 @@ const AppRoutes = () => {
         path="/dashboard/horses/:id"
         element={
           <ProtectedRoute>
-            <HorseProfile />
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="horses.view">
+              <HorseProfile />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
@@ -553,7 +555,9 @@ const AppRoutes = () => {
         path="/community"
         element={
           <ProtectedRoute>
-            <CommunityFeed />
+            <CommunityRouteGuard>
+              <CommunityFeed />
+            </CommunityRouteGuard>
           </ProtectedRoute>
         }
       />
