@@ -128,7 +128,7 @@ export function ResultsTable({
         </TableHeader>
         <TableBody>
           {results.map((result, index) => {
-            const horseName = getResultHorseName(result, lang === 'ar' ? 'ar' : 'en', t("laboratory.results.unknownHorse"));
+            const horseName = getResultHorseName(result, lang === 'ar' ? 'ar' : 'en', t("laboratory.samples.unlinkedHorse"));
             const templateName = lang === 'ar' 
               ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
               : (result.template?.name || t("laboratory.results.unknownTemplate"));

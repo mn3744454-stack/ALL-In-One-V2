@@ -15,10 +15,12 @@ import {
   LabBottomNavigation,
   ResultsComparison,
   ResultPreviewDialog,
+  LabHorsesList,
+  LabHorseProfile,
 } from "@/components/laboratory";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList } from "lucide-react";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
@@ -48,8 +50,8 @@ export default function DashboardLaboratory() {
     if (labMode === 'requests') {
       return ['requests', 'settings'];
     }
-    // Full lab mode
-    return ['samples', 'results', 'compare', 'timeline', 'templates', 'settings'];
+    // Full lab mode - now includes 'horses'
+    return ['samples', 'results', 'horses', 'compare', 'timeline', 'templates', 'settings'];
   }, [labMode]);
 
   // Get active tab from URL, validate, or use first available (smart default)
@@ -82,6 +84,16 @@ export default function DashboardLaboratory() {
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
+    // Clear horseId if leaving horses tab
+    if (tab !== 'horses') {
+      next.delete('horseId');
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleBackFromHorseProfile = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('horseId');
     setSearchParams(next, { replace: true });
   };
 
@@ -224,6 +236,17 @@ export default function DashboardLaboratory() {
                   if (result) handlePreviewResult(result);
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="horses">
+              {searchParams.get('horseId') ? (
+                <LabHorseProfile
+                  horseId={searchParams.get('horseId')!}
+                  onBack={handleBackFromHorseProfile}
+                />
+              ) : (
+                <LabHorsesList />
+              )}
             </TabsContent>
 
             <TabsContent value="compare">

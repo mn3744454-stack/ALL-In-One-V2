@@ -97,7 +97,7 @@ export function SamplesTable({
           <TableBody>
             {samples.map((sample) => {
               const clientName = getLabClientDisplayName(sample, { locale: lang === 'ar' ? 'ar' : 'en' }) || t("laboratory.clientGrouped.noClient");
-              const horseName = getLabHorseDisplayName(sample, { locale: lang === 'ar' ? 'ar' : 'en', fallback: t("laboratory.samples.unknownHorse") });
+              const horseName = getLabHorseDisplayName(sample, { locale: lang === 'ar' ? 'ar' : 'en', fallback: t("laboratory.samples.unlinkedHorse") });
               const templateCount = sample.templates?.length || 0;
               const resultsCount = resultsCountBySample[sample.id] || 0;
               const isRetest = sample.retest_of_sample_id !== null;

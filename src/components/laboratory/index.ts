@@ -31,3 +31,5 @@ export * from "./WalkInClientForm";
 export * from "./DateRangeFilter";
 export * from "./AdvancedFilters";
 export * from "./LabHorsePicker";
+export * from "./LabHorsesList";
+export * from "./LabHorseProfile";
