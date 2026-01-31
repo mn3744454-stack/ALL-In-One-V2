@@ -447,9 +447,11 @@ export const en = {
     
     // Lab Horses Registry
     labHorses: {
-      title: "Lab Horses Registry",
+      title: "Horses Registry",
       searchPlaceholder: "Search by name, microchip, passport, owner...",
       addNew: "Register New Horse",
+      addNewDesc: "Register a new horse in the lab registry",
+      editHorseDesc: "Update horse information",
       ownerName: "Owner Name",
       ownerNamePlaceholder: "Enter owner name",
       ownerPhone: "Owner Phone",
@@ -461,6 +463,7 @@ export const en = {
       linkToPlatform: "Link to Platform Horse (Future)",
       showArchived: "Show archived",
       archived: "Archived",
+      active: "Active",
       viewProfile: "View Profile",
       editHorse: "Edit Horse",
       archiveHorse: "Archive Horse",
@@ -474,6 +477,12 @@ export const en = {
       totalBilled: "Total Billed",
       totalPaid: "Paid",
       outstanding: "Outstanding",
+      lastSampleDate: "Last Sample",
+      hasSamples: "Has Samples",
+      hasOutstanding: "Has Outstanding",
+      invoices: "Invoices",
+      printReport: "Print Report",
+      exportReport: "Export Report",
     },
     
     // Walk-in Horse Form

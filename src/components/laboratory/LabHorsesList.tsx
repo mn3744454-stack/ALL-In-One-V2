@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Plus, Search, Archive, ArchiveRestore, Edit, Eye, MoreHorizontal } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, Search, Archive, ArchiveRestore, Edit, Eye, MoreHorizontal, FlaskConical, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Table,
   TableBody,
@@ -31,10 +32,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { useI18n } from "@/i18n";
 import { useLabHorses, type LabHorse, type CreateLabHorseData } from "@/hooks/laboratory/useLabHorses";
+import { useLabHorsesWithMetrics, type LabHorseWithMetrics } from "@/hooks/laboratory/useLabHorsesWithMetrics";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface LabHorseFormData {
   name: string;
@@ -49,24 +54,33 @@ interface LabHorseFormData {
 
 export function LabHorsesList() {
   const { t, lang, dir } = useI18n();
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { activeRole } = useTenant();
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const [search, setSearch] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
+  const [hasSamples, setHasSamples] = useState(false);
+  const [hasOutstanding, setHasOutstanding] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingHorse, setEditingHorse] = useState<LabHorse | null>(null);
   const [formData, setFormData] = useState<LabHorseFormData>({ name: "" });
 
-  const { labHorses, loading, createLabHorse, updateLabHorse, archiveLabHorse, isCreating, isUpdating } = useLabHorses({
+  // View preference
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-horses');
+
+  // Use aggregated hook for metrics
+  const { data: labHorses = [], isLoading: loading } = useLabHorsesWithMetrics({
     search,
     includeArchived,
+    hasSamples: hasSamples || undefined,
+    hasOutstanding: hasOutstanding || undefined,
   });
 
+  // Use regular hook for mutations
+  const { createLabHorse, updateLabHorse, archiveLabHorse, isCreating, isUpdating } = useLabHorses({});
+
   const handleViewProfile = (horseId: string) => {
-    // Navigate to profile sub-tab
     const params = new URLSearchParams(searchParams);
     params.set("horseId", horseId);
     setSearchParams(params);
@@ -77,7 +91,7 @@ export function LabHorsesList() {
     setCreateDialogOpen(true);
   };
 
-  const handleOpenEdit = (horse: LabHorse) => {
+  const handleOpenEdit = (horse: LabHorseWithMetrics) => {
     setFormData({
       name: horse.name,
       name_ar: horse.name_ar || undefined,
@@ -88,7 +102,7 @@ export function LabHorsesList() {
       owner_phone: horse.owner_phone || undefined,
       notes: horse.notes || undefined,
     });
-    setEditingHorse(horse);
+    setEditingHorse(horse as LabHorse);
   };
 
   const handleSubmit = async () => {
@@ -104,7 +118,7 @@ export function LabHorsesList() {
     setFormData({ name: "" });
   };
 
-  const handleArchive = async (horse: LabHorse) => {
+  const handleArchive = async (horse: LabHorseWithMetrics) => {
     if (horse.is_archived) {
       await updateLabHorse(horse.id, { is_archived: false });
     } else {
@@ -112,35 +126,258 @@ export function LabHorsesList() {
     }
   };
 
-  const getHorseDisplayName = (horse: LabHorse) => {
+  const getHorseDisplayName = (horse: LabHorseWithMetrics) => {
     if (lang === 'ar' && horse.name_ar) {
       return horse.name_ar;
     }
     return horse.name;
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+      style: "currency",
+      currency: "SAR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   // Check if we have a horseId param for profile view
   const selectedHorseId = searchParams.get("horseId");
-
   if (selectedHorseId) {
-    // Import dynamically to avoid circular deps - will render profile
     return null; // Profile rendered in parent
   }
+
+  const renderTable = () => (
+    <div className="rounded-md border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">{t("common.name")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.walkIn.microchip")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.walkIn.passportNumber")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.labHorses.ownerName")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.labHorses.ownerPhone")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.labHorses.samplesCount")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.labHorses.outstanding")}</TableHead>
+            <TableHead className="text-center w-[80px]">{t("common.actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {labHorses.map((horse) => (
+            <TableRow
+              key={horse.id}
+              className={cn(
+                "cursor-pointer hover:bg-muted/50",
+                horse.is_archived && "opacity-60"
+              )}
+              onClick={() => handleViewProfile(horse.id)}
+            >
+              <TableCell className="text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <span className="font-medium">{getHorseDisplayName(horse)}</span>
+                  {horse.is_archived && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t("laboratory.labHorses.archived")}
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+                {horse.microchip_number || "-"}
+              </TableCell>
+              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+                {horse.passport_number || "-"}
+              </TableCell>
+              <TableCell className="text-center">{horse.owner_name || "-"}</TableCell>
+              <TableCell className="text-center font-mono text-sm">
+                {horse.owner_phone || "-"}
+              </TableCell>
+              <TableCell className="text-center">
+                <Badge variant="outline" className="font-mono">
+                  {horse.samples_count}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className={cn(
+                  "font-mono text-sm",
+                  horse.outstanding > 0 && "text-destructive font-medium"
+                )}>
+                  {horse.outstanding > 0 ? formatCurrency(horse.outstanding) : "-"}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'}>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewProfile(horse.id); }}>
+                      <Eye className="h-4 w-4 me-2" />
+                      {t("laboratory.labHorses.viewProfile")}
+                    </DropdownMenuItem>
+                    {canManage && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
+                          <Edit className="h-4 w-4 me-2" />
+                          {t("common.edit")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
+                          {horse.is_archived ? (
+                            <>
+                              <ArchiveRestore className="h-4 w-4 me-2" />
+                              {t("laboratory.labHorses.restoreHorse")}
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="h-4 w-4 me-2" />
+                              {t("laboratory.labHorses.archiveHorse")}
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const renderCard = (horse: LabHorseWithMetrics) => (
+    <Card
+      key={horse.id}
+      className={cn(
+        "cursor-pointer hover:bg-muted/50 transition-colors",
+        horse.is_archived && "opacity-60"
+      )}
+      onClick={() => handleViewProfile(horse.id)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-medium truncate">{getHorseDisplayName(horse)}</span>
+              {horse.is_archived && (
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  {t("laboratory.labHorses.archived")}
+                </Badge>
+              )}
+            </div>
+            {(horse.microchip_number || horse.passport_number) && (
+              <p className="text-xs text-muted-foreground font-mono truncate">
+                {horse.microchip_number || horse.passport_number}
+              </p>
+            )}
+            {horse.owner_name && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {horse.owner_name} {horse.owner_phone && `• ${horse.owner_phone}`}
+              </p>
+            )}
+            
+            {/* Metrics row */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t">
+              <div className="flex items-center gap-1 text-sm">
+                <FlaskConical className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="font-mono">{horse.samples_count}</span>
+              </div>
+              {horse.outstanding > 0 && (
+                <div className="flex items-center gap-1 text-sm text-destructive">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  <span className="font-mono">{formatCurrency(horse.outstanding)}</span>
+                </div>
+              )}
+              {horse.last_sample_date && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{format(new Date(horse.last_sample_date), "dd/MM/yy")}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'}>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewProfile(horse.id); }}>
+                <Eye className="h-4 w-4 me-2" />
+                {t("laboratory.labHorses.viewProfile")}
+              </DropdownMenuItem>
+              {canManage && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
+                    <Edit className="h-4 w-4 me-2" />
+                    {t("common.edit")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
+                    {horse.is_archived ? (
+                      <>
+                        <ArchiveRestore className="h-4 w-4 me-2" />
+                        {t("laboratory.labHorses.restoreHorse")}
+                      </>
+                    ) : (
+                      <>
+                        <Archive className="h-4 w-4 me-2" />
+                        {t("laboratory.labHorses.archiveHorse")}
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-        <div className="flex-1 flex items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("laboratory.labHorses.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="ps-9"
-            />
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+          <div className="flex-1 flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t("laboratory.labHorses.searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="ps-9"
+              />
+            </div>
           </div>
+          <div className="flex items-center gap-2">
+            {/* ViewSwitcher - desktop/tablet */}
+            <div className="hidden md:block">
+              <ViewSwitcher
+                viewMode={viewMode}
+                gridColumns={gridColumns}
+                onViewModeChange={setViewMode}
+                onGridColumnsChange={setGridColumns}
+                showTable={true}
+              />
+            </div>
+            {canManage && (
+              <Button onClick={handleOpenCreate} className="shrink-0">
+                <Plus className="h-4 w-4 me-2" />
+                {t("laboratory.labHorses.addNew")}
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* Filter toggles */}
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch
               id="include-archived"
@@ -148,16 +385,30 @@ export function LabHorsesList() {
               onCheckedChange={setIncludeArchived}
             />
             <Label htmlFor="include-archived" className="text-sm text-muted-foreground whitespace-nowrap">
-              {t("laboratory.labHorses.showArchived") || "Show archived"}
+              {t("laboratory.labHorses.showArchived")}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="has-samples"
+              checked={hasSamples}
+              onCheckedChange={setHasSamples}
+            />
+            <Label htmlFor="has-samples" className="text-sm text-muted-foreground whitespace-nowrap">
+              {t("laboratory.labHorses.hasSamples")}
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="has-outstanding"
+              checked={hasOutstanding}
+              onCheckedChange={setHasOutstanding}
+            />
+            <Label htmlFor="has-outstanding" className="text-sm text-muted-foreground whitespace-nowrap">
+              {t("laboratory.labHorses.hasOutstanding")}
             </Label>
           </div>
         </div>
-        {canManage && (
-          <Button onClick={handleOpenCreate} className="shrink-0">
-            <Plus className="h-4 w-4 me-2" />
-            {t("laboratory.labHorses.addNew")}
-          </Button>
-        )}
       </div>
 
       {/* Loading State */}
@@ -186,166 +437,22 @@ export function LabHorsesList() {
         </Card>
       )}
 
-      {/* Desktop Table */}
+      {/* Content based on view mode */}
       {!loading && labHorses.length > 0 && (
         <>
-          <div className="hidden md:block rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("common.name")}</TableHead>
-                  <TableHead>{t("laboratory.walkIn.microchip")}</TableHead>
-                  <TableHead>{t("laboratory.walkIn.passportNumber")}</TableHead>
-                  <TableHead>{t("laboratory.labHorses.ownerName")}</TableHead>
-                  <TableHead>{t("laboratory.labHorses.ownerPhone")}</TableHead>
-                  <TableHead className="w-[100px]">{t("common.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {labHorses.map((horse) => (
-                  <TableRow
-                    key={horse.id}
-                    className={cn(
-                      "cursor-pointer hover:bg-muted/50",
-                      horse.is_archived && "opacity-60"
-                    )}
-                    onClick={() => handleViewProfile(horse.id)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{getHorseDisplayName(horse)}</span>
-                        {horse.is_archived && (
-                          <Badge variant="secondary" className="text-xs">
-                            {t("laboratory.labHorses.archived") || "Archived"}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {horse.microchip_number || "-"}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {horse.passport_number || "-"}
-                    </TableCell>
-                    <TableCell>{horse.owner_name || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {horse.owner_phone || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'}>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewProfile(horse.id); }}>
-                            <Eye className="h-4 w-4 me-2" />
-                            {t("laboratory.labHorses.viewProfile") || "View Profile"}
-                          </DropdownMenuItem>
-                          {canManage && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
-                                <Edit className="h-4 w-4 me-2" />
-                                {t("common.edit")}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
-                                {horse.is_archived ? (
-                                  <>
-                                    <ArchiveRestore className="h-4 w-4 me-2" />
-                                    {t("laboratory.labHorses.restoreHorse") || "Restore"}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Archive className="h-4 w-4 me-2" />
-                                    {t("laboratory.labHorses.archiveHorse") || "Archive"}
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          {/* Desktop/Tablet view based on viewMode */}
+          <div className="hidden md:block">
+            {viewMode === 'table' && renderTable()}
+            {(viewMode === 'grid' || viewMode === 'list') && (
+              <div className={getGridClass(gridColumns, viewMode)}>
+                {labHorses.map((horse) => renderCard(horse))}
+              </div>
+            )}
           </div>
 
           {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
-            {labHorses.map((horse) => (
-              <Card
-                key={horse.id}
-                className={cn(
-                  "cursor-pointer hover:bg-muted/50 transition-colors",
-                  horse.is_archived && "opacity-60"
-                )}
-                onClick={() => handleViewProfile(horse.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium truncate">{getHorseDisplayName(horse)}</span>
-                        {horse.is_archived && (
-                          <Badge variant="secondary" className="text-xs shrink-0">
-                            {t("laboratory.labHorses.archived") || "Archived"}
-                          </Badge>
-                        )}
-                      </div>
-                      {(horse.microchip_number || horse.passport_number) && (
-                        <p className="text-xs text-muted-foreground font-mono truncate">
-                          {horse.microchip_number || horse.passport_number}
-                        </p>
-                      )}
-                      {horse.owner_name && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {horse.owner_name} {horse.owner_phone && `• ${horse.owner_phone}`}
-                        </p>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align={dir === 'rtl' ? 'start' : 'end'}>
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleViewProfile(horse.id); }}>
-                          <Eye className="h-4 w-4 me-2" />
-                          {t("laboratory.labHorses.viewProfile") || "View Profile"}
-                        </DropdownMenuItem>
-                        {canManage && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
-                              <Edit className="h-4 w-4 me-2" />
-                              {t("common.edit")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
-                              {horse.is_archived ? (
-                                <>
-                                  <ArchiveRestore className="h-4 w-4 me-2" />
-                                  {t("laboratory.labHorses.restoreHorse") || "Restore"}
-                                </>
-                              ) : (
-                                <>
-                                  <Archive className="h-4 w-4 me-2" />
-                                  {t("laboratory.labHorses.archiveHorse") || "Archive"}
-                                </>
-                              )}
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {labHorses.map((horse) => renderCard(horse))}
           </div>
         </>
       )}
@@ -364,12 +471,12 @@ export function LabHorsesList() {
         <DialogContent dir={dir}>
           <DialogHeader>
             <DialogTitle>
-              {editingHorse ? t("laboratory.labHorses.editHorse") || "Edit Horse" : t("laboratory.labHorses.addNew")}
+              {editingHorse ? t("laboratory.labHorses.editHorse") : t("laboratory.labHorses.addNew")}
             </DialogTitle>
             <DialogDescription>
               {editingHorse 
-                ? t("laboratory.labHorses.editHorseDesc") || "Update horse information"
-                : t("laboratory.labHorses.addNewDesc") || "Register a new horse in the lab registry"
+                ? t("laboratory.labHorses.editHorseDesc")
+                : t("laboratory.labHorses.addNewDesc")
               }
             </DialogDescription>
           </DialogHeader>
@@ -475,7 +582,7 @@ export function LabHorsesList() {
               onClick={handleSubmit}
               disabled={!formData.name.trim() || isCreating || isUpdating}
             >
-              {isCreating || isUpdating ? t("common.loading") : editingHorse ? t("common.save") : t("common.create")}
+              {editingHorse ? t("common.save") : t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

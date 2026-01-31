@@ -1,15 +1,25 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone } from "lucide-react";
+import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { useI18n } from "@/i18n";
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
-import { useLabSamples } from "@/hooks/laboratory/useLabSamples";
-import { useLabResults } from "@/hooks/laboratory/useLabResults";
-import { useLabHorseFinancialSummary } from "@/hooks/laboratory/useLabHorseFinancialSummary";
+import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
+import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
+import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hooks/laboratory/useLabHorseFinancialSummary";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
@@ -19,12 +29,19 @@ import { cn } from "@/lib/utils";
 interface LabHorseProfileProps {
   horseId: string;
   onBack: () => void;
+  onSampleClick?: (sampleId: string) => void;
+  onResultClick?: (resultId: string) => void;
 }
 
-export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
+export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick }: LabHorseProfileProps) {
   const { t, lang, dir } = useI18n();
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+
+  // View preferences per tab
+  const { viewMode: samplesView, gridColumns: samplesGridCols, setViewMode: setSamplesView, setGridColumns: setSamplesGridCols } = useViewPreference('lab-horse-samples');
+  const { viewMode: resultsView, gridColumns: resultsGridCols, setViewMode: setResultsView, setGridColumns: setResultsGridCols } = useViewPreference('lab-horse-results');
+  const { viewMode: invoicesView, setViewMode: setInvoicesView } = useViewPreference('lab-horse-invoices');
 
   // Fetch horse data
   const { labHorses, loading: horsesLoading } = useLabHorses({ includeArchived: true });
@@ -62,6 +79,18 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
     }).format(amount);
   };
 
+  const handleSampleClick = (sample: LabSample) => {
+    if (onSampleClick) {
+      onSampleClick(sample.id);
+    }
+  };
+
+  const handleResultClick = (result: LabResult) => {
+    if (onResultClick) {
+      onResultClick(result.id);
+    }
+  };
+
   if (horsesLoading) {
     return (
       <div className="space-y-4">
@@ -88,6 +117,235 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
     );
   }
 
+  // Sample card renderer
+  const renderSampleCard = (sample: LabSample) => (
+    <Card 
+      key={sample.id} 
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={() => handleSampleClick(sample)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {sample.daily_number && (
+                <span className="font-bold">#{sample.daily_number}</span>
+              )}
+              <span className="text-sm text-muted-foreground font-mono">
+                {sample.physical_sample_id || sample.id.slice(0, 8)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              {format(new Date(sample.collection_date), "PP")}
+            </div>
+          </div>
+          <SampleStatusBadge status={sample.status} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Sample table renderer
+  const renderSamplesTable = () => (
+    <div className="rounded-md border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">#</TableHead>
+            <TableHead className="text-center">{t("laboratory.samples.sampleId")}</TableHead>
+            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("common.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {horseSamples.map((sample) => (
+            <TableRow
+              key={sample.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => handleSampleClick(sample)}
+            >
+              <TableCell className="text-center font-bold">
+                {sample.daily_number || "-"}
+              </TableCell>
+              <TableCell className="text-center font-mono text-sm">
+                {sample.physical_sample_id || sample.id.slice(0, 8)}
+              </TableCell>
+              <TableCell className="text-center">
+                {format(new Date(sample.collection_date), "PP")}
+              </TableCell>
+              <TableCell className="text-center">
+                <SampleStatusBadge status={sample.status} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  // Result card renderer
+  const renderResultCard = (result: LabResult) => {
+    const templateName = lang === 'ar'
+      ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
+      : (result.template?.name || t("laboratory.results.unknownTemplate"));
+
+    return (
+      <Card 
+        key={result.id} 
+        className="cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={() => handleResultClick(result)}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{templateName}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {format(new Date(result.created_at), "PP")}
+              </div>
+            </div>
+            <Badge
+              variant={result.status === 'final' ? 'default' : 'secondary'}
+              className={cn(
+                result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
+                result.status === 'reviewed' && "bg-accent text-accent-foreground",
+                result.status === 'draft' && "bg-muted text-muted-foreground"
+              )}
+            >
+              {t(`laboratory.resultStatus.${result.status}`)}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  // Results table renderer
+  const renderResultsTable = () => (
+    <div className="rounded-md border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">{t("laboratory.templates.title")}</TableHead>
+            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("common.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {horseResults.map((result) => {
+            const templateName = lang === 'ar'
+              ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
+              : (result.template?.name || t("laboratory.results.unknownTemplate"));
+
+            return (
+              <TableRow
+                key={result.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleResultClick(result)}
+              >
+                <TableCell className="text-center font-medium">
+                  {templateName}
+                </TableCell>
+                <TableCell className="text-center">
+                  {format(new Date(result.created_at), "PP")}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge
+                    variant={result.status === 'final' ? 'default' : 'secondary'}
+                    className={cn(
+                      result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
+                      result.status === 'reviewed' && "bg-accent text-accent-foreground",
+                      result.status === 'draft' && "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {t(`laboratory.resultStatus.${result.status}`)}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  // Invoice card renderer
+  const renderInvoiceCard = (invoice: LabHorseInvoiceSummary) => (
+    <Card
+      key={invoice.invoiceId}
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={() => setSelectedInvoiceId(invoice.invoiceId)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="font-medium font-mono">{invoice.invoiceNumber}</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {invoice.clientName && (
+                <span>{invoice.clientName}</span>
+              )}
+              {invoice.issueDate && (
+                <>
+                  <span>•</span>
+                  <span>{format(new Date(invoice.issueDate), "PP")}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-mono font-medium">
+              {formatCurrency(invoice.totalAmount)}
+            </span>
+            <InvoiceStatusBadge status={invoice.status} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Invoices table renderer
+  const renderInvoicesTable = () => (
+    <div className="rounded-md border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">{t("finance.invoices.invoiceNumber")}</TableHead>
+            <TableHead className="text-center">{t("finance.invoices.client")}</TableHead>
+            <TableHead className="text-center">{t("common.date")}</TableHead>
+            <TableHead className="text-center">{t("finance.invoices.total")}</TableHead>
+            <TableHead className="text-center">{t("common.status")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {(financialSummary?.invoices || []).map((invoice) => (
+            <TableRow
+              key={invoice.invoiceId}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => setSelectedInvoiceId(invoice.invoiceId)}
+            >
+              <TableCell className="text-center font-mono">
+                {invoice.invoiceNumber}
+              </TableCell>
+              <TableCell className="text-center">
+                {invoice.clientName || "-"}
+              </TableCell>
+              <TableCell className="text-center">
+                {invoice.issueDate ? format(new Date(invoice.issueDate), "PP") : "-"}
+              </TableCell>
+              <TableCell className="text-center font-mono font-medium">
+                {formatCurrency(invoice.totalAmount)}
+              </TableCell>
+              <TableCell className="text-center">
+                <InvoiceStatusBadge status={invoice.status} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* Back Button */}
@@ -104,13 +362,14 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
               <CardTitle className="text-2xl flex items-center gap-2">
                 {getHorseDisplayName(horse)}
                 {horse.is_archived && (
-                  <Badge variant="secondary">{t("laboratory.labHorses.archived") || "Archived"}</Badge>
+                  <Badge variant="secondary">{t("laboratory.labHorses.archived")}</Badge>
                 )}
               </CardTitle>
               <CardDescription className="mt-1">
                 {horse.microchip_number || horse.passport_number || horse.ueln || t("laboratory.labHorses.noDetails")}
               </CardDescription>
             </div>
+            {/* Future: Print/Export Report button */}
           </div>
         </CardHeader>
         <CardContent>
@@ -160,106 +419,90 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
         <TabsList className="mb-4">
           <TabsTrigger value="samples" className="gap-2">
             <FlaskConical className="h-4 w-4" />
-            {t("laboratory.labHorses.samplesCount") || "Samples"} ({horseSamples.length})
+            {t("laboratory.labHorses.samplesCount")} ({horseSamples.length})
           </TabsTrigger>
           <TabsTrigger value="results" className="gap-2">
             <FileText className="h-4 w-4" />
-            {t("laboratory.labHorses.resultsCount") || "Results"} ({horseResults.length})
+            {t("laboratory.labHorses.resultsCount")} ({horseResults.length})
           </TabsTrigger>
           <TabsTrigger value="financial" className="gap-2">
             <Receipt className="h-4 w-4" />
-            {t("laboratory.labHorses.financialSummary") || "Financial"}
+            {t("laboratory.labHorses.financialSummary")}
           </TabsTrigger>
         </TabsList>
 
         {/* Samples Tab */}
         <TabsContent value="samples">
-          {samplesLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          <div className="space-y-4">
+            {/* ViewSwitcher for samples */}
+            <div className="flex justify-end">
+              <ViewSwitcher
+                viewMode={samplesView}
+                gridColumns={samplesGridCols}
+                onViewModeChange={setSamplesView}
+                onGridColumnsChange={setSamplesGridCols}
+                showTable={true}
+              />
             </div>
-          ) : horseSamples.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                {t("laboratory.labHorses.noSamples") || "No samples for this horse"}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {horseSamples.map((sample) => (
-                <Card key={sample.id} className="hover:bg-muted/50 transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          {sample.daily_number && (
-                            <span className="font-bold">#{sample.daily_number}</span>
-                          )}
-                          <span className="text-sm text-muted-foreground font-mono">
-                            {sample.physical_sample_id || sample.id.slice(0, 8)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {format(new Date(sample.collection_date), "PPP")}
-                        </div>
-                      </div>
-                      <SampleStatusBadge status={sample.status} />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+
+            {samplesLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+              </div>
+            ) : horseSamples.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {t("laboratory.labHorses.noSamples")}
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {samplesView === 'table' && renderSamplesTable()}
+                {(samplesView === 'grid' || samplesView === 'list') && (
+                  <div className={getGridClass(samplesGridCols, samplesView)}>
+                    {horseSamples.map(renderSampleCard)}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </TabsContent>
 
         {/* Results Tab */}
         <TabsContent value="results">
-          {resultsLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          <div className="space-y-4">
+            {/* ViewSwitcher for results */}
+            <div className="flex justify-end">
+              <ViewSwitcher
+                viewMode={resultsView}
+                gridColumns={resultsGridCols}
+                onViewModeChange={setResultsView}
+                onGridColumnsChange={setResultsGridCols}
+                showTable={true}
+              />
             </div>
-          ) : horseResults.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                {t("laboratory.labHorses.noResults") || "No results for this horse"}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {horseResults.map((result) => {
-                const templateName = lang === 'ar'
-                  ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
-                  : (result.template?.name || t("laboratory.results.unknownTemplate"));
 
-                return (
-                  <Card key={result.id} className="hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{templateName}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(result.created_at), "PPP")}
-                          </div>
-                        </div>
-                        <Badge
-                          variant={result.status === 'final' ? 'default' : 'secondary'}
-                          className={cn(
-                            result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
-                            result.status === 'reviewed' && "bg-accent text-accent-foreground",
-                            result.status === 'draft' && "bg-muted text-muted-foreground"
-                          )}
-                        >
-                          {t(`laboratory.resultStatus.${result.status}`)}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
+            {resultsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+              </div>
+            ) : horseResults.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {t("laboratory.labHorses.noResults")}
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {resultsView === 'table' && renderResultsTable()}
+                {(resultsView === 'grid' || resultsView === 'list') && (
+                  <div className={getGridClass(resultsGridCols, resultsView)}>
+                    {horseResults.map(renderResultCard)}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </TabsContent>
 
         {/* Financial Tab */}
@@ -277,25 +520,25 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.samplesCount") || "Samples"}</p>
+                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.samplesCount")}</p>
                     <p className="text-2xl font-bold">{financialSummary?.totalSamples || 0}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalBilled") || "Total Billed"}</p>
+                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalBilled")}</p>
                     <p className="text-2xl font-bold">{formatCurrency(financialSummary?.totalBilled || 0)}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalPaid") || "Paid"}</p>
+                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalPaid")}</p>
                     <p className="text-2xl font-bold text-primary">{formatCurrency(financialSummary?.totalPaid || 0)}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.outstanding") || "Outstanding"}</p>
+                    <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.outstanding")}</p>
                     <p className={cn(
                       "text-2xl font-bold",
                       (financialSummary?.outstanding || 0) > 0 && "text-destructive"
@@ -308,49 +551,31 @@ export function LabHorseProfile({ horseId, onBack }: LabHorseProfileProps) {
 
               {/* Invoices List */}
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">{t("finance.invoices.title") || "Invoices"}</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">{t("laboratory.labHorses.invoices")}</CardTitle>
+                  {/* ViewSwitcher for invoices */}
+                  <ViewSwitcher
+                    viewMode={invoicesView}
+                    gridColumns={2}
+                    onViewModeChange={setInvoicesView}
+                    onGridColumnsChange={() => {}}
+                    showTable={true}
+                  />
                 </CardHeader>
                 <CardContent>
                   {!financialSummary?.invoices?.length ? (
                     <p className="text-center text-muted-foreground py-8">
-                      {t("laboratory.labHorses.noInvoices") || "No invoices for this horse"}
+                      {t("laboratory.labHorses.noInvoices")}
                     </p>
                   ) : (
-                    <div className="space-y-2">
-                      {financialSummary.invoices.map((invoice) => (
-                        <Card
-                          key={invoice.invoiceId}
-                          className="cursor-pointer hover:bg-muted/50 transition-colors"
-                          onClick={() => setSelectedInvoiceId(invoice.invoiceId)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between gap-4">
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium font-mono">{invoice.invoiceNumber}</p>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  {invoice.clientName && (
-                                    <span>{invoice.clientName}</span>
-                                  )}
-                                  {invoice.issueDate && (
-                                    <>
-                                      <span>•</span>
-                                      <span>{format(new Date(invoice.issueDate), "PP")}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="font-mono font-medium">
-                                  {formatCurrency(invoice.totalAmount)}
-                                </span>
-                                <InvoiceStatusBadge status={invoice.status} />
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                    <>
+                      {invoicesView === 'table' && renderInvoicesTable()}
+                      {(invoicesView === 'grid' || invoicesView === 'list') && (
+                        <div className="space-y-2">
+                          {financialSummary.invoices.map(renderInvoiceCard)}
+                        </div>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>

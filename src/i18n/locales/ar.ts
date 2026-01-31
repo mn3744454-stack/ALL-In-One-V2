@@ -472,9 +472,11 @@ export const ar = {
     
     // Lab Horses Registry
     labHorses: {
-      title: "سجل خيول المختبر",
+      title: "سجل الخيول",
       searchPlaceholder: "البحث بالاسم، الشريحة، الجواز، المالك...",
       addNew: "تسجيل خيل جديد",
+      addNewDesc: "تسجيل خيل جديد في سجل المختبر",
+      editHorseDesc: "تعديل بيانات الخيل",
       ownerName: "اسم المالك",
       ownerNamePlaceholder: "أدخل اسم المالك",
       ownerPhone: "هاتف المالك",
@@ -486,6 +488,7 @@ export const ar = {
       linkToPlatform: "ربط بخيل المنصة (قريباً)",
       showArchived: "عرض المؤرشفة",
       archived: "مؤرشف",
+      active: "نشط",
       viewProfile: "عرض الملف",
       editHorse: "تعديل الخيل",
       archiveHorse: "أرشفة الخيل",
@@ -499,6 +502,12 @@ export const ar = {
       totalBilled: "إجمالي المحسوب",
       totalPaid: "المدفوع",
       outstanding: "المتبقي",
+      lastSampleDate: "آخر عينة",
+      hasSamples: "لديه عينات",
+      hasOutstanding: "لديه رصيد مستحق",
+      invoices: "الفواتير",
+      printReport: "طباعة التقرير",
+      exportReport: "تصدير التقرير",
     },
     
     // Walk-in Horse Form
