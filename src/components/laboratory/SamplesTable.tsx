@@ -140,10 +140,20 @@ export function SamplesTable({
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <Badge variant="outline" className="text-xs">
-                        <FileText className="h-3 w-3 me-1" />
-                        {resultsCount}/{templateCount}
-                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 hover:bg-transparent"
+                        onClick={(e) => { e.stopPropagation(); onViewAllResults?.(sample); }}
+                      >
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
+                        >
+                          <FileText className="h-3 w-3 me-1" />
+                          {resultsCount}/{templateCount}
+                        </Badge>
+                      </Button>
                     </div>
                   </TableCell>
                   <TableCell>

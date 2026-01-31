@@ -147,16 +147,15 @@ export default function DashboardLaboratory() {
             </div>
           )}
 
-          {/* Demo Alert - hidden on mobile */}
-          <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950 hidden lg:flex">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-700 dark:text-blue-300">
-              {labMode === 'requests' 
-                ? (t("laboratory.alerts.requestsInfo") || "Requests mode: Create and track lab test requests from external laboratories.")
-                : t("laboratory.alerts.mvpInfo")
-              }
-            </AlertDescription>
-          </Alert>
+          {/* Demo Alert - Only shown in requests mode (MVP banner removed for full lab mode) */}
+          {labMode === 'requests' && (
+            <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950 hidden lg:flex">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-700 dark:text-blue-300">
+                {t("laboratory.alerts.requestsInfo") || "Requests mode: Create and track lab test requests from external laboratories."}
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>

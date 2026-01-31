@@ -30,6 +30,7 @@ import { Filter, X, Check, Search, ChevronDown, User, ChevronsUpDown } from "luc
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { useHorses } from "@/hooks/useHorses";
+import { useLabHorses } from "@/hooks/laboratory/useLabHorses";
 import type { LabSampleStatus } from "@/hooks/laboratory/useLabSamples";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,9 @@ interface AdvancedFiltersProps {
   // Clear all
   onClearAll: () => void;
   
+  // Lab tenant mode - uses lab_horses instead of stable horses
+  isLabTenant?: boolean;
+  
   className?: string;
 }
 
@@ -80,15 +84,22 @@ export function AdvancedFilters({
   onStatusesChange,
   statusOptions,
   onClearAll,
+  isLabTenant = false,
   className,
 }: AdvancedFiltersProps) {
   const { t, dir } = useI18n();
   const { clients } = useClients();
-  const { horses } = useHorses();
+  const { horses: stableHorses } = useHorses();
+  const { labHorses } = useLabHorses({ includeArchived: false });
   
   const [clientOpen, setClientOpen] = useState(false);
   const [horseOpen, setHorseOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  
+  // Use lab horses for lab tenants, stable horses for others
+  const horses = isLabTenant 
+    ? labHorses.map(lh => ({ id: lh.id, name: lh.name }))
+    : stableHorses;
   
   const selectedClient = clients.find(c => c.id === clientId);
   const selectedHorse = horses.find(h => h.id === horseId);

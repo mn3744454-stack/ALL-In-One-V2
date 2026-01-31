@@ -2,7 +2,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
-export type SampleFilterTab = 'all' | 'today' | 'received' | 'unreceived' | 'retest';
+export type SampleFilterTab = 'today' | 'received' | 'unreceived' | 'retest';
 
 interface SamplesFilterTabsProps {
   activeTab: SampleFilterTab;
@@ -16,7 +16,7 @@ interface SamplesFilterTabsProps {
   };
 }
 
-const tabKeys: SampleFilterTab[] = ['all', 'today', 'received', 'unreceived', 'retest'];
+const tabKeys: SampleFilterTab[] = ['today', 'received', 'unreceived', 'retest'];
 
 export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFilterTabsProps) {
   const { t } = useI18n();
@@ -27,7 +27,7 @@ export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFil
 
   return (
     <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full rtl:flex-row-reverse">
+      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full justify-center rtl:flex-row-reverse">
         {tabKeys.map((tabId) => {
           const count = counts?.[tabId];
           return (

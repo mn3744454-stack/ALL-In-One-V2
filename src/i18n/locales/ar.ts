@@ -470,6 +470,22 @@ export const ar = {
       horsesSelected: "خيول محددة",
     },
     
+    // Lab Horses Registry
+    labHorses: {
+      title: "سجل خيول المختبر",
+      searchPlaceholder: "البحث بالاسم، الشريحة، الجواز، المالك...",
+      addNew: "تسجيل خيل جديد",
+      ownerName: "اسم المالك",
+      ownerNamePlaceholder: "أدخل اسم المالك",
+      ownerPhone: "هاتف المالك",
+      ownerPhonePlaceholder: "أدخل رقم هاتف المالك",
+      registerAndSelect: "تسجيل واختيار",
+      noMatchingHorses: "لا توجد خيول تطابق بحثك",
+      noHorses: "لا توجد خيول مسجلة بعد",
+      noDetails: "لا توجد تفاصيل إضافية",
+      linkToPlatform: "ربط بخيل المنصة (قريباً)",
+    },
+    
     // Walk-in Horse Form
     walkIn: {
       horseName: "اسم الخيل",
@@ -526,7 +542,8 @@ export const ar = {
       partial: "جزئي",
       complete: "مكتمل",
       viewAllResults: "عرض جميع النتائج",
-      unknownHorse: "خيل غير معروف",
+      unknownHorse: "غير مرتبط",
+      unlinkedHorse: "غير مرتبط",
       manualEntry: "إدخال يدوي",
     },
     
@@ -739,6 +756,8 @@ export const ar = {
       freeRetest: "إعادة مجانية",
       creatingRetestFor: "إنشاء إعادة #{{count}} للعينة {{id}}",
       fields: "حقول",
+      perSampleDailyNumbers: "الأرقام اليومية لكل عينة",
+      autoFillSequential: "ملء تسلسلي تلقائي",
     },
     
     // Client Mode Selector
