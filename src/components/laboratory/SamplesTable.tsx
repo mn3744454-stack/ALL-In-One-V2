@@ -31,6 +31,7 @@ import { SampleStatusBadge } from "./SampleStatusBadge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
+import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useState } from "react";
 
@@ -96,7 +97,7 @@ export function SamplesTable({
           <TableBody>
             {samples.map((sample) => {
               const clientName = getLabClientDisplayName(sample, { locale: lang === 'ar' ? 'ar' : 'en' }) || t("laboratory.clientGrouped.noClient");
-              const horseName = sample.horse?.name || sample.horse_name || t("laboratory.samples.unknownHorse");
+              const horseName = getLabHorseDisplayName(sample, { locale: lang === 'ar' ? 'ar' : 'en', fallback: t("laboratory.samples.unknownHorse") });
               const templateCount = sample.templates?.length || 0;
               const resultsCount = resultsCountBySample[sample.id] || 0;
               const isRetest = sample.retest_of_sample_id !== null;

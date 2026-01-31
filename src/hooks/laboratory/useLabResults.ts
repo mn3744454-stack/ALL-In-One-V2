@@ -27,7 +27,8 @@ export interface LabResult {
     id: string;
     physical_sample_id: string | null;
     horse_name?: string | null;
-    horse?: { id: string; name: string };
+    horse?: { id: string; name: string; name_ar?: string | null };
+    lab_horse?: { id: string; name: string; name_ar?: string | null };
   };
   template?: { id: string; name: string; name_ar: string | null };
   creator?: { id: string; full_name: string | null };
@@ -93,7 +94,8 @@ export function useLabResults(filters: LabResultFilters = {}) {
             id, 
             physical_sample_id,
             horse_name,
-            horse:horses!lab_samples_horse_id_fkey(id, name)
+            horse:horses!lab_samples_horse_id_fkey(id, name, name_ar),
+            lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar)
           ),
           template:lab_templates!lab_results_template_id_fkey(id, name, name_ar),
           creator:profiles!lab_results_created_by_fkey(id, full_name),

@@ -21,6 +21,45 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 
+/**
+ * Resolves horse name from result's sample with proper priority:
+ * 1. lab_horse.name (from lab_horses registry)
+ * 2. horse.name (from horses table)
+ * 3. horse_name (inline walk-in name)
+ * 4. fallback
+ */
+function getResultHorseName(
+  result: LabResult, 
+  locale: 'ar' | 'en', 
+  fallback: string
+): string {
+  const sample = result.sample;
+  if (!sample) return fallback;
+
+  // Priority 1: Lab horse from registry
+  if (sample.lab_horse) {
+    if (locale === 'ar' && sample.lab_horse.name_ar) {
+      return sample.lab_horse.name_ar;
+    }
+    return sample.lab_horse.name;
+  }
+
+  // Priority 2: Stable horse
+  if (sample.horse) {
+    if (locale === 'ar' && sample.horse.name_ar) {
+      return sample.horse.name_ar;
+    }
+    return sample.horse.name;
+  }
+
+  // Priority 3: Inline walk-in horse name
+  if (sample.horse_name) {
+    return sample.horse_name;
+  }
+
+  return fallback;
+}
+
 interface ResultsTableProps {
   results: LabResult[];
   canManage: boolean;
@@ -89,7 +128,7 @@ export function ResultsTable({
         </TableHeader>
         <TableBody>
           {results.map((result, index) => {
-            const horseName = result.sample?.horse?.name || t("laboratory.results.unknownHorse");
+            const horseName = getResultHorseName(result, lang === 'ar' ? 'ar' : 'en', t("laboratory.results.unknownHorse"));
             const templateName = lang === 'ar' 
               ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
               : (result.template?.name || t("laboratory.results.unknownTemplate"));

@@ -578,64 +578,139 @@ export function CreateSampleDialog({
               </Popover>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>{t("laboratory.createSample.dailyNumber")}</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs"
-                    onClick={async () => {
-                      // Fetch highest daily number for today and increment
-                      const today = new Date();
-                      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-                      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
-                      
-                      const { data: samples } = await supabase
-                        .from("lab_samples")
-                        .select("daily_number")
-                        .gte("collection_date", startOfDay)
-                        .lte("collection_date", endOfDay)
-                        .not("daily_number", "is", null)
-                        .order("daily_number", { ascending: false })
-                        .limit(1);
-                      
-                      const nextNumber = samples && samples.length > 0 && samples[0].daily_number 
-                        ? samples[0].daily_number + 1 
-                        : 1;
-                      setFormData(prev => ({ ...prev, daily_number: String(nextNumber) }));
-                    }}
-                  >
-                    {t("laboratory.createSample.useNext")}
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  min="1"
-                  value={formData.daily_number}
-                  onChange={(e) => setFormData({ ...formData, daily_number: e.target.value })}
-                  placeholder={t("laboratory.createSample.dailyNumberPlaceholder")}
-                />
-                <span className="text-xs text-muted-foreground">
-                  {formData.selectedHorses.length > 1 && formData.daily_number && (
-                    <>#{formData.daily_number} - #{parseInt(formData.daily_number) + formData.selectedHorses.length - 1}</>
-                  )}
-                </span>
-              </div>
+            <div className="space-y-4">
+              {/* Single daily number input or base number for sequential */}
+              {formData.selectedHorses.length <= 1 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{t("laboratory.createSample.dailyNumber")}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={async () => {
+                          const today = new Date();
+                          const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                          const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                          
+                          const { data: samples } = await supabase
+                            .from("lab_samples")
+                            .select("daily_number")
+                            .gte("collection_date", startOfDay)
+                            .lte("collection_date", endOfDay)
+                            .not("daily_number", "is", null)
+                            .order("daily_number", { ascending: false })
+                            .limit(1);
+                          
+                          const nextNumber = samples && samples.length > 0 && samples[0].daily_number 
+                            ? samples[0].daily_number + 1 
+                            : 1;
+                          setFormData(prev => ({ ...prev, daily_number: String(nextNumber) }));
+                        }}
+                      >
+                        {t("laboratory.createSample.useNext")}
+                      </Button>
+                    </div>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={formData.daily_number}
+                      onChange={(e) => setFormData({ ...formData, daily_number: e.target.value })}
+                      placeholder={t("laboratory.createSample.dailyNumberPlaceholder")}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label>{t("laboratory.createSample.sampleId")}</Label>
-                <div className="flex gap-2">
-                  <Input
-                    value={formData.physical_sample_id}
-                    onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
-                    placeholder={t("laboratory.createSample.autoGenerated")}
-                    className="flex-1"
-                  />
+                  <div className="space-y-2">
+                    <Label>{t("laboratory.createSample.sampleId")}</Label>
+                    <Input
+                      value={formData.physical_sample_id}
+                      onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
+                      placeholder={t("laboratory.createSample.autoGenerated")}
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* Multi-sample: Per-horse daily number inputs */
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>{t("laboratory.createSample.perSampleDailyNumbers") || "Daily Numbers per Sample"}</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs"
+                      onClick={async () => {
+                        const today = new Date();
+                        const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+                        const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+                        
+                        const { data: samples } = await supabase
+                          .from("lab_samples")
+                          .select("daily_number")
+                          .gte("collection_date", startOfDay)
+                          .lte("collection_date", endOfDay)
+                          .not("daily_number", "is", null)
+                          .order("daily_number", { ascending: false })
+                          .limit(1);
+                        
+                        const startNumber = samples && samples.length > 0 && samples[0].daily_number 
+                          ? samples[0].daily_number + 1 
+                          : 1;
+                        
+                        // Auto-fill sequential numbers for each horse
+                        const perSampleNumbers: Record<number, string> = {};
+                        formData.selectedHorses.forEach((_, idx) => {
+                          perSampleNumbers[idx] = String(startNumber + idx);
+                        });
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          daily_number: String(startNumber),
+                          per_sample_daily_numbers: perSampleNumbers 
+                        }));
+                      }}
+                    >
+                      {t("laboratory.createSample.autoFillSequential") || "Auto-fill Sequential"}
+                    </Button>
+                  </div>
+                  
+                  <div className="rounded-md border divide-y">
+                    {formData.selectedHorses.map((horse, idx) => (
+                      <div key={`${horse.horse_id || idx}-${idx}`} className="flex items-center gap-3 p-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium truncate">{horse.horse_name}</span>
+                        </div>
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={formData.per_sample_daily_numbers[idx] || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              per_sample_daily_numbers: {
+                                ...prev.per_sample_daily_numbers,
+                                [idx]: e.target.value
+                              }
+                            }))}
+                            placeholder={`#${idx + 1}`}
+                            className="h-8 text-center"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{t("laboratory.createSample.sampleId")}</Label>
+                    <Input
+                      value={formData.physical_sample_id}
+                      onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
+                      placeholder={t("laboratory.createSample.autoGenerated")}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
         </div>
         );
