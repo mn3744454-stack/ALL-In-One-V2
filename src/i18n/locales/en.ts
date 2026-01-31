@@ -445,6 +445,22 @@ export const en = {
       horsesSelected: "horses selected",
     },
     
+    // Lab Horses Registry
+    labHorses: {
+      title: "Lab Horses Registry",
+      searchPlaceholder: "Search by name, microchip, passport, owner...",
+      addNew: "Register New Horse",
+      ownerName: "Owner Name",
+      ownerNamePlaceholder: "Enter owner name",
+      ownerPhone: "Owner Phone",
+      ownerPhonePlaceholder: "Enter owner phone",
+      registerAndSelect: "Register & Select",
+      noMatchingHorses: "No horses match your search",
+      noHorses: "No horses registered yet",
+      noDetails: "No additional details",
+      linkToPlatform: "Link to Platform Horse (Future)",
+    },
+    
     // Walk-in Horse Form
     walkIn: {
       horseName: "Horse Name",
@@ -500,7 +516,8 @@ export const en = {
       partial: "Partial",
       complete: "Complete",
       viewAllResults: "View All Results",
-      unknownHorse: "Unknown Horse",
+      unknownHorse: "Unlinked",
+      unlinkedHorse: "Unlinked",
       manualEntry: "Manual Entry",
     },
     
@@ -713,6 +730,8 @@ export const en = {
       freeRetest: "Free Retest",
       creatingRetestFor: "Creating retest #{{count}} for sample {{id}}",
       fields: "fields",
+      perSampleDailyNumbers: "Daily Numbers per Sample",
+      autoFillSequential: "Auto-fill Sequential",
     },
     
     // Client Mode Selector

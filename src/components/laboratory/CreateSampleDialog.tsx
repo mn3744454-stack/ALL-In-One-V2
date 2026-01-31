@@ -635,7 +635,7 @@ export function CreateSampleDialog({
                 /* Multi-sample: Per-horse daily number inputs */
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label>{t("laboratory.createSample.perSampleDailyNumbers") || "Daily Numbers per Sample"}</Label>
+                    <Label>{t("laboratory.createSample.perSampleDailyNumbers")}</Label>
                     <Button
                       type="button"
                       variant="ghost"
@@ -671,7 +671,7 @@ export function CreateSampleDialog({
                         }));
                       }}
                     >
-                      {t("laboratory.createSample.autoFillSequential") || "Auto-fill Sequential"}
+                      {t("laboratory.createSample.autoFillSequential")}
                     </Button>
                   </div>
                   

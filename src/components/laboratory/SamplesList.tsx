@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useTenant } from "@/contexts/TenantContext";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { SampleCard } from "./SampleCard";
 import { SamplesTable } from "./SamplesTable";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
@@ -38,16 +39,16 @@ const getFiltersForTab = (tab: SampleFilterTab): Partial<LabSampleFilters> => {
       return { status: 'draft' };
     case 'retest':
       return { isRetest: true };
-    case 'all':
     default:
-      return {};
+      return { collectionDateToday: true }; // Default to today
   }
 };
 
 export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps) {
   const { t, dir } = useI18n();
   const { activeRole } = useTenant();
-  const [activeTab, setActiveTab] = useState<SampleFilterTab>('all');
+  const { isLabTenant, labMode } = useModuleAccess();
+  const [activeTab, setActiveTab] = useState<SampleFilterTab>('today');
   const [search, setSearch] = useState("");
   const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>(() => {
     const saved = localStorage.getItem('lab-samples-group-view-mode');
@@ -60,6 +61,9 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
+  
+  // Detect if this is a primary lab tenant (use lab_horses for filtering)
+  const isPrimaryLabTenant = isLabTenant && labMode === 'full';
   
   // Advanced filters
   const [dateFrom, setDateFrom] = useState<string | undefined>(undefined);
@@ -208,17 +212,17 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
             <ToggleGroupItem 
               value="samples" 
               aria-label={t("laboratory.clientGrouped.viewBySamples")}
-              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm whitespace-nowrap"
             >
-              <LayoutGrid className="h-4 w-4 me-1.5" />
+              <LayoutGrid className="h-4 w-4 me-1.5 shrink-0" />
               <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewBySamples")}</span>
             </ToggleGroupItem>
             <ToggleGroupItem 
               value="clients" 
               aria-label={t("laboratory.clientGrouped.viewByClients")}
-              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm whitespace-nowrap"
             >
-              <Users className="h-4 w-4 me-1.5" />
+              <Users className="h-4 w-4 me-1.5 shrink-0" />
               <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewByClients")}</span>
             </ToggleGroupItem>
           </ToggleGroup>
@@ -287,6 +291,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         onStatusesChange={setSelectedStatuses}
         statusOptions={statusOptions}
         onClearAll={handleClearAllFilters}
+        isLabTenant={isPrimaryLabTenant}
       />
 
       {/* Content based on view mode */}
@@ -294,12 +299,12 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <FlaskConical className="h-12 w-12 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium">{t("laboratory.samples.noSamplesFound")}</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {activeTab !== 'all' || selectedStatuses.length > 0 || search || dateFrom || dateTo || clientId || horseId
+        <p className="text-sm text-muted-foreground mt-1">
+            {selectedStatuses.length > 0 || search || dateFrom || dateTo || clientId || horseId
               ? t("laboratory.samples.adjustFilters")
               : t("laboratory.samples.createFirst")}
           </p>
-          {canManage && onCreateSample && !search && selectedStatuses.length === 0 && activeTab === 'all' && !dateFrom && !dateTo && !clientId && !horseId && (
+          {canManage && onCreateSample && !search && selectedStatuses.length === 0 && !dateFrom && !dateTo && !clientId && !horseId && (
             <Button onClick={onCreateSample} className="mt-4">
               <Plus className="h-4 w-4 me-2" />
               {t("laboratory.samples.createSample")}
