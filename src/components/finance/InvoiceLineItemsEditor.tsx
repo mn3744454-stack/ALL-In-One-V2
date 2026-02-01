@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { formatCurrency } from "@/lib/formatters";
 import { Plus, Trash2 } from "lucide-react";
 
 export interface LineItem {
@@ -25,12 +26,8 @@ export function InvoiceLineItemsEditor({
 }: InvoiceLineItemsEditorProps) {
   const { t, dir } = useI18n();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
-      style: "currency",
-      currency,
-    }).format(amount);
-  };
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => formatCurrency(amount, currency);
 
   const addItem = () => {
     const newItem: LineItem = {

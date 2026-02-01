@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { useI18n } from "@/i18n";
+import { usePermissions } from "@/hooks/usePermissions";
+import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -32,7 +34,6 @@ interface InvoiceCardProps {
   onPrint?: () => void;
   onSend?: () => void;
   onMarkPaid?: () => void;
-  canManage?: boolean;
 }
 
 export function InvoiceCard({
@@ -44,16 +45,20 @@ export function InvoiceCard({
   onPrint,
   onSend,
   onMarkPaid,
-  canManage = false,
 }: InvoiceCardProps) {
   const { t, dir } = useI18n();
+  const { hasPermission } = usePermissions();
 
-  // Use EN digits for all amounts
+  // Permission checks - deny by default
+  const canEdit = hasPermission("finance.invoice.edit");
+  const canDelete = hasPermission("finance.invoice.delete");
+  const canMarkPaid = hasPermission("finance.invoice.markPaid");
+  const canSend = hasPermission("finance.invoice.send");
+  const canPrint = hasPermission("finance.invoice.print");
+
+  // Use centralized formatter for EN digits
   const formatAmount = (amount: number, currency: string = "SAR") => {
-    return new Intl.NumberFormat('en-US', {
-      style: "currency",
-      currency,
-    }).format(amount);
+    return formatCurrency(amount, currency);
   };
 
   return (
@@ -97,51 +102,59 @@ export function InvoiceCard({
           </div>
 
           {/* Actions */}
-          {canManage && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onView}>
-                  <Eye className="w-4 h-4 me-2" />
-                  {t("finance.invoices.view")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDownloadPDF}>
-                  <Download className="w-4 h-4 me-2" />
-                  {t("finance.invoices.downloadPDF")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onPrint}>
-                  <Printer className="w-4 h-4 me-2" />
-                  {t("finance.invoices.print")}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {invoice.status === "draft" && (
-                  <DropdownMenuItem onClick={onSend}>
-                    <Send className="w-4 h-4 me-2" />
-                    {t("finance.invoices.send")}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onView}>
+                <Eye className="w-4 h-4 me-2" />
+                {t("finance.invoices.view")}
+              </DropdownMenuItem>
+              {canPrint && (
+                <>
+                  <DropdownMenuItem onClick={onDownloadPDF}>
+                    <Download className="w-4 h-4 me-2" />
+                    {t("finance.invoices.downloadPDF")}
                   </DropdownMenuItem>
-                )}
-                {(invoice.status === "sent" || invoice.status === "overdue") && (
-                  <DropdownMenuItem onClick={onMarkPaid}>
-                    <CheckCircle className="w-4 h-4 me-2 text-success" />
-                    {t("finance.invoices.markPaid")}
+                  <DropdownMenuItem onClick={onPrint}>
+                    <Printer className="w-4 h-4 me-2" />
+                    {t("finance.invoices.print")}
                   </DropdownMenuItem>
-                )}
+                </>
+              )}
+              <DropdownMenuSeparator />
+              {canSend && invoice.status === "draft" && (
+                <DropdownMenuItem onClick={onSend}>
+                  <Send className="w-4 h-4 me-2" />
+                  {t("finance.invoices.send")}
+                </DropdownMenuItem>
+              )}
+              {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+                <DropdownMenuItem onClick={onMarkPaid}>
+                  <CheckCircle className="w-4 h-4 me-2 text-success" />
+                  {t("finance.invoices.markPaid")}
+                </DropdownMenuItem>
+              )}
+              {canEdit && invoice.status === "draft" && (
                 <DropdownMenuItem onClick={onEdit}>
                   <Pencil className="w-4 h-4 me-2" />
                   {t("common.edit")}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                  <Trash2 className="w-4 h-4 me-2" />
-                  {t("common.delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+              )}
+              {canDelete && invoice.status === "draft" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                    <Trash2 className="w-4 h-4 me-2" />
+                    {t("common.delete")}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>

@@ -16,6 +16,7 @@ import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoices, type CreateInvoiceInput } from "@/hooks/finance/useInvoices";
 import { useClients } from "@/hooks/useClients";
+import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { addDays, format } from "date-fns";
@@ -76,12 +77,8 @@ export function InvoiceFormDialog({ open, onOpenChange, onSuccess }: InvoiceForm
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
-      style: "currency",
-      currency: "SAR",
-    }).format(amount);
-  };
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
