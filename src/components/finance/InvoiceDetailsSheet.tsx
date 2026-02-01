@@ -32,9 +32,12 @@ import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
+import { formatCurrency } from "@/lib/formatters";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -56,15 +59,19 @@ interface InvoiceDetailsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoiceId: string | null;
+  onEdit?: (invoice: Invoice) => void;
 }
 
 export function InvoiceDetailsSheet({
   open,
   onOpenChange,
   invoiceId,
+  onEdit,
 }: InvoiceDetailsSheetProps) {
   const { t, dir } = useI18n();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
+  const { hasPermission } = usePermissions();
+  const queryClient = useQueryClient();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,8 +80,12 @@ export function InvoiceDetailsSheet({
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("cash");
 
-  // Permission checks
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  // Permission checks - deny by default
+  const canEdit = hasPermission("finance.invoice.edit");
+  const canDelete = hasPermission("finance.invoice.delete");
+  const canMarkPaid = hasPermission("finance.invoice.markPaid");
+  const canSend = hasPermission("finance.invoice.send");
+  const canPrint = hasPermission("finance.invoice.print");
 
   useEffect(() => {
     if (open && invoiceId) {
@@ -153,13 +164,16 @@ export function InvoiceDetailsSheet({
     }
   };
 
-  // Use EN digits for all amounts
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: "currency",
-      currency: invoice?.currency || "SAR",
-      maximumFractionDigits: 2,
-    }).format(amount);
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => formatCurrency(amount, invoice?.currency || "SAR");
+
+  // Invalidate all dependent queries after actions
+  const invalidateQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    queryClient.invalidateQueries({ queryKey: ["invoice-items"] });
+    queryClient.invalidateQueries({ queryKey: ["lab-horse-financial"] });
+    queryClient.invalidateQueries({ queryKey: ["lab-horses-with-metrics"] });
+    queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
   };
 
   const handleMarkPaid = async () => {
@@ -178,6 +192,7 @@ export function InvoiceDetailsSheet({
       if (error) throw error;
       toast.success(t("finance.invoices.markedAsPaid"));
       setPaymentDialogOpen(false);
+      invalidateQueries();
       fetchInvoiceDetails();
     } catch (error) {
       console.error("Error marking invoice as paid:", error);
@@ -198,6 +213,7 @@ export function InvoiceDetailsSheet({
       
       if (error) throw error;
       toast.success(t("finance.invoices.sentSuccess"));
+      invalidateQueries();
       fetchInvoiceDetails();
     } catch (error) {
       console.error("Error sending invoice:", error);
@@ -219,12 +235,19 @@ export function InvoiceDetailsSheet({
       if (error) throw error;
       toast.success(t("finance.invoices.deleted"));
       setDeleteDialogOpen(false);
+      invalidateQueries();
       onOpenChange(false);
     } catch (error) {
       console.error("Error deleting invoice:", error);
       toast.error(t("common.error"));
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (invoice && onEdit) {
+      onEdit(invoice);
     }
   };
 
@@ -289,7 +312,7 @@ export function InvoiceDetailsSheet({
               <InvoiceStatusBadge status={invoice.status} />
               <div className="flex flex-wrap gap-2">
                 {/* Mark as Paid - for sent/overdue invoices */}
-                {canManage && (invoice.status === 'sent' || invoice.status === 'overdue') && (
+                {canMarkPaid && (invoice.status === 'sent' || invoice.status === 'overdue') && (
                   <Button
                     size="sm"
                     onClick={() => setPaymentDialogOpen(true)}
@@ -300,7 +323,7 @@ export function InvoiceDetailsSheet({
                   </Button>
                 )}
                 {/* Send - for draft invoices */}
-                {canManage && invoice.status === 'draft' && (
+                {canSend && invoice.status === 'draft' && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -315,23 +338,38 @@ export function InvoiceDetailsSheet({
                     {t("finance.invoices.send")}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleDownloadPDF}
-                  title={t("finance.invoices.downloadPDF")}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handlePrint}
-                  title={t("finance.invoices.print")}
-                >
-                  <Printer className="h-4 w-4" />
-                </Button>
-                {canManage && invoice.status === 'draft' && (
+                {/* Edit - for draft invoices */}
+                {canEdit && invoice.status === 'draft' && onEdit && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleEdit}
+                    title={t("common.edit")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+                {canPrint && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleDownloadPDF}
+                      title={t("finance.invoices.downloadPDF")}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handlePrint}
+                      title={t("finance.invoices.print")}
+                    >
+                      <Printer className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                {canDelete && invoice.status === 'draft' && (
                   <Button
                     variant="outline"
                     size="icon"

@@ -37,7 +37,8 @@ import { useViewPreference } from "@/hooks/useViewPreference";
 import { useI18n } from "@/i18n";
 import { useLabHorses, type LabHorse, type CreateLabHorseData } from "@/hooks/laboratory/useLabHorses";
 import { useLabHorsesWithMetrics, type LabHorseWithMetrics } from "@/hooks/laboratory/useLabHorsesWithMetrics";
-import { useTenant } from "@/contexts/TenantContext";
+import { usePermissions } from "@/hooks/usePermissions";
+import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -55,8 +56,12 @@ interface LabHorseFormData {
 export function LabHorsesList() {
   const { t, lang, dir } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { activeRole } = useTenant();
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  const { hasPermission } = usePermissions();
+  
+  // Permission checks - deny by default
+  const canCreate = hasPermission("laboratory.horses.create");
+  const canEdit = hasPermission("laboratory.horses.edit");
+  const canArchive = hasPermission("laboratory.horses.archive");
 
   const [search, setSearch] = useState("");
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -133,14 +138,8 @@ export function LabHorsesList() {
     return horse.name;
   };
 
-  // Use EN digits for all amounts
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: "currency",
-      currency: "SAR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   // Check if we have a horseId param for profile view
   const selectedHorseId = searchParams.get("horseId");
@@ -218,27 +217,29 @@ export function LabHorsesList() {
                       <Eye className="h-4 w-4 me-2" />
                       {t("laboratory.labHorses.viewProfile")}
                     </DropdownMenuItem>
-                    {canManage && (
+                    {canEdit && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
                           <Edit className="h-4 w-4 me-2" />
                           {t("common.edit")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
-                          {horse.is_archived ? (
-                            <>
-                              <ArchiveRestore className="h-4 w-4 me-2" />
-                              {t("laboratory.labHorses.restoreHorse")}
-                            </>
-                          ) : (
-                            <>
-                              <Archive className="h-4 w-4 me-2" />
-                              {t("laboratory.labHorses.archiveHorse")}
-                            </>
-                          )}
-                        </DropdownMenuItem>
                       </>
+                    )}
+                    {canArchive && (
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
+                        {horse.is_archived ? (
+                          <>
+                            <ArchiveRestore className="h-4 w-4 me-2" />
+                            {t("laboratory.labHorses.restoreHorse")}
+                          </>
+                        ) : (
+                          <>
+                            <Archive className="h-4 w-4 me-2" />
+                            {t("laboratory.labHorses.archiveHorse")}
+                          </>
+                        )}
+                      </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -312,27 +313,29 @@ export function LabHorsesList() {
                 <Eye className="h-4 w-4 me-2" />
                 {t("laboratory.labHorses.viewProfile")}
               </DropdownMenuItem>
-              {canManage && (
+              {canEdit && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleOpenEdit(horse); }}>
                     <Edit className="h-4 w-4 me-2" />
                     {t("common.edit")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
-                    {horse.is_archived ? (
-                      <>
-                        <ArchiveRestore className="h-4 w-4 me-2" />
-                        {t("laboratory.labHorses.restoreHorse")}
-                      </>
-                    ) : (
-                      <>
-                        <Archive className="h-4 w-4 me-2" />
-                        {t("laboratory.labHorses.archiveHorse")}
-                      </>
-                    )}
-                  </DropdownMenuItem>
                 </>
+              )}
+              {canArchive && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(horse); }}>
+                  {horse.is_archived ? (
+                    <>
+                      <ArchiveRestore className="h-4 w-4 me-2" />
+                      {t("laboratory.labHorses.restoreHorse")}
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="h-4 w-4 me-2" />
+                      {t("laboratory.labHorses.archiveHorse")}
+                    </>
+                  )}
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -368,7 +371,7 @@ export function LabHorsesList() {
                 showTable={true}
               />
             </div>
-            {canManage && (
+            {canCreate && (
               <Button onClick={handleOpenCreate} className="shrink-0">
                 <Plus className="h-4 w-4 me-2" />
                 {t("laboratory.labHorses.addNew")}
@@ -428,7 +431,7 @@ export function LabHorsesList() {
             <p className="text-muted-foreground mb-4">
               {search ? t("laboratory.labHorses.noMatchingHorses") : t("laboratory.labHorses.noHorses")}
             </p>
-            {canManage && !search && (
+            {canCreate && !search && (
               <Button onClick={handleOpenCreate}>
                 <Plus className="h-4 w-4 me-2" />
                 {t("laboratory.labHorses.addNew")}

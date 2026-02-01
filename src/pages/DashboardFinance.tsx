@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTenant } from "@/contexts/TenantContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useExpenses } from "@/hooks/finance/useExpenses";
@@ -16,6 +17,7 @@ import {
   ExpensesList,
   ExpenseFormDialog,
 } from "@/components/finance";
+import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
 import { isThisMonth } from "date-fns";
@@ -41,13 +43,15 @@ interface InvoicesTabProps {
 
 function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   const { t, dir } = useI18n();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
+  const { hasPermission } = usePermissions();
   const { invoices, isLoading, updateInvoice, deleteInvoice } = useInvoices(
     activeTenant?.tenant.id
   );
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  const canManage = activeRole === "owner" || activeRole === "manager";
+  // Permission checks - deny by default
+  const canCreate = hasPermission("finance.invoice.create");
 
   const stats = useMemo(() => {
     const paid = invoices
@@ -61,13 +65,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   }, [invoices]);
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'SAR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   return (
     <div className="space-y-6">
@@ -128,7 +126,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
       </div>
 
       {/* Create Button */}
-      {canManage && (
+      {canCreate && (
         <div className="flex justify-end">
           <Button onClick={() => setShowCreateDialog(true)}>
             <Plus className="w-4 h-4 me-2" />
@@ -147,7 +145,6 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         }}
         onInvoiceClick={onInvoiceClick}
         selectedInvoiceId={selectedInvoiceId}
-        canManage={canManage}
       />
 
       {/* Create Dialog */}

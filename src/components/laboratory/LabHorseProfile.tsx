@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download } from "lucide-react";
+import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
@@ -23,6 +24,7 @@ import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hook
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
+import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -31,12 +33,18 @@ interface LabHorseProfileProps {
   onBack: () => void;
   onSampleClick?: (sampleId: string) => void;
   onResultClick?: (resultId: string) => void;
+  onEdit?: (horse: LabHorse) => void;
 }
 
-export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick }: LabHorseProfileProps) {
+export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick, onEdit }: LabHorseProfileProps) {
   const { t, lang, dir } = useI18n();
+  const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+
+  // Permission checks - deny by default
+  const canEditHorse = hasPermission("laboratory.horses.edit");
+  const canExport = hasPermission("laboratory.horses.export");
 
   // View preferences per tab
   const { viewMode: samplesView, gridColumns: samplesGridCols, setViewMode: setSamplesView, setGridColumns: setSamplesGridCols } = useViewPreference('lab-horse-samples');
@@ -71,14 +79,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
     return horse.name;
   };
 
-  // Use EN digits for all amounts
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: "currency",
-      currency: "SAR",
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const handleSampleClick = (sample: LabSample) => {
     if (onSampleClick) {

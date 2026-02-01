@@ -36,7 +36,6 @@ interface InvoicesListProps {
   onUpdateStatus?: (invoiceId: string, status: string) => Promise<void>;
   onInvoiceClick?: (invoiceId: string) => void;
   selectedInvoiceId?: string | null;
-  canManage?: boolean;
 }
 
 export function InvoicesList({
@@ -47,7 +46,6 @@ export function InvoicesList({
   onUpdateStatus,
   onInvoiceClick,
   selectedInvoiceId,
-  canManage = false,
 }: InvoicesListProps) {
   const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
@@ -195,11 +193,11 @@ export function InvoicesList({
                 invoice={invoice}
                 onEdit={() => onEdit?.(invoice)}
                 onDelete={() => setDeleteId(invoice.id)}
+                onView={() => onInvoiceClick?.(invoice.id)}
                 onDownloadPDF={() => handleDownloadPDF(invoice)}
                 onPrint={() => handlePrint(invoice)}
                 onSend={() => onUpdateStatus?.(invoice.id, "sent")}
                 onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
-                canManage={canManage}
               />
             </div>
           ))}
