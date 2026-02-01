@@ -11,6 +11,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
@@ -26,7 +44,11 @@ import {
   DollarSign,
   Download,
   Printer,
-  X,
+  CheckCircle,
+  Send,
+  Pencil,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -42,10 +64,17 @@ export function InvoiceDetailsSheet({
   invoiceId,
 }: InvoiceDetailsSheetProps) {
   const { t, dir } = useI18n();
-  const { activeTenant } = useTenant();
+  const { activeTenant, activeRole } = useTenant();
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
+
+  // Permission checks
+  const canManage = activeRole === "owner" || activeRole === "manager";
 
   useEffect(() => {
     if (open && invoiceId) {
@@ -79,7 +108,43 @@ export function InvoiceDetailsSheet({
         .order("created_at", { ascending: true });
 
       if (itemsError) throw itemsError;
-      setItems((itemsData || []) as unknown as InvoiceItem[]);
+      
+      // Enrich lab_sample items with human-readable identifiers (batch fetch)
+      const labSampleIds = (itemsData || [])
+        .filter((item: any) => item.entity_type === 'lab_sample' && item.entity_id)
+        .map((item: any) => item.entity_id);
+
+      let sampleMap: Record<string, { daily_number: number | null; physical_sample_id: string | null }> = {};
+      if (labSampleIds.length > 0) {
+        const { data: samples } = await supabase
+          .from('lab_samples')
+          .select('id, daily_number, physical_sample_id')
+          .in('id', labSampleIds);
+        
+        if (samples) {
+          sampleMap = samples.reduce((acc: typeof sampleMap, s: any) => {
+            acc[s.id] = { daily_number: s.daily_number, physical_sample_id: s.physical_sample_id };
+            return acc;
+          }, {});
+        }
+      }
+
+      // Enrich items with better labels
+      const enrichedItems = (itemsData || []).map((item: any) => {
+        if (item.entity_type === 'lab_sample' && item.entity_id && sampleMap[item.entity_id]) {
+          const sample = sampleMap[item.entity_id];
+          const label = sample.daily_number 
+            ? `#${sample.daily_number}`
+            : sample.physical_sample_id?.slice(0, 12) || '';
+          return {
+            ...item,
+            enrichedDescription: label ? `${item.description} - ${label}` : item.description,
+          };
+        }
+        return { ...item, enrichedDescription: item.description };
+      });
+
+      setItems(enrichedItems as unknown as InvoiceItem[]);
     } catch (error) {
       console.error("Error fetching invoice details:", error);
       toast.error(t("common.error"));
@@ -88,12 +153,79 @@ export function InvoiceDetailsSheet({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+  // Use EN digits for all amounts
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
       style: "currency",
       currency: invoice?.currency || "SAR",
       maximumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const handleMarkPaid = async () => {
+    if (!invoice) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("invoices" as any)
+        .update({ 
+          status: 'paid', 
+          payment_received_at: new Date().toISOString(),
+          payment_method: paymentMethod,
+        })
+        .eq("id", invoice.id);
+      
+      if (error) throw error;
+      toast.success(t("finance.invoices.markedAsPaid"));
+      setPaymentDialogOpen(false);
+      fetchInvoiceDetails();
+    } catch (error) {
+      console.error("Error marking invoice as paid:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!invoice) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("invoices" as any)
+        .update({ status: 'sent' })
+        .eq("id", invoice.id);
+      
+      if (error) throw error;
+      toast.success(t("finance.invoices.sentSuccess"));
+      fetchInvoiceDetails();
+    } catch (error) {
+      console.error("Error sending invoice:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!invoice) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("invoices" as any)
+        .delete()
+        .eq("id", invoice.id);
+      
+      if (error) throw error;
+      toast.success(t("finance.invoices.deleted"));
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleDownloadPDF = async () => {
@@ -153,9 +285,36 @@ export function InvoiceDetailsSheet({
         ) : invoice ? (
           <div className="space-y-6 py-6">
             {/* Status & Actions */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <InvoiceStatusBadge status={invoice.status} />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {/* Mark as Paid - for sent/overdue invoices */}
+                {canManage && (invoice.status === 'sent' || invoice.status === 'overdue') && (
+                  <Button
+                    size="sm"
+                    onClick={() => setPaymentDialogOpen(true)}
+                    disabled={actionLoading}
+                  >
+                    <CheckCircle className="h-4 w-4 me-2" />
+                    {t("finance.invoices.markPaid")}
+                  </Button>
+                )}
+                {/* Send - for draft invoices */}
+                {canManage && invoice.status === 'draft' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSend}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 me-2" />
+                    )}
+                    {t("finance.invoices.send")}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="icon"
@@ -172,6 +331,17 @@ export function InvoiceDetailsSheet({
                 >
                   <Printer className="h-4 w-4" />
                 </Button>
+                {canManage && invoice.status === 'draft' && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    title={t("common.delete")}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -196,7 +366,7 @@ export function InvoiceDetailsSheet({
                     <p className="text-sm text-muted-foreground">
                       {t("finance.invoices.issueDate")}
                     </p>
-                    <p className="font-medium">
+                    <p className="font-medium font-mono" dir="ltr">
                       {format(new Date(invoice.issue_date), "PPP")}
                     </p>
                   </div>
@@ -209,7 +379,7 @@ export function InvoiceDetailsSheet({
                       <p className="text-sm text-muted-foreground">
                         {t("finance.invoices.dueDate")}
                       </p>
-                      <p className="font-medium">
+                      <p className="font-medium font-mono" dir="ltr">
                         {format(new Date(invoice.due_date), "PPP")}
                       </p>
                     </div>
@@ -231,20 +401,20 @@ export function InvoiceDetailsSheet({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {items.map((item) => (
+                  {items.map((item: any) => (
                     <Card key={item.id}>
                       <CardContent className="p-3">
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {item.description}
+                            <p className="text-sm font-medium break-words">
+                              {item.enrichedDescription || item.description}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.quantity} × {formatCurrency(item.unit_price)}
+                            <p className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
+                              {item.quantity} × {formatAmount(item.unit_price)}
                             </p>
                           </div>
-                          <p className="font-mono text-sm font-medium">
-                            {formatCurrency(item.total_price)}
+                          <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
+                            {formatAmount(item.total_price)}
                           </p>
                         </div>
                       </CardContent>
@@ -260,26 +430,26 @@ export function InvoiceDetailsSheet({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>{t("finance.invoices.subtotal")}</span>
-                <span className="font-mono">{formatCurrency(invoice.subtotal)}</span>
+                <span className="font-mono tabular-nums" dir="ltr">{formatAmount(invoice.subtotal)}</span>
               </div>
               {invoice.tax_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span>{t("finance.invoices.tax")}</span>
-                  <span className="font-mono">{formatCurrency(invoice.tax_amount)}</span>
+                  <span className="font-mono tabular-nums" dir="ltr">{formatAmount(invoice.tax_amount)}</span>
                 </div>
               )}
               {invoice.discount_amount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span>{t("finance.invoices.discount")}</span>
-                  <span className="font-mono text-green-600">
-                    -{formatCurrency(invoice.discount_amount)}
+                  <span className="font-mono tabular-nums text-success" dir="ltr">
+                    -{formatAmount(invoice.discount_amount)}
                   </span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>{t("finance.invoices.total")}</span>
-                <span className="font-mono">{formatCurrency(invoice.total_amount)}</span>
+                <span className="font-mono tabular-nums" dir="ltr">{formatAmount(invoice.total_amount)}</span>
               </div>
             </div>
 
@@ -308,6 +478,66 @@ export function InvoiceDetailsSheet({
           </div>
         )}
       </SheetContent>
+
+      {/* Payment Method Dialog */}
+      <AlertDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("finance.invoices.markPaid")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("finance.invoices.selectPaymentMethod")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label>{t("finance.invoices.paymentMethod")}</Label>
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger className="mt-2">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">{t("finance.paymentMethods.cash")}</SelectItem>
+                <SelectItem value="card">{t("finance.paymentMethods.card")}</SelectItem>
+                <SelectItem value="transfer">{t("finance.paymentMethods.transfer")}</SelectItem>
+                <SelectItem value="credit">{t("finance.paymentMethods.credit")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleMarkPaid} disabled={actionLoading}>
+              {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t("common.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("finance.invoices.deleteConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("finance.invoices.deleteConfirmDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              disabled={actionLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }

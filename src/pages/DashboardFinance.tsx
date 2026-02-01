@@ -60,10 +60,11 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
     return { total: invoices.length, paid, pending, overdue };
   }, [invoices]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
-      style: "currency",
-      currency: "SAR",
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'SAR',
       maximumFractionDigits: 0,
     }).format(amount);
   };
@@ -105,7 +106,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.paid)}</p>
+                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.paid)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.paid")}</p>
               </div>
             </div>
@@ -118,7 +119,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.overdue)}</p>
+                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.overdue)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.invoices.overdue")}</p>
               </div>
             </div>
@@ -180,10 +181,11 @@ function ExpensesTab() {
     };
   }, [expenses]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
-      style: "currency",
-      currency: "SAR",
+  // Use centralized formatter for EN digits
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'SAR',
       maximumFractionDigits: 0,
     }).format(amount);
   };
@@ -199,7 +201,7 @@ function ExpensesTab() {
                 <Receipt className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.total)}</p>
+                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.total)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.expenses.total")}</p>
               </div>
             </div>
@@ -212,7 +214,7 @@ function ExpensesTab() {
                 <DollarSign className="w-5 h-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">{formatCurrency(stats.thisMonth)}</p>
+                <p className="text-2xl font-bold text-navy" dir="ltr">{formatAmount(stats.thisMonth)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.expenses.thisMonth")}</p>
               </div>
             </div>
@@ -375,7 +377,7 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
   };
 
   return (
-    <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
+    <div className="min-h-screen bg-cream flex">
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <main className="flex-1 overflow-auto">

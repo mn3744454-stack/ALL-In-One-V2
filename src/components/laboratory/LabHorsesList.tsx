@@ -133,8 +133,9 @@ export function LabHorsesList() {
     return horse.name;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+  // Use EN digits for all amounts
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
       style: "currency",
       currency: "SAR",
       maximumFractionDigits: 0,
@@ -202,7 +203,7 @@ export function LabHorsesList() {
                   "font-mono text-sm",
                   horse.outstanding > 0 && "text-destructive font-medium"
                 )}>
-                  {horse.outstanding > 0 ? formatCurrency(horse.outstanding) : "-"}
+                  {horse.outstanding > 0 ? formatAmount(horse.outstanding) : "-"}
                 </span>
               </TableCell>
               <TableCell className="text-center">
@@ -289,7 +290,7 @@ export function LabHorsesList() {
               {horse.outstanding > 0 && (
                 <div className="flex items-center gap-1 text-sm text-destructive">
                   <DollarSign className="h-3.5 w-3.5" />
-                  <span className="font-mono">{formatCurrency(horse.outstanding)}</span>
+                  <span className="font-mono tabular-nums" dir="ltr">{formatAmount(horse.outstanding)}</span>
                 </div>
               )}
               {horse.last_sample_date && (
