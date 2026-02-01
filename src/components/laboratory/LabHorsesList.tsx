@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Archive, ArchiveRestore, Edit, Eye, MoreHorizontal, FlaskConical, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,12 @@ interface LabHorseFormData {
   notes?: string;
 }
 
-export function LabHorsesList() {
+interface LabHorsesListProps {
+  editHorseId?: string | null;
+  onEditComplete?: () => void;
+}
+
+export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProps = {}) {
   const { t, lang, dir } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const { hasPermission } = usePermissions();
@@ -83,7 +88,27 @@ export function LabHorsesList() {
   });
 
   // Use regular hook for mutations
-  const { createLabHorse, updateLabHorse, archiveLabHorse, isCreating, isUpdating } = useLabHorses({});
+  const { createLabHorse, updateLabHorse, archiveLabHorse, isCreating, isUpdating, labHorses: allLabHorses } = useLabHorses({ includeArchived: true });
+
+  // Handle external edit request (from LabHorseProfile via parent)
+  React.useEffect(() => {
+    if (editHorseId) {
+      const horseToEdit = allLabHorses.find(h => h.id === editHorseId);
+      if (horseToEdit) {
+        setFormData({
+          name: horseToEdit.name,
+          name_ar: horseToEdit.name_ar || undefined,
+          microchip_number: horseToEdit.microchip_number || undefined,
+          passport_number: horseToEdit.passport_number || undefined,
+          ueln: horseToEdit.ueln || undefined,
+          owner_name: horseToEdit.owner_name || undefined,
+          owner_phone: horseToEdit.owner_phone || undefined,
+          notes: horseToEdit.notes || undefined,
+        });
+        setEditingHorse(horseToEdit);
+      }
+    }
+  }, [editHorseId, allLabHorses]);
 
   const handleViewProfile = (horseId: string) => {
     const params = new URLSearchParams(searchParams);
@@ -116,6 +141,7 @@ export function LabHorsesList() {
     if (editingHorse) {
       await updateLabHorse(editingHorse.id, formData);
       setEditingHorse(null);
+      onEditComplete?.(); // Notify parent that edit is complete
     } else {
       await createLabHorse(formData as CreateLabHorseData);
       setCreateDialogOpen(false);

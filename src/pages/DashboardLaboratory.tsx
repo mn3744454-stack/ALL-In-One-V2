@@ -37,6 +37,7 @@ export default function DashboardLaboratory() {
   const [createResultOpen, setCreateResultOpen] = useState(false);
   const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editHorseId, setEditHorseId] = useState<string | null>(null);
   
   // Lab tenant with full mode = primary business, uses sidebar/mobile nav instead of internal tabs
   const isPrimaryLabTenant = isLabTenant && labMode === "full";
@@ -243,9 +244,22 @@ export default function DashboardLaboratory() {
                 <LabHorseProfile
                   horseId={searchParams.get('horseId')!}
                   onBack={handleBackFromHorseProfile}
+                  onSampleClick={(sampleId) => {
+                    // Navigate to samples tab with selected sample
+                    const next = new URLSearchParams(searchParams);
+                    next.set('tab', 'samples');
+                    next.set('sampleId', sampleId);
+                    next.delete('horseId');
+                    setSearchParams(next, { replace: true });
+                  }}
+                  onResultClick={(resultId) => {
+                    const result = results.find(r => r.id === resultId);
+                    if (result) handlePreviewResult(result);
+                  }}
+                  onEdit={(horse) => setEditHorseId(horse.id)}
                 />
               ) : (
-                <LabHorsesList />
+                <LabHorsesList editHorseId={editHorseId} onEditComplete={() => setEditHorseId(null)} />
               )}
             </TabsContent>
 

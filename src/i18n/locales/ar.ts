@@ -2397,6 +2397,27 @@ export const ar = {
       admin: "الإدارة",
     },
     noDescriptionAvailable: "—",
+    // Permission action labels
+    labels: {
+      // Finance permissions
+      "finance.invoice.view": "عرض الفواتير",
+      "finance.invoice.create": "إنشاء الفواتير",
+      "finance.invoice.edit": "تعديل مسودات الفواتير",
+      "finance.invoice.delete": "حذف الفواتير",
+      "finance.invoice.send": "إرسال الفواتير",
+      "finance.invoice.markPaid": "تحديد الفواتير كمدفوعة",
+      "finance.invoice.print": "طباعة/تحميل الفواتير",
+      // Laboratory horses permissions
+      "laboratory.horses.view": "عرض سجل الخيول",
+      "laboratory.horses.create": "تسجيل خيول جديدة",
+      "laboratory.horses.edit": "تعديل بيانات الخيول",
+      "laboratory.horses.archive": "أرشفة/استعادة الخيول",
+      "laboratory.horses.export": "تصدير تقارير الخيول",
+      // Laboratory samples permissions
+      "laboratory.samples.create": "إنشاء العينات",
+      "laboratory.samples.edit": "تعديل العينات",
+      "laboratory.samples.delete": "حذف العينات",
+    },
   },
   sharedMedia: {
     invalidLink: "رابط غير صالح أو منتهي",
