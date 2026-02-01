@@ -48,8 +48,9 @@ export function InvoiceCard({
 }: InvoiceCardProps) {
   const { t, dir } = useI18n();
 
-  const formatCurrency = (amount: number, currency: string = "SAR") => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+  // Use EN digits for all amounts
+  const formatAmount = (amount: number, currency: string = "SAR") => {
+    return new Intl.NumberFormat('en-US', {
       style: "currency",
       currency,
     }).format(amount);
@@ -76,8 +77,8 @@ export function InvoiceCard({
                 </p>
               </div>
               <div className="text-start sm:text-end shrink-0">
-                <p className="text-base sm:text-lg font-bold text-navy">
-                  {formatCurrency(invoice.total_amount, invoice.currency)}
+                <p className="text-base sm:text-lg font-bold text-navy font-mono tabular-nums" dir="ltr">
+                  {formatAmount(invoice.total_amount, invoice.currency)}
                 </p>
               </div>
             </div>

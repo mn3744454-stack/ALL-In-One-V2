@@ -71,8 +71,9 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
     return horse.name;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+  // Use EN digits for all amounts
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
       style: "currency",
       currency: "SAR",
       maximumFractionDigits: 2,
@@ -294,8 +295,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono font-medium">
-              {formatCurrency(invoice.totalAmount)}
+            <span className="font-mono font-medium tabular-nums" dir="ltr">
+              {formatAmount(invoice.totalAmount)}
             </span>
             <InvoiceStatusBadge status={invoice.status} />
           </div>
@@ -333,8 +334,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
               <TableCell className="text-center">
                 {invoice.issueDate ? format(new Date(invoice.issueDate), "PP") : "-"}
               </TableCell>
-              <TableCell className="text-center font-mono font-medium">
-                {formatCurrency(invoice.totalAmount)}
+              <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                {formatAmount(invoice.totalAmount)}
               </TableCell>
               <TableCell className="text-center">
                 <InvoiceStatusBadge status={invoice.status} />
@@ -527,13 +528,13 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
                 <Card>
                   <CardContent className="p-4">
                     <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalBilled")}</p>
-                    <p className="text-2xl font-bold">{formatCurrency(financialSummary?.totalBilled || 0)}</p>
+                    <p className="text-2xl font-bold font-mono tabular-nums" dir="ltr">{formatAmount(financialSummary?.totalBilled || 0)}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4">
                     <p className="text-sm text-muted-foreground">{t("laboratory.labHorses.totalPaid")}</p>
-                    <p className="text-2xl font-bold text-primary">{formatCurrency(financialSummary?.totalPaid || 0)}</p>
+                    <p className="text-2xl font-bold text-primary font-mono tabular-nums" dir="ltr">{formatAmount(financialSummary?.totalPaid || 0)}</p>
                   </CardContent>
                 </Card>
                 <Card>
@@ -543,7 +544,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick 
                       "text-2xl font-bold",
                       (financialSummary?.outstanding || 0) > 0 && "text-destructive"
                     )}>
-                      {formatCurrency(financialSummary?.outstanding || 0)}
+                      {formatAmount(financialSummary?.outstanding || 0)}
                     </p>
                   </CardContent>
                 </Card>
