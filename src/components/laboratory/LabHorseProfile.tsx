@@ -372,7 +372,31 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 {horse.microchip_number || horse.passport_number || horse.ueln || t("laboratory.labHorses.noDetails")}
               </CardDescription>
             </div>
-            {/* Future: Print/Export Report button */}
+            <div className="flex gap-2">
+              {canEditHorse && onEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(horse)}
+                  className="gap-2"
+                >
+                  <Edit className="h-4 w-4" />
+                  {t("common.edit")}
+                </Button>
+              )}
+              {canExport && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  disabled
+                  title={t("common.comingSoon")}
+                >
+                  <Download className="h-4 w-4" />
+                  {t("laboratory.labHorses.exportReport")}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>

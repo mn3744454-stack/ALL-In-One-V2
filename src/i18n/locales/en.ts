@@ -2371,6 +2371,27 @@ export const en = {
       admin: "Admin",
     },
     noDescriptionAvailable: "—",
+    // Permission action labels
+    labels: {
+      // Finance permissions
+      "finance.invoice.view": "View invoices",
+      "finance.invoice.create": "Create invoices",
+      "finance.invoice.edit": "Edit draft invoices",
+      "finance.invoice.delete": "Delete invoices",
+      "finance.invoice.send": "Send invoices",
+      "finance.invoice.markPaid": "Mark invoices as paid",
+      "finance.invoice.print": "Print/download invoices",
+      // Laboratory horses permissions
+      "laboratory.horses.view": "View lab horses registry",
+      "laboratory.horses.create": "Register new lab horses",
+      "laboratory.horses.edit": "Edit lab horse information",
+      "laboratory.horses.archive": "Archive/restore lab horses",
+      "laboratory.horses.export": "Export lab horse reports",
+      // Laboratory samples permissions
+      "laboratory.samples.create": "Create lab samples",
+      "laboratory.samples.edit": "Edit lab samples",
+      "laboratory.samples.delete": "Delete lab samples",
+    },
   },
   sharedMedia: {
     invalidLink: "Invalid or Expired Link",

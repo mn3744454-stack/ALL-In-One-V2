@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
-import { useInvoices } from "@/hooks/finance/useInvoices";
+import { useInvoices, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
+import { supabase } from "@/integrations/supabase/client";
 import { useExpenses } from "@/hooks/finance/useExpenses";
 import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
 import {
@@ -179,13 +180,7 @@ function ExpensesTab() {
   }, [expenses]);
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'SAR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   return (
     <div className="space-y-6">
@@ -331,6 +326,8 @@ interface DashboardFinanceProps {
 export default function DashboardFinance({ initialTab }: DashboardFinanceProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
+  const [editingInvoiceItems, setEditingInvoiceItems] = useState<InvoiceItem[]>([]);
   
   // Handle selected invoice from URL
   const selectedInvoiceId = searchParams.get("selected");
@@ -371,6 +368,25 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
       newParams.delete("selected");
       setSearchParams(newParams);
     }
+  };
+
+  // Handle edit from invoice details sheet
+  const handleEditInvoice = async (invoice: Invoice) => {
+    // Fetch the invoice items for editing
+    const { data: items } = await supabase
+      .from("invoice_items" as any)
+      .select("*")
+      .eq("invoice_id", invoice.id)
+      .order("created_at", { ascending: true });
+    
+    setEditingInvoice(invoice);
+    setEditingInvoiceItems((items || []) as unknown as InvoiceItem[]);
+    handleCloseInvoiceDetails(false); // Close the details sheet
+  };
+
+  const handleEditComplete = () => {
+    setEditingInvoice(null);
+    setEditingInvoiceItems([]);
   };
 
   return (
@@ -504,6 +520,17 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
           open={!!selectedInvoiceId}
           onOpenChange={handleCloseInvoiceDetails}
           invoiceId={selectedInvoiceId}
+          onEdit={handleEditInvoice}
+        />
+
+        {/* Invoice Edit Dialog */}
+        <InvoiceFormDialog
+          open={!!editingInvoice}
+          onOpenChange={(open) => !open && handleEditComplete()}
+          mode="edit"
+          invoice={editingInvoice}
+          existingItems={editingInvoiceItems}
+          onSuccess={handleEditComplete}
         />
       </main>
     </div>
