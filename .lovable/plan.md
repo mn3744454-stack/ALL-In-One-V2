@@ -1,9 +1,20 @@
-
 # Implementation Plan: Complete Lab Horses Module + Create Sample Wizard + Finance Fixes
 
 ## EXECUTIVE SUMMARY
 
 This plan completes the remaining requirements for the Lab Horses module, Create Sample wizard redesign for LAB tenants, Finance module fixes, and number formatting standardization. All changes follow the CRITICAL PERMANENT RULE for RBAC/RLS enforcement.
+
+---
+
+## ⚠️ CRITICAL PERMANENT RULE (MUST BE APPLIED TO ALL CHANGES)
+
+Any new CRUD surface or actionable operation (Create/Update/Delete/Archive/Restore/MarkPaid/Send/Print/Export/Edit) MUST ship with permissions:
+
+1. **Define permission keys** for each action
+2. **Add to role/bundle mappings** (seed/migration if applicable)
+3. **Enforce in UI** (deny-by-default: hide/disable actions when not permitted)
+4. **Enforce in data layer** (RLS/policies/RPC checks)
+5. **Add translations** for any new labels and permission-related UI strings
 
 ---
 
@@ -104,6 +115,8 @@ const templateIdsForHorse = formData.applyTemplateToAll
 
 ### 1.3 Daily Number Collision Validation
 
+**CRITICAL:** Collision validation MUST use the selected `collection_date` day window, NOT "today" device date.
+
 **Add validation before submit:**
 ```typescript
 const validateDailyNumbers = async (): Promise<boolean> => {
@@ -120,7 +133,7 @@ const validateDailyNumbers = async (): Promise<boolean> => {
     seen.add(n);
   }
   
-  // Check against existing samples for collection_date
+  // Check against existing samples for collection_date (NOT today!)
   const collectionDate = formData.collection_date;
   const startOfDay = new Date(collectionDate);
   startOfDay.setHours(0, 0, 0, 0);
@@ -146,7 +159,20 @@ const validateDailyNumbers = async (): Promise<boolean> => {
 };
 ```
 
-### 1.4 Add Translations
+**Verification after implementation:**
+- [ ] Daily number auto-fill still works after step reorder
+- [ ] Collision check uses selected collection_date window, not device "today"
+- [ ] Stable tenant wizard flow remains unchanged
+
+### 1.4 Permissions Impact
+
+Wizard actions that create samples must respect existing lab permissions:
+- `laboratory.samples.create` - Required to create new samples
+- `laboratory.samples.edit` - Required to edit existing samples (if retest flow modifies)
+
+**Verify existing permission checks are in place; add if missing.**
+
+### 1.5 Add Translations
 
 **Files:** `src/i18n/locales/ar.ts`, `src/i18n/locales/en.ts`
 
@@ -172,51 +198,90 @@ createSample: {
 
 ---
 
-## PHASE 2: FINANCE MODULE FIXES
+## PHASE 2: FINANCE MODULE FIXES (EXPANDED)
 
-### 2.1 Invoice Actions (Edit, Delete, Mark as Paid)
+### 2.1 Invoice Actions - Full Implementation
 
-**Current state:**
-- `InvoiceCard.tsx` has dropdown with actions but `onEdit` opens view-only
-- `onMarkPaid` just changes status to "paid" without recording payment details
-- Delete works but needs confirm dialog
+**Current problems:**
+- `onEdit` opens view-only (NOT real edit mode)
+- `onMarkPaid` just changes status without recording payment details
+- Delete needs confirmation dialog
+- Many dropdown items are dead/non-functional
 
 **Required changes:**
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx`
+#### 2.1.1 Real Edit Mode
 
-Add full action buttons:
+**Files:**
+- `src/components/finance/InvoiceDetailsSheet.tsx`
+- `src/components/finance/InvoiceCard.tsx`
+
+**Implementation:**
 ```typescript
-// Add state for action mode
-const [isEditing, setIsEditing] = useState(false);
+// InvoiceDetailsSheet - Add Edit action that opens InvoiceFormDialog in edit mode
+const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-// Add actions in sheet header
-{canManage && (
-  <div className="flex gap-2">
-    {(invoice.status === 'sent' || invoice.status === 'overdue') && (
-      <Button size="sm" onClick={handleMarkPaid}>
-        <CheckCircle className="h-4 w-4 me-2" />
-        {t("finance.invoices.markPaid")}
-      </Button>
-    )}
-    {invoice.status === 'draft' && (
-      <Button variant="outline" size="sm" onClick={handleSend}>
-        <Send className="h-4 w-4 me-2" />
-        {t("finance.invoices.send")}
-      </Button>
-    )}
-    <Button variant="outline" size="icon" onClick={handleDownloadPDF}>
-      <Download className="h-4 w-4" />
-    </Button>
-    <Button variant="outline" size="icon" onClick={handlePrint}>
-      <Printer className="h-4 w-4" />
-    </Button>
-  </div>
+// In actions section (with permission check)
+{canEdit && (
+  <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+    <Pencil className="h-4 w-4 me-2" />
+    {t("common.edit")}
+  </Button>
+)}
+
+// Add InvoiceFormDialog in edit mode
+<InvoiceFormDialog
+  open={editDialogOpen}
+  onOpenChange={setEditDialogOpen}
+  invoice={invoice}
+  mode="edit"
+  onSuccess={() => {
+    fetchInvoiceDetails();
+    // Invalidate queries
+  }}
+/>
+```
+
+#### 2.1.2 Delete with Confirmation
+
+```typescript
+// Add confirmation dialog
+const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+
+const handleDelete = async () => {
+  if (!invoice) return;
+  
+  const { error } = await supabase
+    .from("invoices")
+    .delete()
+    .eq("id", invoice.id);
+  
+  if (!error) {
+    toast.success(t("finance.invoices.deleted"));
+    onOpenChange(false);
+    // Invalidate: invoices list, horse financial summaries, client balances
+  }
+};
+
+// Only show for permitted users
+{canDelete && (
+  <DropdownMenuItem 
+    className="text-destructive" 
+    onClick={() => setDeleteConfirmOpen(true)}
+  >
+    <Trash2 className="h-4 w-4 me-2" />
+    {t("common.delete")}
+  </DropdownMenuItem>
 )}
 ```
 
-**Add "Mark as Paid" handler with payment_received_at:**
+#### 2.1.3 Mark as Paid with Payment Method Dialog
+
 ```typescript
+// Add lightweight payment dialog
+const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer' | 'debt'>('cash');
+
 const handleMarkPaid = async () => {
   if (!invoice) return;
   
@@ -225,71 +290,123 @@ const handleMarkPaid = async () => {
     .update({ 
       status: 'paid', 
       payment_received_at: new Date().toISOString(),
-      // payment_method can be added via a small dialog if needed
+      payment_method: paymentMethod,
     })
     .eq("id", invoice.id);
   
   if (!error) {
     toast.success(t("finance.invoices.markedAsPaid"));
-    fetchInvoiceDetails(); // Refresh
-    // Invalidate invoice queries
+    setPaymentDialogOpen(false);
+    fetchInvoiceDetails();
   }
 };
+
+// Show for sent/overdue invoices with permission
+{canMarkPaid && (invoice.status === 'sent' || invoice.status === 'overdue') && (
+  <Button size="sm" onClick={() => setPaymentDialogOpen(true)}>
+    <CheckCircle className="h-4 w-4 me-2" />
+    {t("finance.invoices.markPaid")}
+  </Button>
+)}
 ```
 
-### 2.2 Invoice Line Items - Human-Readable Labels
+### 2.2 Invoice Line Items - Human-Readable Labels (NO N+1)
 
 **Current issue:** Invoice items show `entity_type:entity_id` (e.g., "lab_sample:27d...")
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx`
+**Solution:** Batch fetch lab_samples for all entity_ids, then map.
 
-**Fetch sample details for lab_sample items:**
 ```typescript
-// After fetching items, enrich lab_sample items with sample details
-const enrichedItems = await Promise.all(items.map(async (item) => {
-  if (item.entity_type === 'lab_sample' && item.entity_id) {
-    const { data: sample } = await supabase
-      .from('lab_samples')
-      .select('daily_number, physical_sample_id')
-      .eq('id', item.entity_id)
-      .single();
-    
-    if (sample) {
-      return {
-        ...item,
-        enrichedDescription: sample.daily_number 
-          ? `${item.description} - #${sample.daily_number}`
-          : `${item.description} - ${sample.physical_sample_id?.slice(0, 12) || ''}`
-      };
-    }
+// In fetchInvoiceDetails, after fetching items:
+const labSampleIds = items
+  .filter(item => item.entity_type === 'lab_sample' && item.entity_id)
+  .map(item => item.entity_id);
+
+let sampleMap: Record<string, { daily_number: number | null; physical_sample_id: string | null }> = {};
+
+if (labSampleIds.length > 0) {
+  const { data: samples } = await supabase
+    .from('lab_samples')
+    .select('id, daily_number, physical_sample_id')
+    .in('id', labSampleIds);
+  
+  if (samples) {
+    sampleMap = samples.reduce((acc, s) => {
+      acc[s.id] = { daily_number: s.daily_number, physical_sample_id: s.physical_sample_id };
+      return acc;
+    }, {} as typeof sampleMap);
+  }
+}
+
+// Enrich items
+const enrichedItems = items.map(item => {
+  if (item.entity_type === 'lab_sample' && item.entity_id && sampleMap[item.entity_id]) {
+    const sample = sampleMap[item.entity_id];
+    const label = sample.daily_number 
+      ? `#${sample.daily_number}`
+      : sample.physical_sample_id?.slice(0, 12) || '';
+    return {
+      ...item,
+      enrichedDescription: `${item.description} - ${label}`
+    };
   }
   return item;
-}));
+});
 ```
 
-**Update display:**
-```typescript
-<p className="text-sm font-medium truncate">
-  {item.enrichedDescription || item.description}
-</p>
+**UI Layout fix:**
+```tsx
+// For invoice items display:
+<div className="flex justify-between items-start gap-2">
+  <div className="flex-1 min-w-0">
+    <p className="text-sm font-medium break-words">
+      {item.enrichedDescription || item.description}
+    </p>
+    <p className="text-xs text-muted-foreground" dir="ltr">
+      {item.quantity} × {formatCurrency(item.unit_price)}
+    </p>
+  </div>
+  <p className="font-mono text-sm font-medium tabular-nums shrink-0" dir="ltr">
+    {formatCurrency(item.total_price)}
+  </p>
+</div>
 ```
 
 ### 2.3 RTL Layout Fix
 
 **Current issue:** Finance sub-tabs shift sidebar to left in Arabic
 
-**File:** `src/pages/DashboardFinance.tsx` (line 378)
+**File:** `src/pages/DashboardFinance.tsx`
 
 **Fix:**
 ```typescript
-// Current
+// REMOVE flex-row-reverse - sidebar handles its own RTL positioning
+// FROM:
 <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
 
-// Should NOT reverse flex on RTL - sidebar handles its own positioning
+// TO:
 <div className="min-h-screen bg-cream flex">
 ```
 
-The sidebar component already handles RTL positioning. The `flex-row-reverse` causes the double-reversal issue.
+**Verification checklist:**
+- [ ] Sidebar stays on right side in Arabic on /dashboard/finance/invoices
+- [ ] Sidebar stays on right side in Arabic on /dashboard/finance/expenses
+- [ ] Sidebar stays on right side in Arabic on /dashboard/finance/ledger
+- [ ] Sidebar stays on right side in Arabic on /dashboard/finance/pos
+- [ ] Sidebar stays on right side in Arabic on /dashboard/finance/categories
+
+### 2.4 Ensure No Dead Dropdown Options
+
+Audit all dropdown items in InvoiceCard and InvoiceDetailsSheet:
+- [ ] View → Works (opens InvoiceDetailsSheet)
+- [ ] Edit → Works (opens InvoiceFormDialog in edit mode)
+- [ ] Delete → Works (with confirmation)
+- [ ] Download PDF → Works
+- [ ] Print → Works
+- [ ] Send → Works (changes status to 'sent')
+- [ ] Mark as Paid → Works (with payment method dialog)
+
+**Remove or disable any non-functional options.**
 
 ---
 
@@ -300,9 +417,15 @@ The sidebar component already handles RTL positioning. The `flex-row-reverse` ca
 **New file:** `src/lib/formatters.ts`
 
 ```typescript
+import { format } from 'date-fns';
+
+/**
+ * RULE: All numeric output MUST use English digits (0-9), even in Arabic UI.
+ * This applies to: amounts, dates, times, invoice numbers, sample numbers, counters.
+ */
+
 /**
  * Format currency with ALWAYS English digits (0-9)
- * Arabic UI can have Arabic text but digits must be English
  */
 export function formatCurrency(amount: number, currency: string = 'SAR'): string {
   return new Intl.NumberFormat('en-US', {
@@ -321,149 +444,220 @@ export function formatNumber(value: number, options?: Intl.NumberFormatOptions):
 
 /**
  * Format date with ALWAYS English digits
+ * Uses date-fns format which preserves English digits
  */
-export function formatDate(date: Date | string, formatStr?: string): string {
+export function formatDate(date: Date | string, formatStr: string = 'dd/MM/yyyy'): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  // Use date-fns format which preserves English digits
-  return format(d, formatStr || 'dd/MM/yyyy');
+  return format(d, formatStr);
+}
+
+/**
+ * Format date-time with ALWAYS English digits
+ */
+export function formatDateTime(date: Date | string, formatStr: string = 'dd/MM/yyyy HH:mm'): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return format(d, formatStr);
 }
 ```
 
-### 3.2 Update All formatCurrency Usages
+### 3.2 UI Rules for Numeric Display
 
-**Files to update (12 files identified):**
-- `src/components/finance/InvoiceCard.tsx`
-- `src/components/finance/ExpenseCard.tsx`
-- `src/components/finance/InvoiceLineItemsEditor.tsx`
-- `src/components/finance/InvoiceFormDialog.tsx`
-- `src/components/finance/InvoiceDetailsSheet.tsx`
-- `src/components/laboratory/LabHorseProfile.tsx`
-- `src/components/laboratory/LabHorsesList.tsx`
-- `src/components/dashboard/FinancialSummaryWidget.tsx`
-- `src/pages/DashboardFinance.tsx`
-- `src/pages/DashboardHRPayroll.tsx`
-- `src/components/clients/ClientCard.tsx`
-- `src/components/horses/orders/ClientSelector.tsx`
+Apply these rules consistently:
+- **For numeric values:** Use `dir="ltr"` + `tabular-nums` class
+- **For invoice numbers, IDs, codes:** Use `dir="ltr"` + `font-mono`
+- **For amounts:** Use centralized `formatCurrency()` + `dir="ltr"`
+- **For dates/times:** Use centralized `formatDate()` / `formatDateTime()`
 
-**Change pattern:**
-```typescript
-// FROM
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {...}).format(amount);
-};
+**Example:**
+```tsx
+<span className="font-mono tabular-nums" dir="ltr">
+  {formatCurrency(amount)}
+</span>
 
-// TO
-import { formatCurrency } from "@/lib/formatters";
-// Use directly: formatCurrency(amount)
+<span className="text-muted-foreground" dir="ltr">
+  {formatDate(invoice.issue_date)}
+</span>
 ```
+
+### 3.3 Files to Update
+
+Replace local `formatCurrency` implementations with centralized import:
+
+| File | Current Pattern |
+|------|-----------------|
+| `src/components/finance/InvoiceCard.tsx` | Local formatCurrency with ar-SA locale |
+| `src/components/finance/ExpenseCard.tsx` | Local formatCurrency |
+| `src/components/finance/InvoiceLineItemsEditor.tsx` | Local formatCurrency |
+| `src/components/finance/InvoiceFormDialog.tsx` | Local formatCurrency |
+| `src/components/finance/InvoiceDetailsSheet.tsx` | Local formatCurrency |
+| `src/components/laboratory/LabHorseProfile.tsx` | Local formatCurrency |
+| `src/components/laboratory/LabHorsesList.tsx` | Local formatCurrency |
+| `src/components/dashboard/FinancialSummaryWidget.tsx` | Local formatCurrency |
+| `src/pages/DashboardFinance.tsx` | Local formatCurrency |
+| `src/pages/DashboardHRPayroll.tsx` | Local formatCurrency |
+| `src/components/clients/ClientCard.tsx` | Local formatCurrency |
+| `src/components/horses/orders/ClientSelector.tsx` | Local formatCurrency |
+
+### 3.4 Verification Screens
+
+Verify EN digits appear correctly on these screens:
+- [ ] Lab Horse Profile → Financial tab (totals, invoice amounts)
+- [ ] Invoice Details Sheet (amounts, dates, invoice number)
+- [ ] Invoices List (amounts, dates)
+- [ ] Client outstanding balances
+- [ ] Samples list (daily numbers, dates)
+- [ ] Dashboard financial widgets
 
 ---
 
 ## PHASE 4: LAB HORSES LIST IMPROVEMENTS
 
-### 4.1 Page Title Fix
+### 4.1 Page Title
 
 **File:** `src/components/laboratory/LabHorsesList.tsx`
 
 **Current:** Uses translation key `laboratory.labHorses.title`
-**Translation already correct:** "سجل الخيول" in ar.ts (line 475)
+**Required Arabic:** "سجل الخيول"
 
-No code change needed - verify translation is applied.
+Verify translation is correctly applied.
 
-### 4.2 Additional Filters
+### 4.2 ViewSwitcher - BIG and Always Visible
 
-**Add sorting and more filters:**
+**Requirement:** ViewSwitcher must be large, always visible (not collapsed icons), with labels that don't wrap.
+
+```tsx
+<ViewSwitcher
+  view={viewMode}
+  onViewChange={setViewMode}
+  options={[
+    { value: 'table', label: t('common.table'), icon: TableIcon },
+    { value: 'grid', label: t('common.grid'), icon: Grid3x3 },
+    { value: 'list', label: t('common.list'), icon: List },
+  ]}
+  size="default"  // NOT "sm" or "icon"
+  showLabels={true}
+/>
+```
+
+### 4.3 Table Formatting
+
+**Requirement:** Headers AND cells must be center-aligned.
+
+```tsx
+// Table header
+<TableHead className="text-center">{t("common.name")}</TableHead>
+<TableHead className="text-center">{t("laboratory.labHorses.samplesCount")}</TableHead>
+<TableHead className="text-center">{t("laboratory.labHorses.outstanding")}</TableHead>
+
+// Table cells
+<TableCell className="text-center">{horse.name}</TableCell>
+<TableCell className="text-center">{horse.samples_count}</TableCell>
+<TableCell className="text-center" dir="ltr">
+  {formatCurrency(horse.outstanding)}
+</TableCell>
+```
+
+### 4.4 Additional Columns
+
+Required columns beyond basics:
+- Name (existing)
+- Owner (existing)
+- Microchip/Passport/UELN (existing)
+- **Samples count** (add)
+- **Outstanding** (add)
+- **Last sample date** (add, optional)
+
+### 4.5 Filters and Sorting
+
+**Add state:**
 ```typescript
-// Add state
 const [sortBy, setSortBy] = useState<'name' | 'outstanding' | 'samples_count' | 'last_sample_date'>('name');
 const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
-// Add sort UI
-<Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-  <SelectTrigger className="w-40">
-    <SelectValue placeholder={t("common.sortAsc")} />
-  </SelectTrigger>
-  <SelectContent>
-    <SelectItem value="name">{t("common.name")}</SelectItem>
-    <SelectItem value="samples_count">{t("laboratory.labHorses.samplesCount")}</SelectItem>
-    <SelectItem value="outstanding">{t("laboratory.labHorses.outstanding")}</SelectItem>
-    <SelectItem value="last_sample_date">{t("laboratory.labHorses.lastSampleDate")}</SelectItem>
-  </SelectContent>
-</Select>
+const [hasSamples, setHasSamples] = useState<boolean | null>(null);
+const [hasOutstanding, setHasOutstanding] = useState<boolean | null>(null);
+const [includeArchived, setIncludeArchived] = useState(false);
 ```
 
-**Update hook or apply client-side sort:**
-```typescript
-const sortedHorses = useMemo(() => {
-  return [...labHorses].sort((a, b) => {
-    const modifier = sortOrder === 'asc' ? 1 : -1;
-    switch (sortBy) {
-      case 'outstanding': return (a.outstanding - b.outstanding) * modifier;
-      case 'samples_count': return (a.samples_count - b.samples_count) * modifier;
-      case 'last_sample_date': 
-        if (!a.last_sample_date) return 1;
-        if (!b.last_sample_date) return -1;
-        return (new Date(a.last_sample_date).getTime() - new Date(b.last_sample_date).getTime()) * modifier;
-      default: return a.name.localeCompare(b.name) * modifier;
-    }
-  });
-}, [labHorses, sortBy, sortOrder]);
-```
+**Add translations for filters (ar/en).**
 
 ---
 
 ## PHASE 5: LAB HORSE PROFILE IMPROVEMENTS
 
-### 5.1 Interactive Sample/Result Cards
-
-**Current:** Cards have `onClick` but handlers may not be wired properly
+### 5.1 Edit Lab Horse Button
 
 **File:** `src/components/laboratory/LabHorseProfile.tsx`
 
-**Verify onSampleClick and onResultClick are passed from parent:**
-
+**Add Edit button in header (with permission check):**
 ```typescript
-// In DashboardLaboratory.tsx TabsContent for "horses"
+const canEdit = isOwner || hasPermission("laboratory.horses.edit");
+
+// In header card
+<div className="flex items-start justify-between gap-4">
+  <div>
+    <CardTitle>{horse.name}</CardTitle>
+    <CardDescription>...</CardDescription>
+  </div>
+  <div className="flex gap-2">
+    {canExport && (
+      <Button variant="outline" size="sm" onClick={() => setReportDialogOpen(true)}>
+        <Printer className="h-4 w-4 me-2" />
+        {t("laboratory.labHorses.printReport")}
+      </Button>
+    )}
+    {canEdit && (
+      <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+        <Pencil className="h-4 w-4 me-2" />
+        {t("common.edit")}
+      </Button>
+    )}
+  </div>
+</div>
+```
+
+### 5.2 Interactive Sample/Result Cards
+
+**Requirement:** Samples & Results cards MUST be interactive and open details.
+
+**Wire handlers in DashboardLaboratory.tsx:**
+```typescript
 <LabHorseProfile
-  horseId={searchParams.get('horseId')!}
+  horseId={selectedHorseId}
   onBack={handleBackFromHorseProfile}
   onSampleClick={(sampleId) => {
-    // Navigate to samples tab with sample selected OR open sample details sheet
-    handleTabChange('samples');
-    // Could use URL param: ?sampleId=xxx
+    // Open SampleDetailsSheet
+    setSelectedSampleId(sampleId);
+    setSampleDetailsOpen(true);
   }}
   onResultClick={(resultId) => {
+    // Open ResultPreviewDialog
     const result = results.find(r => r.id === resultId);
     if (result) setPreviewResult(result);
   }}
 />
 ```
 
-### 5.2 Edit Lab Horse Button
-
-**File:** `src/components/laboratory/LabHorseProfile.tsx`
-
-**Add Edit button in header (with permission check):**
-```typescript
-// In header card
-<div className="flex items-start justify-between gap-4">
-  <div>
-    <CardTitle>...</CardTitle>
-  </div>
-  {canManage && (
-    <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-      <Pencil className="h-4 w-4 me-2" />
-      {t("common.edit")}
-    </Button>
-  )}
-</div>
+**In LabHorseProfile, ensure cards are clickable:**
+```tsx
+<Card 
+  className="cursor-pointer hover:shadow-md transition-shadow"
+  onClick={() => onSampleClick?.(sample.id)}
+>
+  {/* Sample card content */}
+</Card>
 ```
 
-### 5.3 Print/Export Report
+### 5.3 Financial Tab - Invoice Actions
 
-**Add Report Dialog:**
+Invoice cards/rows in Financial tab must show full actions (edit/delete/mark paid/print/download) based on permissions.
+
+Wire InvoiceDetailsSheet with canManage/canEdit/canDelete props.
+
+### 5.4 Print/Export Report Dialog
+
+**New component or inline in LabHorseProfile:**
+
 ```typescript
-// New component or inline in LabHorseProfile
 const [reportDialogOpen, setReportDialogOpen] = useState(false);
 const [reportConfig, setReportConfig] = useState({
   dateFrom: subMonths(new Date(), 1),
@@ -473,52 +667,119 @@ const [reportConfig, setReportConfig] = useState({
   includeFinancial: true,
 });
 
-// Button in header
-<Button variant="outline" size="sm" onClick={() => setReportDialogOpen(true)}>
-  <Printer className="h-4 w-4 me-2" />
-  {t("laboratory.labHorses.printReport")}
-</Button>
-
-// Dialog with date pickers and checkboxes
-// Generate printable view or PDF using existing patterns
+// Permission check
+const canExport = isOwner || hasPermission("laboratory.horses.export");
 ```
+
+**Report dialog UI:**
+- Date range picker (from/to)
+- Checkboxes: Samples, Results, Financial summary
+- Generate button → creates printable view or PDF
+
+**Use existing PDF generator patterns (jspdf + html2canvas).**
 
 ---
 
-## PHASE 6: PERMISSIONS (CRITICAL RULE COMPLIANCE)
+## PHASE 6: CLIENT VS OWNER LINKAGE (DATA/DOMAIN ALIGNMENT)
 
-### 6.1 New Permission Keys Required
+### 6.1 Clarification
 
-**For Lab Horses module:**
-- `laboratory.horses.view` - View lab horses list and profiles
-- `laboratory.horses.create` - Create new lab horses
-- `laboratory.horses.edit` - Edit lab horse details
-- `laboratory.horses.archive` - Archive/restore lab horses
-- `laboratory.horses.export` - Export/print lab horse reports
+- **Client** = Billing/customer entity used by invoices and sample wizard
+- **Owner** = Specimen owner/contact captured at intake (`lab_horses.owner_name`, `lab_horses.owner_phone`)
 
-**For Finance invoice actions:**
-- `finance.invoice.markPaid` - Mark invoice as paid
-- `finance.invoice.delete` - Delete invoices
+These may be different entities (e.g., trainer sends sample, owner pays invoice).
 
-### 6.2 Implementation Pattern
+### 6.2 Evidence Check (BEFORE implementing any linkage)
 
-**UI enforcement (deny-by-default):**
+1. [ ] Inspect `lab_horses` schema for existing `client_id` / `linked_client_id` column
+2. [ ] Check if any existing relationship pattern exists between lab_horses and clients
+
+### 6.3 Proposed Minimal Approach (if no column exists)
+
+**Option A: Use metadata field**
 ```typescript
-// In LabHorsesList
-const canViewHorses = isOwner || hasPermission("laboratory.horses.view");
-const canManageHorses = isOwner || hasPermission("laboratory.horses.edit");
-const canArchive = isOwner || hasPermission("laboratory.horses.archive");
-
-// Hide actions when not permitted
-{canManageHorses && (
-  <DropdownMenuItem onClick={handleEdit}>
-    <Edit className="h-4 w-4 me-2" />
-    {t("common.edit")}
-  </DropdownMenuItem>
-)}
+// Store optional linked client in lab_horses.metadata
+lab_horses.metadata.linked_client_id = 'uuid-of-client';
 ```
 
-**RLS enforcement:** Existing lab_horses RLS already checks tenant membership. Additional action-based RLS can be added if needed.
+**Option B: Add optional FK (if safe)**
+```sql
+ALTER TABLE lab_horses ADD COLUMN client_id UUID REFERENCES clients(id) ON DELETE SET NULL;
+```
+
+### 6.4 UI Implementation (if linkage added)
+
+**In Lab Horse Edit Dialog:**
+- Add "Link to Client" combobox (optional)
+- When linked, show client name in profile
+
+**In Lab Horse Profile:**
+- If linked client exists, show "Linked Client" badge with link to client page
+- Link to finance filtered by client_id
+
+**Permission:** `laboratory.horses.linkClient` (optional, can use `laboratory.horses.edit`)
+
+---
+
+## PHASE 7: PERMISSIONS (CONCRETE ENFORCEMENT)
+
+### 7.1 Complete Permission Keys List
+
+**Lab Horses module:**
+| Key | Description | Actions Protected |
+|-----|-------------|-------------------|
+| `laboratory.horses.view` | View lab horses list and profiles | List, Profile view |
+| `laboratory.horses.create` | Create new lab horses | Add horse button |
+| `laboratory.horses.edit` | Edit lab horse details | Edit button, edit dialog |
+| `laboratory.horses.archive` | Archive/restore lab horses | Archive/restore actions |
+| `laboratory.horses.export` | Export/print lab horse reports | Print report button |
+| `laboratory.horses.linkClient` | Link horse to client (optional) | Link to client selector |
+
+**Lab Samples module:**
+| Key | Description |
+|-----|-------------|
+| `laboratory.samples.create` | Create new samples via wizard |
+| `laboratory.samples.edit` | Edit existing samples |
+
+**Finance module:**
+| Key | Description |
+|-----|-------------|
+| `finance.invoice.view` | View invoices (existing) |
+| `finance.invoice.create` | Create invoices (existing) |
+| `finance.invoice.edit` | Edit invoices |
+| `finance.invoice.delete` | Delete invoices |
+| `finance.invoice.markPaid` | Mark invoice as paid |
+| `finance.invoice.send` | Send invoice to client |
+| `finance.invoice.print` | Print/download invoice PDF |
+
+### 7.2 Implementation Checklist
+
+For EACH new permission:
+
+1. **Permission Registry**
+   - [ ] Add to `permission_definitions` table (if using DB registry)
+   - [ ] Add to any hardcoded permission lists in code
+
+2. **Role/Bundle Mapping**
+   - [ ] Add to default bundles for owner/manager roles
+   - [ ] Create migration if needed for seed data
+
+3. **UI Enforcement**
+   ```typescript
+   const canEdit = isOwner || hasPermission("laboratory.horses.edit");
+   
+   {canEdit && (
+     <Button onClick={handleEdit}>Edit</Button>
+   )}
+   ```
+
+4. **RLS/RPC Enforcement**
+   - [ ] Verify write paths check permissions
+   - [ ] Add RLS policies if needed for new tables/actions
+
+5. **Translations**
+   - [ ] Add permission names to ar.ts and en.ts
+   - [ ] Add any new button labels, empty states
 
 ---
 
@@ -527,193 +788,166 @@ const canArchive = isOwner || hasPermission("laboratory.horses.archive");
 | File | Purpose |
 |------|---------|
 | `src/lib/formatters.ts` | Centralized number/currency/date formatters with EN digits |
+| `src/components/laboratory/LabHorseReportDialog.tsx` | Print/export report dialog (optional, can be inline) |
+| `src/components/finance/PaymentMethodDialog.tsx` | Lightweight dialog for mark as paid (optional, can be inline) |
 
 ## FILES TO MODIFY
 
 | File | Changes |
 |------|---------|
 | `src/components/laboratory/CreateSampleDialog.tsx` | Wizard step reorder, per-horse templates, client step, collision validation |
-| `src/components/laboratory/LabHorsesList.tsx` | Add sorting, verify title, improve filters |
-| `src/components/laboratory/LabHorseProfile.tsx` | Edit button, interactive cards, print/export |
+| `src/components/laboratory/LabHorsesList.tsx` | ViewSwitcher size, table formatting, sorting, filters |
+| `src/components/laboratory/LabHorseProfile.tsx` | Edit button, interactive cards, print/export, financial actions |
 | `src/pages/DashboardLaboratory.tsx` | Wire sample/result click handlers |
-| `src/components/finance/InvoiceDetailsSheet.tsx` | Add full actions, enrich item labels, mark as paid |
-| `src/pages/DashboardFinance.tsx` | Fix RTL layout |
-| `src/i18n/locales/ar.ts` | Add wizard step translations, report translations |
-| `src/i18n/locales/en.ts` | Add wizard step translations, report translations |
-| 12 files with formatCurrency | Replace with centralized formatter |
+| `src/components/finance/InvoiceDetailsSheet.tsx` | Full actions, enriched labels, mark as paid, delete |
+| `src/components/finance/InvoiceCard.tsx` | Wire edit/delete actions properly |
+| `src/pages/DashboardFinance.tsx` | Fix RTL layout (remove flex-row-reverse) |
+| `src/i18n/locales/ar.ts` | Wizard steps, filters, permissions, report labels |
+| `src/i18n/locales/en.ts` | Wizard steps, filters, permissions, report labels |
+| 12+ files | Replace local formatCurrency with centralized import |
 
 ---
 
 ## MANUAL TEST CHECKLIST
 
 ### Wizard (ALL DEVICES)
-- [ ] LAB tenant wizard starts with Client step
+
+#### Step Order
+- [ ] LAB tenant wizard starts with Client step (mobile)
+- [ ] LAB tenant wizard starts with Client step (desktop)
 - [ ] Stable tenant wizard starts with Horses step (unchanged)
-- [ ] Per-horse templates: Select 2 horses, assign different templates, verify each sample gets correct templates
-- [ ] Daily number collision: Enter duplicate number, verify error is shown
-- [ ] Daily number auto-fill works with selected collection_date
+
+#### Per-Horse Templates
+- [ ] Select 2+ horses → "Apply to all" toggle appears
+- [ ] Toggle OFF → can assign different templates per horse
+- [ ] Verify each sample gets correct templates after creation
+
+#### Daily Number
+- [ ] Daily number auto-fill still works after step reorder
+- [ ] Set collection_date to a past date, verify collision check uses THAT date
+- [ ] Enter duplicate number → error is shown
+- [ ] Enter number that exists on different date → no error
 
 ### Lab Horses List
+
 - [ ] Page title shows "سجل الخيول" in Arabic
-- [ ] ViewSwitcher works (Table/Grid/List)
-- [ ] Sorting by name/outstanding/samples works
-- [ ] Filters: Has samples, Has outstanding, Include archived
+- [ ] ViewSwitcher is BIG and always visible (Table/Grid/List with labels)
+- [ ] Table headers centered
+- [ ] Table cells centered
+- [ ] Samples count column displays correctly
+- [ ] Outstanding column displays correctly (EN digits)
+- [ ] Sorting by name works
+- [ ] Sorting by outstanding works
+- [ ] Sorting by samples_count works
+- [ ] Filter: Has samples works
+- [ ] Filter: Has outstanding works
+- [ ] Filter: Include archived works
 
 ### Lab Horse Profile
+
 - [ ] Edit button visible for owner/manager
-- [ ] Sample cards are clickable → opens sample details
-- [ ] Result cards are clickable → opens result preview
-- [ ] Financial tab shows correct totals
-- [ ] Print report button (if implemented)
+- [ ] Edit button hidden for non-permitted users
+- [ ] Edit dialog opens and saves correctly
+- [ ] Sample cards clickable → opens sample details sheet
+- [ ] Result cards clickable → opens result preview dialog
+- [ ] Financial tab totals use EN digits
+- [ ] Invoice cards show actions based on permissions
+- [ ] Print report button visible for permitted users
+- [ ] Report dialog: date range picker works
+- [ ] Report dialog: section checkboxes work
+- [ ] Report generates printable view/PDF
 
-### Finance
-- [ ] Invoice details shows action buttons (Mark as Paid, Print, Download)
-- [ ] "Mark as Paid" updates status and sets payment_received_at
-- [ ] Invoice line items show human-readable labels (not UUIDs)
-- [ ] RTL layout: sidebar stays on right side in Arabic
+### Finance Module
 
-### Number Formatting
-- [ ] All amounts show English digits (0-9) even in Arabic UI
-- [ ] Dates show English digits
-- [ ] Invoice numbers show English digits
+#### RTL Layout
+- [ ] Sidebar stays on RIGHT in Arabic on /dashboard/finance/invoices
+- [ ] Sidebar stays on RIGHT in Arabic on /dashboard/finance/expenses
+- [ ] Sidebar stays on RIGHT in Arabic on all other finance routes
+
+#### Invoice Actions (End-to-End)
+- [ ] View invoice → InvoiceDetailsSheet opens
+- [ ] Edit invoice → InvoiceFormDialog opens in edit mode
+- [ ] Edit invoice → Save updates invoice and items
+- [ ] Delete invoice → Confirmation dialog appears
+- [ ] Delete invoice → Invoice is deleted, list refreshes
+- [ ] Mark as Paid → Payment method dialog appears
+- [ ] Mark as Paid → Invoice status updates to 'paid'
+- [ ] Mark as Paid → payment_received_at is set
+- [ ] Download PDF → PDF downloads correctly
+- [ ] Print → Print dialog opens
+
+#### Invoice Line Items
+- [ ] lab_sample items show "#daily_number" or physical_sample_id
+- [ ] NO UUID fragments visible
+- [ ] Layout is readable (no overflow, proper wrapping)
+- [ ] Amounts use EN digits
+
+### Number Formatting (EN Digits)
+
+- [ ] All amounts show 0-9 digits even in Arabic UI
+- [ ] All dates show 0-9 digits even in Arabic UI
+- [ ] Invoice numbers show 0-9 digits
+- [ ] Sample daily numbers show 0-9 digits
+- [ ] Lab horse profile financial cards: EN digits
+- [ ] Invoice details sheet: EN digits
+- [ ] Invoices list: EN digits
+- [ ] Client outstanding: EN digits
+
+### Permissions
+
+- [ ] Users without `laboratory.horses.edit` cannot see Edit button
+- [ ] Users without `finance.invoice.delete` cannot see Delete option
+- [ ] Users without `finance.invoice.markPaid` cannot see Mark as Paid button
+- [ ] Owner bypasses all permission checks
+- [ ] Manager with permissions can perform actions
+- [ ] Member without permissions cannot perform actions
 
 ---
 
 ## IMPLEMENTATION ORDER
 
 1. **Phase 3:** Create `src/lib/formatters.ts` (no dependencies)
-2. **Phase 1:** Wizard redesign (core functionality)
-3. **Phase 2:** Finance fixes (parallel with Phase 1)
-4. **Phase 4:** Lab Horses list improvements
-5. **Phase 5:** Lab Horse profile improvements
-6. **Phase 6:** Permissions audit and enforcement
+2. **Phase 2.3:** Fix Finance RTL layout (quick fix)
+3. **Phase 1:** Wizard redesign (core functionality)
+4. **Phase 2:** Finance fixes (parallel with Phase 1)
+5. **Phase 4:** Lab Horses list improvements
+6. **Phase 5:** Lab Horse profile improvements
+7. **Phase 6:** Client/Owner linkage (evidence check first)
+8. **Phase 7:** Permissions audit and enforcement (throughout)
 
 ---
 
 ## TECHNICAL NOTES
 
-### No Database Changes Required
+### No Database Changes Required (Unless Phase 6 linkage)
+
 All necessary schema exists:
 - `lab_horses` table with RLS
 - `lab_samples.lab_horse_id` FK
 - `invoices.payment_received_at` column
+- `invoices.payment_method` column (verify exists)
 - `invoice_items.entity_type/entity_id` for linking
 
 ### Backward Compatibility
+
 - Stable tenant wizard flow unchanged
 - Existing lab horses and samples work with new features
 - Finance actions are additive (new capabilities, not breaking changes)
 
+### Performance Considerations
 
-(Execution) — Update & refine the plan below (“plan edit”)
+- Invoice items enrichment uses batch query (NOT N+1)
+- Lab horses metrics use aggregated query hook
+- Sorting is client-side for reasonable list sizes
 
-You will EDIT the existing plan text (the one titled “Implementation Plan: Complete Lab Horses Module + Create Sample Wizard + Finance Fixes”) to incorporate the missing requirements + fix incorrect assumptions. Keep the same structure (Executive Summary + Phases), but update the content so it becomes execution-ready and fully aligned with the current codebase state.
+---
 
-CRITICAL PERMANENT RULE (MUST be explicitly embedded into the plan):
-Any new CRUD surface or new actionable operation (Create/Update/Delete/Archive/Restore/MarkPaid/Send/Print/Export/Edit) MUST ship with permissions in RBAC/RLS:
-1) Define permission keys
-2) Add them to role/bundle mappings (seed/migration if applicable)
-3) Enforce in UI (deny-by-default: hide/disable actions)
-4) Enforce in data layer (RLS / policies / RPC checks as applicable)
-5) Add translations for any new labels and permission-related UI strings
+## DEFINITION OF DONE
 
-Now update the plan with the following adjustments (include them inside the appropriate phases/sections):
-
-A) Wizard work is still missing (must be Phase 1 and must be implemented)
-- Keep the proposed LAB_STEPS change and client step extraction.
-- Keep per-horse template selection and daily_number collision validation (based on selected collection_date, not “today”).
-- Add explicit note: verify existing daily number generation/auto-fill still works after step reorder, and that collision validation uses the chosen collection_date day window.
-- Add the permissions impact: Wizard actions that create samples must respect existing lab permissions; if there are new actions/paths introduced, add permission keys (e.g., laboratory.samples.create, laboratory.samples.edit if not already present).
-
-B) Finance module fixes MUST be expanded because current actions are non-functional
-Update Phase 2 to include:
-1) InvoiceDetailsSheet must support real “Edit” (not view-only):
-   - Wire the existing InvoiceFormDialog in “edit mode” from InvoiceDetailsSheet and from the InvoiceCard dropdown.
-   - Ensure save updates invoice + items, and queries are invalidated/refreshed.
-2) Delete invoice must be functional with confirmation dialog:
-   - Only show for users with permission finance.invoice.delete (or owner).
-   - After delete: refresh invoices list, any horse financial summaries, and client balances if used.
-3) Mark as Paid must record payment_received_at and optionally payment_method:
-   - Add a lightweight dialog to choose payment_method if the schema expects it (cash/card/transfer/debt).
-4) Fix unreadable invoice items (the “entity_type:uuid” problem AND the layout problem):
-   - Use enrichment for lab_sample items (daily_number, physical_sample_id) but DO NOT do N+1 per item.
-   - Batch fetch lab_samples for all entity_ids in the invoice items query, then map.
-   - In UI: enforce readable layout (LTR for codes/IDs), use `dir="ltr"` for invoice numbers, amounts, and IDs; use `font-mono tabular-nums`; apply proper wrapping/truncation (`flex`, `min-w-0`, `truncate`, `break-words` only where needed).
-5) RTL sidebar issue in Finance:
-   - Keep the proposed fix (remove flex-row-reverse) BUT add verification steps: confirm Sidebar stays on right in Arabic across Finance subroutes (invoices/expenses/ledger/pos/categories).
-6) Add missing finance capabilities noted by user:
-   - “Settle/Pay invoice” flow must be available (Mark Paid).
-   - Ensure existing dropdown items that appear are actually implemented (no dead options).
-
-C) EN digits everywhere for numbers/dates/times (amounts + dates + invoice numbers)
-Update Phase 3:
-- Keep centralized formatter utilities, but enforce a stricter rule:
-  - All numeric output must render with English digits (0-9), even in Arabic UI.
-  - Any invoice number, sample numbers, amounts, dates, and times must use EN digits.
-- Add explicit UI rules:
-  - For numeric fields/labels: `dir="ltr"` + `tabular-nums` class.
-  - Use the centralized formatter in LabHorseProfile, LabHorsesList, Finance components, and any widgets that show totals.
-- Add a “Verification list” of key screens to check (Lab horse financial tab, invoice details sheet, invoice list, client outstanding, samples list).
-
-D) Lab Horses module UI/UX adjustments based on screenshots & current implementation gaps
-Update Phase 4 and Phase 5 to include:
-1) Lab Horses List:
-   - Must have ViewSwitcher (Table/Grid/List) that is BIG and always visible (not collapsed icons). Labels must not wrap; make it usable on desktop/tablet.
-   - Table formatting: headers AND cells centered (per user request).
-   - Add more columns beyond basics: Samples count, Outstanding (already), and optionally “Last sample date”.
-   - Add filters: hasSamples, hasOutstanding, includeArchived, plus sorting (name/samples/outstanding/last_sample_date).
-   - Ensure all new filters are translated (ar/en).
-2) Lab Horse Profile:
-   - Must include Edit horse action (currently missing): open the same edit dialog used from list; gated by permissions.
-   - Samples & Results cards MUST be interactive and open details (sample details sheet / result preview dialog). Ensure handlers are actually wired from DashboardLaboratory.
-   - Financial tab: invoice cards/rows clickable (already) AND invoice details must show actions (edit/delete/mark paid/print/download) based on permissions.
-3) Add Print/Export report capability (user requirement):
-   - Provide a report dialog where user selects date range (from/to) and toggles what to include (samples/results/financial).
-   - Output: printable view and/or PDF using existing PDF generator patterns.
-   - Add permission `laboratory.horses.export` (or equivalent) and enforce it.
-
-E) Clients vs Owner linkage (must be addressed explicitly in the plan)
-Add a subsection (either Phase 1 or a separate “Data/Domain Alignment” section):
-- Clarify: “Client” in the system is the billing/customer entity used by invoices and the sample wizard.
-- “Owner name/phone” in lab_horses is the specimen owner/contact captured at intake.
-- Add an evidence check task BEFORE implementing any linkage UI:
-  1) Inspect schema for any existing lab_horses.client_id / linked_client_id column OR existing relationship pattern.
-  2) If no column exists, propose a minimal non-breaking approach:
-     - Store optional linked client reference in lab_horses.metadata (e.g., metadata.linked_client_id) and expose “Link to Client” selector in Lab Horse edit dialog.
-     - In profile: show “Linked client” if present, and link to client page and finance filtered by client_id.
-- Ensure any new linkage UI is gated by permissions and respects RLS.
-
-F) Permissions phase MUST be made concrete and enforced (not just listed)
-Update Phase 6 to include:
-- A definitive list of permission keys for EVERYTHING introduced/changed:
-  Lab Horses:
-    - laboratory.horses.view
-    - laboratory.horses.create
-    - laboratory.horses.edit
-    - laboratory.horses.archive
-    - laboratory.horses.export
-    - (optional) laboratory.horses.linkClient
-  Finance:
-    - finance.invoice.edit
-    - finance.invoice.delete
-    - finance.invoice.markPaid
-    - finance.invoice.send
-    - finance.invoice.print
-- Add explicit “Where to implement” checklist:
-  1) Permission registry (where keys live)
-  2) Role/bundle mapping (seed/migration)
-  3) UI checks (hasPermission guards on buttons, menu items, routes/tabs)
-  4) Server/RLS/RPC coverage (validate write paths)
-  5) Translations for any new button labels and empty-states
-
-G) Manual test checklist must be updated to match the real issues
-- Add tests for:
-  - Wizard step order and functionality on mobile/desktop
-  - Finance RTL sidebar positioning
-  - Invoice actions working end-to-end (edit/delete/mark paid)
-  - EN digits everywhere (amount/date/time)
-  - Lab horse profile edit and interactive cards
-  - ViewSwitcher visibility/size
-
-
-
+A phase is complete when:
+1. All code changes implemented
+2. All translations added (ar/en)
+3. All permission checks enforced (UI + RLS if applicable)
+4. Manual test checklist items for that phase pass
+5. No console errors in preview
+6. No regressions in existing functionality
