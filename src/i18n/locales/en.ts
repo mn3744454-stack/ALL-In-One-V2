@@ -711,12 +711,14 @@ export const en = {
       createSamples: "Create Samples",
       createRetest: "Create Retest",
       steps: {
+        client: "Client",
         horses: "Horses",
         basic: "Basic Info",
         templates: "Templates",
         details: "Details",
         checkout: "Checkout",
-        billing: "Credits",
+        billing: "Invoice",
+        credits: "Credits",
         review: "Review",
       },
       horse: "Horse",
@@ -756,6 +758,16 @@ export const en = {
       fields: "fields",
       perSampleDailyNumbers: "Daily Numbers per Sample",
       autoFillSequential: "Auto-fill Sequential",
+      // New LAB wizard translations
+      customizeTemplatesPerHorse: "Customize templates for each horse",
+      createInvoice: "Create Invoice",
+      invoicePreview: "Invoice Preview",
+      skipInvoiceInfo: "You can create an invoice later from the sample details.",
+      missingPricesWarning: "Some templates don't have prices. You can add them in the invoice later.",
+      noClientForInvoice: "No client selected. You can add the client to the invoice later.",
+      invoiceStatus: "Invoice Status",
+      willCreateInvoice: "Will create invoice",
+      noInvoice: "No invoice",
     },
     
     // Client Mode Selector
@@ -763,6 +775,14 @@ export const en = {
       existing: "Existing Client",
       walkin: "Walk-in Client",
       none: "No Client",
+      // New LAB wizard client modes
+      registered: "Registered Client",
+      registeredDesc: "Select an existing client from database",
+      newClient: "New Client",
+      newClientDesc: "Create a new client and register in the system",
+      noneDesc: "Continue without linking the sample to a client",
+      createNewClient: "Create New Client",
+      clientCreated: "Client created",
     },
     
     // Walk-in Client Form
