@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/i18n";
+import { MultiPhoneInput, type PhoneEntry } from "./MultiPhoneInput";
 import type { Client, CreateClientData, ClientType, ClientStatus, PaymentMethod } from "@/hooks/useClients";
 
 interface ClientFormDialogProps {
@@ -39,7 +40,7 @@ export function ClientFormDialog({
   onSave,
   initialName = "",
 }: ClientFormDialogProps) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState<CreateClientData>({
@@ -56,9 +57,28 @@ export function ClientFormDialog({
     notes: "",
   });
 
+  // Multi-phone entries
+  const [phones, setPhones] = useState<PhoneEntry[]>([]);
+
   useEffect(() => {
     if (open) {
       if (client) {
+        // Parse existing phones from client data (phones jsonb field comes from DB)
+        const existingPhones: PhoneEntry[] = [];
+        const clientAny = client as any;
+        if (clientAny.phones && Array.isArray(clientAny.phones)) {
+          existingPhones.push(...(clientAny.phones as PhoneEntry[]));
+        } else if (client.phone) {
+          // Migrate legacy single phone to array
+          existingPhones.push({
+            number: client.phone,
+            label: 'mobile',
+            is_whatsapp: false,
+            is_primary: true,
+          });
+        }
+        
+        setPhones(existingPhones);
         setFormData({
           name: client.name,
           name_ar: client.name_ar || "",
@@ -73,6 +93,7 @@ export function ClientFormDialog({
           notes: client.notes || "",
         });
       } else {
+        setPhones([]);
         setFormData({
           name: initialName,
           name_ar: "",
@@ -96,7 +117,18 @@ export function ClientFormDialog({
 
     setLoading(true);
     try {
-      const result = await onSave(formData);
+      // Get primary phone for legacy field
+      const primaryPhone = phones.find(p => p.is_primary)?.number || phones[0]?.number || "";
+      
+      // Build save data with phones array (will be stored as jsonb in DB)
+      const saveData: CreateClientData & { phones?: PhoneEntry[] } = {
+        ...formData,
+        phone: primaryPhone,
+      };
+      // Add phones as extra field - hook will handle it
+      (saveData as any).phones = phones;
+      
+      const result = await onSave(saveData as CreateClientData);
       if (result) {
         onOpenChange(false);
       }
@@ -118,15 +150,16 @@ export function ClientFormDialog({
 
         <form onSubmit={handleSubmit} className="flex-1 min-h-0 overflow-y-auto">
           <div className="space-y-4 p-1">
-            {/* Name */}
+            {/* Name (English) */}
             <div className="grid gap-2">
-              <Label htmlFor="name">{t("clients.form.name")} *</Label>
+              <Label htmlFor="name">{t("clients.form.nameEn")} *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
-                placeholder={t("clients.form.namePlaceholder")}
+                placeholder="Enter client name"
                 required
+                dir="ltr"
               />
             </div>
 
@@ -183,30 +216,24 @@ export function ClientFormDialog({
               </div>
             </div>
 
-            {/* Contact Info */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="phone">{t("clients.form.phone")}</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone || ""}
-                  onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
-                  placeholder="+966 5XX XXX XXXX"
-                  dir="ltr"
-                />
-              </div>
+            {/* Multi-Phone Input */}
+            <MultiPhoneInput
+              phones={phones}
+              onChange={setPhones}
+              disabled={loading}
+            />
 
-              <div className="grid gap-2">
-                <Label htmlFor="email">{t("clients.form.email")}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email || ""}
-                  onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
-                  placeholder="email@example.com"
-                />
-              </div>
+            {/* Email */}
+            <div className="grid gap-2">
+              <Label htmlFor="email">{t("clients.form.email")}</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email || ""}
+                onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                placeholder="email@example.com"
+                dir="ltr"
+              />
             </div>
 
             {/* Address */}
@@ -228,6 +255,7 @@ export function ClientFormDialog({
                 value={formData.tax_number || ""}
                 onChange={(e) => setFormData((p) => ({ ...p, tax_number: e.target.value }))}
                 placeholder={t("clients.form.taxNumberPlaceholder")}
+                dir="ltr"
               />
             </div>
 
@@ -272,6 +300,7 @@ export function ClientFormDialog({
                     }))
                   }
                   placeholder="0"
+                  dir="ltr"
                 />
               </div>
             </div>
@@ -290,7 +319,7 @@ export function ClientFormDialog({
           </div>
         </form>
 
-        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4">
+        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t("common.cancel")}
           </Button>

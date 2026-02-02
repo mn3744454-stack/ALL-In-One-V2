@@ -18,8 +18,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt, X } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ClientSelector } from "@/components/horses/orders/ClientSelector";
 import { WalkInClientForm } from "./WalkInClientForm";
@@ -125,6 +130,8 @@ interface FormData {
   customize_templates_per_horse: boolean;
   // Invoice creation option
   create_invoice: boolean;
+  // Reason for no client (LAB tenant only)
+  no_client_reason: string;
 }
 
 export function CreateSampleDialog({
@@ -169,6 +176,7 @@ export function CreateSampleDialog({
     per_horse_templates: {},
     customize_templates_per_horse: false,
     create_invoice: false,
+    no_client_reason: '',
   });
 
   // Get billing policy from tenant capabilities
@@ -320,6 +328,7 @@ export function CreateSampleDialog({
         per_horse_templates: {},
         customize_templates_per_horse: false,
         create_invoice: false,
+        no_client_reason: '',
       });
     }
   }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant]);
@@ -574,7 +583,20 @@ export function CreateSampleDialog({
     const currentStep = effectiveSteps[step];
     switch (currentStep?.key) {
       case 'client':
-        // LAB tenant: client selection is always optional
+        // LAB tenant: enforce client selection or reason
+        if (isPrimaryLabTenant) {
+          if (formData.clientMode === 'none') {
+            // Require reason for no client (min 5 chars)
+            return formData.no_client_reason.trim().length >= 5;
+          }
+          if (formData.clientMode === 'registered') {
+            return !!formData.client_id;
+          }
+          if (formData.clientMode === 'new') {
+            return !!formData.client_id;
+          }
+          return false;
+        }
         return true;
       case 'horses':
         return formData.selectedHorses.length > 0;
@@ -670,27 +692,25 @@ export function CreateSampleDialog({
       // LAB TENANT: Client Step (Step 1)
       case 'client':
         return (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Label className="text-base font-medium">{t("laboratory.createSample.selectClient")}</Label>
             
-            <RadioGroup
-              value={formData.clientMode}
-              onValueChange={(value: LabClientMode) => {
-                setFormData(prev => ({
-                  ...prev,
-                  clientMode: value,
-                  client_id: value === 'registered' ? prev.client_id : '',
-                }));
-              }}
-              className="flex flex-col gap-3"
-            >
-              {/* Option 1: Registered Client */}
-              <div className={cn(
-                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
-                formData.clientMode === 'registered' && "bg-primary/5 border-primary/30"
-              )}>
-                <RadioGroupItem value="registered" id="client-registered" className="mt-0.5 h-5 w-5" />
-                <Label htmlFor="client-registered" className="flex-1 cursor-pointer">
+            {/* Option 1: Registered Client */}
+            <Collapsible open={formData.clientMode === 'registered'}>
+              <div
+                className={cn(
+                  "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                  formData.clientMode === 'registered' && "bg-primary/5 border-primary/30"
+                )}
+                onClick={() => setFormData(prev => ({ ...prev, clientMode: 'registered' as LabClientMode, client_id: prev.client_id }))}
+              >
+                <div className={cn(
+                  "h-5 w-5 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0",
+                  formData.clientMode === 'registered' ? "border-primary bg-primary" : "border-muted-foreground/40"
+                )}>
+                  {formData.clientMode === 'registered' && <div className="h-2 w-2 rounded-full bg-primary-foreground" />}
+                </div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2 font-medium">
                     <User className="h-4 w-4 text-muted-foreground" />
                     {t("laboratory.clientMode.registered")}
@@ -698,47 +718,9 @@ export function CreateSampleDialog({
                   <p className="text-xs text-muted-foreground mt-1">
                     {t("laboratory.clientMode.registeredDesc")}
                   </p>
-                </Label>
+                </div>
               </div>
-              
-              {/* Option 2: New Client */}
-              <div className={cn(
-                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
-                formData.clientMode === 'new' && "bg-primary/5 border-primary/30"
-              )}>
-                <RadioGroupItem value="new" id="client-new" className="mt-0.5 h-5 w-5" />
-                <Label htmlFor="client-new" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2 font-medium">
-                    <UserPlus className="h-4 w-4 text-muted-foreground" />
-                    {t("laboratory.clientMode.newClient")}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t("laboratory.clientMode.newClientDesc")}
-                  </p>
-                </Label>
-              </div>
-              
-              {/* Option 3: No Client */}
-              <div className={cn(
-                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
-                formData.clientMode === 'none' && "bg-primary/5 border-primary/30"
-              )}>
-                <RadioGroupItem value="none" id="client-none" className="mt-0.5 h-5 w-5" />
-                <Label htmlFor="client-none" className="flex-1 cursor-pointer">
-                  <div className="flex items-center gap-2 font-medium">
-                    <UserX className="h-4 w-4 text-muted-foreground" />
-                    {t("laboratory.clientMode.none")}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {t("laboratory.clientMode.noneDesc")}
-                  </p>
-                </Label>
-              </div>
-            </RadioGroup>
-            
-            {/* Registered Client Selector */}
-            {formData.clientMode === 'registered' && (
-              <div className="space-y-2 pt-2">
+              <CollapsibleContent className="pt-2 ps-8">
                 <ClientSelector
                   selectedClientId={formData.client_id || null}
                   onClientSelect={(clientId) => {
@@ -746,17 +728,40 @@ export function CreateSampleDialog({
                   }}
                   placeholder={t("laboratory.createSample.selectClient")}
                 />
-              </div>
-            )}
+              </CollapsibleContent>
+            </Collapsible>
             
-            {/* New Client Button */}
-            {formData.clientMode === 'new' && (
-              <div className="pt-2">
+            {/* Option 2: New Client */}
+            <Collapsible open={formData.clientMode === 'new'}>
+              <div
+                className={cn(
+                  "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                  formData.clientMode === 'new' && "bg-primary/5 border-primary/30"
+                )}
+                onClick={() => setFormData(prev => ({ ...prev, clientMode: 'new' as LabClientMode }))}
+              >
+                <div className={cn(
+                  "h-5 w-5 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0",
+                  formData.clientMode === 'new' ? "border-primary bg-primary" : "border-muted-foreground/40"
+                )}>
+                  {formData.clientMode === 'new' && <div className="h-2 w-2 rounded-full bg-primary-foreground" />}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-medium">
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.newClient")}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("laboratory.clientMode.newClientDesc")}
+                  </p>
+                </div>
+              </div>
+              <CollapsibleContent className="pt-2 ps-8">
                 {formData.client_id ? (
-                  <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+                  <div className="p-3 rounded-lg bg-accent border border-accent-foreground/10">
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                      <Check className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">
                         {t("laboratory.clientMode.clientCreated")}: {selectedClient?.name}
                       </span>
                     </div>
@@ -772,8 +777,55 @@ export function CreateSampleDialog({
                     {t("laboratory.clientMode.createNewClient")}
                   </Button>
                 )}
+              </CollapsibleContent>
+            </Collapsible>
+            
+            {/* Option 3: No Client */}
+            <Collapsible open={formData.clientMode === 'none'}>
+              <div
+                className={cn(
+                  "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                  formData.clientMode === 'none' && "bg-primary/5 border-primary/30"
+                )}
+                onClick={() => setFormData(prev => ({ ...prev, clientMode: 'none' as LabClientMode, client_id: '' }))}
+              >
+                <div className={cn(
+                  "h-5 w-5 mt-0.5 rounded-full border-2 flex items-center justify-center shrink-0",
+                  formData.clientMode === 'none' ? "border-primary bg-primary" : "border-muted-foreground/40"
+                )}>
+                  {formData.clientMode === 'none' && <div className="h-2 w-2 rounded-full bg-primary-foreground" />}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 font-medium">
+                    <UserX className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.none")}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("laboratory.clientMode.noneDesc")}
+                  </p>
+                </div>
               </div>
-            )}
+              <CollapsibleContent className="pt-2 ps-8">
+                <div className="space-y-2">
+                  <Label htmlFor="no-client-reason" className="text-sm">
+                    {t("laboratory.clientMode.noClientReason")} *
+                  </Label>
+                  <Textarea
+                    id="no-client-reason"
+                    value={formData.no_client_reason}
+                    onChange={(e) => setFormData(prev => ({ ...prev, no_client_reason: e.target.value }))}
+                    placeholder={t("laboratory.clientMode.noClientReasonPlaceholder")}
+                    rows={2}
+                    className="resize-none"
+                  />
+                  {formData.no_client_reason.length > 0 && formData.no_client_reason.length < 5 && (
+                    <p className="text-xs text-destructive">
+                      {t("common.minCharacters")}
+                    </p>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         );
 
@@ -1694,44 +1746,46 @@ export function CreateSampleDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>
-              {isRetest ? t("laboratory.createSample.createRetest") : t("laboratory.createSample.title")}
-            </DialogTitle>
-          </DialogHeader>
-
-          {/* Step Indicator - scrollable on mobile */}
-          <div className="flex-shrink-0 overflow-x-auto scrollbar-hide py-4">
-            <div className="flex items-center justify-center gap-1 sm:gap-2 min-w-max px-2">
-              {effectiveSteps.map((s, i) => (
-                <div key={s.key} className="flex items-center">
-                  <div
-                    className={cn(
-                      "w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-colors",
-                      i === step
-                        ? "bg-primary text-primary-foreground"
-                        : i < step
-                        ? "bg-primary/20 text-primary"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {i < step ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : i + 1}
-                  </div>
-                  {i < effectiveSteps.length - 1 && (
+          {/* Compact Header: Title + Step Indicator in one row */}
+          <DialogHeader className="flex-shrink-0 pb-2">
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="text-base sm:text-lg shrink-0">
+                {isRetest ? t("laboratory.createSample.createRetest") : t("laboratory.createSample.title")}
+              </DialogTitle>
+              
+              {/* Step Indicators - inline */}
+              <div className="flex items-center gap-0.5 sm:gap-1 overflow-x-auto scrollbar-hide">
+                {effectiveSteps.map((s, i) => (
+                  <div key={s.key} className="flex items-center">
                     <div
                       className={cn(
-                        "w-4 sm:w-8 h-0.5 mx-0.5 sm:mx-1",
-                        i < step ? "bg-primary" : "bg-muted"
+                        "w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors",
+                        i === step
+                          ? "bg-primary text-primary-foreground"
+                          : i < step
+                          ? "bg-primary/20 text-primary"
+                          : "bg-muted text-muted-foreground"
                       )}
-                    />
-                  )}
-                </div>
-              ))}
+                    >
+                      {i < step ? <Check className="h-3 w-3" /> : i + 1}
+                    </div>
+                    {i < effectiveSteps.length - 1 && (
+                      <div
+                        className={cn(
+                          "w-3 sm:w-4 h-0.5 mx-0.5",
+                          i < step ? "bg-primary" : "bg-muted"
+                        )}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </DialogHeader>
 
-          <div className="text-center mb-2 sm:mb-4 flex-shrink-0">
-            <h3 className="font-semibold text-sm sm:text-base">
+          {/* Step Title - below header */}
+          <div className="text-center mb-2 flex-shrink-0 border-b pb-2">
+            <h3 className="font-semibold text-sm">
               {t(`laboratory.createSample.steps.${effectiveSteps[step]?.key}`)}
             </h3>
           </div>

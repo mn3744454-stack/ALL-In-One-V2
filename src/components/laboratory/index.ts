@@ -33,3 +33,5 @@ export * from "./AdvancedFilters";
 export * from "./LabHorsePicker";
 export * from "./LabHorsesList";
 export * from "./LabHorseProfile";
+export * from "./LabHorseFormDialog";
+export * from "./TemplateSelectionDialog";

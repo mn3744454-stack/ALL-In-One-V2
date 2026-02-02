@@ -1,15 +1,14 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Plus, Check, X, ChevronDown, ChevronUp } from "lucide-react";
-import { useLabHorses, type LabHorse, type CreateLabHorseData } from "@/hooks/laboratory/useLabHorses";
+import { Search, Plus, Check, X } from "lucide-react";
+import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { LabHorseFormDialog } from "./LabHorseFormDialog";
 import type { SelectedHorse } from "./HorseSelectionStep";
 
 interface LabHorsePickerProps {
@@ -23,23 +22,11 @@ export function LabHorsePicker({
   onHorsesChange,
   disabled = false,
 }: LabHorsePickerProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [search, setSearch] = useState("");
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [expandedForm, setExpandedForm] = useState(false);
+  const [horseDialogOpen, setHorseDialogOpen] = useState(false);
   
-  const { labHorses, loading, createLabHorse, isCreating } = useLabHorses({ search });
-
-  // Create form state
-  const [formData, setFormData] = useState<CreateLabHorseData>({
-    name: "",
-    passport_number: "",
-    microchip_number: "",
-    breed_text: "",
-    color_text: "",
-    owner_name: "",
-    owner_phone: "",
-  });
+  const { labHorses, loading } = useLabHorses({ search });
 
   // Get selected lab horse IDs
   const selectedIds = useMemo(() => {
@@ -47,6 +34,7 @@ export function LabHorsePicker({
       .filter(h => h.horse_type === 'lab_horse' && h.horse_id)
       .map(h => h.horse_id!);
   }, [selectedHorses]);
+
   const handleToggleHorse = (horse: LabHorse) => {
     const isSelected = selectedIds.includes(horse.id);
     
@@ -54,11 +42,12 @@ export function LabHorsePicker({
       // Remove
       onHorsesChange(selectedHorses.filter(h => h.horse_id !== horse.id));
     } else {
-      // Add
+      // Add - use Arabic name if available and language is Arabic
+      const displayName = lang === 'ar' && horse.name_ar ? horse.name_ar : horse.name;
       const newSelected: SelectedHorse = {
         horse_id: horse.id,
         horse_type: 'lab_horse',
-        horse_name: horse.name,
+        horse_name: displayName,
         horse_data: {
           passport_number: horse.passport_number || undefined,
           microchip: horse.microchip_number || undefined,
@@ -76,64 +65,16 @@ export function LabHorsePicker({
     onHorsesChange(updated);
   };
 
-  const handleCreateHorse = async () => {
-    if (!formData.name.trim()) return;
-
-    const created = await createLabHorse({
-      name: formData.name.trim(),
-      passport_number: formData.passport_number?.trim() || undefined,
-      microchip_number: formData.microchip_number?.trim() || undefined,
-      breed_text: formData.breed_text?.trim() || undefined,
-      color_text: formData.color_text?.trim() || undefined,
-      owner_name: formData.owner_name?.trim() || undefined,
-      owner_phone: formData.owner_phone?.trim() || undefined,
-    });
-
-    if (created) {
-      // Auto-select the newly created horse
-      const newSelected: SelectedHorse = {
-        horse_id: created.id,
-        horse_type: 'lab_horse',
-        horse_name: created.name,
-        horse_data: {
-          passport_number: created.passport_number || undefined,
-          microchip: created.microchip_number || undefined,
-          breed: created.breed_text || undefined,
-          color: created.color_text || undefined,
-        },
-      };
-      onHorsesChange([...selectedHorses, newSelected]);
-      
-      // Reset form
-      setFormData({
-        name: "",
-        passport_number: "",
-        microchip_number: "",
-        breed_text: "",
-        color_text: "",
-        owner_name: "",
-        owner_phone: "",
-      });
-      setShowCreateForm(false);
-      setExpandedForm(false);
-    }
+  const handleHorseCreated = (horse: SelectedHorse) => {
+    // Auto-select the newly created horse
+    onHorsesChange([...selectedHorses, horse]);
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      passport_number: "",
-      microchip_number: "",
-      breed_text: "",
-      color_text: "",
-      owner_name: "",
-      owner_phone: "",
-    });
-    setShowCreateForm(false);
-    setExpandedForm(false);
+  // Get display name for horse (bilingual support)
+  const getHorseDisplayName = (horse: LabHorse) => {
+    if (lang === 'ar' && horse.name_ar) return horse.name_ar;
+    return horse.name;
   };
-
-  const isFormValid = formData.name.trim().length > 0;
 
   if (loading && labHorses.length === 0) {
     return (
@@ -190,169 +131,16 @@ export function LabHorsePicker({
         />
       </div>
 
-      {/* Create New Horse Button */}
-      {!showCreateForm && (
-        <Button
-          variant="outline"
-          onClick={() => setShowCreateForm(true)}
-          disabled={disabled}
-          className="w-full"
-        >
-          <Plus className="h-4 w-4 me-2" />
-          {t("laboratory.labHorses.addNew") || "Register New Horse"}
-        </Button>
-      )}
-
-      {/* Create Form */}
-      {showCreateForm && (
-        <Card className="p-4 space-y-4 border-primary/20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Name - Required */}
-            <div className="space-y-2">
-              <Label htmlFor="lab-horse-name">
-                {t("laboratory.walkIn.horseName")} *
-              </Label>
-              <Input
-                id="lab-horse-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
-                autoFocus
-                disabled={isCreating}
-              />
-            </div>
-
-            {/* Passport Number */}
-            <div className="space-y-2">
-              <Label htmlFor="lab-horse-passport">
-                {t("laboratory.walkIn.passportNumber")}
-              </Label>
-              <Input
-                id="lab-horse-passport"
-                value={formData.passport_number || ""}
-                onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
-                placeholder={t("laboratory.walkIn.passportPlaceholder")}
-                disabled={isCreating}
-              />
-            </div>
-          </div>
-
-          {/* Expand/Collapse for more fields */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpandedForm(!expandedForm)}
-            className="w-full text-muted-foreground"
-          >
-            {expandedForm ? (
-              <>
-                <ChevronUp className="h-4 w-4 me-1" />
-                {t("common.showLess") || "Show less"}
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4 me-1" />
-                {t("common.showMore") || "More details"}
-              </>
-            )}
-          </Button>
-
-          {/* Extended Fields */}
-          {expandedForm && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
-              <div className="space-y-2">
-                <Label htmlFor="lab-horse-microchip">
-                  {t("laboratory.walkIn.microchip")}
-                </Label>
-                <Input
-                  id="lab-horse-microchip"
-                  value={formData.microchip_number || ""}
-                  onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
-                  placeholder={t("laboratory.walkIn.microchipPlaceholder")}
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lab-horse-breed">
-                  {t("laboratory.walkIn.breed")}
-                </Label>
-                <Input
-                  id="lab-horse-breed"
-                  value={formData.breed_text || ""}
-                  onChange={(e) => setFormData({ ...formData, breed_text: e.target.value })}
-                  placeholder={t("laboratory.walkIn.breedPlaceholder")}
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lab-horse-color">
-                  {t("laboratory.walkIn.color")}
-                </Label>
-                <Input
-                  id="lab-horse-color"
-                  value={formData.color_text || ""}
-                  onChange={(e) => setFormData({ ...formData, color_text: e.target.value })}
-                  placeholder={t("laboratory.walkIn.colorPlaceholder")}
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lab-horse-owner-name">
-                  {t("laboratory.labHorses.ownerName") || "Owner Name"}
-                </Label>
-                <Input
-                  id="lab-horse-owner-name"
-                  value={formData.owner_name || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerNamePlaceholder") || "Enter owner name"}
-                  disabled={isCreating}
-                />
-              </div>
-
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="lab-horse-owner-phone">
-                  {t("laboratory.labHorses.ownerPhone") || "Owner Phone"}
-                </Label>
-                <Input
-                  id="lab-horse-owner-phone"
-                  value={formData.owner_phone || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerPhonePlaceholder") || "Enter owner phone"}
-                  disabled={isCreating}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetForm}
-              disabled={isCreating}
-            >
-              <X className="h-4 w-4 me-1" />
-              {t("common.cancel")}
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleCreateHorse}
-              disabled={!isFormValid || isCreating}
-            >
-              {isCreating ? (
-                <span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full me-1" />
-              ) : (
-                <Check className="h-4 w-4 me-1" />
-              )}
-              {t("laboratory.labHorses.registerAndSelect") || "Register & Select"}
-            </Button>
-          </div>
-        </Card>
-      )}
+      {/* Create New Horse Button - Opens Dialog */}
+      <Button
+        variant="outline"
+        onClick={() => setHorseDialogOpen(true)}
+        disabled={disabled}
+        className="w-full"
+      >
+        <Plus className="h-4 w-4 me-2" />
+        {t("laboratory.labHorses.registerHorse")}
+      </Button>
 
       {/* Horses List */}
       <div className="max-h-[40vh] sm:max-h-[280px] w-full min-w-0 overflow-y-auto rounded-md border">
@@ -386,11 +174,11 @@ export function LabHorsePicker({
                   </div>
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {horse.name.slice(0, 2).toUpperCase()}
+                      {getHorseDisplayName(horse).slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{horse.name}</div>
+                    <div className="font-medium text-sm truncate">{getHorseDisplayName(horse)}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {[
                         horse.passport_number,
@@ -419,6 +207,13 @@ export function LabHorsePicker({
           </Badge>
         </div>
       )}
+
+      {/* Horse Form Dialog */}
+      <LabHorseFormDialog
+        open={horseDialogOpen}
+        onOpenChange={setHorseDialogOpen}
+        onSuccess={handleHorseCreated}
+      />
     </div>
   );
 }
