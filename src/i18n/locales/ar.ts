@@ -74,6 +74,7 @@ export const ar = {
     source: "المصدر",
     unknownOrganization: "منشأة غير معروفة",
     noPreference: "بدون تفضيل",
+    minCharacters: "يجب إدخال 5 أحرف على الأقل",
   },
   workspace: {
     personal: "شخصي",
