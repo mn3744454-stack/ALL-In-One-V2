@@ -418,6 +418,7 @@ export const ar = {
       missingPrices: "لا يمكن المتابعة: بعض القوالب تفتقر إلى أسعار",
       depositLabel: "دفعة الاستلام",
       finalLabel: "الدفعة النهائية",
+      sampleFee: "رسوم العينة",
     },
     
     // Alerts
@@ -508,6 +509,11 @@ export const ar = {
       invoices: "الفواتير",
       printReport: "طباعة التقرير",
       exportReport: "تصدير التقرير",
+      // New English/Arabic name fields
+      nameEn: "اسم الخيل (إنجليزي)",
+      nameAr: "اسم الخيل (عربي)",
+      nameArPlaceholder: "أدخل اسم الخيل بالعربية",
+      registerHorse: "تسجيل خيل جديد",
     },
     
     // Walk-in Horse Form
@@ -809,6 +815,10 @@ export const ar = {
       noneDesc: "المتابعة بدون ربط العينة بعميل",
       createNewClient: "إنشاء عميل جديد",
       clientCreated: "تم إنشاء العميل",
+      // No client reason
+      noClientReason: "ما سبب عدم ربط العينة بعميل؟",
+      noClientReasonPlaceholder: "اكتب السبب هنا...",
+      noClientReasonRequired: "يرجى توضيح سبب عدم ربط العينة بعميل",
     },
     
     // Walk-in Client Form
@@ -962,6 +972,9 @@ export const ar = {
     // Templates
     templates: {
       title: "القوالب",
+      selectTemplates: "اختيار القوالب",
+      selectedCount: "{{count}} قالب مختار",
+      confirmSelection: "تأكيد الاختيار",
       add: "إضافة قالب",
       edit: "تعديل القالب",
       name: "الاسم",
@@ -2686,8 +2699,8 @@ export const ar = {
       check: "شيك",
     },
     form: {
-      name: "اسم العميل",
-      namePlaceholder: "أدخل اسم العميل",
+      name: "اسم العميل (إنجليزي)",
+      namePlaceholder: "Enter client name",
       nameAr: "اسم العميل (عربي)",
       nameArPlaceholder: "أدخل اسم العميل بالعربية",
       email: "البريد الإلكتروني",
@@ -2702,6 +2715,19 @@ export const ar = {
       creditLimit: "حد الائتمان",
       notes: "ملاحظات",
       notesPlaceholder: "ملاحظات إضافية...",
+      // Multi-phone support
+      phones: "أرقام الهاتف",
+      addPhone: "إضافة رقم",
+      noPhonesAdded: "لم يتم إضافة أرقام هاتف",
+      whatsapp: "واتساب",
+      primaryPhone: "الرقم الرئيسي",
+      setAsPrimary: "تعيين كرئيسي",
+    },
+    phoneLabels: {
+      mobile: "جوال",
+      work: "عمل",
+      home: "منزل",
+      other: "أخرى",
     },
     deleteConfirm: {
       title: "حذف العميل؟",

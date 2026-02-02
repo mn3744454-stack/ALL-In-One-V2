@@ -580,6 +580,7 @@ export type Database = {
           notes: string | null
           outstanding_balance: number | null
           phone: string | null
+          phones: Json | null
           preferred_payment_method: string | null
           profile_id: string | null
           status: string
@@ -601,6 +602,7 @@ export type Database = {
           notes?: string | null
           outstanding_balance?: number | null
           phone?: string | null
+          phones?: Json | null
           preferred_payment_method?: string | null
           profile_id?: string | null
           status?: string
@@ -622,6 +624,7 @@ export type Database = {
           notes?: string | null
           outstanding_balance?: number | null
           phone?: string | null
+          phones?: Json | null
           preferred_payment_method?: string | null
           profile_id?: string | null
           status?: string
