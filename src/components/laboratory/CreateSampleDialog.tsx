@@ -10,13 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -24,11 +17,13 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ClientSelector } from "@/components/horses/orders/ClientSelector";
 import { WalkInClientForm } from "./WalkInClientForm";
+import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useHorses } from "@/hooks/useHorses";
@@ -46,6 +41,20 @@ import { Card } from "@/components/ui/card";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
 import { HorseSelectionStep, type SelectedHorse } from "./HorseSelectionStep";
 import { LabHorsePicker } from "./LabHorsePicker";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableRow,
+} from "@/components/ui/table";
+import { formatCurrency } from "@/lib/formatters";
 
 interface CreateSampleDialogProps {
   open: boolean;
@@ -66,17 +75,32 @@ interface StepDef {
   conditional?: boolean;
 }
 
-const ALL_STEPS: StepDef[] = [
+// Steps for LAB tenants (6 steps - client first)
+const LAB_STEPS: StepDef[] = [
+  { key: 'client', title: 'Client', titleAr: 'العميل', icon: User },
+  { key: 'horses', title: 'Horses', titleAr: 'الخيول', icon: Users },
+  { key: 'templates', title: 'Templates', titleAr: 'القوالب', icon: FileText },
+  { key: 'details', title: 'Details', titleAr: 'التفاصيل', icon: FlaskConical },
+  { key: 'billing', title: 'Invoice', titleAr: 'الفاتورة', icon: Receipt },
+  { key: 'review', title: 'Review', titleAr: 'مراجعة', icon: Check },
+];
+
+// Steps for non-lab tenants (stable, clinic, etc.)
+const STABLE_STEPS: StepDef[] = [
   { key: 'horses', title: 'Horses', titleAr: 'الخيول', icon: Users },
   { key: 'basic', title: 'Basic Info', titleAr: 'معلومات أساسية', icon: FlaskConical },
   { key: 'templates', title: 'Templates', titleAr: 'القوالب', icon: FileText },
   { key: 'details', title: 'Details', titleAr: 'التفاصيل', icon: FlaskConical },
   { key: 'checkout', title: 'Checkout', titleAr: 'الدفع', icon: ShoppingCart, conditional: true },
-  { key: 'billing', title: 'Credits', titleAr: 'الرصيد', icon: CreditCard, conditional: true },
+  { key: 'credits', title: 'Credits', titleAr: 'الرصيد', icon: CreditCard, conditional: true },
   { key: 'review', title: 'Review', titleAr: 'مراجعة', icon: Check },
 ];
 
-type ClientMode = 'existing' | 'walkin' | 'none';
+// Client mode for LAB tenants
+type LabClientMode = 'registered' | 'new' | 'none';
+
+// Client mode for non-lab tenants (backward compatible)
+type StableClientMode = 'existing' | 'walkin' | 'none';
 
 interface WalkInClientData {
   client_name: string;
@@ -89,13 +113,18 @@ interface FormData {
   selectedHorses: SelectedHorse[];
   collection_date: Date;
   daily_number: string;
-  per_sample_daily_numbers: Record<number, string>; // Index -> daily number for multi-sample
+  per_sample_daily_numbers: Record<number, string>;
   physical_sample_id: string;
   client_id: string;
-  clientMode: ClientMode;
+  clientMode: LabClientMode | StableClientMode;
   walkInClient: WalkInClientData;
   notes: string;
   template_ids: string[];
+  // Per-horse template customization
+  per_horse_templates: Record<number, string[]>;
+  customize_templates_per_horse: boolean;
+  // Invoice creation option
+  create_invoice: boolean;
 }
 
 export function CreateSampleDialog({
@@ -108,7 +137,7 @@ export function CreateSampleDialog({
 }: CreateSampleDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
-  const { clients } = useClients();
+  const { clients, createClient } = useClients();
   const { createSample } = useLabSamples();
   const { wallet, creditsEnabled, debitCredits } = useLabCredits();
   const { activeTemplates, loading: templatesLoading } = useLabTemplates();
@@ -124,6 +153,7 @@ export function CreateSampleDialog({
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
+  const [clientFormOpen, setClientFormOpen] = useState(false);
   
   const [formData, setFormData] = useState<FormData>({
     selectedHorses: [],
@@ -132,10 +162,13 @@ export function CreateSampleDialog({
     per_sample_daily_numbers: {},
     physical_sample_id: '',
     client_id: retestOfSample?.client_id || '',
-    clientMode: retestOfSample?.client_id ? 'existing' : 'none',
+    clientMode: retestOfSample?.client_id ? 'registered' : 'none',
     walkInClient: { client_name: '', client_phone: '', client_email: '', notes: '' },
     notes: '',
     template_ids: [],
+    per_horse_templates: {},
+    customize_templates_per_horse: false,
+    create_invoice: false,
   });
 
   // Get billing policy from tenant capabilities
@@ -149,8 +182,9 @@ export function CreateSampleDialog({
   // Permission check for billing
   const canBill = isOwner || hasPermission("laboratory.billing.create") || hasPermission("finance.invoice.create");
 
-  // Determine if checkout step should show
+  // Determine if checkout step should show (for non-lab tenants)
   const showCheckoutStep = 
+    !isPrimaryLabTenant &&
     (billingPolicy === "at_intake" || billingPolicy === "both") && 
     canBill;
 
@@ -158,16 +192,25 @@ export function CreateSampleDialog({
   const isRetest = !!retestOfSample;
   const isFreeRetest = isRetest && retestOfSample.retest_count < 3;
 
-  // Calculate effective steps
+  // Calculate effective steps based on tenant type
   const effectiveSteps = useMemo(() => {
-    return ALL_STEPS.filter(s => {
-      // For retests, skip horse selection (horse is already defined)
-      if (s.key === 'horses' && isRetest) return false;
-      if (s.key === 'billing' && (!creditsEnabled || isFreeRetest)) return false;
-      if (s.key === 'checkout' && !showCheckoutStep) return false;
-      return true;
-    });
-  }, [creditsEnabled, isFreeRetest, showCheckoutStep, isRetest]);
+    if (isPrimaryLabTenant) {
+      // Lab tenant: use LAB_STEPS (6 steps with client first)
+      return LAB_STEPS.filter(s => {
+        // For retests, skip horse selection (horse is already defined)
+        if (s.key === 'horses' && isRetest) return false;
+        return true;
+      });
+    } else {
+      // Non-lab tenant: use STABLE_STEPS
+      return STABLE_STEPS.filter(s => {
+        if (s.key === 'horses' && isRetest) return false;
+        if (s.key === 'credits' && (!creditsEnabled || isFreeRetest)) return false;
+        if (s.key === 'checkout' && !showCheckoutStep) return false;
+        return true;
+      });
+    }
+  }, [isPrimaryLabTenant, creditsEnabled, isFreeRetest, showCheckoutStep, isRetest]);
 
   // Build checkout line items from selected templates
   const checkoutLineItems = useMemo((): CheckoutLineItem[] => {
@@ -253,12 +296,10 @@ export function CreateSampleDialog({
         });
       }
       
-      // Determine initial client mode based on retest or defaults
-      const initialClientMode: ClientMode = retestOfSample?.client_id 
-        ? 'existing' 
-        : retestOfSample?.client_name 
-          ? 'walkin' 
-          : 'none';
+      // Determine initial client mode based on tenant type and retest
+      const initialClientMode: LabClientMode | StableClientMode = isPrimaryLabTenant
+        ? (retestOfSample?.client_id ? 'registered' : 'none')
+        : (retestOfSample?.client_id ? 'existing' : retestOfSample?.client_name ? 'walkin' : 'none');
       
       setFormData({
         selectedHorses: initialHorses,
@@ -276,9 +317,12 @@ export function CreateSampleDialog({
         },
         notes: isRetest ? `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}` : '',
         template_ids: retestTemplateIds,
+        per_horse_templates: {},
+        customize_templates_per_horse: false,
+        create_invoice: false,
       });
     }
-  }, [open, preselectedHorseId, retestOfSample, isRetest, horses]);
+  }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant]);
 
   const generateSampleId = () => {
     const prefix = 'LAB';
@@ -307,6 +351,11 @@ export function CreateSampleDialog({
     client_email?: string | null; 
     client_metadata?: { notes?: string };
   } => {
+    // LAB tenant modes
+    if (formData.clientMode === 'registered' && formData.client_id) {
+      return { client_id: formData.client_id };
+    }
+    // Non-lab tenant modes (backward compatible)
     if (formData.clientMode === 'existing' && formData.client_id) {
       return { client_id: formData.client_id };
     }
@@ -322,6 +371,14 @@ export function CreateSampleDialog({
     }
     // No client
     return {};
+  };
+
+  // Get templates for a specific horse (or global if not customized)
+  const getTemplatesForHorse = (horseIndex: number): string[] => {
+    if (formData.customize_templates_per_horse && formData.per_horse_templates[horseIndex]) {
+      return formData.per_horse_templates[horseIndex];
+    }
+    return formData.template_ids;
   };
 
   const createSamplesForAllHorses = async (): Promise<string[]> => {
@@ -363,6 +420,9 @@ export function CreateSampleDialog({
       } else if (formData.daily_number) {
         dailyNumber = parseInt(formData.daily_number, 10) + i;
       }
+
+      // Get templates for this horse
+      const horseTemplates = getTemplatesForHorse(i);
       
       // Build sample data based on horse type
       const sampleData: CreateLabSampleData = {
@@ -390,7 +450,7 @@ export function CreateSampleDialog({
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
         status: 'draft',
-        template_ids: formData.template_ids.length > 0 ? formData.template_ids : undefined,
+        template_ids: horseTemplates.length > 0 ? horseTemplates : undefined,
       };
 
       const sample = await createSample(sampleData);
@@ -454,12 +514,32 @@ export function CreateSampleDialog({
       const sampleIds = await createSamplesForAllHorses();
       
       if (sampleIds.length > 0) {
+        // For LAB tenants, optionally create invoice
+        if (isPrimaryLabTenant && formData.create_invoice && formData.client_id && canBill) {
+          // Invoice creation will be handled by the calling component or a separate flow
+          // For now, we just create the samples - invoice can be created from sample details
+        }
+        
         onOpenChange(false);
         onSuccess?.();
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle new client creation (LAB tenant only)
+  const handleNewClientCreated = async (clientData: any) => {
+    const newClient = await createClient(clientData);
+    if (newClient) {
+      setFormData(prev => ({
+        ...prev,
+        client_id: newClient.id,
+        clientMode: 'registered' as LabClientMode,
+      }));
+      setClientFormOpen(false);
+    }
+    return newClient;
   };
 
   const selectedClient = clients.find(c => c.id === formData.client_id);
@@ -474,9 +554,28 @@ export function CreateSampleDialog({
     }));
   };
 
+  const togglePerHorseTemplate = (horseIndex: number, templateId: string) => {
+    setFormData(prev => {
+      const current = prev.per_horse_templates[horseIndex] || [];
+      const updated = current.includes(templateId)
+        ? current.filter(id => id !== templateId)
+        : [...current, templateId];
+      return {
+        ...prev,
+        per_horse_templates: {
+          ...prev.per_horse_templates,
+          [horseIndex]: updated,
+        },
+      };
+    });
+  };
+
   const canProceed = () => {
     const currentStep = effectiveSteps[step];
     switch (currentStep?.key) {
+      case 'client':
+        // LAB tenant: client selection is always optional
+        return true;
       case 'horses':
         return formData.selectedHorses.length > 0;
       case 'basic':
@@ -484,16 +583,19 @@ export function CreateSampleDialog({
       case 'templates':
         return true; // Templates are optional
       case 'details':
-        // For walk-in client mode, require client_name
-        if (formData.clientMode === 'walkin') {
+        // For non-lab tenants with walk-in client mode, require client_name
+        if (!isPrimaryLabTenant && formData.clientMode === 'walkin') {
           return formData.walkInClient.client_name.trim().length > 0;
         }
         return true;
       case 'checkout':
         // Can proceed if skipping OR if prices are valid
         return skipCheckout || !requirePricesForCheckout || !hasMissingPrices;
-      case 'billing':
+      case 'credits':
         return !creditsEnabled || (wallet?.balance || 0) >= formData.selectedHorses.length;
+      case 'billing':
+        // LAB tenant billing step: always can proceed (invoice is optional)
+        return true;
       case 'review':
         return true;
       default:
@@ -501,10 +603,180 @@ export function CreateSampleDialog({
     }
   };
 
+  // Render template checkbox list (reusable)
+  const renderTemplateList = (
+    selectedIds: string[],
+    onToggle: (templateId: string) => void
+  ) => (
+    <ScrollArea className="h-[280px] rounded-md border p-2">
+      <div className="space-y-1">
+        {activeTemplates.map((template) => {
+          const pricing = template.pricing as Record<string, unknown> | null;
+          const basePrice = pricing && typeof pricing.base_price === "number" 
+            ? pricing.base_price 
+            : null;
+          const currency = (pricing?.currency as string) || "SAR";
+          
+          return (
+            <div
+              key={template.id}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors min-h-12",
+                "hover:bg-accent",
+                selectedIds.includes(template.id) && "bg-primary/10 border border-primary/20"
+              )}
+              onClick={() => onToggle(template.id)}
+            >
+              <Checkbox
+                checked={selectedIds.includes(template.id)}
+                onCheckedChange={() => onToggle(template.id)}
+                className="min-h-5 min-w-5"
+              />
+              <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
+                  {template.name_ar || template.name}
+                </div>
+                {template.name_ar && template.name && (
+                  <div className="text-xs text-muted-foreground">{template.name}</div>
+                )}
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    {template.fields.length} {t("laboratory.createSample.fields")}
+                  </Badge>
+                  {basePrice !== null ? (
+                    <Badge variant="secondary" className="text-xs">
+                      {basePrice} {currency}
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" className="text-xs">
+                      <AlertTriangle className="h-3 w-3 me-1" />
+                      {t("finance.pos.priceMissing")}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
+  );
+
   const renderStepContent = () => {
     const currentStep = effectiveSteps[step];
     
     switch (currentStep?.key) {
+      // LAB TENANT: Client Step (Step 1)
+      case 'client':
+        return (
+          <div className="space-y-4">
+            <Label className="text-base font-medium">{t("laboratory.createSample.selectClient")}</Label>
+            
+            <RadioGroup
+              value={formData.clientMode}
+              onValueChange={(value: LabClientMode) => {
+                setFormData(prev => ({
+                  ...prev,
+                  clientMode: value,
+                  client_id: value === 'registered' ? prev.client_id : '',
+                }));
+              }}
+              className="flex flex-col gap-3"
+            >
+              {/* Option 1: Registered Client */}
+              <div className={cn(
+                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                formData.clientMode === 'registered' && "bg-primary/5 border-primary/30"
+              )}>
+                <RadioGroupItem value="registered" id="client-registered" className="mt-0.5 h-5 w-5" />
+                <Label htmlFor="client-registered" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2 font-medium">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.registered")}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("laboratory.clientMode.registeredDesc")}
+                  </p>
+                </Label>
+              </div>
+              
+              {/* Option 2: New Client */}
+              <div className={cn(
+                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                formData.clientMode === 'new' && "bg-primary/5 border-primary/30"
+              )}>
+                <RadioGroupItem value="new" id="client-new" className="mt-0.5 h-5 w-5" />
+                <Label htmlFor="client-new" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2 font-medium">
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.newClient")}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("laboratory.clientMode.newClientDesc")}
+                  </p>
+                </Label>
+              </div>
+              
+              {/* Option 3: No Client */}
+              <div className={cn(
+                "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                formData.clientMode === 'none' && "bg-primary/5 border-primary/30"
+              )}>
+                <RadioGroupItem value="none" id="client-none" className="mt-0.5 h-5 w-5" />
+                <Label htmlFor="client-none" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2 font-medium">
+                    <UserX className="h-4 w-4 text-muted-foreground" />
+                    {t("laboratory.clientMode.none")}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("laboratory.clientMode.noneDesc")}
+                  </p>
+                </Label>
+              </div>
+            </RadioGroup>
+            
+            {/* Registered Client Selector */}
+            {formData.clientMode === 'registered' && (
+              <div className="space-y-2 pt-2">
+                <ClientSelector
+                  selectedClientId={formData.client_id || null}
+                  onClientSelect={(clientId) => {
+                    setFormData(prev => ({ ...prev, client_id: clientId || '' }));
+                  }}
+                  placeholder={t("laboratory.createSample.selectClient")}
+                />
+              </div>
+            )}
+            
+            {/* New Client Button */}
+            {formData.clientMode === 'new' && (
+              <div className="pt-2">
+                {formData.client_id ? (
+                  <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        {t("laboratory.clientMode.clientCreated")}: {selectedClient?.name}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setClientFormOpen(true)}
+                    className="w-full"
+                  >
+                    <UserPlus className="h-4 w-4 me-2" />
+                    {t("laboratory.clientMode.createNewClient")}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
       case 'horses':
         return (
           <div className="space-y-4">
@@ -724,6 +996,37 @@ export function CreateSampleDialog({
                 <Badge variant="secondary">{formData.template_ids.length} {t("laboratory.createSample.selected")}</Badge>
               )}
             </div>
+
+            {/* Per-horse customization toggle (only for multiple horses) */}
+            {isPrimaryLabTenant && formData.selectedHorses.length > 1 && (
+              <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                <Switch
+                  checked={formData.customize_templates_per_horse}
+                  onCheckedChange={(checked) => {
+                    if (checked && formData.template_ids.length > 0) {
+                      // Initialize per-horse templates with current global selection
+                      const perHorse: Record<number, string[]> = {};
+                      formData.selectedHorses.forEach((_, idx) => {
+                        perHorse[idx] = [...formData.template_ids];
+                      });
+                      setFormData(prev => ({
+                        ...prev,
+                        customize_templates_per_horse: true,
+                        per_horse_templates: perHorse,
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        customize_templates_per_horse: checked,
+                      }));
+                    }
+                  }}
+                />
+                <Label className="cursor-pointer">
+                  {t("laboratory.createSample.customizeTemplatesPerHorse")}
+                </Label>
+              </div>
+            )}
             
             {templatesLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -736,60 +1039,34 @@ export function CreateSampleDialog({
                   {t("laboratory.createSample.noTemplates")}
                 </AlertDescription>
               </Alert>
-            ) : (
-              <ScrollArea className="h-[280px] rounded-md border p-2">
-                <div className="space-y-1">
-                  {activeTemplates.map((template) => {
-                    const pricing = template.pricing as Record<string, unknown> | null;
-                    const basePrice = pricing && typeof pricing.base_price === "number" 
-                      ? pricing.base_price 
-                      : null;
-                    const currency = (pricing?.currency as string) || "SAR";
-                    
-                    return (
-                      <div
-                        key={template.id}
-                        className={cn(
-                          "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors min-h-12",
-                          "hover:bg-accent",
-                          formData.template_ids.includes(template.id) && "bg-primary/10 border border-primary/20"
-                        )}
-                        onClick={() => toggleTemplate(template.id)}
-                      >
-                        <Checkbox
-                          checked={formData.template_ids.includes(template.id)}
-                          onCheckedChange={() => toggleTemplate(template.id)}
-                          className="min-h-5 min-w-5"
-                        />
-                        <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm">
-                            {template.name_ar || template.name}
-                          </div>
-                          {template.name_ar && template.name && (
-                            <div className="text-xs text-muted-foreground">{template.name}</div>
-                          )}
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {template.fields.length} {t("laboratory.createSample.fields")}
-                            </Badge>
-                            {basePrice !== null ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {basePrice} {currency}
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive" className="text-xs">
-                                <AlertTriangle className="h-3 w-3 me-1" />
-                                {t("finance.pos.priceMissing")}
-                              </Badge>
-                            )}
-                          </div>
+            ) : formData.customize_templates_per_horse ? (
+              // Per-horse template selection (Accordion)
+              <Accordion type="single" collapsible className="w-full">
+                {formData.selectedHorses.map((horse, idx) => {
+                  const horseTemplates = formData.per_horse_templates[idx] || [];
+                  return (
+                    <AccordionItem key={`${horse.horse_id || idx}-${idx}`} value={`horse-${idx}`}>
+                      <AccordionTrigger className="hover:no-underline">
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="font-medium">{horse.horse_name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {horseTemplates.length} {t("laboratory.createSample.templates")}
+                          </Badge>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {renderTemplateList(
+                          horseTemplates,
+                          (templateId) => togglePerHorseTemplate(idx, templateId)
+                        )}
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            ) : (
+              // Global template selection
+              renderTemplateList(formData.template_ids, toggleTemplate)
             )}
             
             <p className="text-xs text-muted-foreground">
@@ -799,6 +1076,180 @@ export function CreateSampleDialog({
         );
 
       case 'details':
+        // For LAB tenants, this step has only notes (client is in step 1)
+        if (isPrimaryLabTenant) {
+          return (
+            <div className="space-y-4">
+              {/* Collection date & daily number for LAB tenant */}
+              <div className="space-y-2">
+                <Label>{t("laboratory.createSample.collectionDate")} *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !formData.collection_date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="me-2 h-4 w-4" />
+                      {formData.collection_date
+                        ? format(formData.collection_date, "PPP")
+                        : t("laboratory.createSample.selectDate")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.collection_date}
+                      onSelect={(date) => date && setFormData({ ...formData, collection_date: date })}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Daily number inputs */}
+              {formData.selectedHorses.length <= 1 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>{t("laboratory.createSample.dailyNumber")}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs"
+                        onClick={async () => {
+                          const collDate = formData.collection_date;
+                          const startOfDay = new Date(collDate);
+                          startOfDay.setHours(0, 0, 0, 0);
+                          const endOfDay = new Date(collDate);
+                          endOfDay.setHours(23, 59, 59, 999);
+                          
+                          const { data: samples } = await supabase
+                            .from("lab_samples")
+                            .select("daily_number")
+                            .gte("collection_date", startOfDay.toISOString())
+                            .lte("collection_date", endOfDay.toISOString())
+                            .not("daily_number", "is", null)
+                            .order("daily_number", { ascending: false })
+                            .limit(1);
+                          
+                          const nextNumber = samples && samples.length > 0 && samples[0].daily_number 
+                            ? samples[0].daily_number + 1 
+                            : 1;
+                          setFormData(prev => ({ ...prev, daily_number: String(nextNumber) }));
+                        }}
+                      >
+                        {t("laboratory.createSample.useNext")}
+                      </Button>
+                    </div>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={formData.daily_number}
+                      onChange={(e) => setFormData({ ...formData, daily_number: e.target.value })}
+                      placeholder={t("laboratory.createSample.dailyNumberPlaceholder")}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{t("laboratory.createSample.sampleId")}</Label>
+                    <Input
+                      value={formData.physical_sample_id}
+                      onChange={(e) => setFormData({ ...formData, physical_sample_id: e.target.value })}
+                      placeholder={t("laboratory.createSample.autoGenerated")}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>{t("laboratory.createSample.perSampleDailyNumbers")}</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs"
+                      onClick={async () => {
+                        const collDate = formData.collection_date;
+                        const startOfDay = new Date(collDate);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(collDate);
+                        endOfDay.setHours(23, 59, 59, 999);
+                        
+                        const { data: samples } = await supabase
+                          .from("lab_samples")
+                          .select("daily_number")
+                          .gte("collection_date", startOfDay.toISOString())
+                          .lte("collection_date", endOfDay.toISOString())
+                          .not("daily_number", "is", null)
+                          .order("daily_number", { ascending: false })
+                          .limit(1);
+                        
+                        const startNumber = samples && samples.length > 0 && samples[0].daily_number 
+                          ? samples[0].daily_number + 1 
+                          : 1;
+                        
+                        const perSampleNumbers: Record<number, string> = {};
+                        formData.selectedHorses.forEach((_, idx) => {
+                          perSampleNumbers[idx] = String(startNumber + idx);
+                        });
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          daily_number: String(startNumber),
+                          per_sample_daily_numbers: perSampleNumbers 
+                        }));
+                      }}
+                    >
+                      {t("laboratory.createSample.autoFillSequential")}
+                    </Button>
+                  </div>
+                  
+                  <div className="rounded-md border divide-y">
+                    {formData.selectedHorses.map((horse, idx) => (
+                      <div key={`${horse.horse_id || idx}-${idx}`} className="flex items-center gap-3 p-2">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-medium truncate">{horse.horse_name}</span>
+                        </div>
+                        <div className="w-24">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={formData.per_sample_daily_numbers[idx] || ''}
+                            onChange={(e) => setFormData(prev => ({
+                              ...prev,
+                              per_sample_daily_numbers: {
+                                ...prev.per_sample_daily_numbers,
+                                [idx]: e.target.value
+                              }
+                            }))}
+                            placeholder={`#${idx + 1}`}
+                            className="h-8 text-center"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <Label>{t("laboratory.createSample.notes")}</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder={t("laboratory.createSample.notesPlaceholder")}
+                  rows={4}
+                />
+              </div>
+            </div>
+          );
+        }
+
+        // Non-LAB tenants: original details step with client selection
         return (
           <div className="space-y-4 pb-24 lg:pb-0">
             {/* Client Mode Selector */}
@@ -806,7 +1257,7 @@ export function CreateSampleDialog({
               <Label>{t("laboratory.createSample.client")}</Label>
               <RadioGroup
                 value={formData.clientMode}
-                onValueChange={(value: ClientMode) => {
+                onValueChange={(value: StableClientMode) => {
                   setFormData(prev => ({
                     ...prev,
                     clientMode: value,
@@ -879,6 +1330,159 @@ export function CreateSampleDialog({
                 rows={4}
               />
             </div>
+          </div>
+        );
+
+      // LAB TENANT: Billing/Invoice Step (Step 5)
+      case 'billing':
+        if (isPrimaryLabTenant) {
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">{t("laboratory.createSample.createInvoice")}</Label>
+                <Switch
+                  checked={formData.create_invoice}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_invoice: checked }))}
+                />
+              </div>
+              
+              {formData.create_invoice ? (
+                <Card className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {t("laboratory.createSample.invoicePreview")}
+                    </p>
+                    
+                    {/* Line items from templates */}
+                    <Table>
+                      <TableBody>
+                        {checkoutLineItems.map(item => (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-medium">{item.description_ar || item.description}</TableCell>
+                            <TableCell className="text-center">x{item.quantity}</TableCell>
+                            <TableCell className="text-end">
+                              {item.unit_price !== null ? formatCurrency(item.unit_price) : '—'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                      <TableFooter>
+                        <TableRow>
+                          <TableCell colSpan={2} className="font-bold">{t("common.total")}</TableCell>
+                          <TableCell className="text-end font-bold">{formatCurrency(checkoutTotal)}</TableCell>
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </div>
+                  
+                  {/* Client info (auto-filled from Step 1) */}
+                  {selectedClient && (
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">{selectedClient.name}</span>
+                    </div>
+                  )}
+                  
+                  {/* No client warning */}
+                  {!selectedClient && (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        {t("laboratory.createSample.noClientForInvoice")}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {/* Missing prices warning */}
+                  {hasMissingPrices && (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        {t("laboratory.createSample.missingPricesWarning")}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </Card>
+              ) : (
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {t("laboratory.createSample.skipInvoiceInfo")}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          );
+        }
+        
+        // Non-lab tenant credits step (legacy)
+        const horsesCount = formData.selectedHorses.length || 1;
+        return (
+          <div className="space-y-4">
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-medium">{t("laboratory.credits.currentBalance")}</span>
+                <Badge variant={wallet && wallet.balance >= horsesCount ? "default" : "destructive"}>
+                  {wallet?.balance || 0} {t("laboratory.credits.title")}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>{t("laboratory.credits.sampleCost")}</span>
+                  <span>{horsesCount} {t("laboratory.credits.title")}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium border-t pt-2">
+                  <span>{t("laboratory.credits.balanceAfter")}</span>
+                  <span>{(wallet?.balance || 0) - horsesCount} {t("laboratory.credits.title")}</span>
+                </div>
+              </div>
+            </Card>
+
+            {(!wallet || wallet.balance < horsesCount) && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("laboratory.credits.insufficientCredits")}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        );
+
+      // Non-lab tenant credits step
+      case 'credits':
+        const creditsHorsesCount = formData.selectedHorses.length || 1;
+        return (
+          <div className="space-y-4">
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-medium">{t("laboratory.credits.currentBalance")}</span>
+                <Badge variant={wallet && wallet.balance >= creditsHorsesCount ? "default" : "destructive"}>
+                  {wallet?.balance || 0} {t("laboratory.credits.title")}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>{t("laboratory.credits.sampleCost")}</span>
+                  <span>{creditsHorsesCount} {t("laboratory.credits.title")}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium border-t pt-2">
+                  <span>{t("laboratory.credits.balanceAfter")}</span>
+                  <span>{(wallet?.balance || 0) - creditsHorsesCount} {t("laboratory.credits.title")}</span>
+                </div>
+              </div>
+            </Card>
+
+            {(!wallet || wallet.balance < creditsHorsesCount) && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {t("laboratory.credits.insufficientCredits")}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         );
 
@@ -955,56 +1559,29 @@ export function CreateSampleDialog({
           </div>
         );
 
-      case 'billing':
-        const horsesCount = formData.selectedHorses.length || 1;
-        return (
-          <div className="space-y-4">
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-medium">{t("laboratory.credits.currentBalance")}</span>
-                <Badge variant={wallet && wallet.balance >= horsesCount ? "default" : "destructive"}>
-                  {wallet?.balance || 0} {t("laboratory.credits.title")}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>{t("laboratory.credits.sampleCost")}</span>
-                  <span>{horsesCount} {t("laboratory.credits.title")}</span>
-                </div>
-                <div className="flex justify-between text-sm font-medium border-t pt-2">
-                  <span>{t("laboratory.credits.balanceAfter")}</span>
-                  <span>{(wallet?.balance || 0) - horsesCount} {t("laboratory.credits.title")}</span>
-                </div>
-              </div>
-            </Card>
-
-            {(!wallet || wallet.balance < horsesCount) && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {t("laboratory.credits.insufficientCredits")}
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        );
-
       case 'review':
         return (
           <div className="space-y-4">
             <h4 className="font-medium">{t("laboratory.createSample.reviewTitle")}</h4>
             
             <Card className="p-4 space-y-3">
+              {/* Client (LAB tenant) */}
+              {isPrimaryLabTenant && selectedClient && (
+                <div className="flex justify-between border-b pb-3">
+                  <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
+                  <span className="font-medium">{selectedClient.name}</span>
+                </div>
+              )}
+              
               <div className="border-b pb-3">
                 <span className="text-muted-foreground text-sm">{t("laboratory.createSample.horse")}</span>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {formData.selectedHorses.map((horse, idx) => {
-                    const baseDailyNumber = formData.daily_number ? parseInt(formData.daily_number, 10) : undefined;
-                    const dailyNumber = baseDailyNumber !== undefined ? baseDailyNumber + idx : undefined;
+                    const dailyNum = formData.per_sample_daily_numbers[idx] 
+                      || (formData.daily_number ? String(parseInt(formData.daily_number, 10) + idx) : undefined);
                     return (
                       <Badge key={`${horse.horse_id || idx}-${idx}`} variant="secondary" className="text-xs">
-                        {dailyNumber !== undefined && <span className="font-bold me-1">#{dailyNumber}</span>}
+                        {dailyNum && <span className="font-bold me-1">#{dailyNum}</span>}
                         {horse.horse_name}
                       </Badge>
                     );
@@ -1035,7 +1612,7 @@ export function CreateSampleDialog({
                   {formData.physical_sample_id || t("laboratory.createSample.autoGenerated")}
                 </span>
               </div>
-              {selectedClient && (
+              {!isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
                   <span>{selectedClient.name}</span>
@@ -1066,6 +1643,20 @@ export function CreateSampleDialog({
                   </div>
                 </div>
               )}
+              {/* Invoice status (LAB tenant) */}
+              {isPrimaryLabTenant && (
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("laboratory.createSample.invoiceStatus")}</span>
+                    <Badge variant={formData.create_invoice ? "default" : "secondary"}>
+                      {formData.create_invoice 
+                        ? t("laboratory.createSample.willCreateInvoice")
+                        : t("laboratory.createSample.noInvoice")
+                      }
+                    </Badge>
+                  </div>
+                </div>
+              )}
               {formData.notes && (
                 <div className="pt-2 border-t">
                   <span className="text-muted-foreground text-sm">{t("laboratory.createSample.notes")}</span>
@@ -1074,7 +1665,7 @@ export function CreateSampleDialog({
               )}
             </Card>
 
-            {creditsEnabled && !isFreeRetest && (
+            {creditsEnabled && !isFreeRetest && !isPrimaryLabTenant && (
               <Alert>
                 <CreditCard className="h-4 w-4" />
                 <AlertDescription>
@@ -1198,6 +1789,13 @@ export function CreateSampleDialog({
         </DialogContent>
       </Dialog>
 
+      {/* Client Form Dialog (LAB tenant only) */}
+      <ClientFormDialog
+        open={clientFormOpen}
+        onOpenChange={setClientFormOpen}
+        onSave={handleNewClientCreated}
+      />
+
       {/* Embedded Checkout Sheet */}
       {createdSampleIds.length > 0 && (
         <EmbeddedCheckout
@@ -1210,13 +1808,7 @@ export function CreateSampleDialog({
             entity_id: createdSampleIds[0],
           }))}
           suggestedClientId={formData.client_id || undefined}
-          linkKind="deposit"
           onComplete={handleCheckoutComplete}
-          onCancel={() => {
-            setCheckoutOpen(false);
-            onOpenChange(false);
-            onSuccess?.();
-          }}
         />
       )}
     </>

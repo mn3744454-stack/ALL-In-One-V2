@@ -737,12 +737,14 @@ export const ar = {
       createSamples: "إنشاء العينات",
       createRetest: "إنشاء إعادة فحص",
       steps: {
+        client: "العميل",
         horses: "الخيول",
         basic: "المعلومات الأساسية",
         templates: "القوالب",
         details: "التفاصيل",
         checkout: "الدفع",
-        billing: "الرصيد",
+        billing: "الفاتورة",
+        credits: "الرصيد",
         review: "المراجعة",
       },
       horse: "الخيل",
@@ -782,6 +784,16 @@ export const ar = {
       fields: "حقول",
       perSampleDailyNumbers: "الأرقام اليومية لكل عينة",
       autoFillSequential: "ملء تسلسلي تلقائي",
+      // New LAB wizard translations
+      customizeTemplatesPerHorse: "تخصيص القوالب لكل حصان",
+      createInvoice: "إنشاء فاتورة",
+      invoicePreview: "معاينة الفاتورة",
+      skipInvoiceInfo: "يمكنك إنشاء الفاتورة لاحقاً من تفاصيل العينة.",
+      missingPricesWarning: "بعض القوالب ليس لها أسعار. يمكنك إضافتها في الفاتورة لاحقاً.",
+      noClientForInvoice: "لم يتم اختيار عميل. يمكنك إضافة العميل للفاتورة لاحقاً.",
+      invoiceStatus: "حالة الفاتورة",
+      willCreateInvoice: "سيتم إنشاء فاتورة",
+      noInvoice: "بدون فاتورة",
     },
     
     // Client Mode Selector
@@ -789,6 +801,14 @@ export const ar = {
       existing: "عميل مسجل",
       walkin: "عميل زائر",
       none: "بدون عميل",
+      // New LAB wizard client modes
+      registered: "عميل مسجل",
+      registeredDesc: "اختيار عميل موجود في قاعدة البيانات",
+      newClient: "عميل جديد",
+      newClientDesc: "إنشاء عميل جديد وتسجيله في النظام",
+      noneDesc: "المتابعة بدون ربط العينة بعميل",
+      createNewClient: "إنشاء عميل جديد",
+      clientCreated: "تم إنشاء العميل",
     },
     
     // Walk-in Client Form
