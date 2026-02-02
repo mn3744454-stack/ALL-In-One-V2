@@ -395,6 +395,7 @@ export const en = {
       missingPrices: "Cannot proceed: some templates are missing prices",
       depositLabel: "Intake Deposit",
       finalLabel: "Final Payment",
+      sampleFee: "Sample Fee",
     },
     
     // Alerts
@@ -483,6 +484,11 @@ export const en = {
       invoices: "Invoices",
       printReport: "Print Report",
       exportReport: "Export Report",
+      // New English/Arabic name fields
+      nameEn: "Horse Name (English)",
+      nameAr: "Horse Name (Arabic)",
+      nameArPlaceholder: "أدخل اسم الخيل",
+      registerHorse: "Register New Horse",
     },
     
     // Walk-in Horse Form
@@ -783,6 +789,10 @@ export const en = {
       noneDesc: "Continue without linking the sample to a client",
       createNewClient: "Create New Client",
       clientCreated: "Client created",
+      // No client reason
+      noClientReason: "Why is the sample not linked to a client?",
+      noClientReasonPlaceholder: "Enter reason here...",
+      noClientReasonRequired: "Please provide a reason for not linking a client",
     },
     
     // Walk-in Client Form
@@ -936,6 +946,9 @@ export const en = {
     // Templates
     templates: {
       title: "Templates",
+      selectTemplates: "Select Templates",
+      selectedCount: "{{count}} templates selected",
+      confirmSelection: "Confirm Selection",
       add: "Add Template",
       edit: "Edit Template",
       name: "Name",
@@ -2660,7 +2673,7 @@ export const en = {
       check: "Check",
     },
     form: {
-      name: "Client Name",
+      name: "Client Name (English)",
       namePlaceholder: "Enter client name",
       nameAr: "Client Name (Arabic)",
       nameArPlaceholder: "أدخل اسم العميل",
@@ -2676,6 +2689,19 @@ export const en = {
       creditLimit: "Credit Limit",
       notes: "Notes",
       notesPlaceholder: "Additional notes...",
+      // Multi-phone support
+      phones: "Phone Numbers",
+      addPhone: "Add Phone",
+      noPhonesAdded: "No phone numbers added",
+      whatsapp: "WhatsApp",
+      primaryPhone: "Primary",
+      setAsPrimary: "Set as Primary",
+    },
+    phoneLabels: {
+      mobile: "Mobile",
+      work: "Work",
+      home: "Home",
+      other: "Other",
     },
     deleteConfirm: {
       title: "Delete Client?",
