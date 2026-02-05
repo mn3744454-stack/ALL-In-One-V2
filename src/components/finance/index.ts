@@ -8,5 +8,6 @@ export { InvoiceFormDialog } from "./InvoiceFormDialog";
 export { InvoiceLineItemsEditor } from "./InvoiceLineItemsEditor";
 export { InvoicesList } from "./InvoicesList";
 export { InvoiceStatusBadge } from "./InvoiceStatusBadge";
+export { RecordPaymentDialog } from "./RecordPaymentDialog";
 export { generateInvoicePDF, downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 export { FinancialCategorization } from "./FinancialCategorization";
