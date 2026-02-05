@@ -2770,6 +2770,18 @@ export const ar = {
       updated: "تم تحديث العميل بنجاح",
       deleted: "تم حذف العميل بنجاح",
     },
+    statement: {
+      title: "كشف الحساب",
+      noEntries: "لا توجد معاملات لهذه الفترة",
+      totalDebit: "إجمالي المدين",
+      totalCredit: "إجمالي الدائن",
+      closingBalance: "الرصيد الختامي",
+      openingBalance: "الرصيد الافتتاحي",
+      debit: "مدين",
+      credit: "دائن",
+      balance: "الرصيد",
+      dateRange: "نطاق التاريخ",
+    },
   },
   connections: {
     title: "الاتصالات والمشاركة",

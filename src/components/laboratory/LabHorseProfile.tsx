@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download, Edit } from "lucide-react";
+import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download, Edit, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hook
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
+import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -38,13 +39,15 @@ interface LabHorseProfileProps {
 
 export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick, onEdit }: LabHorseProfileProps) {
   const { t, lang, dir } = useI18n();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, isOwner } = usePermissions();
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);
 
   // Permission checks - deny by default
   const canEditHorse = hasPermission("laboratory.horses.edit");
   const canExport = hasPermission("laboratory.horses.export");
+  const canRecordPayment = isOwner || hasPermission("finance.payment.create");
 
   // View preferences per tab
   const { viewMode: samplesView, gridColumns: samplesGridCols, setViewMode: setSamplesView, setGridColumns: setSamplesGridCols } = useViewPreference('lab-horse-samples');
@@ -295,12 +298,35 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 </>
               )}
             </div>
+            {/* Show paid/outstanding */}
+            <div className="flex items-center gap-2 mt-1 text-xs">
+              <span className="text-primary font-mono tabular-nums" dir="ltr">
+                {t("finance.payment.paid")}: {formatAmount(invoice.paidAmount)}
+              </span>
+              {invoice.outstandingAmount > 0.01 && (
+                <span className="text-destructive font-mono tabular-nums" dir="ltr">
+                  {t("finance.payment.outstanding")}: {formatAmount(invoice.outstandingAmount)}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="font-mono font-medium tabular-nums" dir="ltr">
               {formatAmount(invoice.totalAmount)}
             </span>
             <InvoiceStatusBadge status={invoice.status} />
+            {canRecordPayment && invoice.outstandingAmount > 0.01 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPaymentInvoiceId(invoice.invoiceId);
+                }}
+              >
+                <CreditCard className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
@@ -317,7 +343,10 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             <TableHead className="text-center">{t("finance.invoices.client")}</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("finance.invoices.total")}</TableHead>
+            <TableHead className="text-center">{t("finance.payment.paid")}</TableHead>
+            <TableHead className="text-center">{t("finance.payment.outstanding")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
+            {canRecordPayment && <TableHead className="text-center">{t("common.actions")}</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -339,9 +368,35 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
               <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
                 {formatAmount(invoice.totalAmount)}
               </TableCell>
+              <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
+                {formatAmount(invoice.paidAmount)}
+              </TableCell>
+              <TableCell className={cn(
+                "text-center font-mono tabular-nums",
+                invoice.outstandingAmount > 0.01 && "text-destructive"
+              )} dir="ltr">
+                {formatAmount(invoice.outstandingAmount)}
+              </TableCell>
               <TableCell className="text-center">
                 <InvoiceStatusBadge status={invoice.status} />
               </TableCell>
+              {canRecordPayment && (
+                <TableCell className="text-center">
+                  {invoice.outstandingAmount > 0.01 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPaymentInvoiceId(invoice.invoiceId);
+                      }}
+                    >
+                      <CreditCard className="h-4 w-4 me-1" />
+                      {t("finance.payment.record")}
+                    </Button>
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
@@ -616,6 +671,13 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         open={!!selectedInvoiceId}
         onOpenChange={(open) => !open && setSelectedInvoiceId(null)}
         invoiceId={selectedInvoiceId}
+      />
+
+      {/* Record Payment Dialog */}
+      <RecordPaymentDialog
+        open={!!paymentInvoiceId}
+        onOpenChange={(open) => !open && setPaymentInvoiceId(null)}
+        invoiceId={paymentInvoiceId}
       />
     </div>
   );

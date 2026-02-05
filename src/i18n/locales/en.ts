@@ -2743,6 +2743,18 @@ export const en = {
       updated: "Client updated successfully",
       deleted: "Client deleted successfully",
     },
+    statement: {
+      title: "Account Statement",
+      noEntries: "No transactions found for this period",
+      totalDebit: "Total Debits",
+      totalCredit: "Total Credits",
+      closingBalance: "Closing Balance",
+      openingBalance: "Opening Balance",
+      debit: "Debit",
+      credit: "Credit",
+      balance: "Balance",
+      dateRange: "Date Range",
+    },
   },
   connections: {
     title: "Connections & Sharing",

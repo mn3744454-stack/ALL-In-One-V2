@@ -4,3 +4,4 @@ export { ClientStatusBadge } from "./ClientStatusBadge";
 export { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
 export { ClientFilters } from "./ClientFilters";
 export { ClientsList } from "./ClientsList";
+export { ClientStatementTab } from "./ClientStatementTab";
