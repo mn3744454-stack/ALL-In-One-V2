@@ -21,21 +21,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useQueryClient } from "@tanstack/react-query";
+import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
+import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { formatCurrency } from "@/lib/formatters";
 import { toast } from "sonner";
@@ -47,11 +41,12 @@ import {
   DollarSign,
   Download,
   Printer,
-  CheckCircle,
   Send,
   Pencil,
   Trash2,
   Loader2,
+  CreditCard,
+  History,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -77,13 +72,15 @@ export function InvoiceDetailsSheet({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+
+  // Use payment hook for ledger-derived data
+  const { summary: paymentSummary } = useInvoicePayments(invoiceId);
 
   // Permission checks - deny by default
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");
-  const canMarkPaid = hasPermission("finance.invoice.markPaid");
+  const canRecordPayment = hasPermission("finance.payment.create");
   const canSend = hasPermission("finance.invoice.send");
   const canPrint = hasPermission("finance.invoice.print");
 
@@ -176,30 +173,9 @@ export function InvoiceDetailsSheet({
     queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
   };
 
-  const handleMarkPaid = async () => {
-    if (!invoice) return;
-    setActionLoading(true);
-    try {
-      const { error } = await supabase
-        .from("invoices" as any)
-        .update({ 
-          status: 'paid', 
-          payment_received_at: new Date().toISOString(),
-          payment_method: paymentMethod,
-        })
-        .eq("id", invoice.id);
-      
-      if (error) throw error;
-      toast.success(t("finance.invoices.markedAsPaid"));
-      setPaymentDialogOpen(false);
-      invalidateQueries();
-      fetchInvoiceDetails();
-    } catch (error) {
-      console.error("Error marking invoice as paid:", error);
-      toast.error(t("common.error"));
-    } finally {
-      setActionLoading(false);
-    }
+  const handlePaymentSuccess = () => {
+    invalidateQueries();
+    fetchInvoiceDetails();
   };
 
   const handleSend = async () => {
@@ -311,15 +287,15 @@ export function InvoiceDetailsSheet({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <InvoiceStatusBadge status={invoice.status} />
               <div className="flex flex-wrap gap-2">
-                {/* Mark as Paid - for sent/overdue invoices */}
-                {canMarkPaid && (invoice.status === 'sent' || invoice.status === 'overdue') && (
+                {/* Record Payment - for sent/overdue/partial invoices */}
+                {canRecordPayment && ['sent', 'overdue', 'partial'].includes(invoice.status) && (
                   <Button
                     size="sm"
-                    onClick={() => setPaymentDialogOpen(true)}
+                    onClick={() => setRecordPaymentOpen(true)}
                     disabled={actionLoading}
                   >
-                    <CheckCircle className="h-4 w-4 me-2" />
-                    {t("finance.invoices.markPaid")}
+                    <CreditCard className="h-4 w-4 me-2" />
+                    {t("finance.payments.recordPayment")}
                   </Button>
                 )}
                 {/* Send - for draft invoices */}
@@ -517,40 +493,14 @@ export function InvoiceDetailsSheet({
         )}
       </SheetContent>
 
-      {/* Payment Method Dialog */}
-      <AlertDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("finance.invoices.markPaid")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("finance.invoices.selectPaymentMethod")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <Label>{t("finance.invoices.paymentMethod")}</Label>
-            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-              <SelectTrigger className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">{t("finance.paymentMethods.cash")}</SelectItem>
-                <SelectItem value="card">{t("finance.paymentMethods.card")}</SelectItem>
-                <SelectItem value="transfer">{t("finance.paymentMethods.transfer")}</SelectItem>
-                <SelectItem value="credit">{t("finance.paymentMethods.credit")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={actionLoading}>
-              {t("common.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleMarkPaid} disabled={actionLoading}>
-              {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-              {t("common.confirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Record Payment Dialog */}
+      <RecordPaymentDialog
+        open={recordPaymentOpen}
+        onOpenChange={setRecordPaymentOpen}
+        invoiceId={invoiceId}
+        currency={invoice?.currency}
+        onSuccess={handlePaymentSuccess}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

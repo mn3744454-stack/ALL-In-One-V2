@@ -4479,6 +4479,9 @@ export type Database = {
           description: string | null
           entry_type: string
           id: string
+          metadata: Json
+          payment_method: string | null
+          payment_session_id: string | null
           reference_id: string | null
           reference_type: string | null
           tenant_id: string
@@ -4492,6 +4495,9 @@ export type Database = {
           description?: string | null
           entry_type: string
           id?: string
+          metadata?: Json
+          payment_method?: string | null
+          payment_session_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
           tenant_id: string
@@ -4505,6 +4511,9 @@ export type Database = {
           description?: string | null
           entry_type?: string
           id?: string
+          metadata?: Json
+          payment_method?: string | null
+          payment_session_id?: string | null
           reference_id?: string | null
           reference_type?: string | null
           tenant_id?: string
