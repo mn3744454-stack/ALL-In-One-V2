@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import type { LabSample } from "./useLabSamples";
 import type { LabRequest } from "./useLabRequests";
 import type { LabTemplate } from "./useLabTemplates";
@@ -253,6 +254,11 @@ export function useLabInvoiceDraft() {
       }
 
       toast.success(t("laboratory.billing.invoiceCreated") || "Invoice created successfully");
+
+      // Post ledger entry for the invoice
+      if (input.clientId && tenantId) {
+        await postLedgerForInvoice(invoice.id, tenantId);
+      }
 
       // Navigate to finance invoices page
       navigate("/dashboard/finance/invoices");

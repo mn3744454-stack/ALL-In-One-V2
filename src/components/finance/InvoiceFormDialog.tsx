@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 
 interface InvoiceFormDialogProps {
   open: boolean;
@@ -140,6 +141,10 @@ export function InvoiceFormDialog({
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: ["invoices"] });
     queryClient.invalidateQueries({ queryKey: ["invoice-items"] });
+    queryClient.invalidateQueries({ queryKey: ["invoice-payments"] });
+    queryClient.invalidateQueries({ queryKey: ["ledger-entries"] });
+    queryClient.invalidateQueries({ queryKey: ["customer-balances"] });
+    queryClient.invalidateQueries({ queryKey: ["client-statement"] });
     queryClient.invalidateQueries({ queryKey: ["lab-horse-financial"] });
     queryClient.invalidateQueries({ queryKey: ["lab-horses-with-metrics"] });
     queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
@@ -225,6 +230,11 @@ export function InvoiceFormDialog({
               entity_type: item.entity_type,
               entity_id: item.entity_id,
             });
+          }
+
+          // Post ledger entry for the invoice (if client exists)
+          if (formData.client_id && activeTenant?.tenant.id) {
+            await postLedgerForInvoice(newInvoice.id, activeTenant.tenant.id);
           }
         }
       }
