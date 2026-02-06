@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
+import { useSampleInvoiceMap } from "@/hooks/laboratory/useSampleInvoiceMap";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { SampleCard } from "./SampleCard";
@@ -145,6 +146,10 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
 
   // Fetch all results to calculate progress per sample
   const { results, reviewResult, finalizeResult } = useLabResults();
+
+  // Fetch invoice map for samples
+  const sampleIds = useMemo(() => rawSamples.map(s => s.id), [rawSamples]);
+  const { sampleInvoiceMap } = useSampleInvoiceMap(sampleIds);
 
   // Create a map of sample_id -> results count
   const resultsCountBySample = useMemo(() => {
@@ -322,6 +327,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           canManage={canManage}
           canCreateInvoice={canCreateInvoice}
           resultsCountBySample={resultsCountBySample}
+          sampleInvoiceMap={sampleInvoiceMap}
           onSampleClick={onSampleClick}
           onAccession={(sample) => accessionSample(sample.id)}
           onStartProcessing={(sample) => startProcessing(sample.id)}
@@ -330,8 +336,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           onRetest={(sample) => createRetest(sample.id)}
           onViewAllResults={(sample) => setCombinedResultsSample(sample)}
           onGenerateInvoice={handleGenerateInvoice}
+          onViewInvoice={(sample, invoiceId) => {
+            // Navigate to invoice or open sheet
+            window.location.href = `/dashboard/finance/invoices?selected=${invoiceId}`;
+          }}
           onEdit={(sample) => {
-            // TODO: Open edit dialog for sample
             console.log("Edit sample:", sample.id);
           }}
           onDelete={handleDeleteSample}

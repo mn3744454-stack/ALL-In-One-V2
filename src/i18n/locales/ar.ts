@@ -408,6 +408,7 @@ export const ar = {
       missingPricesTitle: "أسعار مفقودة",
       missingPricesDesc: "بعض البنود تفتقر إلى الأسعار. يرجى تحديث أسعار القوالب قبل الدفع.",
       linkFailed: "تم إنشاء الفاتورة لكن فشل ربطها بالسجل المصدر",
+      viewInvoice: "عرض الفاتورة",
     },
     
     // Checkout step in sample wizard
@@ -534,11 +535,11 @@ export const ar = {
     
     // Sample Statuses
     sampleStatus: {
-      draft: "مسودة",
-      accessioned: "تم الإستلام",
+      draft: "غير مستلمة",
+      accessioned: "مستلمة",
       processing: "قيد التحليل",
-      completed: "جاهزة لتسجيل النتائج",
-      cancelled: "ملغي",
+      completed: "مكتملة",
+      cancelled: "ملغية",
     },
     
     // Result Statuses

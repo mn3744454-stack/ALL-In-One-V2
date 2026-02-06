@@ -356,7 +356,7 @@ export function RecordPaymentDialog({
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-3 flex-col sm:flex-row">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

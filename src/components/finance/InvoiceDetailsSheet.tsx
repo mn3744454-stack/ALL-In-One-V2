@@ -381,7 +381,7 @@ export function InvoiceDetailsSheet({
                       {t("finance.invoices.issueDate")}
                     </p>
                     <p className="font-medium font-mono" dir="ltr">
-                      {format(new Date(invoice.issue_date), "PPP")}
+                      {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
                     </p>
                   </div>
                 </div>
@@ -394,7 +394,7 @@ export function InvoiceDetailsSheet({
                         {t("finance.invoices.dueDate")}
                       </p>
                       <p className="font-medium font-mono" dir="ltr">
-                        {format(new Date(invoice.due_date), "PPP")}
+                        {format(new Date(invoice.due_date), "dd-MM-yyyy")}
                       </p>
                     </div>
                   </div>
