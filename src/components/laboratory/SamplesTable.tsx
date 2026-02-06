@@ -40,6 +40,7 @@ interface SamplesTableProps {
   canManage: boolean;
   canCreateInvoice: boolean;
   resultsCountBySample: Record<string, number>;
+  sampleInvoiceMap?: Record<string, { invoiceId: string; invoiceNumber: string }>; // Map of sample IDs to invoice info
   onSampleClick?: (sampleId: string) => void;
   onAccession?: (sample: LabSample) => void;
   onStartProcessing?: (sample: LabSample) => void;
@@ -48,6 +49,7 @@ interface SamplesTableProps {
   onRetest?: (sample: LabSample) => void;
   onViewAllResults?: (sample: LabSample) => void;
   onGenerateInvoice?: (sample: LabSample) => void;
+  onViewInvoice?: (sample: LabSample, invoiceId: string) => void;
   onEdit?: (sample: LabSample) => void;
   onDelete?: (sample: LabSample) => void;
 }
@@ -57,6 +59,7 @@ export function SamplesTable({
   canManage,
   canCreateInvoice,
   resultsCountBySample,
+  sampleInvoiceMap = {},
   onSampleClick,
   onAccession,
   onStartProcessing,
@@ -65,6 +68,7 @@ export function SamplesTable({
   onRetest,
   onViewAllResults,
   onGenerateInvoice,
+  onViewInvoice,
   onEdit,
   onDelete,
 }: SamplesTableProps) {
@@ -201,11 +205,19 @@ export function SamplesTable({
                               </DropdownMenuItem>
                             )}
 
+                            {/* Invoice action - toggle between Create and View */}
                             {canCreateInvoice && sample.status !== 'cancelled' && (
-                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onGenerateInvoice?.(sample); }}>
-                                <Receipt className="h-4 w-4 me-2" />
-                                {t("laboratory.billing.generateInvoice")}
-                              </DropdownMenuItem>
+                              sampleInvoiceMap[sample.id] ? (
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewInvoice?.(sample, sampleInvoiceMap[sample.id].invoiceId); }}>
+                                  <Eye className="h-4 w-4 me-2" />
+                                  {t("laboratory.billing.viewInvoice")}
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onGenerateInvoice?.(sample); }}>
+                                  <Receipt className="h-4 w-4 me-2" />
+                                  {t("laboratory.billing.generateInvoice")}
+                                </DropdownMenuItem>
+                              )
                             )}
 
                             <DropdownMenuSeparator />

@@ -47,7 +47,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   // Permission checks - deny by default
   const canEditHorse = hasPermission("laboratory.horses.edit");
   const canExport = hasPermission("laboratory.horses.export");
-  const canRecordPayment = isOwner || hasPermission("finance.payment.create");
+  const canRecordPayment = isOwner || hasPermission("finance.payments.create");
 
   // View preferences per tab
   const { viewMode: samplesView, gridColumns: samplesGridCols, setViewMode: setSamplesView, setGridColumns: setSamplesGridCols } = useViewPreference('lab-horse-samples');
@@ -301,11 +301,11 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             {/* Show paid/outstanding */}
             <div className="flex items-center gap-2 mt-1 text-xs">
               <span className="text-primary font-mono tabular-nums" dir="ltr">
-                {t("finance.payment.paid")}: {formatAmount(invoice.paidAmount)}
+                {t("finance.payments.paidSoFar")}: {formatAmount(invoice.paidAmount)}
               </span>
               {invoice.outstandingAmount > 0.01 && (
                 <span className="text-destructive font-mono tabular-nums" dir="ltr">
-                  {t("finance.payment.outstanding")}: {formatAmount(invoice.outstandingAmount)}
+                  {t("finance.payments.outstanding")}: {formatAmount(invoice.outstandingAmount)}
                 </span>
               )}
             </div>
@@ -339,12 +339,12 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">{t("finance.invoices.invoiceNumber")}</TableHead>
+            <TableHead className="text-center">{t("finance.invoices.number")}</TableHead>
             <TableHead className="text-center">{t("finance.invoices.client")}</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("finance.invoices.total")}</TableHead>
-            <TableHead className="text-center">{t("finance.payment.paid")}</TableHead>
-            <TableHead className="text-center">{t("finance.payment.outstanding")}</TableHead>
+            <TableHead className="text-center">{t("finance.payments.paidSoFar")}</TableHead>
+            <TableHead className="text-center">{t("finance.payments.outstanding")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
             {canRecordPayment && <TableHead className="text-center">{t("common.actions")}</TableHead>}
           </TableRow>
@@ -392,7 +392,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                       }}
                     >
                       <CreditCard className="h-4 w-4 me-1" />
-                      {t("finance.payment.record")}
+                      {t("finance.payments.recordPayment")}
                     </Button>
                   )}
                 </TableCell>

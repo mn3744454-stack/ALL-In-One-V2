@@ -384,6 +384,7 @@ export const en = {
       missingPricesTitle: "Missing Prices",
       missingPricesDesc: "Some items are missing prices. Please update template pricing before checkout.",
       linkFailed: "Invoice created but failed to link to source record",
+      viewInvoice: "View Invoice",
     },
     
     // Checkout step in sample wizard
@@ -508,8 +509,8 @@ export const en = {
     
     // Sample Statuses
     sampleStatus: {
-      draft: "Draft",
-      accessioned: "Accessioned",
+      draft: "Not Received",
+      accessioned: "Received",
       processing: "Processing",
       completed: "Completed",
       cancelled: "Cancelled",

@@ -71,13 +71,12 @@ export function useLabInvoiceDraft() {
 
       setIsChecking(true);
       try {
-        const searchPattern = `[LAB:${sourceType}:${sourceId}]`;
-
-        // Search in invoice_items description
+        // Search in invoice_items using entity_type/entity_id (preferred clean approach)
         const { data: items, error } = await supabase
           .from("invoice_items")
           .select("invoice_id, invoices!inner(id, invoice_number, tenant_id, created_at)")
-          .ilike("description", `%${searchPattern}%`)
+          .eq("entity_type", sourceType)
+          .eq("entity_id", sourceId)
           .eq("invoices.tenant_id", tenantId)
           .order("invoices(created_at)", { ascending: false })
           .limit(5);
@@ -229,27 +228,28 @@ export function useLabInvoiceDraft() {
         discount_amount: discountAmount,
         total_amount: totalAmount,
         currency: "SAR",
-        notes: input.notes || `[${input.sourceType.toUpperCase()}:${input.sourceId}] ${input.sourceName}`,
+        notes: input.notes || input.sourceName, // Clean notes without technical IDs
       });
 
       if (!invoice?.id) {
         throw new Error("Failed to create invoice");
       }
 
-      // Create line items
+      // Create line items - use clean descriptions, store technical links in entity_type/entity_id
       for (const item of input.lineItems) {
+        // Clean human-readable description (template name only, can include bilingual)
         const description = item.templateNameAr
           ? `${item.templateName} / ${item.templateNameAr}`
           : item.templateName;
 
         await createItem({
           invoice_id: invoice.id,
-          description: `[LAB:${input.sourceType}:${input.sourceId}] ${description}`,
+          description, // Clean description without UUIDs
           quantity: item.quantity,
           unit_price: item.unitPrice,
           total_price: item.total,
-          entity_type: input.sourceType,
-          entity_id: input.sourceId,
+          entity_type: input.sourceType, // Technical link stored here
+          entity_id: input.sourceId, // Technical link stored here
         });
       }
 

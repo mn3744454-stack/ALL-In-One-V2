@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2 } from "lucide-react";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
+import { formatCurrency } from "@/lib/formatters";
 import type { Client } from "@/hooks/useClients";
 
 interface ClientCardProps {
@@ -22,16 +23,12 @@ interface ClientCardProps {
 }
 
 export function ClientCard({ client, onEdit, onDelete, canManage = false }: ClientCardProps) {
-  const { t, dir } = useI18n();
+  const { t, lang } = useI18n();
   const Icon = getClientTypeIcon(client.type);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-SA", {
-      style: "currency",
-      currency: "SAR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Use localized name: Arabic UI shows Arabic name if available
+  const displayName = lang === 'ar' && client.name_ar ? client.name_ar : client.name;
+  const secondaryName = lang === 'ar' && client.name_ar && client.name !== client.name_ar ? client.name : client.name_ar;
 
   const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
 
@@ -44,10 +41,10 @@ export function ClientCard({ client, onEdit, onDelete, canManage = false }: Clie
               <Icon className="w-5 h-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-foreground truncate">{client.name}</h3>
-              {client.name_ar && client.name_ar !== client.name && (
-                <p className="text-sm text-muted-foreground truncate" dir="rtl">
-                  {client.name_ar}
+              <h3 className="font-semibold text-foreground truncate">{displayName}</h3>
+              {secondaryName && secondaryName !== displayName && (
+                <p className="text-sm text-muted-foreground truncate" dir={lang === 'ar' ? 'ltr' : 'rtl'}>
+                  {secondaryName}
                 </p>
               )}
             </div>
@@ -108,15 +105,15 @@ export function ClientCard({ client, onEdit, onDelete, canManage = false }: Clie
         {hasOutstandingBalance && (
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
-            <span className="text-sm text-amber-700 font-medium">
-              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0)}
+            <span className="text-sm text-amber-700 font-medium font-mono tabular-nums" dir="ltr">
+              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, "SAR")}
             </span>
           </div>
         )}
 
         {client.credit_limit && (
-          <div className="text-xs text-muted-foreground">
-            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit)}
+          <div className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
+            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, "SAR")}
           </div>
         )}
       </CardContent>

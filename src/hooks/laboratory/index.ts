@@ -9,3 +9,4 @@ export * from "./useHorseAliases";
 export * from "./useLabFeatures";
 export * from "./useLabInvoiceDraft";
 export * from "./useLabHorses";
+export * from "./useSampleInvoiceMap";
