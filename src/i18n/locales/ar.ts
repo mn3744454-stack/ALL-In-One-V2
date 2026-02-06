@@ -75,6 +75,8 @@ export const ar = {
     unknownOrganization: "منشأة غير معروفة",
     noPreference: "بدون تفضيل",
     minCharacters: "يجب إدخال 5 أحرف على الأقل",
+    print: "طباعة",
+    export: "تصدير",
   },
   workspace: {
     personal: "شخصي",
@@ -409,6 +411,7 @@ export const ar = {
       missingPricesDesc: "بعض البنود تفتقر إلى الأسعار. يرجى تحديث أسعار القوالب قبل الدفع.",
       linkFailed: "تم إنشاء الفاتورة لكن فشل ربطها بالسجل المصدر",
       viewInvoice: "عرض الفاتورة",
+      fromSample: "من العينة",
     },
     
     // Checkout step in sample wizard
@@ -1885,6 +1888,8 @@ export const ar = {
       noClient: "لا يوجد عميل",
       detailsTitle: "تفاصيل الفاتورة",
       close: "إغلاق",
+      markAsSent: "تحديد كمُرسلة",
+      markAsSentDesc: "سيتم تحديث الحالة فقط. لن يتم إرسال رسالة للعميل.",
     },
     expenses: {
       title: "المصروفات",
@@ -1995,6 +2000,9 @@ export const ar = {
       pending: "معلقة",
       approved: "معتمدة",
       rejected: "مرفوضة",
+    },
+    creditLimit: {
+      exceeded: "تجاوز حد الائتمان. لا يمكن إنشاء الفاتورة.",
     },
   },
   dashboard: {

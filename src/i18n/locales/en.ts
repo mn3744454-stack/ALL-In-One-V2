@@ -51,6 +51,8 @@ export const en = {
     sortDesc: "Descending",
     comingSoon: "Coming Soon",
     clearFilters: "Clear Filters",
+    print: "Print",
+    export: "Export",
   },
   workspace: {
     personal: "Personal",
@@ -385,6 +387,7 @@ export const en = {
       missingPricesDesc: "Some items are missing prices. Please update template pricing before checkout.",
       linkFailed: "Invoice created but failed to link to source record",
       viewInvoice: "View Invoice",
+      fromSample: "From Sample",
     },
     
     // Checkout step in sample wizard
@@ -1858,6 +1861,8 @@ export const en = {
       noClient: "No client",
       detailsTitle: "Invoice Details",
       close: "Close",
+      markAsSent: "Mark as Sent",
+      markAsSentDesc: "This only updates the status. No message will be sent to the client.",
     },
     expenses: {
       title: "Expenses",
@@ -1968,6 +1973,9 @@ export const en = {
       pending: "Pending",
       approved: "Approved",
       rejected: "Rejected",
+    },
+    creditLimit: {
+      exceeded: "Credit limit exceeded. Cannot create invoice.",
     },
   },
   dashboard: {

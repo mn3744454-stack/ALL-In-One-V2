@@ -72,6 +72,7 @@ export interface LabSampleFilters {
   status?: LabSampleStatus | 'all';
   horse_id?: string;
   lab_horse_id?: string; // For lab tenants filtering by lab_horses registry
+  client_id?: string; // For filtering by client
   search?: string;
   // New filters
   received?: boolean;           // true = received, false = unreceived
@@ -223,6 +224,11 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
         const endDate = new Date(filters.dateTo);
         endDate.setDate(endDate.getDate() + 1);
         query = query.lt("collection_date", endDate.toISOString().split('T')[0]);
+      }
+
+      // Client filter (server-side)
+      if (filters.client_id) {
+        query = query.eq("client_id", filters.client_id);
       }
 
       const { data, error } = await query;
