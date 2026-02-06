@@ -152,7 +152,7 @@ export function ClientFormDialog({
           <div className="space-y-4 p-1">
             {/* Name (English) */}
             <div className="grid gap-2">
-              <Label htmlFor="name">{t("clients.form.nameEn")} *</Label>
+              <Label htmlFor="name">{t("clients.form.name")} *</Label>
               <Input
                 id="name"
                 value={formData.name}

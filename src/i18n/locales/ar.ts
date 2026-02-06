@@ -2776,6 +2776,7 @@ export const ar = {
     },
     statement: {
       title: "كشف الحساب",
+      view: "كشف الحساب",
       noEntries: "لا توجد معاملات لهذه الفترة",
       totalDebit: "إجمالي المدين",
       totalCredit: "إجمالي الدائن",

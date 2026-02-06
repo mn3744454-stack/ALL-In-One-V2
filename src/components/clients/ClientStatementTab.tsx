@@ -192,7 +192,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className="text-xs">
-                            {t(`finance.payment.entryTypes.${entry.entry_type}`) || entry.entry_type}
+                            {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                           </Badge>
                           <span className="text-sm">{entry.description}</span>
                         </div>
