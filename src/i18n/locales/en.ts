@@ -2749,6 +2749,7 @@ export const en = {
     },
     statement: {
       title: "Account Statement",
+      view: "View Statement",
       noEntries: "No transactions found for this period",
       totalDebit: "Total Debits",
       totalCredit: "Total Credits",

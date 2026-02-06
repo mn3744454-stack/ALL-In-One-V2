@@ -17,7 +17,9 @@ import {
   ResultPreviewDialog,
   LabHorsesList,
   LabHorseProfile,
+  LabHorseEditDialog,
 } from "@/components/laboratory";
+import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart } from "lucide-react";
@@ -45,6 +47,13 @@ export default function DashboardLaboratory() {
 
   const { results } = useLabResults();
   const { templates } = useLabTemplates();
+  
+  // Fetch lab horses for edit dialog
+  const { labHorses } = useLabHorses({ includeArchived: true });
+  const editHorse = useMemo(() => {
+    if (!editHorseId) return null;
+    return labHorses.find(h => h.id === editHorseId) || null;
+  }, [editHorseId, labHorses]);
 
   // Compute available tabs based on labMode
   const availableTabs = useMemo(() => {
@@ -309,6 +318,13 @@ export default function DashboardLaboratory() {
             onOpenChange={(open) => !open && setPreviewResult(null)}
             result={previewResult}
             fullTemplate={previewTemplate}
+          />
+          {/* Lab Horse Edit Dialog - works from both profile and list */}
+          <LabHorseEditDialog
+            open={!!editHorse}
+            onOpenChange={(open) => !open && setEditHorseId(null)}
+            horse={editHorse}
+            onSuccess={() => setEditHorseId(null)}
           />
         </>
       )}
