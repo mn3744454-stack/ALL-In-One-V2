@@ -555,18 +555,27 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full justify-start h-12 mb-4">
-          <TabsTrigger value="samples" className="gap-2 text-sm px-4 py-2.5">
+        <TabsList className="w-full justify-start h-14 mb-4 p-1.5 bg-muted/50">
+          <TabsTrigger value="samples" className="gap-2 text-sm px-5 py-3 h-11 data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <FlaskConical className="h-4 w-4" />
-            {t("laboratory.labHorses.samplesCount")} ({horseSamples.length})
+            <span className="hidden sm:inline">{t("laboratory.labHorses.samplesCount")}</span>
+            <span className="sm:hidden">{t("laboratory.samples.title")}</span>
+            <Badge variant="secondary" className="ms-1 h-5 min-w-[20px] px-1.5">
+              {horseSamples.length}
+            </Badge>
           </TabsTrigger>
-          <TabsTrigger value="results" className="gap-2 text-sm px-4 py-2.5">
+          <TabsTrigger value="results" className="gap-2 text-sm px-5 py-3 h-11 data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <FileText className="h-4 w-4" />
-            {t("laboratory.labHorses.resultsCount")} ({horseResults.length})
+            <span className="hidden sm:inline">{t("laboratory.labHorses.resultsCount")}</span>
+            <span className="sm:hidden">{t("laboratory.results.title")}</span>
+            <Badge variant="secondary" className="ms-1 h-5 min-w-[20px] px-1.5">
+              {horseResults.length}
+            </Badge>
           </TabsTrigger>
-          <TabsTrigger value="financial" className="gap-2 text-sm px-4 py-2.5">
+          <TabsTrigger value="financial" className="gap-2 text-sm px-5 py-3 h-11 data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Receipt className="h-4 w-4" />
-            {t("laboratory.labHorses.financialSummary")}
+            <span className="hidden sm:inline">{t("laboratory.labHorses.financialSummary")}</span>
+            <span className="sm:hidden">{t("finance.title")}</span>
           </TabsTrigger>
         </TabsList>
 

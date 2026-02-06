@@ -21,8 +21,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
 import { useInvoicePayments, type InvoicePaymentSummary } from "@/hooks/finance/useInvoicePayments";
+import { useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
 import { 
@@ -36,6 +42,9 @@ import {
   Receipt,
   AlertCircle,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Package,
 } from "lucide-react";
 import type { PaymentEntry } from "@/lib/finance/postLedgerForPayments";
 
@@ -71,8 +80,10 @@ export function RecordPaymentDialog({
   const { t, dir } = useI18n();
   const { hasPermission } = usePermissions();
   const { summary, isLoading, recordPayment, isRecording } = useInvoicePayments(invoiceId);
+  const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
   const canRecordPayment = hasPermission("finance.payment.create");
+  const [itemsExpanded, setItemsExpanded] = useState(false);
 
   // Initialize with one empty row
   const [rows, setRows] = useState<PaymentRow[]>([
@@ -168,6 +179,45 @@ export function RecordPaymentDialog({
           </div>
         ) : summary ? (
           <div className="space-y-4 py-4">
+            {/* Invoice Items Summary (Collapsible) */}
+            {invoiceItems.length > 0 && (
+              <Collapsible open={itemsExpanded} onOpenChange={setItemsExpanded}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between px-3 h-9 bg-muted/50 hover:bg-muted"
+                  >
+                    <span className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4" />
+                      {t("finance.payments.invoiceItems")} ({invoiceItems.length})
+                    </span>
+                    {itemsExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-3 space-y-1">
+                      {invoiceItems.map((item) => (
+                        <div key={item.id} className="flex justify-between text-sm">
+                          <span className="text-muted-foreground truncate flex-1 pe-2">
+                            {item.description}
+                          </span>
+                          <span className="font-mono tabular-nums" dir="ltr">
+                            {formatAmount(item.total_price)}
+                          </span>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
             {/* Invoice Summary */}
             <Card className="bg-muted/50">
               <CardContent className="p-4 space-y-2">

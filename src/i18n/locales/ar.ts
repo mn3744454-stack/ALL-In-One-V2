@@ -1710,6 +1710,9 @@ export const ar = {
     title: "المالية",
     subtitle: "الفواتير والمصروفات والحسابات",
     overview: "نظرة عامة",
+    customerBalances: {
+      title: "أرصدة العملاء",
+    },
     pos: {
       title: "نقطة البيع",
       subtitle: "إدارة المبيعات والمعاملات",
@@ -1964,6 +1967,7 @@ export const ar = {
       recordPayment: "تسجيل دفعة",
       recordPaymentDesc: "سجّل دفعة واحدة أو أكثر لهذه الفاتورة",
       invoiceTotal: "إجمالي الفاتورة",
+      invoiceItems: "بنود الفاتورة",
       paidSoFar: "المدفوع حتى الآن",
       outstanding: "المتبقي",
       paymentDetails: "تفاصيل الدفع",
