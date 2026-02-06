@@ -1,839 +1,693 @@
-تقرير التدقيق الشامل - LAB Tenant + المالية + العملاء
-ملخص تنفيذي
-
-تم إجراء تدقيق كامل على 10 صور وعشرات الملفات. تم تحديد 17 مشكلة رئيسية:
-
-P0 (حرج): 6 مشاكل - ترجمات مكسورة، أزرار لا تعمل
-
-P1 (عالي): 8 مشاكل - UX ضعيف، منطق ناقص
-
-P2 (متوسط): 3 مشاكل - ميزات جديدة مطلوبة
-
-Image 1 - خطوة الفاتورة في معالج إنشاء العينة
-1.1 خطوة الفاتورة غير مكتملة
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-جدول بنود يعرض اسم القالب + السعر + الكمية (بدون اسم الخيل)
-
-مفتاح تبديل "إنشاء فاتورة"
-
-اسم العميل (إذا مختار)
-
-لا يوجد إمكانية تعديل الأسعار
-
-لا يوجد خيار تسجيل دفعة
-
-السبب الجذري:
-
-ملف: src/components/laboratory/CreateSampleDialog.tsx
-
-السطور: 224-257 (checkoutLineItems useMemo)
-
-المشكلة: لا يضيف horse.name للوصف
-
-السطور: 1388-1467 (billing step render)
-
-المشكلة: Table للعرض فقط، بدون inputs للتعديل، بدون زر "تسجيل دفعة"
-
-خطة الإصلاح:
-
-تعديل checkoutLineItems لتضمين horse_name في الوصف: "${template.name} - ${horse.horse_name}"
-
-إضافة <Input> لتعديل السعر لكل بند في الجدول
-
-إضافة قسم اختياري "تسجيل دفعة الآن" بعد تفعيل الفاتورة (يستخدم RecordPaymentDialog pattern)
-
-تخزين الأسعار المعدلة في formData.manualPrices: Record<string, number>
-
-✅ تعديل مهم (لمنع دفعة يتيمة + ضمان تسلسل محاسبي صحيح):
-
-"تسجيل دفعة الآن" لا يتم قبل إنشاء الفاتورة فعلياً. المنطق الصحيح:
-
-أولاً: إنشاء الفاتورة + إنشاء البنود + postLedgerForInvoice (debit)
-
-ثم: فتح RecordPaymentDialog وتسجيل الدفع + postLedgerForPayments (credit)
-
-UX مقترح: إظهار زر "تسجيل دفعة الآن" فقط بعد نجاح إنشاء الفاتورة (invoice_id موجود)، أو كخطوة قصيرة بعد billing داخل نفس الـ Wizard.
-
-معيار القبول:
-
-البنود تعرض: "تحليل الدم الشامل - دراقون x1 SAR 150"
-
-يمكن تعديل السعر مباشرة
-
-زر "تسجيل دفعة الآن" يظهر عند تفعيل الفاتورة وبعد نجاح إنشاء الفاتورة (invoice_id)
-
-المخاطر: تحتاج تكامل صحيح مع postLedgerForPayments وتأكد ألا تُسجل دفعات بدون invoice_id.
-
-Image 2 - نموذج إنشاء الفاتورة (GenerateInvoiceDialog)
-2.1 النموذج يتجاوز الصفحة + أزرار ملتصقة
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-النموذج يعمل لكن الأزرار "إلغاء" و "إنشاء الفاتورة" متقاربة جداً
-
-على الهواتف قد يتجاوز النموذج حدود الشاشة
-
-السبب الجذري:
-
-ملف: src/components/laboratory/GenerateInvoiceDialog.tsx
-
-السطر 174: className="sm:max-w-[600px]" - لا يوجد max-h أو overflow-y-auto
-
-السطور 380-404: DialogFooter بدون gap كافٍ
-
-خطة الإصلاح:
-
-// Line 174
-<DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" dir={dir}>
-
-// Line 380
-<DialogFooter className="gap-3">
 
 
-✅ تحسين إضافي للموبايل (Polish):
+# تقرير التدقيق المحدّث — الخطة المتفق عليها (1.1 → 10.1)
 
-في الشاشات الصغيرة: اجعل الأزرار عمودية لتجنب الالتصاق:
+---
 
-DialogFooter يدعم sm:flex-row flex-col + w-full للأزرار عند الموبايل.
+## A) Plan Recall (Memory Lock) - البنود الأصلية
 
-معيار القبول:
+البنود تبقى كما هي بالضبط (1.1 → 10.1) بدون تغيير أو دمج.
 
-النموذج لا يتجاوز 90vh
+---
 
-فاصل واضح 12px+ بين الأزرار
+## B) Current-State Verification (جدول الحالة المحدّث)
 
-على الموبايل لا يوجد التصاق/تداخل
+| # | البند | الحالة | الثقة | الدليل |
+|---|-------|--------|------|--------|
+| **1.1** | Wizard billing step | **NOT DONE** | High | `CreateSampleDialog.tsx` L224-257: `checkoutLineItems` لا تتضمن horse_name، لا توجد inputs للسعر، لا زر دفع |
+| **2.1** | Dialog overflow/sticky | **PARTIAL** | High | `GenerateInvoiceDialog.tsx` L174: `max-h-[90vh] overflow-y-auto` موجود لكن header/footer ليست sticky، scrollbar خارج الإطار |
+| **2.2** | Sample not linked | **PARTIAL** | High | L129-132: `sourceName` لا تشمل `sample?.horse_name` للـ walk-in |
+| **2.3** | Client selector lock | **NOT DONE** | High | L283: `disabled={clientsLoading || hasExistingInvoices}` — لا يفحص `sample?.client_id` |
+| **3.1** | Filters | **NOT DONE** | High | `SamplesList.tsx` L128: `horse_id: horseId` — Lab tenants تستخدم `lab_horse_id`، + client filter محلي L172 |
+| **3.2** | "مسودة" → "غير مستلمة" | **DONE** | High | تم تحديث ar.ts/en.ts |
+| **3.3** | View Invoice action | **WRONG BEHAVIOR** | High | L343-346: `window.location.href` → يفتح الصفحة الرئيسية أو route لا يعمل |
+| **3.4** | Cancel Sample action | **DONE** | High | موجود في `SamplesTable.tsx` |
+| **3.5** | Processing/Cancelled tabs | **DONE** | High | موجود في `SamplesFilterTabs.tsx` |
+| **4.1** | Invoice UUIDs | **PARTIAL** | Medium | `useLabInvoiceDraft.ts` نظف الوصف لكن الفواتير القديمة قد تحتوي UUIDs |
+| **4.2** | "Send to client" | **NOT DONE** | High | `InvoiceDetailsSheet.tsx` L314: يستخدم `finance.invoices.send` — يجب تغييره لـ "تحديد كمُرسلة" |
+| **4.3** | Date format dd-MM-yyyy | **DONE** | High | `InvoiceDetailsSheet.tsx` محدث |
+| **5.1** | Finance clients naming | **NOT DONE** | High | `navConfig.ts` L238-240: `labelKey: "clients.title"` — يجب أن يكون "أرصدة العملاء" |
+| **6.1** | Clients page polish | **NOT DONE** | Medium | لا توجد تحسينات responsive أو filter wrapping |
+| **6.2** | Client Statement link | **DONE** (needs polish) | High | يعمل لكن يحتاج: عرض وصف أوضح + تحسين layout + مفاتيح `common.print/export` ناقصة |
+| **6.3** | ViewSwitcher | **NOT DONE** | High | لا يوجد ViewSwitcher في DashboardClients أو Finance |
+| **6.4** | Credit limit | **NOT DONE** | High | لا يوجد check في `useLabInvoiceDraft.ts` |
+| **6.5** | Localized client names | **PARTIAL** | High | `GenerateInvoiceDialog.tsx` محدث L292-296، لكن CreateSampleDialog قد لا يزال يستخدم `client.name` |
+| **7.1** | i18n raw keys | **PARTIAL** | High | `common.print` و `common.export` غير موجودين في ar.ts/en.ts |
+| **7.2** | Edit/Export buttons | **PARTIAL** | High | Edit يعمل، Export Report يعمل (PDF) — لكن المستخدم يقول disabled؟ يحتاج فحص |
+| **7.3** | Owner Quick View | **PARTIAL** | Medium | Popover موجود لكن قد يحتاج تحسين المحتوى |
+| **8.1** | RTL/Tabs layout | **PARTIAL** | High | Back button محدث L459-472، لكن tabs صغيرة + wasted space |
+| **8.2** | i18n keys (same as 7.1) | **PARTIAL** | - | نفس 7.1 |
+| **9.1** | Payment invoice items | **NOT DONE** | High | `RecordPaymentDialog.tsx`: لا يوجد عرض بنود الفاتورة |
+| **9.2** | Button spacing | **DONE** | High | تم إضافة gap-3 |
+| **10.1** | Wizard horse logic | **DONE** | High | المنطق صحيح في `CreateSampleDialog.tsx` L262-334 |
 
-2.2 "العينة: غير مرتبط"
+---
 
-الحالة: DONE (يحتاج توضيح فقط)
+## C) Root Cause + Fix Proposals
 
-ما يعني:
+### P0 - Critical (يوم 1)
 
-sample.lab_horse_id = NULL والعينة لها horse_name فقط (walk-in)
+#### [7.1] i18n: مفاتيح common.print و common.export ناقصة
+**Root Cause:** `ClientStatementTab.tsx` L101, L105 تستخدم `t("common.print")` و `t("common.export")` لكنهم غير موجودين في ar.ts/en.ts
 
-لا علاقة بـ Connections/Share
+**Fix:**
+```typescript
+// ar.ts - common section (after line 77)
+print: "طباعة",
+export: "تصدير",
 
-السبب الجذري:
+// en.ts - common section
+print: "Print",
+export: "Export",
+```
 
-ملف: GenerateInvoiceDialog.tsx السطور 129-132
+**Files:** `src/i18n/locales/ar.ts`, `src/i18n/locales/en.ts`
 
-يعرض sourceName لكن لا يعرض sample.horse_name إذا لا يوجد horse object
+---
 
-خطة الإصلاح:
+#### [3.1] الفلاتر لا تعمل عبر التبويبات
+**Root Cause:** 
+1. `SamplesList.tsx` L128: `horse_id: horseId` — Lab tenants تحتاج `lab_horse_id`
+2. Client filter محلي فقط (L172) — لا يُرسل للـ hook
+3. Date filters قد لا تمر للـ query
 
-// Line 129-132 - improve sourceName logic
+**Fix:**
+```typescript
+// SamplesList.tsx L124-132
+const combinedFilters: LabSampleFilters = useMemo(() => ({
+  search: search || undefined,
+  dateFrom,
+  dateTo,
+  client_id: clientId, // Add server-side client filter
+  // Use correct horse filter based on tenant type
+  ...(isPrimaryLabTenant 
+    ? { lab_horse_id: horseId } 
+    : { horse_id: horseId }
+  ),
+  status: selectedStatuses.length === 1 ? selectedStatuses[0] : tabFilters.status,
+  ...tabFilters,
+}), [search, dateFrom, dateTo, clientId, horseId, selectedStatuses, tabFilters, isPrimaryLabTenant]);
+```
+
+**Also update:** `useLabSamples.ts` لإضافة `client_id` filter:
+```typescript
+if (filters.client_id) {
+  query = query.eq("client_id", filters.client_id);
+}
+```
+
+**Files:** `src/components/laboratory/SamplesList.tsx`, `src/hooks/laboratory/useLabSamples.ts`
+
+---
+
+#### [3.3] View Invoice يفتح الصفحة الرئيسية
+**Root Cause:** `SamplesList.tsx` L343-346 يستخدم `window.location.href` مما يسبب full page reload
+
+**Fix:** فتح `InvoiceDetailsSheet` مباشرة:
+```typescript
+// SamplesList.tsx - add state
+const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
+
+// Change handler L343-346
+onViewInvoice={(sample, invoiceId) => {
+  if (invoiceId) {
+    setViewInvoiceId(invoiceId);
+  }
+}}
+
+// Add at bottom of component (after GenerateInvoiceDialog)
+<InvoiceDetailsSheet
+  open={!!viewInvoiceId}
+  onOpenChange={(open) => !open && setViewInvoiceId(null)}
+  invoiceId={viewInvoiceId}
+/>
+```
+
+**Files:** `src/components/laboratory/SamplesList.tsx`
+
+---
+
+#### [2.1] Dialog polishing - sticky header/footer
+**Root Cause:** `GenerateInvoiceDialog.tsx` L174 يستخدم `overflow-y-auto` على كل الـ DialogContent، لكن header/footer ليست sticky
+
+**Fix:** استخدام flex layout مع sticky:
+```typescript
+// L174 - replace DialogContent structure
+<DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0" dir={dir}>
+  {/* Sticky Header */}
+  <DialogHeader className="sticky top-0 bg-background z-10 p-6 pb-4 border-b">
+    <DialogTitle className="flex items-center gap-2">
+      <Receipt className="h-5 w-5" />
+      {t("laboratory.billing.generateInvoice")}
+    </DialogTitle>
+    <DialogDescription>
+      {t("laboratory.billing.generateInvoiceDesc")}
+    </DialogDescription>
+  </DialogHeader>
+
+  {/* Scrollable Content */}
+  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+    {/* ... existing content ... */}
+  </div>
+
+  {/* Sticky Footer */}
+  <DialogFooter className="sticky bottom-0 bg-background z-10 p-6 pt-4 border-t gap-3 sm:gap-3">
+    {/* ... buttons ... */}
+  </DialogFooter>
+</DialogContent>
+```
+
+**Files:** `src/components/laboratory/GenerateInvoiceDialog.tsx`
+
+---
+
+#### [7.2] Export Report disabled
+**Root Cause:** يجب التحقق من الكود — `LabHorseProfile.tsx` L98-145 يحتوي `handleExportReport` — قد يكون permission issue
+
+**Fix:** فحص permission check وإزالة أي disabled غير مبرر:
+```typescript
+// L502-512 - ensure button is not disabled incorrectly
+{canExport && (
+  <Button
+    variant="outline"
+    size="sm"
+    className="gap-2"
+    onClick={handleExportReport}
+  >
+    <Download className="h-4 w-4" />
+    {t("laboratory.labHorses.exportReport")}
+  </Button>
+)}
+```
+
+**Files:** `src/components/laboratory/LabHorseProfile.tsx`
+
+---
+
+### P1 - High (يوم 2-3)
+
+#### [2.2] Sample not linked - show horse name
+**Root Cause:** `GenerateInvoiceDialog.tsx` L129-132 لا تشمل fallback لـ `sample?.horse_name`
+
+**Fix:**
+```typescript
+// L129-132
 const sourceName =
   sourceType === "lab_sample"
-    ? sample?.horse?.name || sample?.horse_name || t("laboratory.samples.unknownHorse")
+    ? sample?.horse?.name || sample?.lab_horse?.name || sample?.horse_name || t("laboratory.samples.unknownHorse")
     : request?.horse?.name || t("laboratory.samples.unknownHorse");
+```
 
+---
 
-✅ تحسين مصطلح (UX):
+#### [2.3] Client selector lock
+**Root Cause:** L283 لا يفحص `sample?.client_id`
 
-استبدال النص "غير مرتبط" إلى مصطلح أوضح مثل: "خيل زائر" أو "خيل غير مسجل" + عرض الاسم إن وجد.
-
-معيار القبول: يظهر "العينة: LAB-XXX (دراقون)" بدلاً من "غير مرتبط"
-
-2.3 "اختر العميل" - هل يجب أن يكون مقفلاً؟
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-العميل قابل للتعديل حتى لو sample.client_id موجود
-
-السبب الجذري:
-
-ملف: GenerateInvoiceDialog.tsx السطور 280-299
-
-disabled={clientsLoading || hasExistingInvoices} - لا يفحص إذا العينة لها عميل
-
-خطة الإصلاح:
-
-// Line 280-284
+**Fix:**
+```typescript
+// After L135
 const clientFromSample = sample?.client_id;
+
+// L280-284
 <Select
   value={selectedClientId}
   onValueChange={setSelectedClientId}
   disabled={clientsLoading || hasExistingInvoices || !!clientFromSample}
 >
+  {/* ... */}
+</Select>
+{clientFromSample && (
+  <Badge variant="secondary" className="ms-2 mt-1">
+    {t("laboratory.billing.fromSample")}
+  </Badge>
+)}
+```
 
-
-إضافة Badge "من العينة" عند clientFromSample
-
-نموذج المنطق:
-
-العميل (client_id): الجهة التي تستلم الفاتورة وتدفع
-
-المالك (owner_name): مالك الخيل (معلوماتي فقط)
-
-في LAB: العميل = من يدفع (قد يكون المالك أو مختلف مثل مستشفى)
-
-✅ تحكم إضافي (Governance):
-
-إذا احتجنا السماح بتغيير العميل كاستثناء، يكون عبر Permission/Role خاص (override) وليس افتراضياً للجميع.
-
-Image 3 - قائمة العينات (SamplesList)
-3.1 الفلاتر
-
-الحالة: DONE
-
-الدليل:
-
-ملف: SamplesFilterTabs.tsx - يعمل بشكل صحيح
-
-ملف: SamplesList.tsx السطور 115-127 - كل الفلاتر مربوطة
-
-3.2 تسمية "مسودة" → "غير مستلمة"
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-التبويب العلوي: "غير مستلم"
-
-Badge في الجدول: "مسودة"
-
-تناقض في المصطلحات
-
-السبب الجذري:
-
-ملف: SampleStatusBadge.tsx السطر 31 يستخدم: laboratory.sampleStatus.draft
-
-ملف: ar.ts السطر ~570: sampleStatus.draft: "مسودة"
-
-خطة الإصلاح:
-
-// ar.ts - change sampleStatus.draft
-sampleStatus: {
-  draft: "غير مستلمة", // was "مسودة"
-  ...
-}
+**i18n key to add:**
+```typescript
+// ar.ts laboratory.billing section
+fromSample: "من العينة",
 
 // en.ts
-sampleStatus: {
-  draft: "Not Received", // was "Draft"
-  ...
-}
+fromSample: "From Sample",
+```
 
+---
 
-معيار القبول: التبويب والـ Badge يعرضان نفس المصطلح "غير مستلم/ة"
+#### [4.2] "Send to client" → "تحديد كمُرسلة"
+**Root Cause:** `InvoiceDetailsSheet.tsx` L314 و `InvoiceCard.tsx` L132 تستخدم `finance.invoices.send`
 
-3.3 "إنشاء فاتورة" → "عرض الفاتورة"
+**Fix:**
+```typescript
+// Change button text
+{t("finance.invoices.markAsSent")}
 
-الحالة: NOT IMPLEMENTED
+// Add i18n keys
+// ar.ts finance.invoices section
+markAsSent: "تحديد كمُرسلة",
+markAsSentConfirm: "سيتم تحديث الحالة فقط. لن يتم إرسال رسالة للعميل.",
 
-ما يظهر في UI:
+// en.ts
+markAsSent: "Mark as Sent",
+markAsSentConfirm: "This only updates the status. No message will be sent to the client.",
+```
 
-دائماً "إنشاء فاتورة" حتى لو الفاتورة موجودة
+**Files:** `src/components/finance/InvoiceDetailsSheet.tsx`, `src/components/finance/InvoiceCard.tsx`, ar.ts, en.ts
 
-السبب الجذري:
+---
 
-ملف: SamplesTable.tsx السطور 204-209
+#### [6.5] Localized client names everywhere
+**Check:** `CreateSampleDialog.tsx` client dropdown, `AdvancedFilters.tsx` client filter
 
-لا يوجد فحص hasInvoice في الـ sample data
+**Fix:** Ensure all use:
+```typescript
+{dir === "rtl" && client.name_ar ? client.name_ar : client.name}
+```
 
-useLabSamples.ts لا يجلب معلومات الفاتورة
+---
 
-خطة الإصلاح:
+#### [6.4] Credit limit enforcement
+**Root Cause:** `useLabInvoiceDraft.ts` `generateInvoice` function لا تفحص credit limit
 
-في useLabSamples.ts: إضافة join مع invoice_items للفحص
-
-في SamplesTable.tsx:
-
-{sample.hasInvoice ? (
-  <DropdownMenuItem onClick={() => onViewInvoice?.(sample)}>
-    <Eye className="h-4 w-4 me-2" />
-    {t("laboratory.billing.viewInvoice")}
-  </DropdownMenuItem>
-) : (
-  <DropdownMenuItem onClick={() => onGenerateInvoice?.(sample)}>
-    <Receipt className="h-4 w-4 me-2" />
-    {t("laboratory.billing.generateInvoice")}
-  </DropdownMenuItem>
-)}
-
-
-✅ تقوية التحقق (Robustness):
-
-لا تعتمد فقط على وجود invoice_items (قد توجد فاتورة بدون بنود بسبب خطأ).
-
-الأفضل: إضافة/استخدام ربط مباشر بين sample والفاتورة إن كان متاحاً (مثل invoices.source_type/source_id) أو ضمان أن hasInvoice يعني "هناك invoice موجودة فعلاً" وليس "بنود فقط".
-
-معيار القبول: العينات المفوترة تعرض "عرض الفاتورة"
-
-3.4 إضافة "إلغاء العينة"
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-لا يوجد زر إلغاء في القائمة المنسدلة
-
-السبب الجذري:
-
-ملف: useLabSamples.ts - cancelSample موجود
-
-ملف: SamplesTable.tsx - الزر غير معروض (موجود في SampleCard فقط)
-
-خطة الإصلاح:
-
-// SamplesTable.tsx after line 195
-{['accessioned', 'processing'].includes(sample.status) && (
-  <DropdownMenuItem onClick={() => onCancel?.(sample)}>
-    <XCircle className="h-4 w-4 me-2" />
-    {t("laboratory.sampleActions.cancel")}
-  </DropdownMenuItem>
-)}
-
-
-القواعد:
-
-الإلغاء يغير status = 'cancelled' (soft delete)
-
-متاح لـ accessioned, processing فقط
-
-الحذف الفعلي متاح لـ draft فقط
-
-✅ قاعدة إضافية (منع لبس مالي):
-
-إذا كانت للعينة فاتورة بالفعل: عند الإلغاء اعرض Warning واضح (حتى لا تبقى “عينة ملغاة” مع تحصيل/دفعات بدون توضيح).
-
-قرار MVP: إما منع الإلغاء بعد الفوترة أو السماح مع وسم الفاتورة/العينة بوضوح.
-
-3.5 إضافة تبويبات "قيد التحليل" و "ملغي"
-
-الحالة: NOT IMPLEMENTED
-
-ما يظهر في UI:
-
-التبويبات الحالية: اليوم، مستلم، غير مستلم، إعادة
-
-لا يوجد processing أو cancelled
-
-السبب الجذري:
-
-ملف: SamplesFilterTabs.tsx السطر 19
-
-tabKeys: ['today', 'received', 'unreceived', 'retest']
-
-خطة الإصلاح:
-
-// SamplesFilterTabs.tsx
-export type SampleFilterTab = 'today' | 'received' | 'unreceived' | 'processing' | 'cancelled' | 'retest';
-const tabKeys: SampleFilterTab[] = ['today', 'received', 'unreceived', 'processing', 'cancelled', 'retest'];
-
-
-إضافة ترجمات laboratory.filterTabs.processing و filterTabs.cancelled
-
-إضافة mapping في SamplesList.tsx getFiltersForTab
-
-اقتراح: عند إضافة كل الحالات كتبويبات، إزالة dropdown فلتر الحالة
-
-✅ قرار UX (أفضل من الحذف الكامل):
-
-لا تحذف فلتر الحالة نهائياً. اجعله Advanced filter حتى مع وجود tabs (لأن المستخدم قد يحتاج اختيار حالات متعددة معاً).
-
-Image 4 - تفاصيل الفاتورة
-4.1 بنود الفاتورة غير قابلة للقراءة (UUIDs)
-
-الحالة: BROKEN
-
-ما يظهر في UI:
-
-LAB:lab_sample:673f5a91-4e89-4e11-8c4a-27bc6212371d / Complete Blood Count (CBC) [27bc6212371d]
-
-الملاحظات: [LAB_SAMPLE:673f5a91...]
-
-السبب الجذري:
-
-ملف: useLabInvoiceDraft.ts السطور 241-253
-
-يخزن الوصف بتنسيق: [LAB:${sourceType}:${sourceId}] ${description}
-
-ملف: InvoiceDetailsSheet.tsx السطور 140-153
-
-enrichedDescription يضيف #daily_number لكن الوصف الأصلي يحتوي UUIDs
-
-خطة الإصلاح:
-
-في useLabInvoiceDraft.ts السطور 241-253:
-
-// Change description format
-const description = item.templateNameAr
-  ? `${item.templateName} / ${item.templateNameAr}`
-  : item.templateName;
-
-await createItem({
-  invoice_id: invoice.id,
-  description: description, // Clean description without UUIDs
-  quantity: item.quantity,
-  unit_price: item.unitPrice ?? 0,
-  total_price: item.total,
-  entity_type: input.sourceType,
-  entity_id: input.sourceId,
-});
-
-
-تخزين الربط في entity_type + entity_id بدلاً من embedded في الوصف
-
-تحديث notes في Invoice:
-
-notes: input.notes || `${input.sourceName}`, // Remove technical IDs
-
-
-✅ معيار وصف نهائي (Acceptance):
-
-وصف البند في العرض/الطباعة يجب أن يكون بصيغة ثابتة وواضحة:
-
-"اسم القالب/الخدمة – اسم الخيل – رقم العينة/اليومي"
-
-أي IDs تقنية تُحفظ في entity_type/entity_id فقط (ولا تظهر للمستخدم).
-
-معيار القبول:
-
-بند نموذجي: "تحليل الدم الشامل - دراقون #1 | SAR 150.00"
-
-لا UUIDs ظاهرة
-
-4.2 "إرسال للعميل" - هل يُرسل فعلاً؟
-
-الحالة: PARTIAL (تحديث حالة فقط)
-
-ما يظهر في UI:
-
-الزر يغير الحالة إلى "sent" فقط
-
-السبب الجذري:
-
-ملف: InvoiceDetailsSheet.tsx السطور 181-199
-
-handleSend يحدث status = 'sent' فقط
-
-لا يوجد integration مع email/WhatsApp/push
-
-خطة الإصلاح (MVP):
-
-إضافة tooltip أو تغيير النص:
-
-{t("finance.invoices.markAsSent")} // بدلاً من "إرسال للعميل"
-
-
-أو إضافة confirmation dialog يوضح: "سيتم تحديث الحالة إلى 'مرسلة'. لا يتم إرسال رسالة تلقائياً."
-
-Phase 2: Edge function للإرسال عبر WhatsApp/Email
-
-✅ توضيح مصطلحي (لتجنب تضليل المستخدم):
-
-التسمية الافتراضية تكون "تحديد كمُرسلة" حتى يتم تنفيذ إرسال فعلي.
-
-4.3 توحيد تنسيق التاريخ
-
-الحالة: PARTIAL
-
-ما يظهر في UI:
-
-February 5th, 2026 بدلاً من 05-02-2026
-
-السبب الجذري:
-
-ملف: InvoiceDetailsSheet.tsx السطور 384, 397
-
-يستخدم format(date, "PPP")
-
-خطة الإصلاح:
-
-format(new Date(invoice.issue_date), "dd-MM-yyyy")
-
-
-✅ توحيد شامل:
-
-استخدم formatter موحد في @/lib/formatters لكل التواريخ في finance/lab (حتى لا تتكرر صيغ مختلفة بين الصفحات).
-
-معيار القبول: جميع التواريخ بتنسيق "05-02-2026"
-
-Image 5 - تكرار العملاء في Sidebar
-5.1 العملاء تظهر مرتين
-
-الحالة: DONE (بتوضيح - IA مقصود)
-
-التحليل:
-
-العملاء الرئيسي (/dashboard/clients): سجل العملاء + CRUD + Statement
-
-العملاء تحت المالية (/dashboard/finance?tab=clients): عرض الأرصدة والحركات
-
-التوصية (اختياري):
-
-تغيير اسم "العملاء" تحت المالية إلى "أرصدة العملاء" أو "الأرصدة المالية"
-
-✅ تحسين IA (لمنع اللبس للمستخدم):
-
-اجعل اسم القائمة تحت المالية “دفتر العملاء” أو “دفتر الذمم” (Client Ledger)
-
-وابقِ “العملاء” الرئيسية كسجل/بروفايل/تاريخ العميل.
-
-Image 6 - صفحة العملاء
-6.1 UI/UX polishing
-
-الحالة: PARTIAL
-
-المشاكل:
-
-الفلاتر العلوية متزاحمة على الهواتف
-
-Cards لا تستخدم المساحة بكفاءة
-
-خطة الإصلاح:
-
-إضافة flex-wrap للفلاتر
-
-تحسين responsive grid
-
-6.2 إضافة "كشف الحساب" للـ Client Cards
-
-الحالة: NOT IMPLEMENTED (في Cards)
-
-ما يظهر في UI:
-
-ClientCard.tsx يحتوي: Edit + Delete فقط
-
-ClientStatementTab.tsx موجود لكن غير مربوط
-
-السبب الجذري:
-
-ملف: ClientCard.tsx السطور 63-74
-
-لا يوجد DropdownMenuItem للـ Statement
-
-خطة الإصلاح:
-
-// ClientCard.tsx - add after Edit
-<DropdownMenuItem onClick={() => onViewStatement?.(client)}>
-  <FileText className="h-4 w-4 me-2" />
-  {t("clients.statement.view")}
-</DropdownMenuItem>
-
-
-إضافة prop onViewStatement + Sheet في DashboardClients.tsx
-
-✅ UX إضافي:
-
-نفس “كشف الحساب” يجب أن يكون متاح أيضاً من داخل صفحة/بروفايل العميل (ليس فقط من Card).
-
-6.3 إضافة ViewSwitcher
-
-الحالة: NOT IMPLEMENTED
-
-خطة الإصلاح:
-
-إضافة ViewSwitcher component (Grid/Table/List)
-
-إنشاء ClientsTable.tsx للعرض الجدولي
-
-6.4 حد الائتمان لا يعمل
-
-الحالة: NOT IMPLEMENTED
-
-ما يظهر في UI:
-
-يُعرض credit_limit في Card لكن لا يُستخدم للتحقق
-
-السبب الجذري:
-
-ملف: useLabInvoiceDraft.ts - لا يوجد credit limit check
-
-ملف: CreateSampleDialog.tsx - لا يوجد warning
-
-خطة الإصلاح:
-
-في useLabInvoiceDraft.ts:
-
-// Check credit limit before generating invoice
+**Fix:**
+```typescript
+// In generateInvoice function, after line ~190
 const client = clients.find(c => c.id === input.clientId);
-if (client?.credit_limit && client.outstanding_balance > client.credit_limit) {
-  // Show warning or block
+if (client?.credit_limit) {
+  const currentBalance = client.outstanding_balance || 0;
+  const newTotal = input.lineItems.reduce((sum, i) => sum + i.total, 0);
+  
+  if ((currentBalance + newTotal) > client.credit_limit) {
+    toast.warning(t("finance.creditLimit.exceeded"));
+    // Option: return null to block, or continue with warning
+    return null;
+  }
+}
+```
+
+**i18n:**
+```typescript
+// ar.ts finance.creditLimit
+exceeded: "تجاوز حد الائتمان. لا يمكن إنشاء الفاتورة.",
+
+// en.ts
+exceeded: "Credit limit exceeded. Cannot create invoice.",
+```
+
+---
+
+#### [6.2] Statement description enrichment + i18n
+**Fix for raw keys:** Already covered in 7.1
+
+**Fix for descriptions:** `ClientStatementTab.tsx` L197 يعرض `entry.description` — يجب إثراء الوصف من backend أو عرض بيانات إضافية
+
+---
+
+### P2 - Medium (أسبوع 2)
+
+#### [5.1] Finance clients naming
+**Root Cause:** `navConfig.ts` L238-240
+
+**Fix:**
+```typescript
+// L238-241
+{
+  key: "clients",
+  icon: UserCircle,
+  labelKey: "finance.customerBalances.title", // Changed from "clients.title"
+  route: "/dashboard/finance/clients",
 }
 
+// Add i18n
+// ar.ts finance section
+customerBalances: {
+  title: "أرصدة العملاء",
+},
 
-إضافة CreditLimitWarning.tsx component
+// en.ts
+customerBalances: {
+  title: "Customer Balances",
+},
+```
 
-✅ تصحيح (مصدر الرصيد المستحق):
+---
 
-لا تفترض وجود client.outstanding_balance إلا إذا كان موجود فعلاً في الـ DB/Query.
+#### [6.3] ViewSwitcher for Clients
+**Fix:** إضافة ViewSwitcher component لـ `DashboardClients.tsx` و Finance clients view
 
-إذا غير موجود: احسب المستحق من:
+---
 
-ledger/customer_balances (حسب تصميمكم)
+#### [9.1] Payment dialog invoice items
+**Fix:** في `RecordPaymentDialog.tsx` إضافة Collapsible section لعرض بنود الفاتورة
 
-قرار السياسة:
+---
 
-Warning أو Hard-block + override permission.
+#### [1.1] Wizard billing enhancements
+**Fix:** تعديل `checkoutLineItems` في `CreateSampleDialog.tsx` لتشمل horse names + price inputs
 
-6.5 اسم العميل حسب لغة الواجهة
+---
 
-الحالة: PARTIAL
+#### [8.1] Tabs layout + RTL
+**Fix:** تكبير التبويبات في `LabHorseProfile.tsx` وتحسين استخدام المساحة
 
-ما يظهر في UI:
+---
 
-دائماً client.name (إنجليزي) حتى في الواجهة العربية
+## D) Cross-Cutting Checklist (المحدّث)
 
-السبب الجذري:
+### i18n Raw Keys Still Appearing
 
-ملف: ClientCard.tsx السطر 47: {client.name} hardcoded
+| Key | Location | Status | Fix |
+|-----|----------|--------|-----|
+| `common.print` | ClientStatementTab.tsx:101 | **MISSING** | Add to ar.ts/en.ts common section |
+| `common.export` | ClientStatementTab.tsx:105 | **MISSING** | Add to ar.ts/en.ts common section |
 
-خطة الإصلاح:
+**Other keys verified:**
+- ✅ `finance.payments.*` — Corrected
+- ✅ `laboratory.table.sampleId` — Fixed
+- ✅ `clients.form.name` — Fixed
 
-const displayName = lang === 'ar' && client.name_ar ? client.name_ar : client.name;
-<h3 className="...">{displayName}</h3>
+### Filters Wiring (3.1) - End-to-End
 
-Image 7 - ملف الخيل (Lab Horse Profile)
-7.1 مفاتيح الترجمة تظهر خام
+```
+UI: AdvancedFilters.tsx
+  → onHorseChange(horseId), onClientChange(clientId), onDateFromChange, onDateToChange
+  
+State: SamplesList.tsx
+  → horseId, clientId, dateFrom, dateTo state
+  
+Query Build: combinedFilters useMemo
+  → MUST use lab_horse_id for isPrimaryLabTenant
+  → MUST pass client_id to hook (currently client-side only!)
+  → MUST pass dateFrom/dateTo
+  
+Hook: useLabSamples.ts
+  → MUST handle client_id filter (add if missing)
+  → Already handles lab_horse_id, horse_id, dateFrom, dateTo
 
-الحالة: BROKEN (P0)
+Supabase: Query builds correctly
+```
 
-ما يظهر في UI:
+**Current Gap:** `client_id` is filtered client-side only (L172). Must add to hook filters.
 
-laboratory.samples.sampleId
+### View Invoice (3.3)
 
-finance.payment.paid
+**Current:** `window.location.href` → Full page reload → Route not handling params
+**Fix:** Open `InvoiceDetailsSheet` directly within `SamplesList.tsx`
 
-finance.payment.outstanding
+### Dialog Polishing (2.1)
 
-finance.payment.record
+**Required Structure:**
+```
+<DialogContent className="max-h-[90vh] flex flex-col p-0">
+  <DialogHeader className="sticky top-0 bg-background border-b p-6">
+  <div className="flex-1 overflow-y-auto p-6">  <!-- Scrollable -->
+  <DialogFooter className="sticky bottom-0 bg-background border-t p-6 gap-3">
+</DialogContent>
+```
 
-السبب الجذري:
+### RTL/UX (8.1)
 
-ملف: LabHorseProfile.tsx
+**Back button:** ✅ Fixed in L459-472
+**Tabs:** Need larger size `h-12` + `px-4 py-2.5`
+**Wasted space:** Improve grid layout
 
-السطر 162: t("laboratory.samples.sampleId") - موجود في ar.ts السطر 761 ✓
+---
 
-السطور 304, 308, 346, 347, 395: t("finance.payment.paid/outstanding/record") - غير موجود!
+## E) Fix Queue (Prioritized)
 
-المفاتيح المفقودة:
+### P0 - Critical (Day 1)
 
-finance.payment.paid - يجب أن يكون finance.payments.paidSoFar
+| # | Description | Complexity | Files | Dependencies |
+|---|-------------|------------|-------|--------------|
+| 7.1 | Add `common.print/export` i18n keys | Low | ar.ts, en.ts | None |
+| 3.1 | Fix filter wiring (lab_horse_id + client_id) | Medium | SamplesList.tsx, useLabSamples.ts | None |
+| 3.3 | Fix View Invoice to open sheet | Medium | SamplesList.tsx | InvoiceDetailsSheet import |
+| 2.1 | Dialog sticky header/footer | Medium | GenerateInvoiceDialog.tsx | None |
+| 7.2 | Verify Export Report works | Low | LabHorseProfile.tsx | None |
 
-finance.payment.outstanding - يجب أن يكون finance.payments.outstanding
+### P1 - High (Day 2-3)
 
-finance.payment.record - يجب أن يكون finance.payments.recordPayment
+| # | Description | Complexity | Files |
+|---|-------------|------------|-------|
+| 2.2 | Show horse_name for walk-ins | Low | GenerateInvoiceDialog.tsx |
+| 2.3 | Lock client selector | Low | GenerateInvoiceDialog.tsx, ar.ts, en.ts |
+| 4.2 | Rename "Send" to "Mark as Sent" | Low | InvoiceDetailsSheet.tsx, InvoiceCard.tsx, ar.ts, en.ts |
+| 6.4 | Credit limit enforcement | Medium | useLabInvoiceDraft.ts, ar.ts, en.ts |
+| 6.5 | Localized names everywhere | Low | CreateSampleDialog.tsx, AdvancedFilters.tsx |
+| 6.2 | Statement layout improvements | Medium | ClientStatementTab.tsx |
+
+### P2 - Medium (Week 2)
 
-ملاحظة: المفاتيح موجودة تحت finance.payments (بـ s) وليس finance.payment
+| # | Description | Complexity | Files |
+|---|-------------|------------|-------|
+| 5.1 | Finance sidebar rename | Low | navConfig.ts, ar.ts, en.ts |
+| 6.1 | Clients page polish | Medium | DashboardClients.tsx |
+| 6.3 | ViewSwitcher for Clients | High | DashboardClients.tsx, new ClientsTable.tsx |
+| 9.1 | Payment dialog invoice items | Medium | RecordPaymentDialog.tsx |
+| 1.1 | Wizard billing enhancements | High | CreateSampleDialog.tsx |
+| 8.1 | Tabs layout improvements | Medium | LabHorseProfile.tsx |
 
-خطة الإصلاح:
+---
 
-// LabHorseProfile.tsx - fix key paths
-{t("finance.payments.paidSoFar")}
-{t("finance.payments.outstanding")}
-{t("finance.payments.recordPayment")}
+## F) Execution Prompt Draft
 
+```
+=== EXECUTION PROMPT — Fix Remaining Gaps (Priority Order) ===
 
-✅ توسيع نطاق الإصلاح (حتى لا تتكرر):
+PHASE 1 - P0 Critical (Must Complete First)
 
-عمل search على المشروع بالكامل لأي finance.payment. واستبداله أو إضافة keys حسب المعايير.
+---
 
-معيار القبول: لا توجد مفاتيح خام في الواجهة
+[7.1] Add missing i18n keys
 
-7.2 أزرار "تعديل" و "تصدير التقرير" لا تعمل
+Files: src/i18n/locales/ar.ts, src/i18n/locales/en.ts
 
-الحالة: PARTIAL
+ar.ts - common section (around line 77):
+  print: "طباعة",
+  export: "تصدير",
 
-"تعديل":
+en.ts - common section:
+  print: "Print",
+  export: "Export",
 
-ملف: LabHorseProfile.tsx السطور 431-440: الزر موجود
+Verification: Open Client Statement → buttons show Arabic/English labels
 
-ملف: DashboardLaboratory.tsx السطور: يستخدم setEditHorseId(horse.id)
+---
 
-المشكلة: لا يوجد LabHorseFormDialog component
+[3.1] Fix filter wiring for lab tenants
 
-"تصدير التقرير":
+File 1: src/hooks/laboratory/useLabSamples.ts
+Add client_id filter (after line 191):
+  if (filters.client_id) {
+    query = query.eq("client_id", filters.client_id);
+  }
 
-الزر موجود (السطر 443)
+Add client_id to LabSampleFilters interface:
+  client_id?: string;
 
-لا يوجد handleExportReport function
+File 2: src/components/laboratory/SamplesList.tsx
+Line 124-132 - Update combinedFilters:
+  const combinedFilters: LabSampleFilters = useMemo(() => ({
+    search: search || undefined,
+    dateFrom,
+    dateTo,
+    client_id: clientId, // ADD THIS
+    ...(isPrimaryLabTenant 
+      ? { lab_horse_id: horseId } 
+      : { horse_id: horseId }
+    ),
+    status: selectedStatuses.length === 1 ? selectedStatuses[0] : tabFilters.status,
+    ...tabFilters,
+  }), [search, dateFrom, dateTo, clientId, horseId, selectedStatuses, tabFilters, isPrimaryLabTenant]);
 
-خطة الإصلاح:
+Remove client-side filter at L172-174 (it's now server-side)
 
-إنشاء LabHorseFormDialog.tsx للتعديل
+Verification: 
+1. Select a client filter → samples filter immediately
+2. Select a horse filter → samples filter immediately
+3. Select date range → samples filter immediately
+4. Switch tabs → filters persist
 
-ربطه في DashboardLaboratory.tsx عند editHorseId !== null
+---
 
-تنفيذ handleExportReport باستخدام jsPDF
+[3.3] Fix View Invoice action
 
-7.3 اسم المالك قابل للنقر (Quick View)
+File: src/components/laboratory/SamplesList.tsx
 
-الحالة: NOT IMPLEMENTED
+Add state (around line 75):
+  const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
 
-خطة الإصلاح:
+Add import at top:
+  import { InvoiceDetailsSheet } from "@/components/finance";
 
-إنشاء OwnerQuickViewPopover.tsx
+Change L343-346:
+  onViewInvoice={(sample, invoiceId) => {
+    if (invoiceId) {
+      setViewInvoiceId(invoiceId);
+    }
+  }}
 
-جعل owner_name في LabHorseProfile clickable
+Add after GenerateInvoiceDialog (around line 417):
+  <InvoiceDetailsSheet
+    open={!!viewInvoiceId}
+    onOpenChange={(open) => !open && setViewInvoiceId(null)}
+    invoiceId={viewInvoiceId}
+  />
 
-عرض: الاسم + الهاتف + زر اتصال
+Verification: Click "View Invoice" on a billed sample → Invoice sheet opens with correct data
 
-نموذج المالك vs العميل:
+---
 
-المالك (Owner):
-- مخزن في lab_horses.owner_name, owner_phone
-- معلوماتي فقط (لا ربط مالي)
-- يظهر في بطاقة الخيل
+[2.1] Dialog sticky header/footer
 
-العميل (Client):
-- مخزن في lab_samples.client_id → clients
-- الجهة التي تستلم الفاتورة وتدفع
-- قد يكون المالك أو جهة أخرى
+File: src/components/laboratory/GenerateInvoiceDialog.tsx
 
-Image 8 - تبويبات ملف الخيل
-8.1 تصميم التبويبات
+Replace L174 DialogContent structure with flex layout:
+  <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0" dir={dir}>
 
-الحالة: PARTIAL
+Move DialogHeader out with sticky:
+  <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
 
-المشكلة: التبويبات صغيرة
+Wrap content in scrollable div:
+  <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
 
-خطة الإصلاح:
+Move DialogFooter with sticky:
+  <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 sm:gap-3">
 
-<TabsList className="w-full justify-start h-12">
-  <TabsTrigger className="text-sm px-4 py-2.5">
+Verification: 
+1. Open dialog with many items → only content scrolls
+2. Header and footer stay visible
+3. Scrollbar is inside dialog boundary
 
-8.2 مفاتيح الترجمة
+---
 
-الحالة: BROKEN (نفس 7.1)
+[7.2] Verify Export Report
 
-Image 9 - نموذج تسجيل الدفعة
-9.1 عرض بنود الفاتورة
+File: src/components/laboratory/LabHorseProfile.tsx
 
-الحالة: NOT IMPLEMENTED
+Check L502-512 - ensure button is enabled when canExport is true:
+  {canExport && (
+    <Button ... onClick={handleExportReport}>
+      {t("laboratory.labHorses.exportReport")}
+    </Button>
+  )}
 
-المطلوب: عرض ملخص البنود مع الإجمالي
+Check handleExportReport function L98-145 - ensure it's not throwing errors
 
-خطة الإصلاح:
+Verification: Click Export Report → PDF downloads with horse info
 
-في RecordPaymentDialog.tsx إضافة Collapsible للبنود
+---
 
-Fetch invoice_items في useInvoicePayments.ts
+PHASE 2 - P1 High
 
-✅ UX (إظهار أهم البيانات في مرمى العين):
+---
 
-اجعل الملخص يظهر (اسم/عدد البنود) + إمكانية توسيع لعرض التفاصيل، حتى لا تزيد ضوضاء الواجهة.
+[2.2] Show horse name for walk-ins
 
-9.2 spacing بين الأزرار
+File: src/components/laboratory/GenerateInvoiceDialog.tsx
 
-الحالة: PARTIAL
+L129-132:
+  const sourceName =
+    sourceType === "lab_sample"
+      ? sample?.horse?.name || sample?.lab_horse?.name || sample?.horse_name || t("laboratory.samples.unknownHorse")
+      : request?.horse?.name || t("laboratory.samples.unknownHorse");
 
-السبب الجذري:
+---
 
-ملف: RecordPaymentDialog.tsx السطر 359
+[2.3] Lock client selector
 
-<DialogFooter> بدون explicit gap
+File: src/components/laboratory/GenerateInvoiceDialog.tsx
 
-خطة الإصلاح:
+After L135:
+  const clientFromSample = sample?.client_id;
 
-<DialogFooter className="gap-3">
+L283 disabled prop:
+  disabled={clientsLoading || hasExistingInvoices || !!clientFromSample}
 
+After Select (L299):
+  {clientFromSample && (
+    <Badge variant="secondary" className="ms-2 mt-2">{t("laboratory.billing.fromSample")}</Badge>
+  )}
 
-✅ تحسين الموبايل:
+i18n ar.ts laboratory.billing:
+  fromSample: "من العينة",
 
-عند الموبايل اجعل الأزرار عمودية لتجنب الالتصاق.
+i18n en.ts:
+  fromSample: "From Sample",
 
-Image 10 - منطق المعالج (Wizard Logic)
-10.1 منطق اختيار الخيول حسب نوع العميل
+---
 
-الحالة: DONE
+[4.2] Rename "Send" to "Mark as Sent"
 
-المنطق الحالي (صحيح):
+File 1: src/components/finance/InvoiceDetailsSheet.tsx L314:
+  {t("finance.invoices.markAsSent")}
 
-عميل مسجل: يعرض خيول العميل + "تسجيل خيل جديد"
+File 2: src/components/finance/InvoiceCard.tsx L132:
+  {t("finance.invoices.markAsSent")}
 
-عميل جديد: قائمة فارغة + "تسجيل خيل جديد"
+i18n ar.ts finance.invoices:
+  markAsSent: "تحديد كمُرسلة",
 
-بدون عميل: قائمة فارغة + "تسجيل خيل جديد"
+i18n en.ts:
+  markAsSent: "Mark as Sent",
 
-الدليل:
+---
 
-ملف: CreateSampleDialog.tsx السطور 262-334
+[6.4] Credit limit enforcement
 
-ملف: LabHorsePicker.tsx - يبحث في lab_horses
+File: src/hooks/laboratory/useLabInvoiceDraft.ts
 
-ملاحظة: الربط بين العميل وخيوله يتم عبر owner_name/owner_phone مطابقة - تصميم مقصود للمرونة
+In generateInvoice function (after getting client):
+  if (client?.credit_limit) {
+    const currentBalance = client.outstanding_balance || 0;
+    const newTotal = lineItems.reduce((sum, i) => sum + i.total, 0);
+    if ((currentBalance + newTotal) > client.credit_limit) {
+      toast.warning(t("finance.creditLimit.exceeded"));
+      return null;
+    }
+  }
 
-مشاكل إضافية مكتشفة
-A.1 formatCurrency محلي في ClientCard
+i18n ar.ts finance:
+  creditLimit: {
+    exceeded: "تجاوز حد الائتمان. لا يمكن إنشاء الفاتورة.",
+  },
 
-الحالة: BROKEN
+i18n en.ts:
+  creditLimit: {
+    exceeded: "Credit limit exceeded. Cannot create invoice.",
+  },
 
-المشكلة:
+---
 
-ملف: ClientCard.tsx السطور 28-34
+[6.5] Localized names
 
-يستخدم Intl.NumberFormat محلياً بدلاً من formatCurrency من formatters
+Check all client dropdowns use:
+  {dir === "rtl" && client.name_ar ? client.name_ar : client.name}
 
-ينتج أرقام عربية في واجهة عربية
+Files to check:
+- CreateSampleDialog.tsx (client selector)
+- AdvancedFilters.tsx (client filter)
 
-خطة الإصلاح:
+---
 
-import { formatCurrency } from "@/lib/formatters";
-// Remove local formatCurrency function
-// Use imported formatCurrency(amount, "SAR")
+VERIFICATION CHECKLIST (After Each Phase)
 
+P0:
+□ Client Statement shows "طباعة" and "تصدير" (not raw keys)
+□ Filters work across all tabs (client, horse, date)
+□ View Invoice opens InvoiceDetailsSheet (not homepage)
+□ GenerateInvoiceDialog scrollbar is inside, header/footer sticky
+□ Export Report button works (PDF downloads)
 
-✅ قرار تنسيق الأرقام :
+P1:
+□ Walk-in samples show horse name in invoice dialog
+□ Client selector locked when sample has client_id
+□ Invoice "Send" button shows "تحديد كمُرسلة"
+□ Credit limit blocks invoice when exceeded
+□ Arabic UI shows Arabic client names everywhere
+```
 
-تأكد أن formatCurrency يطبق سياسة عرض 0-9 (إنجليزي) في الواجهة العربية إذا هذا هو القرار النهائي.
+---
 
-ترتيب التنفيذ (Implementation Plan)
-المرحلة 1 - P0 (اليوم)
-#	المشكلة	الملف	التغيير
-7.1/8.2	ترجمات finance.payment.*	LabHorseProfile.tsx	تصحيح المفاتيح إلى finance.payments.*
-7.1/8.2	ترجمات finance.payment.* (توسيع نطاق)	Project-wide search	استبدال أي finance.payment.* أو إضافة المفاتيح الناقصة حسب المعايير
-A.1	formatCurrency محلي	ClientCard.tsx	استخدام formatter المركزي + ضمان سياسة 0-9 إذا مطلوبة
-4.1	UUIDs في بنود الفاتورة	useLabInvoiceDraft.ts	تنظيف الوصف من IDs التقنية + اعتماد معيار وصف واضح
-المرحلة 2 - P0/P1 (يوم 2)
-#	المشكلة	الملف	التغيير
-3.2	"مسودة" → "غير مستلمة"	ar.ts, en.ts	تغيير sampleStatus.draft
-2.1	responsive dialog	GenerateInvoiceDialog.tsx	إضافة max-h + overflow + gap + تحسين الموبايل
-9.2	button spacing	RecordPaymentDialog.tsx	إضافة gap-3 + تحسين الموبايل
-المرحلة 3 - P1 (يوم 3)
-#	المشكلة	الملف	التغيير
-3.3	"إنشاء" → "عرض" فاتورة	SamplesTable.tsx, useLabSamples.ts	إضافة hasInvoice check (robust)
-4.3	تنسيق التاريخ	InvoiceDetailsSheet.tsx	dd-MM-yyyy + توحيد formatter
-6.5	اسم العميل حسب اللغة	ClientCard.tsx	استخدام name_ar
-المرحلة 4 - P1 (يوم 4)
-#	المشكلة	الملف	التغيير
-7.2	زر تعديل الخيل	إنشاء LabHorseFormDialog.tsx	dialog للتعديل
-6.2	كشف الحساب في Cards	ClientCard.tsx, DashboardClients.tsx	ربط Statement + إتاحته من صفحة العميل أيضاً
-1.1	خطوة billing	CreateSampleDialog.tsx	إضافة horse names + price edit + دفع بعد إنشاء الفاتورة
-المرحلة 5 - P2 (أسبوع 2)
-#	المشكلة	الملف	التغيير
-3.4	زر إلغاء العينة	SamplesTable.tsx	إضافة DropdownMenuItem + قواعد واضحة عند وجود فاتورة
-3.5	تبويبات processing/cancelled	SamplesFilterTabs.tsx	إضافة tabs جديدة + إبقاء فلتر الحالة كـ advanced
-5.1	تكرار العملاء في الـ Sidebar	Sidebar	إعادة تسمية العملاء تحت المالية إلى "دفتر العملاء/الأرصدة" (اختياري)
-6.3	ViewSwitcher	DashboardClients.tsx	Grid/Table/List
-6.4	حد الائتمان	useLabInvoiceDraft.ts	إضافة validation + تحديد مصدر المستحق + policy override
-7.3	Owner Quick View	إنشاء OwnerQuickViewPopover.tsx	popover للمالك
-9.1	عرض بنود الفاتورة	RecordPaymentDialog.tsx + useInvoicePayments.ts	Collapsible + fetch invoice_items
-قائمة التحقق اليدوي (Verification Checklist)
-P0 - Critical
-#	السيناريو	النتيجة المتوقعة
-7.1	فتح LabHorseProfile	لا توجد مفاتيح ترجمة خام + تم حذف/تصحيح finance.payment.*
-A.1	فتح ClientCard بواجهة عربية	formatter موحد + سياسة 0-9 (إنجليزي) إذا مطلوبة
-4.1	فتح تفاصيل فاتورة LAB	البنود مقروءة بدون UUIDs + معيار وصف واضح
-P1 - High
-#	السيناريو	النتيجة المتوقعة
-3.2	عرض عينة draft	الـ Badge يقول "غير مستلمة"
-3.3	عرض عينة لها فاتورة	القائمة تعرض "عرض الفاتورة"
-4.3	التاريخ في الفاتورة	يظهر بتنسيق "05-02-2026"
-6.5	فتح ClientCard بعربي	يظهر الاسم العربي أولاً
-1.1	معالج إنشاء عينة - خطوة billing	البنود تعرض "قالب - اسم الخيل" + تعديل سعر + دفع بعد إنشاء الفاتورة
-P2 - Medium
-#	السيناريو	النتيجة المتوقعة
-6.2	الضغط على "كشف الحساب" في Client Card	يفتح sheet مع حركات العميل
-6.4	محاولة فوترة عميل تجاوز حده	تحذير أو حجب حسب policy
-7.2	الضغط على "تعديل" في Horse Profile	يفتح نموذج تعديل
+**STOP — Awaiting approval before implementation.**
+
