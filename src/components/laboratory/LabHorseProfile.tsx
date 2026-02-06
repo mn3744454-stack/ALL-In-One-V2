@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, FlaskConical, FileText, Receipt, User, Calendar, Hash, Phone, Printer, Download, Edit, CreditCard } from "lucide-react";
+import { ArrowLeft, ArrowRight, FlaskConical, FileText, Receipt, User, Calendar, Hash, Download, Edit, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,7 @@ import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { OwnerQuickViewPopover } from "./OwnerQuickViewPopover";
 import { formatCurrency } from "@/lib/formatters";
+import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -87,14 +88,61 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const handleSampleClick = (sample: LabSample) => {
-    if (onSampleClick) {
-      onSampleClick(sample.id);
-    }
+    onSampleClick?.(sample.id);
   };
 
   const handleResultClick = (result: LabResult) => {
-    if (onResultClick) {
-      onResultClick(result.id);
+    onResultClick?.(result.id);
+  };
+
+  const handleExportReport = async () => {
+    if (!horse) return;
+
+    try {
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'pt',
+        format: 'a4',
+      });
+
+      const margin = 48;
+      let y = 64;
+
+      doc.setFontSize(16);
+      doc.text(t("laboratory.labHorses.exportReport"), margin, y);
+      y += 20;
+
+      doc.setFontSize(12);
+      doc.text(`${t("laboratory.labHorses.name")}: ${getHorseDisplayName(horse)}`, margin, y);
+      y += 16;
+
+      if (horse.owner_name || horse.owner_phone) {
+        doc.text(`${t("laboratory.labHorses.ownerName")}: ${horse.owner_name || '-'}`, margin, y);
+        y += 16;
+        doc.text(`${t("laboratory.labHorses.ownerPhone")}: ${horse.owner_phone || '-'}`, margin, y);
+        y += 16;
+      }
+
+      y += 8;
+      doc.text(`${t("laboratory.labHorses.samplesCount")}: ${horseSamples.length}`, margin, y);
+      y += 16;
+      doc.text(`${t("laboratory.labHorses.resultsCount")}: ${horseResults.length}`, margin, y);
+      y += 16;
+
+      if (financialSummary) {
+        y += 8;
+        doc.text(`${t("laboratory.labHorses.totalBilled")}: ${formatAmount(financialSummary.totalBilled || 0)}`, margin, y);
+        y += 16;
+        doc.text(`${t("laboratory.labHorses.totalPaid")}: ${formatAmount(financialSummary.totalPaid || 0)}`, margin, y);
+        y += 16;
+        doc.text(`${t("laboratory.labHorses.outstanding")}: ${formatAmount(financialSummary.outstanding || 0)}`, margin, y);
+        y += 16;
+      }
+
+      const fileName = `lab-horse-report-${horse.id}.pdf`;
+      doc.save(fileName);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -144,7 +192,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-3 w-3" />
-              {format(new Date(sample.collection_date), "PP")}
+              {format(new Date(sample.collection_date), "dd-MM-yyyy")}
             </div>
           </div>
           <SampleStatusBadge status={sample.status} />
@@ -160,7 +208,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         <TableHeader>
           <TableRow>
             <TableHead className="text-center">#</TableHead>
-            <TableHead className="text-center">{t("laboratory.samples.sampleId")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.table.sampleId")}</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>
@@ -179,7 +227,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 {sample.physical_sample_id || sample.id.slice(0, 8)}
               </TableCell>
               <TableCell className="text-center">
-                {format(new Date(sample.collection_date), "PP")}
+                {format(new Date(sample.collection_date), "dd-MM-yyyy")}
               </TableCell>
               <TableCell className="text-center">
                 <SampleStatusBadge status={sample.status} />
@@ -209,7 +257,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
               <p className="font-medium truncate">{templateName}</p>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                {format(new Date(result.created_at), "PP")}
+                {format(new Date(result.created_at), "dd-MM-yyyy")}
               </div>
             </div>
             <Badge
@@ -255,7 +303,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                   {templateName}
                 </TableCell>
                 <TableCell className="text-center">
-                  {format(new Date(result.created_at), "PP")}
+                  {format(new Date(result.created_at), "dd-MM-yyyy")}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge
@@ -295,7 +343,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
               {invoice.issueDate && (
                 <>
                   <span>•</span>
-                  <span>{format(new Date(invoice.issueDate), "PP")}</span>
+                  <span>{format(new Date(invoice.issueDate), "dd-MM-yyyy")}</span>
                 </>
               )}
             </div>
@@ -364,7 +412,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 {invoice.clientName || "-"}
               </TableCell>
               <TableCell className="text-center">
-                {invoice.issueDate ? format(new Date(invoice.issueDate), "PP") : "-"}
+                {invoice.issueDate ? format(new Date(invoice.issueDate), "dd-MM-yyyy") : "-"}
               </TableCell>
               <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
                 {formatAmount(invoice.totalAmount)}
@@ -407,17 +455,28 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
 
   return (
     <div className="space-y-6">
-      {/* Back Button */}
-      <Button variant="ghost" onClick={onBack} className="mb-2">
-        <ArrowLeft className="h-4 w-4 me-2" />
-        {t("common.back")}
-      </Button>
+      {/* Back Button (RTL-aware placement + icon) */}
+      <div className={cn("flex", dir === 'rtl' ? 'justify-end' : 'justify-start')}>
+        <Button variant="ghost" onClick={onBack} className="mb-2">
+          {dir === 'rtl' ? (
+            <>
+              <ArrowRight className="h-4 w-4 ms-2" />
+              {t("common.back")}
+            </>
+          ) : (
+            <>
+              <ArrowLeft className="h-4 w-4 me-2" />
+              {t("common.back")}
+            </>
+          )}
+        </Button>
+      </div>
 
       {/* Header Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
               <CardTitle className="text-2xl flex items-center gap-2">
                 {getHorseDisplayName(horse)}
                 {horse.is_archived && (
@@ -445,8 +504,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                   variant="outline"
                   size="sm"
                   className="gap-2"
-                  disabled
-                  title={t("common.comingSoon")}
+                  onClick={handleExportReport}
                 >
                   <Download className="h-4 w-4" />
                   {t("laboratory.labHorses.exportReport")}
@@ -462,7 +520,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 <Hash className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t("laboratory.walkIn.microchip")}</p>
-                  <p className="font-mono text-sm">{horse.microchip_number}</p>
+                  <p className="font-mono text-sm" dir="ltr">{horse.microchip_number}</p>
                 </div>
               </div>
             )}
@@ -471,7 +529,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t("laboratory.walkIn.passportNumber")}</p>
-                  <p className="font-mono text-sm">{horse.passport_number}</p>
+                  <p className="font-mono text-sm" dir="ltr">{horse.passport_number}</p>
                 </div>
               </div>
             )}
@@ -497,16 +555,16 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="samples" className="gap-2">
+        <TabsList className="w-full justify-start h-12 mb-4">
+          <TabsTrigger value="samples" className="gap-2 text-sm px-4 py-2.5">
             <FlaskConical className="h-4 w-4" />
             {t("laboratory.labHorses.samplesCount")} ({horseSamples.length})
           </TabsTrigger>
-          <TabsTrigger value="results" className="gap-2">
+          <TabsTrigger value="results" className="gap-2 text-sm px-4 py-2.5">
             <FileText className="h-4 w-4" />
             {t("laboratory.labHorses.resultsCount")} ({horseResults.length})
           </TabsTrigger>
-          <TabsTrigger value="financial" className="gap-2">
+          <TabsTrigger value="financial" className="gap-2 text-sm px-4 py-2.5">
             <Receipt className="h-4 w-4" />
             {t("laboratory.labHorses.financialSummary")}
           </TabsTrigger>
@@ -515,8 +573,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Samples Tab */}
         <TabsContent value="samples">
           <div className="space-y-4">
-            {/* ViewSwitcher for samples */}
-            <div className="flex justify-end">
+            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={samplesView}
                 gridColumns={samplesGridCols}
@@ -552,8 +609,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Results Tab */}
         <TabsContent value="results">
           <div className="space-y-4">
-            {/* ViewSwitcher for results */}
-            <div className="flex justify-end">
+            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={resultsView}
                 gridColumns={resultsGridCols}
@@ -597,7 +653,6 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Summary Cards */}
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardContent className="p-4">
@@ -630,11 +685,9 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 </Card>
               </div>
 
-              {/* Invoices List */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">{t("laboratory.labHorses.invoices")}</CardTitle>
-                  {/* ViewSwitcher for invoices */}
                   <ViewSwitcher
                     viewMode={invoicesView}
                     gridColumns={2}
@@ -665,14 +718,12 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         </TabsContent>
       </Tabs>
 
-      {/* Invoice Details Sheet */}
       <InvoiceDetailsSheet
         open={!!selectedInvoiceId}
         onOpenChange={(open) => !open && setSelectedInvoiceId(null)}
         invoiceId={selectedInvoiceId}
       />
 
-      {/* Record Payment Dialog */}
       <RecordPaymentDialog
         open={!!paymentInvoiceId}
         onOpenChange={(open) => !open && setPaymentInvoiceId(null)}

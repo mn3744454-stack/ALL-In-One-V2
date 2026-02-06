@@ -71,6 +71,7 @@ export interface LabSample {
 export interface LabSampleFilters {
   status?: LabSampleStatus | 'all';
   horse_id?: string;
+  lab_horse_id?: string; // For lab tenants filtering by lab_horses registry
   search?: string;
   // New filters
   received?: boolean;           // true = received, false = unreceived
@@ -184,6 +185,9 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
       }
       if (filters.horse_id) {
         query = query.eq("horse_id", filters.horse_id);
+      }
+      if (filters.lab_horse_id) {
+        query = query.eq("lab_horse_id", filters.lab_horse_id);
       }
       if (filters.search) {
         query = query.ilike("physical_sample_id", `%${filters.search}%`);
