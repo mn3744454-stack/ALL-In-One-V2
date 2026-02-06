@@ -12,6 +12,7 @@ import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 import { AdvancedFilters } from "./AdvancedFilters";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { InvoiceDetailsSheet } from "@/components/finance";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [combinedResultsSample, setCombinedResultsSample] = useState<LabSample | null>(null);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
+  const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
   
   // Detect if this is a primary lab tenant (use lab_horses for filtering)
   const isPrimaryLabTenant = isLabTenant && labMode === 'full';
@@ -120,16 +122,21 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   // Get tab-based filters
   const tabFilters = getFiltersForTab(activeTab);
 
-  // Build combined filters
+  // Build combined filters - use lab_horse_id for lab tenants, horse_id otherwise
   const combinedFilters: LabSampleFilters = useMemo(() => ({
     search: search || undefined,
     dateFrom,
     dateTo,
-    horse_id: horseId,
+    client_id: clientId, // Server-side client filter
+    // Use correct horse filter based on tenant type
+    ...(isPrimaryLabTenant 
+      ? { lab_horse_id: horseId } 
+      : { horse_id: horseId }
+    ),
     // Status filter: use multi-select if any selected, otherwise use tab filter
     status: selectedStatuses.length === 1 ? selectedStatuses[0] : tabFilters.status,
     ...tabFilters,
-  }), [search, dateFrom, dateTo, horseId, selectedStatuses, tabFilters]);
+  }), [search, dateFrom, dateTo, clientId, horseId, isPrimaryLabTenant, selectedStatuses, tabFilters]);
 
   const { 
     samples: rawSamples, 
@@ -164,14 +171,9 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     return countMap;
   }, [results]);
 
-  // Apply client filter on client-side (since hook doesn't support it directly)
+  // Apply multi-status filter client-side only (client_id is now server-side)
   const filteredSamples = useMemo(() => {
     let filtered = rawSamples;
-    
-    // Client filter
-    if (clientId) {
-      filtered = filtered.filter(s => s.client_id === clientId);
-    }
     
     // Multi-status filter (if more than 1 status selected)
     if (selectedStatuses.length > 1) {
@@ -179,7 +181,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
     }
     
     return filtered;
-  }, [rawSamples, clientId, selectedStatuses]);
+  }, [rawSamples, selectedStatuses]);
 
   // Sort samples based on daily_number
   const sortedSamples = useMemo(() => {
@@ -341,8 +343,10 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           onViewAllResults={(sample) => setCombinedResultsSample(sample)}
           onGenerateInvoice={handleGenerateInvoice}
           onViewInvoice={(sample, invoiceId) => {
-            // Navigate to invoice or open sheet
-            window.location.href = `/dashboard/finance/invoices?selected=${invoiceId}`;
+            // Open InvoiceDetailsSheet directly instead of page reload
+            if (invoiceId) {
+              setViewInvoiceId(invoiceId);
+            }
           }}
           onEdit={(sample) => {
             console.log("Edit sample:", sample.id);
@@ -412,6 +416,13 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           sample={selectedSampleForInvoice}
         />
       )}
+
+      {/* Invoice Details Sheet - for View Invoice action */}
+      <InvoiceDetailsSheet
+        open={!!viewInvoiceId}
+        onOpenChange={(open) => !open && setViewInvoiceId(null)}
+        invoiceId={viewInvoiceId}
+      />
     </div>
   );
 }

@@ -298,20 +298,21 @@ export function InvoiceDetailsSheet({
                     {t("finance.payments.recordPayment")}
                   </Button>
                 )}
-                {/* Send - for draft invoices */}
+                {/* Mark as Sent - for draft invoices */}
                 {canSend && invoice.status === 'draft' && (
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleSend}
                     disabled={actionLoading}
+                    title={t("finance.invoices.markAsSentDesc")}
                   >
                     {actionLoading ? (
                       <Loader2 className="h-4 w-4 me-2 animate-spin" />
                     ) : (
                       <Send className="h-4 w-4 me-2" />
                     )}
-                    {t("finance.invoices.send")}
+                    {t("finance.invoices.markAsSent")}
                   </Button>
                 )}
                 {/* Edit - for draft invoices */}

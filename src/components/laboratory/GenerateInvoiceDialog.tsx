@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -125,10 +126,10 @@ export function GenerateInvoiceDialog({
   const subtotal = adjustedLineItems.reduce((sum, item) => sum + item.total, 0);
   const total = subtotal; // No tax in Phase 1
 
-  // Get source info
+  // Get source info - include fallbacks for walk-in horses
   const sourceName =
     sourceType === "lab_sample"
-      ? sample?.horse?.name || t("laboratory.samples.unknownHorse")
+      ? sample?.horse?.name || sample?.lab_horse?.name || sample?.horse_name || t("laboratory.samples.unknownHorse")
       : request?.horse?.name || t("laboratory.samples.unknownHorse");
 
   // Selected client
@@ -144,6 +145,17 @@ export function GenerateInvoiceDialog({
 
   const handleSubmit = async () => {
     if (!sourceId || !selectedClientId || !selectedClient) return;
+
+    // Credit limit check (6.4)
+    if (selectedClient.credit_limit) {
+      const currentBalance = selectedClient.outstanding_balance || 0;
+      const newTotal = adjustedLineItems.reduce((sum, i) => sum + i.total, 0);
+      
+      if ((currentBalance + newTotal) > selectedClient.credit_limit) {
+        toast.warning(t("finance.creditLimit.exceeded"));
+        return;
+      }
+    }
 
     const input: GenerateInvoiceInput = {
       clientId: selectedClientId,
@@ -169,10 +181,14 @@ export function GenerateInvoiceDialog({
   const isValid = selectedClientId && adjustedLineItems.length > 0;
   const hasExistingInvoices = existingInvoices.length > 0;
 
+  // Check if client is pre-selected from sample
+  const clientFromSample = sample?.client_id;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" dir={dir}>
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0" dir={dir}>
+        {/* Sticky Header */}
+        <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
             {t("laboratory.billing.generateInvoice")}
@@ -184,19 +200,16 @@ export function GenerateInvoiceDialog({
 
         {/* Loading state while checking - show skeleton for entire content */}
         {isChecking && !hasChecked ? (
-          <div className="space-y-4 py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-24 w-full" />
-            <div className="flex justify-end gap-2 pt-4">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-32" />
-            </div>
           </div>
         ) : (
           <>
-            <div className="space-y-4 py-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {/* Existing Invoice Alert - Single Invoice */}
               {existingInvoices.length === 1 && (
                 <Alert variant="default" className="border-amber-500 bg-amber-50 dark:bg-amber-950/20">
@@ -271,32 +284,39 @@ export function GenerateInvoiceDialog({
                 </CardContent>
               </Card>
 
-              {/* Client Selection - disabled if existing invoices */}
+              {/* Client Selection - disabled if existing invoices OR from sample */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   {t("laboratory.billing.selectClient")}
                 </Label>
-                <Select
-                  value={selectedClientId}
-                  onValueChange={setSelectedClientId}
-                  disabled={clientsLoading || hasExistingInvoices}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t("laboratory.billing.selectClientPlaceholder")}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {dir === "rtl" && client.name_ar
-                          ? client.name_ar
-                          : client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={selectedClientId}
+                    onValueChange={setSelectedClientId}
+                    disabled={clientsLoading || hasExistingInvoices || !!clientFromSample}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue
+                        placeholder={t("laboratory.billing.selectClientPlaceholder")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {dir === "rtl" && client.name_ar
+                            ? client.name_ar
+                            : client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {clientFromSample && (
+                    <Badge variant="secondary" className="shrink-0">
+                      {t("laboratory.billing.fromSample")}
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               {/* Line Items - disabled if existing invoices */}
@@ -377,7 +397,8 @@ export function GenerateInvoiceDialog({
               </div>
             </div>
 
-            <DialogFooter className="gap-3 flex-col sm:flex-row">
+            {/* Sticky Footer */}
+            <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}

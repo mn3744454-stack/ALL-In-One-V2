@@ -127,9 +127,9 @@ export function InvoiceCard({
               )}
               <DropdownMenuSeparator />
               {canSend && invoice.status === "draft" && (
-                <DropdownMenuItem onClick={onSend}>
+                <DropdownMenuItem onClick={onSend} title={t("finance.invoices.markAsSentDesc")}>
                   <Send className="w-4 h-4 me-2" />
-                  {t("finance.invoices.send")}
+                  {t("finance.invoices.markAsSent")}
                 </DropdownMenuItem>
               )}
               {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
