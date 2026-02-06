@@ -20,16 +20,21 @@ import {
 } from "@/components/ui/sheet";
 import { useI18n } from "@/i18n";
 import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "@/hooks/useClients";
-import { ClientsList, ClientFilters, ClientFormDialog, ClientStatementTab } from "@/components/clients";
+import { ClientsList, ClientFilters, ClientFormDialog, ClientStatementTab, ClientsTable } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { Plus, Search, Users, Menu } from "lucide-react";
 
 export default function DashboardClients() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { clients, loading, canManage, createClient, updateClient, deleteClient } = useClients();
+
+  // View preference
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('clients-page');
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ClientStatus | "all" | "withBalance">("all");
@@ -172,27 +177,48 @@ export default function DashboardClients() {
         </div>
 
         {/* Filters */}
-        <ClientFilters
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-          typeFilter={typeFilter}
-          onTypeChange={setTypeFilter}
-        />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <ClientFilters
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            typeFilter={typeFilter}
+            onTypeChange={setTypeFilter}
+          />
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable={true}
+          />
+        </div>
 
         {/* Results count */}
         <div className="text-sm text-muted-foreground">
           {filteredClients.length} {t("clients.title").toLowerCase()}
         </div>
 
-        {/* Client List */}
-        <ClientsList
-          clients={filteredClients}
-          loading={loading}
-          canManage={canManage}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onViewStatement={handleViewStatement}
-        />
+        {/* Client List/Table */}
+        {viewMode === 'table' ? (
+          <ClientsTable
+            clients={filteredClients}
+            canManage={canManage}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onViewStatement={handleViewStatement}
+          />
+        ) : (
+          <ClientsList
+            clients={filteredClients}
+            loading={loading}
+            canManage={canManage}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onViewStatement={handleViewStatement}
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+          />
+        )}
         </div>
       </main>
 

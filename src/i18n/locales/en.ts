@@ -1683,6 +1683,9 @@ export const en = {
     title: "Finance",
     subtitle: "Invoices, expenses, and ledger",
     overview: "Overview",
+    customerBalances: {
+      title: "Customer Balances",
+    },
     tabs: {
       invoices: "Invoices",
       expenses: "Expenses",
@@ -1937,6 +1940,7 @@ export const en = {
       recordPayment: "Record Payment",
       recordPaymentDesc: "Record one or more payments for this invoice",
       invoiceTotal: "Invoice Total",
+      invoiceItems: "Invoice Items",
       paidSoFar: "Paid So Far",
       outstanding: "Outstanding",
       paymentDetails: "Payment Details",

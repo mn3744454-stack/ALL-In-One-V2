@@ -2,6 +2,7 @@ import { useI18n } from "@/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users } from "lucide-react";
 import { ClientCard } from "./ClientCard";
+import { getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import type { Client } from "@/hooks/useClients";
 
 interface ClientsListProps {
@@ -11,6 +12,8 @@ interface ClientsListProps {
   onEdit?: (client: Client) => void;
   onDelete?: (client: Client) => void;
   onViewStatement?: (client: Client) => void;
+  viewMode?: ViewMode;
+  gridColumns?: GridColumns;
 }
 
 export function ClientsList({
@@ -20,6 +23,8 @@ export function ClientsList({
   onEdit,
   onDelete,
   onViewStatement,
+  viewMode = 'grid',
+  gridColumns = 3,
 }: ClientsListProps) {
   const { t } = useI18n();
 
@@ -49,8 +54,13 @@ export function ClientsList({
     );
   }
 
+  // Use grid helper to get appropriate classes based on view mode
+  const gridClass = viewMode === 'list' 
+    ? 'grid grid-cols-1 gap-3' 
+    : getGridClass(gridColumns, viewMode);
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={gridClass}>
       {clients.map((client) => (
         <ClientCard
           key={client.id}

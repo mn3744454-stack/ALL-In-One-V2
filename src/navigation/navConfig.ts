@@ -237,7 +237,7 @@ export const NAV_MODULES: NavModule[] = [
       {
         key: "clients",
         icon: UserCircle,
-        labelKey: "clients.title",
+        labelKey: "finance.customerBalances.title",
         route: "/dashboard/clients",
       },
     ],
