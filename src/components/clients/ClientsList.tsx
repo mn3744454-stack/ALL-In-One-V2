@@ -10,6 +10,7 @@ interface ClientsListProps {
   canManage?: boolean;
   onEdit?: (client: Client) => void;
   onDelete?: (client: Client) => void;
+  onViewStatement?: (client: Client) => void;
 }
 
 export function ClientsList({
@@ -18,6 +19,7 @@ export function ClientsList({
   canManage = false,
   onEdit,
   onDelete,
+  onViewStatement,
 }: ClientsListProps) {
   const { t } = useI18n();
 
@@ -56,6 +58,7 @@ export function ClientsList({
           canManage={canManage}
           onEdit={onEdit}
           onDelete={onDelete}
+          onViewStatement={onViewStatement}
         />
       ))}
     </div>

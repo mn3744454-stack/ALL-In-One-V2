@@ -4,12 +4,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileText } from "lucide-react";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
 import { formatCurrency } from "@/lib/formatters";
@@ -19,10 +20,11 @@ interface ClientCardProps {
   client: Client;
   onEdit?: (client: Client) => void;
   onDelete?: (client: Client) => void;
+  onViewStatement?: (client: Client) => void;
   canManage?: boolean;
 }
 
-export function ClientCard({ client, onEdit, onDelete, canManage = false }: ClientCardProps) {
+export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManage = false }: ClientCardProps) {
   const { t, lang } = useI18n();
   const Icon = getClientTypeIcon(client.type);
 
@@ -58,6 +60,11 @@ export function ClientCard({ client, onEdit, onDelete, canManage = false }: Clie
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onViewStatement?.(client)}>
+                  <FileText className="h-4 w-4 me-2" />
+                  {t("clients.statement.view")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onEdit?.(client)}>
                   <Pencil className="h-4 w-4 me-2" />
                   {t("common.edit")}

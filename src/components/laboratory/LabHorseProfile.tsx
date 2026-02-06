@@ -25,6 +25,7 @@ import { SampleStatusBadge } from "./SampleStatusBadge";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
+import { OwnerQuickViewPopover } from "./OwnerQuickViewPopover";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -474,21 +475,19 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 </div>
               </div>
             )}
-            {horse.owner_name && (
+            {(horse.owner_name || horse.owner_phone) && (
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t("laboratory.labHorses.ownerName")}</p>
-                  <p className="text-sm">{horse.owner_name}</p>
-                </div>
-              </div>
-            )}
-            {horse.owner_phone && (
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">{t("laboratory.labHorses.ownerPhone")}</p>
-                  <p className="font-mono text-sm">{horse.owner_phone}</p>
+                  <OwnerQuickViewPopover 
+                    ownerName={horse.owner_name} 
+                    ownerPhone={horse.owner_phone}
+                  >
+                    <span className="text-sm font-medium">
+                      {horse.owner_name || horse.owner_phone}
+                    </span>
+                  </OwnerQuickViewPopover>
                 </div>
               </div>
             )}
