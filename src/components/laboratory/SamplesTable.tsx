@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { MoreHorizontal, FlaskConical, Eye, RotateCcw, FileText, Receipt, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, FlaskConical, Eye, RotateCcw, FileText, Receipt, Edit, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -202,6 +202,14 @@ export function SamplesTable({
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRetest?.(sample); }}>
                                 <RotateCcw className="h-4 w-4 me-2" />
                                 {t("laboratory.sampleActions.createRetest")}
+                              </DropdownMenuItem>
+                            )}
+                            
+                            {/* Cancel action - available for accessioned and processing */}
+                            {['accessioned', 'processing'].includes(sample.status) && (
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCancel?.(sample); }}>
+                                <XCircle className="h-4 w-4 me-2" />
+                                {t("laboratory.sampleActions.cancel")}
                               </DropdownMenuItem>
                             )}
 

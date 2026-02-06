@@ -34,4 +34,6 @@ export * from "./LabHorsePicker";
 export * from "./LabHorsesList";
 export * from "./LabHorseProfile";
 export * from "./LabHorseFormDialog";
+export * from "./LabHorseEditDialog";
+export * from "./OwnerQuickViewPopover";
 export * from "./TemplateSelectionDialog";

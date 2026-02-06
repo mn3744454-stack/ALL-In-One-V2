@@ -2,7 +2,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
-export type SampleFilterTab = 'today' | 'received' | 'unreceived' | 'retest';
+export type SampleFilterTab = 'today' | 'received' | 'unreceived' | 'processing' | 'cancelled' | 'retest';
 
 interface SamplesFilterTabsProps {
   activeTab: SampleFilterTab;
@@ -12,11 +12,13 @@ interface SamplesFilterTabsProps {
     today?: number;
     received?: number;
     unreceived?: number;
+    processing?: number;
+    cancelled?: number;
     retest?: number;
   };
 }
 
-const tabKeys: SampleFilterTab[] = ['today', 'received', 'unreceived', 'retest'];
+const tabKeys: SampleFilterTab[] = ['today', 'received', 'unreceived', 'processing', 'cancelled', 'retest'];
 
 export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFilterTabsProps) {
   const { t } = useI18n();
@@ -61,3 +63,4 @@ export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFil
     </ScrollArea>
   );
 }
+

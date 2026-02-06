@@ -12,9 +12,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useI18n } from "@/i18n";
 import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "@/hooks/useClients";
-import { ClientsList, ClientFilters, ClientFormDialog } from "@/components/clients";
+import { ClientsList, ClientFilters, ClientFormDialog, ClientStatementTab } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Plus, Search, Users, Menu } from "lucide-react";
@@ -32,6 +38,7 @@ export default function DashboardClients() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
+  const [statementClient, setStatementClient] = useState<Client | null>(null);
 
   // Filter clients
   const filteredClients = useMemo(() => {
@@ -71,6 +78,10 @@ export default function DashboardClients() {
 
   const handleDelete = (client: Client) => {
     setDeleteConfirm(client);
+  };
+
+  const handleViewStatement = (client: Client) => {
+    setStatementClient(client);
   };
 
   const confirmDelete = async () => {
@@ -180,6 +191,7 @@ export default function DashboardClients() {
           canManage={canManage}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onViewStatement={handleViewStatement}
         />
         </div>
       </main>
@@ -209,6 +221,23 @@ export default function DashboardClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Statement Sheet */}
+      <Sheet open={!!statementClient} onOpenChange={(open) => !open && setStatementClient(null)}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{t("clients.statement.title")}</SheetTitle>
+          </SheetHeader>
+          {statementClient && (
+            <div className="mt-4">
+              <ClientStatementTab 
+                clientId={statementClient.id} 
+                clientName={statementClient.name}
+              />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
