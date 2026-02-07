@@ -72,6 +72,7 @@ export function InvoiceDetailsSheet({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
 
   // Use payment hook for ledger-derived data
@@ -303,7 +304,7 @@ export function InvoiceDetailsSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleSend}
+                    onClick={() => setSendConfirmOpen(true)}
                     disabled={actionLoading}
                     title={t("finance.invoices.markAsSentDesc")}
                   >
@@ -502,6 +503,33 @@ export function InvoiceDetailsSheet({
         currency={invoice?.currency}
         onSuccess={handlePaymentSuccess}
       />
+
+      {/* Mark as Sent Confirmation Dialog */}
+      <AlertDialog open={sendConfirmOpen} onOpenChange={setSendConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("finance.invoices.markAsSent")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("finance.invoices.markAsSentDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                setSendConfirmOpen(false);
+                handleSend();
+              }} 
+              disabled={actionLoading}
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t("finance.invoices.markAsSent")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -1980,6 +1980,10 @@ export const en = {
     },
     creditLimit: {
       exceeded: "Credit limit exceeded. Cannot create invoice.",
+      limit: "Credit Limit",
+      currentOutstanding: "Current Outstanding",
+      available: "Available",
+      willExceed: "This invoice will exceed credit limit",
     },
   },
   dashboard: {

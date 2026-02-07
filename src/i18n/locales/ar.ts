@@ -2007,6 +2007,10 @@ export const ar = {
     },
     creditLimit: {
       exceeded: "تجاوز حد الائتمان. لا يمكن إنشاء الفاتورة.",
+      limit: "حد الائتمان",
+      currentOutstanding: "الرصيد المستحق",
+      available: "المتاح",
+      willExceed: "هذه الفاتورة ستتجاوز حد الائتمان",
     },
   },
   dashboard: {
