@@ -496,6 +496,7 @@ export const en = {
       invoices: "Invoices",
       printReport: "Print Report",
       exportReport: "Export Report",
+      viewClientProfile: "View Client Profile",
     },
     
     // Walk-in Horse Form
@@ -1685,6 +1686,12 @@ export const en = {
     overview: "Overview",
     customerBalances: {
       title: "Customer Balances",
+      description: "Monitor ledger-based client balances and credit",
+      balance: "Balance",
+      available: "Available",
+      owes: "Owes",
+      credit: "Credit",
+      settled: "Settled",
     },
     tabs: {
       invoices: "Invoices",
@@ -1937,6 +1944,7 @@ export const en = {
       },
     },
     payments: {
+      record: "Record Payment",
       recordPayment: "Record Payment",
       recordPaymentDesc: "Record one or more payments for this invoice",
       invoiceTotal: "Invoice Total",

@@ -1,16 +1,19 @@
+import { Link } from "react-router-dom";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Phone, User, ExternalLink } from "lucide-react";
+import { Phone, User, ExternalLink, Mail } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 interface OwnerQuickViewPopoverProps {
   ownerName: string | null | undefined;
   ownerPhone: string | null | undefined;
+  ownerEmail?: string | null;
+  clientId?: string | null;
   children: React.ReactNode;
   className?: string;
 }
@@ -18,6 +21,8 @@ interface OwnerQuickViewPopoverProps {
 export function OwnerQuickViewPopover({
   ownerName,
   ownerPhone,
+  ownerEmail,
+  clientId,
   children,
   className,
 }: OwnerQuickViewPopoverProps) {
@@ -34,6 +39,12 @@ export function OwnerQuickViewPopover({
     }
   };
 
+  const handleEmail = () => {
+    if (ownerEmail) {
+      window.location.href = `mailto:${ownerEmail}`;
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -47,7 +58,7 @@ export function OwnerQuickViewPopover({
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-64 p-4" 
+        className="w-72 p-4" 
         align={dir === 'rtl' ? 'end' : 'start'}
         side="bottom"
       >
@@ -80,18 +91,56 @@ export function OwnerQuickViewPopover({
               </div>
             </div>
           )}
-          
-          {ownerPhone && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={handleCall}
-            >
-              <Phone className="h-4 w-4 me-2" />
-              {t("laboratory.labHorses.callOwner")}
-            </Button>
+
+          {ownerEmail && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">{t("common.email")}</p>
+              <div className="flex items-center gap-2">
+                <a 
+                  href={`mailto:${ownerEmail}`} 
+                  className="text-sm text-primary hover:underline truncate flex-1"
+                >
+                  {ownerEmail}
+                </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleEmail}
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
           )}
+
+          <div className="flex flex-col gap-2 pt-1">
+            {ownerPhone && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleCall}
+              >
+                <Phone className="h-4 w-4 me-2" />
+                {t("laboratory.labHorses.callOwner")}
+              </Button>
+            )}
+            
+            {clientId && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                asChild
+              >
+                <Link to={`/dashboard/clients?selected=${clientId}`}>
+                  <ExternalLink className="h-4 w-4 me-2" />
+                  {t("laboratory.labHorses.viewClientProfile")}
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>

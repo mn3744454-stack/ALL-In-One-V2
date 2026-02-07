@@ -522,6 +522,7 @@ export const ar = {
       invoices: "الفواتير",
       printReport: "طباعة التقرير",
       exportReport: "تصدير التقرير",
+      viewClientProfile: "عرض ملف العميل",
     },
     
     // Walk-in Horse Form
@@ -1712,6 +1713,12 @@ export const ar = {
     overview: "نظرة عامة",
     customerBalances: {
       title: "أرصدة العملاء",
+      description: "متابعة أرصدة العملاء والائتمان من دفتر الحسابات",
+      balance: "الرصيد",
+      available: "المتاح",
+      owes: "مدين",
+      credit: "دائن",
+      settled: "مُسدد",
     },
     pos: {
       title: "نقطة البيع",
@@ -1964,6 +1971,7 @@ export const ar = {
       },
     },
     payments: {
+      record: "تسجيل دفعة",
       recordPayment: "تسجيل دفعة",
       recordPaymentDesc: "سجّل دفعة واحدة أو أكثر لهذه الفاتورة",
       invoiceTotal: "إجمالي الفاتورة",
