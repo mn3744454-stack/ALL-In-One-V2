@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
+import { useCustomerBalance } from "@/hooks/finance/useCustomerBalance";
 import {
   useLabInvoiceDraft,
   type LabBillingSourceType,
@@ -36,7 +37,7 @@ import {
 } from "@/hooks/laboratory/useLabInvoiceDraft";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
-import { FileText, Receipt, Loader2, User, DollarSign, AlertCircle, ExternalLink } from "lucide-react";
+import { FileText, Receipt, Loader2, User, DollarSign, AlertCircle, ExternalLink, AlertTriangle } from "lucide-react";
 
 interface GenerateInvoiceDialogProps {
   open: boolean;
@@ -76,6 +77,9 @@ export function GenerateInvoiceDialog({
   const [manualPrices, setManualPrices] = useState<Record<number, number>>({});
   const [existingInvoices, setExistingInvoices] = useState<ExistingInvoicesResult>([]);
   const [hasChecked, setHasChecked] = useState(false);
+
+  // Fetch the REAL outstanding balance from ledger (customer_balances table)
+  const { balance: ledgerBalance, loading: balanceLoading } = useCustomerBalance(selectedClientId || null);
 
   // Get source ID
   const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;
@@ -132,8 +136,13 @@ export function GenerateInvoiceDialog({
       ? sample?.horse?.name || sample?.lab_horse?.name || sample?.horse_name || t("laboratory.samples.unknownHorse")
       : request?.horse?.name || t("laboratory.samples.unknownHorse");
 
-  // Selected client
+  // Selected client + credit calculations
   const selectedClient = clients.find((c) => c.id === selectedClientId);
+  const hasCreditLimit = selectedClient?.credit_limit && selectedClient.credit_limit > 0;
+  const availableCredit = hasCreditLimit 
+    ? Math.max(0, (selectedClient?.credit_limit || 0) - ledgerBalance)
+    : null;
+  const willExceedLimit = hasCreditLimit && (ledgerBalance + total) > (selectedClient?.credit_limit || 0);
 
   const handlePriceChange = (index: number, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -146,15 +155,10 @@ export function GenerateInvoiceDialog({
   const handleSubmit = async () => {
     if (!sourceId || !selectedClientId || !selectedClient) return;
 
-    // Credit limit check (6.4)
-    if (selectedClient.credit_limit) {
-      const currentBalance = selectedClient.outstanding_balance || 0;
-      const newTotal = adjustedLineItems.reduce((sum, i) => sum + i.total, 0);
-      
-      if ((currentBalance + newTotal) > selectedClient.credit_limit) {
-        toast.warning(t("finance.creditLimit.exceeded"));
-        return;
-      }
+    // Credit limit check using LEDGER balance (6.4)
+    if (willExceedLimit) {
+      toast.warning(t("finance.creditLimit.exceeded"));
+      return;
     }
 
     const input: GenerateInvoiceInput = {
@@ -186,7 +190,7 @@ export function GenerateInvoiceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0" dir={dir}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
         {/* Sticky Header */}
         <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
@@ -383,6 +387,35 @@ export function GenerateInvoiceDialog({
                   <span className="font-mono">{total.toFixed(2)} SAR</span>
                 </div>
               </div>
+
+              {/* Credit Limit Info (6.4) */}
+              {hasCreditLimit && selectedClient && (
+                <Card className={willExceedLimit ? "border-destructive bg-destructive/10" : "bg-muted/50"}>
+                  <CardContent className="p-3 space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{t("finance.creditLimit.limit")}</span>
+                      <span className="font-mono">{selectedClient.credit_limit?.toFixed(2)} SAR</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">{t("finance.creditLimit.currentOutstanding")}</span>
+                      <span className="font-mono">{ledgerBalance.toFixed(2)} SAR</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>{t("finance.creditLimit.available")}</span>
+                      <span className={`font-mono ${willExceedLimit ? 'text-destructive' : 'text-success'}`}>
+                        {availableCredit?.toFixed(2)} SAR
+                      </span>
+                    </div>
+                    {willExceedLimit && (
+                      <div className="flex items-center gap-2 text-destructive text-sm mt-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>{t("finance.creditLimit.willExceed")}</span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Notes - disabled if existing invoices */}
               <div className="space-y-2">

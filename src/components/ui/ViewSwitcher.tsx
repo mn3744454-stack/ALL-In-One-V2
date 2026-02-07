@@ -4,7 +4,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LayoutGrid, List, Table, Grid2X2, Grid3X3, ChevronDown } from 'lucide-react';
@@ -20,13 +19,9 @@ interface ViewSwitcherProps {
   onGridColumnsChange: (columns: GridColumns) => void;
   showTable?: boolean;
   className?: string;
+  /** Show text labels alongside icons (recommended for clarity) */
+  showLabels?: boolean;
 }
-
-const VIEW_ICONS = {
-  table: Table,
-  list: List,
-  grid: LayoutGrid,
-};
 
 const GRID_ICONS = {
   2: Grid2X2,
@@ -40,26 +35,28 @@ export function ViewSwitcher({
   onViewModeChange,
   onGridColumnsChange,
   showTable = true,
+  showLabels = true,
   className,
 }: ViewSwitcherProps) {
   const { t } = useI18n();
 
   return (
     <div className={cn("flex items-center gap-1", className)}>
-      {/* Quick toggle buttons */}
-      <div className="flex items-center border border-border rounded-lg p-0.5 bg-muted/30">
+      {/* Toggle buttons with labels */}
+      <div className="flex items-center border border-border rounded-lg p-1 bg-muted/30">
         {showTable && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onViewModeChange('table')}
             className={cn(
-              "h-8 w-8 p-0",
+              "h-9 px-3 gap-2",
               viewMode === 'table' && "bg-background shadow-sm"
             )}
             title={t('common.table')}
           >
             <Table className="h-4 w-4" />
+            {showLabels && <span className="text-sm">{t('common.table')}</span>}
           </Button>
         )}
         <Button
@@ -67,12 +64,13 @@ export function ViewSwitcher({
           size="sm"
           onClick={() => onViewModeChange('list')}
           className={cn(
-            "h-8 w-8 p-0",
+            "h-9 px-3 gap-2",
             viewMode === 'list' && "bg-background shadow-sm"
           )}
           title={t('common.list')}
         >
           <List className="h-4 w-4" />
+          {showLabels && <span className="text-sm">{t('common.list')}</span>}
         </Button>
         
         {/* Grid dropdown */}
@@ -82,12 +80,13 @@ export function ViewSwitcher({
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 px-1.5 gap-0.5",
+                "h-9 px-3 gap-2",
                 viewMode === 'grid' && "bg-background shadow-sm"
               )}
               title={t('common.grid')}
             >
               <LayoutGrid className="h-4 w-4" />
+              {showLabels && <span className="text-sm">{t('common.grid')}</span>}
               <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>

@@ -162,8 +162,9 @@ export function RecordPaymentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]" dir={dir}>
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
+        {/* Sticky Header */}
+        <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
             {t("finance.payments.recordPayment")}
@@ -173,12 +174,14 @@ export function RecordPaymentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : summary ? (
-          <div className="space-y-4 py-4">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : summary ? (
+            <div className="space-y-4">
             {/* Invoice Items Summary (Collapsible) */}
             {invoiceItems.length > 0 && (
               <Collapsible open={itemsExpanded} onOpenChange={setItemsExpanded}>
@@ -400,13 +403,15 @@ export function RecordPaymentDialog({
               </>
             )}
           </div>
-        ) : (
-          <div className="py-8 text-center text-muted-foreground">
-            {t("common.error")}
-          </div>
-        )}
+          ) : (
+            <div className="py-8 text-center text-muted-foreground">
+              {t("common.error")}
+            </div>
+          )}
+        </div>
 
-        <DialogFooter className="gap-3 flex-col sm:flex-row">
+        {/* Sticky Footer */}
+        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
