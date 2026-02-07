@@ -235,10 +235,10 @@ export const NAV_MODULES: NavModule[] = [
         route: "/dashboard/finance/categories",
       },
       {
-        key: "clients",
+        key: "customer-balances",
         icon: UserCircle,
         labelKey: "finance.customerBalances.title",
-        route: "/dashboard/clients",
+        route: "/dashboard/finance/customer-balances",
       },
     ],
   },

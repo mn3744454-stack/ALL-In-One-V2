@@ -59,7 +59,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import DebugAuth from "./pages/DebugAuth";
 // Finance child pages
-import { DashboardFinancePOS, DashboardFinanceCategories } from "./pages/finance";
+import { DashboardFinancePOS, DashboardFinanceCategories, FinanceCustomerBalances } from "./pages/finance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -528,6 +528,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization">
               <DashboardFinanceCategories />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/finance/customer-balances"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <FinanceCustomerBalances />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
