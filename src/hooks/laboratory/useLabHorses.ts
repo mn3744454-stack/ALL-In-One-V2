@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { tGlobal } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
+import { useLinkedLabHorseIds } from "./usePartyHorseLinks";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface LabHorse {
@@ -68,10 +69,21 @@ export function useLabHorses(filters: LabHorseFilters = {}) {
   const { user } = useAuth();
   const tenantId = activeTenant?.tenant.id;
 
+  // Use junction table for client filtering (UHP architecture)
+  const { data: linkedHorseIds, isLoading: linkedLoading } = useLinkedLabHorseIds(filters.clientId);
+
   // Fetch lab horses
-  const { data: labHorses = [], isLoading: loading, error } = useQuery({
-    queryKey: queryKeys.labHorses(tenantId, filters as Record<string, unknown>),
+  const { data: labHorses = [], isLoading: horsesLoading, error } = useQuery({
+    queryKey: queryKeys.labHorses(tenantId, { 
+      ...filters as Record<string, unknown>,
+      linkedHorseIds: filters.clientId ? linkedHorseIds : undefined 
+    }),
     queryFn: async () => {
+      // If clientId is specified but no linked horses found, return empty
+      if (filters.clientId && (!linkedHorseIds || linkedHorseIds.length === 0)) {
+        return [];
+      }
+
       let query = supabase
         .from("lab_horses")
         .select("*")
@@ -83,9 +95,9 @@ export function useLabHorses(filters: LabHorseFilters = {}) {
         query = query.eq("is_archived", false);
       }
 
-      // Filter by client (10.1: client → horses filtering)
-      if (filters.clientId) {
-        query = query.eq("client_id", filters.clientId);
+      // Filter by linked horse IDs (junction-based filtering for 10.1)
+      if (filters.clientId && linkedHorseIds && linkedHorseIds.length > 0) {
+        query = query.in("id", linkedHorseIds);
       }
 
       // Search filter
@@ -100,9 +112,11 @@ export function useLabHorses(filters: LabHorseFilters = {}) {
       if (error) throw error;
       return (data || []) as LabHorse[];
     },
-    enabled: !!tenantId,
+    enabled: !!tenantId && (!filters.clientId || !linkedLoading),
     placeholderData: [],
   });
+
+  const loading = linkedLoading || horsesLoading;
 
   // Create mutation
   const createMutation = useMutation({

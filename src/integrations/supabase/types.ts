@@ -4928,6 +4928,75 @@ export type Database = {
           },
         ]
       }
+      party_horse_links: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_primary: boolean
+          lab_horse_id: string
+          relationship_type: string
+          tenant_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean
+          lab_horse_id: string
+          relationship_type: string
+          tenant_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_primary?: boolean
+          lab_horse_id?: string
+          relationship_type?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_horse_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_horse_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_horse_links_lab_horse_id_fkey"
+            columns: ["lab_horse_id"]
+            isOneToOne: false
+            referencedRelation: "lab_horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_horse_links_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_horse_links_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_accounts: {
         Row: {
           created_at: string

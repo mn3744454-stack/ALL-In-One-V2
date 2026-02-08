@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Check, X } from "lucide-react";
 import { useLabHorses, type CreateLabHorseData } from "@/hooks/laboratory/useLabHorses";
+import { useCreatePartyHorseLink } from "@/hooks/laboratory/usePartyHorseLinks";
 import { useI18n } from "@/i18n";
 import type { SelectedHorse } from "./HorseSelectionStep";
 
@@ -29,6 +30,7 @@ export function LabHorseFormDialog({
 }: LabHorseFormDialogProps) {
   const { t } = useI18n();
   const { createLabHorse, isCreating } = useLabHorses({});
+  const { mutateAsync: createLink, isPending: isLinking } = useCreatePartyHorseLink();
   
   const [formData, setFormData] = useState<CreateLabHorseData>({
     name: "",
@@ -76,6 +78,16 @@ export function LabHorseFormDialog({
     });
 
     if (created) {
+      // Create party-horse link if client is specified (UHP junction)
+      if (formData.client_id) {
+        await createLink({
+          client_id: formData.client_id,
+          lab_horse_id: created.id,
+          relationship_type: 'lab_customer',
+          is_primary: true,
+        });
+      }
+
       const newHorse: SelectedHorse = {
         horse_id: created.id,
         horse_type: 'lab_horse',
@@ -100,6 +112,7 @@ export function LabHorseFormDialog({
   };
 
   const isFormValid = (formData.name?.trim() || formData.name_ar?.trim());
+  const isSubmitting = isCreating || isLinking;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -252,16 +265,16 @@ export function LabHorseFormDialog({
             type="button"
             variant="outline"
             onClick={handleClose}
-            disabled={isCreating}
+            disabled={isSubmitting}
           >
             <X className="h-4 w-4 me-2" />
             {t("common.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!isFormValid || isCreating}
+            disabled={!isFormValid || isSubmitting}
           >
-            {isCreating ? (
+            {isSubmitting ? (
               <Loader2 className="h-4 w-4 animate-spin me-2" />
             ) : (
               <Check className="h-4 w-4 me-2" />
