@@ -542,11 +542,12 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 <User className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t("laboratory.labHorses.ownerName")}</p>
+                  {/* SMOKE TEST 7.3: Junction-only source of truth - NO legacy fallback */}
                   <OwnerQuickViewPopover 
                     ownerName={horse.owner_name} 
                     ownerPhone={horse.owner_phone}
                     ownerEmail={horse.owner_email}
-                    clientId={primaryClient?.id || horse.client_id}
+                    clientId={primaryClient?.id}
                   >
                     <span className="text-sm font-medium">
                       {horse.owner_name || horse.owner_phone}

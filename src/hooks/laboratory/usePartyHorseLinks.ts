@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "@/hooks/use-toast";
 
 export type PartyHorseRelationshipType = 'lab_customer' | 'payer' | 'owner' | 'trainer' | 'stable';
 
@@ -25,8 +26,20 @@ export interface CreatePartyHorseLinkData {
 }
 
 /**
+ * SMOKE TEST 10.1:
+ * 1. Select "Sami AL-Hurabi" as client in wizard
+ * 2. Proceed to Horses step
+ * 3. Expected: Only horses linked to Sami appear in the list
+ * 4. Go back, select "No Client"
+ * 5. Expected: Horse list is empty (no linked horses)
+ */
+
+/**
  * Fetch lab_horse IDs linked to a specific client via party_horse_links
  * Used for 10.1: filtering horses by selected client in the wizard
+ * 
+ * CRITICAL: This is the ONLY source of truth for client->horse relationships.
+ * Do NOT use lab_horses.client_id for filtering.
  */
 export function useLinkedLabHorseIds(clientId: string | undefined) {
   const { activeTenant } = useTenant();
@@ -52,8 +65,18 @@ export function useLinkedLabHorseIds(clientId: string | undefined) {
 }
 
 /**
+ * SMOKE TEST 7.3: Owner Quick View
+ * 1. Navigate to horse "Yab" profile
+ * 2. Click owner name in header card
+ * 3. Expected: Popover shows "View Client Profile" button if junction link exists
+ * 4. Expected: If no junction link, shows "Not linked to a client" (no button)
+ */
+
+/**
  * Fetch the primary client for a lab horse (owner quick view)
  * Returns client details for the primary lab_customer relationship
+ * 
+ * CRITICAL: Uses junction table ONLY. No fallback to lab_horses.client_id.
  */
 export function usePrimaryClientForHorse(labHorseId: string | undefined) {
   const { activeTenant } = useTenant();
@@ -64,7 +87,7 @@ export function usePrimaryClientForHorse(labHorseId: string | undefined) {
     queryFn: async () => {
       if (!labHorseId || !tenantId) return null;
 
-      // Get primary link for this horse
+      // Get primary link for this horse (junction table is the ONLY source of truth)
       const { data: linkData, error: linkError } = await supabase
         .from("party_horse_links")
         .select("client_id")
@@ -92,40 +115,53 @@ export function usePrimaryClientForHorse(labHorseId: string | undefined) {
 }
 
 /**
- * Create a new party-horse link (used when registering a horse for a client)
+ * SMOKE TEST: New Horse Links to Client
+ * 1. In wizard with Sami selected, click "Register New Horse"
+ * 2. Enter name "TestHorse456", save
+ * 3. Expected: Success toast "Horse linked to client successfully"
+ * 4. Expected: New horse appears in Sami's list immediately
+ * 5. DB check: party_horse_links row with is_primary=true, client_id=Sami's ID
+ */
+
+/**
+ * SMOKE TEST: Primary Link Enforcement
+ * 1. Link Horse A to Client X (primary)
+ * 2. Link Horse A to Client Y (primary) via wizard
+ * 3. DB check: Only ONE row with is_primary=true (Client Y)
+ * 4. Client X row still exists but is_primary=false
+ */
+
+/**
+ * Create a new party-horse link using the RPC function
+ * This ensures atomic primary enforcement with advisory locking
  */
 export function useCreatePartyHorseLink() {
   const queryClient = useQueryClient();
   const { activeTenant } = useTenant();
-  const { user } = useAuth();
   const tenantId = activeTenant?.tenant.id;
 
   return useMutation({
     mutationFn: async (data: CreatePartyHorseLinkData) => {
-      if (!tenantId || !user?.id) {
-        throw new Error("No active tenant or user");
+      if (!tenantId) {
+        throw new Error("No active tenant");
       }
 
+      // Use RPC for atomic primary enforcement with advisory lock
+      // The RPC validates auth.uid() internally and sets created_by automatically
       const { data: link, error } = await supabase
-        .from("party_horse_links")
-        .insert({
-          tenant_id: tenantId,
-          client_id: data.client_id,
-          lab_horse_id: data.lab_horse_id,
-          relationship_type: data.relationship_type,
-          is_primary: data.is_primary ?? true,
-          created_by: user.id,
-        })
-        .select()
-        .single();
+        .rpc("set_primary_party_horse_link", {
+          p_tenant_id: tenantId,
+          p_client_id: data.client_id,
+          p_lab_horse_id: data.lab_horse_id,
+          p_relationship_type: data.relationship_type,
+        });
 
       if (error) {
-        // Ignore unique constraint violation (link already exists)
-        if (error.code === "23505") {
-          return null;
-        }
+        // Log and rethrow - don't silently swallow errors
+        console.error("Failed to create party-horse link:", error);
         throw error;
       }
+
       return link as PartyHorseLink;
     },
     onSuccess: () => {
@@ -137,6 +173,9 @@ export function useCreatePartyHorseLink() {
       queryClient.invalidateQueries({ 
         queryKey: ['lab-horses', tenantId] 
       });
+    },
+    onError: (error) => {
+      console.error("useCreatePartyHorseLink error:", error);
     },
   });
 }

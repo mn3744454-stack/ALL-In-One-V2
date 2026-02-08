@@ -412,6 +412,8 @@ export const ar = {
       linkFailed: "تم إنشاء الفاتورة لكن فشل ربطها بالسجل المصدر",
       viewInvoice: "عرض الفاتورة",
       fromSample: "من العينة",
+      invoiceCreatedSuccess: "تم إنشاء الفاتورة بنجاح!",
+      recordPaymentNow: "تسجيل الدفع الآن",
     },
     
     // Checkout step in sample wizard
@@ -525,6 +527,7 @@ export const ar = {
       printReport: "طباعة التقرير",
       exportReport: "تصدير التقرير",
       viewClientProfile: "عرض ملف العميل",
+      notLinkedToClient: "غير مرتبط بعميل",
     },
     
     // Walk-in Horse Form
@@ -938,6 +941,10 @@ export const ar = {
       noActiveOrganization: "لا توجد منشأة نشطة",
       notAuthenticated: "غير مسجل الدخول",
       duplicateDailyNumber: "رقم العينة {{number}} مستخدم بالفعل للخيل: {{horseName}}",
+      
+      // Horse Links (UHP)
+      horseLinkCreated: "تم ربط الحصان بالعميل بنجاح",
+      horseLinkFailed: "فشل ربط الحصان بالعميل",
     },
     
     // Filters

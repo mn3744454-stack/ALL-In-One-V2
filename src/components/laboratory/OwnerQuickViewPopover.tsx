@@ -5,14 +5,28 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Phone, User, ExternalLink, Mail } from "lucide-react";
+import { Phone, User, ExternalLink, Mail, UserX } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+
+/**
+ * SMOKE TEST 7.3: Owner Quick View (No Legacy Fallback)
+ * 1. Navigate to a horse profile that has NO junction link
+ * 2. Click owner name
+ * 3. Expected: Popover shows owner info but NO "View Client Profile" button
+ * 4. Expected: Shows "Not linked to a client" text instead
+ * 5. Navigate to a horse WITH junction link
+ * 6. Expected: "View Client Profile" button appears and links correctly
+ */
 
 interface OwnerQuickViewPopoverProps {
   ownerName: string | null | undefined;
   ownerPhone: string | null | undefined;
   ownerEmail?: string | null;
+  /** 
+   * clientId from junction table ONLY (primaryClient?.id).
+   * Do NOT pass lab_horses.client_id as fallback.
+   */
   clientId?: string | null;
   children: React.ReactNode;
   className?: string;
@@ -127,7 +141,8 @@ export function OwnerQuickViewPopover({
               </Button>
             )}
             
-            {clientId && (
+            {/* Only show View Client Profile if junction-derived clientId exists */}
+            {clientId ? (
               <Button
                 variant="outline"
                 size="sm"
@@ -139,6 +154,12 @@ export function OwnerQuickViewPopover({
                   {t("laboratory.labHorses.viewClientProfile")}
                 </Link>
               </Button>
+            ) : (
+              /* No junction link - show "Not linked to client" message */
+              <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
+                <UserX className="h-4 w-4" />
+                <span>{t("laboratory.labHorses.notLinkedToClient")}</span>
+              </div>
             )}
           </div>
         </div>

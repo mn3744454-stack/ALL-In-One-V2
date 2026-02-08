@@ -388,6 +388,8 @@ export const en = {
       linkFailed: "Invoice created but failed to link to source record",
       viewInvoice: "View Invoice",
       fromSample: "From Sample",
+      invoiceCreatedSuccess: "Invoice created successfully!",
+      recordPaymentNow: "Record Payment Now",
     },
     
     // Checkout step in sample wizard
@@ -499,6 +501,7 @@ export const en = {
       printReport: "Print Report",
       exportReport: "Export Report",
       viewClientProfile: "View Client Profile",
+      notLinkedToClient: "Not linked to a client",
     },
     
     // Walk-in Horse Form
@@ -911,6 +914,10 @@ export const en = {
       noActiveOrganization: "No active organization",
       notAuthenticated: "Not authenticated",
       duplicateDailyNumber: "Sample number {{number}} is already used for horse: {{horseName}}",
+      
+      // Horse Links (UHP)
+      horseLinkCreated: "Horse linked to client successfully",
+      horseLinkFailed: "Failed to link horse to client",
     },
     
     // Filters

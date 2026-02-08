@@ -176,21 +176,26 @@ export default function DashboardClients() {
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <ClientFilters
-            statusFilter={statusFilter}
-            onStatusChange={setStatusFilter}
-            typeFilter={typeFilter}
-            onTypeChange={setTypeFilter}
-          />
-          <ViewSwitcher
-            viewMode={viewMode}
-            gridColumns={gridColumns}
-            onViewModeChange={setViewMode}
-            onGridColumnsChange={setGridColumns}
-            showTable={true}
-          />
+        {/* SMOKE TEST 6.1: Mobile-optimized filter layout */}
+        {/* Filters - Mobile optimized: stacks cleanly, no overflow */}
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:justify-between sm:gap-4">
+          <div className="w-full sm:w-auto overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+            <ClientFilters
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              typeFilter={typeFilter}
+              onTypeChange={setTypeFilter}
+            />
+          </div>
+          <div className="flex-shrink-0 flex justify-end sm:justify-start">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={true}
+            />
+          </div>
         </div>
 
         {/* Results count */}

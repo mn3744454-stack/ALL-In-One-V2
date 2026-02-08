@@ -24,7 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { format } from "date-fns";
-import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt, X } from "lucide-react";
+import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt, X, CheckCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ClientSelector } from "@/components/horses/orders/ClientSelector";
 import { WalkInClientForm } from "./WalkInClientForm";
@@ -57,8 +57,11 @@ import {
   TableBody,
   TableCell,
   TableFooter,
+  TableHead,
+  TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { formatCurrency } from "@/lib/formatters";
 
 interface CreateSampleDialogProps {
@@ -162,6 +165,11 @@ export function CreateSampleDialog({
   const [skipCheckout, setSkipCheckout] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
   
+  // Billing step state: editable prices + Record Payment Now
+  const [billingPrices, setBillingPrices] = useState<Record<string, number>>({});
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  
   const [formData, setFormData] = useState<FormData>({
     selectedHorses: [],
     collection_date: new Date(),
@@ -220,12 +228,25 @@ export function CreateSampleDialog({
     }
   }, [isPrimaryLabTenant, creditsEnabled, isFreeRetest, showCheckoutStep, isRetest]);
 
-  // Build checkout line items from selected templates
+  /**
+   * SMOKE TEST 1.1: Billing Step (Template × Horse)
+   * 1. Create sample with 2 horses + 2 templates
+   * 2. Go to billing step
+   * 3. Expected: 4 line items (2 templates × 2 horses)
+   * 4. Expected: Each shows "Template - HorseName"
+   * 5. Edit a price value
+   * 6. Expected: Total updates correctly
+   * 7. Toggle "Create Invoice" ON, complete wizard
+   * 8. Expected: Invoice created with edited prices
+   */
+  
+  // Build checkout line items as Template × Horse matrix
   const checkoutLineItems = useMemo((): CheckoutLineItem[] => {
     const selectedTemplates = activeTemplates.filter(t => formData.template_ids.includes(t.id));
-    const horseCount = formData.selectedHorses.length || 1;
+    const horses = formData.selectedHorses;
     
     if (selectedTemplates.length === 0) {
+      const horseCount = horses.length || 1;
       return [{
         id: "sample-placeholder",
         description: t("laboratory.checkout.sampleFee"),
@@ -237,33 +258,66 @@ export function CreateSampleDialog({
       }];
     }
 
-    return selectedTemplates.map(template => {
+    // Generate per-horse items: Template × Horse matrix
+    const items: CheckoutLineItem[] = [];
+    for (const template of selectedTemplates) {
       const pricing = template.pricing as Record<string, unknown> | null;
       const basePrice = pricing && typeof pricing.base_price === "number" 
         ? pricing.base_price 
         : null;
       
-      return {
-        id: template.id,
-        description: template.name,
-        description_ar: template.name_ar,
-        quantity: horseCount,
-        unit_price: basePrice,
-        total_price: basePrice !== null ? basePrice * horseCount : 0,
-        entity_type: "lab_template",
-        entity_id: template.id,
-      };
-    });
-  }, [formData.template_ids, formData.selectedHorses.length, activeTemplates, createdSampleIds, t]);
+      // If we have horses, create one item per horse
+      if (horses.length > 0) {
+        for (const horse of horses) {
+          const itemKey = `${template.id}:${horse.horse_id || horse.horse_name}`;
+          items.push({
+            id: itemKey,
+            description: `${template.name} - ${horse.horse_name}`,
+            description_ar: template.name_ar 
+              ? `${template.name_ar} - ${horse.horse_name}` 
+              : undefined,
+            quantity: 1,
+            unit_price: basePrice,
+            total_price: basePrice !== null ? basePrice : 0,
+            entity_type: "lab_template",
+            entity_id: template.id,
+          });
+        }
+      } else {
+        // No horses yet (retest or single sample)
+        items.push({
+          id: template.id,
+          description: template.name,
+          description_ar: template.name_ar,
+          quantity: 1,
+          unit_price: basePrice,
+          total_price: basePrice !== null ? basePrice : 0,
+          entity_type: "lab_template",
+          entity_id: template.id,
+        });
+      }
+    }
+    
+    return items;
+  }, [formData.template_ids, formData.selectedHorses, activeTemplates, createdSampleIds, t]);
 
-  const hasMissingPrices = checkoutLineItems.some(item => item.unit_price === null);
-  const checkoutTotal = checkoutLineItems.reduce((sum, item) => sum + (item.unit_price !== null ? item.unit_price * item.quantity : 0), 0);
+  const hasMissingPrices = checkoutLineItems.some(item => item.unit_price === null && !(item.id in billingPrices));
+  
+  // Calculate total using editable prices (billingPrices takes precedence)
+  const checkoutTotal = checkoutLineItems.reduce((sum, item) => {
+    const price = billingPrices[item.id] ?? item.unit_price ?? 0;
+    return sum + price * item.quantity;
+  }, 0);
 
   useEffect(() => {
     if (open) {
       setStep(0);
       setCreatedSampleIds([]);
       setSkipCheckout(false);
+      // Reset billing step state
+      setBillingPrices({});
+      setCreatedInvoiceId(null);
+      setPaymentDialogOpen(false);
       // For retests, set up retest horse
       const retestTemplateIds = retestOfSample?.templates?.map(t => t.template.id) || [];
       
@@ -1387,82 +1441,147 @@ export function CreateSampleDialog({
         );
 
       // LAB TENANT: Billing/Invoice Step (Step 5)
+      // SMOKE TEST 1.1: Billing step with Template × Horse, editable prices, Record Payment Now
       case 'billing':
         if (isPrimaryLabTenant) {
+          const canRecordPayment = isOwner || hasPermission("finance.payments.create");
+          
           return (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-medium">{t("laboratory.createSample.createInvoice")}</Label>
-                <Switch
-                  checked={formData.create_invoice}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_invoice: checked }))}
-                />
-              </div>
-              
-              {formData.create_invoice ? (
-                <Card className="p-4 space-y-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      {t("laboratory.createSample.invoicePreview")}
-                    </p>
-                    
-                    {/* Line items from templates */}
-                    <Table>
-                      <TableBody>
-                        {checkoutLineItems.map(item => (
-                          <TableRow key={item.id}>
-                            <TableCell className="font-medium">{item.description_ar || item.description}</TableCell>
-                            <TableCell className="text-center">x{item.quantity}</TableCell>
-                            <TableCell className="text-end">
-                              {item.unit_price !== null ? formatCurrency(item.unit_price) : '—'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                      <TableFooter>
-                        <TableRow>
-                          <TableCell colSpan={2} className="font-bold">{t("common.total")}</TableCell>
-                          <TableCell className="text-end font-bold">{formatCurrency(checkoutTotal)}</TableCell>
-                        </TableRow>
-                      </TableFooter>
-                    </Table>
+              {/* Invoice created success state with Record Payment Now */}
+              {createdInvoiceId ? (
+                <div className="flex flex-col gap-3 p-4 rounded-lg bg-primary/10 border border-primary/20">
+                  <div className="flex items-center gap-2 text-primary">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-medium">{t("laboratory.billing.invoiceCreatedSuccess")}</span>
+                  </div>
+                  {canRecordPayment && (
+                    <Button 
+                      onClick={() => setPaymentDialogOpen(true)}
+                      className="w-full sm:w-auto"
+                    >
+                      <CreditCard className="h-4 w-4 me-2" />
+                      {t("laboratory.billing.recordPaymentNow")}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">{t("laboratory.createSample.createInvoice")}</Label>
+                    <Switch
+                      checked={formData.create_invoice}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, create_invoice: checked }))}
+                    />
                   </div>
                   
-                  {/* Client info (auto-filled from Step 1) */}
-                  {selectedClient && (
-                    <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{selectedClient.name}</span>
-                    </div>
-                  )}
-                  
-                  {/* No client warning */}
-                  {!selectedClient && (
+                  {formData.create_invoice ? (
+                    <Card className="p-4 space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          {t("laboratory.createSample.invoicePreview")}
+                        </p>
+                        
+                        {/* Line items with editable prices - Template × Horse */}
+                        <div className="rounded-md border overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>{t("common.description")}</TableHead>
+                                <TableHead className="text-center w-16">{t("laboratory.billing.quantity")}</TableHead>
+                                <TableHead className="text-end w-28">{t("finance.invoices.unitPrice")}</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {checkoutLineItems.map(item => {
+                                const currentPrice = billingPrices[item.id] ?? item.unit_price ?? 0;
+                                return (
+                                  <TableRow key={item.id}>
+                                    <TableCell className="font-medium">
+                                      {item.description_ar || item.description}
+                                    </TableCell>
+                                    <TableCell className="text-center">×{item.quantity}</TableCell>
+                                    <TableCell className="text-end p-1">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        step="0.01"
+                                        className="w-24 text-end h-8 ms-auto"
+                                        value={currentPrice}
+                                        onChange={(e) => {
+                                          const val = parseFloat(e.target.value) || 0;
+                                          setBillingPrices(prev => ({ ...prev, [item.id]: val }));
+                                        }}
+                                        placeholder="0.00"
+                                      />
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </TableBody>
+                            <TableFooter>
+                              <TableRow>
+                                <TableCell colSpan={2} className="font-bold">{t("common.total")}</TableCell>
+                                <TableCell className="text-end font-bold font-mono" dir="ltr">
+                                  {formatCurrency(checkoutTotal)}
+                                </TableCell>
+                              </TableRow>
+                            </TableFooter>
+                          </Table>
+                        </div>
+                      </div>
+                      
+                      {/* Client info (auto-filled from Step 1) */}
+                      {selectedClient && (
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">{selectedClient.name}</span>
+                        </div>
+                      )}
+                      
+                      {/* No client warning */}
+                      {!selectedClient && (
+                        <Alert>
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            {t("laboratory.createSample.noClientForInvoice")}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
+                      {/* Missing prices warning - only if ALL prices are missing */}
+                      {hasMissingPrices && checkoutTotal === 0 && (
+                        <Alert variant="destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertDescription>
+                            {t("laboratory.createSample.missingPricesWarning")}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </Card>
+                  ) : (
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        {t("laboratory.createSample.noClientForInvoice")}
+                        {t("laboratory.createSample.skipInvoiceInfo")}
                       </AlertDescription>
                     </Alert>
                   )}
-                  
-                  {/* Missing prices warning */}
-                  {hasMissingPrices && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        {t("laboratory.createSample.missingPricesWarning")}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </Card>
-              ) : (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {t("laboratory.createSample.skipInvoiceInfo")}
-                  </AlertDescription>
-                </Alert>
+                </>
+              )}
+              
+              {/* Record Payment Dialog */}
+              {createdInvoiceId && (
+                <RecordPaymentDialog
+                  open={paymentDialogOpen}
+                  onOpenChange={setPaymentDialogOpen}
+                  invoiceId={createdInvoiceId}
+                  onSuccess={() => {
+                    setPaymentDialogOpen(false);
+                    onOpenChange(false);
+                    onSuccess?.();
+                  }}
+                />
               )}
             </div>
           );
