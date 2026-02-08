@@ -1,126 +1,229 @@
 
 
-# Execution Plan: Apply Remaining Fixes (P0 + P1)
+# Implementation Plan: Finance Balances + Lab Horse Bridge + Billing Step
 
-## Summary of Current State
+## Phase 0 Summary: Current State Verified
 
-After thorough code exploration, here are the verified gaps:
-
-### P0 — Functional Gaps
-
-| Item | Current State | Issue |
-|------|---------------|-------|
-| **5.1** Finance Customer Balances | `navConfig.ts` L241: route = `/dashboard/clients` | Same as main Clients page - NOT a distinct finance page |
-| **1.1** Wizard Billing Step | `CreateSampleDialog.tsx` L248: `description: template.name` only | No horse name, no price editing, no "Record Payment Now" |
-| **10.1** Horse Selection Logic | `MultiHorseSelector.tsx` L27: `useHorses()` | Loads ALL tenant horses, not filtered by client |
-
-### P1 — Quality Gaps
-
-| Item | Current State | Issue |
-|------|---------------|-------|
-| **7.3** Owner Quick View | Shows: name, phone, call button only | Missing: email, client link, useful metadata |
-| **6.1** Clients Page Polish | Basic layout with ViewSwitcher | Mobile filters may overflow, spacing needs improvement |
+| Component | Status | Gap |
+|-----------|--------|-----|
+| Finance Route | ✅ Exists `/dashboard/finance/customer-balances` | Works but uses `customer_balances` table (no sync) |
+| Finance Nav | ✅ Correct route + label | N/A |
+| Balance Source | ⚠️ `customer_balances` table has no sync trigger | Must create ledger-derived view |
+| Lab Horse clientId | ❌ Missing column | Must add `client_id` + `owner_email` to `lab_horses` |
+| Billing Step | ❌ Missing horse names + price editing | Must update `CreateSampleDialog.tsx` |
+| Owner Popover | ⚠️ Component ready, data not passed | Must update `LabHorseProfile.tsx` + add DB columns |
 
 ---
 
-## Implementation Plan
+## Phase 1: Create Ledger-Derived Balance View (P0)
 
-### Phase 1: P0 Items
+### Database Migration
 
----
+Create a PostgreSQL view that derives customer balances from `ledger_entries`:
 
-#### (5.1) Create Distinct Finance Customer Balances Page
+```sql
+-- Create view for ledger-derived customer balances
+CREATE OR REPLACE VIEW v_customer_ledger_balances AS
+SELECT 
+  le.tenant_id,
+  le.client_id,
+  COALESCE(SUM(le.amount), 0) as balance,
+  MAX(le.created_at) as last_entry_at
+FROM ledger_entries le
+GROUP BY le.tenant_id, le.client_id;
 
-**Files to Create:**
-- `src/pages/finance/FinanceCustomerBalances.tsx` — New finance-focused page
-
-**Files to Modify:**
-- `src/navigation/navConfig.ts` — Change route to `/dashboard/finance/customer-balances`
-- `src/App.tsx` — Add route for new page
-- `src/pages/finance/index.ts` — Export new page
-
-**Implementation Details:**
-
-```typescript
-// FinanceCustomerBalances.tsx
-// - Finance-focused view: NO Create/Edit/Delete clients
-// - Shows: Client name (localized), phone, ledger balance, credit limit, available credit
-// - Actions: View Statement, Record Payment
-// - Uses useCustomerBalances() hook for ledger-derived balances
-// - Displays balance status badges (positive/negative/zero)
+-- Grant access for authenticated users
+GRANT SELECT ON v_customer_ledger_balances TO authenticated;
 ```
 
-**Route Change:**
+### Hook Updates
+
+**File: `src/hooks/finance/useLedgerBalance.ts`** (NEW)
+
+Create a new hook that reads from the view instead of `customer_balances` table:
+
 ```typescript
-// navConfig.ts L238-242
-{
-  key: "customer-balances",
-  icon: UserCircle,
-  labelKey: "finance.customerBalances.title",
-  route: "/dashboard/finance/customer-balances",  // Changed from /dashboard/clients
+// Fetch balance from v_customer_ledger_balances view
+// Single client: useLedgerBalance(clientId)
+// All clients: useLedgerBalances() → Map<clientId, balance>
+```
+
+### Files Changed
+- **DB Migration**: Create `v_customer_ledger_balances` view
+- **Create**: `src/hooks/finance/useLedgerBalance.ts`
+- **Update**: `src/hooks/finance/index.ts` (export new hook)
+- **Update**: `src/pages/finance/FinanceCustomerBalances.tsx` (use new hook)
+- **Update**: `src/components/laboratory/GenerateInvoiceDialog.tsx` (credit limit check)
+
+---
+
+## Phase 2: Lab Horse Client Bridge (P0 - Item 10.1)
+
+### Database Migration
+
+Add `client_id` and `owner_email` columns to `lab_horses`:
+
+```sql
+-- Add client_id FK to lab_horses for client-horse filtering
+ALTER TABLE lab_horses 
+  ADD COLUMN client_id uuid REFERENCES clients(id) ON DELETE SET NULL;
+
+-- Add owner_email for better owner info
+ALTER TABLE lab_horses 
+  ADD COLUMN owner_email text;
+
+-- Create index for efficient filtering
+CREATE INDEX idx_lab_horses_client_tenant 
+  ON lab_horses(tenant_id, client_id) 
+  WHERE client_id IS NOT NULL;
+```
+
+### Hook Updates
+
+**File: `src/hooks/laboratory/useLabHorses.ts`**
+
+Add `clientId` filter support:
+
+```typescript
+interface LabHorseFilters {
+  search?: string;
+  includeArchived?: boolean;
+  clientId?: string;  // NEW: Filter by client
+}
+
+// In query:
+if (filters.clientId) {
+  query = query.eq("client_id", filters.clientId);
 }
 ```
 
-**Acceptance Test:**
-1. Navigate to Finance sidebar → Click "أرصدة العملاء"
-2. Opens route `/dashboard/finance/customer-balances`
-3. Page shows balance-focused table (no Create/Edit/Delete buttons)
-4. Each client row shows: Name, Phone, Balance, Credit Limit, Actions (Statement/Payment)
+### Component Updates
 
----
+**File: `src/components/laboratory/LabHorsePicker.tsx`**
 
-#### (1.1) Wizard Billing Step — Complete Improvements
+Accept `clientId` prop and pass to hook:
 
-**Files to Modify:**
-- `src/components/laboratory/CreateSampleDialog.tsx`
-
-**Implementation Details:**
-
-1. **Update `checkoutLineItems` (L224-257):**
 ```typescript
-// Include horse name in description
-return selectedTemplates.flatMap(template => {
-  // Generate one line item per horse per template
-  return formData.selectedHorses.map(horse => ({
-    id: `${template.id}-${horse.horse_id}`,
-    description: `${template.name} - ${horse.horse_name}`,
-    description_ar: template.name_ar 
-      ? `${template.name_ar} - ${horse.horse_name}` 
-      : undefined,
-    quantity: 1,  // Changed from horseCount to 1 per horse
-    unit_price: priceOverrides[`${template.id}-${horse.horse_id}`] ?? basePrice,
-    // ...
-  }));
+interface LabHorsePickerProps {
+  selectedHorses: SelectedHorse[];
+  onHorsesChange: (horses: SelectedHorse[]) => void;
+  clientId?: string;  // NEW
+  disabled?: boolean;
+}
+
+// Use filtered hook:
+const { labHorses, loading } = useLabHorses({ 
+  search, 
+  clientId  // Pass clientId filter
 });
 ```
 
-2. **Add price override state:**
+**File: `src/components/laboratory/CreateSampleDialog.tsx`**
+
+Pass selected client to `LabHorsePicker`:
+
+```typescript
+<LabHorsePicker
+  selectedHorses={formData.selectedHorses}
+  onHorsesChange={handleHorsesChange}
+  clientId={formData.clientMode === 'registered' ? formData.client_id : undefined}
+  disabled={disabled}
+/>
+```
+
+### Files Changed
+- **DB Migration**: Add `client_id` + `owner_email` to `lab_horses`
+- **Update**: `src/hooks/laboratory/useLabHorses.ts`
+- **Update**: `src/components/laboratory/LabHorsePicker.tsx`
+- **Update**: `src/components/laboratory/CreateSampleDialog.tsx`
+- **Update**: `src/components/laboratory/LabHorseFormDialog.tsx` (save client_id when creating)
+
+---
+
+## Phase 3: Billing Step Improvements (P0 - Item 1.1)
+
+### File: `src/components/laboratory/CreateSampleDialog.tsx`
+
+**A) Line Items with Horse Names (L240-256):**
+
+Update `checkoutLineItems` to include horse names:
+
+```typescript
+const checkoutLineItems = useMemo((): CheckoutLineItem[] => {
+  const selectedTemplates = activeTemplates.filter(t => formData.template_ids.includes(t.id));
+  
+  if (selectedTemplates.length === 0 || formData.selectedHorses.length === 0) {
+    return [];
+  }
+
+  // Generate one line item per template × horse combination
+  return selectedTemplates.flatMap(template => {
+    const pricing = template.pricing as Record<string, unknown> | null;
+    const basePrice = pricing?.base_price ?? null;
+    
+    return formData.selectedHorses.map(horse => {
+      const itemKey = `${template.id}-${horse.horse_id}`;
+      const overridePrice = priceOverrides[itemKey];
+      const unitPrice = overridePrice ?? basePrice;
+      
+      return {
+        id: itemKey,
+        description: `${template.name} - ${horse.horse_name}`,
+        description_ar: template.name_ar 
+          ? `${template.name_ar} - ${horse.horse_name}` 
+          : undefined,
+        quantity: 1,
+        unit_price: unitPrice,
+        total_price: unitPrice ?? 0,
+        entity_type: "lab_template",
+        entity_id: template.id,
+      };
+    });
+  });
+}, [formData.template_ids, formData.selectedHorses, activeTemplates, priceOverrides]);
+```
+
+**B) Add Price Override State:**
+
 ```typescript
 const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
 ```
 
-3. **Add price Input in billing step table (L1408-1420):**
-```tsx
+**C) Editable Price Inputs (L1408-1420):**
+
+```typescript
 <TableCell className="text-end">
   <Input
     type="number"
+    min="0"
+    step="0.01"
     className="w-24 text-end"
     value={priceOverrides[item.id] ?? item.unit_price ?? ''}
-    onChange={(e) => setPriceOverrides(prev => ({
-      ...prev,
-      [item.id]: parseFloat(e.target.value) || 0
-    }))}
+    onChange={(e) => {
+      const value = parseFloat(e.target.value);
+      setPriceOverrides(prev => ({
+        ...prev,
+        [item.id]: isNaN(value) ? 0 : value
+      }));
+    }}
   />
 </TableCell>
 ```
 
-4. **Add "Record Payment Now" after invoice creation:**
+**D) Record Payment Now Button:**
+
+Add state and button after invoice creation:
+
 ```typescript
 const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-// After invoice created successfully:
+// After successful invoice creation:
 {createdInvoiceId && (
-  <Button onClick={() => setShowPaymentDialog(true)}>
+  <Button 
+    onClick={() => setShowPaymentDialog(true)}
+    className="w-full"
+  >
     <Receipt className="h-4 w-4 me-2" />
     {t("laboratory.createSample.recordPaymentNow")}
   </Button>
@@ -131,235 +234,205 @@ const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
   open={showPaymentDialog}
   onOpenChange={setShowPaymentDialog}
   invoiceId={createdInvoiceId}
-  onSuccess={() => { ... }}
+  onSuccess={() => {
+    setShowPaymentDialog(false);
+    onOpenChange(false);
+  }}
 />
 ```
 
-**i18n Keys to Add:**
+### i18n Keys to Add
+
 ```typescript
-// ar.ts / en.ts
-recordPaymentNow: "تسجيل دفعة الآن" / "Record Payment Now"
+// ar.ts
+recordPaymentNow: "تسجيل دفعة الآن",
+
+// en.ts  
+recordPaymentNow: "Record Payment Now",
 ```
 
-**Acceptance Test:**
-1. Open Create Sample wizard → Select client → Select horses → Select templates
-2. Go to Billing step
-3. Each line item shows "Template Name - Horse Name"
-4. Each line item has editable price input
-5. Total updates when prices change
-6. After invoice created, "Record Payment Now" button appears
+### Files Changed
+- **Update**: `src/components/laboratory/CreateSampleDialog.tsx`
+- **Update**: `src/i18n/locales/ar.ts`
+- **Update**: `src/i18n/locales/en.ts`
 
 ---
 
-#### (10.1) Wizard Horse Selection — Client Filtering
+## Phase 4: Owner Quick View Data (P1 - Item 7.3)
 
-**Files to Modify:**
-- `src/hooks/useHorses.ts` — Add clientId filter
-- `src/components/laboratory/MultiHorseSelector.tsx` — Accept clientId prop
-- `src/components/laboratory/CreateSampleDialog.tsx` — Pass clientId
+### File: `src/components/laboratory/LabHorseProfile.tsx`
 
-**Implementation Details:**
-
-1. **Update useHorses hook (add clientId parameter):**
-```typescript
-interface HorseFilters {
-  search?: string;
-  gender?: string;
-  status?: string;
-  breed_id?: string;
-  clientId?: string;  // NEW: Filter by client
-}
-
-// In query:
-if (filters?.clientId) {
-  query = query.eq("client_id", filters.clientId);
-}
-```
-
-2. **Update MultiHorseSelector:**
-```typescript
-interface MultiHorseSelectorProps {
-  // ... existing props
-  clientId?: string;  // NEW: Client to filter horses
-}
-
-// Use filtered horses:
-const { horses, loading } = useHorses({ clientId });
-```
-
-3. **In CreateSampleDialog, pass clientId:**
-```tsx
-<MultiHorseSelector
-  clientId={formData.clientMode === 'registered' ? formData.client_id : undefined}
-  selectedHorseIds={...}
-  onSelectionChange={...}
-/>
-```
-
-**Acceptance Test:**
-1. Create Sample → Select "Existing Client" → Choose client "Sami"
-2. Go to Horses step
-3. Only Sami's horses appear (or empty if no horses)
-4. "Add New Horse" still available
-5. Switch to "No Client" → Horses list is empty
-
----
-
-### Phase 2: P1 Items
-
----
-
-#### (7.3) Owner Quick View — Add Useful Info
-
-**Files to Modify:**
-- `src/components/laboratory/OwnerQuickViewPopover.tsx`
-
-**Implementation Details:**
+Update popover call to pass email and clientId (L541-548):
 
 ```typescript
-interface OwnerQuickViewPopoverProps {
-  ownerName: string | null | undefined;
-  ownerPhone: string | null | undefined;
-  ownerEmail?: string | null;      // NEW
-  clientId?: string | null;        // NEW: Link to client profile
-  lastActivityDate?: string | null; // NEW: Optional metadata
-  children: React.ReactNode;
-  className?: string;
-}
-
-// Add to popover content:
-{ownerEmail && (
-  <div className="space-y-1">
-    <p className="text-xs text-muted-foreground">{t("common.email")}</p>
-    <a href={`mailto:${ownerEmail}`} className="text-sm text-primary hover:underline">
-      {ownerEmail}
-    </a>
-  </div>
-)}
-
-{clientId && (
-  <Button variant="outline" size="sm" asChild className="w-full">
-    <Link to={`/dashboard/clients?selected=${clientId}`}>
-      <ExternalLink className="h-4 w-4 me-2" />
-      {t("laboratory.labHorses.viewClientProfile")}
-    </Link>
-  </Button>
-)}
-
-{lastActivityDate && (
-  <p className="text-xs text-muted-foreground">
-    {t("laboratory.labHorses.lastActivity")}: {format(new Date(lastActivityDate), "dd-MM-yyyy")}
-  </p>
-)}
-```
-
-**Acceptance Test:**
-1. Navigate to Lab Horse Profile
-2. Click on owner name
-3. Popover shows: Name, Phone (with call), Email (if available), "View Client Profile" link (if client exists)
-
----
-
-#### (6.1) Clients Page Polishing
-
-**Files to Modify:**
-- `src/pages/DashboardClients.tsx`
-- `src/components/clients/ClientFilters.tsx` (if needed)
-
-**Implementation Details:**
-
-1. **Mobile filters stacking:**
-```tsx
-<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-  <div className="w-full sm:w-auto">
-    <ClientFilters ... />
-  </div>
-  <div className="w-full sm:w-auto flex justify-end">
-    <ViewSwitcher ... />
-  </div>
-</div>
-```
-
-2. **Search input full-width on mobile:**
-```tsx
-<div className="relative w-full">
-  <Input className="w-full" ... />
-</div>
-```
-
-3. **Results count and actions spacing:**
-```tsx
-<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-  <span className="text-sm text-muted-foreground">
-    {filteredClients.length} {t("clients.title")}
+<OwnerQuickViewPopover 
+  ownerName={horse.owner_name} 
+  ownerPhone={horse.owner_phone}
+  ownerEmail={horse.owner_email}    // NEW
+  clientId={horse.client_id}        // NEW
+>
+  <span className="font-medium">
+    {horse.owner_name || horse.owner_phone}
   </span>
-</div>
+</OwnerQuickViewPopover>
 ```
 
-4. **Card/table consistent spacing:**
-```tsx
-<div className="space-y-4 sm:space-y-6">
-  {/* Content */}
-</div>
+### File: `src/hooks/laboratory/useLabHorses.ts`
+
+Update `LabHorse` interface to include new fields:
+
+```typescript
+export interface LabHorse {
+  // ... existing fields
+  owner_email: string | null;  // NEW
+  client_id: string | null;    // NEW
+}
 ```
 
-**Acceptance Test:**
-1. Open Clients page on mobile (viewport < 640px)
-2. Filters stack vertically, no horizontal overflow
-3. Search input is full-width
-4. ViewSwitcher is clearly visible
-5. On desktop: balanced layout with proper spacing
+### Files Changed
+- **Update**: `src/components/laboratory/LabHorseProfile.tsx`
+- **Update**: `src/hooks/laboratory/useLabHorses.ts` (interface)
+- **Update**: `src/components/laboratory/LabHorseFormDialog.tsx` (email field in form)
+
+---
+
+## Phase 5: Finance Page Enhancements (P1 - Item 5.1)
+
+The page already exists and is functional. Enhancements:
+
+### File: `src/pages/finance/FinanceCustomerBalances.tsx`
+
+**A) Use ledger-derived hook instead of customer_balances:**
+
+```typescript
+// Replace:
+import { useCustomerBalances } from "@/hooks/finance/useCustomerBalance";
+
+// With:
+import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
+```
+
+**B) Enhanced subtitle for clarity:**
+
+```typescript
+<p className="text-sm text-muted-foreground">
+  {t("finance.customerBalances.description")}
+</p>
+```
+
+**C) i18n key update:**
+
+```typescript
+// ar.ts
+customerBalances: {
+  title: "أرصدة العملاء",
+  description: "عرض الأرصدة المستخرجة من دفتر الأستاذ وإدارة التحصيل",
+  // ...
+}
+```
+
+### Files Changed
+- **Update**: `src/pages/finance/FinanceCustomerBalances.tsx`
+- **Update**: `src/i18n/locales/ar.ts`
+- **Update**: `src/i18n/locales/en.ts`
+
+---
+
+## Database Migrations Summary
+
+### Migration 1: Ledger Balance View
+
+```sql
+-- Create ledger-derived balance view
+CREATE OR REPLACE VIEW v_customer_ledger_balances AS
+SELECT 
+  le.tenant_id,
+  le.client_id,
+  COALESCE(SUM(le.amount), 0) as balance,
+  MAX(le.created_at) as last_entry_at
+FROM ledger_entries le
+GROUP BY le.tenant_id, le.client_id;
+
+GRANT SELECT ON v_customer_ledger_balances TO authenticated;
+```
+
+### Migration 2: Lab Horse Client Bridge
+
+```sql
+-- Add client_id and owner_email to lab_horses
+ALTER TABLE lab_horses 
+  ADD COLUMN client_id uuid REFERENCES clients(id) ON DELETE SET NULL,
+  ADD COLUMN owner_email text;
+
+CREATE INDEX idx_lab_horses_client_tenant 
+  ON lab_horses(tenant_id, client_id) 
+  WHERE client_id IS NOT NULL;
+```
 
 ---
 
 ## Files Changed Summary
 
-| Action | File Path |
-|--------|-----------|
-| **CREATE** | `src/pages/finance/FinanceCustomerBalances.tsx` |
-| **MODIFY** | `src/navigation/navConfig.ts` |
-| **MODIFY** | `src/App.tsx` |
-| **MODIFY** | `src/pages/finance/index.ts` |
-| **MODIFY** | `src/components/laboratory/CreateSampleDialog.tsx` |
-| **MODIFY** | `src/hooks/useHorses.ts` |
-| **MODIFY** | `src/components/laboratory/MultiHorseSelector.tsx` |
-| **MODIFY** | `src/components/laboratory/OwnerQuickViewPopover.tsx` |
-| **MODIFY** | `src/pages/DashboardClients.tsx` |
-| **MODIFY** | `src/i18n/locales/ar.ts` |
-| **MODIFY** | `src/i18n/locales/en.ts` |
+| Phase | File | Action |
+|-------|------|--------|
+| 1 | DB Migration (view) | CREATE |
+| 1 | `src/hooks/finance/useLedgerBalance.ts` | CREATE |
+| 1 | `src/hooks/finance/index.ts` | UPDATE |
+| 1 | `src/pages/finance/FinanceCustomerBalances.tsx` | UPDATE |
+| 1 | `src/components/laboratory/GenerateInvoiceDialog.tsx` | UPDATE |
+| 2 | DB Migration (lab_horses columns) | CREATE |
+| 2 | `src/hooks/laboratory/useLabHorses.ts` | UPDATE |
+| 2 | `src/components/laboratory/LabHorsePicker.tsx` | UPDATE |
+| 2 | `src/components/laboratory/CreateSampleDialog.tsx` | UPDATE |
+| 2 | `src/components/laboratory/LabHorseFormDialog.tsx` | UPDATE |
+| 3 | `src/components/laboratory/CreateSampleDialog.tsx` | UPDATE |
+| 3 | `src/i18n/locales/ar.ts` | UPDATE |
+| 3 | `src/i18n/locales/en.ts` | UPDATE |
+| 4 | `src/components/laboratory/LabHorseProfile.tsx` | UPDATE |
 
 ---
 
-## Verification Checklist
+## Acceptance Tests
 
-### (5.1) Finance Customer Balances
-- [ ] Sidebar → Finance → "أرصدة العملاء" visible
-- [ ] Click opens `/dashboard/finance/customer-balances`
-- [ ] Page shows balance table (not client management)
-- [ ] No Create/Edit/Delete buttons
-- [ ] "View Statement" and "Record Payment" actions work
+### Test 1: Finance Customer Balances (5.1)
+1. Login → Sidebar → Finance → "أرصدة العملاء"
+2. **Expected:** Opens `/dashboard/finance/customer-balances`
+3. **Expected:** Page title "أرصدة العملاء" with ledger subtitle
+4. **Expected:** NO Add/Edit/Delete client buttons
+5. **Expected:** Balances derived from ledger (check against known ledger totals)
 
-### (1.1) Wizard Billing Step
-- [ ] Line items show "Template - Horse Name"
-- [ ] Price input per line item (editable)
-- [ ] Total recalculates on price change
-- [ ] "Record Payment Now" button after invoice creation
-- [ ] RecordPaymentDialog opens with correct invoice
+### Test 2: Ledger-Derived Balance
+1. Create a client with credit_limit = 1000
+2. Create invoice for 600 SAR → creates ledger entry
+3. Open GenerateInvoiceDialog for same client
+4. **Expected:** Credit info shows: Limit 1000, Outstanding 600, Available 400
+5. Try to create invoice for 500 SAR
+6. **Expected:** Warning "Will exceed credit limit" + blocked
 
-### (10.1) Horse Selection by Client
-- [ ] Registered client → Only their horses shown
-- [ ] New client → Empty horse list
-- [ ] No client → Empty horse list
-- [ ] "Add New Horse" always available
+### Test 3: Lab Wizard Horse Filtering (10.1)
+1. Create Sample → Select "Registered Client" → Choose client "Sami"
+2. Go to Horses step
+3. **Expected:** Only horses where `lab_horses.client_id = Sami.id` appear
+4. Click "Add New Horse" → Create horse "TestHorse"
+5. **Expected:** New horse saved with `client_id = Sami.id`
+6. Switch to "No Client"
+7. **Expected:** Horse list is empty (or shows unlinked horses only)
 
-### (7.3) Owner Quick View
-- [ ] Shows name + phone + call button
-- [ ] Shows email if available
-- [ ] Shows "View Client Profile" link if client exists
+### Test 4: Billing Step (1.1)
+1. Create Sample → Select client → Select 2 horses → Select 1 template
+2. Go to Billing step
+3. **Expected:** 2 line items: "TemplateName - Horse1" and "TemplateName - Horse2"
+4. Change price of first item to 150
+5. **Expected:** Total updates to 150 + originalPrice
+6. Complete invoice creation
+7. **Expected:** "Record Payment Now" button appears
+8. Click it
+9. **Expected:** RecordPaymentDialog opens with correct invoice
 
-### (6.1) Clients Page Polish
-- [ ] Mobile: filters stack, no overflow
-- [ ] Mobile: search full-width
-- [ ] Desktop: balanced layout
-- [ ] ViewSwitcher prominent and usable
+### Test 5: Owner Quick View (7.3)
+1. Create lab_horse with: name="TestHorse", owner_email="test@example.com", client_id=(some client)
+2. Navigate to Lab Horse Profile
+3. Click owner name
+4. **Expected:** Popover shows name, phone, email (test@example.com)
+5. **Expected:** "View Client Profile" button appears and works
 
