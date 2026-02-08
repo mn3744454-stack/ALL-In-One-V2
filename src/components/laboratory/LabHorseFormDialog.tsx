@@ -74,6 +74,9 @@ export function LabHorseFormDialog({
     // Require at least one name
     if (!formData.name?.trim() && !formData.name_ar?.trim()) return;
 
+    // ARCHITECTURE NOTE: Do NOT write client_id to lab_horses table.
+    // The party_horse_links junction table is the ONLY source of truth
+    // for client↔horse relationships. See: set_primary_party_horse_link RPC.
     const created = await createLabHorse({
       name: formData.name?.trim() || formData.name_ar?.trim() || "",
       name_ar: formData.name_ar?.trim() || undefined,
@@ -84,7 +87,6 @@ export function LabHorseFormDialog({
       owner_name: formData.owner_name?.trim() || undefined,
       owner_phone: formData.owner_phone?.trim() || undefined,
       owner_email: formData.owner_email?.trim() || undefined,
-      client_id: formData.client_id || undefined,
     });
 
     if (created) {
