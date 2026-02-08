@@ -21,6 +21,7 @@ import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hooks/laboratory/useLabHorseFinancialSummary";
+import { usePrimaryClientForHorse } from "@/hooks/laboratory/usePartyHorseLinks";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
@@ -59,6 +60,9 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   // Fetch horse data
   const { labHorses, loading: horsesLoading } = useLabHorses({ includeArchived: true });
   const horse = useMemo(() => labHorses.find(h => h.id === horseId), [labHorses, horseId]);
+
+  // Fetch primary client from junction table (UHP architecture)
+  const { data: primaryClient } = usePrimaryClientForHorse(horseId);
 
   // Fetch samples for this horse
   const { samples, loading: samplesLoading } = useLabSamples({});
@@ -542,7 +546,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                     ownerName={horse.owner_name} 
                     ownerPhone={horse.owner_phone}
                     ownerEmail={horse.owner_email}
-                    clientId={horse.client_id}
+                    clientId={primaryClient?.id || horse.client_id}
                   >
                     <span className="text-sm font-medium">
                       {horse.owner_name || horse.owner_phone}

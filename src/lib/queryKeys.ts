@@ -89,6 +89,10 @@ export const queryKeys = {
   financialCategories: (tenantId?: string) => ['financial-categories', tenantId] as const,
   financialEntries: (tenantId?: string) => ['financial-entries', tenantId] as const,
   ledgerBalances: (tenantId?: string) => ['ledger-balances', tenantId] as const,
+  
+  // Party-Horse Links (UHP junction)
+  partyHorseLinks: (tenantId?: string, filters?: Record<string, unknown>) => 
+    ['party-horse-links', tenantId, stableStringify(filters)] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;
