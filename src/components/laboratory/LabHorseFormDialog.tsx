@@ -18,12 +18,14 @@ interface LabHorseFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: (horse: SelectedHorse) => void;
+  defaultClientId?: string;
 }
 
 export function LabHorseFormDialog({
   open,
   onOpenChange,
   onSuccess,
+  defaultClientId,
 }: LabHorseFormDialogProps) {
   const { t } = useI18n();
   const { createLabHorse, isCreating } = useLabHorses({});
@@ -37,6 +39,8 @@ export function LabHorseFormDialog({
     color_text: "",
     owner_name: "",
     owner_phone: "",
+    owner_email: "",
+    client_id: defaultClientId,
   });
 
   const resetForm = () => {
@@ -49,6 +53,8 @@ export function LabHorseFormDialog({
       color_text: "",
       owner_name: "",
       owner_phone: "",
+      owner_email: "",
+      client_id: defaultClientId,
     });
   };
 
@@ -65,6 +71,8 @@ export function LabHorseFormDialog({
       color_text: formData.color_text?.trim() || undefined,
       owner_name: formData.owner_name?.trim() || undefined,
       owner_phone: formData.owner_phone?.trim() || undefined,
+      owner_email: formData.owner_email?.trim() || undefined,
+      client_id: formData.client_id || undefined,
     });
 
     if (created) {
@@ -220,6 +228,22 @@ export function LabHorseFormDialog({
                 dir="ltr"
               />
             </div>
+          </div>
+
+          {/* Owner Email */}
+          <div className="space-y-2">
+            <Label htmlFor="lab-horse-owner-email">
+              {t("laboratory.labHorses.ownerEmail")}
+            </Label>
+            <Input
+              id="lab-horse-owner-email"
+              type="email"
+              value={formData.owner_email || ""}
+              onChange={(e) => setFormData({ ...formData, owner_email: e.target.value })}
+              placeholder={t("laboratory.labHorses.ownerEmailPlaceholder")}
+              disabled={isCreating}
+              dir="ltr"
+            />
           </div>
         </div>
 

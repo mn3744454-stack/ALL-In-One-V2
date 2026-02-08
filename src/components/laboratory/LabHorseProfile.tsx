@@ -541,6 +541,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                   <OwnerQuickViewPopover 
                     ownerName={horse.owner_name} 
                     ownerPhone={horse.owner_phone}
+                    ownerEmail={horse.owner_email}
+                    clientId={horse.client_id}
                   >
                     <span className="text-sm font-medium">
                       {horse.owner_name || horse.owner_phone}

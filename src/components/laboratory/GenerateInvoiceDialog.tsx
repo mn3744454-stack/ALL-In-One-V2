@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
-import { useCustomerBalance } from "@/hooks/finance/useCustomerBalance";
+import { useLedgerBalance } from "@/hooks/finance/useLedgerBalance";
 import {
   useLabInvoiceDraft,
   type LabBillingSourceType,
@@ -78,8 +78,8 @@ export function GenerateInvoiceDialog({
   const [existingInvoices, setExistingInvoices] = useState<ExistingInvoicesResult>([]);
   const [hasChecked, setHasChecked] = useState(false);
 
-  // Fetch the REAL outstanding balance from ledger (customer_balances table)
-  const { balance: ledgerBalance, loading: balanceLoading } = useCustomerBalance(selectedClientId || null);
+  // Fetch the REAL outstanding balance from ledger (v_customer_ledger_balances view)
+  const { balance: ledgerBalance, loading: balanceLoading } = useLedgerBalance(selectedClientId || null);
 
   // Get source ID
   const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;

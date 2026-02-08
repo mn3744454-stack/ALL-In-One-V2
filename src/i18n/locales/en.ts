@@ -464,6 +464,8 @@ export const en = {
       ownerNamePlaceholder: "Enter owner name",
       ownerPhone: "Owner Phone",
       ownerPhonePlaceholder: "Enter owner phone",
+      ownerEmail: "Owner Email",
+      ownerEmailPlaceholder: "Enter owner email",
       ownerInfo: "Owner Info",
       callOwner: "Call Owner",
       registerAndSelect: "Register & Select",
