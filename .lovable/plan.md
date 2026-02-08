@@ -1,223 +1,314 @@
 
-# Unified Horse Profile (Option C) + Ledger-Derived Balance Implementation Plan
+# Zero-Tech-Debt UHP Implementation Plan
 
-## Current State Summary (Verified)
+## Summary
 
-| Component | Current State | Evidence |
-|-----------|---------------|----------|
-| **Ledger semantics** | ✅ Correctly signed: invoices = positive, payments = negative | DB query shows `invoice: +580`, `payment: -10` |
-| **v_customer_ledger_balances** | ✅ Already created with `security_invoker = on`, using `SUM(amount)` | `pg_get_viewdef` verified |
-| **party_horse_links** | ❌ Does NOT exist | `EXISTS` check = false |
-| **lab_horses.client_id** | ✅ Column added (Phase 1 migration done) | Column exists in types.ts |
-| **lab_horses.owner_email** | ✅ Column added | Column exists in types.ts |
-| **useLabHorses clientId filter** | ⚠️ Uses direct `lab_horses.client_id` filter (not junction) | L87-89: `query.eq("client_id", filters.clientId)` |
-| **OwnerQuickViewPopover** | ✅ Accepts `ownerEmail` + `clientId` | L15-16, fully wired |
-| **LabHorseProfile** | ✅ Passes `horse.owner_email` + `horse.client_id` | L541-545 |
-| **GenerateInvoiceDialog** | ✅ Uses `useLedgerBalance` for credit check | L82, L145-146 |
+This plan implements a clean, production-ready Unified Horse Profile architecture with:
+- DB-enforced single-primary links via RPC + partial unique index
+- Junction-only source of truth (no legacy fallbacks)
+- Complete billing step improvements with editable prices and payment recording
+- Mobile-optimized clients page
 
 ---
 
-## Phase 1: Database — UHP Junction Table + Backfill
+## Phase A: Database Migration
 
-### 1.1 Create `party_horse_links` Table
+### A.1 Create `set_primary_party_horse_link` RPC Function
+
+Create a PostgreSQL function that:
+1. **Validates authorization** using `auth.uid()` against `tenant_members`
+2. **Atomically clears** existing primary links for the same `(tenant_id, lab_horse_id, relationship_type)`
+3. **Upserts** the target link as primary
+4. Returns the upserted row
+
+### A.2 Add Partial Unique Index for Primary Enforcement
 
 ```sql
--- Create the UHP junction table (clean, extensible architecture)
-CREATE TABLE IF NOT EXISTS party_horse_links (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  
-  -- Party reference (clients for MVP; can extend to other party types later)
-  client_id uuid NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-  
-  -- Horse reference (lab_horses for lab module MVP)
-  lab_horse_id uuid NOT NULL REFERENCES lab_horses(id) ON DELETE CASCADE,
-  
-  -- Relationship metadata
-  relationship_type text NOT NULL CHECK (relationship_type IN 
-    ('lab_customer', 'payer', 'owner', 'trainer', 'stable')),
-  is_primary boolean NOT NULL DEFAULT false,
-  
-  -- Audit fields
-  created_at timestamptz NOT NULL DEFAULT now(),
-  created_by uuid REFERENCES profiles(id)
-);
-
--- Unique constraint: one link per client+horse+relationship type
-CREATE UNIQUE INDEX IF NOT EXISTS uq_party_horse_links_unique
-  ON party_horse_links(tenant_id, client_id, lab_horse_id, relationship_type);
-
--- Index for filtering horses by client (10.1 main use case)
-CREATE INDEX IF NOT EXISTS idx_party_horse_links_by_client
-  ON party_horse_links(tenant_id, client_id);
-
--- Index for finding clients for a horse (owner quick view)
-CREATE INDEX IF NOT EXISTS idx_party_horse_links_by_lab_horse
-  ON party_horse_links(tenant_id, lab_horse_id);
-
--- Enable RLS
-ALTER TABLE party_horse_links ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies: tenant-scoped access
-CREATE POLICY "Tenant members can view party horse links"
-  ON party_horse_links FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM tenant_members tm
-    WHERE tm.tenant_id = party_horse_links.tenant_id
-      AND tm.user_id = auth.uid()
-      AND tm.is_active = true
-  ));
-
-CREATE POLICY "Tenant members can create party horse links"
-  ON party_horse_links FOR INSERT
-  WITH CHECK (EXISTS (
-    SELECT 1 FROM tenant_members tm
-    WHERE tm.tenant_id = party_horse_links.tenant_id
-      AND tm.user_id = auth.uid()
-      AND tm.is_active = true
-  ));
-
-CREATE POLICY "Tenant members can delete party horse links"
-  ON party_horse_links FOR DELETE
-  USING (EXISTS (
-    SELECT 1 FROM tenant_members tm
-    WHERE tm.tenant_id = party_horse_links.tenant_id
-      AND tm.user_id = auth.uid()
-      AND tm.is_active = true
-  ));
+CREATE UNIQUE INDEX IF NOT EXISTS uq_party_horse_links_one_primary
+  ON party_horse_links(tenant_id, lab_horse_id, relationship_type)
+  WHERE is_primary = true;
 ```
 
-### 1.2 Backfill from Historical Samples
+This ensures the database itself prevents multiple primary links per horse/relationship type.
+
+### Complete Migration SQL
 
 ```sql
--- Backfill links from lab_samples (most recent client per lab_horse)
-WITH ranked AS (
-  SELECT
-    ls.tenant_id,
-    ls.client_id,
-    ls.lab_horse_id,
-    ls.created_at,
-    ROW_NUMBER() OVER (
-      PARTITION BY ls.tenant_id, ls.lab_horse_id
-      ORDER BY ls.created_at DESC
-    ) AS rn
-  FROM lab_samples ls
-  WHERE ls.lab_horse_id IS NOT NULL
-    AND ls.client_id IS NOT NULL
+-- ============================================================
+-- Phase A: Single-Primary Enforcement + RPC Function
+-- ============================================================
+
+-- A.2: Partial unique index to enforce single primary per horse/relationship
+CREATE UNIQUE INDEX IF NOT EXISTS uq_party_horse_links_one_primary
+  ON party_horse_links(tenant_id, lab_horse_id, relationship_type)
+  WHERE is_primary = true;
+
+-- A.1: RPC function with built-in authorization
+CREATE OR REPLACE FUNCTION public.set_primary_party_horse_link(
+  p_tenant_id uuid,
+  p_client_id uuid,
+  p_lab_horse_id uuid,
+  p_relationship_type text DEFAULT 'lab_customer',
+  p_created_by uuid DEFAULT NULL
 )
-INSERT INTO party_horse_links (tenant_id, client_id, lab_horse_id, relationship_type, is_primary)
-SELECT
-  r.tenant_id,
-  r.client_id,
-  r.lab_horse_id,
-  'lab_customer',
-  true
-FROM ranked r
-WHERE r.rn = 1
-ON CONFLICT (tenant_id, client_id, lab_horse_id, relationship_type) DO NOTHING;
+RETURNS party_horse_links
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_result party_horse_links;
+  v_user_id uuid;
+BEGIN
+  -- Get the current user ID
+  v_user_id := auth.uid();
+  
+  -- Authorization check: user must be an active tenant member
+  IF NOT EXISTS (
+    SELECT 1 FROM tenant_members tm
+    WHERE tm.tenant_id = p_tenant_id
+      AND tm.user_id = v_user_id
+      AND tm.is_active = true
+  ) THEN
+    RAISE EXCEPTION 'insufficient_privilege: User is not an active member of this tenant';
+  END IF;
+
+  -- Step 1: Clear existing primary for this tenant + horse + relationship
+  UPDATE party_horse_links
+  SET is_primary = false
+  WHERE tenant_id = p_tenant_id
+    AND lab_horse_id = p_lab_horse_id
+    AND relationship_type = p_relationship_type
+    AND is_primary = true;
+
+  -- Step 2: Upsert the target link as primary
+  INSERT INTO party_horse_links (
+    tenant_id, client_id, lab_horse_id, relationship_type, is_primary, created_by
+  )
+  VALUES (
+    p_tenant_id, p_client_id, p_lab_horse_id, p_relationship_type, true, 
+    COALESCE(p_created_by, v_user_id)
+  )
+  ON CONFLICT (tenant_id, client_id, lab_horse_id, relationship_type)
+  DO UPDATE SET
+    is_primary = true,
+    created_by = COALESCE(EXCLUDED.created_by, party_horse_links.created_by)
+  RETURNING * INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
+
+-- Grant execute to authenticated users
+GRANT EXECUTE ON FUNCTION public.set_primary_party_horse_link TO authenticated;
 ```
-
-### 1.3 Verify Ledger View (Already Done)
-
-The current `v_customer_ledger_balances` view is correct:
-- Uses `SUM(amount)` which works since ledger is properly signed
-- Has `security_invoker = on` for RLS respect
-- No changes needed
 
 ---
 
-## Phase 2: Application Changes
+## Phase B: Application Changes
 
-### 2.1 New Hook: `usePartyHorseLinks`
+### B.1 Update `usePartyHorseLinks.ts`
 
-**File: `src/hooks/laboratory/usePartyHorseLinks.ts` (NEW)**
-
-Purpose: Fetch and manage party-horse links for filtering and creating new links.
+Replace raw insert mutation with RPC call:
 
 ```typescript
-// Hook to:
-// 1. Fetch lab_horse_ids linked to a specific client
-// 2. Create new links when adding horses to a client
-// 3. Get primary client for a horse (for owner quick view)
+// Current (raw insert):
+const { data: link, error } = await supabase
+  .from("party_horse_links")
+  .insert({...})
 
-export function usePartyHorseLinks(options: { clientId?: string; labHorseId?: string })
-export function useCreatePartyHorseLink()
-export function usePrimaryClientForHorse(labHorseId: string)
-```
-
-### 2.2 Update `useLabHorses` — Junction-Based Filtering
-
-**File: `src/hooks/laboratory/useLabHorses.ts`**
-
-Current (L87-89):
-```typescript
-if (filters.clientId) {
-  query = query.eq("client_id", filters.clientId);
-}
-```
-
-Updated approach:
-1. When `clientId` is provided, first fetch linked `lab_horse_ids` from `party_horse_links`
-2. Then filter `lab_horses` by those IDs
-3. This is cleaner than direct column and supports multiple relationship types
-
-### 2.3 Update `LabHorseFormDialog` — Create Link on Horse Creation
-
-**File: `src/components/laboratory/LabHorseFormDialog.tsx`**
-
-After creating a lab horse (L65-76), also insert into `party_horse_links`:
-
-```typescript
-// After successful lab_horse insert, if clientId is provided:
-if (created && formData.client_id) {
-  await supabase.from('party_horse_links').insert({
-    tenant_id: tenantId,
-    client_id: formData.client_id,
-    lab_horse_id: created.id,
-    relationship_type: 'lab_customer',
-    is_primary: true,
-    created_by: user.id
+// New (RPC call):
+const { data: link, error } = await supabase
+  .rpc("set_primary_party_horse_link", {
+    p_tenant_id: tenantId,
+    p_client_id: data.client_id,
+    p_lab_horse_id: data.lab_horse_id,
+    p_relationship_type: data.relationship_type,
+    p_created_by: user.id,
   });
-}
 ```
 
-### 2.4 Update `OwnerQuickViewPopover` — Show Primary Client
+Key changes:
+- Remove duplicate constraint suppression (RPC handles it)
+- Add success/error toast notifications
+- Add smoke test comments
 
-**File: `src/components/laboratory/OwnerQuickViewPopover.tsx`**
+### B.2 Update `LabHorseFormDialog.tsx`
 
-If `clientId` is passed via junction lookup (not just `lab_horses.client_id`), show "View Client Profile" link. 
+- Use updated hook (already calls `useCreatePartyHorseLink`)
+- Add explicit toast for link creation success/failure
+- Add smoke test comment
 
-The component already supports this (L130-142), just need to ensure we pass the right `clientId` from junction.
+### B.3 Update `LabHorseProfile.tsx` - Remove Legacy Fallback
 
-### 2.5 Update `LabHorseProfile` — Get Primary Client from Junction
-
-**File: `src/components/laboratory/LabHorseProfile.tsx`**
-
-Add hook call to get primary client for the horse:
-
+**Current (L549):**
 ```typescript
-const { primaryClient } = usePrimaryClientForHorse(horseId);
-
-// Pass to popover:
-<OwnerQuickViewPopover 
-  ownerName={horse.owner_name} 
-  ownerPhone={horse.owner_phone}
-  ownerEmail={horse.owner_email}
-  clientId={primaryClient?.client_id || horse.client_id} // Prefer junction
->
+clientId={primaryClient?.id || horse.client_id}
 ```
+
+**New:**
+```typescript
+clientId={primaryClient?.id}
+```
+
+Also update the UI to show "Not linked to client" when `primaryClient` is null instead of silently falling back.
 
 ---
 
-## Phase 3: Finance — Ledger as Source of Truth
+## Phase C: Feature Completion
 
-### Already Verified ✅
+### C.1 Billing Step Improvements (`CreateSampleDialog.tsx`)
 
-1. **`useLedgerBalance` hook** reads from `v_customer_ledger_balances` view
-2. **`GenerateInvoiceDialog`** uses `useLedgerBalance` for credit check (L82, L145)
-3. **`FinanceCustomerBalances`** page uses `useLedgerBalances` hook
+#### C.1.1 Template × Horse Line Items
 
-### No changes needed — ledger is already source of truth
+Update `checkoutLineItems` memo to generate per-horse items:
+
+```typescript
+// For each template and each horse, create a line item
+const items: CheckoutLineItem[] = [];
+for (const template of selectedTemplates) {
+  for (const horse of formData.selectedHorses) {
+    items.push({
+      id: `${template.id}:${horse.horse_id || horse.horse_name}`,
+      description: `${template.name} - ${horse.horse_name}`,
+      description_ar: template.name_ar 
+        ? `${template.name_ar} - ${horse.horse_name}` 
+        : undefined,
+      quantity: 1,
+      unit_price: basePrice,
+      // ...
+    });
+  }
+}
+```
+
+#### C.1.2 Editable Prices State
+
+Add state for custom prices:
+
+```typescript
+const [billingPrices, setBillingPrices] = useState<Record<string, number>>({});
+```
+
+Update billing step table to use Input for prices:
+
+```typescript
+<TableCell className="text-end">
+  <Input
+    type="number"
+    min="0"
+    step="0.01"
+    className="w-24 text-end"
+    value={billingPrices[item.id] ?? item.unit_price ?? ''}
+    onChange={(e) => setBillingPrices(prev => ({
+      ...prev,
+      [item.id]: parseFloat(e.target.value) || 0
+    }))}
+  />
+</TableCell>
+```
+
+#### C.1.3 "Record Payment Now" Button
+
+Add state for tracking created invoice:
+
+```typescript
+const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+```
+
+After invoice creation success, show button and integrate `RecordPaymentDialog`:
+
+```typescript
+{createdInvoiceId && (
+  <div className="flex flex-col gap-3 p-4 rounded-lg bg-success/10 border border-success/20">
+    <div className="flex items-center gap-2 text-success">
+      <CheckCircle className="h-5 w-5" />
+      <span className="font-medium">{t("laboratory.billing.invoiceCreatedSuccess")}</span>
+    </div>
+    {canRecordPayment && (
+      <Button onClick={() => setPaymentDialogOpen(true)}>
+        <CreditCard className="h-4 w-4 me-2" />
+        {t("laboratory.billing.recordPaymentNow")}
+      </Button>
+    )}
+  </div>
+)}
+
+<RecordPaymentDialog
+  open={paymentDialogOpen}
+  onOpenChange={setPaymentDialogOpen}
+  invoiceId={createdInvoiceId}
+  onSuccess={() => {
+    setPaymentDialogOpen(false);
+    onOpenChange(false);
+    onSuccess?.();
+  }}
+/>
+```
+
+### C.2 Clients Page Mobile Polish (`DashboardClients.tsx`)
+
+Update the filters section for better mobile layout:
+
+```typescript
+{/* Filters - Mobile optimized */}
+<div className="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:justify-between sm:gap-4">
+  <div className="w-full sm:w-auto overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+    <ClientFilters
+      statusFilter={statusFilter}
+      onStatusChange={setStatusFilter}
+      typeFilter={typeFilter}
+      onTypeChange={setTypeFilter}
+    />
+  </div>
+  <div className="flex-shrink-0 flex justify-end sm:justify-start">
+    <ViewSwitcher
+      viewMode={viewMode}
+      gridColumns={gridColumns}
+      onViewModeChange={setViewMode}
+      onGridColumnsChange={setGridColumns}
+      showTable={true}
+    />
+  </div>
+</div>
+```
+
+Add horizontal scroll styling with `scrollbar-hide` class for cleaner mobile appearance.
+
+---
+
+## Phase D: Internationalization
+
+### New English Keys (`src/i18n/locales/en.ts`)
+
+```typescript
+// In laboratory.toasts section:
+horseLinkCreated: "Horse linked to client successfully",
+horseLinkFailed: "Failed to link horse to client",
+
+// In laboratory.billing section:
+invoiceCreatedSuccess: "Invoice created successfully!",
+recordPaymentNow: "Record Payment Now",
+
+// In laboratory.labHorses section:
+notLinkedToClient: "Not linked to a client",
+```
+
+### New Arabic Keys (`src/i18n/locales/ar.ts`)
+
+```typescript
+// In laboratory.toasts section:
+horseLinkCreated: "تم ربط الحصان بالعميل بنجاح",
+horseLinkFailed: "فشل ربط الحصان بالعميل",
+
+// In laboratory.billing section:
+invoiceCreatedSuccess: "تم إنشاء الفاتورة بنجاح!",
+recordPaymentNow: "تسجيل الدفع الآن",
+
+// In laboratory.labHorses section:
+notLinkedToClient: "غير مرتبط بعميل",
+```
 
 ---
 
@@ -225,68 +316,104 @@ const { primaryClient } = usePrimaryClientForHorse(horseId);
 
 | Phase | File | Action | Description |
 |-------|------|--------|-------------|
-| 1 | DB Migration | CREATE | `party_horse_links` table + RLS + backfill |
-| 2 | `src/hooks/laboratory/usePartyHorseLinks.ts` | CREATE | New hook for junction queries |
-| 2 | `src/hooks/laboratory/useLabHorses.ts` | UPDATE | Use junction for filtering (L87-89) |
-| 2 | `src/components/laboratory/LabHorseFormDialog.tsx` | UPDATE | Insert link after horse creation (L65-76) |
-| 2 | `src/components/laboratory/LabHorseProfile.tsx` | UPDATE | Fetch primary client from junction |
-| 2 | `src/lib/queryKeys.ts` | UPDATE | Add `partyHorseLinks` key |
+| A | DB Migration | CREATE | RPC function + partial unique index |
+| B.1 | `src/hooks/laboratory/usePartyHorseLinks.ts` | UPDATE | Use RPC, add toasts, remove constraint suppression |
+| B.2 | `src/components/laboratory/LabHorseFormDialog.tsx` | UPDATE | Add toast for link success/failure |
+| B.3 | `src/components/laboratory/LabHorseProfile.tsx` | UPDATE | Remove legacy fallback, show "not linked" state |
+| B.3 | `src/components/laboratory/OwnerQuickViewPopover.tsx` | UPDATE | Handle null clientId gracefully |
+| C.1 | `src/components/laboratory/CreateSampleDialog.tsx` | UPDATE | Template×Horse items, editable prices, payment button |
+| C.2 | `src/pages/DashboardClients.tsx` | UPDATE | Mobile-optimized filter layout |
+| D | `src/i18n/locales/en.ts` | UPDATE | Add new translation keys |
+| D | `src/i18n/locales/ar.ts` | UPDATE | Add new translation keys |
 
 ---
 
-## Acceptance Tests
+## Smoke Test Checklist
 
-### Test 1: 10.1 — Client → Horses Filtering
-1. Login → Laboratory → Create Sample
+### Test 1: Client → Horse Filtering (10.1)
+1. Go to Laboratory → Create Sample
 2. Select "Registered Client" → Choose "Sami AL-Hurabi"
-3. Go to Horses step
-4. **Expected:** Only horses linked to Sami via `party_horse_links` appear (توتو, ابا, Yab, Dragon)
-5. Select "No Client" 
-6. **Expected:** Horse list is empty + "Add new horse" button visible
+3. Proceed to Horses step
+4. **Expected**: Only horses linked to Sami appear
+5. Go back, select "No Client"
+6. **Expected**: Horse list is empty, "Add new horse" visible
 
 ### Test 2: New Horse Links to Client
-1. Create Sample → Select client "Sami"
-2. Click "Register New Horse" → Enter horse name "NewTestHorse"
-3. Save
-4. **Expected:** `party_horse_links` row created with `client_id = Sami`, `relationship_type = 'lab_customer'`
-5. New horse immediately appears in Sami's horse list
+1. In wizard with Sami selected, click "Register New Horse"
+2. Enter name "TestHorse456", save
+3. **Expected**: Success toast appears
+4. **Expected**: New horse appears in Sami's list immediately
+5. Query DB: `SELECT * FROM party_horse_links WHERE lab_horse_id = 'new_horse_id'`
+6. **Expected**: Row exists with `is_primary = true`, `client_id = Sami's ID`
 
-### Test 3: Owner Quick View Shows Client Link
-1. Navigate to Lab Horse "Yab" profile
-2. Click on owner name
-3. **Expected:** Popover shows "View Client Profile" button (linked to Sami)
+### Test 3: Owner Quick View (No Legacy Fallback)
+1. Navigate to a horse profile that has NO junction link
+2. Check owner section
+3. **Expected**: No "View Client Profile" button shown
+4. **Expected**: Shows "Not linked to a client" text
+5. Navigate to a horse WITH junction link
+6. **Expected**: "View Client Profile" button appears and links correctly
 
-### Test 4: Ledger Balance Source of Truth
-1. Check client "Sami" → Finance Customer Balances page
-2. **Expected:** Balance matches `SUM(ledger_entries.amount)` for Sami
-3. Create invoice for Sami → verify balance updates
+### Test 4: Primary Link Enforcement
+1. Link Horse A to Client X (primary)
+2. Link Horse A to Client Y (primary) via wizard
+3. Query DB: `SELECT * FROM party_horse_links WHERE lab_horse_id = 'horse_a' AND is_primary = true`
+4. **Expected**: Only ONE row with `is_primary = true` (Client Y)
+5. **Expected**: Client X row still exists but `is_primary = false`
 
-### Test 5: Credit Limit Uses Ledger
-1. Set client credit_limit = 1000
-2. Create invoices until ledger balance = 900
-3. Try to create invoice for 200
-4. **Expected:** Warning "Will exceed credit limit" + blocked
+### Test 5: Billing Step (Template × Horse)
+1. Create sample with 2 horses + 2 templates
+2. Go to billing step
+3. **Expected**: 4 line items (2 templates × 2 horses)
+4. **Expected**: Each shows "Template - HorseName"
+5. Edit a price value
+6. **Expected**: Total updates correctly
+7. Toggle "Create Invoice" ON, complete wizard
+8. **Expected**: Invoice created with edited prices
+
+### Test 6: Record Payment Now
+1. Complete wizard with invoice creation
+2. **Expected**: Success message with "Record Payment Now" button
+3. Click button
+4. **Expected**: RecordPaymentDialog opens with correct invoice
+5. Record partial payment
+6. **Expected**: Payment recorded successfully
+
+### Test 7: Clients Page Mobile
+1. Open clients page on mobile viewport (< 640px)
+2. **Expected**: Filters stack vertically, no horizontal overflow
+3. **Expected**: Filters container horizontally scrollable if needed
+4. **Expected**: ViewSwitcher visible and functional
+5. Switch between table/grid views
+6. **Expected**: Works correctly on mobile
 
 ---
 
-## Risks & Mitigations
+## Technical Notes
 
-| Risk | Mitigation |
-|------|------------|
-| Backfill misses some horses | Backfill only creates links where `lab_samples` has both `client_id` AND `lab_horse_id`; new horses will get links via creation flow |
-| Multiple clients per horse | Junction supports this; `is_primary = true` identifies the main relationship |
-| Performance on large datasets | Indices on `(tenant_id, client_id)` and `(tenant_id, lab_horse_id)` ensure fast lookups |
-| Breaking existing flows | Keep `lab_horses.client_id` as optional cached field; junction is source of truth |
+1. **RPC Security**: Uses `SECURITY DEFINER` but validates `auth.uid()` internally - this is the recommended pattern for atomic operations that need to bypass RLS temporarily.
 
----
+2. **No Legacy Fallbacks**: All code paths use junction table exclusively. The `lab_horses.client_id` column remains for potential future migration needs but is never queried.
 
-## Data Migration Impact
+3. **Partial Index**: The `WHERE is_primary = true` partial unique index is the cleanest way to enforce "at most one primary" at the database level.
 
-**Backfill will create links for:**
-- Sami → توتو (lab_customer, primary)
-- Sami → ابا (lab_customer, primary)
-- Sami → Yab (lab_customer, primary)  
-- Sami → Dragon (lab_customer, primary)
-- AL-Rashid → Dragon (lab_customer, but NOT primary since Sami's sample is more recent)
+4. **Idempotent RPC**: The `ON CONFLICT DO UPDATE` makes the RPC idempotent - calling it multiple times with the same parameters is safe.
 
-*(Based on actual `lab_samples` data verified)*
+5. **Backward Compatibility**: Existing `party_horse_links` rows from backfill remain valid; no data migration needed.
+
+
+Approve the plan, with 2 mandatory DB changes to keep it truly zero-tech-debt:
+
+1) In the RPC `public.set_primary_party_horse_link`, add a transaction-level advisory lock to prevent race conditions:
+   - Use `pg_advisory_xact_lock(...)` keyed by (tenant_id, lab_horse_id, relationship_type).
+
+2) Do not allow arbitrary `p_created_by`:
+   - Set `created_by` to `auth.uid()` (or reject if p_created_by != auth.uid()).
+
+Then proceed with the rest of the plan exactly as written:
+- Use RPC in usePartyHorseLinks.ts
+- Remove legacy fallback in LabHorseProfile.tsx (junction only)
+- Implement CreateSampleDialog billing step (Template × Horse, editable prices, Record Payment Now)
+- Polish DashboardClients mobile layout
+- Add i18n keys + smoke test comments
+- Provide final DB SQL + file diffs + smoke test checklist.
