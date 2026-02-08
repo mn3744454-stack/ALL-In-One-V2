@@ -14,19 +14,22 @@ import type { SelectedHorse } from "./HorseSelectionStep";
 interface LabHorsePickerProps {
   selectedHorses: SelectedHorse[];
   onHorsesChange: (horses: SelectedHorse[]) => void;
+  clientId?: string;
   disabled?: boolean;
 }
 
 export function LabHorsePicker({
   selectedHorses,
   onHorsesChange,
+  clientId,
   disabled = false,
 }: LabHorsePickerProps) {
   const { t, dir, lang } = useI18n();
   const [search, setSearch] = useState("");
   const [horseDialogOpen, setHorseDialogOpen] = useState(false);
   
-  const { labHorses, loading } = useLabHorses({ search });
+  // Filter horses by clientId when provided (10.1)
+  const { labHorses, loading } = useLabHorses({ search, clientId });
 
   // Get selected lab horse IDs
   const selectedIds = useMemo(() => {
@@ -213,6 +216,7 @@ export function LabHorsePicker({
         open={horseDialogOpen}
         onOpenChange={setHorseDialogOpen}
         onSuccess={handleHorseCreated}
+        defaultClientId={clientId}
       />
     </div>
   );

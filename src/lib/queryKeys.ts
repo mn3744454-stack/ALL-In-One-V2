@@ -88,6 +88,7 @@ export const queryKeys = {
   // Financial
   financialCategories: (tenantId?: string) => ['financial-categories', tenantId] as const,
   financialEntries: (tenantId?: string) => ['financial-entries', tenantId] as const,
+  ledgerBalances: (tenantId?: string) => ['ledger-balances', tenantId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

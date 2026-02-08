@@ -837,6 +837,7 @@ export function CreateSampleDialog({
               <LabHorsePicker
                 selectedHorses={formData.selectedHorses}
                 onHorsesChange={(horses) => setFormData(prev => ({ ...prev, selectedHorses: horses }))}
+                clientId={formData.clientMode === 'registered' ? formData.client_id : undefined}
               />
             ) : (
               <HorseSelectionStep

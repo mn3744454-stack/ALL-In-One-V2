@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
-import { useCustomerBalances } from "@/hooks/finance/useCustomerBalance";
+import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
 import { ClientStatementTab } from "@/components/clients";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { MobilePageHeader } from "@/components/navigation";
@@ -34,7 +34,7 @@ export default function FinanceCustomerBalances() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useI18n();
   const { clients, loading: clientsLoading } = useClients();
-  const { getBalance, loading: balancesLoading } = useCustomerBalances();
+  const { getBalance, loading: balancesLoading } = useLedgerBalances();
 
   const [search, setSearch] = useState("");
   const [statementClient, setStatementClient] = useState<Client | null>(null);

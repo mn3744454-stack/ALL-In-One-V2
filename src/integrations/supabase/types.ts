@@ -3687,6 +3687,7 @@ export type Database = {
         Row: {
           approx_age: string | null
           breed_text: string | null
+          client_id: string | null
           color_text: string | null
           created_at: string
           created_by: string | null
@@ -3700,6 +3701,7 @@ export type Database = {
           name: string
           name_ar: string | null
           notes: string | null
+          owner_email: string | null
           owner_name: string | null
           owner_phone: string | null
           passport_number: string | null
@@ -3711,6 +3713,7 @@ export type Database = {
         Insert: {
           approx_age?: string | null
           breed_text?: string | null
+          client_id?: string | null
           color_text?: string | null
           created_at?: string
           created_by?: string | null
@@ -3724,6 +3727,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           notes?: string | null
+          owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
           passport_number?: string | null
@@ -3735,6 +3739,7 @@ export type Database = {
         Update: {
           approx_age?: string | null
           breed_text?: string | null
+          client_id?: string | null
           color_text?: string | null
           created_at?: string
           created_by?: string | null
@@ -3748,6 +3753,7 @@ export type Database = {
           name?: string
           name_ar?: string | null
           notes?: string | null
+          owner_email?: string | null
           owner_name?: string | null
           owner_phone?: string | null
           passport_number?: string | null
@@ -3757,6 +3763,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lab_horses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lab_horses_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -7375,6 +7388,37 @@ export type Database = {
           type?: Database["public"]["Enums"]["tenant_type"] | null
         }
         Relationships: []
+      }
+      v_customer_ledger_balances: {
+        Row: {
+          balance: number | null
+          client_id: string | null
+          last_entry_at: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {

@@ -4,3 +4,4 @@ export * from "./useLedger";
 export * from "./useFinanceDemo";
 export * from "./useInvoicePayments";
 export { useFinancialEntries } from "./useFinancialEntries";
+export { useLedgerBalance, useLedgerBalances } from "./useLedgerBalance";

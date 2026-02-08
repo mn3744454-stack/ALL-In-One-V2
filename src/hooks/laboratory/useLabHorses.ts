@@ -24,6 +24,8 @@ export interface LabHorse {
   ueln: string | null;
   owner_name: string | null;
   owner_phone: string | null;
+  owner_email: string | null;
+  client_id: string | null;
   notes: string | null;
   metadata: Record<string, unknown>;
   linked_horse_id: string | null;
@@ -35,6 +37,7 @@ export interface LabHorse {
 export interface LabHorseFilters {
   search?: string;
   includeArchived?: boolean;
+  clientId?: string;
 }
 
 export interface CreateLabHorseData {
@@ -49,6 +52,8 @@ export interface CreateLabHorseData {
   ueln?: string;
   owner_name?: string;
   owner_phone?: string;
+  owner_email?: string;
+  client_id?: string;
   notes?: string;
   metadata?: Json;
 }
@@ -76,6 +81,11 @@ export function useLabHorses(filters: LabHorseFilters = {}) {
       // Filter archived by default
       if (!filters.includeArchived) {
         query = query.eq("is_archived", false);
+      }
+
+      // Filter by client (10.1: client → horses filtering)
+      if (filters.clientId) {
+        query = query.eq("client_id", filters.clientId);
       }
 
       // Search filter

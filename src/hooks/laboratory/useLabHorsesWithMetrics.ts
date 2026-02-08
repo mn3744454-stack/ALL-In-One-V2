@@ -20,6 +20,8 @@ export interface LabHorseWithMetrics {
   ueln: string | null;
   owner_name: string | null;
   owner_phone: string | null;
+  owner_email: string | null;
+  client_id: string | null;
   notes: string | null;
   metadata: Record<string, unknown>;
   linked_horse_id: string | null;

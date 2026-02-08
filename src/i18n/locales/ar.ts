@@ -490,6 +490,8 @@ export const ar = {
       ownerNamePlaceholder: "أدخل اسم المالك",
       ownerPhone: "هاتف المالك",
       ownerPhonePlaceholder: "أدخل رقم هاتف المالك",
+      ownerEmail: "البريد الإلكتروني للمالك",
+      ownerEmailPlaceholder: "أدخل البريد الإلكتروني للمالك",
       ownerInfo: "معلومات المالك",
       callOwner: "اتصال بالمالك",
       registerAndSelect: "تسجيل واختيار",
