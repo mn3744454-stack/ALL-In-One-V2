@@ -13,7 +13,17 @@ import { Loader2, Check, X } from "lucide-react";
 import { useLabHorses, type CreateLabHorseData } from "@/hooks/laboratory/useLabHorses";
 import { useCreatePartyHorseLink } from "@/hooks/laboratory/usePartyHorseLinks";
 import { useI18n } from "@/i18n";
+import { toast } from "@/hooks/use-toast";
 import type { SelectedHorse } from "./HorseSelectionStep";
+
+/**
+ * SMOKE TEST: New Horse Links to Client
+ * 1. In wizard with client selected, click "Register New Horse"
+ * 2. Enter name "TestHorse456", save
+ * 3. Expected: Success toast "Horse linked to client successfully"
+ * 4. Expected: New horse appears in client's horse list immediately
+ * 5. DB check: party_horse_links row with is_primary=true
+ */
 
 interface LabHorseFormDialogProps {
   open: boolean;
@@ -78,14 +88,27 @@ export function LabHorseFormDialog({
     });
 
     if (created) {
-      // Create party-horse link if client is specified (UHP junction)
+      // Create party-horse link if client is specified (UHP junction - ONLY source of truth)
       if (formData.client_id) {
-        await createLink({
-          client_id: formData.client_id,
-          lab_horse_id: created.id,
-          relationship_type: 'lab_customer',
-          is_primary: true,
-        });
+        try {
+          await createLink({
+            client_id: formData.client_id,
+            lab_horse_id: created.id,
+            relationship_type: 'lab_customer',
+            is_primary: true,
+          });
+          toast({
+            title: t("laboratory.toasts.horseLinkCreated"),
+            variant: "default",
+          });
+        } catch (error) {
+          console.error("Failed to create party-horse link:", error);
+          toast({
+            title: t("laboratory.toasts.horseLinkFailed"),
+            variant: "destructive",
+          });
+          // Don't block the flow - horse was created successfully
+        }
       }
 
       const newHorse: SelectedHorse = {

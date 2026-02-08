@@ -7812,6 +7812,30 @@ export type Database = {
       revoke_consent_grant: { Args: { _grant_id: string }; Returns: string }
       revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
+      set_primary_party_horse_link: {
+        Args: {
+          p_client_id: string
+          p_lab_horse_id: string
+          p_relationship_type?: string
+          p_tenant_id: string
+        }
+        Returns: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_primary: boolean
+          lab_horse_id: string
+          relationship_type: string
+          tenant_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "party_horse_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_tenant_role_access: {
         Args: {
           _bundle_ids: string[]
