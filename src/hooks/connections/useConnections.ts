@@ -4,6 +4,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 
 type Connection = Database["public"]["Tables"]["connections"]["Row"];
@@ -35,7 +36,7 @@ export function useConnections() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["connections", tenantId, userId],
+    queryKey: queryKeys.connections(tenantId, userId),
     queryFn: async () => {
       // Build OR filter: tenant-based + profile-based
       const filters: string[] = [];
@@ -82,7 +83,9 @@ export function useConnections() {
       return data as string;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["connections", tenantId] });
+      // Invalidate both basic and enriched connections queries
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
       toast({
         title: t("common.success"),
         description: t("connections.created"),
@@ -108,7 +111,10 @@ export function useConnections() {
       return data as string;
     },
     onSuccess: () => {
+      // Invalidate all connection-related queries
       queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
+      queryClient.invalidateQueries({ queryKey: ["consent-grants"] });
       toast({
         title: t("common.success"),
         description: t("connections.accepted"),
@@ -134,7 +140,8 @@ export function useConnections() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["connections", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
       toast({
         title: t("common.success"),
         description: t("connections.rejected"),
@@ -160,7 +167,8 @@ export function useConnections() {
       return data as string;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["connections", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["connections"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
       toast({
         title: t("common.success"),
         description: t("connections.revoked"),

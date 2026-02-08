@@ -2873,6 +2873,7 @@ export const ar = {
     status: {
       pending: "قيد الانتظار",
       active: "نشط",
+      accepted: "مقبول",
       revoked: "ملغى",
       expired: "منتهي الصلاحية",
       rejected: "مرفوض",
@@ -2880,6 +2881,13 @@ export const ar = {
     direction: {
       outbound: "صادر",
       inbound: "وارد",
+    },
+    card: {
+      noGrants: "لم يتم مشاركة بيانات بعد",
+      grant: "صلاحية",
+      grants: "صلاحيات",
+      createGrant: "إنشاء صلاحية بيانات",
+      personalProfile: "ملف شخصي",
     },
     grants: {
       title: "صلاحيات مشاركة البيانات",

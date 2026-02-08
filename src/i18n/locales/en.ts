@@ -2846,6 +2846,7 @@ export const en = {
     status: {
       pending: "Pending",
       active: "Active",
+      accepted: "Accepted",
       revoked: "Revoked",
       expired: "Expired",
       rejected: "Rejected",
@@ -2853,6 +2854,13 @@ export const en = {
     direction: {
       outbound: "Outbound",
       inbound: "Inbound",
+    },
+    card: {
+      noGrants: "No data shared yet",
+      grant: "grant",
+      grants: "grants",
+      createGrant: "Create Data Grant",
+      personalProfile: "Personal profile",
     },
     grants: {
       title: "Data Sharing Grants",

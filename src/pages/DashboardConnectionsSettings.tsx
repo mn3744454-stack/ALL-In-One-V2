@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,9 +8,11 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import {
   useConnections,
+  useConnectionsWithDetails,
   useConsentGrants,
   useSharingAuditLog,
 } from "@/hooks/connections";
+import type { ConnectionWithDetails } from "@/hooks/connections";
 import {
   ConnectionsList,
   CreateConnectionDialog,
@@ -28,13 +30,20 @@ const DashboardConnectionsSettings = () => {
   const { activeTenant, activeRole } = useTenant();
   const { t } = useI18n();
 
-  const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
+  const [selectedConnection, setSelectedConnection] = useState<ConnectionWithDetails | null>(null);
   const [createConnectionOpen, setCreateConnectionOpen] = useState(false);
   const [createGrantOpen, setCreateGrantOpen] = useState(false);
 
+  // Use the enriched connections hook for display
   const {
-    connections,
+    connections: connectionsWithDetails,
     isLoading: connectionsLoading,
+    refetch: refetchConnections,
+  } = useConnectionsWithDetails();
+
+  // Use the basic connections hook for mutations
+  const {
+    connections: rawConnections,
     createConnection,
     acceptConnection,
     rejectConnection,
@@ -71,9 +80,26 @@ const DashboardConnectionsSettings = () => {
     await revokeConnection.mutateAsync(token);
   };
 
-  const handleAcceptConnection = async (token: string) => {
-    await acceptConnection.mutateAsync(token);
-  };
+  const handleAcceptConnection = useCallback(async (token: string) => {
+    const result = await acceptConnection.mutateAsync(token);
+    
+    // After accepting, find the connection and auto-open CreateGrantDialog
+    // The connection should now be accepted
+    setTimeout(() => {
+      refetchConnections().then(() => {
+        // Find the newly accepted connection by token
+        const acceptedConn = connectionsWithDetails.find(
+          (c) => c.token === token && c.status === "accepted"
+        );
+        if (acceptedConn) {
+          setSelectedConnection(acceptedConn);
+          setCreateGrantOpen(true);
+        }
+      });
+    }, 500);
+    
+    return result;
+  }, [acceptConnection, refetchConnections, connectionsWithDetails]);
 
   const handleRejectConnection = async (token: string) => {
     await rejectConnection.mutateAsync(token);
@@ -100,6 +126,15 @@ const DashboardConnectionsSettings = () => {
 
   const handleRevokeGrant = async (grantId: string) => {
     await revokeGrant.mutateAsync(grantId);
+  };
+
+  const handleSelectConnection = (connection: ConnectionWithDetails) => {
+    setSelectedConnection(connection);
+  };
+
+  const handleCreateGrantFromCard = (connection: ConnectionWithDetails) => {
+    setSelectedConnection(connection);
+    setCreateGrantOpen(true);
   };
 
   return (
@@ -135,9 +170,9 @@ const DashboardConnectionsSettings = () => {
         {/* Content */}
         <main className="flex-1 p-4 lg:p-8">
           {!canManage && (
-            <Alert className="mb-6 bg-amber-50 border-amber-200">
-              <Shield className="w-4 h-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
+            <Alert className="mb-6 bg-warning/10 border-warning/30">
+              <Shield className="w-4 h-4 text-warning" />
+              <AlertDescription className="text-warning">
                 {t("settings.permissionsRoles.unauthorized")}
               </AlertDescription>
             </Alert>
@@ -166,12 +201,13 @@ const DashboardConnectionsSettings = () => {
 
               <TabsContent value="connections" className="space-y-6">
                 <ConnectionsList
-                  connections={connections}
+                  connections={connectionsWithDetails}
                   isLoading={connectionsLoading}
                   onRevoke={handleRevokeConnection}
                   onAccept={handleAcceptConnection}
                   onReject={handleRejectConnection}
-                  onSelect={setSelectedConnection}
+                  onSelect={handleSelectConnection}
+                  onCreateGrant={handleCreateGrantFromCard}
                   selectedConnectionId={selectedConnection?.id}
                   onCreateClick={() => setCreateConnectionOpen(true)}
                 />
@@ -199,7 +235,7 @@ const DashboardConnectionsSettings = () => {
 
               <TabsContent value="sharedWithMe" className="space-y-6">
                 <SharedWithMeTab
-                  connections={connections}
+                  connections={rawConnections}
                   isLoading={connectionsLoading}
                 />
               </TabsContent>

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { queryKeys } from "@/lib/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 
 type ConsentGrant = Database["public"]["Tables"]["consent_grants"]["Row"];
@@ -41,7 +42,7 @@ export function useConsentGrants(connectionId?: string, options: UseConsentGrant
     error,
     refetch,
   } = useQuery({
-    queryKey: ["consent_grants", tenantId, connectionId, recipientView],
+    queryKey: queryKeys.consentGrants(tenantId, connectionId, recipientView),
     queryFn: async () => {
       // For recipient view, we only need connectionId
       // For grantor view, we need tenantId
@@ -96,7 +97,9 @@ export function useConsentGrants(connectionId?: string, options: UseConsentGrant
       return data as string;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["consent_grants", tenantId] });
+      // Invalidate all grants and connection queries (grants affect connection display)
+      queryClient.invalidateQueries({ queryKey: ["consent-grants"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
       toast({
         title: t("common.success"),
         description: t("connections.grants.created"),
@@ -122,7 +125,8 @@ export function useConsentGrants(connectionId?: string, options: UseConsentGrant
       return data as string;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["consent_grants", tenantId] });
+      queryClient.invalidateQueries({ queryKey: ["consent-grants"] });
+      queryClient.invalidateQueries({ queryKey: ["connections-with-details"] });
       toast({
         title: t("common.success"),
         description: t("connections.grants.revoked"),

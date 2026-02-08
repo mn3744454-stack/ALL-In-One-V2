@@ -93,6 +93,16 @@ export const queryKeys = {
   // Party-Horse Links (UHP junction)
   partyHorseLinks: (tenantId?: string, filters?: Record<string, unknown>) => 
     ['party-horse-links', tenantId, stableStringify(filters)] as const,
+  
+  // Connections & Sharing
+  connections: (tenantId?: string, userId?: string) => 
+    ['connections', tenantId, userId] as const,
+  connectionsWithDetails: (tenantId?: string, userId?: string) => 
+    ['connections-with-details', tenantId, userId] as const,
+  consentGrants: (tenantId?: string, connectionId?: string, recipientView?: boolean) =>
+    ['consent-grants', tenantId, connectionId, recipientView] as const,
+  sharingAuditLog: (tenantId?: string, connectionId?: string) =>
+    ['sharing-audit-log', tenantId, connectionId] as const,
 } as const;
 
 export type QueryKeys = typeof queryKeys;

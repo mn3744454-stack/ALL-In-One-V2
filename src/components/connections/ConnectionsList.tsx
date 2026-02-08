@@ -5,17 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Database } from "@/integrations/supabase/types";
-
-type Connection = Database["public"]["Tables"]["connections"]["Row"];
+import type { ConnectionWithDetails } from "@/hooks/connections/useConnectionsWithDetails";
 
 interface ConnectionsListProps {
-  connections: Connection[];
+  connections: ConnectionWithDetails[];
   isLoading: boolean;
   onRevoke: (token: string) => void;
   onAccept: (token: string) => void;
   onReject: (token: string) => void;
-  onSelect?: (connection: Connection) => void;
+  onSelect?: (connection: ConnectionWithDetails) => void;
+  onCreateGrant?: (connection: ConnectionWithDetails) => void;
   selectedConnectionId?: string;
   onCreateClick: () => void;
 }
@@ -27,6 +26,7 @@ export function ConnectionsList({
   onAccept,
   onReject,
   onSelect,
+  onCreateGrant,
   selectedConnectionId,
   onCreateClick,
 }: ConnectionsListProps) {
@@ -35,11 +35,16 @@ export function ConnectionsList({
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const filteredConnections = connections.filter((conn) => {
+    // Search by partner name, email, phone
+    const searchLower = search.toLowerCase();
     const matchesSearch =
       !search ||
-      conn.connection_type.toLowerCase().includes(search.toLowerCase()) ||
-      conn.recipient_email?.toLowerCase().includes(search.toLowerCase()) ||
-      conn.recipient_phone?.includes(search);
+      conn.connection_type.toLowerCase().includes(searchLower) ||
+      conn.recipient_email?.toLowerCase().includes(searchLower) ||
+      conn.recipient_phone?.includes(search) ||
+      conn.initiator_tenant_name?.toLowerCase().includes(searchLower) ||
+      conn.recipient_tenant_name?.toLowerCase().includes(searchLower) ||
+      conn.recipient_profile_name?.toLowerCase().includes(searchLower);
 
     const matchesStatus =
       statusFilter === "all" || conn.status === statusFilter;
@@ -76,7 +81,7 @@ export function ConnectionsList({
         >
           <option value="all">{t("common.all")}</option>
           <option value="pending">{t("connections.status.pending")}</option>
-          <option value="active">{t("connections.status.active")}</option>
+          <option value="accepted">{t("connections.status.accepted")}</option>
           <option value="rejected">{t("connections.status.rejected")}</option>
           <option value="revoked">{t("connections.status.revoked")}</option>
           <option value="expired">{t("connections.status.expired")}</option>
@@ -104,6 +109,7 @@ export function ConnectionsList({
               onAccept={onAccept}
               onReject={onReject}
               onSelect={onSelect}
+              onCreateGrant={onCreateGrant}
               isSelected={selectedConnectionId === connection.id}
             />
           ))}
