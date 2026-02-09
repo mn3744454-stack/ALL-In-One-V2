@@ -10,6 +10,7 @@ type Connection = Database["public"]["Tables"]["connections"]["Row"];
 export interface ConnectionWithDetails extends Connection {
   initiator_tenant_name?: string;
   initiator_tenant_type?: string;
+  initiator_profile_name?: string;
   recipient_tenant_name?: string;
   recipient_tenant_type?: string;
   recipient_profile_name?: string;
@@ -66,6 +67,7 @@ export function useConnectionsWithDetails() {
         if (c.initiator_tenant_id) tenantIds.add(c.initiator_tenant_id);
         if (c.recipient_tenant_id) tenantIds.add(c.recipient_tenant_id);
         if (c.recipient_profile_id) profileIds.add(c.recipient_profile_id);
+        if (c.initiator_user_id) profileIds.add(c.initiator_user_id);
       });
 
       // Step 3: Fetch tenant names in parallel
@@ -99,9 +101,9 @@ export function useConnectionsWithDetails() {
         tenantMap.set(t.id, { name: t.name, type: t.type });
       });
 
-      const profileMap = new Map<string, string>();
+      const profileMap = new Map<string, string | undefined>();
       profilesResult.data?.forEach((p) => {
-        profileMap.set(p.id, p.full_name || "");
+        profileMap.set(p.id, p.full_name || undefined);
       });
 
       // Build grants summary map
@@ -129,12 +131,16 @@ export function useConnectionsWithDetails() {
           const recipientProfile = conn.recipient_profile_id
             ? profileMap.get(conn.recipient_profile_id)
             : undefined;
+          const initiatorProfile = conn.initiator_user_id
+            ? profileMap.get(conn.initiator_user_id)
+            : undefined;
           const grantsSummary = grantsMap.get(conn.id);
 
           return {
             ...conn,
             initiator_tenant_name: initiatorTenant?.name,
             initiator_tenant_type: initiatorTenant?.type,
+            initiator_profile_name: initiatorProfile,
             recipient_tenant_name: recipientTenant?.name,
             recipient_tenant_type: recipientTenant?.type,
             recipient_profile_name: recipientProfile,

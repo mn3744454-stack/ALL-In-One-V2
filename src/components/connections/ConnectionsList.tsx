@@ -64,32 +64,35 @@ export function ConnectionsList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-2 sm:flex-wrap">
+        <div className="relative flex-1 min-w-0 sm:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground rtl:left-auto rtl:right-3" />
           <Input
             placeholder={t("connections.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 rtl:pr-9 rtl:pl-3"
+            className="pl-9 rtl:pr-9 rtl:pl-3 w-full"
           />
         </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-        >
-          <option value="all">{t("common.all")}</option>
-          <option value="pending">{t("connections.status.pending")}</option>
-          <option value="accepted">{t("connections.status.accepted")}</option>
-          <option value="rejected">{t("connections.status.rejected")}</option>
-          <option value="revoked">{t("connections.status.revoked")}</option>
-          <option value="expired">{t("connections.status.expired")}</option>
-        </select>
-        <Button onClick={onCreateClick}>
-          <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
-          {t("connections.create")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm min-w-[120px] flex-shrink-0"
+          >
+            <option value="all">{t("common.all")}</option>
+            <option value="pending">{t("connections.status.pending")}</option>
+            <option value="accepted">{t("connections.status.accepted")}</option>
+            <option value="rejected">{t("connections.status.rejected")}</option>
+            <option value="revoked">{t("connections.status.revoked")}</option>
+            <option value="expired">{t("connections.status.expired")}</option>
+          </select>
+          <Button onClick={onCreateClick} className="flex-shrink-0 whitespace-nowrap">
+            <Plus className="h-4 w-4 ltr:mr-2 rtl:ml-2 sm:ltr:mr-2 sm:rtl:ml-2" />
+            <span className="hidden sm:inline">{t("connections.create")}</span>
+            <span className="sm:hidden">{t("common.add")}</span>
+          </Button>
+        </div>
       </div>
 
       {filteredConnections.length === 0 ? (
