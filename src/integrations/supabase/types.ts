@@ -7492,6 +7492,10 @@ export type Database = {
     }
     Functions: {
       accept_connection: { Args: { _token: string }; Returns: string }
+      apply_link_preset: {
+        Args: { _connection_id: string; _preset_name: string }
+        Returns: undefined
+      }
       can_access_shared_resource:
         | {
             Args: {
@@ -7630,6 +7634,15 @@ export type Database = {
         Returns: string
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_connection_party_names: {
+        Args: { _connection_ids: string[] }
+        Returns: {
+          display_name: string
+          entity_id: string
+          entity_kind: string
+          entity_subtype: string
+        }[]
+      }
       get_granted_data:
         | { Args: { _connection_id: string }; Returns: Json }
         | {
@@ -7812,6 +7825,14 @@ export type Database = {
       revoke_consent_grant: { Args: { _grant_id: string }; Returns: string }
       revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
+      search_tenants_for_partnership: {
+        Args: { _exclude_tenant_id?: string; _search?: string }
+        Returns: {
+          id: string
+          name: string
+          type: string
+        }[]
+      }
       set_primary_party_horse_link: {
         Args: {
           p_client_id: string

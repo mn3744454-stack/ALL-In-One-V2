@@ -1,11 +1,10 @@
 export { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 export { ConnectionCard } from "./ConnectionCard";
 export { ConnectionsList } from "./ConnectionsList";
-export { CreateConnectionDialog } from "./CreateConnectionDialog";
+export { AddPartnerDialog } from "./AddPartnerDialog";
 export { ConsentGrantsList } from "./ConsentGrantsList";
 export { CreateGrantDialog } from "./CreateGrantDialog";
 export { SharingAuditLog } from "./SharingAuditLog";
-export { ClientPortalSection } from "./ClientPortalSection";
 export { SharedWithMeTab } from "./SharedWithMeTab";
 export { GrantedDataPreviewDialog } from "./GrantedDataPreviewDialog";
 export { QRCodeDialog } from "./QRCodeDialog";
