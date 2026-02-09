@@ -15,33 +15,35 @@ import {
 import type { ConnectionWithDetails } from "@/hooks/connections";
 import {
   ConnectionsList,
-  CreateConnectionDialog,
+  AddPartnerDialog,
   ConsentGrantsList,
   CreateGrantDialog,
   SharingAuditLog,
   SharedWithMeTab,
 } from "@/components/connections";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 
 type Connection = Database["public"]["Tables"]["connections"]["Row"];
 
 const DashboardConnectionsSettings = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { activeTenant, activeRole } = useTenant();
+  const { activeTenant } = useTenant();
+  const { activeRole } = useTenant();
   const { t } = useI18n();
+  const { toast } = useToast();
 
   const [selectedConnection, setSelectedConnection] = useState<ConnectionWithDetails | null>(null);
-  const [createConnectionOpen, setCreateConnectionOpen] = useState(false);
+  const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [createGrantOpen, setCreateGrantOpen] = useState(false);
 
-  // Use the enriched connections hook for display
   const {
     connections: connectionsWithDetails,
     isLoading: connectionsLoading,
     refetch: refetchConnections,
   } = useConnectionsWithDetails();
 
-  // Use the basic connections hook for mutations
   const {
     connections: rawConnections,
     createConnection,
@@ -63,17 +65,12 @@ const DashboardConnectionsSettings = () => {
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  const handleCreateConnection = async (data: {
-    connectionType: Database["public"]["Enums"]["connection_type"];
-    recipientEmail?: string;
-    recipientPhone?: string;
-  }) => {
+  const handleAddPartner = async (recipientTenantId: string) => {
     await createConnection.mutateAsync({
-      connectionType: data.connectionType,
-      recipientEmail: data.recipientEmail,
-      recipientPhone: data.recipientPhone,
+      connectionType: "b2b",
+      recipientTenantId,
     });
-    setCreateConnectionOpen(false);
+    setAddPartnerOpen(false);
   };
 
   const handleRevokeConnection = async (token: string) => {
@@ -82,24 +79,48 @@ const DashboardConnectionsSettings = () => {
 
   const handleAcceptConnection = useCallback(async (token: string) => {
     const result = await acceptConnection.mutateAsync(token);
-    
-    // After accepting, find the connection and auto-open CreateGrantDialog
-    // The connection should now be accepted
-    setTimeout(() => {
-      refetchConnections().then(() => {
-        // Find the newly accepted connection by token
-        const acceptedConn = connectionsWithDetails.find(
-          (c) => c.token === token && c.status === "accepted"
-        );
-        if (acceptedConn) {
-          setSelectedConnection(acceptedConn);
-          setCreateGrantOpen(true);
+
+    // After accepting, try to auto-apply preset based on tenant types
+    setTimeout(async () => {
+      const refetched = await refetchConnections();
+      const acceptedConn = refetched.data?.find(
+        (c) => c.token === token && c.status === "accepted"
+      );
+
+      if (acceptedConn?.recipient_tenant_id && acceptedConn?.initiator_tenant_id) {
+        // Determine preset based on tenant types
+        const types = [
+          acceptedConn.initiator_tenant_type,
+          acceptedConn.recipient_tenant_type,
+        ].sort();
+        let preset: string | null = null;
+        if (types.includes("laboratory") && types.includes("stable")) {
+          preset = "requests_and_results";
+        } else if (types.includes("clinic") && types.includes("stable")) {
+          preset = "appointments_and_records";
+        } else if (types.includes("clinic") && types.includes("laboratory")) {
+          preset = "referrals_and_results";
         }
-      });
+
+        if (preset) {
+          try {
+            await supabase.rpc("apply_link_preset", {
+              _connection_id: acceptedConn.id,
+              _preset_name: preset,
+            });
+            toast({
+              title: t("common.success"),
+              description: t("connections.presetApplied"),
+            });
+          } catch {
+            // Preset failed silently — user can still manually configure grants
+          }
+        }
+      }
     }, 500);
-    
+
     return result;
-  }, [acceptConnection, refetchConnections, connectionsWithDetails]);
+  }, [acceptConnection, refetchConnections, toast, t]);
 
   const handleRejectConnection = async (token: string) => {
     await rejectConnection.mutateAsync(token);
@@ -142,13 +163,11 @@ const DashboardConnectionsSettings = () => {
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
         <MobilePageHeader
           title={t("connections.title")}
           backTo="/dashboard/settings"
         />
 
-        {/* Desktop Header */}
         <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
           <div className="flex items-center justify-between h-16 px-4 lg:px-8">
             <div className="flex items-center gap-4">
@@ -167,7 +186,6 @@ const DashboardConnectionsSettings = () => {
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 p-4 lg:p-8">
           {!canManage && (
             <Alert className="mb-6 bg-warning/10 border-warning/30">
@@ -180,24 +198,26 @@ const DashboardConnectionsSettings = () => {
 
           <div className="max-w-6xl">
             <Tabs defaultValue="connections" className="space-y-6">
-              <TabsList>
-                <TabsTrigger value="connections" className="gap-2">
-                  <Link2 className="h-4 w-4" />
-                  {t("connections.tabs.connections")}
-                </TabsTrigger>
-                <TabsTrigger value="grants" className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  {t("connections.tabs.grants")}
-                </TabsTrigger>
-                <TabsTrigger value="audit" className="gap-2">
-                  <Activity className="h-4 w-4" />
-                  {t("connections.tabs.audit")}
-                </TabsTrigger>
-                <TabsTrigger value="sharedWithMe" className="gap-2">
-                  <ArrowDownLeft className="h-4 w-4" />
-                  {t("connections.tabs.sharedWithMe")}
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <TabsList className="inline-flex w-auto min-w-full sm:min-w-0 whitespace-nowrap">
+                  <TabsTrigger value="connections" className="gap-2 flex-shrink-0">
+                    <Link2 className="h-4 w-4" />
+                    <span>{t("connections.tabs.connections")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="grants" className="gap-2 flex-shrink-0">
+                    <FileText className="h-4 w-4" />
+                    <span>{t("connections.tabs.grants")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="audit" className="gap-2 flex-shrink-0">
+                    <Activity className="h-4 w-4" />
+                    <span>{t("connections.tabs.audit")}</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="sharedWithMe" className="gap-2 flex-shrink-0">
+                    <ArrowDownLeft className="h-4 w-4" />
+                    <span>{t("connections.tabs.sharedWithMe")}</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="connections" className="space-y-6">
                 <ConnectionsList
@@ -209,7 +229,7 @@ const DashboardConnectionsSettings = () => {
                   onSelect={handleSelectConnection}
                   onCreateGrant={handleCreateGrantFromCard}
                   selectedConnectionId={selectedConnection?.id}
-                  onCreateClick={() => setCreateConnectionOpen(true)}
+                  onCreateClick={() => setAddPartnerOpen(true)}
                 />
               </TabsContent>
 
@@ -224,8 +244,8 @@ const DashboardConnectionsSettings = () => {
               </TabsContent>
 
               <TabsContent value="audit" className="space-y-6">
-                <SharingAuditLog 
-                  logs={logs} 
+                <SharingAuditLog
+                  logs={logs}
                   isLoading={logsLoading}
                   isFetching={logsFetching}
                   hasMore={hasMore}
@@ -244,11 +264,10 @@ const DashboardConnectionsSettings = () => {
         </main>
       </div>
 
-      {/* Dialogs */}
-      <CreateConnectionDialog
-        open={createConnectionOpen}
-        onOpenChange={setCreateConnectionOpen}
-        onSubmit={handleCreateConnection}
+      <AddPartnerDialog
+        open={addPartnerOpen}
+        onOpenChange={setAddPartnerOpen}
+        onSubmit={handleAddPartner}
         isLoading={createConnection.isPending}
       />
 

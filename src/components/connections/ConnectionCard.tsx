@@ -18,6 +18,7 @@ import {
   User,
   FileText,
   Plus,
+  AlertTriangle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -155,6 +156,8 @@ export function ConnectionCard({
 
   const partner = getPartnerInfo();
 
+  // Detect legacy B2B connections targeting profile instead of tenant
+  const isLegacyB2B = connection.connection_type === "b2b" && !connection.recipient_tenant_id;
   // Translate tenant type for display
   const getTenantTypeLabel = (type?: string) => {
     if (!type) return "";
@@ -299,6 +302,14 @@ export function ConnectionCard({
               )}
             </div>
           </div>
+
+          {/* Legacy B2B warning */}
+          {isLegacyB2B && (
+            <div className="flex items-center gap-2 p-2 rounded-md bg-warning/10 border border-warning/30 text-sm">
+              <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
+              <span className="text-warning flex-1">{t("connections.card.legacyWarning")}</span>
+            </div>
+          )}
 
           {/* Grants summary */}
           <div className="flex items-center gap-2 text-sm">

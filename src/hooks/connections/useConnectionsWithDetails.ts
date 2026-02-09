@@ -20,7 +20,7 @@ export interface ConnectionWithDetails extends Connection {
 
 /**
  * Fetches connections with partner tenant/profile display details and grants summary.
- * This is a read-optimized hook for displaying connections with rich context.
+ * Uses get_connection_party_names RPC for RLS-safe cross-tenant name resolution.
  */
 export function useConnectionsWithDetails() {
   const { activeTenant } = useTenant();
@@ -59,52 +59,34 @@ export function useConnectionsWithDetails() {
       if (connError) throw connError;
       if (!connectionsData || connectionsData.length === 0) return [];
 
-      // Step 2: Collect unique tenant IDs and profile IDs
-      const tenantIds = new Set<string>();
-      const profileIds = new Set<string>();
+      const connectionIds = connectionsData.map((c) => c.id);
 
-      connectionsData.forEach((c) => {
-        if (c.initiator_tenant_id) tenantIds.add(c.initiator_tenant_id);
-        if (c.recipient_tenant_id) tenantIds.add(c.recipient_tenant_id);
-        if (c.recipient_profile_id) profileIds.add(c.recipient_profile_id);
-        if (c.initiator_user_id) profileIds.add(c.initiator_user_id);
-      });
-
-      // Step 3: Fetch tenant names in parallel
-      const [tenantsResult, profilesResult, grantsResult] = await Promise.all([
-        tenantIds.size > 0
-          ? supabase
-              .from("tenants")
-              .select("id, name, type")
-              .in("id", Array.from(tenantIds))
-          : Promise.resolve({ data: [], error: null }),
-        profileIds.size > 0
-          ? supabase
-              .from("profiles")
-              .select("id, full_name")
-              .in("id", Array.from(profileIds))
-          : Promise.resolve({ data: [], error: null }),
-        // Fetch active grants counts per connection
+      // Step 2: Fetch party names via SECURITY DEFINER RPC + active grants in parallel
+      const [partyNamesResult, grantsResult] = await Promise.all([
+        supabase.rpc("get_connection_party_names", {
+          _connection_ids: connectionIds,
+        }),
         supabase
           .from("consent_grants")
           .select("connection_id, resource_type, status")
-          .in(
-            "connection_id",
-            connectionsData.map((c) => c.id)
-          )
+          .in("connection_id", connectionIds)
           .eq("status", "active"),
       ]);
 
-      // Build lookup maps
-      const tenantMap = new Map<string, { name: string; type: string }>();
-      tenantsResult.data?.forEach((t) => {
-        tenantMap.set(t.id, { name: t.name, type: t.type });
-      });
-
-      const profileMap = new Map<string, string | undefined>();
-      profilesResult.data?.forEach((p) => {
-        profileMap.set(p.id, p.full_name || undefined);
-      });
+      // Build entity lookup map from RPC results
+      const entityMap = new Map<
+        string,
+        { display_name: string; entity_kind: string; entity_subtype: string | null }
+      >();
+      if (partyNamesResult.data) {
+        for (const row of partyNamesResult.data) {
+          entityMap.set(row.entity_id, {
+            display_name: row.display_name,
+            entity_kind: row.entity_kind,
+            entity_subtype: row.entity_subtype,
+          });
+        }
+      }
 
       // Build grants summary map
       const grantsMap = new Map<
@@ -121,29 +103,29 @@ export function useConnectionsWithDetails() {
         grantsMap.set(g.connection_id, existing);
       });
 
-      // Step 4: Merge data
+      // Step 3: Merge data
       const enrichedConnections: ConnectionWithDetails[] = connectionsData.map(
         (conn) => {
-          const initiatorTenant = tenantMap.get(conn.initiator_tenant_id);
+          const initiatorTenant = entityMap.get(conn.initiator_tenant_id);
           const recipientTenant = conn.recipient_tenant_id
-            ? tenantMap.get(conn.recipient_tenant_id)
+            ? entityMap.get(conn.recipient_tenant_id)
             : undefined;
           const recipientProfile = conn.recipient_profile_id
-            ? profileMap.get(conn.recipient_profile_id)
+            ? entityMap.get(conn.recipient_profile_id)
             : undefined;
           const initiatorProfile = conn.initiator_user_id
-            ? profileMap.get(conn.initiator_user_id)
+            ? entityMap.get(conn.initiator_user_id)
             : undefined;
           const grantsSummary = grantsMap.get(conn.id);
 
           return {
             ...conn,
-            initiator_tenant_name: initiatorTenant?.name,
-            initiator_tenant_type: initiatorTenant?.type,
-            initiator_profile_name: initiatorProfile,
-            recipient_tenant_name: recipientTenant?.name,
-            recipient_tenant_type: recipientTenant?.type,
-            recipient_profile_name: recipientProfile,
+            initiator_tenant_name: initiatorTenant?.display_name,
+            initiator_tenant_type: initiatorTenant?.entity_subtype || undefined,
+            initiator_profile_name: initiatorProfile?.display_name,
+            recipient_tenant_name: recipientTenant?.display_name,
+            recipient_tenant_type: recipientTenant?.entity_subtype || undefined,
+            recipient_profile_name: recipientProfile?.display_name,
             active_grants_count: grantsSummary?.count || 0,
             active_grant_types: grantsSummary
               ? Array.from(grantsSummary.types)
