@@ -59,10 +59,17 @@ export function ConnectionCard({
   const inviteUrl = `${window.location.origin}/connections/accept?token=${connection.token}`;
   const direction = isInitiator ? "outbound" : "inbound";
 
+  // Helper to create deterministic fallback label
+  const getShortIdLabel = (id?: string | null) => {
+    if (!id) return null;
+    return `ID: ${id.slice(0, 8)}…`;
+  };
+
   // Determine partner identity based on direction
   const getPartnerInfo = () => {
     if (isInitiator) {
       // We initiated: partner is the recipient
+      // Priority 1: Tenant name
       if (connection.recipient_tenant_id && connection.recipient_tenant_name) {
         return {
           name: connection.recipient_tenant_name,
@@ -70,6 +77,7 @@ export function ConnectionCard({
           isOrganization: true,
         };
       }
+      // Priority 2: Profile name
       if (connection.recipient_profile_name) {
         return {
           name: connection.recipient_profile_name,
@@ -77,14 +85,40 @@ export function ConnectionCard({
           isOrganization: false,
         };
       }
-      // Fallback to email/phone
+      // Priority 3: Email or phone
+      if (connection.recipient_email) {
+        return {
+          name: connection.recipient_email,
+          type: "contact",
+          isOrganization: false,
+        };
+      }
+      if (connection.recipient_phone) {
+        return {
+          name: connection.recipient_phone,
+          type: "contact",
+          isOrganization: false,
+        };
+      }
+      // Priority 4: Deterministic fallback with short ID
+      const shortId = getShortIdLabel(connection.recipient_tenant_id) 
+        || getShortIdLabel(connection.recipient_profile_id);
+      if (shortId) {
+        return {
+          name: shortId,
+          type: "unknown",
+          isOrganization: false,
+        };
+      }
+      // Final fallback
       return {
-        name: connection.recipient_email || connection.recipient_phone || t("common.unknown"),
-        type: "contact",
+        name: t("common.unknown"),
+        type: "unknown",
         isOrganization: false,
       };
     } else {
       // We are recipient: partner is the initiator
+      // Priority 1: Tenant name
       if (connection.initiator_tenant_name) {
         return {
           name: connection.initiator_tenant_name,
@@ -92,6 +126,25 @@ export function ConnectionCard({
           isOrganization: true,
         };
       }
+      // Priority 2: Profile name
+      if (connection.initiator_profile_name) {
+        return {
+          name: connection.initiator_profile_name,
+          type: "profile",
+          isOrganization: false,
+        };
+      }
+      // Priority 3: Deterministic fallback with short ID
+      const shortId = getShortIdLabel(connection.initiator_tenant_id) 
+        || getShortIdLabel(connection.initiator_user_id);
+      if (shortId) {
+        return {
+          name: shortId,
+          type: "unknown",
+          isOrganization: false,
+        };
+      }
+      // Final fallback
       return {
         name: t("common.unknown"),
         type: "unknown",

@@ -53,6 +53,7 @@ export const en = {
     clearFilters: "Clear Filters",
     print: "Print",
     export: "Export",
+    unknown: "Unknown",
   },
   workspace: {
     personal: "Personal",
