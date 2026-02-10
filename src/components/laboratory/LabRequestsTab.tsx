@@ -72,9 +72,9 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         const isInitiator = c.initiator_tenant_id === myTenantId;
         const partnerTenantId = isInitiator ? c.recipient_tenant_id : c.initiator_tenant_id;
         const partnerName = isInitiator ? c.recipient_tenant_name : c.initiator_tenant_name;
-        const partnerType = isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type;
+        const partnerType = (isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type)?.toLowerCase();
         if (!partnerTenantId) return null;
-        // Only show lab-type partners
+        // Only show lab-type partners (handle both 'lab' and 'laboratory' variants)
         if (partnerType !== 'laboratory' && partnerType !== 'lab') return null;
         return { tenantId: partnerTenantId, name: partnerName || 'Lab' };
       })
