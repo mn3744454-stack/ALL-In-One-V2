@@ -2943,6 +2943,7 @@ export const ar = {
       resourceType: "نوع البيانات",
       resourceTypes: {
         lab_results: "نتائج المختبر",
+        lab_requests: "طلبات التحاليل",
         vet_records: "سجلات البيطرة",
         breeding_records: "سجلات التربية",
       },
@@ -2963,6 +2964,12 @@ export const ar = {
       },
     },
     portal: {},
+    messages: {
+      title: "الرسائل",
+      empty: "لا توجد رسائل بعد. ابدأ المحادثة!",
+      placeholder: "اكتب رسالة...",
+      action: "رسائل",
+    },
     audit: {
       title: "سجل النشاط",
       noLogs: "لا يوجد سجل نشاط",
