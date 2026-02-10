@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +14,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/hooks/laboratory/useLabRequests";
 import { useHorses } from "@/hooks/useHorses";
+import { useConnectionsWithDetails } from "@/hooks/connections";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt } from "lucide-react";
+import { LabCatalogViewer } from "./LabCatalogViewer";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
@@ -45,11 +48,38 @@ function RequestStatusBadge({ status }: { status: LabRequest['status'] }) {
   );
 }
 
+interface LabOption {
+  tenantId: string;
+  name: string;
+}
+
 function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
   const { horses } = useHorses();
   const { createRequest, isCreating } = useLabRequests();
+  const { activeTenant } = useTenant();
+  const { connections } = useConnectionsWithDetails();
+
+  // Derive available lab partners from accepted B2B connections
+  const labPartners = useMemo<LabOption[]>(() => {
+    if (!activeTenant) return [];
+    const myTenantId = activeTenant.tenant_id;
+    return connections
+      .filter(c => c.connection_type === 'b2b' && c.status === 'accepted')
+      .map(c => {
+        // The partner is the other side of the connection
+        const isInitiator = c.initiator_tenant_id === myTenantId;
+        const partnerTenantId = isInitiator ? c.recipient_tenant_id : c.initiator_tenant_id;
+        const partnerName = isInitiator ? c.recipient_tenant_name : c.initiator_tenant_name;
+        const partnerType = isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type;
+        if (!partnerTenantId) return null;
+        // Only show lab-type partners
+        if (partnerType !== 'laboratory') return null;
+        return { tenantId: partnerTenantId, name: partnerName || 'Lab' };
+      })
+      .filter(Boolean) as LabOption[];
+  }, [connections, activeTenant]);
   
   const [formData, setFormData] = useState<CreateLabRequestData>({
     horse_id: '',
@@ -58,106 +88,222 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
     priority: 'normal',
     notes: '',
   });
+  const [selectedLabTenantId, setSelectedLabTenantId] = useState<string | null>(null);
+  const [selectedLabName, setSelectedLabName] = useState<string>('');
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+  const [labMode, setLabMode] = useState<'platform' | 'external'>('platform');
+
+  const handleLabChange = (labTenantId: string) => {
+    const lab = labPartners.find(l => l.tenantId === labTenantId);
+    setSelectedLabTenantId(labTenantId);
+    setSelectedLabName(lab?.name || '');
+    setSelectedServiceIds([]);
+    setFormData(prev => ({ ...prev, external_lab_name: lab?.name || '' }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.horse_id || !formData.test_description) return;
     
-    await createRequest(formData);
+    await createRequest({
+      ...formData,
+      service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
+    });
+    // Reset form
     setFormData({ horse_id: '', test_description: '', external_lab_name: '', priority: 'normal', notes: '' });
+    setSelectedLabTenantId(null);
+    setSelectedLabName('');
+    setSelectedServiceIds([]);
+    setLabMode('platform');
     setOpen(false);
     onSuccess?.();
   };
 
+  const resetForm = () => {
+    setFormData({ horse_id: '', test_description: '', external_lab_name: '', priority: 'normal', notes: '' });
+    setSelectedLabTenantId(null);
+    setSelectedLabName('');
+    setSelectedServiceIds([]);
+    setLabMode('platform');
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
           {t('laboratory.requests.create') || 'New Request'}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]" dir={dir}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col" dir={dir}>
         <DialogHeader>
           <DialogTitle>{t('laboratory.requests.createTitle') || 'Create Lab Test Request'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
-            <Select
-              value={formData.horse_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, horse_id: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('laboratory.createSample.selectHorse') || 'Select horse'} />
-              </SelectTrigger>
-              <SelectContent>
-                {horses.map((horse) => (
-                  <SelectItem key={horse.id} value={horse.id}>
-                    {dir === 'rtl' && horse.name_ar ? horse.name_ar : horse.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4 pb-4" id="create-request-form">
+            {/* Horse Selection */}
+            <div className="space-y-2">
+              <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
+              <Select
+                value={formData.horse_id}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, horse_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('laboratory.createSample.selectHorse') || 'Select horse'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {horses.map((horse) => (
+                    <SelectItem key={horse.id} value={horse.id}>
+                      {dir === 'rtl' && horse.name_ar ? horse.name_ar : horse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label>{t('laboratory.requests.testDescription') || 'Test Description'}</Label>
-            <Textarea
-              value={formData.test_description}
-              onChange={(e) => setFormData(prev => ({ ...prev, test_description: e.target.value }))}
-              placeholder={t('laboratory.requests.testDescriptionPlaceholder') || 'Describe the tests needed...'}
-              required
-            />
-          </div>
+            {/* Lab Source Mode Toggle */}
+            <div className="space-y-2">
+              <Label>{t('laboratory.requests.labSource') || 'Laboratory'}</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={labMode === 'platform' ? 'default' : 'outline'}
+                  onClick={() => { setLabMode('platform'); setFormData(prev => ({ ...prev, external_lab_name: '' })); }}
+                  className="flex-1"
+                >
+                  <FlaskConical className="h-4 w-4 me-1" />
+                  {t('laboratory.requests.platformLab') || 'Connected Lab'}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={labMode === 'external' ? 'default' : 'outline'}
+                  onClick={() => { setLabMode('external'); setSelectedLabTenantId(null); setSelectedServiceIds([]); }}
+                  className="flex-1"
+                >
+                  <ExternalLink className="h-4 w-4 me-1" />
+                  {t('laboratory.requests.externalLab') || 'External Lab'}
+                </Button>
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label>{t('laboratory.requests.externalLab') || 'External Lab (Optional)'}</Label>
-            <Input
-              value={formData.external_lab_name || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, external_lab_name: e.target.value }))}
-              placeholder={t('laboratory.requests.externalLabPlaceholder') || 'Lab name...'}
-            />
-          </div>
+            {/* Platform Lab Selection */}
+            {labMode === 'platform' && (
+              <div className="space-y-3">
+                {labPartners.length === 0 ? (
+                  <Card className="border-dashed">
+                    <CardContent className="py-6 text-center">
+                      <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        {t('laboratory.requests.noLabPartners') || 'No connected laboratories. Add a lab partnership first.'}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <>
+                    <Select
+                      value={selectedLabTenantId || ''}
+                      onValueChange={handleLabChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('laboratory.requests.selectLab') || 'Select laboratory'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {labPartners.map((lab) => (
+                          <SelectItem key={lab.tenantId} value={lab.tenantId}>
+                            {lab.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-          <div className="space-y-2">
-            <Label>{t('laboratory.requests.priority') || 'Priority'}</Label>
-            <Select
-              value={formData.priority}
-              onValueChange={(value: 'low' | 'normal' | 'high' | 'urgent') => 
-                setFormData(prev => ({ ...prev, priority: value }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">{t('common.low') || 'Low'}</SelectItem>
-                <SelectItem value="normal">{t('common.normal') || 'Normal'}</SelectItem>
-                <SelectItem value="high">{t('common.high') || 'High'}</SelectItem>
-                <SelectItem value="urgent">{t('common.urgent') || 'Urgent'}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                    {/* Catalog Viewer */}
+                    <LabCatalogViewer
+                      labTenantId={selectedLabTenantId}
+                      labName={selectedLabName}
+                      selectable
+                      selectedIds={selectedServiceIds}
+                      onSelectServices={setSelectedServiceIds}
+                    />
 
-          <div className="space-y-2">
-            <Label>{t('common.notes') || 'Notes'}</Label>
-            <Textarea
-              value={formData.notes || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder={t('laboratory.requests.notesPlaceholder') || 'Additional notes...'}
-            />
-          </div>
+                    {selectedServiceIds.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected') || 'service(s) selected'}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button type="submit" disabled={isCreating || !formData.horse_id || !formData.test_description}>
-              {isCreating ? t('common.loading') : t('common.create')}
-            </Button>
-          </DialogFooter>
-        </form>
+            {/* External Lab Name */}
+            {labMode === 'external' && (
+              <div className="space-y-2">
+                <Label>{t('laboratory.requests.externalLabName') || 'Lab Name'}</Label>
+                <Input
+                  value={formData.external_lab_name || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, external_lab_name: e.target.value }))}
+                  placeholder={t('laboratory.requests.externalLabPlaceholder') || 'Lab name...'}
+                />
+              </div>
+            )}
+
+            {/* Test Description */}
+            <div className="space-y-2">
+              <Label>{t('laboratory.requests.testDescription') || 'Test Description'}</Label>
+              <Textarea
+                value={formData.test_description}
+                onChange={(e) => setFormData(prev => ({ ...prev, test_description: e.target.value }))}
+                placeholder={t('laboratory.requests.testDescriptionPlaceholder') || 'Describe the tests needed...'}
+                required
+              />
+            </div>
+
+            {/* Priority */}
+            <div className="space-y-2">
+              <Label>{t('laboratory.requests.priority') || 'Priority'}</Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value: 'low' | 'normal' | 'high' | 'urgent') => 
+                  setFormData(prev => ({ ...prev, priority: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">{t('common.low') || 'Low'}</SelectItem>
+                  <SelectItem value="normal">{t('common.normal') || 'Normal'}</SelectItem>
+                  <SelectItem value="high">{t('common.high') || 'High'}</SelectItem>
+                  <SelectItem value="urgent">{t('common.urgent') || 'Urgent'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label>{t('common.notes') || 'Notes'}</Label>
+              <Textarea
+                value={formData.notes || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder={t('laboratory.requests.notesPlaceholder') || 'Additional notes...'}
+              />
+            </div>
+          </form>
+        </ScrollArea>
+        <DialogFooter className="pt-4 border-t">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            type="submit" 
+            form="create-request-form"
+            disabled={isCreating || !formData.horse_id || !formData.test_description}
+          >
+            {isCreating ? t('common.loading') : t('common.create')}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -179,6 +325,8 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
 
   // Check if request is billable (ready or received status)
   const isBillable = request.status === 'ready' || request.status === 'received';
+
+  const services = request.lab_request_services || [];
 
   const handleMarkReceived = async () => {
     await updateRequest({
@@ -233,6 +381,21 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
             {format(new Date(request.requested_at), 'MMM dd, yyyy')}
           </span>
         </div>
+
+        {/* Selected Services */}
+        {services.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {services.map(s => (
+              <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
+                <Tag className="h-3 w-3" />
+                {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || s.service_id}
+                {s.service?.code && (
+                  <span className="font-mono opacity-70">({s.service.code})</span>
+                )}
+              </Badge>
+            ))}
+          </div>
+        )}
         
         {request.result_url && (
           <a 
