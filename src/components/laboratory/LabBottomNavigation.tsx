@@ -7,7 +7,8 @@ import {
   FileStack, 
   Settings,
   GitCompare,
-  ClipboardList
+  ClipboardList,
+  ShoppingBag
 } from "lucide-react";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 
@@ -33,7 +34,7 @@ export function LabBottomNavigation({
     return [
       { id: "samples", icon: FlaskConical, labelKey: "laboratory.bottomNav.samples" },
       { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
-      { id: "compare", icon: GitCompare, labelKey: "laboratory.bottomNav.compare" },
+      { id: "catalog", icon: ShoppingBag, labelKey: "laboratory.catalog.title" },
       { id: "templates", icon: FileStack, labelKey: "laboratory.bottomNav.templates" },
       { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
     ];

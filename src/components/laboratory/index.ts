@@ -37,3 +37,6 @@ export * from "./LabHorseFormDialog";
 export * from "./LabHorseEditDialog";
 export * from "./OwnerQuickViewPopover";
 export * from "./TemplateSelectionDialog";
+export * from "./LabServicesCatalog";
+export * from "./LabCatalogViewer";
+export * from "./LabServiceFormDialog";

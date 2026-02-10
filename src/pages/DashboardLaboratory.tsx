@@ -18,11 +18,12 @@ import {
   LabHorsesList,
   LabHorseProfile,
   LabHorseEditDialog,
+  LabServicesCatalog,
 } from "@/components/laboratory";
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart } from "lucide-react";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
@@ -61,7 +62,7 @@ export default function DashboardLaboratory() {
       return ['requests', 'settings'];
     }
     // Full lab mode - now includes 'horses'
-    return ['samples', 'results', 'horses', 'compare', 'timeline', 'templates', 'settings'];
+    return ['samples', 'results', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
   }, [labMode]);
 
   // Get active tab from URL, validate, or use first available (smart default)
@@ -205,6 +206,10 @@ export default function DashboardLaboratory() {
                       <FileText className="h-4 w-4" />
                       {t("laboratory.tabs.results")}
                     </TabsTrigger>
+                    <TabsTrigger value="catalog" className="gap-2">
+                      <ShoppingBag className="h-4 w-4" />
+                      {t("laboratory.catalog.title")}
+                    </TabsTrigger>
                     <TabsTrigger value="compare" className="gap-2">
                       <GitCompare className="h-4 w-4" />
                       {t("laboratory.tabs.compare")}
@@ -270,6 +275,10 @@ export default function DashboardLaboratory() {
               ) : (
                 <LabHorsesList editHorseId={editHorseId} onEditComplete={() => setEditHorseId(null)} />
               )}
+            </TabsContent>
+
+            <TabsContent value="catalog">
+              <LabServicesCatalog />
             </TabsContent>
 
             <TabsContent value="compare">

@@ -4350,6 +4350,72 @@ export type Database = {
           },
         ]
       }
+      lab_services: {
+        Row: {
+          category: string | null
+          code: string | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          price: number | null
+          sample_type: string | null
+          tenant_id: string
+          turnaround_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          price?: number | null
+          sample_type?: string | null
+          tenant_id: string
+          turnaround_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          price?: number | null
+          sample_type?: string | null
+          tenant_id?: string
+          turnaround_hours?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_templates: {
         Row: {
           category: string | null
@@ -7654,6 +7720,27 @@ export type Database = {
         Returns: string
       }
       get_horse_share_view: { Args: { _token: string }; Returns: Json }
+      get_lab_services_for_viewer: {
+        Args: {
+          _category?: string
+          _lab_tenant_id: string
+          _only_active?: boolean
+          _search?: string
+        }
+        Returns: {
+          category: string
+          code: string
+          currency: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string
+          price: number
+          sample_type: string
+          turnaround_hours: number
+        }[]
+      }
       get_media_share_info: {
         Args: { _token: string }
         Returns: {

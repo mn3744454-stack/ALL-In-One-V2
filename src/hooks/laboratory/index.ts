@@ -11,3 +11,4 @@ export * from "./useLabInvoiceDraft";
 export * from "./useLabHorses";
 export * from "./useSampleInvoiceMap";
 export * from "./usePartyHorseLinks";
+export * from "./useLabServices";
