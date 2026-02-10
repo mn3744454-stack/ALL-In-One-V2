@@ -75,7 +75,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         const partnerType = isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type;
         if (!partnerTenantId) return null;
         // Only show lab-type partners
-        if (partnerType !== 'laboratory') return null;
+        if (partnerType !== 'laboratory' && partnerType !== 'lab') return null;
         return { tenantId: partnerTenantId, name: partnerName || 'Lab' };
       })
       .filter(Boolean) as LabOption[];
@@ -163,7 +163,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
 
             {/* Lab Source Mode Toggle */}
             <div className="space-y-2">
-              <Label>{t('laboratory.requests.labSource') || 'Laboratory'}</Label>
+              <Label>{t('laboratory.requests.labSource')}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -173,7 +173,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   className="flex-1"
                 >
                   <FlaskConical className="h-4 w-4 me-1" />
-                  {t('laboratory.requests.platformLab') || 'Connected Lab'}
+                  {t('laboratory.requests.platformLab')}
                 </Button>
                 <Button
                   type="button"
@@ -183,7 +183,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   className="flex-1"
                 >
                   <ExternalLink className="h-4 w-4 me-1" />
-                  {t('laboratory.requests.externalLab') || 'External Lab'}
+                  {t('laboratory.requests.externalLab')}
                 </Button>
               </div>
             </div>
@@ -196,7 +196,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                     <CardContent className="py-6 text-center">
                       <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
                       <p className="text-sm text-muted-foreground">
-                        {t('laboratory.requests.noLabPartners') || 'No connected laboratories. Add a lab partnership first.'}
+                        {t('laboratory.requests.noLabPartners')}
                       </p>
                     </CardContent>
                   </Card>
@@ -207,7 +207,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                       onValueChange={handleLabChange}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder={t('laboratory.requests.selectLab') || 'Select laboratory'} />
+                        <SelectValue placeholder={t('laboratory.requests.selectLab')} />
                       </SelectTrigger>
                       <SelectContent>
                         {labPartners.map((lab) => (
@@ -229,7 +229,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
 
                     {selectedServiceIds.length > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected') || 'service(s) selected'}
+                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected')}
                       </p>
                     )}
                   </>
@@ -240,11 +240,11 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
             {/* External Lab Name */}
             {labMode === 'external' && (
               <div className="space-y-2">
-                <Label>{t('laboratory.requests.externalLabName') || 'Lab Name'}</Label>
+                <Label>{t('laboratory.requests.externalLabName')}</Label>
                 <Input
                   value={formData.external_lab_name || ''}
                   onChange={(e) => setFormData(prev => ({ ...prev, external_lab_name: e.target.value }))}
-                  placeholder={t('laboratory.requests.externalLabPlaceholder') || 'Lab name...'}
+                  placeholder={t('laboratory.requests.externalLabPlaceholder')}
                 />
               </div>
             )}
