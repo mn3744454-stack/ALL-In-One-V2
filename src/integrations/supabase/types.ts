@@ -3786,6 +3786,39 @@ export type Database = {
           },
         ]
       }
+      lab_request_services: {
+        Row: {
+          created_at: string
+          lab_request_id: string
+          service_id: string
+        }
+        Insert: {
+          created_at?: string
+          lab_request_id: string
+          service_id: string
+        }
+        Update: {
+          created_at?: string
+          lab_request_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_request_services_lab_request_id_fkey"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "lab_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_requests: {
         Row: {
           created_at: string | null
