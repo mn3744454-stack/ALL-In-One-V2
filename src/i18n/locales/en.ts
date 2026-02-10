@@ -2917,6 +2917,7 @@ export const en = {
       resourceType: "Resource Type",
       resourceTypes: {
         lab_results: "Lab Results",
+        lab_requests: "Lab Requests",
         vet_records: "Vet Records",
         breeding_records: "Breeding Records",
       },
@@ -2937,6 +2938,12 @@ export const en = {
       },
     },
     portal: {},
+    messages: {
+      title: "Messages",
+      empty: "No messages yet. Start the conversation!",
+      placeholder: "Type a message...",
+      action: "Messages",
+    },
     audit: {
       title: "Activity Log",
       noLogs: "No activity logs yet",

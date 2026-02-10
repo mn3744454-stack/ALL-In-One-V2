@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { ConnectionMessagesDialog } from "./ConnectionMessagesDialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ import {
   FileText,
   Plus,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -55,6 +57,7 @@ export function ConnectionCard({
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
 
   const isInitiator = connection.initiator_tenant_id === activeTenant?.tenant_id;
   const inviteUrl = `${window.location.origin}/connections/accept?token=${connection.token}`;
@@ -263,6 +266,10 @@ export function ConnectionCard({
                   </DropdownMenuItem>
                 </>
               )}
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowMessages(true); }}>
+                <MessageSquare className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
+                {t("connections.messages.action")}
+              </DropdownMenuItem>
               {canRevoke && !isPendingInbound && (
                 <DropdownMenuItem
                   className="text-destructive"
@@ -386,6 +393,14 @@ export function ConnectionCard({
         open={showQr}
         onOpenChange={setShowQr}
         url={inviteUrl}
+      />
+
+      {/* Messages Dialog */}
+      <ConnectionMessagesDialog
+        open={showMessages}
+        onOpenChange={setShowMessages}
+        connectionId={connection.id}
+        partnerName={partner.name}
       />
     </Card>
   );

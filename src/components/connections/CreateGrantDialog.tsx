@@ -89,6 +89,9 @@ export function CreateGrantDialog({
               <option value="lab_results">
                 {t("connections.grants.resourceTypes.lab_results")}
               </option>
+              <option value="lab_requests">
+                {t("connections.grants.resourceTypes.lab_requests")}
+              </option>
               <option value="vet_records">
                 {t("connections.grants.resourceTypes.vet_records")}
               </option>
