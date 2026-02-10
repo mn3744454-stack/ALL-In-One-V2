@@ -7,6 +7,19 @@ import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 
+export interface LabRequestService {
+  service_id: string;
+  service?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    code: string | null;
+    category: string | null;
+    price: number | null;
+    currency: string | null;
+  };
+}
+
 export interface LabRequest {
   id: string;
   tenant_id: string;
@@ -33,6 +46,8 @@ export interface LabRequest {
     name: string;
     name_ar: string | null;
   };
+  // Services linked via join table
+  lab_request_services?: LabRequestService[];
 }
 
 export interface CreateLabRequestData {
@@ -42,6 +57,7 @@ export interface CreateLabRequestData {
   priority?: 'low' | 'normal' | 'high' | 'urgent';
   notes?: string;
   expected_by?: string;
+  service_ids?: string[];
 }
 
 export interface UpdateLabRequestData {
@@ -68,7 +84,11 @@ export function useLabRequests() {
         .from('lab_requests')
         .select(`
           *,
-          horse:horses(id, name, name_ar)
+          horse:horses(id, name, name_ar),
+          lab_request_services(
+            service_id,
+            service:lab_services(id, name, name_ar, code, category, price, currency)
+          )
         `)
         .eq('tenant_id', tenantId)
         .order('requested_at', { ascending: false });
@@ -83,22 +103,43 @@ export function useLabRequests() {
     mutationFn: async (data: CreateLabRequestData) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
       
+      const { service_ids, ...requestData } = data;
+
+      // Step 1: Create the lab_request row
       const { data: result, error } = await supabase
         .from('lab_requests')
         .insert({
           tenant_id: tenantId,
-          horse_id: data.horse_id,
-          test_description: data.test_description,
-          external_lab_name: data.external_lab_name || null,
-          priority: data.priority || 'normal',
-          notes: data.notes || null,
-          expected_by: data.expected_by || null,
+          horse_id: requestData.horse_id,
+          test_description: requestData.test_description,
+          external_lab_name: requestData.external_lab_name || null,
+          priority: requestData.priority || 'normal',
+          notes: requestData.notes || null,
+          expected_by: requestData.expected_by || null,
           created_by: user.id,
         })
         .select()
         .single();
       
       if (error) throw error;
+
+      // Step 2: Insert service links if any
+      if (service_ids && service_ids.length > 0) {
+        const serviceRows = service_ids.map(sid => ({
+          lab_request_id: result.id,
+          service_id: sid,
+        }));
+        const { error: linkError } = await supabase
+          .from('lab_request_services')
+          .insert(serviceRows);
+        
+        if (linkError) {
+          // Rollback the request if service linking fails
+          await supabase.from('lab_requests').delete().eq('id', result.id);
+          throw linkError;
+        }
+      }
+
       return result;
     },
     onSuccess: () => {
