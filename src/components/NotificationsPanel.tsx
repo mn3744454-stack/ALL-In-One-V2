@@ -63,6 +63,7 @@ import { useNotifications, type AppNotification } from "@/hooks/useNotifications
 import { useInvitations } from "@/hooks/useInvitations";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
+import { useI18n } from "@/i18n";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -109,6 +110,7 @@ function NotificationCard({
   onDelete: () => void;
   onClick: () => void;
 }) {
+  const { t } = useI18n();
   const Icon = getNotificationIcon(notification.event_type);
 
   return (
@@ -165,7 +167,7 @@ function NotificationCard({
                   e.stopPropagation();
                   onMarkRead();
                 }}
-                title="Mark as read"
+                title={t('notifications.markAsRead')}
               >
                 <Check className="w-3 h-3" />
               </Button>
@@ -178,7 +180,7 @@ function NotificationCard({
                 e.stopPropagation();
                 onDelete();
               }}
-              title="Delete"
+              title={t('notifications.delete')}
             >
               <Trash2 className="w-3 h-3" />
             </Button>
@@ -193,6 +195,7 @@ function NotificationCard({
 
 function NotificationsTabContent() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const {
     notifications,
     unreadCount,
@@ -217,7 +220,7 @@ function NotificationsTabContent() {
       <TabsList className="w-full">
         <TabsTrigger value="unread" className="flex-1 gap-1 text-xs">
           <Bell className="w-3.5 h-3.5" />
-          Unread
+          {t('notifications.unread')}
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
@@ -229,7 +232,7 @@ function NotificationsTabContent() {
         </TabsTrigger>
         <TabsTrigger value="read" className="flex-1 gap-1 text-xs">
           <CheckCheck className="w-3.5 h-3.5" />
-          Read
+          {t('notifications.read')}
         </TabsTrigger>
       </TabsList>
 
@@ -244,7 +247,7 @@ function NotificationsTabContent() {
               disabled={markAllAsRead.isPending}
             >
               <CheckCheck className="w-3 h-3" />
-              Mark all as read
+              {t('notifications.markAllAsRead')}
             </Button>
           </div>
         )}
@@ -252,7 +255,7 @@ function NotificationsTabContent() {
           <div className="space-y-2 pr-2">
             {unreadNotifications.length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                No unread notifications
+                {t('notifications.noUnread')}
               </p>
             ) : (
               unreadNotifications.map((n) => (
@@ -274,7 +277,7 @@ function NotificationsTabContent() {
           <div className="space-y-2 pr-2">
             {readNotifications.length === 0 ? (
               <p className="text-center text-muted-foreground py-8 text-sm">
-                No read notifications
+                {t('notifications.noRead')}
               </p>
             ) : (
               readNotifications.map((n) => (
@@ -296,18 +299,11 @@ function NotificationsTabContent() {
 
 // ─── Invitations sub-content (with sub-tabs) ─────────────
 
-const roleLabels: Record<string, string> = {
-  owner: "Owner",
-  admin: "Administrator",
-  manager: "Manager",
-  foreman: "Foreman",
-  vet: "Veterinarian",
-  trainer: "Trainer",
-  employee: "Employee",
-};
+// Role labels now come from i18n: t('notifications.roles.*')
 
 function InvitationsTabContent() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const {
     receivedInvitations,
     sentInvitations,
@@ -324,9 +320,9 @@ function InvitationsTabContent() {
   const handleAccept = async (token: string) => {
     const { data, error } = await respondToInvitation(token, true);
     if (error) {
-      toast.error(`Failed to accept: ${error.message}`);
+      toast.error(`${t('notifications.failedAccept')}: ${error.message}`);
     } else if (data?.tenant_id) {
-      toast.success("Invitation accepted!");
+      toast.success(t('notifications.invitationAccepted'));
       navigate("/dashboard", { replace: true });
     }
     setRespondingTo(null);
@@ -335,9 +331,9 @@ function InvitationsTabContent() {
   const handleReject = async (token: string) => {
     const { error } = await respondToInvitation(token, false, rejectionReason);
     if (error) {
-      toast.error(`Failed to decline: ${error.message}`);
+      toast.error(`${t('notifications.failedDecline')}: ${error.message}`);
     } else {
-      toast.success("Invitation declined");
+      toast.success(t('notifications.invitationDeclined'));
     }
     setRespondingTo(null);
     setRejectionReason("");
@@ -347,9 +343,9 @@ function InvitationsTabContent() {
     const link = `${window.location.origin}/invite/${token}`;
     try {
       await navigator.clipboard.writeText(link);
-      toast.success("Invite link copied!");
+      toast.success(t('notifications.inviteLinkCopied'));
     } catch {
-      toast.error("Failed to copy link");
+      toast.error(t('notifications.failedCopyLink'));
     }
   };
 
@@ -359,9 +355,9 @@ function InvitationsTabContent() {
     const { success, error } = await revokeInvitation(invitationToRevoke);
     setRevoking(false);
     if (error) {
-      toast.error(`Failed to revoke: ${error.message}`);
+      toast.error(`${t('notifications.failedRevoke')}: ${error.message}`);
     } else if (success) {
-      toast.success("Invitation revoked");
+      toast.success(t('notifications.invitationRevoked'));
     }
     setRevokeDialogOpen(false);
     setInvitationToRevoke(null);
@@ -373,7 +369,7 @@ function InvitationsTabContent() {
         <TabsList className="w-full">
           <TabsTrigger value="received" className="flex-1 gap-1 text-xs">
             <Bell className="w-3.5 h-3.5" />
-            Received
+            {t('notifications.received')}
             {receivedInvitations.length > 0 && (
               <Badge
                 variant="destructive"
@@ -385,7 +381,7 @@ function InvitationsTabContent() {
           </TabsTrigger>
           <TabsTrigger value="sent" className="flex-1 gap-1 text-xs">
             <Mail className="w-3.5 h-3.5" />
-            Sent
+            {t('notifications.sent')}
             {sentInvitations.length > 0 && (
               <Badge
                 variant="secondary"
@@ -403,7 +399,7 @@ function InvitationsTabContent() {
             <div className="space-y-2 pr-2">
               {receivedInvitations.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8 text-sm">
-                  No pending invitations
+                  {t('notifications.noInvitations')}
                 </p>
               ) : (
                 receivedInvitations.map((inv) => (
@@ -418,7 +414,7 @@ function InvitationsTabContent() {
                             {inv.tenant_name || "Organization"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            From: {inv.sender_display_name}
+                            {t('notifications.from')}: {inv.sender_display_name}
                           </p>
                         </div>
                       </div>
@@ -427,7 +423,7 @@ function InvitationsTabContent() {
                         <div className="flex items-center gap-2">
                           <User className="w-3.5 h-3.5 text-muted-foreground" />
                           <span className="text-xs">
-                            Role: <Badge variant="secondary" className="text-[10px]">{roleLabels[inv.proposed_role] || inv.proposed_role}</Badge>
+                            {t('notifications.role')}: <Badge variant="secondary" className="text-[10px]">{t(`notifications.roles.${inv.proposed_role}`) || inv.proposed_role}</Badge>
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -439,7 +435,7 @@ function InvitationsTabContent() {
                       {respondingTo === inv.id ? (
                         <div className="space-y-2">
                           <Textarea
-                            placeholder="Reason for declining (optional)"
+                            placeholder={t('notifications.declineReason')}
                             value={rejectionReason}
                             onChange={(e) => setRejectionReason(e.target.value)}
                             rows={2}
@@ -451,14 +447,14 @@ function InvitationsTabContent() {
                               onClick={() => handleReject(inv.token)}
                               className="flex-1"
                             >
-                              Confirm Decline
+                              {t('notifications.confirmDecline')}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => setRespondingTo(null)}
                             >
-                              Cancel
+                              {t('notifications.cancel')}
                             </Button>
                           </div>
                         </div>
@@ -470,8 +466,8 @@ function InvitationsTabContent() {
                             onClick={() => handleAccept(inv.token)}
                             className="flex-1"
                           >
-                            <Check className="w-4 h-4 mr-1" />
-                            Accept
+                            <Check className="w-4 h-4 me-1" />
+                            {t('notifications.accept')}
                           </Button>
                           <Button
                             size="sm"
@@ -479,8 +475,8 @@ function InvitationsTabContent() {
                             onClick={() => setRespondingTo(inv.id)}
                             className="flex-1"
                           >
-                            <X className="w-4 h-4 mr-1" />
-                            Decline
+                            <X className="w-4 h-4 me-1" />
+                            {t('notifications.decline')}
                           </Button>
                         </div>
                       )}
@@ -498,7 +494,7 @@ function InvitationsTabContent() {
             <div className="space-y-2 pr-2">
               {sentInvitations.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8 text-sm">
-                  No invitations sent yet
+                  {t('notifications.noSentInvitations')}
                 </p>
               ) : (
                 sentInvitations.map((inv) => (
@@ -526,7 +522,7 @@ function InvitationsTabContent() {
                               {inv.status}
                             </Badge>
                             <Badge variant="secondary" className="text-[10px]">
-                              {roleLabels[inv.proposed_role] || inv.proposed_role}
+                              {t(`notifications.roles.${inv.proposed_role}`) || inv.proposed_role}
                             </Badge>
                           </div>
                         </div>
@@ -546,8 +542,8 @@ function InvitationsTabContent() {
                               onClick={() => handleCopyLink(inv.token)}
                               className="flex-1"
                             >
-                              <Copy className="w-3.5 h-3.5 mr-1" />
-                              Copy Link
+                              <Copy className="w-3.5 h-3.5 me-1" />
+                              {t('notifications.copyLink')}
                             </Button>
                           )}
                           <Button
@@ -575,13 +571,13 @@ function InvitationsTabContent() {
       <AlertDialog open={revokeDialogOpen} onOpenChange={setRevokeDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Revoke Invitation</AlertDialogTitle>
+            <AlertDialogTitle>{t('notifications.revokeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure? The recipient will no longer be able to accept it.
+              {t('notifications.revokeDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={revoking}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={revoking}>{t('notifications.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRevoke}
               disabled={revoking}
@@ -589,11 +585,11 @@ function InvitationsTabContent() {
             >
               {revoking ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Revoking...
+                  <Loader2 className="w-4 h-4 me-2 animate-spin" />
+                  {t('notifications.revoking')}
                 </>
               ) : (
-                "Revoke"
+                t('notifications.revoke')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -607,6 +603,7 @@ function InvitationsTabContent() {
 
 export function NotificationsPanel() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const { unreadCount } = useNotifications();
@@ -624,7 +621,7 @@ export function NotificationsPanel() {
 
   const handleSendInvite = async () => {
     if (!inviteData.email) {
-      toast.error("Please enter an email address");
+      toast.error(t('notifications.enterEmail'));
       return;
     }
     const { error } = await createInvitation({
@@ -633,9 +630,9 @@ export function NotificationsPanel() {
       assigned_horse_ids: inviteData.selectedHorses,
     });
     if (error) {
-      toast.error("Failed to send invitation");
+      toast.error(t('notifications.inviteFailed'));
     } else {
-      toast.success("Invitation sent successfully");
+      toast.success(t('notifications.inviteSent'));
       setInviteOpen(false);
       setInviteData({ email: "", role: "employee", selectedHorses: [] });
     }
@@ -651,7 +648,7 @@ export function NotificationsPanel() {
       >
         <Bell className="w-5 h-5" />
         {totalUnread > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -end-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
             {totalUnread > 99 ? "99+" : totalUnread}
           </span>
         )}
@@ -663,54 +660,54 @@ export function NotificationsPanel() {
           <DialogTrigger asChild>
             <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 sm:gap-2">
               <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Invite</span>
+              <span className="hidden sm:inline">{t('notifications.invite')}</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Invite Team Member</DialogTitle>
+              <DialogTitle>{t('notifications.inviteTitle')}</DialogTitle>
               <DialogDescription>
-                Send an invitation to join {activeTenant?.tenant.name}
+                {t('notifications.inviteDescription')} {activeTenant?.tenant.name}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="invite-email">Email Address</Label>
+                <Label htmlFor="invite-email">{t('notifications.emailAddress')}</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Mail className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="invite-email"
                     type="email"
                     placeholder="colleague@example.com"
                     value={inviteData.email}
                     onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                    className="pl-10"
+                    className="ps-10"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{t('notifications.role')}</Label>
                 <Select
                   value={inviteData.role}
                   onValueChange={(value) => setInviteData({ ...inviteData, role: value as TenantRole })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
+                    <SelectValue placeholder={t('notifications.selectRole')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="foreman">Foreman</SelectItem>
-                    <SelectItem value="vet">Veterinarian</SelectItem>
-                    <SelectItem value="trainer">Trainer</SelectItem>
-                    <SelectItem value="employee">Employee</SelectItem>
+                    <SelectItem value="manager">{t('notifications.roles.manager')}</SelectItem>
+                    <SelectItem value="foreman">{t('notifications.roles.foreman')}</SelectItem>
+                    <SelectItem value="vet">{t('notifications.roles.vet')}</SelectItem>
+                    <SelectItem value="trainer">{t('notifications.roles.trainer')}</SelectItem>
+                    <SelectItem value="employee">{t('notifications.roles.employee')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {horses.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Assign Horses (optional)</Label>
+                  <Label>{t('notifications.assignHorses')}</Label>
                   <div className="max-h-[150px] overflow-y-auto border rounded-lg p-2 space-y-2">
                     {horses.map((horse) => (
                       <div key={horse.id} className="flex items-center gap-2">
@@ -736,8 +733,8 @@ export function NotificationsPanel() {
               )}
 
               <Button variant="gold" className="w-full" onClick={handleSendInvite}>
-                <Send className="w-4 h-4 mr-2" />
-                Send Invitation
+                <Send className="w-4 h-4 me-2" />
+                {t('notifications.sendInvitation')}
               </Button>
             </div>
           </DialogContent>
@@ -745,11 +742,11 @@ export function NotificationsPanel() {
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent>
+        <SheetContent className="w-[95vw] sm:w-[400px]">
           <SheetHeader>
-            <SheetTitle>Notifications</SheetTitle>
+            <SheetTitle>{t('notifications.title')}</SheetTitle>
             <SheetDescription>
-              Stay updated on partnerships, lab requests and invitations
+              {t('notifications.subtitle')}
             </SheetDescription>
           </SheetHeader>
 
@@ -757,11 +754,11 @@ export function NotificationsPanel() {
             <TabsList className="w-full">
               <TabsTrigger value="notifications" className="flex-1 gap-1">
                 <Bell className="w-4 h-4" />
-                Notifications
+                {t('notifications.tabs.notifications')}
                 {unreadCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="ml-1 h-5 min-w-[20px] p-0 flex items-center justify-center text-xs"
+                    className="ms-1 h-5 min-w-[20px] p-0 flex items-center justify-center text-xs"
                   >
                     {unreadCount}
                   </Badge>
@@ -769,11 +766,11 @@ export function NotificationsPanel() {
               </TabsTrigger>
               <TabsTrigger value="invitations" className="flex-1 gap-1">
                 <Users className="w-4 h-4" />
-                Invitations
+                {t('notifications.tabs.invitations')}
                 {receivedInvitations.length > 0 && (
                   <Badge
                     variant="destructive"
-                    className="ml-1 h-5 min-w-[20px] p-0 flex items-center justify-center text-xs"
+                    className="ms-1 h-5 min-w-[20px] p-0 flex items-center justify-center text-xs"
                   >
                     {receivedInvitations.length}
                   </Badge>
