@@ -28,6 +28,8 @@ interface AddPartnerDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (recipientTenantId: string) => void;
   isLoading?: boolean;
+  /** Filter search results to specific tenant types (e.g., ['laboratory', 'lab']) */
+  typeFilter?: string[];
 }
 
 export function AddPartnerDialog({
@@ -35,6 +37,7 @@ export function AddPartnerDialog({
   onOpenChange,
   onSubmit,
   isLoading,
+  typeFilter,
 }: AddPartnerDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
@@ -57,7 +60,11 @@ export function AddPartnerDialog({
         });
 
         if (error) throw error;
-        setResults((data as TenantResult[]) || []);
+        let filtered = (data as TenantResult[]) || [];
+        if (typeFilter && typeFilter.length > 0) {
+          filtered = filtered.filter(t => typeFilter.includes(t.type?.toLowerCase()));
+        }
+        setResults(filtered);
       } catch {
         setResults([]);
       } finally {

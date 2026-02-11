@@ -10,7 +10,7 @@ import { useI18n } from "@/i18n";
 interface Props {
   labTenantId: string | null;
   labName?: string;
-  onSelectServices?: (serviceIds: string[]) => void;
+  onSelectServices?: (serviceIds: string[], serviceNames?: string[]) => void;
   selectable?: boolean;
   selectedIds?: string[];
 }
@@ -32,7 +32,10 @@ export function LabCatalogViewer({ labTenantId, labName, onSelectServices, selec
     const newSelected = selectedIds.includes(serviceId)
       ? selectedIds.filter(id => id !== serviceId)
       : [...selectedIds, serviceId];
-    onSelectServices(newSelected);
+    const newNames = (services ?? [])
+      .filter(s => newSelected.includes(s.id))
+      .map(s => s.name);
+    onSelectServices(newSelected, newNames);
   };
 
   if (!labTenantId) {
