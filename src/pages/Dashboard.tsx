@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { WorkspaceModeToggle } from "@/components/WorkspaceModeToggle";
-import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
@@ -81,7 +81,7 @@ const Dashboard = () => {
                 {activeTenant && <AddHorseDialog />}
                 
                 {/* Invitations */}
-                <InvitationsPanel />
+                <NotificationsPanel />
               </div>
               
               <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ const Dashboard = () => {
               <LanguageSelector />
               
               {/* Invitations */}
-              <InvitationsPanel />
+              <NotificationsPanel />
 
               {/* Add Horse */}
               {activeTenant && <AddHorseDialog />}
@@ -201,7 +201,7 @@ const Dashboard = () => {
                         <Building2 className="w-4 h-4" />
                         {t("dashboard.createOrganization")}
                       </Button>
-                      <InvitationsPanel />
+                      <NotificationsPanel />
                     </div>
                   </div>
                 </CardContent>

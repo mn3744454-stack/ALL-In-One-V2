@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTenant } from "@/contexts/TenantContext";
@@ -122,7 +122,7 @@ const DashboardServices = () => {
                   className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
-              <InvitationsPanel />
+              <NotificationsPanel />
             </div>
           </div>
         </header>
