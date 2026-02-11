@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
@@ -181,7 +181,7 @@ const DashboardHorseOrders = () => {
                 </DropdownMenu>
               )}
               
-              <InvitationsPanel />
+              <NotificationsPanel />
             </div>
           </div>
         </header>

@@ -73,7 +73,7 @@ export function AddPartnerDialog({
     };
 
     searchTenants();
-  }, [debouncedSearch, open, activeTenant?.tenant_id]);
+  }, [debouncedSearch, open, activeTenant?.tenant_id, typeFilter]);
 
   const handleSubmit = () => {
     if (!selectedTenant) return;

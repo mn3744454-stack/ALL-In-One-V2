@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTenant } from "@/contexts/TenantContext";
@@ -51,7 +51,7 @@ const DashboardPayments = () => {
               </div>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-3">
-              <InvitationsPanel />
+              <NotificationsPanel />
             </div>
           </div>
         </header>

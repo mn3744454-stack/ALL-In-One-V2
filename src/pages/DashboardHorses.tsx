@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { InvitationsPanel } from "@/components/InvitationsPanel";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
@@ -57,7 +57,7 @@ const DashboardHorses = () => {
                 />
               </div>
               
-              <InvitationsPanel />
+              <NotificationsPanel />
             </div>
           </div>
         </header>

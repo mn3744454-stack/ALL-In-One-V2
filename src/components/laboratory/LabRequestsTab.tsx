@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +19,12 @@ import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/ho
 import { useHorses } from "@/hooks/useHorses";
 import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
 import { AddPartnerDialog } from "@/components/connections";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { LabCatalogViewer } from "./LabCatalogViewer";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2 } from "lucide-react";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
@@ -270,8 +272,80 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
             {/* Platform Lab Selection */}
             {labMode === 'platform' && (
               <div className="space-y-3">
-                {/* Show pending partnership inline state */}
-                {(pendingPartnerName || pendingLabPartners.length > 0) && labPartners.length === 0 && (
+                {labPartners.length > 0 ? (
+                  <>
+                    {/* Lab picker */}
+                    <Select
+                      value={selectedLabTenantId || ''}
+                      onValueChange={handleLabChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('laboratory.requests.selectLab')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {labPartners.map((lab) => (
+                          <SelectItem key={lab.tenantId} value={lab.tenantId}>
+                            {lab.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Connect another lab - always visible */}
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={() => setAddPartnerOpen(true)}
+                      className="gap-1 p-0 h-auto text-xs"
+                    >
+                      <Link2 className="h-3 w-3" />
+                      {t('laboratory.requests.connectAnother') || 'Connect another lab'}
+                    </Button>
+
+                    {/* Pending banner alongside picker (not replacing it) */}
+                    {pendingLabPartners.length > 0 && (
+                      <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
+                        <CardContent className="py-3 px-4">
+                          <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200 text-sm">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span>{pendingLabPartners.length} pending partnership{pendingLabPartners.length > 1 ? 's' : ''}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRefreshStatus}
+                              disabled={isRefreshing}
+                              className="h-6 px-2 text-xs ms-auto"
+                            >
+                              {isRefreshing ? <Loader2 className="h-3 w-3 animate-spin" /> : t('common.refresh')}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Catalog Viewer - scroll-constrained */}
+                    <div className="max-h-[40vh] overflow-y-auto">
+                      <LabCatalogViewer
+                        labTenantId={selectedLabTenantId}
+                        labName={selectedLabName}
+                        selectable
+                        selectedIds={selectedServiceIds}
+                        onSelectServices={(ids, names) => {
+                          setSelectedServiceIds(ids);
+                          if (names) setSelectedServiceNames(names);
+                        }}
+                      />
+                    </div>
+
+                    {selectedServiceIds.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected')}
+                      </p>
+                    )}
+                  </>
+                ) : pendingLabPartners.length > 0 || pendingPartnerName ? (
                   <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
                     <CardContent className="py-4 space-y-2">
                       <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
@@ -308,9 +382,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                       </div>
                     </CardContent>
                   </Card>
-                )}
-
-                {labPartners.length === 0 && pendingLabPartners.length === 0 && !pendingPartnerName ? (
+                ) : (
                   <Card className="border-dashed">
                     <CardContent className="py-6 text-center space-y-3">
                       <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto" />
@@ -329,42 +401,6 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                       </Button>
                     </CardContent>
                   </Card>
-                ) : labPartners.length > 0 && (
-                  <>
-                    <Select
-                      value={selectedLabTenantId || ''}
-                      onValueChange={handleLabChange}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('laboratory.requests.selectLab')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {labPartners.map((lab) => (
-                          <SelectItem key={lab.tenantId} value={lab.tenantId}>
-                            {lab.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Catalog Viewer */}
-                    <LabCatalogViewer
-                      labTenantId={selectedLabTenantId}
-                      labName={selectedLabName}
-                      selectable
-                      selectedIds={selectedServiceIds}
-                      onSelectServices={(ids, names) => {
-                        setSelectedServiceIds(ids);
-                        if (names) setSelectedServiceNames(names);
-                      }}
-                    />
-
-                    {selectedServiceIds.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected')}
-                      </p>
-                    )}
-                  </>
                 )}
               </div>
             )}
@@ -572,16 +608,77 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
 }
 
 export function LabRequestsTab() {
-  const { t } = useI18n();
-  const { activeRole } = useTenant();
+  const { t, dir } = useI18n();
+  const { activeTenant, activeRole } = useTenant();
+  const { labMode } = useModuleAccess();
   const { requests, loading } = useLabRequests();
+  const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
+  const { createConnection } = useConnections();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LabRequest | null>(null);
+  const [inboxOpen, setInboxOpen] = useState(true);
+  const [addPartnerOpen, setAddPartnerOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Permission check for invoice creation
   const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
+
+  // Derive lab partners for the inbox
+  const labPartners = useMemo(() => {
+    if (!activeTenant) return [];
+    const myTenantId = activeTenant.tenant_id;
+    const seen = new Map<string, { tenantId: string; name: string }>();
+    connections
+      .filter(c => c.connection_type === 'b2b' && c.status === 'accepted')
+      .forEach(c => {
+        const isInitiator = c.initiator_tenant_id === myTenantId;
+        const partnerTenantId = isInitiator ? c.recipient_tenant_id : c.initiator_tenant_id;
+        const partnerName = isInitiator ? c.recipient_tenant_name : c.initiator_tenant_name;
+        const partnerType = (isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type)?.toLowerCase();
+        if (!partnerTenantId) return;
+        if (partnerType !== 'laboratory' && partnerType !== 'lab') return;
+        if (!seen.has(partnerTenantId)) {
+          seen.set(partnerTenantId, { tenantId: partnerTenantId, name: partnerName || 'Lab' });
+        }
+      });
+    return Array.from(seen.values());
+  }, [connections, activeTenant]);
+
+  const pendingLabPartners = useMemo(() => {
+    if (!activeTenant) return [];
+    const myTenantId = activeTenant.tenant_id;
+    const results: { name: string; isSent: boolean }[] = [];
+    connections
+      .filter(c => c.connection_type === 'b2b' && c.status === 'pending')
+      .forEach(c => {
+        const isInitiator = c.initiator_tenant_id === myTenantId;
+        const partnerName = isInitiator ? c.recipient_tenant_name : c.initiator_tenant_name;
+        const partnerType = (isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type)?.toLowerCase();
+        if (partnerType !== 'laboratory' && partnerType !== 'lab') return;
+        results.push({ name: partnerName || 'Lab', isSent: isInitiator });
+      });
+    return results;
+  }, [connections, activeTenant]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetchConnections();
+    setIsRefreshing(false);
+  }, [refetchConnections]);
+
+  const handleAddPartner = async (recipientTenantId: string) => {
+    try {
+      await createConnection.mutateAsync({ connectionType: "b2b", recipientTenantId });
+      setAddPartnerOpen(false);
+      refetchConnections();
+    } catch {
+      // handled by toast in createConnection
+    }
+  };
+
+  const isStableMode = labMode === 'requests';
 
   const filteredRequests = requests.filter(req => {
     const matchesSearch = !searchQuery || 
@@ -618,6 +715,106 @@ export function LabRequestsTab() {
         </div>
         <CreateRequestDialog />
       </div>
+
+      {/* Partnership Inbox - only for stable tenants */}
+      {isStableMode && (
+        <Card className="border-border/50">
+          <CardContent className="p-4">
+            <button
+              type="button"
+              className="flex items-center justify-between w-full text-start"
+              onClick={() => setInboxOpen(!inboxOpen)}
+            >
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                <span className="font-medium text-sm">
+                  {t('laboratory.requests.partnershipInbox') || 'Lab Partnerships'}
+                </span>
+                {(labPartners.length > 0 || pendingLabPartners.length > 0) && (
+                  <Badge variant="secondary" className="text-xs">
+                    {labPartners.length} connected{pendingLabPartners.length > 0 ? ` · ${pendingLabPartners.length} pending` : ''}
+                  </Badge>
+                )}
+              </div>
+              {inboxOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+
+            {inboxOpen && (
+              <div className="mt-4 space-y-3">
+                {/* Connected Labs */}
+                {labPartners.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {t('laboratory.requests.connectedLabs') || 'Connected Labs'}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {labPartners.map(lab => (
+                        <Badge key={lab.tenantId} variant="outline" className="gap-1.5 py-1">
+                          <FlaskConical className="h-3 w-3" />
+                          {lab.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending Partnerships */}
+                {pendingLabPartners.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {t('laboratory.requests.pendingPartnerships') || 'Pending'}
+                    </p>
+                    <div className="space-y-1.5">
+                      {pendingLabPartners.map((p, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <Clock className="h-3 w-3 text-yellow-600" />
+                          <span>{p.name}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {p.isSent ? 'Sent' : 'Received'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAddPartnerOpen(true)}
+                    className="gap-1"
+                  >
+                    <Link2 className="h-3 w-3" />
+                    {t('laboratory.requests.connectToLab') || 'Connect to a Laboratory'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="gap-1"
+                  >
+                    <RefreshCw className={cn("h-3 w-3", isRefreshing && "animate-spin")} />
+                    {t('common.refresh') || 'Refresh'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <AddPartnerDialog
+        open={addPartnerOpen}
+        onOpenChange={setAddPartnerOpen}
+        onSubmit={handleAddPartner}
+        isLoading={createConnection.isPending}
+        typeFilter={['laboratory', 'lab']}
+      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">

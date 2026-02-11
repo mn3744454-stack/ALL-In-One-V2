@@ -24,6 +24,7 @@ import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag } from "lucide-react";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
@@ -159,7 +160,10 @@ export default function DashboardLaboratory() {
               </p>
             </div>
           </div>
-          {labMode === 'full' && <LabCreditsPanel compact />}
+          <div className="flex items-center gap-3">
+            {labMode === 'full' && <LabCreditsPanel compact />}
+            <NotificationsPanel />
+          </div>
         </header>
 
         <div className="container mx-auto px-4 py-6 max-w-7xl">
