@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabRequestMessages } from "@/hooks/laboratory/useLabRequestMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n";
 import { formatDistanceToNow } from "date-fns";
 import { Send, Loader2, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ interface LabRequestThreadProps {
 export function LabRequestThread({ requestId }: LabRequestThreadProps) {
   const { user } = useAuth();
   const { activeTenant } = useTenant();
+  const { t } = useI18n();
   const { messages, loading, sendMessage, isSending } = useLabRequestMessages(requestId);
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function LabRequestThread({ requestId }: LabRequestThreadProps) {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <MessageSquare className="w-8 h-8 mb-2 opacity-30" />
-            <p className="text-sm">No messages yet. Start the conversation.</p>
+            <p className="text-sm">{t('laboratory.requests.noMessages')}</p>
           </div>
         ) : (
           messages.map((msg) => {
@@ -88,7 +90,7 @@ export function LabRequestThread({ requestId }: LabRequestThreadProps) {
                 >
                   {!isMe && (
                     <p className="text-[10px] font-medium opacity-70 mb-0.5">
-                      {isSameTenant ? "Team" : "Partner"}
+                      {isSameTenant ? t('laboratory.requests.team') : t('laboratory.requests.partner')}
                     </p>
                   )}
                   <p className="whitespace-pre-wrap break-words">{msg.body}</p>
@@ -115,7 +117,7 @@ export function LabRequestThread({ requestId }: LabRequestThreadProps) {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder={t('laboratory.requests.typeMessage')}
           rows={1}
           className="min-h-[40px] max-h-[100px] resize-none flex-1"
         />

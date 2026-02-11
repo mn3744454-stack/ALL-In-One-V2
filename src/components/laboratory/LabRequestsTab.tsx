@@ -909,7 +909,7 @@ export function LabRequestsTab() {
                 </span>
                 {(labPartners.length > 0 || pendingLabPartners.length > 0) && (
                   <Badge variant="secondary" className="text-xs">
-                    {labPartners.length} connected{pendingLabPartners.length > 0 ? ` · ${pendingLabPartners.length} pending` : ''}
+                    {labPartners.length} {t('laboratory.requests.connected')}{pendingLabPartners.length > 0 ? ` · ${pendingLabPartners.length} ${t('laboratory.requests.pending')}` : ''}
                   </Badge>
                 )}
               </div>
@@ -947,7 +947,7 @@ export function LabRequestsTab() {
                           <Clock className="h-3 w-3 text-yellow-600" />
                           <span>{p.name}</span>
                           <Badge variant="outline" className="text-xs">
-                            {p.isSent ? 'Sent' : 'Received'}
+                            {p.isSent ? t('laboratory.requests.sent') : t('laboratory.requests.receivedLabel')}
                           </Badge>
                         </div>
                       ))}
