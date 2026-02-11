@@ -3786,6 +3786,55 @@ export type Database = {
           },
         ]
       }
+      lab_request_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          request_id: string
+          sender_tenant_id: string | null
+          sender_user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          request_id: string
+          sender_tenant_id?: string | null
+          sender_user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          request_id?: string
+          sender_tenant_id?: string | null
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_request_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_messages_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_messages_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_request_services: {
         Row: {
           created_at: string
@@ -5057,6 +5106,63 @@ export type Database = {
             columns: ["tenant_member_id"]
             isOneToOne: false
             referencedRelation: "tenant_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          is_read: boolean
+          read_at: string | null
+          tenant_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          tenant_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          tenant_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -7624,6 +7730,18 @@ export type Database = {
       }
     }
     Functions: {
+      _notify_tenant_members: {
+        Args: {
+          _body: string
+          _entity_id: string
+          _entity_type: string
+          _event_type: string
+          _exclude_user_id?: string
+          _tenant_id: string
+          _title: string
+        }
+        Returns: undefined
+      }
       accept_connection: { Args: { _token: string }; Returns: string }
       apply_link_preset: {
         Args: { _connection_id: string; _preset_name: string }
