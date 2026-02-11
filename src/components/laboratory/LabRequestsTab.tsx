@@ -17,14 +17,16 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/hooks/laboratory/useLabRequests";
 import { useHorses } from "@/hooks/useHorses";
-import { useConnectionsWithDetails } from "@/hooks/connections";
+import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
+import { AddPartnerDialog } from "@/components/connections";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { LabCatalogViewer } from "./LabCatalogViewer";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag } from "lucide-react";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
+import { toast } from "sonner";
 
 const statusConfig: Record<LabRequest['status'], { icon: React.ElementType; color: string }> = {
   pending: { icon: Clock, color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
@@ -61,25 +63,47 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   const { activeTenant } = useTenant();
   const { connections } = useConnectionsWithDetails();
 
-  // Derive available lab partners from accepted B2B connections
+  const { createConnection } = useConnections();
+  const [addPartnerOpen, setAddPartnerOpen] = useState(false);
+
+  // Derive available lab partners from accepted B2B connections, deduplicated by tenantId
   const labPartners = useMemo<LabOption[]>(() => {
     if (!activeTenant) return [];
     const myTenantId = activeTenant.tenant_id;
-    return connections
+    const seen = new Map<string, LabOption>();
+    connections
       .filter(c => c.connection_type === 'b2b' && c.status === 'accepted')
-      .map(c => {
-        // The partner is the other side of the connection
+      .forEach(c => {
         const isInitiator = c.initiator_tenant_id === myTenantId;
         const partnerTenantId = isInitiator ? c.recipient_tenant_id : c.initiator_tenant_id;
         const partnerName = isInitiator ? c.recipient_tenant_name : c.initiator_tenant_name;
         const partnerType = (isInitiator ? c.recipient_tenant_type : c.initiator_tenant_type)?.toLowerCase();
-        if (!partnerTenantId) return null;
-        // Only show lab-type partners (handle both 'lab' and 'laboratory' variants)
-        if (partnerType !== 'laboratory' && partnerType !== 'lab') return null;
-        return { tenantId: partnerTenantId, name: partnerName || 'Lab' };
-      })
-      .filter(Boolean) as LabOption[];
+        if (!partnerTenantId) return;
+        if (partnerType !== 'laboratory' && partnerType !== 'lab') return;
+        if (!seen.has(partnerTenantId)) {
+          seen.set(partnerTenantId, { tenantId: partnerTenantId, name: partnerName || 'Lab' });
+        }
+      });
+    return Array.from(seen.values());
   }, [connections, activeTenant]);
+
+  const handleAddPartner = async (recipientTenantId: string) => {
+    try {
+      await createConnection.mutateAsync({
+        connectionType: "b2b",
+        recipientTenantId,
+      });
+      setAddPartnerOpen(false);
+      toast.success(t('connections.requestSent') || 'Partnership request sent');
+    } catch (err: any) {
+      const msg = err?.message || '';
+      if (msg.includes('duplicate') || msg.includes('unique')) {
+        toast.error(t('connections.duplicateRequest') || 'A partnership request already exists with this partner.');
+      } else {
+        toast.error(t('connections.requestFailed') || 'Failed to send partnership request');
+      }
+    }
+  };
   
   const [formData, setFormData] = useState<CreateLabRequestData>({
     horse_id: '',
@@ -108,6 +132,8 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
     await createRequest({
       ...formData,
       service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
+      initiator_tenant_id: activeTenant?.tenant_id,
+      lab_tenant_id: selectedLabTenantId || undefined,
     });
     // Reset form
     setFormData({ horse_id: '', test_description: '', external_lab_name: '', priority: 'normal', notes: '' });
@@ -128,6 +154,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
       <DialogTrigger asChild>
         <Button className="gap-2">
@@ -191,13 +218,23 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
             {/* Platform Lab Selection */}
             {labMode === 'platform' && (
               <div className="space-y-3">
-                {labPartners.length === 0 ? (
+            {labPartners.length === 0 ? (
                   <Card className="border-dashed">
-                    <CardContent className="py-6 text-center">
-                      <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+                    <CardContent className="py-6 text-center space-y-3">
+                      <FlaskConical className="w-8 h-8 text-muted-foreground/30 mx-auto" />
                       <p className="text-sm text-muted-foreground">
                         {t('laboratory.requests.noLabPartners')}
                       </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAddPartnerOpen(true)}
+                        className="gap-2"
+                      >
+                        <Link2 className="h-4 w-4" />
+                        {t('laboratory.requests.connectToLab') || 'Connect to a Laboratory'}
+                      </Button>
                     </CardContent>
                   </Card>
                 ) : (
@@ -292,7 +329,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
             </div>
           </form>
         </ScrollArea>
-        <DialogFooter className="pt-4 border-t">
+        <DialogFooter className="pt-4 border-t gap-2">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
             {t('common.cancel')}
           </Button>
@@ -306,6 +343,13 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <AddPartnerDialog
+      open={addPartnerOpen}
+      onOpenChange={setAddPartnerOpen}
+      onSubmit={handleAddPartner}
+      isLoading={createConnection.isPending}
+    />
+    </>
   );
 }
 

@@ -24,12 +24,19 @@ import {
   XCircle,
   Calendar,
   ArrowRight,
-  Eye
+  Eye,
+  Clock,
+  Send,
+  Loader2,
+  FileText,
+  Tag,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 interface LabResult {
   id: string;
@@ -43,6 +50,19 @@ interface LabResult {
   source_tenant: { id: string; name: string } | null;
 }
 
+interface HorseLabRequest {
+  id: string;
+  status: string;
+  priority: string;
+  test_description: string;
+  external_lab_name: string | null;
+  requested_at: string;
+  lab_request_services?: {
+    service_id: string;
+    service: { name: string; name_ar: string | null; code: string | null } | null;
+  }[];
+}
+
 interface HorseLabSectionProps {
   horseId: string;
   horseName: string;
@@ -50,17 +70,46 @@ interface HorseLabSectionProps {
 
 export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
   const [results, setResults] = useState<LabResult[]>([]);
+  const [labRequests, setLabRequests] = useState<HorseLabRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
   const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
 
   useEffect(() => {
     if (activeTenant?.tenant.id && horseId) {
       fetchResults();
+      fetchLabRequests();
     }
   }, [activeTenant?.tenant.id, horseId]);
+
+  const fetchLabRequests = async () => {
+    setRequestsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("lab_requests")
+        .select(`
+          id, status, priority, test_description, external_lab_name, requested_at,
+          lab_request_services(
+            service_id,
+            service:lab_services(name, name_ar, code)
+          )
+        `)
+        .eq("horse_id", horseId)
+        .eq("tenant_id", activeTenant!.tenant.id)
+        .order("requested_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setLabRequests((data || []) as HorseLabRequest[]);
+    } catch (error) {
+      console.error("Error fetching horse lab requests:", error);
+    } finally {
+      setRequestsLoading(false);
+    }
+  };
 
   const fetchResults = async () => {
     setLoading(true);
@@ -380,11 +429,101 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
     </Accordion>
   );
 
+  const requestStatusConfig: Record<string, { icon: React.ElementType; color: string }> = {
+    pending: { icon: Clock, color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    sent: { icon: Send, color: 'bg-blue-100 text-blue-800 border-blue-200' },
+    processing: { icon: Loader2, color: 'bg-purple-100 text-purple-800 border-purple-200' },
+    ready: { icon: CheckCircle2, color: 'bg-green-100 text-green-800 border-green-200' },
+    received: { icon: FileText, color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+    cancelled: { icon: Clock, color: 'bg-muted text-muted-foreground border-border' },
+  };
+
+  const LabRequestsSection = () => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <FileText className="w-5 h-5 text-primary" />
+          {t('horses.labRequests.title') || 'Lab Requests'}
+        </CardTitle>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/laboratory?tab=requests`)}>
+          {t('common.viewAll')}
+          <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {requestsLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+          </div>
+        ) : labRequests.length === 0 ? (
+          <div className="text-center py-6 text-muted-foreground">
+            <FileText className="h-10 w-10 mx-auto mb-2 opacity-20" />
+            <p className="text-sm">{t('horses.labRequests.noRequests') || 'No lab requests for this horse'}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {labRequests.map(req => {
+              const config = requestStatusConfig[req.status] || requestStatusConfig.pending;
+              const StatusIcon = config.icon;
+              const services = req.lab_request_services || [];
+              return (
+                <div
+                  key={req.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/dashboard/laboratory?tab=requests`)}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <StatusIcon className={cn("h-4 w-4 shrink-0", req.status === 'processing' && "animate-spin")} />
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{req.test_description}</p>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 shrink-0" />
+                          {format(new Date(req.requested_at), "MMM d, yyyy")}
+                        </span>
+                        {req.external_lab_name && (
+                          <span className="flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3 shrink-0" />
+                            {req.external_lab_name}
+                          </span>
+                        )}
+                      </div>
+                      {services.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {services.slice(0, 3).map(s => (
+                            <Badge key={s.service_id} variant="secondary" className="text-[10px] gap-0.5 px-1.5 py-0">
+                              <Tag className="h-2.5 w-2.5" />
+                              {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || ''}
+                            </Badge>
+                          ))}
+                          {services.length > 3 && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                              +{services.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={cn("gap-1 shrink-0", config.color)}>
+                    <StatusIcon className={cn("h-3 w-3", req.status === 'processing' && "animate-spin")} />
+                    {t(`laboratory.requests.status.${req.status}`) || req.status}
+                  </Badge>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
-    <>
+    <div className="space-y-4">
+      <LabRequestsSection />
       <DesktopView />
       <MobileView />
       <ResultPreviewDialog />
-    </>
+    </div>
   );
 }

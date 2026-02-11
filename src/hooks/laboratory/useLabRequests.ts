@@ -58,6 +58,8 @@ export interface CreateLabRequestData {
   notes?: string;
   expected_by?: string;
   service_ids?: string[];
+  initiator_tenant_id?: string;
+  lab_tenant_id?: string;
 }
 
 export interface UpdateLabRequestData {
@@ -103,7 +105,7 @@ export function useLabRequests() {
     mutationFn: async (data: CreateLabRequestData) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
       
-      const { service_ids, ...requestData } = data;
+      const { service_ids, initiator_tenant_id, lab_tenant_id, ...requestData } = data;
 
       // Step 1: Create the lab_request row
       const { data: result, error } = await supabase
@@ -117,6 +119,8 @@ export function useLabRequests() {
           notes: requestData.notes || null,
           expected_by: requestData.expected_by || null,
           created_by: user.id,
+          initiator_tenant_id: initiator_tenant_id || tenantId,
+          lab_tenant_id: lab_tenant_id || null,
         })
         .select()
         .single();
