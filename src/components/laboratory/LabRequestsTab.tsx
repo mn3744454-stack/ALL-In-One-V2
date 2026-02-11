@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/hooks/laboratory/useLabRequests";
 import { useHorses } from "@/hooks/useHorses";
 import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
@@ -24,7 +26,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { LabCatalogViewer } from "./LabCatalogViewer";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { LabRequestThread } from "./LabRequestThread";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
@@ -491,13 +494,163 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   );
 }
 
+// ─── Request Detail Dialog with Thread ────────────────────
+
+function RequestDetailDialog({
+  request,
+  open,
+  onOpenChange,
+  defaultTab,
+  canCreateInvoice,
+  onGenerateInvoice,
+}: {
+  request: LabRequest;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  defaultTab?: string;
+  canCreateInvoice: boolean;
+  onGenerateInvoice: () => void;
+}) {
+  const { t, dir } = useI18n();
+  const { updateRequest } = useLabRequests();
+
+  const horseName = dir === 'rtl' && request.horse?.name_ar
+    ? request.horse.name_ar
+    : request.horse?.name || t('laboratory.samples.unknownHorse');
+
+  const services = request.lab_request_services || [];
+  const isBillable = request.status === 'ready' || request.status === 'received';
+
+  const handleMarkReceived = async () => {
+    await updateRequest({
+      id: request.id,
+      status: 'received',
+      received_at: new Date().toISOString(),
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
+        <DialogHeader className="p-6 pb-2">
+          <DialogTitle className="flex items-center gap-2">
+            {horseName}
+            <RequestStatusBadge status={request.status} />
+          </DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue={defaultTab || "details"} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="mx-6 w-auto">
+            <TabsTrigger value="details" className="gap-1">
+              <FileText className="w-3.5 h-3.5" />
+              {t('common.details') || 'Details'}
+            </TabsTrigger>
+            <TabsTrigger value="thread" className="gap-1">
+              <MessageSquare className="w-3.5 h-3.5" />
+              {t('laboratory.requests.messages') || 'Messages'}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="flex-1 overflow-y-auto px-6 pb-6 mt-0">
+            <div className="space-y-4 pt-4">
+              {/* Description */}
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  {t('laboratory.requests.testDescription') || 'Test Description'}
+                </p>
+                <p className="text-sm">{request.test_description}</p>
+              </div>
+
+              {/* Services */}
+              {services.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1.5">
+                    {t('laboratory.requests.selectedServices') || 'Selected Services'}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {services.map(s => (
+                      <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
+                        <Tag className="h-3 w-3" />
+                        {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || s.service_id}
+                        {s.service?.code && <span className="font-mono opacity-70">({s.service.code})</span>}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Meta */}
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                {request.external_lab_name && (
+                  <span className="flex items-center gap-1">
+                    <ExternalLink className="h-3 w-3" />
+                    {request.external_lab_name}
+                  </span>
+                )}
+                <span>
+                  {format(new Date(request.requested_at), 'MMM dd, yyyy')}
+                </span>
+                {request.priority && request.priority !== 'normal' && (
+                  <Badge variant="outline" className="text-xs">{t(`common.${request.priority}`) || request.priority}</Badge>
+                )}
+              </div>
+
+              {/* Notes */}
+              {request.notes && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">{t('common.notes') || 'Notes'}</p>
+                  <p className="text-sm">{request.notes}</p>
+                </div>
+              )}
+
+              {/* Result link */}
+              {request.result_url && (
+                <a
+                  href={request.result_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  <FileText className="h-3 w-3" />
+                  {t('laboratory.requests.viewResult') || 'View Result'}
+                </a>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                {request.status === 'ready' && (
+                  <Button size="sm" variant="outline" onClick={handleMarkReceived}>
+                    <CheckCircle2 className="h-4 w-4 me-2" />
+                    {t('laboratory.requests.markReceived') || 'Mark as Received'}
+                  </Button>
+                )}
+                {isBillable && canCreateInvoice && (
+                  <Button size="sm" variant="outline" onClick={onGenerateInvoice}>
+                    <Receipt className="h-4 w-4 me-2" />
+                    {t('laboratory.billing.generateInvoice') || 'Generate Invoice'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="thread" className="flex-1 min-h-0 mt-0">
+            <LabRequestThread requestId={request.id} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface RequestCardProps {
   request: LabRequest;
   canCreateInvoice: boolean;
   onGenerateInvoice: () => void;
+  onOpenDetail: () => void;
 }
 
-function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCardProps) {
+function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetail }: RequestCardProps) {
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
   
@@ -519,7 +672,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onOpenDetail}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 flex-1 min-w-0">
@@ -533,13 +686,13 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
             {isBillable && canCreateInvoice && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem 
-                    onClick={onGenerateInvoice}
+                    onClick={(e) => { e.stopPropagation(); onGenerateInvoice(); }}
                     className="text-primary"
                   >
                     <Receipt className="h-4 w-4 me-2" />
@@ -585,23 +738,18 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice }: RequestCa
             target="_blank" 
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
           >
             <FileText className="h-3 w-3" />
             {t('laboratory.requests.viewResult') || 'View Result'}
           </a>
         )}
         
-        {request.status === 'ready' && (
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="w-full"
-            onClick={handleMarkReceived}
-          >
-            <CheckCircle2 className="h-4 w-4 me-2" />
-            {t('laboratory.requests.markReceived') || 'Mark as Received'}
-          </Button>
-        )}
+        {/* Message indicator */}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <MessageSquare className="h-3 w-3" />
+          {t('laboratory.requests.openThread') || 'Open thread'}
+        </div>
       </CardContent>
     </Card>
   );
@@ -614,13 +762,42 @@ export function LabRequestsTab() {
   const { requests, loading } = useLabRequests();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const { createConnection } = useConnections();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LabRequest | null>(null);
+  const [detailRequest, setDetailRequest] = useState<LabRequest | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailDefaultTab, setDetailDefaultTab] = useState<string | undefined>();
   const [inboxOpen, setInboxOpen] = useState(true);
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Deep-link support: open request detail from URL params (requestId, openThread)
+  useEffect(() => {
+    const requestId = searchParams.get('requestId');
+    const openThread = searchParams.get('openThread');
+    if (requestId && requests.length > 0) {
+      const found = requests.find(r => r.id === requestId);
+      if (found) {
+        setDetailRequest(found);
+        setDetailDefaultTab(openThread === 'true' ? 'thread' : 'details');
+        setDetailOpen(true);
+        // Clean up URL params after opening
+        const next = new URLSearchParams(searchParams);
+        next.delete('requestId');
+        next.delete('openThread');
+        setSearchParams(next, { replace: true });
+      }
+    }
+  }, [searchParams, requests]);
+
+  const handleOpenDetail = (request: LabRequest, tab?: string) => {
+    setDetailRequest(request);
+    setDetailDefaultTab(tab);
+    setDetailOpen(true);
+  };
 
   // Permission check for invoice creation
   const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
@@ -863,6 +1040,7 @@ export function LabRequestsTab() {
               request={request} 
               canCreateInvoice={canCreateInvoice}
               onGenerateInvoice={() => handleGenerateInvoice(request)}
+              onOpenDetail={() => handleOpenDetail(request)}
             />
           ))}
         </div>
@@ -875,6 +1053,24 @@ export function LabRequestsTab() {
           onOpenChange={setInvoiceDialogOpen}
           sourceType="lab_request"
           request={selectedRequest}
+        />
+      )}
+
+      {/* Request Detail Dialog with Messaging Thread */}
+      {detailRequest && (
+        <RequestDetailDialog
+          request={detailRequest}
+          open={detailOpen}
+          onOpenChange={(open) => {
+            setDetailOpen(open);
+            if (!open) {
+              setDetailRequest(null);
+              setDetailDefaultTab(undefined);
+            }
+          }}
+          defaultTab={detailDefaultTab}
+          canCreateInvoice={canCreateInvoice}
+          onGenerateInvoice={() => handleGenerateInvoice(detailRequest)}
         />
       )}
     </div>
