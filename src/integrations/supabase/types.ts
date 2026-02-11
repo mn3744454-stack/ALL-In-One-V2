@@ -3828,7 +3828,9 @@ export type Database = {
           external_lab_name: string | null
           horse_id: string
           id: string
+          initiator_tenant_id: string | null
           is_demo: boolean | null
+          lab_tenant_id: string | null
           notes: string | null
           priority: string
           received_at: string | null
@@ -3849,7 +3851,9 @@ export type Database = {
           external_lab_name?: string | null
           horse_id: string
           id?: string
+          initiator_tenant_id?: string | null
           is_demo?: boolean | null
+          lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
           received_at?: string | null
@@ -3870,7 +3874,9 @@ export type Database = {
           external_lab_name?: string | null
           horse_id?: string
           id?: string
+          initiator_tenant_id?: string | null
           is_demo?: boolean | null
+          lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
           received_at?: string | null
@@ -3903,6 +3909,34 @@ export type Database = {
             columns: ["horse_id"]
             isOneToOne: false
             referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
