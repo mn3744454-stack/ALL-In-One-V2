@@ -13,7 +13,7 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 
 export function StableMessagesView() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { threads, loading } = useLabRequestThreads();
   const { activeTenant, activeRole } = useTenant();
   const { requests } = useLabRequests();
@@ -83,7 +83,7 @@ export function StableMessagesView() {
                   className="border-b hover:bg-muted/50 cursor-pointer"
                   onClick={() => { setSelectedRequestId(thread.request_id); setDetailOpen(true); }}
                 >
-                  <td className="py-2 px-3 font-medium">{thread.horse_name}</td>
+                  <td className="py-2 px-3 font-medium">{dir === 'rtl' && thread.horse_name_ar ? thread.horse_name_ar : thread.horse_name}</td>
                   <td className="py-2 px-3 truncate max-w-[200px]">{thread.test_description}</td>
                   <td className="py-2 px-3 truncate max-w-[250px] text-muted-foreground">{thread.last_message_body}</td>
                   <td className="py-2 px-3">
@@ -117,7 +117,7 @@ export function StableMessagesView() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-medium text-sm truncate">
-                          {thread.horse_name}
+                          {dir === 'rtl' && thread.horse_name_ar ? thread.horse_name_ar : thread.horse_name}
                         </span>
                         <Badge variant="secondary" className="text-[10px] shrink-0">
                           {thread.message_count} {t("laboratory.messages.messageCount")}

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export interface LabRequestThread {
   request_id: string;
   horse_name: string;
+  horse_name_ar: string | null;
   test_description: string;
   last_message_body: string;
   last_message_at: string;
