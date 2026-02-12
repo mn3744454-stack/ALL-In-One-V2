@@ -34,8 +34,8 @@ export function LabBottomNavigation({
     return [
       { id: "samples", icon: FlaskConical, labelKey: "laboratory.bottomNav.samples" },
       { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
+      { id: "requests", icon: ClipboardList, labelKey: "laboratory.nav.requests" },
       { id: "catalog", icon: ShoppingBag, labelKey: "laboratory.catalog.title" },
-      { id: "templates", icon: FileStack, labelKey: "laboratory.bottomNav.templates" },
       { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
     ];
   }, [labMode]);

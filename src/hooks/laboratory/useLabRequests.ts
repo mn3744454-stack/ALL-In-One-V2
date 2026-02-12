@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
@@ -48,6 +49,11 @@ export interface LabRequest {
   };
   // Services linked via join table
   lab_request_services?: LabRequestService[];
+  // Initiator tenant (joined in lab full mode)
+  initiator_tenant?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface CreateLabRequestData {
@@ -74,29 +80,33 @@ export function useLabRequests() {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { labMode } = useModuleAccess();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
+  const isLabFull = labMode === 'full';
 
   const { data: requests = [], isLoading, error, refetch } = useQuery({
-    queryKey: queryKeys.labRequests(tenantId),
+    queryKey: queryKeys.labRequests(tenantId, labMode),
     queryFn: async () => {
       if (!tenantId) return [];
       
+      // Lab full mode: see incoming requests (lab_tenant_id = us)
+      // Stable/requests mode: see own requests (tenant_id = us)
+      const filterColumn = isLabFull ? 'lab_tenant_id' : 'tenant_id';
+      
+      // Build select: always include base + horse + services; lab mode also gets initiator tenant name
+      const selectStr = isLabFull
+        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_tenant_id_fkey(id, name)`
+        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, service:lab_services(id, name, name_ar, code, category, price, currency))`;
+      
       const { data, error } = await supabase
         .from('lab_requests')
-        .select(`
-          *,
-          horse:horses(id, name, name_ar),
-          lab_request_services(
-            service_id,
-            service:lab_services(id, name, name_ar, code, category, price, currency)
-          )
-        `)
-        .eq('tenant_id', tenantId)
+        .select(selectStr)
+        .eq(filterColumn, tenantId)
         .order('requested_at', { ascending: false });
       
       if (error) throw error;
-      return data as LabRequest[];
+      return (data as unknown) as LabRequest[];
     },
     enabled: !!tenantId,
   });
@@ -147,7 +157,7 @@ export function useLabRequests() {
       return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId, labMode) });
       toast.success(t('laboratory.requests.created') || 'Lab request created');
     },
     onError: (error) => {
@@ -169,7 +179,7 @@ export function useLabRequests() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId, labMode) });
       toast.success(t('laboratory.requests.updated') || 'Lab request updated');
     },
     onError: (error) => {
@@ -188,7 +198,7 @@ export function useLabRequests() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId, labMode) });
       toast.success(t('laboratory.requests.deleted') || 'Lab request deleted');
     },
     onError: (error) => {

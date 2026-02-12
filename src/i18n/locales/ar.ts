@@ -323,6 +323,7 @@ export const ar = {
     nav: {
       samples: "العينات",
       results: "النتائج",
+      requests: "الطلبات",
       compare: "المقارنة",
       timeline: "السجل الزمني",
       templates: "القوالب",
@@ -407,6 +408,15 @@ export const ar = {
       pending: "قيد الانتظار",
       sent: "مُرسل",
       receivedLabel: "مُستلم",
+      // Lab Full Mode actions
+      incomingTitle: "الطلبات الواردة",
+      incomingSubtitle: "إدارة طلبات الفحوصات من الإسطبلات الشريكة",
+      updateStatus: "تحديث الحالة",
+      publishResult: "نشر النتيجة",
+      resultUrl: "رابط النتيجة",
+      resultUrlPlaceholder: "https://...",
+      initiatorStable: "الإسطبل الطالب",
+      unknownService: "خدمة غير معروفة",
     },
     
     // Lab Billing

@@ -25,7 +25,7 @@ export const queryKeys = {
   labHorses: (tenantId?: string, filters?: Record<string, unknown>) => 
     ['lab-horses', tenantId, stableStringify(filters)] as const,
   labResults: (tenantId?: string) => ['lab-results', tenantId] as const,
-  labRequests: (tenantId?: string) => ['lab-requests', tenantId] as const,
+  labRequests: (tenantId?: string, mode?: string) => ['lab-requests', tenantId, mode] as const,
   labTemplates: (tenantId?: string) => ['lab-templates', tenantId] as const,
   labTestTypes: (tenantId?: string) => ['lab-test-types', tenantId] as const,
   labCredits: (tenantId?: string) => ['lab-credits', tenantId] as const,
