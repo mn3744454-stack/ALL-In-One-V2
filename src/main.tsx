@@ -3,20 +3,23 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-// Aggressive cache cleanup to prevent stale builds
-// This runs on EVERY app start to ensure fresh code
+// Cache cleanup — skip the push service worker (sw.js)
 (async function cleanupCaches() {
   try {
-    // Unregister ALL service workers
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const registration of registrations) {
+        // Keep the push notification service worker
+        if (registration.active?.scriptURL?.endsWith('/sw.js')) {
+          console.log('[CACHE] Keeping push SW:', registration.scope);
+          continue;
+        }
         await registration.unregister();
         console.log('[CACHE] Unregistered service worker:', registration.scope);
       }
     }
     
-    // Delete ALL cache storage entries
+    // Delete ALL cache storage entries (push SW doesn't use caches)
     if ('caches' in window) {
       const names = await caches.keys();
       for (const name of names) {
