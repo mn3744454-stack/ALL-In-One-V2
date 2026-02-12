@@ -7905,6 +7905,18 @@ export type Database = {
         Returns: string
       }
       get_horse_share_view: { Args: { _token: string }; Returns: Json }
+      get_lab_request_threads: {
+        Args: never
+        Returns: {
+          horse_name: string
+          last_message_at: string
+          last_message_body: string
+          last_sender_tenant_id: string
+          message_count: number
+          request_id: string
+          test_description: string
+        }[]
+      }
       get_lab_services_for_viewer: {
         Args: {
           _category?: string
