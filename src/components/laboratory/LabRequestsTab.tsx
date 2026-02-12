@@ -513,6 +513,11 @@ function RequestDetailDialog({
 }) {
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
+  const { labMode } = useModuleAccess();
+  const isLabFull = labMode === 'full';
+  const [statusValue, setStatusValue] = useState(request.status);
+  const [resultUrl, setResultUrl] = useState(request.result_url || '');
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const horseName = dir === 'rtl' && request.horse?.name_ar
     ? request.horse.name_ar
@@ -529,6 +534,28 @@ function RequestDetailDialog({
     });
   };
 
+  const handleStatusChange = async (newStatus: string) => {
+    setStatusValue(newStatus as LabRequest['status']);
+    await updateRequest({
+      id: request.id,
+      status: newStatus as LabRequest['status'],
+    });
+  };
+
+  const handlePublishResult = async () => {
+    if (!resultUrl.trim()) return;
+    setIsPublishing(true);
+    try {
+      await updateRequest({
+        id: request.id,
+        result_url: resultUrl.trim(),
+        status: 'ready',
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
@@ -537,6 +564,12 @@ function RequestDetailDialog({
             {horseName}
             <RequestStatusBadge status={request.status} />
           </DialogTitle>
+          {isLabFull && request.initiator_tenant?.name && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Building2 className="h-3 w-3" />
+              {t('laboratory.requests.initiatorStable') || 'Requesting Stable'}: {request.initiator_tenant.name}
+            </p>
+          )}
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab || "details"} className="flex-1 flex flex-col min-h-0">
@@ -553,6 +586,51 @@ function RequestDetailDialog({
 
           <TabsContent value="details" className="flex-1 overflow-y-auto px-6 pb-6 mt-0">
             <div className="space-y-4 pt-4">
+              {/* Lab Full Mode: Status Dropdown */}
+              {isLabFull && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {t('laboratory.requests.updateStatus') || 'Update Status'}
+                  </Label>
+                  <Select value={statusValue} onValueChange={handleStatusChange}>
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">{t('laboratory.requests.status.pending') || 'Pending'}</SelectItem>
+                      <SelectItem value="sent">{t('laboratory.requests.status.sent') || 'Sent'}</SelectItem>
+                      <SelectItem value="processing">{t('laboratory.requests.status.processing') || 'Processing'}</SelectItem>
+                      <SelectItem value="ready">{t('laboratory.requests.status.ready') || 'Ready'}</SelectItem>
+                      <SelectItem value="cancelled">{t('laboratory.requests.status.cancelled') || 'Cancelled'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Lab Full Mode: Result URL Publish */}
+              {isLabFull && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">
+                    {t('laboratory.requests.resultUrl') || 'Result URL'}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={resultUrl}
+                      onChange={(e) => setResultUrl(e.target.value)}
+                      placeholder={t('laboratory.requests.resultUrlPlaceholder') || 'https://...'}
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handlePublishResult}
+                      disabled={!resultUrl.trim() || isPublishing}
+                    >
+                      {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : t('laboratory.requests.publishResult') || 'Publish'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Description */}
               <div>
                 <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -571,7 +649,7 @@ function RequestDetailDialog({
                     {services.map(s => (
                       <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
                         <Tag className="h-3 w-3" />
-                        {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || s.service_id}
+                        {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service'}
                         {s.service?.code && <span className="font-mono opacity-70">({s.service.code})</span>}
                       </Badge>
                     ))}
@@ -588,7 +666,7 @@ function RequestDetailDialog({
                   </span>
                 )}
                 <span>
-                  {format(new Date(request.requested_at), 'MMM dd, yyyy')}
+                  {format(new Date(request.requested_at), 'PP')}
                 </span>
                 {request.priority && request.priority !== 'normal' && (
                   <Badge variant="outline" className="text-xs">{t(`common.${request.priority}`) || request.priority}</Badge>
@@ -616,21 +694,23 @@ function RequestDetailDialog({
                 </a>
               )}
 
-              {/* Actions */}
-              <div className="flex gap-2 pt-2">
-                {request.status === 'ready' && (
-                  <Button size="sm" variant="outline" onClick={handleMarkReceived}>
-                    <CheckCircle2 className="h-4 w-4 me-2" />
-                    {t('laboratory.requests.markReceived') || 'Mark as Received'}
-                  </Button>
-                )}
-                {isBillable && canCreateInvoice && (
-                  <Button size="sm" variant="outline" onClick={onGenerateInvoice}>
-                    <Receipt className="h-4 w-4 me-2" />
-                    {t('laboratory.billing.generateInvoice') || 'Generate Invoice'}
-                  </Button>
-                )}
-              </div>
+              {/* Stable-only Actions */}
+              {!isLabFull && (
+                <div className="flex gap-2 pt-2">
+                  {request.status === 'ready' && (
+                    <Button size="sm" variant="outline" onClick={handleMarkReceived}>
+                      <CheckCircle2 className="h-4 w-4 me-2" />
+                      {t('laboratory.requests.markReceived') || 'Mark as Received'}
+                    </Button>
+                  )}
+                  {isBillable && canCreateInvoice && (
+                    <Button size="sm" variant="outline" onClick={onGenerateInvoice}>
+                      <Receipt className="h-4 w-4 me-2" />
+                      {t('laboratory.billing.generateInvoice') || 'Generate Invoice'}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -713,7 +793,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </span>
           )}
           <span>
-            {format(new Date(request.requested_at), 'MMM dd, yyyy')}
+            {format(new Date(request.requested_at), 'PP')}
           </span>
         </div>
 
@@ -723,7 +803,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             {services.map(s => (
               <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
                 <Tag className="h-3 w-3" />
-                {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || s.service_id}
+                {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service'}
                 {s.service?.code && (
                   <span className="font-mono opacity-70">({s.service.code})</span>
                 )}
@@ -856,6 +936,7 @@ export function LabRequestsTab() {
   };
 
   const isStableMode = labMode === 'requests';
+  const isLabFull = labMode === 'full';
 
   const filteredRequests = requests.filter(req => {
     const matchesSearch = !searchQuery || 
@@ -885,12 +966,18 @@ export function LabRequestsTab() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">{t('laboratory.requests.title') || 'Lab Test Requests'}</h2>
+          <h2 className="text-xl font-semibold">
+            {isLabFull
+              ? (t('laboratory.requests.incomingTitle') || 'Incoming Requests')
+              : (t('laboratory.requests.title') || 'Lab Test Requests')}
+          </h2>
           <p className="text-muted-foreground text-sm">
-            {t('laboratory.requests.subtitle') || 'Request and track lab tests from external laboratories'}
+            {isLabFull
+              ? (t('laboratory.requests.incomingSubtitle') || 'Manage lab test requests from partner stables')
+              : (t('laboratory.requests.subtitle') || 'Request and track lab tests from external laboratories')}
           </p>
         </div>
-        <CreateRequestDialog />
+        {!isLabFull && <CreateRequestDialog />}
       </div>
 
       {/* Partnership Inbox - only for stable tenants */}

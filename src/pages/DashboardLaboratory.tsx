@@ -63,7 +63,7 @@ export default function DashboardLaboratory() {
       return ['requests', 'settings'];
     }
     // Full lab mode - now includes 'horses'
-    return ['samples', 'results', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
+    return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
   }, [labMode]);
 
   // Get active tab from URL, validate, or use first available (smart default)

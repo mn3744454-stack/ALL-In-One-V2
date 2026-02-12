@@ -300,6 +300,7 @@ export const en = {
     nav: {
       samples: "Samples",
       results: "Results",
+      requests: "Requests",
       compare: "Compare",
       timeline: "Timeline",
       templates: "Templates",
@@ -384,6 +385,15 @@ export const en = {
       pending: "pending",
       sent: "Sent",
       receivedLabel: "Received",
+      // Lab Full Mode actions
+      incomingTitle: "Incoming Requests",
+      incomingSubtitle: "Manage lab test requests from partner stables",
+      updateStatus: "Update Status",
+      publishResult: "Publish Result",
+      resultUrl: "Result URL",
+      resultUrlPlaceholder: "https://...",
+      initiatorStable: "Requesting Stable",
+      unknownService: "Unknown Service",
     },
     
     // Lab Billing
