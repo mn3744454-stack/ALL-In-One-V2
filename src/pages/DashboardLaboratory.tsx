@@ -23,7 +23,9 @@ import {
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag } from "lucide-react";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
+import { StableResultsView } from "@/components/laboratory/StableResultsView";
+import { StableMessagesView } from "@/components/laboratory/StableMessagesView";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
@@ -60,7 +62,7 @@ export default function DashboardLaboratory() {
   // Compute available tabs based on labMode
   const availableTabs = useMemo(() => {
     if (labMode === 'requests') {
-      return ['requests', 'settings'];
+      return ['requests', 'results', 'messages', 'settings'];
     }
     // Full lab mode - now includes 'horses'
     return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
@@ -88,7 +90,9 @@ export default function DashboardLaboratory() {
     // Redirect to first available tab if current tab is invalid
     if (urlTab && !availableTabs.includes(urlTab)) {
       const next = new URLSearchParams(searchParams);
-      next.set('tab', availableTabs[0]);
+      // Preserve requestId context by redirecting to 'requests' tab
+      const hasRequestId = searchParams.has('requestId');
+      next.set('tab', hasRequestId ? 'requests' : availableTabs[0]);
       setSearchParams(next, { replace: true });
     }
   }, [availableTabs, searchParams, setSearchParams, isPrimaryLabTenant, navigate]);
@@ -195,6 +199,14 @@ export default function DashboardLaboratory() {
                       <ClipboardList className="h-4 w-4" />
                       {t("laboratory.tabs.requests") || "Requests"}
                     </TabsTrigger>
+                    <TabsTrigger value="results" className="gap-2">
+                      <FileText className="h-4 w-4" />
+                      {t("laboratory.stableResults.tabLabel") || "Results"}
+                    </TabsTrigger>
+                    <TabsTrigger value="messages" className="gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      {t("laboratory.messages.tabLabel") || "Messages"}
+                    </TabsTrigger>
                     <TabsTrigger value="settings" className="gap-2">
                       <Settings className="h-4 w-4" />
                       {t("laboratory.tabs.settings")}
@@ -239,6 +251,35 @@ export default function DashboardLaboratory() {
             <TabsContent value="requests">
               <LabRequestsTab />
             </TabsContent>
+
+            {/* Stable Results Tab - requests with published results */}
+            {labMode === 'requests' && (
+              <TabsContent value="results">
+                <StableResultsView
+                  onRequestClick={(requestId) => {
+                    const next = new URLSearchParams(searchParams);
+                    next.set('tab', 'requests');
+                    next.set('requestId', requestId);
+                    setSearchParams(next, { replace: true });
+                  }}
+                />
+              </TabsContent>
+            )}
+
+            {/* Stable Messages Tab - standalone inbox */}
+            {labMode === 'requests' && (
+              <TabsContent value="messages">
+                <StableMessagesView
+                  onThreadClick={(requestId) => {
+                    const next = new URLSearchParams(searchParams);
+                    next.set('tab', 'requests');
+                    next.set('requestId', requestId);
+                    next.set('openThread', 'true');
+                    setSearchParams(next, { replace: true });
+                  }}
+                />
+              </TabsContent>
+            )}
 
             {/* Full Lab Mode Tabs */}
             <TabsContent value="samples">
