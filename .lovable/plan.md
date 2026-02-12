@@ -1,282 +1,445 @@
 
 
-# Final Authoritative Execution Plan
+# PWA Web Push Notifications -- Audit and Implementation Plan
 
 ---
 
-## Subphase A: Fix Stable Results Tab Gating + In-Place Dialog
+## Section 0: Current State Audit
 
-### Files to change
-- `src/pages/DashboardLaboratory.tsx`
-- `src/components/laboratory/RequestDetailDialog.tsx` (NEW)
-- `src/components/laboratory/LabRequestsTab.tsx`
-- `src/components/laboratory/StableResultsView.tsx`
+### 0.1 Notification Creation (DB Triggers)
 
-### Code actions
+All notification generation happens via DB triggers defined in `supabase/migrations/20260211160905_...sql`:
 
-**A.1 -- Extract RequestDetailDialog to shared file**
+| Trigger | Table | Event | event_type value | Target tenant |
+|---|---|---|---|---|
+| `trg_notify_connection_created` | `connections` | AFTER INSERT | `connection.request_received` | recipient_tenant |
+| `trg_notify_connection_status_change` | `connections` | AFTER UPDATE OF status | `connection.accepted` / `connection.rejected` | initiator_tenant |
+| `trg_notify_lab_request_created` | `lab_requests` | AFTER INSERT | `lab_request.new` | lab_tenant |
+| `trg_notify_lab_request_updated` | `lab_requests` | AFTER UPDATE | `lab_request.status_changed` / `lab_request.result_published` | initiator_tenant |
+| `trg_notify_lab_request_message` | `lab_request_messages` | AFTER INSERT | `lab_request.message_added` | opposite tenant (sender logic) |
 
-Create `src/components/laboratory/RequestDetailDialog.tsx` containing the `RequestDetailDialog` function (currently at LabRequestsTab.tsx lines 499-723) and its helper `RequestStatusBadge` (lines 45-56). Export both. All imports the function currently uses (useLabRequests, useModuleAccess, useI18n, UI components, icons, format) must be included.
+All triggers call `_notify_tenant_members()` which fans out INSERT into `notifications` table per active tenant member, with a 10-second dedup window.
 
-Props interface (unchanged from current):
-```typescript
-interface RequestDetailDialogProps {
-  request: LabRequest;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  defaultTab?: string;
-  canCreateInvoice: boolean;
-  onGenerateInvoice: () => void;
+### 0.2 Edge Functions (server routes)
+
+- `supabase/functions/send-invitation-email/index.ts` -- sends email via Resend API for invitations
+- `supabase/functions/send-ownership-notification/index.ts` -- ownership transfer emails
+- `supabase/functions/shared-media-sign/index.ts` -- media signing
+- `supabase/functions/expire-stale-connections/index.ts` -- cron cleanup
+- `supabase/functions/backend-proxy/index.ts` -- proxy
+
+**No push notification edge functions exist today.**
+
+### 0.3 Client-Side Notification Handling
+
+- `src/hooks/useNotifications.ts` -- fetches from `notifications` table, Realtime subscription on INSERT/UPDATE, provides `markAsRead`, `markAllAsRead`, `deleteNotification`
+- `src/components/NotificationsPanel.tsx` -- Bell icon Sheet with nested tabs (Invitations sent/received + Notifications read/unread)
+  - `getNotificationRoute()` (lines 82-98) maps event_type to deep-link URL
+  - `getNotificationIcon()` (lines 75-80) maps event_type prefix to icon
+
+### 0.4 Routing Map (`getNotificationRoute` at NotificationsPanel.tsx:82-98)
+
+| event_type pattern | Route |
+|---|---|
+| `connection.*` | `/dashboard/laboratory?tab=requests` |
+| `lab_request.message_added` | `/dashboard/laboratory?tab=requests&requestId={entity_id}&openThread=true` |
+| `lab_request.*` (with entity_id) | `/dashboard/laboratory?tab=requests&requestId={entity_id}` |
+| fallback | `/dashboard/laboratory?tab=requests` |
+
+### 0.5 User/Tenant Context
+
+- `src/contexts/AuthContext.tsx` -- `user` (from Supabase Auth), `profile` (from profiles table), `session`
+- `src/contexts/TenantContext.tsx` -- `activeTenant` (TenantMembership with nested tenant), `activeRole`, `workspaceMode`
+- `labMode` derived in `DashboardLaboratory.tsx` from tenant type
+
+### 0.6 Relevant Tables
+
+- **`notifications`**: `id`, `user_id`, `tenant_id`, `event_type`, `title`, `body`, `entity_type`, `entity_id`, `is_read`, `read_at`, `created_at`. RLS: user can SELECT/UPDATE/DELETE own. Realtime enabled. Immutable guard on core fields.
+- **`tenant_members`**: `user_id`, `tenant_id`, `role`, `is_active`, `can_invite`, `can_manage_horses`
+- **No `push_subscriptions` or `notification_preferences` tables exist.**
+
+### 0.7 PWA Status
+
+PWA is **currently disabled** in `vite.config.ts` (VitePWA plugin commented out). Service workers are **aggressively unregistered** on every app start in `src/main.tsx`. No service worker file exists for push.
+
+### 0.8 Gaps
+
+1. No push subscription storage
+2. No notification preferences model
+3. No VAPID keys configured
+4. No push-sending edge function
+5. No service worker for push events
+6. PWA disabled -- must re-enable for push to work
+7. `getNotificationRoute` only handles lab/connection events -- no invitation routing
+8. No quiet hours / do-not-disturb support
+
+---
+
+## Section 1: Push Architecture
+
+```text
++------------------+     +-------------------+     +--------------------+
+|  DB Triggers     |     |  notifications    |     |  send-push-        |
+|  (existing)      |---->|  table (INSERT)   |---->|  notification      |
+|                  |     |                   |     |  Edge Function     |
++------------------+     +-------------------+     +--------------------+
+                                                         |
+                                   +---------------------+
+                                   |
+                          +--------v--------+
+                          | For each device  |
+                          | subscription:    |
+                          |                  |
+                          | 1. Check prefs   |
+                          | 2. Check quiet   |
+                          | 3. web-push send |
+                          +---------+--------+
+                                    |
+                          +---------v--------+
+                          |  Browser Push    |
+                          |  Service (FCM /  |
+                          |  APNs via WPN)   |
+                          +--------+---------+
+                                   |
+                          +--------v---------+
+                          |  Service Worker  |
+                          |  (sw.js)         |
+                          |  - push event    |
+                          |  - notification  |
+                          |    click handler |
+                          +------------------+
+```
+
+**Components:**
+
+1. **DB Triggers** (existing) -- write to `notifications` table (source of truth)
+2. **DB Trigger on notifications INSERT** (NEW) -- calls `pg_net` to invoke edge function
+3. **`send-push-notification` Edge Function** (NEW) -- receives notification row, queries `push_subscriptions` and `notification_preferences`, sends web-push via `web-push` library using VAPID keys
+4. **Service Worker** (NEW, `public/sw.js`) -- handles `push` event (show OS notification) and `notificationclick` event (deep-link into app)
+5. **Client Push Manager** (NEW) -- subscribes to push, stores subscription to DB, handles permission UX
+
+**iOS Notes:**
+- Web Push requires iOS 16.4+ and the app MUST be installed via "Add to Home Screen"
+- Permission prompt only works when triggered by user gesture inside the installed PWA
+- The service worker must be registered via the PWA manifest
+- We will detect iOS and show a guided "Add to Home Screen" flow before requesting permission
+
+**Android Notes:**
+- Works in any Chromium browser without installation (though PWA install improves reliability)
+- Permission prompt can be shown after user gesture
+
+---
+
+## Section 2: Data Model
+
+### 2.1 `push_subscriptions` Table
+
+```sql
+CREATE TABLE public.push_subscriptions (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id       uuid NOT NULL,
+  endpoint      text NOT NULL,
+  p256dh        text NOT NULL,
+  auth          text NOT NULL,
+  device_label  text,          -- e.g. "Chrome on Android", derived from user-agent
+  platform      text,          -- 'android', 'ios', 'desktop', 'unknown'
+  is_active     boolean NOT NULL DEFAULT true,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  last_seen_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, endpoint)
+);
+
+-- RLS: users manage own subscriptions only
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own push subscriptions"
+  ON public.push_subscriptions FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+User-scoped (not tenant-scoped) because a user receives notifications across all their tenants.
+
+### 2.2 `notification_preferences` Table
+
+```sql
+CREATE TABLE public.notification_preferences (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           uuid NOT NULL UNIQUE,
+
+  -- Per-category push toggles (all default true)
+  push_messages     boolean NOT NULL DEFAULT true,
+  push_results      boolean NOT NULL DEFAULT true,
+  push_status       boolean NOT NULL DEFAULT true,
+  push_invitations  boolean NOT NULL DEFAULT true,
+  push_partnerships boolean NOT NULL DEFAULT true,
+
+  -- In-app sound (play sound when notification arrives while app is open)
+  in_app_sound      boolean NOT NULL DEFAULT true,
+
+  -- Quiet hours (UTC-based, null = no quiet hours)
+  quiet_start       time,       -- e.g. '22:00'
+  quiet_end         time,       -- e.g. '07:00'
+  quiet_timezone    text DEFAULT 'Asia/Riyadh',
+
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users manage own preferences"
+  ON public.notification_preferences FOR ALL
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+```
+
+**Category-to-event_type mapping** (used by edge function):
+
+| Category column | event_type patterns |
+|---|---|
+| `push_messages` | `lab_request.message_added` |
+| `push_results` | `lab_request.result_published` |
+| `push_status` | `lab_request.new`, `lab_request.status_changed` |
+| `push_invitations` | (future: `invitation.*`) |
+| `push_partnerships` | `connection.*` |
+
+**`shouldSendPush` logic** (in edge function):
+
+```text
+1. Map notification.event_type to preference column
+2. If preference column is false -> skip
+3. If quiet hours set:
+   a. Convert current time to user's quiet_timezone
+   b. If quiet_start <= current_time < quiet_end -> skip
+      (handles overnight wrap: if start > end, quiet = start..midnight + midnight..end)
+4. Send push to all active subscriptions for this user
+```
+
+### 2.3 Example Rows
+
+**push_subscriptions:**
+| user_id | endpoint | platform | is_active |
+|---|---|---|---|
+| abc-123 | https://fcm.googleapis.com/fcm/send/... | android | true |
+| abc-123 | https://web.push.apple.com/... | ios | true |
+
+**notification_preferences:**
+| user_id | push_messages | push_results | quiet_start | quiet_end | quiet_timezone |
+|---|---|---|---|---|---|
+| abc-123 | true | true | 22:00 | 07:00 | Asia/Riyadh |
+
+---
+
+## Section 3: Triggering and Sending Flow
+
+**Approach: DB trigger on `notifications` INSERT calls Edge Function via `pg_net`**
+
+### Step-by-step flow:
+
+1. Existing trigger (e.g. `trg_notify_lab_request_message`) fires and calls `_notify_tenant_members()`
+2. `_notify_tenant_members()` INSERTs rows into `notifications` (one per user)
+3. NEW trigger `trg_push_on_notification_insert` fires AFTER INSERT on `notifications`
+4. This trigger calls `net.http_post()` (from `pg_net` extension) to invoke `send-push-notification` edge function with the notification row payload
+5. Edge function:
+   a. Validates payload (user_id, event_type)
+   b. Queries `notification_preferences` for user -- checks category toggle
+   c. Checks quiet hours
+   d. If should send: queries `push_subscriptions` WHERE user_id AND is_active
+   e. For each subscription: sends web-push using VAPID keys
+   f. On 410 Gone / invalid endpoint: marks subscription `is_active = false`
+   g. Returns success/partial counts
+
+### Duplicate Prevention
+- Already handled by `_notify_tenant_members()` 10-second dedup window
+- Edge function is idempotent (sending same push twice is harmless but dedup prevents it)
+
+### Retry/Failure Handling
+- `pg_net` is fire-and-forget; if edge function fails, the in-app notification still exists
+- Edge function logs failures; expired endpoints get deactivated (`is_active = false`)
+- No retry queue needed for MVP (push is best-effort by nature)
+
+### Multi-device
+- Edge function loops all active subscriptions for the user and sends to each
+
+---
+
+## Section 4: Client Implementation
+
+### 4.1 Permission UX
+
+**When to ask:** After user logs in and navigates to dashboard for the first time (or from a dedicated settings page). Never on first page load before auth.
+
+**Flow:**
+1. Check `Notification.permission` state
+2. If `'default'` (not yet asked): show a soft prompt banner/card: "Enable push notifications to stay updated on messages, results, and requests"
+3. On user click "Enable": call `Notification.requestPermission()`
+4. If granted: subscribe via `PushManager.subscribe()` with VAPID public key, save subscription to `push_subscriptions` table
+5. If denied: hide banner, respect choice
+
+**iOS flow:**
+1. Detect iOS via user agent
+2. Check if running in standalone mode (`window.matchMedia('(display-mode: standalone)').matches`)
+3. If not standalone: show guidance card "To receive notifications, install this app: tap Share > Add to Home Screen"
+4. If standalone: proceed with normal permission flow
+
+**Where in UI:**
+- Soft prompt banner: `src/components/push/PushPermissionBanner.tsx` -- rendered in Dashboard layout after auth
+- Settings page: Add "Notifications" section to `/dashboard/settings` with all preference toggles + push enable/disable + quiet hours
+- `src/pages/DashboardNotificationSettings.tsx` (NEW) at route `/dashboard/settings/notifications`
+
+### 4.2 Service Worker
+
+**File: `public/sw.js`**
+
+```text
+push event handler:
+  - Parse payload JSON: { title, body, icon, badge, data: { url, notificationId } }
+  - Show notification via self.registration.showNotification(title, { body, icon, badge, data })
+
+notificationclick handler:
+  - Extract data.url from notification
+  - Call clients.openWindow(data.url) or focus existing window
+  - Close notification
+
+Payload contract (sent from edge function):
+{
+  "title": "New message on lab request",
+  "body": "Preview of message body...",
+  "icon": "/icons/icon-192x192.png",
+  "badge": "/icons/badge-72x72.png",
+  "data": {
+    "url": "/dashboard/laboratory?tab=requests&requestId=xxx&openThread=true",
+    "notificationId": "notification-uuid"
+  }
 }
 ```
 
-**A.2 -- Update LabRequestsTab.tsx**
+**Service worker registration** in `src/lib/pushManager.ts`:
+- Register `sw.js` (NOT via VitePWA -- separate registration for push only)
+- This avoids conflicts with the currently-disabled PWA caching
 
-- Remove the internal `RequestDetailDialog` function (lines 499-723) and `RequestStatusBadge` (lines 45-56).
-- Add import: `import { RequestDetailDialog, RequestStatusBadge } from "./RequestDetailDialog";`
-- Everything else unchanged.
+### 4.3 In-app + Push Reconciliation
 
-**A.3 -- Gate full-mode Results TabsContent**
+- In-app notifications continue via existing Realtime subscription (`useNotifications.ts`)
+- Push is additive -- it notifies users who are NOT currently in the app
+- Unread badge count remains driven by the `notifications` table (source of truth)
+- If push is disabled: user still sees all notifications in-app via the bell icon
+- Clicking a push notification deep-links to the correct route (same routes as `getNotificationRoute`)
+- On notification click, edge function payload includes `notificationId` so the service worker could optionally mark it read (stretch goal)
 
-In `DashboardLaboratory.tsx`, wrap lines 291-299:
+### 4.4 Re-enable PWA (conditional)
 
-```
-Before:  <TabsContent value="results">
-After:   {labMode === 'full' && <TabsContent value="results">
-```
+PWA re-enablement is **not strictly required** for push. We can register a minimal service worker (`sw.js`) for push only without the full VitePWA caching layer. This avoids the caching issues that led to PWA being disabled.
 
-Close with `}` after the closing `</TabsContent>`.
-
-**A.4 -- StableResultsView: in-place dialog**
-
-- Remove `onRequestClick` prop entirely.
-- Add internal state: `detailRequest`, `detailOpen`.
-- Import and render `RequestDetailDialog` inside the component.
-- On card click: `setDetailRequest(r); setDetailOpen(true);`
-- No URL navigation whatsoever.
-- Remove `onRequestClick` prop from DashboardLaboratory.tsx (lines 259-264 become just `<StableResultsView />`).
-
-### Acceptance criteria
-- Stable tenant on `?tab=results` sees `StableResultsView` cards, NOT `ResultsList`.
-- Clicking a result card opens `RequestDetailDialog` on "details" tab without changing the page tab.
-- Closing the dialog returns to Results tab, no tab change.
-- Lab tenant on `?tab=results` still sees `ResultsList`.
-
-### Manual test steps
-1. Log in as stable tenant.
-2. Navigate to `/dashboard/laboratory?tab=results`.
-3. Verify: card-based UI with horse name, test description, result link. NOT the full-mode ResultsList with create button.
-4. Click a result card -- dialog opens, URL still shows `tab=results`.
-5. Close dialog -- still on Results tab.
-6. Switch to lab tenant, verify `?tab=results` shows `ResultsList`.
+However, for iOS web push, the app MUST be "installed" (Add to Home Screen), which requires a valid web app manifest. We should add a minimal `manifest.json` without the VitePWA caching workbox -- just the manifest metadata for installability.
 
 ---
 
-## Subphase B: Fix Messages Tab In-Place Dialog (No Tab Jump)
+## Section 5: File Changes Summary
 
-### Files to change
-- `src/components/laboratory/StableMessagesView.tsx`
-- `src/pages/DashboardLaboratory.tsx`
+### New Files
 
-### Code actions
-
-**B.1 -- StableMessagesView: in-place dialog**
-
-- Remove `onThreadClick` prop.
-- Add `useLabRequests` import to fetch full request data (needed for `RequestDetailDialog`).
-- Add internal state: `selectedRequestId`, `detailOpen`.
-- On thread card click: set `selectedRequestId` and `detailOpen = true`.
-- Derive `detailRequest` from `requests.find(r => r.id === selectedRequestId)`.
-- Render `RequestDetailDialog` with `defaultTab="thread"`.
-- Import `RequestDetailDialog` from `./RequestDetailDialog`.
-- Permission: `canCreateInvoice` derived from `useTenant().activeRole` (owner/manager).
-- No URL navigation.
-
-**B.2 -- DashboardLaboratory.tsx: simplify Messages TabsContent**
-
-Lines 270-281: Remove the `onThreadClick` handler. Simply render `<StableMessagesView />` with no props.
-
-### Acceptance criteria
-- Clicking a thread in Messages tab opens `RequestDetailDialog` on "thread" panel.
-- URL remains `tab=messages` throughout.
-- Closing dialog returns to Messages list, no tab change.
-
-### Manual test steps
-1. Navigate to `/dashboard/laboratory?tab=messages`.
-2. Click a thread card.
-3. Verify: dialog opens with Messages/thread tab active.
-4. Verify: browser URL still shows `tab=messages`.
-5. Close dialog -- Messages list visible, tab unchanged.
-
----
-
-## Subphase C: Add View Toggle (Desktop Only)
-
-### Files to change
-- `src/components/laboratory/LabRequestsTab.tsx`
-- `src/components/laboratory/StableResultsView.tsx`
-- `src/components/laboratory/StableMessagesView.tsx`
-
-### Code actions
-
-**C.1 -- LabRequestsTab**
-
-- Import `ViewSwitcher`, `getGridClass` from `@/components/ui/ViewSwitcher` and `useViewPreference` from `@/hooks/useViewPreference`.
-- Add: `const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-requests');`
-- Place `<ViewSwitcher>` in the filter bar area (after status Select, line 1106), wrapped in `<div className="hidden lg:flex">` for desktop only.
-- Replace the hardcoded grid class `"grid gap-4 md:grid-cols-2 lg:grid-cols-3"` (line 1123) with `getGridClass(gridColumns, viewMode)`.
-- For table mode: render a simple `<table>` with columns: Horse | Test/Service | Status | Date | Actions (open detail button). Reuse `RequestStatusBadge`.
-- `showTable={true}` on ViewSwitcher.
-
-**C.2 -- StableResultsView**
-
-- Same imports as C.1.
-- `useViewPreference('lab-stable-results')`
-- Place `<ViewSwitcher>` next to the search input in the header (desktop only).
-- Replace hardcoded grid class `"grid gap-3 sm:grid-cols-2 lg:grid-cols-3"` (line 69) with `getGridClass(gridColumns, viewMode)`.
-- Table mode: Horse | Test | Lab | Date | Result Link.
-
-**C.3 -- StableMessagesView**
-
-- Same imports as C.1.
-- `useViewPreference('lab-messages')`
-- Place `<ViewSwitcher>` in the header area (desktop only).
-- Replace `"space-y-2"` (line 44) with `getGridClass(gridColumns, viewMode)` for grid/list modes.
-- Table mode: Horse | Test | Last Message | Count | Time.
-
-### Acceptance criteria
-- Desktop: Table/List/Grid toggle visible on all three views.
-- Mobile: toggle hidden, default layout used.
-- Preference persists on reload (localStorage).
-- Table mode shows consistent minimal columns.
-- Grid/List modes use responsive column layout.
-
-### Manual test steps
-1. Desktop: navigate to Requests tab, verify toggle visible.
-2. Switch between Table/List/Grid -- layout changes.
-3. Reload page -- preference persists.
-4. Repeat for Results and Messages tabs.
-5. Mobile viewport: verify toggle is hidden.
-
----
-
-## Subphase D: Fix RPC + Update Hook + Use horse_name_ar
-
-### Changes
-- Database migration (CREATE OR REPLACE FUNCTION)
-- `src/hooks/laboratory/useLabRequestThreads.ts`
-- `src/components/laboratory/StableMessagesView.tsx`
-
-### Code actions
-
-**D.1 -- Database migration**
-
-```sql
-CREATE OR REPLACE FUNCTION public.get_lab_request_threads()
-RETURNS TABLE (
-  request_id uuid,
-  horse_name text,
-  horse_name_ar text,
-  test_description text,
-  last_message_body text,
-  last_message_at timestamptz,
-  last_sender_tenant_id uuid,
-  message_count bigint
-)
-LANGUAGE sql STABLE SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT
-    lr.id AS request_id,
-    h.name AS horse_name,
-    h.name_ar AS horse_name_ar,
-    lr.test_description,
-    lm.body AS last_message_body,
-    lm.created_at AS last_message_at,
-    lm.sender_tenant_id AS last_sender_tenant_id,
-    (SELECT count(*) FROM lab_request_messages WHERE request_id = lr.id) AS message_count
-  FROM lab_requests lr
-  JOIN horses h ON h.id = lr.horse_id
-  JOIN LATERAL (
-    SELECT m.body, m.created_at, m.sender_tenant_id
-    FROM lab_request_messages m
-    WHERE m.request_id = lr.id
-    ORDER BY m.created_at DESC
-    LIMIT 1
-  ) lm ON true
-  WHERE EXISTS (
-    SELECT 1 FROM tenant_members tm
-    WHERE tm.user_id = auth.uid()
-    AND tm.is_active = true
-    AND (tm.tenant_id = lr.tenant_id OR tm.tenant_id = lr.lab_tenant_id)
-  )
-  ORDER BY lm.created_at DESC
-  LIMIT 50;
-$$;
-```
-
-Key corrections:
-- `message_count` uses subquery `(SELECT count(*) ...)` instead of broken `count(*) OVER()` with LIMIT 1.
-- Added `horse_name_ar` return column.
-- LATERAL join no longer carries count -- only fetches latest message fields.
-- Security: NO parameter, derives access from `auth.uid()` via `tenant_members`.
-
-**D.2 -- Update useLabRequestThreads.ts**
-
-Add `horse_name_ar: string | null;` to the `LabRequestThread` interface.
-
-**D.3 -- Update StableMessagesView.tsx**
-
-Use `horse_name_ar` in RTL mode:
-
-```tsx
-const displayName = dir === 'rtl' && thread.horse_name_ar
-  ? thread.horse_name_ar
-  : thread.horse_name;
-```
-
-Import `useI18n` for `dir` (already imported for `t`).
-
-### Acceptance criteria
-- RPC returns correct message_count (e.g., 5 messages shows "5", not "1").
-- `horse_name_ar` returned and displayed in Arabic UI.
-- Security: only requests where user is member of either tenant are returned.
-
-### Manual test steps
-1. Create 3+ messages on a single request thread.
-2. Navigate to Messages tab.
-3. Verify badge shows correct count (e.g., "3 messages").
-4. Switch to Arabic -- verify horse name shows Arabic variant.
-5. Log in as unrelated user -- verify no threads visible.
-
----
-
-## Files Summary
-
-| File | Action |
+| File | Purpose |
 |---|---|
-| `src/components/laboratory/RequestDetailDialog.tsx` | CREATE (extracted from LabRequestsTab) |
-| `src/components/laboratory/LabRequestsTab.tsx` | EDIT (remove internal dialog, add ViewSwitcher) |
-| `src/pages/DashboardLaboratory.tsx` | EDIT (gate full-mode results, simplify Results/Messages handlers) |
-| `src/components/laboratory/StableResultsView.tsx` | EDIT (in-place dialog, ViewSwitcher) |
-| `src/components/laboratory/StableMessagesView.tsx` | EDIT (in-place dialog, ViewSwitcher, horse_name_ar) |
-| `src/hooks/laboratory/useLabRequestThreads.ts` | EDIT (add horse_name_ar) |
-| DB Migration | CREATE OR REPLACE get_lab_request_threads() |
+| `public/sw.js` | Service worker for push + notificationclick |
+| `public/manifest.json` | Minimal PWA manifest for installability (iOS requirement) |
+| `supabase/functions/send-push-notification/index.ts` | Edge function: receive notification, check prefs, send web-push |
+| `src/lib/pushManager.ts` | Client-side push subscription management (register SW, subscribe, save to DB) |
+| `src/components/push/PushPermissionBanner.tsx` | Soft prompt banner for enabling push |
+| `src/hooks/usePushSubscription.ts` | Hook: manage push subscription state, register/unregister |
+| `src/hooks/useNotificationPreferences.ts` | Hook: CRUD on notification_preferences table |
+| `src/pages/DashboardNotificationSettings.tsx` | Full preferences page (categories, quiet hours, device management) |
+| DB migration | Tables: `push_subscriptions`, `notification_preferences`, trigger `trg_push_on_notification_insert` |
+
+### Modified Files
+
+| File | Change |
+|---|---|
+| `supabase/config.toml` | Add `[functions.send-push-notification]` with `verify_jwt = false` |
+| `src/App.tsx` | Add route `/dashboard/settings/notifications` |
+| `src/main.tsx` | Remove aggressive SW unregistration (or scope it to exclude push SW) |
+| `index.html` | Add `<link rel="manifest" href="/manifest.json">` |
+| `src/components/NotificationsPanel.tsx` | Add link to notification settings; extend `getNotificationRoute` for invitation events |
+| `src/components/dashboard/DashboardSidebar.tsx` | Add "Notification Settings" link under Settings |
+| `src/i18n/locales/en.ts` | Push/preferences i18n keys |
+| `src/i18n/locales/ar.ts` | Push/preferences i18n keys (Arabic) |
 
 ---
 
-## QA Checklist
+## Section 6: Phased Milestones
 
-| # | Issue | Test | Expected |
+### Phase 1: Foundation (DB + Edge Function)
+- Create `push_subscriptions` and `notification_preferences` tables with RLS
+- Create `send-push-notification` edge function
+- Create DB trigger on `notifications` INSERT to call edge function via `pg_net`
+- Generate and store VAPID keys as secrets
+- **Acceptance:** Edge function receives notification payload and logs it; tables exist with correct RLS
+
+### Phase 2: Service Worker + Client Subscription
+- Create `public/sw.js` with push + notificationclick handlers
+- Create `public/manifest.json` (minimal, for installability)
+- Update `index.html` with manifest link
+- Create `src/lib/pushManager.ts` for subscription management
+- Create `usePushSubscription` hook
+- Fix `src/main.tsx` to not unregister the push service worker
+- **Acceptance:** User can subscribe to push; subscription saved to DB; SW registered
+
+### Phase 3: Permission UX + Preferences UI
+- Create `PushPermissionBanner.tsx` soft prompt
+- Create `DashboardNotificationSettings.tsx` with category toggles, quiet hours, device list
+- Create `useNotificationPreferences` hook
+- Add route and sidebar link
+- i18n for EN + AR
+- **Acceptance:** User can toggle categories, set quiet hours, see/remove devices
+
+### Phase 4: End-to-End Push Delivery
+- Wire edge function to actually send web-push (using `web-push` npm package for Deno)
+- Implement preference checking + quiet hours logic in edge function
+- Handle 410 Gone (deactivate subscription)
+- Test with real Android + iOS devices
+- **Acceptance:** Push notifications arrive on device with correct content; clicking opens correct deep-link; quiet hours respected; disabled categories not sent
+
+### Phase 5: Polish + iOS Guidance
+- iOS "Add to Home Screen" detection and guidance UI
+- Extend `getNotificationRoute` for all event types (invitations, future modules)
+- Badge icon for push notifications
+- **Acceptance:** iOS users see install guidance; all event types route correctly
+
+---
+
+## Section 7: QA Checklist
+
+| # | Scenario | Steps | Expected |
 |---|---|---|---|
-| 1 | Stable Results wrong UI | Stable tenant, `?tab=results` | StableResultsView cards, NOT ResultsList |
-| 2 | Results dialog tab jump | Click result card | Dialog opens, URL stays `tab=results` |
-| 3 | Messages dialog tab jump | Click thread card | Dialog opens on thread tab, URL stays `tab=messages` |
-| 4 | Messages dialog close | Close dialog from Messages | Returns to Messages list, no tab change |
-| 5 | Lab Full Mode results | Lab tenant, `?tab=results` | Still shows ResultsList |
-| 6 | View toggle desktop | All 3 tabs on desktop | Toggle visible, functional, persistent |
-| 7 | View toggle mobile | All 3 tabs on mobile | Toggle hidden |
-| 8 | RPC message_count | Thread with N messages | Badge shows N (not 1) |
-| 9 | RPC horse_name_ar | Arabic UI | Arabic horse name displayed |
-| 10 | RPC security | Unrelated user | No threads visible |
+| 1 | Push for new message | Send lab request message | Push arrives with message preview; click opens thread |
+| 2 | Push for result published | Publish result on lab request | Push arrives; click opens request detail |
+| 3 | Push for status change | Change lab request status | Push arrives with new status |
+| 4 | Push for partnership request | Create connection request | Push arrives for recipient tenant members |
+| 5 | Category toggle OFF | Disable "Messages" in prefs, send message | No push received; in-app notification still appears |
+| 6 | Category toggle ON | Re-enable "Messages", send message | Push received |
+| 7 | Quiet hours active | Set quiet 00:00-23:59, trigger notification | No push; in-app notification appears |
+| 8 | Quiet hours inactive | Set quiet 03:00-04:00, trigger at 12:00 | Push received |
+| 9 | Multi-device | Subscribe on 2 devices, trigger notification | Both devices receive push |
+| 10 | Device removal | Remove a device from settings | That device stops receiving push |
+| 11 | iOS not installed | Visit app in Safari iOS, check push | See "Add to Home Screen" guidance, no permission prompt |
+| 12 | iOS installed PWA | Install via Add to Home Screen, enable push | Permission prompt appears, push works |
+| 13 | Android browser | Visit app in Chrome Android, enable push | Works without installation |
+| 14 | Route: message click | Click push for message_added | Opens `/dashboard/laboratory?tab=requests&requestId=X&openThread=true` |
+| 15 | Route: result click | Click push for result_published | Opens `/dashboard/laboratory?tab=requests&requestId=X` |
+| 16 | Route: connection click | Click push for connection.request_received | Opens `/dashboard/laboratory?tab=requests` |
+| 17 | Expired endpoint | Simulate 410 from push service | Subscription marked `is_active = false` |
+| 18 | Notification denied | User denies permission | Banner hides; no errors; in-app only |
+| 19 | Push + in-app sync | Receive push while app is open | In-app badge updates via Realtime; no duplicate OS notification needed |
+| 20 | Preferences page AR | Switch to Arabic, open notification settings | All labels in Arabic, RTL layout correct |
+
+---
+
+## Section 8: Open Questions
+
+1. **VAPID keys:** I will generate a VAPID key pair and store as secrets (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`). The public key will also be exposed as `VITE_VAPID_PUBLIC_KEY` for client-side subscription. **Do you want me to generate these during implementation, or do you have existing keys?**
+
+2. **pg_net extension:** The trigger-to-edge-function approach requires the `pg_net` extension. This is available on Supabase by default. If for any reason it is not enabled, an alternative is to use Supabase Database Webhooks (also trigger-based). **Shall I verify pg_net availability before proceeding?**
+
+3. **Invitation notifications:** Currently invitations use a separate flow (email via Resend). Should invitation events (accepted/rejected/received) also generate rows in `notifications` table (and thus trigger push)? This would require adding new DB triggers on the `invitations` table. **Recommended: yes, add them in Phase 5.**
 
