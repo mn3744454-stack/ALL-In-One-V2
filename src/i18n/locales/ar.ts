@@ -419,6 +419,25 @@ export const ar = {
       unknownService: "خدمة غير معروفة",
     },
     
+    // Stable Results Tab
+    stableResults: {
+      tabLabel: "النتائج",
+      title: "نتائج المختبر",
+      subtitle: "عرض نتائج طلبات الفحوصات",
+      noResults: "لا توجد نتائج بعد",
+      noResultsDesc: "ستظهر النتائج هنا عندما تنشرها المختبرات",
+    },
+    
+    // Messages Inbox
+    messages: {
+      tabLabel: "الرسائل",
+      title: "المحادثات",
+      subtitle: "جميع المحادثات حول طلبات الفحوصات",
+      noThreads: "لا توجد محادثات بعد",
+      noThreadsDesc: "ابدأ محادثة على أي طلب فحص",
+      messageCount: "رسائل",
+    },
+    
     // Lab Billing
     billing: {
       generateInvoice: "إنشاء فاتورة",

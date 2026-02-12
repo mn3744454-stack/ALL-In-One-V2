@@ -396,6 +396,25 @@ export const en = {
       unknownService: "Unknown Service",
     },
     
+    // Stable Results Tab
+    stableResults: {
+      tabLabel: "Results",
+      title: "Lab Results",
+      subtitle: "View results from your lab test requests",
+      noResults: "No results yet",
+      noResultsDesc: "Results will appear here when labs publish them",
+    },
+    
+    // Messages Inbox
+    messages: {
+      tabLabel: "Messages",
+      title: "Message Threads",
+      subtitle: "All conversations on your lab requests",
+      noThreads: "No conversations yet",
+      noThreadsDesc: "Start a conversation on any lab request",
+      messageCount: "messages",
+    },
+    
     // Lab Billing
     billing: {
       generateInvoice: "Generate Invoice",
