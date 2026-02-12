@@ -7909,6 +7909,7 @@ export type Database = {
         Args: never
         Returns: {
           horse_name: string
+          horse_name_ar: string
           last_message_at: string
           last_message_body: string
           last_sender_tenant_id: string
