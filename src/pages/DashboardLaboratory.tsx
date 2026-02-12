@@ -255,29 +255,14 @@ export default function DashboardLaboratory() {
             {/* Stable Results Tab - requests with published results */}
             {labMode === 'requests' && (
               <TabsContent value="results">
-                <StableResultsView
-                  onRequestClick={(requestId) => {
-                    const next = new URLSearchParams(searchParams);
-                    next.set('tab', 'requests');
-                    next.set('requestId', requestId);
-                    setSearchParams(next, { replace: true });
-                  }}
-                />
+                <StableResultsView />
               </TabsContent>
             )}
 
             {/* Stable Messages Tab - standalone inbox */}
             {labMode === 'requests' && (
               <TabsContent value="messages">
-                <StableMessagesView
-                  onThreadClick={(requestId) => {
-                    const next = new URLSearchParams(searchParams);
-                    next.set('tab', 'requests');
-                    next.set('requestId', requestId);
-                    next.set('openThread', 'true');
-                    setSearchParams(next, { replace: true });
-                  }}
-                />
+                <StableMessagesView />
               </TabsContent>
             )}
 
@@ -288,15 +273,17 @@ export default function DashboardLaboratory() {
               />
             </TabsContent>
 
-            <TabsContent value="results">
-              <ResultsList
-                onCreateResult={() => setCreateResultOpen(true)}
-                onResultClick={(resultId) => {
-                  const result = results.find(r => r.id === resultId);
-                  if (result) handlePreviewResult(result);
-                }}
-              />
-            </TabsContent>
+            {labMode === 'full' && (
+              <TabsContent value="results">
+                <ResultsList
+                  onCreateResult={() => setCreateResultOpen(true)}
+                  onResultClick={(resultId) => {
+                    const result = results.find(r => r.id === resultId);
+                    if (result) handlePreviewResult(result);
+                  }}
+                />
+              </TabsContent>
+            )}
 
             <TabsContent value="horses">
               {searchParams.get('horseId') ? (
