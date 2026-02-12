@@ -126,6 +126,24 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       billing_links: {
         Row: {
           amount: number | null
@@ -5110,6 +5128,54 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          in_app_sound: boolean
+          push_invitations: boolean
+          push_messages: boolean
+          push_partnerships: boolean
+          push_results: boolean
+          push_status: boolean
+          quiet_end: string | null
+          quiet_start: string | null
+          quiet_timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          in_app_sound?: boolean
+          push_invitations?: boolean
+          push_messages?: boolean
+          push_partnerships?: boolean
+          push_results?: boolean
+          push_status?: boolean
+          quiet_end?: string | null
+          quiet_start?: string | null
+          quiet_timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          in_app_sound?: boolean
+          push_invitations?: boolean
+          push_messages?: boolean
+          push_partnerships?: boolean
+          push_results?: boolean
+          push_status?: boolean
+          quiet_end?: string | null
+          quiet_start?: string | null
+          quiet_timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -6131,6 +6197,45 @@ export type Database = {
           location?: string | null
           social_links?: Json | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          device_label: string | null
+          endpoint: string
+          id: string
+          is_active: boolean
+          last_seen_at: string
+          p256dh: string
+          platform: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          device_label?: string | null
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          p256dh: string
+          platform?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          device_label?: string | null
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          p256dh?: string
+          platform?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -7730,6 +7835,7 @@ export type Database = {
       }
     }
     Functions: {
+      _get_app_setting: { Args: { p_key: string }; Returns: string }
       _notify_tenant_members: {
         Args: {
           _body: string
