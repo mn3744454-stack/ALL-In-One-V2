@@ -31,6 +31,7 @@ import { TransferOwnershipDialog } from "./TransferOwnershipDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface CurrentOwnershipProps {
   horseId: string;
@@ -39,6 +40,7 @@ interface CurrentOwnershipProps {
 
 export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) => {
   const { t } = useI18n();
+  const { activeTenant } = useTenant();
   const { 
     ownerships, 
     loading, 
@@ -171,16 +173,17 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
 
   const sendOwnershipNotification = async (ownerId: string, action: string, percentage: number) => {
     try {
-      // Get owner email
       const owner = owners.find(o => o.id === ownerId);
       if (!owner?.email) return;
 
       await supabase.functions.invoke("send-ownership-notification", {
         body: {
-          owner_email: owner.email,
+          tenant_id: activeTenant?.tenant_id,
+          horse_id: horseId,
+          event_type: action,
+          recipient_email: owner.email,
           owner_name: owner.name,
           horse_name: horseName,
-          action,
           percentage,
         },
       });

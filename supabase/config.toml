@@ -4,7 +4,7 @@ project_id = "vhxglsvxwwpmoqjabfmj"
 verify_jwt = true
 
 [functions.send-ownership-notification]
-verify_jwt = false
+verify_jwt = true
 
 [functions.shared-media-sign]
 verify_jwt = false
