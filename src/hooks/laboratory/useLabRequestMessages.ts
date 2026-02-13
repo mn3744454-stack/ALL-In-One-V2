@@ -58,7 +58,7 @@ export function useLabRequestMessages(requestId: string | null) {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => console.log('[LabMessagesRealtime]', status));
 
     channelRef.current = channel;
 

@@ -73,7 +73,7 @@ export function useNotifications() {
           queryClient.invalidateQueries({ queryKey });
         }
       )
-      .subscribe();
+      .subscribe((status) => console.log('[NotificationsRealtime]', status));
 
     return () => {
       supabase.removeChannel(channel);
