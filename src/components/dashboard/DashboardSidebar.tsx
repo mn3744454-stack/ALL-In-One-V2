@@ -15,7 +15,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES } from "@/navigation/workspaceNavConfig";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, BellRing } from "lucide-react";
 import {
   Building2,
   Home,
@@ -496,12 +496,19 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 )}
 
                 {activeRole === "owner" && (
-                  <div className="pt-4 mt-4 border-t border-border/50">
+                  <div className="pt-4 mt-4 border-t border-border/50 space-y-1">
                     <NavItem 
                       icon={Settings} 
                       label={t('sidebar.settings')} 
                       href="/dashboard/settings"
                       active={isActive("/dashboard/settings")}
+                      onNavigate={onClose} 
+                    />
+                    <NavItem 
+                      icon={BellRing} 
+                      label={t('sidebar.notificationSettings')} 
+                      href="/dashboard/settings/notifications"
+                      active={isActive("/dashboard/settings/notifications")}
                       onNavigate={onClose} 
                     />
                   </div>

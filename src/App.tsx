@@ -54,6 +54,7 @@ import Directory from "./pages/Directory";
 import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
 import AcceptConnectionPage from "./pages/AcceptConnectionPage";
+import DashboardNotificationSettings from "./pages/DashboardNotificationSettings";
 import DashboardClients from "./pages/DashboardClients";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -418,6 +419,14 @@ const AppRoutes = () => {
             <WorkspaceRouteGuard requiredMode="organization">
               <DashboardConnectionsSettings />
             </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/settings/notifications"
+        element={
+          <ProtectedRoute>
+            <DashboardNotificationSettings />
           </ProtectedRoute>
         }
       />
