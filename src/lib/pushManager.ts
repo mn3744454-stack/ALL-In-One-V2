@@ -2,7 +2,23 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+let cachedVapidKey: string | null = null;
+
+async function fetchVapidKey(): Promise<string | null> {
+  if (cachedVapidKey) return cachedVapidKey;
+  try {
+    const { data, error } = await supabase.functions.invoke("get-vapid-key");
+    if (error || !data?.vapidPublicKey) {
+      console.error("[Push] Failed to fetch VAPID key:", error);
+      return null;
+    }
+    cachedVapidKey = data.vapidPublicKey;
+    return cachedVapidKey;
+  } catch (err) {
+    console.error("[Push] Error fetching VAPID key:", err);
+    return null;
+  }
+}
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -65,10 +81,12 @@ export async function subscribeToPush(
   userId: string
 ): Promise<PushSubscription | null> {
   console.log("[Push] subscribeToPush called for user:", userId);
-  console.log("[Push] VAPID_PUBLIC_KEY present:", !!VAPID_PUBLIC_KEY, "length:", VAPID_PUBLIC_KEY?.length);
   
-  if (!VAPID_PUBLIC_KEY) {
-    console.error("[Push] VAPID public key not configured. Check VITE_VAPID_PUBLIC_KEY env var.");
+  const vapidKey = await fetchVapidKey();
+  console.log("[Push] VAPID key fetched:", !!vapidKey, "length:", vapidKey?.length);
+  
+  if (!vapidKey) {
+    console.error("[Push] VAPID public key not available from server.");
     return null;
   }
 
@@ -91,7 +109,7 @@ export async function subscribeToPush(
       console.log("[Push] Creating new subscription...");
       subscription = await pm.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
       console.log("[Push] New subscription created:", !!subscription);
     }
