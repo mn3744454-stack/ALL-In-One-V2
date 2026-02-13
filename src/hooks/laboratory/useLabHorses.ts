@@ -31,7 +31,7 @@ export interface LabHorse {
   metadata: Record<string, unknown>;
   linked_horse_id: string | null;
   linked_at: string | null;
-  source: 'manual' | 'platform';
+  source: 'manual' | 'platform' | 'request';
   is_archived: boolean;
 }
 
@@ -57,6 +57,8 @@ export interface CreateLabHorseData {
   client_id?: string;
   notes?: string;
   metadata?: Json;
+  linked_horse_id?: string; // Phase 8: link to platform horse
+  source?: 'manual' | 'platform' | 'request'; // Phase 8: creation source
 }
 
 export interface UpdateLabHorseData extends Partial<CreateLabHorseData> {
@@ -125,13 +127,14 @@ export function useLabHorses(filters: LabHorseFilters = {}) {
         throw new Error(tGlobal("laboratory.toasts.noActiveOrganization"));
       }
 
+      const { source, ...rest } = data;
       const { data: labHorse, error } = await supabase
         .from("lab_horses")
         .insert({
           tenant_id: tenantId,
           created_by: user.id,
-          source: 'manual',
-          ...data,
+          source: source || 'manual',
+          ...rest,
         })
         .select()
         .single();
