@@ -33,7 +33,7 @@ import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { useNavigate } from "react-router-dom";
-import { RealtimeDebugPanel } from "@/components/debug/RealtimeDebugPanel";
+
 
 export default function DashboardLaboratory() {
   const { t } = useI18n();
@@ -139,8 +139,6 @@ export default function DashboardLaboratory() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* DEV-only realtime debug panel */}
-      {import.meta.env.DEV && <RealtimeDebugPanel />}
       {/* Desktop Sidebar */}
       <DashboardSidebar
         isOpen={sidebarOpen}
