@@ -1,61 +1,72 @@
 
 
-# إصلاح تجربة الإشعارات -- الخطة المحدثة
+# إصلاح فشل تفعيل الإشعارات -- السبب الجذري
+
+## المشكلة
+
+مفتاح VAPID العام (`VITE_VAPID_PUBLIC_KEY`) مخزن كـ secret في الخادم (متاح فقط لـ backend functions)، لكن الكود في المتصفح يحاول قراءته عبر `import.meta.env.VITE_VAPID_PUBLIC_KEY`. هذا المتغير غير موجود في ملف `.env` الذي يبنيه Vite، لذلك قيمته دائما `undefined`.
+
+النتيجة: دالة `subscribeToPush` ترجع `null` فورا عند السطر 70-73 بدون حتى محاولة الاشتراك.
+
+## الحل
+
+إنشاء edge function بسيطة تُرجع مفتاح VAPID العام (وهو مفتاح عام وآمن للمشاركة)، ثم جلبه من المتصفح عند الحاجة.
 
 ## التغييرات المطلوبة
 
-### 1. إضافة بطاقة "الإشعارات" في صفحة الإعدادات الرئيسية
+### 1. إنشاء edge function جديدة: `get-vapid-key`
 
-في ملف `src/pages/DashboardOrganizationSettings.tsx`، إضافة بطاقة ثالثة بنفس تصميم بطاقتي "الصلاحيات" و"الاتصال والمشاركة":
-- ايقونة BellRing
-- عنوان ووصف مترجمان
-- زر ينقل إلى `/dashboard/settings/notifications`
-- هذه البطاقة تظهر لجميع المستخدمين (بدون شرط owner/manager) لأن إعدادات الإشعارات شخصية
+ملف `supabase/functions/get-vapid-key/index.ts`:
+- تقرأ `VAPID_PUBLIC_KEY` من `Deno.env.get()`
+- ترجعه كـ JSON
+- لا تحتاج مصادقة (المفتاح العام آمن للمشاركة)
 
-### 2. إصلاح بانر التفعيل (`PushPermissionBanner.tsx`)
+### 2. تعديل `src/lib/pushManager.ts`
 
-- إزالة شرط `pushState === "granted"` من شرط الإخفاء
-- البانر يظهر دائما ما لم يكن `isSubscribed === true` أو `pushState === "denied"`
+- حذف `const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY`
+- إضافة دالة `fetchVapidKey()` تجلب المفتاح من الـ edge function وتخزنه مؤقتا (cache)
+- تعديل `subscribeToPush` لاستدعاء `fetchVapidKey()` بدلا من قراءة المتغير المحلي
 
-### 3. تحسين تشخيص فشل الاشتراك (`usePushSubscription.ts`)
+### 3. تحسين رسائل الخطأ
 
-- إضافة console.log تفصيلي لتتبع:
-  - هل VAPID key موجود؟
-  - هل تم إنشاء اشتراك المتصفح؟
-  - هل فشل الحفظ في قاعدة البيانات؟
-- عرض رسالة خطأ واضحة للمستخدم
+- تعديل الترجمة العربية والإنجليزية لرسالة `enableFailed`:
+  - بدلا من "يرجى التحقق من أذونات المتصفح" (مضللة)
+  - تصبح "فشل تفعيل الإشعارات. يرجى المحاولة مرة أخرى."
 
 ---
 
 ## التفاصيل التقنية
 
+### Edge Function (`get-vapid-key`)
+
+```text
+GET /get-vapid-key
+Response: { "vapidPublicKey": "BPx..." }
+```
+
+لا تحتاج Authorization header لأن المفتاح العام آمن بطبيعته.
+
+### تعديل pushManager.ts
+
+```text
+قبل:
+  const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;  // undefined دائما
+
+بعد:
+  let cachedVapidKey: string | null = null;
+  async function fetchVapidKey(): Promise<string | null> {
+    if (cachedVapidKey) return cachedVapidKey;
+    // جلب من edge function عبر supabase.functions.invoke
+    ...
+  }
+```
+
 ### الملفات المعدلة
 
 | الملف | التغيير |
 |-------|---------|
-| `src/pages/DashboardOrganizationSettings.tsx` | إضافة بطاقة الإشعارات بجانب الصلاحيات والاتصال |
-| `src/components/push/PushPermissionBanner.tsx` | إزالة `pushState === "granted"` من شرط الإخفاء |
-| `src/hooks/usePushSubscription.ts` | إضافة تسجيل تشخيصي مفصل |
-| `src/i18n/locales/en.ts` و `ar.ts` | إضافة مفاتيح الترجمة لبطاقة الإشعارات في الإعدادات |
-
-### بطاقة الإشعارات الجديدة في صفحة الإعدادات
-ستكون بنفس نمط البطاقات الموجودة:
-```text
-+------------------------------------------+
-| [BellRing]  إعدادات الإشعارات    [فتح >] |
-|             إدارة تنبيهات الجهاز          |
-+------------------------------------------+
-```
-
-### المنطق الجديد للبانر
-```text
-يظهر البانر إذا:
-  isSupported = true
-  AND isSubscribed = false
-  AND pushState != "denied"
-
-يختفي البانر فقط إذا:
-  isSubscribed = true  (تم التسجيل فعليا)
-  OR pushState = "denied"  (المستخدم رفض الإذن)
-```
+| `supabase/functions/get-vapid-key/index.ts` | ملف جديد - edge function |
+| `src/lib/pushManager.ts` | جلب VAPID key من edge function بدل import.meta.env |
+| `src/i18n/locales/ar.ts` | تحسين رسالة الخطأ |
+| `src/i18n/locales/en.ts` | تحسين رسالة الخطأ |
 
