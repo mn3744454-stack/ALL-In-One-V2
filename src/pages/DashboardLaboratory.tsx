@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,10 +33,17 @@ import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { useNavigate } from "react-router-dom";
+import { RealtimeDebugPanel } from "@/components/debug/RealtimeDebugPanel";
 
 export default function DashboardLaboratory() {
   const { t } = useI18n();
   const navigate = useNavigate();
+
+  // Debug: track mount/unmount to verify dialog stability
+  useEffect(() => {
+    console.log('[DashboardLaboratory] mount');
+    return () => console.log('[DashboardLaboratory] unmount');
+  }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const { labMode, isLabTenant, loading: moduleLoading } = useModuleAccess();
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
@@ -132,6 +139,8 @@ export default function DashboardLaboratory() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* DEV-only realtime debug panel */}
+      {import.meta.env.DEV && <RealtimeDebugPanel />}
       {/* Desktop Sidebar */}
       <DashboardSidebar
         isOpen={sidebarOpen}
