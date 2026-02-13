@@ -110,7 +110,7 @@ export const en = {
     disable: "Disable Notifications",
     enabled: "Push notifications enabled",
     disabled: "Push notifications disabled",
-    enableFailed: "Failed to enable notifications. Please check browser permissions.",
+    enableFailed: "Failed to enable notifications. Please try again.",
     notSupported: "Push notifications are not supported on this browser.",
     permissionDenied: "Notification permission was denied. Please enable it in your browser settings.",
     pushStatus: "Push Notifications",
