@@ -6,6 +6,7 @@ import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { WorkspaceModeToggle } from "@/components/WorkspaceModeToggle";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
+import { PushPermissionBanner } from "@/components/push/PushPermissionBanner";
 import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
@@ -159,6 +160,8 @@ const Dashboard = () => {
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Push Permission Banner */}
+          <PushPermissionBanner />
           {/* Dashboard Content */}
           <div className="p-4 lg:p-8">
             {/* Welcome Section */}
