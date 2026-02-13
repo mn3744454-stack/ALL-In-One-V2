@@ -51,7 +51,6 @@ export function useLabRequestMessages(requestId: string | null) {
           filter: `request_id=eq.${requestId}`,
         },
         (payload: any) => {
-          console.log('[LabMessagesRealtime:event]', payload.eventType, payload.new?.id, payload.new?.request_id, 'filter:', requestId);
           queryClient.setQueryData(queryKey, (old: LabRequestMessage[] = []) => {
             // Avoid duplicates
             if (old.some((m) => m.id === payload.new.id)) return old;
@@ -59,7 +58,7 @@ export function useLabRequestMessages(requestId: string | null) {
           });
         }
       )
-      .subscribe((status) => console.log('[LabMessagesRealtime]', status));
+      .subscribe();
 
     channelRef.current = channel;
 

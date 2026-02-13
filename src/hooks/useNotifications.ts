@@ -3,6 +3,12 @@ import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+/**
+ * Realtime: notifications + lab_request_messages are in supabase_realtime publication.
+ * Debug UI/logging removed for cleanliness.
+ * If revisiting realtime issues, validate service worker caching + RLS + event delivery.
+ */
+
 export interface AppNotification {
   id: string;
   user_id: string;
@@ -58,7 +64,6 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload: any) => {
-          console.log('[NotificationsRealtime:event]', payload.eventType, payload.new?.id, payload.new?.is_read, payload.new?.user_id);
           queryClient.invalidateQueries({ queryKey });
         }
       )
@@ -71,11 +76,10 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload: any) => {
-          console.log('[NotificationsRealtime:event]', payload.eventType, payload.new?.id, payload.new?.is_read, payload.new?.user_id);
           queryClient.invalidateQueries({ queryKey });
         }
       )
-      .subscribe((status) => console.log('[NotificationsRealtime]', status));
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);

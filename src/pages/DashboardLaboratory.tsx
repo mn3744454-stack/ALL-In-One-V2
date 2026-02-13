@@ -39,11 +39,6 @@ export default function DashboardLaboratory() {
   const { t } = useI18n();
   const navigate = useNavigate();
 
-  // Debug: track mount/unmount to verify dialog stability
-  useEffect(() => {
-    console.log('[DashboardLaboratory] mount');
-    return () => console.log('[DashboardLaboratory] unmount');
-  }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const { labMode, isLabTenant, loading: moduleLoading } = useModuleAccess();
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
