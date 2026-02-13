@@ -66,6 +66,10 @@ export const en = {
       open: "Open",
       unauthorized: "You are not authorized to access this page",
     },
+    notifications: {
+      title: "Notification Settings",
+      desc: "Manage device alerts and notification preferences.",
+    },
   },
   sidebar: {
     dashboard: "Dashboard",

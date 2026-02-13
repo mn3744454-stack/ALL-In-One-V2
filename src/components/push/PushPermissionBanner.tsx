@@ -18,7 +18,7 @@ export function PushPermissionBanner() {
   }, []);
 
   // Show only when: supported, not subscribed, and not denied
-  if (!isSupported || isSubscribed || pushState === "denied" || pushState === "granted") {
+  if (!isSupported || isSubscribed || pushState === "denied") {
     return null;
   }
 

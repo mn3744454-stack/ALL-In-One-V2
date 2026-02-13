@@ -89,6 +89,10 @@ export const ar = {
       open: "فتح",
       unauthorized: "غير مصرح لك بالوصول إلى هذه الصفحة",
     },
+    notifications: {
+      title: "إعدادات الإشعارات",
+      desc: "إدارة تنبيهات الجهاز وتفضيلات الإشعارات.",
+    },
   },
   sidebar: {
     dashboard: "لوحة التحكم",
