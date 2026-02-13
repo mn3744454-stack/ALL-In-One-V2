@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTenantRealtimeSync } from "@/hooks/useTenantRealtimeSync";
+import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TenantSwitcher } from "@/components/TenantSwitcher";
@@ -36,6 +38,9 @@ import {
 import { LanguageSelector } from "@/components/ui/language-selector";
 
 const Dashboard = () => {
+  // Platform-wide realtime subscriptions + safe focus recovery
+  useTenantRealtimeSync();
+  useFocusRefresh();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [launcherOpen, setLauncherOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
