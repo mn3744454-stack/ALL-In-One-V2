@@ -57,7 +57,8 @@ export function useNotifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
+        (payload: any) => {
+          console.log('[NotificationsRealtime:event]', payload.eventType, payload.new?.id, payload.new?.is_read, payload.new?.user_id);
           queryClient.invalidateQueries({ queryKey });
         }
       )
@@ -69,7 +70,8 @@ export function useNotifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
+        (payload: any) => {
+          console.log('[NotificationsRealtime:event]', payload.eventType, payload.new?.id, payload.new?.is_read, payload.new?.user_id);
           queryClient.invalidateQueries({ queryKey });
         }
       )

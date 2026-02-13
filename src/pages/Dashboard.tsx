@@ -36,6 +36,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { RealtimeDebugPanel as DevRealtimeDebugPanel } from "@/components/debug/RealtimeDebugPanel";
 
 const Dashboard = () => {
   // Platform-wide realtime subscriptions + safe focus recovery
@@ -71,6 +72,8 @@ const Dashboard = () => {
 
   return (
     <div className="h-dvh w-full bg-cream flex overflow-hidden" dir={dir}>
+      {/* DEV-only realtime debug panel */}
+      {import.meta.env.DEV && <DevRealtimeDebugPanel />}
       {/* Desktop Sidebar - hidden on mobile */}
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
