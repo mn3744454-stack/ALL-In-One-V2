@@ -57,6 +57,7 @@ export interface LabSample {
   client_phone: string | null;
   client_email: string | null;
   client_metadata: Record<string, unknown> | null;
+  lab_request_id: string | null; // Link to originating lab request
   // Joined fields
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
   lab_horse?: { id: string; name: string; name_ar: string | null } | null; // Lab horses registry
@@ -105,6 +106,7 @@ export interface CreateLabSampleData {
   retest_of_sample_id?: string;
   metadata?: Json;
   template_ids?: string[];
+  lab_request_id?: string; // Link to originating lab request
 }
 
 // Cache TTL for Riyadh bounds (60 seconds)
@@ -316,9 +318,21 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['lab-samples', tenantId] });
       toast.success(tGlobal("laboratory.toasts.sampleUpdated"));
+      
+      // Phase 5.2: Auto-sync request status when sample is completed
+      if (data?.status === 'completed' && data?.lab_request_id) {
+        supabase
+          .from('lab_requests')
+          .update({ status: 'ready', updated_at: new Date().toISOString() })
+          .eq('id', data.lab_request_id)
+          .neq('status', 'cancelled')
+          .then(() => {
+            queryClient.invalidateQueries({ queryKey: ['lab-requests'] });
+          });
+      }
     },
     onError: (error: Error) => {
       console.error("Error updating sample:", error);

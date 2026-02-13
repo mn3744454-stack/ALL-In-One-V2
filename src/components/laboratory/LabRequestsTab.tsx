@@ -169,6 +169,22 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
     if (!finalDescription && selectedServiceNames.length > 0) {
       finalDescription = selectedServiceNames.join(', ');
     }
+
+    // Build snapshot fields from the selected horse
+    const selectedHorse = horses.find(h => h.id === formData.horse_id);
+    const snapshotFields: Partial<CreateLabRequestData> = {};
+    if (selectedHorse) {
+      snapshotFields.horse_name_snapshot = selectedHorse.name;
+      snapshotFields.horse_name_ar_snapshot = selectedHorse.name_ar || null as any;
+      snapshotFields.horse_snapshot = {
+        breed: (selectedHorse as any).breed || undefined,
+        color: (selectedHorse as any).color || undefined,
+        sex: (selectedHorse as any).sex || undefined,
+      };
+    }
+    if (activeTenant?.tenant?.name) {
+      snapshotFields.initiator_tenant_name_snapshot = activeTenant.tenant.name;
+    }
     
     await createRequest({
       ...formData,
@@ -176,6 +192,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
       service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
       initiator_tenant_id: activeTenant?.tenant_id,
       lab_tenant_id: selectedLabTenantId || undefined,
+      ...snapshotFields,
     });
     resetForm();
     setOpen(false);
@@ -489,9 +506,9 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
   
-  const horseName = dir === 'rtl' && request.horse?.name_ar 
-    ? request.horse.name_ar 
-    : request.horse?.name || t('laboratory.samples.unknownHorse');
+  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
+    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
+    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
 
   // Check if request is billable (ready or received status)
   const isBillable = request.status === 'ready' || request.status === 'received';
@@ -590,7 +607,11 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
   );
 }
 
-export function LabRequestsTab() {
+interface LabRequestsTabProps {
+  onCreateSampleFromRequest?: (request: LabRequest) => void;
+}
+
+export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProps = {}) {
   const { t, dir } = useI18n();
   const { activeTenant, activeRole } = useTenant();
   const { labMode } = useModuleAccess();
@@ -900,9 +921,9 @@ export function LabRequestsTab() {
               </thead>
               <tbody>
                 {filteredRequests.map((request) => {
-                  const horseName = dir === 'rtl' && request.horse?.name_ar
-                    ? request.horse.name_ar
-                    : request.horse?.name || t('laboratory.samples.unknownHorse');
+                  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
+                    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
+                    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
                   return (
                     <tr
                       key={request.id}
@@ -964,6 +985,10 @@ export function LabRequestsTab() {
           defaultTab={detailDefaultTab}
           canCreateInvoice={canCreateInvoice}
           onGenerateInvoice={() => handleGenerateInvoice(detailRequest)}
+          onCreateSample={onCreateSampleFromRequest ? (req) => {
+            setDetailOpen(false);
+            onCreateSampleFromRequest(req);
+          } : undefined}
         />
       )}
     </div>

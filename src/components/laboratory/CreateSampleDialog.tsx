@@ -34,6 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useHorses } from "@/hooks/useHorses";
 import { useClients } from "@/hooks/useClients";
 import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks/laboratory/useLabSamples";
+import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
@@ -71,6 +72,7 @@ interface CreateSampleDialogProps {
   retestOfSample?: LabSample;
   preselectedHorseId?: string;
   onSuccess?: () => void;
+  fromRequest?: LabRequest | null;
 }
 
 type BillingPolicy = "at_intake" | "at_completion" | "both";
@@ -144,11 +146,13 @@ export function CreateSampleDialog({
   retestOfSample,
   preselectedHorseId,
   onSuccess,
+  fromRequest,
 }: CreateSampleDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
   const { clients, createClient } = useClients();
   const { createSample } = useLabSamples();
+  const { updateRequest } = useLabRequests();
   const { wallet, creditsEnabled, debitCredits } = useLabCredits();
   const { activeTemplates, loading: templatesLoading } = useLabTemplates();
   const { getCapabilityForCategory } = useTenantCapabilities();
@@ -356,12 +360,33 @@ export function CreateSampleDialog({
             color: (horseMetadata?.color as string) || undefined,
           },
         });
+      } else if (fromRequest) {
+        // Prefill from lab request snapshots (walk-in horse using snapshot data)
+        const horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Unknown';
+        const snapshot = fromRequest.horse_snapshot as Record<string, unknown> | null;
+        initialHorses.push({
+          horse_id: undefined,
+          horse_type: 'walk_in',
+          horse_name: horseName,
+          horse_data: snapshot ? {
+            breed: (snapshot.breed as string) || undefined,
+            color: (snapshot.color as string) || undefined,
+          } : undefined,
+        });
       }
       
       // Determine initial client mode based on tenant type and retest
       const initialClientMode: LabClientMode | StableClientMode = isPrimaryLabTenant
         ? (retestOfSample?.client_id ? 'registered' : 'none')
         : (retestOfSample?.client_id ? 'existing' : retestOfSample?.client_name ? 'walkin' : 'none');
+
+      // Notes: prefill from request if applicable
+      let initialNotes = '';
+      if (isRetest) {
+        initialNotes = `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}`;
+      } else if (fromRequest) {
+        initialNotes = fromRequest.test_description || '';
+      }
       
       setFormData({
         selectedHorses: initialHorses,
@@ -372,12 +397,12 @@ export function CreateSampleDialog({
         client_id: retestOfSample?.client_id || '',
         clientMode: initialClientMode,
         walkInClient: {
-          client_name: retestOfSample?.client_name || '',
+          client_name: fromRequest?.initiator_tenant_name_snapshot || retestOfSample?.client_name || '',
           client_phone: retestOfSample?.client_phone || '',
           client_email: retestOfSample?.client_email || '',
           notes: '',
         },
-        notes: isRetest ? `Retest of sample ${retestOfSample?.physical_sample_id || retestOfSample?.id}` : '',
+        notes: initialNotes,
         template_ids: retestTemplateIds,
         per_horse_templates: {},
         customize_templates_per_horse: false,
@@ -385,7 +410,7 @@ export function CreateSampleDialog({
         no_client_reason: '',
       });
     }
-  }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant]);
+  }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant, fromRequest]);
 
   const generateSampleId = () => {
     const prefix = 'LAB';
@@ -514,6 +539,7 @@ export function CreateSampleDialog({
         retest_of_sample_id: retestOfSample?.id || undefined,
         status: 'draft',
         template_ids: horseTemplates.length > 0 ? horseTemplates : undefined,
+        lab_request_id: fromRequest?.id || undefined,
       };
 
       const sample = await createSample(sampleData);
@@ -577,10 +603,18 @@ export function CreateSampleDialog({
       const sampleIds = await createSamplesForAllHorses();
       
       if (sampleIds.length > 0) {
+        // Phase 5: Auto-update request status to 'processing' if created from a request
+        if (fromRequest && (fromRequest.status === 'pending' || fromRequest.status === 'sent')) {
+          try {
+            await updateRequest({ id: fromRequest.id, status: 'processing' });
+          } catch (e) {
+            console.error('Failed to update request status:', e);
+          }
+        }
+
         // For LAB tenants, optionally create invoice
         if (isPrimaryLabTenant && formData.create_invoice && formData.client_id && canBill) {
           // Invoice creation will be handled by the calling component or a separate flow
-          // For now, we just create the samples - invoice can be created from sample details
         }
         
         onOpenChange(false);

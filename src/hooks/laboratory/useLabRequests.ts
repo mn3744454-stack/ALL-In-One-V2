@@ -41,6 +41,11 @@ export interface LabRequest {
   created_at: string;
   updated_at: string;
   is_demo: boolean;
+  // Snapshot fields (written by stable at creation time)
+  horse_name_snapshot: string | null;
+  horse_name_ar_snapshot: string | null;
+  horse_snapshot: Record<string, unknown> | null;
+  initiator_tenant_name_snapshot: string | null;
   // Joined data
   horse?: {
     id: string;
@@ -66,6 +71,11 @@ export interface CreateLabRequestData {
   service_ids?: string[];
   initiator_tenant_id?: string;
   lab_tenant_id?: string;
+  // Snapshot fields (populated by stable at creation time)
+  horse_name_snapshot?: string;
+  horse_name_ar_snapshot?: string;
+  horse_snapshot?: Record<string, unknown>;
+  initiator_tenant_name_snapshot?: string;
 }
 
 export interface UpdateLabRequestData {
@@ -115,7 +125,7 @@ export function useLabRequests() {
     mutationFn: async (data: CreateLabRequestData) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
       
-      const { service_ids, initiator_tenant_id, lab_tenant_id, ...requestData } = data;
+      const { service_ids, initiator_tenant_id, lab_tenant_id, horse_name_snapshot, horse_name_ar_snapshot, horse_snapshot, initiator_tenant_name_snapshot, ...requestData } = data;
 
       // Step 1: Create the lab_request row
       const { data: result, error } = await supabase
@@ -131,7 +141,11 @@ export function useLabRequests() {
           created_by: user.id,
           initiator_tenant_id: initiator_tenant_id || tenantId,
           lab_tenant_id: lab_tenant_id || null,
-        })
+          horse_name_snapshot: horse_name_snapshot || null,
+          horse_name_ar_snapshot: horse_name_ar_snapshot || null,
+          horse_snapshot: (horse_snapshot || null) as any,
+          initiator_tenant_name_snapshot: initiator_tenant_name_snapshot || null,
+        } as any)
         .select()
         .single();
       

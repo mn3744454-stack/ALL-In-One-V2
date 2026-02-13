@@ -682,6 +682,55 @@ export type Database = {
           },
         ]
       }
+      connection_messages: {
+        Row: {
+          body: string
+          connection_id: string
+          created_at: string
+          id: string
+          sender_tenant_id: string
+          sender_user_id: string
+        }
+        Insert: {
+          body: string
+          connection_id: string
+          created_at?: string
+          id?: string
+          sender_tenant_id: string
+          sender_user_id: string
+        }
+        Update: {
+          body?: string
+          connection_id?: string
+          created_at?: string
+          id?: string
+          sender_tenant_id?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_messages_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connection_messages_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connection_messages_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connection_rate_limits: {
         Row: {
           action: string
@@ -3894,8 +3943,12 @@ export type Database = {
           external_lab_id: string | null
           external_lab_name: string | null
           horse_id: string
+          horse_name_ar_snapshot: string | null
+          horse_name_snapshot: string | null
+          horse_snapshot: Json | null
           id: string
           initiator_tenant_id: string | null
+          initiator_tenant_name_snapshot: string | null
           is_demo: boolean | null
           lab_tenant_id: string | null
           notes: string | null
@@ -3917,8 +3970,12 @@ export type Database = {
           external_lab_id?: string | null
           external_lab_name?: string | null
           horse_id: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
+          horse_snapshot?: Json | null
           id?: string
           initiator_tenant_id?: string | null
+          initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean | null
           lab_tenant_id?: string | null
           notes?: string | null
@@ -3940,8 +3997,12 @@ export type Database = {
           external_lab_id?: string | null
           external_lab_name?: string | null
           horse_id?: string
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
+          horse_snapshot?: Json | null
           id?: string
           initiator_tenant_id?: string | null
+          initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean | null
           lab_tenant_id?: string | null
           notes?: string | null
@@ -4306,8 +4367,10 @@ export type Database = {
           horse_name: string | null
           id: string
           lab_horse_id: string | null
+          lab_request_id: string | null
           metadata: Json | null
           notes: string | null
+          numbering_deferred: boolean
           physical_sample_id: string | null
           processing_started_at: string | null
           received_at: string | null
@@ -4341,8 +4404,10 @@ export type Database = {
           horse_name?: string | null
           id?: string
           lab_horse_id?: string | null
+          lab_request_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          numbering_deferred?: boolean
           physical_sample_id?: string | null
           processing_started_at?: string | null
           received_at?: string | null
@@ -4376,8 +4441,10 @@ export type Database = {
           horse_name?: string | null
           id?: string
           lab_horse_id?: string | null
+          lab_request_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          numbering_deferred?: boolean
           physical_sample_id?: string | null
           processing_started_at?: string | null
           received_at?: string | null
@@ -4431,6 +4498,13 @@ export type Database = {
             columns: ["lab_horse_id"]
             isOneToOne: false
             referencedRelation: "lab_horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_lab_request_id_fkey"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests"
             referencedColumns: ["id"]
           },
           {
