@@ -64,29 +64,36 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 export async function subscribeToPush(
   userId: string
 ): Promise<PushSubscription | null> {
+  console.log("[Push] subscribeToPush called for user:", userId);
+  console.log("[Push] VAPID_PUBLIC_KEY present:", !!VAPID_PUBLIC_KEY, "length:", VAPID_PUBLIC_KEY?.length);
+  
   if (!VAPID_PUBLIC_KEY) {
-    console.error("[Push] VAPID public key not configured");
+    console.error("[Push] VAPID public key not configured. Check VITE_VAPID_PUBLIC_KEY env var.");
     return null;
   }
 
   const registration = await registerServiceWorker();
+  console.log("[Push] SW registration:", !!registration);
   if (!registration) return null;
 
   try {
     const pm = (registration as any).pushManager;
     if (!pm) {
-      console.error("[Push] PushManager not available");
+      console.error("[Push] PushManager not available on registration");
       return null;
     }
 
     // Check for existing subscription
     let subscription = await pm.getSubscription();
+    console.log("[Push] Existing subscription:", !!subscription);
 
     if (!subscription) {
+      console.log("[Push] Creating new subscription...");
       subscription = await pm.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
+      console.log("[Push] New subscription created:", !!subscription);
     }
 
     const key = subscription.getKey("p256dh");
@@ -99,6 +106,8 @@ export async function subscribeToPush(
 
     const p256dh = btoa(String.fromCharCode(...new Uint8Array(key)));
     const authKey = btoa(String.fromCharCode(...new Uint8Array(auth)));
+
+    console.log("[Push] Saving subscription to DB, endpoint:", subscription.endpoint.substring(0, 50) + "...");
 
     // Upsert to push_subscriptions table
     const { error } = await supabase.from("push_subscriptions" as any).upsert(
@@ -116,7 +125,7 @@ export async function subscribeToPush(
     );
 
     if (error) {
-      console.error("[Push] Failed to save subscription:", error);
+      console.error("[Push] Failed to save subscription:", error.message, error.details, error.hint);
       return null;
     }
 
