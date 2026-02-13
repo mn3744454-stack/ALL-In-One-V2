@@ -1,80 +1,141 @@
 
-
-## Prove Realtime Delivery + Stabilize Dialog
+## Phase 7: "Receive & Number Now" Choice + Phase 8: Auto Lab Horse for Request-Origin Samples
 
 ### Overview
-Add event payload logging to realtime hooks, create a temporary dev-only debug panel for end-to-end proof, and add mount/unmount logging to DashboardLaboratory.
+
+**Phase 7** adds a "Receive & Number Now" vs "Defer" choice to the lab wizard's Details step. When "Receive Now" is chosen, the sample is created with `status='accessioned'` (triggering daily number assignment). When deferred, `status='draft'` and `numbering_deferred=true`.
+
+**Phase 8** eliminates "Unknown Horse" for request-origin samples by auto-creating (or reusing) a `lab_horses` record from request snapshots and linking it via `lab_horse_id`.
 
 ---
 
-### Part 1: Event Payload Logging
+### Phase 7: Numbering Now == Receive Now
 
-**File: `src/hooks/useNotifications.ts`**
-- In the INSERT callback (line 60-62), log the payload before invalidating:
-  ```
-  console.log('[NotificationsRealtime:event]', payload.eventType, payload.new?.id, payload.new?.is_read);
-  ```
-- In the UPDATE callback (line 72-74), same pattern.
-- Both callbacks already call `queryClient.invalidateQueries` -- keep that, just add the log line before it.
+#### 7.1 DB: No migration needed
+The `numbering_deferred` column already exists on `lab_samples` (confirmed in types.ts). The trigger `set_daily_sample_number` already respects it.
 
-**File: `src/hooks/laboratory/useLabRequestMessages.ts`**
-- In the INSERT callback (line 53-58), add before setQueryData:
-  ```
-  console.log('[LabMessagesRealtime:event]', payload.eventType, payload.new?.id, payload.new?.request_id);
-  ```
+#### 7.2 Frontend: CreateSampleDialog.tsx
 
----
+**Add to FormData interface:**
+```typescript
+receive_now: boolean; // true = accessioned + number, false = draft + deferred
+```
 
-### Part 2: Temporary Debug Panel (DEV only)
+**Modify LAB_STEPS:** No new step needed. The existing `details` step (for lab tenants) already contains daily number inputs. We add a radio choice at the top of the details step content (lab tenant path only):
+- "Receive & Number Now" -- shows daily number inputs, sets `receive_now=true`
+- "Save as Draft (Number Later)" -- hides daily number inputs, sets `receive_now=false`
 
-**New file: `src/components/debug/RealtimeDebugPanel.tsx`**
-- Floating panel (bottom-right, collapsible) only rendered when `import.meta.env.DEV` is true.
-- Shows: current user ID, active tenant ID, last notification event timestamp, last lab message event timestamp.
-- Two buttons:
-  - "Create Test Notification": inserts a minimal row into `notifications` for the current user (title: "Test notification", is_read: false).
-  - "Create Test Lab Message": only enabled when a `requestId` URL param exists; inserts a minimal message into `lab_request_messages`.
-- Uses the existing supabase client for inserts.
+**Default value:** `receive_now: true` (most common lab workflow)
+- Exception: when `fromRequest` is present, default to `receive_now: false` (request samples typically need physical receipt first)
 
-**Mount location: `src/pages/Dashboard.tsx`**
-- Import and render `<RealtimeDebugPanel />` conditionally: `{import.meta.env.DEV && <RealtimeDebugPanel />}`
-- Also mount in `src/pages/DashboardLaboratory.tsx` the same way.
+**Submission logic changes in `createSamplesForAllHorses()`:**
+- If `receive_now === true`: set `status: 'accessioned'`, `numbering_deferred: false`
+- If `receive_now === false`: set `status: 'draft'`, `numbering_deferred: true`, skip daily_number unless manually entered
 
----
+#### 7.3 useLabSamples.ts: CreateLabSampleData
 
-### Part 3: Mount/Unmount Logging for DashboardLaboratory
+Add `numbering_deferred?: boolean` to the interface (it's already in the DB types but not in the create data interface).
 
-**File: `src/pages/DashboardLaboratory.tsx`**
-- Add a `useEffect` at the top of the component:
-  ```
-  useEffect(() => {
-    console.log('[DashboardLaboratory] mount');
-    return () => console.log('[DashboardLaboratory] unmount');
-  }, []);
-  ```
-- This proves whether tab switching causes a full remount (which would reset `createSampleOpen` state).
+#### 7.4 i18n additions
+
+English keys under `laboratory.createSample`:
+- `receiveNow`: "Receive & Number Now"
+- `receiveNowDesc`: "Sample is physically received. A daily number will be assigned."
+- `deferNumbering`: "Save as Draft"  
+- `deferNumberingDesc`: "Number will be assigned when sample is received later."
+- `steps.details` remains "Details"
+
+Arabic equivalents:
+- `receiveNow`: "استلام وترقيم الآن"
+- `receiveNowDesc`: "العينة مستلمة فعلياً. سيتم تعيين رقم يومي."
+- `deferNumbering`: "حفظ كمسودة"
+- `deferNumberingDesc`: "سيتم تعيين الرقم عند استلام العينة لاحقاً."
 
 ---
 
-### Part 4: Dialog Already Unconditional (No Change Needed)
+### Phase 8: Auto Lab Horse for Request-Origin Samples
 
-The `CreateSampleDialog` is rendered inside `{labMode === 'full' && (...)}` which is stable -- it doesn't depend on `createSampleOpen`. The dialog component itself handles open/close via props. No wrapping in `{createSampleOpen && ...}` exists. No change required.
+#### 8.1 useLabHorses.ts: Expand CreateLabHorseData
+
+Add optional fields to `CreateLabHorseData`:
+```typescript
+linked_horse_id?: string;
+source?: 'manual' | 'platform' | 'request';
+```
+
+Note: The DB column `source` currently accepts `'manual' | 'platform'`. We need a migration to expand the check constraint (or use `'platform'` as the value for request-created horses if a constraint exists).
+
+#### 8.2 DB: Check if source constraint exists
+
+If there's a CHECK constraint on `lab_horses.source`, we need a migration to add `'request'` as a valid value. If no constraint (just text column), no migration needed.
+
+Based on the types.ts showing `source: 'manual' | 'platform'`, this appears to be a TS-level type but likely also a DB constraint. A small migration will be needed:
+
+```sql
+ALTER TABLE public.lab_horses 
+  DROP CONSTRAINT IF EXISTS lab_horses_source_check;
+ALTER TABLE public.lab_horses 
+  ADD CONSTRAINT lab_horses_source_check 
+  CHECK (source IN ('manual', 'platform', 'request'));
+```
+
+#### 8.3 CreateSampleDialog.tsx: `ensureLabHorseForRequest()`
+
+New async helper function called at submit time when `fromRequest` is present:
+
+```
+async function ensureLabHorseForRequest():
+  1. Query lab_horses WHERE linked_horse_id = fromRequest.horse_id 
+     AND tenant_id = current tenant AND is_archived = false
+  2. If found: return existing lab_horse.id
+  3. If not found: INSERT into lab_horses with:
+     - name: fromRequest.horse_name_snapshot
+     - name_ar: fromRequest.horse_name_ar_snapshot  
+     - breed_text: horse_snapshot?.breed
+     - color_text: horse_snapshot?.color
+     - linked_horse_id: fromRequest.horse_id
+     - source: 'request'
+     - owner_name: fromRequest.initiator_tenant_name_snapshot
+  4. Return new lab_horse.id
+```
+
+#### 8.4 Submission flow change
+
+In `createSamplesForAllHorses()`, when `fromRequest` is present:
+- Before creating samples, call `ensureLabHorseForRequest()` 
+- Set `lab_horse_id` on each created sample instead of relying on `horse_name` alone
+- Keep `horse_name` as fallback display field
+
+#### 8.5 Horse step prefill for fromRequest
+
+When `fromRequest` is set, the initial `selectedHorses` array currently uses `horse_type: 'walk_in'`. Change to:
+- Still prefill with snapshot name
+- At submit, override with the ensured `lab_horse_id`
+- The horse step remains functional (user can change selection)
+
+#### 8.6 Client behavior (MVP)
+
+Keep current approach: `walkInClient.client_name = fromRequest.initiator_tenant_name_snapshot`. No auto-creation of clients table entries.
 
 ---
 
-### Files Changed
+### Files to Modify
 
-| File | Action |
-|------|--------|
-| `src/hooks/useNotifications.ts` | Add payload logging to INSERT/UPDATE callbacks |
-| `src/hooks/laboratory/useLabRequestMessages.ts` | Add payload logging to INSERT callback |
-| `src/components/debug/RealtimeDebugPanel.tsx` | New file -- dev-only debug panel |
-| `src/pages/Dashboard.tsx` | Mount debug panel (DEV only) |
-| `src/pages/DashboardLaboratory.tsx` | Mount debug panel (DEV only) + add mount/unmount useEffect |
+| File | Phase | Changes |
+|------|-------|---------|
+| `src/components/laboratory/CreateSampleDialog.tsx` | 7, 8 | Add receive_now radio, ensureLabHorseForRequest(), submission logic |
+| `src/hooks/laboratory/useLabSamples.ts` | 7 | Add `numbering_deferred` to CreateLabSampleData |
+| `src/hooks/laboratory/useLabHorses.ts` | 8 | Add `linked_horse_id` and `source` to CreateLabHorseData, LabHorse source type |
+| `src/i18n/locales/en.ts` | 7 | Add receiveNow/deferNumbering keys |
+| `src/i18n/locales/ar.ts` | 7 | Add Arabic equivalents |
+| New SQL migration | 8 | Expand source constraint on lab_horses (if needed) |
 
-### Test Checklist
+### Verification Checklist
 
-1. Click "Create Test Notification" in debug panel -- see `[NotificationsRealtime:event]` in console + badge increments without clicking bell
-2. Navigate to a lab request thread, click "Create Test Lab Message" -- see `[LabMessagesRealtime:event]` in console + message appears instantly
-3. Open Create Sample dialog, switch browser tab, return -- dialog stays open, no `[DashboardLaboratory] unmount` log appears
-4. Debug panel is invisible in production builds
-
+- Walk-in sample with "Receive Now": created as accessioned, daily_number assigned
+- Walk-in sample with "Defer": created as draft, no daily_number, numbering_deferred=true
+- Request-origin sample with "Defer": draft, no number, lab_horse auto-created
+- Request-origin sample appears in Samples list with horse name (not unknown)
+- Same horse from second request reuses existing lab_horse (no duplicates)
+- Manual daily_number entry still respected in both paths
+- Multi-horse creation works with both paths
