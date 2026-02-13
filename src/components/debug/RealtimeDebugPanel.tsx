@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import { Bug, ChevronDown, ChevronUp } from "lucide-react";
 
 /**
@@ -15,7 +15,8 @@ export function RealtimeDebugPanel() {
   const { user } = useAuth();
   const { activeTenant } = useTenant();
   const [searchParams] = useSearchParams();
-  const requestId = searchParams.get("requestId");
+  const params = useParams();
+  const requestId = params.requestId || searchParams.get("requestId");
 
   const addLog = (msg: string) =>
     setLog((prev) => [...prev.slice(-19), `${new Date().toLocaleTimeString()} ${msg}`]);
@@ -35,6 +36,7 @@ export function RealtimeDebugPanel() {
 
   const createTestLabMessage = async () => {
     if (!user?.id || !requestId) return addLog("❌ No user or requestId");
+    addLog(`📤 Inserting lab msg for request: ${requestId}`);
     const { error } = await supabase.from("lab_request_messages").insert({
       request_id: requestId,
       sender_user_id: user.id,
@@ -60,7 +62,7 @@ export function RealtimeDebugPanel() {
           <div className="text-muted-foreground space-y-0.5">
             <div>User: <span className="text-foreground">{user?.id?.slice(0, 8) ?? "–"}</span></div>
             <div>Tenant: <span className="text-foreground">{activeTenant?.tenant_id?.slice(0, 8) ?? "–"}</span></div>
-            {requestId && <div>RequestId: <span className="text-foreground">{requestId.slice(0, 8)}</span></div>}
+            {requestId && <div>RequestId: <span className="text-foreground break-all">{requestId}</span></div>}
           </div>
 
           <div className="flex gap-1.5">
