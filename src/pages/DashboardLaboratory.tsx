@@ -22,6 +22,7 @@ import {
 } from "@/components/laboratory";
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
+import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
 import { StableResultsView } from "@/components/laboratory/StableResultsView";
@@ -46,6 +47,7 @@ export default function DashboardLaboratory() {
   const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editHorseId, setEditHorseId] = useState<string | null>(null);
+  const [fromRequest, setFromRequest] = useState<LabRequest | null>(null);
   
   // Lab tenant with full mode = primary business, uses sidebar/mobile nav instead of internal tabs
   const isPrimaryLabTenant = isLabTenant && labMode === "full";
@@ -251,7 +253,10 @@ export default function DashboardLaboratory() {
 
             {/* Requests Tab - for requests mode */}
             <TabsContent value="requests">
-              <LabRequestsTab />
+              <LabRequestsTab onCreateSampleFromRequest={(req) => {
+                setFromRequest(req);
+                setCreateSampleOpen(true);
+              }} />
             </TabsContent>
 
             {/* Stable Results Tab - requests with published results */}
@@ -348,8 +353,12 @@ export default function DashboardLaboratory() {
         <>
           <CreateSampleDialog
             open={createSampleOpen}
-            onOpenChange={setCreateSampleOpen}
+            onOpenChange={(open) => {
+              setCreateSampleOpen(open);
+              if (!open) setFromRequest(null);
+            }}
             onSuccess={() => handleTabChange("samples")}
+            fromRequest={fromRequest}
           />
           <CreateResultDialog
             open={createResultOpen}

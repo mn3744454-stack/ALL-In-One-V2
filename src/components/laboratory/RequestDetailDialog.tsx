@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
 import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
-  Tag, Building2, MessageSquare, Receipt,
+  Tag, Building2, MessageSquare, Receipt, FlaskConical,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,7 @@ interface RequestDetailDialogProps {
   defaultTab?: string;
   canCreateInvoice: boolean;
   onGenerateInvoice: () => void;
+  onCreateSample?: (request: LabRequest) => void;
 }
 
 export function RequestDetailDialog({
@@ -57,6 +58,7 @@ export function RequestDetailDialog({
   defaultTab,
   canCreateInvoice,
   onGenerateInvoice,
+  onCreateSample,
 }: RequestDetailDialogProps) {
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
@@ -66,9 +68,9 @@ export function RequestDetailDialog({
   const [resultUrl, setResultUrl] = useState(request.result_url || '');
   const [isPublishing, setIsPublishing] = useState(false);
 
-  const horseName = dir === 'rtl' && request.horse?.name_ar
-    ? request.horse.name_ar
-    : request.horse?.name || t('laboratory.samples.unknownHorse');
+  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
+    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
+    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
 
   const services = request.lab_request_services || [];
   const isBillable = request.status === 'ready' || request.status === 'received';
@@ -111,10 +113,10 @@ export function RequestDetailDialog({
             {horseName}
             <RequestStatusBadge status={request.status} />
           </DialogTitle>
-          {isLabFull && request.initiator_tenant?.name && (
+          {isLabFull && (request.initiator_tenant_name_snapshot || request.initiator_tenant?.name) && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               <Building2 className="h-3 w-3" />
-              {t('laboratory.requests.initiatorStable') || 'Requesting Stable'}: {request.initiator_tenant.name}
+              {t('laboratory.requests.initiatorStable') || 'Requesting Stable'}: {request.initiator_tenant_name_snapshot || request.initiator_tenant?.name}
             </p>
           )}
         </DialogHeader>
@@ -239,6 +241,16 @@ export function RequestDetailDialog({
                   <FileText className="h-3 w-3" />
                   {t('laboratory.requests.viewResult') || 'View Result'}
                 </a>
+              )}
+
+              {/* Lab-only: Create Sample from Request */}
+              {isLabFull && onCreateSample && request.status !== 'cancelled' && (
+                <div className="pt-2">
+                  <Button size="sm" onClick={() => onCreateSample(request)} className="gap-2">
+                    <FlaskConical className="h-4 w-4" />
+                    {t('laboratory.requests.createSampleFromRequest') || 'Create Sample from Request'}
+                  </Button>
+                </div>
               )}
 
               {/* Stable-only Actions */}
