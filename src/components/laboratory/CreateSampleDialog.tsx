@@ -430,8 +430,8 @@ export function CreateSampleDialog({
     const payload = {
       tenant_id: tenantId,
       created_by: user.id,
-      name: fromRequest.horse_name_snapshot || 'Unknown',
-      name_ar: fromRequest.horse_name_ar_snapshot || null,
+      name: fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Unknown',
+      name_ar: fromRequest.horse_name_ar_snapshot || fromRequest.horse?.name_ar || null,
       breed_text: (snapshot?.breed as string) || null,
       color_text: (snapshot?.color as string) || null,
       linked_horse_id: fromRequest.horse_id,
