@@ -495,8 +495,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {activeRole === "owner" && (
-                  <div className="pt-4 mt-4 border-t border-border/50 space-y-1">
+                <div className="pt-4 mt-4 border-t border-border/50 space-y-1">
+                  {activeRole === "owner" && (
                     <NavItem 
                       icon={Settings} 
                       label={t('sidebar.settings')} 
@@ -504,15 +504,15 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       active={isActive("/dashboard/settings")}
                       onNavigate={onClose} 
                     />
-                    <NavItem 
-                      icon={BellRing} 
-                      label={t('sidebar.notificationSettings')} 
-                      href="/dashboard/settings/notifications"
-                      active={isActive("/dashboard/settings/notifications")}
-                      onNavigate={onClose} 
-                    />
-                  </div>
-                )}
+                  )}
+                  <NavItem 
+                    icon={BellRing} 
+                    label={t('sidebar.notificationSettings')} 
+                    href="/dashboard/settings/notifications"
+                    active={isActive("/dashboard/settings/notifications")}
+                    onNavigate={onClose} 
+                  />
+                </div>
               </>
             )}
           </nav>
