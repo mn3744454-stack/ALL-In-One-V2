@@ -34,19 +34,34 @@ export function usePushSubscription() {
   }, []);
 
   const subscribe = useCallback(async () => {
-    if (!user?.id) return false;
+    console.log("[PushHook] subscribe called, user:", user?.id);
+    if (!user?.id) {
+      console.error("[PushHook] No user id, aborting");
+      return false;
+    }
 
     setPushState("loading");
 
     const permission = await Notification.requestPermission();
+    console.log("[PushHook] Permission result:", permission);
     setPushState(permission as PushState);
 
-    if (permission !== "granted") return false;
+    if (permission !== "granted") {
+      console.warn("[PushHook] Permission not granted:", permission);
+      return false;
+    }
 
-    const sub = await subscribeToPush(user.id);
-    const success = !!sub;
-    setIsSubscribed(success);
-    return success;
+    try {
+      const sub = await subscribeToPush(user.id);
+      const success = !!sub;
+      console.log("[PushHook] subscribeToPush result:", success);
+      setIsSubscribed(success);
+      return success;
+    } catch (err) {
+      console.error("[PushHook] subscribeToPush threw:", err);
+      setIsSubscribed(false);
+      return false;
+    }
   }, [user?.id]);
 
   const unsubscribe = useCallback(async () => {
