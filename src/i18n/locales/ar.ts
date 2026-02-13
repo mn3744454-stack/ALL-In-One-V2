@@ -911,6 +911,14 @@ export const ar = {
       invoiceStatus: "حالة الفاتورة",
       willCreateInvoice: "سيتم إنشاء فاتورة",
       noInvoice: "بدون فاتورة",
+      // Phase 7: Receive & Number Now
+      receiveNow: "استلام وترقيم الآن",
+      receiveNowDesc: "العينة مستلمة فعلياً. سيتم تعيين رقم يومي.",
+      deferNumbering: "حفظ كمسودة",
+      deferNumberingDesc: "سيتم تعيين الرقم عند استلام العينة لاحقاً.",
+      receiveStatus: "حالة الاستلام",
+      willReceiveNow: "سيتم الاستلام والترقيم الآن",
+      willDefer: "مسودة (ترقيم لاحقاً)",
     },
     
     // Client Mode Selector

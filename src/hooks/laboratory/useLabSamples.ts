@@ -107,6 +107,7 @@ export interface CreateLabSampleData {
   metadata?: Json;
   template_ids?: string[];
   lab_request_id?: string; // Link to originating lab request
+  numbering_deferred?: boolean; // Phase 7: defer daily number assignment
 }
 
 // Cache TTL for Riyadh bounds (60 seconds)

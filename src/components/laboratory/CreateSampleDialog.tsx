@@ -40,6 +40,8 @@ import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useTenant } from "@/contexts/TenantContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +139,8 @@ interface FormData {
   create_invoice: boolean;
   // Reason for no client (LAB tenant only)
   no_client_reason: string;
+  // Phase 7: Receive & Number Now
+  receive_now: boolean;
 }
 
 export function CreateSampleDialog({
@@ -158,6 +162,8 @@ export function CreateSampleDialog({
   const { getCapabilityForCategory } = useTenantCapabilities();
   const { hasPermission, isOwner } = usePermissions();
   const { isLabTenant, labMode } = useModuleAccess();
+  const { activeTenant } = useTenant();
+  const { user } = useAuth();
   
   // Lab tenants with full mode use lab_horses instead of stable horses
   const isPrimaryLabTenant = isLabTenant && labMode === 'full';
@@ -189,6 +195,7 @@ export function CreateSampleDialog({
     customize_templates_per_horse: false,
     create_invoice: false,
     no_client_reason: '',
+    receive_now: true,
   });
 
   // Get billing policy from tenant capabilities
@@ -408,9 +415,52 @@ export function CreateSampleDialog({
         customize_templates_per_horse: false,
         create_invoice: false,
         no_client_reason: '',
+        receive_now: fromRequest ? false : true, // Phase 7: default defer for request-origin
       });
     }
   }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant, fromRequest]);
+
+  // Phase 8: Ensure lab_horse exists for request-origin samples
+  const ensureLabHorseForRequest = async (): Promise<string | null> => {
+    if (!fromRequest?.horse_id || !activeTenant?.tenant.id || !user?.id) return null;
+    
+    const tenantId = activeTenant.tenant.id;
+    
+    // Try to find existing lab_horse linked to this platform horse
+    const { data: existing } = await supabase
+      .from('lab_horses')
+      .select('id')
+      .eq('linked_horse_id', fromRequest.horse_id)
+      .eq('tenant_id', tenantId)
+      .eq('is_archived', false)
+      .maybeSingle();
+    
+    if (existing) return existing.id;
+    
+    // Create new lab_horse from request snapshots
+    const snapshot = fromRequest.horse_snapshot as Record<string, unknown> | null;
+    const { data: newHorse, error } = await supabase
+      .from('lab_horses')
+      .insert({
+        tenant_id: tenantId,
+        created_by: user.id,
+        name: fromRequest.horse_name_snapshot || 'Unknown',
+        name_ar: fromRequest.horse_name_ar_snapshot || null,
+        breed_text: (snapshot?.breed as string) || null,
+        color_text: (snapshot?.color as string) || null,
+        linked_horse_id: fromRequest.horse_id,
+        source: 'request',
+        owner_name: fromRequest.initiator_tenant_name_snapshot || null,
+      })
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error('Failed to create lab horse for request:', error);
+      return null;
+    }
+    return newHorse.id;
+  };
 
   const generateSampleId = () => {
     const prefix = 'LAB';
@@ -473,6 +523,17 @@ export function CreateSampleDialog({
     const createdIds: string[] = [];
     const horsesToProcess = formData.selectedHorses.length > 0 ? formData.selectedHorses : [];
     const clientData = getClientData();
+
+    // Phase 7: Determine status and numbering_deferred based on receive_now
+    const sampleStatus: CreateLabSampleData['status'] = 
+      (isPrimaryLabTenant && formData.receive_now) ? 'accessioned' : 'draft';
+    const numberingDeferred = isPrimaryLabTenant ? !formData.receive_now : undefined;
+
+    // Phase 8: Ensure lab_horse for request-origin samples
+    let ensuredLabHorseId: string | null = null;
+    if (fromRequest?.horse_id && isPrimaryLabTenant) {
+      ensuredLabHorseId = await ensureLabHorseForRequest();
+    }
     
     // For retests, use the original sample's horse
     if (horsesToProcess.length === 0 && isRetest && retestOfSample?.horse_id) {
@@ -501,25 +562,31 @@ export function CreateSampleDialog({
     
     for (let i = 0; i < horsesToProcess.length; i++) {
       const selectedHorse = horsesToProcess[i];
-      // Use per-sample daily number if set, otherwise fallback to base + index
+      // Phase 7: Only compute daily numbers if receive_now is true
       let dailyNumber: number | undefined;
-      if (formData.per_sample_daily_numbers[i]) {
-        dailyNumber = parseInt(formData.per_sample_daily_numbers[i], 10);
-      } else if (formData.daily_number) {
-        dailyNumber = parseInt(formData.daily_number, 10) + i;
+      if (formData.receive_now || !isPrimaryLabTenant) {
+        if (formData.per_sample_daily_numbers[i]) {
+          dailyNumber = parseInt(formData.per_sample_daily_numbers[i], 10);
+        } else if (formData.daily_number) {
+          dailyNumber = parseInt(formData.daily_number, 10) + i;
+        }
       }
 
       // Get templates for this horse
       const horseTemplates = getTemplatesForHorse(i);
+
+      // Phase 8: For request-origin samples, override with ensured lab_horse_id
+      const effectiveLabHorseId = ensuredLabHorseId 
+        || (selectedHorse.horse_type === 'lab_horse' ? selectedHorse.horse_id : undefined);
       
       // Build sample data based on horse type
       const sampleData: CreateLabSampleData = {
         // For lab_horse type, use lab_horse_id and also set horse_name for display
-        lab_horse_id: selectedHorse.horse_type === 'lab_horse' ? selectedHorse.horse_id : undefined,
+        lab_horse_id: effectiveLabHorseId,
         // For internal horses, use horse_id FK
-        horse_id: selectedHorse.horse_type === 'internal' ? selectedHorse.horse_id : undefined,
+        horse_id: (!effectiveLabHorseId && selectedHorse.horse_type === 'internal') ? selectedHorse.horse_id : undefined,
         // For walk-in and lab_horse, store name for display
-        horse_name: (selectedHorse.horse_type === 'walk_in' || selectedHorse.horse_type === 'lab_horse') 
+        horse_name: (selectedHorse.horse_type === 'walk_in' || selectedHorse.horse_type === 'lab_horse' || ensuredLabHorseId) 
           ? selectedHorse.horse_name 
           : undefined,
         horse_external_id: selectedHorse.horse_type === 'walk_in' 
@@ -537,7 +604,8 @@ export function CreateSampleDialog({
         notes: formData.notes || undefined,
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
-        status: 'draft',
+        status: sampleStatus,
+        numbering_deferred: numberingDeferred,
         template_ids: horseTemplates.length > 0 ? horseTemplates : undefined,
         lab_request_id: fromRequest?.id || undefined,
       };
@@ -1217,11 +1285,56 @@ export function CreateSampleDialog({
         );
 
       case 'details':
-        // For LAB tenants, this step has only notes (client is in step 1)
+        // For LAB tenants, this step has receive_now choice + daily number + notes
         if (isPrimaryLabTenant) {
           return (
             <div className="space-y-4">
-              {/* Collection date & daily number for LAB tenant */}
+              {/* Phase 7: Receive & Number Now choice */}
+              <div className="space-y-2">
+                <Label className="text-base font-medium">{t("laboratory.createSample.receiveStatus")}</Label>
+                <RadioGroup
+                  value={formData.receive_now ? 'receive_now' : 'defer'}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, receive_now: value === 'receive_now' }))}
+                  className="flex flex-col gap-2"
+                >
+                  <div
+                    className={cn(
+                      "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                      formData.receive_now && "bg-primary/5 border-primary/30"
+                    )}
+                    onClick={() => setFormData(prev => ({ ...prev, receive_now: true }))}
+                  >
+                    <RadioGroupItem value="receive_now" id="receive-now" className="mt-0.5" />
+                    <div>
+                      <Label htmlFor="receive-now" className="cursor-pointer font-medium">
+                        {t("laboratory.createSample.receiveNow")}
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t("laboratory.createSample.receiveNowDesc")}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={cn(
+                      "flex items-start space-x-3 rtl:space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors",
+                      !formData.receive_now && "bg-primary/5 border-primary/30"
+                    )}
+                    onClick={() => setFormData(prev => ({ ...prev, receive_now: false }))}
+                  >
+                    <RadioGroupItem value="defer" id="receive-defer" className="mt-0.5" />
+                    <div>
+                      <Label htmlFor="receive-defer" className="cursor-pointer font-medium">
+                        {t("laboratory.createSample.deferNumbering")}
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t("laboratory.createSample.deferNumberingDesc")}
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Collection date */}
               <div className="space-y-2">
                 <Label>{t("laboratory.createSample.collectionDate")} *</Label>
                 <Popover>
@@ -1250,8 +1363,9 @@ export function CreateSampleDialog({
                 </Popover>
               </div>
 
-              {/* Daily number inputs */}
-              {formData.selectedHorses.length <= 1 ? (
+              {/* Daily number inputs - only shown when Receive Now is selected */}
+              {formData.receive_now && (
+                formData.selectedHorses.length <= 1 ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -1374,6 +1488,7 @@ export function CreateSampleDialog({
                     ))}
                   </div>
                 </div>
+              )
               )}
 
               {/* Notes */}
@@ -1797,6 +1912,18 @@ export function CreateSampleDialog({
                   )}
                 </div>
               </div>
+              {/* Phase 7: Receive status in review */}
+              {isPrimaryLabTenant && (
+                <div className="flex justify-between border-b pb-3">
+                  <span className="text-muted-foreground">{t("laboratory.createSample.receiveStatus")}</span>
+                  <Badge variant={formData.receive_now ? "default" : "secondary"}>
+                    {formData.receive_now 
+                      ? t("laboratory.createSample.willReceiveNow")
+                      : t("laboratory.createSample.willDefer")
+                    }
+                  </Badge>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("laboratory.createSample.collectionDate")}</span>
                 <span>{format(formData.collection_date, "PPP")}</span>

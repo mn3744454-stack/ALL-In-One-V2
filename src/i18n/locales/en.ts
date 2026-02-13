@@ -885,6 +885,14 @@ export const en = {
       invoiceStatus: "Invoice Status",
       willCreateInvoice: "Will create invoice",
       noInvoice: "No invoice",
+      // Phase 7: Receive & Number Now
+      receiveNow: "Receive & Number Now",
+      receiveNowDesc: "Sample is physically received. A daily number will be assigned.",
+      deferNumbering: "Save as Draft",
+      deferNumberingDesc: "Number will be assigned when sample is received later.",
+      receiveStatus: "Receipt Status",
+      willReceiveNow: "Will receive & number now",
+      willDefer: "Draft (number later)",
     },
     
     // Client Mode Selector
