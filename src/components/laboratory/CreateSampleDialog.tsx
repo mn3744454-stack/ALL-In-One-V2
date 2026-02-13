@@ -420,46 +420,36 @@ export function CreateSampleDialog({
     }
   }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant, fromRequest]);
 
-  // Phase 8: Ensure lab_horse exists for request-origin samples
+  // Phase 8: Ensure lab_horse exists for request-origin samples (UPSERT for concurrency safety)
   const ensureLabHorseForRequest = async (): Promise<string | null> => {
     if (!fromRequest?.horse_id || !activeTenant?.tenant.id || !user?.id) return null;
     
     const tenantId = activeTenant.tenant.id;
-    
-    // Try to find existing lab_horse linked to this platform horse
-    const { data: existing } = await supabase
-      .from('lab_horses')
-      .select('id')
-      .eq('linked_horse_id', fromRequest.horse_id)
-      .eq('tenant_id', tenantId)
-      .eq('is_archived', false)
-      .maybeSingle();
-    
-    if (existing) return existing.id;
-    
-    // Create new lab_horse from request snapshots
     const snapshot = fromRequest.horse_snapshot as Record<string, unknown> | null;
-    const { data: newHorse, error } = await supabase
+    
+    const payload = {
+      tenant_id: tenantId,
+      created_by: user.id,
+      name: fromRequest.horse_name_snapshot || 'Unknown',
+      name_ar: fromRequest.horse_name_ar_snapshot || null,
+      breed_text: (snapshot?.breed as string) || null,
+      color_text: (snapshot?.color as string) || null,
+      linked_horse_id: fromRequest.horse_id,
+      source: 'request' as const,
+      owner_name: fromRequest.initiator_tenant_name_snapshot || null,
+    };
+
+    const { data: horse, error } = await supabase
       .from('lab_horses')
-      .insert({
-        tenant_id: tenantId,
-        created_by: user.id,
-        name: fromRequest.horse_name_snapshot || 'Unknown',
-        name_ar: fromRequest.horse_name_ar_snapshot || null,
-        breed_text: (snapshot?.breed as string) || null,
-        color_text: (snapshot?.color as string) || null,
-        linked_horse_id: fromRequest.horse_id,
-        source: 'request',
-        owner_name: fromRequest.initiator_tenant_name_snapshot || null,
-      })
+      .upsert(payload, { onConflict: 'tenant_id,linked_horse_id' })
       .select('id')
       .single();
     
     if (error) {
-      console.error('Failed to create lab horse for request:', error);
+      console.error('Failed to upsert lab horse for request:', error);
       return null;
     }
-    return newHorse.id;
+    return horse.id;
   };
 
   const generateSampleId = () => {
@@ -535,18 +525,27 @@ export function CreateSampleDialog({
       ensuredLabHorseId = await ensureLabHorseForRequest();
     }
     
-    // For retests, use the original sample's horse
+    // For retests, use the original sample's horse (Phase 7: respect receive_now)
     if (horsesToProcess.length === 0 && isRetest && retestOfSample?.horse_id) {
+      // Phase 7: Only compute daily numbers if receive_now is true
+      let retestDailyNumber: number | undefined;
+      if (formData.receive_now || !isPrimaryLabTenant) {
+        if (formData.daily_number) {
+          retestDailyNumber = parseInt(formData.daily_number, 10);
+        }
+      }
+
       const sampleData: CreateLabSampleData = {
         horse_id: retestOfSample.horse_id,
         collection_date: formData.collection_date.toISOString(),
-        daily_number: formData.daily_number ? parseInt(formData.daily_number, 10) : undefined,
+        daily_number: retestDailyNumber,
         physical_sample_id: formData.physical_sample_id || generateSampleId(),
         ...clientData,
         notes: formData.notes || undefined,
         related_order_id: relatedOrderId || undefined,
         retest_of_sample_id: retestOfSample?.id || undefined,
-        status: 'draft',
+        status: sampleStatus,
+        numbering_deferred: numberingDeferred,
         template_ids: formData.template_ids.length > 0 ? formData.template_ids : undefined,
       };
 
