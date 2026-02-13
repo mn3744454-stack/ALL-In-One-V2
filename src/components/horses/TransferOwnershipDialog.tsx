@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { HorseOwnership } from "@/hooks/useHorseOwnership";
 import { useI18n } from "@/i18n";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface Owner {
   id: string;
@@ -46,6 +47,7 @@ export const TransferOwnershipDialog = ({
   onSuccess,
 }: TransferOwnershipDialogProps) => {
   const { t } = useI18n();
+  const { activeTenant } = useTenant();
   const [recipientType, setRecipientType] = useState<"existing" | "new">("existing");
   const [recipientId, setRecipientId] = useState("");
   const [transferPercentage, setTransferPercentage] = useState("");
@@ -176,15 +178,18 @@ export const TransferOwnershipDialog = ({
 
   const sendTransferNotifications = async (recipientOwnerId: string, percentage: number) => {
     try {
+      const tenantId = activeTenant?.tenant_id;
       // Notify sender
       const senderOwner = availableOwners.find(o => o.id === fromOwnership.owner_id);
       if (senderOwner?.email) {
         await supabase.functions.invoke("send-ownership-notification", {
           body: {
-            owner_email: senderOwner.email,
+            tenant_id: tenantId,
+            horse_id: horseId,
+            event_type: "transferred_out",
+            recipient_email: senderOwner.email,
             owner_name: senderOwner.name,
             horse_name: horseName,
-            action: "transferred_out",
             percentage,
             to_owner_name: getRecipientName(),
           },
@@ -196,10 +201,12 @@ export const TransferOwnershipDialog = ({
       if (recipientOwner?.email) {
         await supabase.functions.invoke("send-ownership-notification", {
           body: {
-            owner_email: recipientOwner.email,
+            tenant_id: tenantId,
+            horse_id: horseId,
+            event_type: "transferred_in",
+            recipient_email: recipientOwner.email,
             owner_name: recipientOwner.name,
             horse_name: horseName,
-            action: "transferred_in",
             percentage,
             from_owner_name: fromOwnership.owner?.name,
           },
