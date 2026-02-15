@@ -248,7 +248,7 @@ export function RequestDetailDialog({
                 <div className="pt-2">
                   <Button size="sm" onClick={() => onCreateSample(request)} className="gap-2">
                     <FlaskConical className="h-4 w-4" />
-                    {t('laboratory.requests.createSampleFromRequest') || 'Create Sample from Request'}
+                    {t('laboratory.requests.createSampleFromRequest')}
                   </Button>
                 </div>
               )}

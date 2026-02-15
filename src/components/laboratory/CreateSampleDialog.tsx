@@ -323,7 +323,11 @@ export function CreateSampleDialog({
 
   useEffect(() => {
     if (open) {
-      setStep(0);
+      // Fast-path: for request-origin samples, jump to Details step (index of 'details')
+      const detailsStepIdx = fromRequest && isPrimaryLabTenant
+        ? effectiveSteps.findIndex(s => s.key === 'details')
+        : 0;
+      setStep(detailsStepIdx >= 0 ? detailsStepIdx : 0);
       setCreatedSampleIds([]);
       setSkipCheckout(false);
       // Reset billing step state

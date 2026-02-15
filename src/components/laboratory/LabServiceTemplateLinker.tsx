@@ -57,18 +57,18 @@ export function LabServiceTemplateLinker({ templateId, templateName, templateNam
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm">
             <Link2 className="h-4 w-4 me-1" />
-            Publish / Link
+            {t("laboratory.catalog.publishLink")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => { setSelectedService(null); setCreateDialogOpen(true); }}>
             <Plus className="h-4 w-4 me-2" />
-            Create New Service
+            {t("laboratory.catalog.createNewService")}
           </DropdownMenuItem>
           {services.length > 0 && (
             <DropdownMenuItem onClick={() => setLinkDialogOpen(true)}>
               <FileText className="h-4 w-4 me-2" />
-              Link to Existing Service
+              {t("laboratory.catalog.linkToExisting")}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
@@ -88,7 +88,7 @@ export function LabServiceTemplateLinker({ templateId, templateName, templateNam
       <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Select Service</DialogTitle>
+            <DialogTitle>{t("laboratory.catalog.selectService")}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[300px]">
             <div className="space-y-1">

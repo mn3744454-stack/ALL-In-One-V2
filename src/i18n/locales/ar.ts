@@ -34,6 +34,7 @@ export const ar = {
     all: "الكل",
     none: "لا شيء",
     select: "اختر",
+    selected: "مختار",
     optional: "اختياري",
     required: "مطلوب",
     more: "المزيد",
@@ -457,6 +458,8 @@ export const ar = {
       resultUrlPlaceholder: "https://...",
       initiatorStable: "الإسطبل الطالب",
       unknownService: "خدمة غير معروفة",
+      createSampleFromRequest: "إنشاء عينة من الطلب",
+      restartRetest: "إعادة / فحص مجدد",
     },
     
     // Stable Results Tab
@@ -1025,6 +1028,32 @@ export const ar = {
       updated: "تم تحديث الخدمة",
       createFailed: "فشل إنشاء الخدمة",
       updateFailed: "فشل تحديث الخدمة",
+      // Phase 10: Linked Templates
+      linkedTemplates: "القوالب المرتبطة",
+      selectedCount: "{{count}} مختار",
+      addTemplate: "إضافة",
+      removeTemplate: "إزالة",
+      required: "مطلوب",
+      searchTemplates: "بحث في القوالب...",
+      noAvailableTemplates: "لا توجد قوالب متاحة",
+      // Phase 10: Publish / Link
+      publishLink: "نشر / ربط",
+      createNewService: "إنشاء خدمة جديدة",
+      linkToExisting: "ربط بخدمة موجودة",
+      selectService: "اختر خدمة",
+      // Phase 13: Pricing
+      pricing: "التسعير",
+      pricingMode: "نظام التسعير",
+      sumTemplates: "مجموع القوالب",
+      overridePrice: "سعر مخصص",
+      discountType: "نوع الخصم",
+      discountNone: "بدون",
+      discountPercentage: "نسبة مئوية",
+      discountFixed: "مبلغ ثابت",
+      discountValue: "قيمة الخصم",
+      // Request actions
+      createSampleFromRequest: "إنشاء عينة من الطلب",
+      restartRetest: "إعادة / فحص مجدد",
     },
     
     // Toast Messages (for hooks)
