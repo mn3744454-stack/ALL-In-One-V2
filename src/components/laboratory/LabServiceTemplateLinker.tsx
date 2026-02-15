@@ -28,14 +28,17 @@ interface Props {
   templateName: string;
   templateNameAr?: string | null;
   templateCategory?: string | null;
+  /** When true, renders as a DropdownMenuItem trigger instead of a standalone button+dropdown */
+  asDropdownItem?: boolean;
 }
 
-export function LabServiceTemplateLinker({ templateId, templateName, templateNameAr, templateCategory }: Props) {
+export function LabServiceTemplateLinker({ templateId, templateName, templateNameAr, templateCategory, asDropdownItem }: Props) {
   const { t } = useI18n();
   const { services, createService, updateService, isCreating, isUpdating } = useLabServices();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<LabService | null>(null);
+  const [publishMenuOpen, setPublishMenuOpen] = useState(false);
 
   const handleCreateNew = async (data: CreateLabServiceInput & { id?: string }) => {
     if (data.id) {
@@ -50,6 +53,70 @@ export function LabServiceTemplateLinker({ templateId, templateName, templateNam
     setLinkDialogOpen(false);
     setCreateDialogOpen(true);
   };
+
+  // When used inside a parent DropdownMenu, render as a simple item that opens a sub-action
+  if (asDropdownItem) {
+    return (
+      <>
+        <DropdownMenuItem onClick={() => { setPublishMenuOpen(true); }}>
+          <Link2 className="h-4 w-4 me-2" />
+          {t("laboratory.catalog.publishLink")}
+        </DropdownMenuItem>
+
+        {/* Sub-menu dialog for choosing create new vs link existing */}
+        <Dialog open={publishMenuOpen} onOpenChange={setPublishMenuOpen}>
+          <DialogContent className="max-w-xs">
+            <DialogHeader>
+              <DialogTitle>{t("laboratory.catalog.publishLink")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Button variant="outline" className="w-full justify-start" onClick={() => { setPublishMenuOpen(false); setSelectedService(null); setCreateDialogOpen(true); }}>
+                <Plus className="h-4 w-4 me-2" />
+                {t("laboratory.catalog.createNewService")}
+              </Button>
+              {services.length > 0 && (
+                <Button variant="outline" className="w-full justify-start" onClick={() => { setPublishMenuOpen(false); setLinkDialogOpen(true); }}>
+                  <FileText className="h-4 w-4 me-2" />
+                  {t("laboratory.catalog.linkToExisting")}
+                </Button>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <LabServiceFormDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          service={selectedService}
+          onSubmit={handleCreateNew}
+          isLoading={isCreating || isUpdating}
+          lockedTemplateId={templateId}
+        />
+
+        <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t("laboratory.catalog.selectService")}</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[300px]">
+              <div className="space-y-1">
+                {services.map((svc) => (
+                  <div
+                    key={svc.id}
+                    className="p-3 rounded-md cursor-pointer hover:bg-accent text-sm"
+                    onClick={() => handleLinkToExisting(svc)}
+                  >
+                    <div className="font-medium">{svc.name}</div>
+                    {svc.name_ar && <div className="text-xs text-muted-foreground" dir="rtl">{svc.name_ar}</div>}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
 
   return (
     <>

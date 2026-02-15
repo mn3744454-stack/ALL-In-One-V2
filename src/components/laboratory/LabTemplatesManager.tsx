@@ -741,13 +741,13 @@ const openCreateDialog = () => {
                   <CardContent className="pt-4">
                     {/* Task E: Improved card layout with preview action and better mobile wrapping */}
                     <div className={`flex flex-col gap-3 ${isRTL ? 'items-end' : 'items-start'}`}>
-                      {/* Actions row - moved to top for mobile visibility */}
+                      {/* Actions row - stable header area, safe from scroll */}
                       {canManage && (
-                        <div className={`flex gap-1 items-center ${isRTL ? 'flex-row-reverse self-start' : 'self-end'}`}>
+                        <div className={`flex gap-1.5 items-center ${isRTL ? 'flex-row-reverse self-start' : 'self-end'}`}>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="h-9 w-9"
+                            className="h-9 w-9 rounded-lg"
                             onClick={() => {
                               openEditDialog(template);
                               setPreviewOpen(true);
@@ -757,21 +757,30 @@ const openCreateDialog = () => {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="h-9 w-9"
+                            className="h-9 w-9 rounded-lg"
                             onClick={() => openEditDialog(template)}
+                            title={t('common.edit')}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          {/* Overflow menu for less-common actions */}
+                          {/* Overflow menu: Publish/Link + Duplicate + Delete */}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-9 w-9">
+                              <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg">
                                 <span className="text-lg leading-none">⋮</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" className="min-w-[180px]">
+                              {/* Publish/Link inside overflow — safe from accidental scroll taps */}
+                              <LabServiceTemplateLinker
+                                templateId={template.id}
+                                templateName={template.name}
+                                templateNameAr={template.name_ar}
+                                templateCategory={template.category}
+                                asDropdownItem
+                              />
                               <DropdownMenuItem onClick={() => {
                                 setTemplateToDuplicate(template);
                                 setDuplicateName(`${template.name} (Copy)`);
@@ -789,13 +798,6 @@ const openCreateDialog = () => {
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {/* Phase 10: Publish/Link to Service — safe from scroll zone */}
-                          <LabServiceTemplateLinker
-                            templateId={template.id}
-                            templateName={template.name}
-                            templateNameAr={template.name_ar}
-                            templateCategory={template.category}
-                          />
                         </div>
                       )}
                       {/* Template info - allow name to wrap */}
