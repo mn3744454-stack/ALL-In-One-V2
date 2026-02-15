@@ -593,6 +593,7 @@ export type Database = {
           email: string | null
           id: string
           linked_profile_id: string | null
+          linked_tenant_id: string | null
           name: string
           name_ar: string | null
           notes: string | null
@@ -615,6 +616,7 @@ export type Database = {
           email?: string | null
           id?: string
           linked_profile_id?: string | null
+          linked_tenant_id?: string | null
           name: string
           name_ar?: string | null
           notes?: string | null
@@ -637,6 +639,7 @@ export type Database = {
           email?: string | null
           id?: string
           linked_profile_id?: string | null
+          linked_tenant_id?: string | null
           name?: string
           name_ar?: string | null
           notes?: string | null
@@ -657,6 +660,20 @@ export type Database = {
             columns: ["linked_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_linked_tenant_id_fkey"
+            columns: ["linked_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_linked_tenant_id_fkey"
+            columns: ["linked_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -3905,18 +3922,30 @@ export type Database = {
       lab_request_services: {
         Row: {
           created_at: string
+          currency_snapshot: string | null
           lab_request_id: string
+          pricing_rule_snapshot: Json | null
           service_id: string
+          template_ids_snapshot: Json | null
+          unit_price_snapshot: number | null
         }
         Insert: {
           created_at?: string
+          currency_snapshot?: string | null
           lab_request_id: string
+          pricing_rule_snapshot?: Json | null
           service_id: string
+          template_ids_snapshot?: Json | null
+          unit_price_snapshot?: number | null
         }
         Update: {
           created_at?: string
+          currency_snapshot?: string | null
           lab_request_id?: string
+          pricing_rule_snapshot?: Json | null
           service_id?: string
+          template_ids_snapshot?: Json | null
+          unit_price_snapshot?: number | null
         }
         Relationships: [
           {
@@ -4558,6 +4587,65 @@ export type Database = {
           },
         ]
       }
+      lab_service_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_required: boolean
+          service_id: string
+          sort_order: number
+          template_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          service_id: string
+          sort_order?: number
+          template_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_required?: boolean
+          service_id?: string
+          sort_order?: number
+          template_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_service_templates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "lab_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_service_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_service_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_service_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_services: {
         Row: {
           category: string | null
@@ -4565,11 +4653,15 @@ export type Database = {
           created_at: string
           currency: string | null
           description: string | null
+          discount_type: string | null
+          discount_value: number | null
           id: string
           is_active: boolean
           name: string
           name_ar: string | null
+          override_price: number | null
           price: number | null
+          pricing_mode: string
           sample_type: string | null
           tenant_id: string
           turnaround_hours: number | null
@@ -4581,11 +4673,15 @@ export type Database = {
           created_at?: string
           currency?: string | null
           description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           is_active?: boolean
           name: string
           name_ar?: string | null
+          override_price?: number | null
           price?: number | null
+          pricing_mode?: string
           sample_type?: string | null
           tenant_id: string
           turnaround_hours?: number | null
@@ -4597,11 +4693,15 @@ export type Database = {
           created_at?: string
           currency?: string | null
           description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           id?: string
           is_active?: boolean
           name?: string
           name_ar?: string | null
+          override_price?: number | null
           price?: number | null
+          pricing_mode?: string
           sample_type?: string | null
           tenant_id?: string
           turnaround_hours?: number | null
