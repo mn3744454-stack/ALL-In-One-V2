@@ -1054,6 +1054,15 @@ export const ar = {
       // Request actions
       createSampleFromRequest: "إنشاء عينة من الطلب",
       restartRetest: "إعادة / فحص مجدد",
+      // Fast-path summary cards
+      summaryClient: "العميل",
+      summaryHorse: "الحصان",
+      summaryTemplates: "القوالب",
+      summaryEdit: "تعديل",
+      summaryNotAvailable: "غير متاح",
+      summaryFromRequest: "من الطلب",
+      summaryAutoResolved: "تم التعيين تلقائياً",
+      summaryCount: "{{count}} قوالب",
     },
     
     // Toast Messages (for hooks)

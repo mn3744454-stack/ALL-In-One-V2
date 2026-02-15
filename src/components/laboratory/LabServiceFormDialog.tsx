@@ -219,7 +219,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("laboratory.catalog.editService") : t("laboratory.catalog.addService")}
