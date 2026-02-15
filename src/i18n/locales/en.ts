@@ -34,6 +34,7 @@ export const en = {
     all: "All",
     none: "None",
     select: "Select",
+    selected: "selected",
     optional: "Optional",
     required: "Required",
     more: "More",
@@ -434,6 +435,8 @@ export const en = {
       resultUrlPlaceholder: "https://...",
       initiatorStable: "Requesting Stable",
       unknownService: "Unknown Service",
+      createSampleFromRequest: "Create Sample from Request",
+      restartRetest: "Restart / Retest",
     },
     
     // Stable Results Tab
@@ -999,6 +1002,32 @@ export const en = {
       updated: "Service updated",
       createFailed: "Failed to create service",
       updateFailed: "Failed to update service",
+      // Phase 10: Linked Templates
+      linkedTemplates: "Linked Templates",
+      selectedCount: "{{count}} selected",
+      addTemplate: "Add",
+      removeTemplate: "Remove",
+      required: "Required",
+      searchTemplates: "Search templates...",
+      noAvailableTemplates: "No available templates",
+      // Phase 10: Publish / Link
+      publishLink: "Publish / Link",
+      createNewService: "Create New Service",
+      linkToExisting: "Link to Existing Service",
+      selectService: "Select Service",
+      // Phase 13: Pricing
+      pricing: "Pricing",
+      pricingMode: "Pricing Mode",
+      sumTemplates: "Sum of Templates",
+      overridePrice: "Override Price",
+      discountType: "Discount Type",
+      discountNone: "None",
+      discountPercentage: "Percentage",
+      discountFixed: "Fixed",
+      discountValue: "Discount Value",
+      // Request actions
+      createSampleFromRequest: "Create Sample from Request",
+      restartRetest: "Restart / Retest",
     },
     
     // Toast Messages (for hooks)
