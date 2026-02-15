@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,7 @@ import { useClients } from "@/hooks/useClients";
 import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { fetchTemplateIdsForServices } from "@/hooks/laboratory/useLabServiceTemplates";
+import { useCreatePartyHorseLink } from "@/hooks/laboratory/usePartyHorseLinks";
 import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
@@ -175,6 +176,14 @@ export function CreateSampleDialog({
   const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
+  
+  // Eager ensure state for request-origin fast path
+  const requestPrefillResolvedRef = useRef(false);
+  const [eagerResolvedClient, setEagerResolvedClient] = useState<{ id: string; name: string } | null>(null);
+  const [eagerResolvedHorse, setEagerResolvedHorse] = useState<{ id: string; name: string } | null>(null);
+  const [eagerResolving, setEagerResolving] = useState(false);
+  
+  const { mutateAsync: createPartyHorseLink } = useCreatePartyHorseLink();
   
   // Billing step state: editable prices + Record Payment Now
   const [billingPrices, setBillingPrices] = useState<Record<string, number>>({});
@@ -330,6 +339,11 @@ export function CreateSampleDialog({
       setStep(detailsStepIdx >= 0 ? detailsStepIdx : 0);
       setCreatedSampleIds([]);
       setSkipCheckout(false);
+      // Reset eager resolve state
+      requestPrefillResolvedRef.current = false;
+      setEagerResolvedClient(null);
+      setEagerResolvedHorse(null);
+      setEagerResolving(false);
       // Reset billing step state
       setBillingPrices({});
       setCreatedInvoiceId(null);
@@ -509,6 +523,55 @@ export function CreateSampleDialog({
     });
   }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id]);
 
+  // Eager ensure: resolve client + horse + junction link on dialog open for request-origin
+  useEffect(() => {
+    if (!open || !fromRequest || !isPrimaryLabTenant || requestPrefillResolvedRef.current) return;
+    if (!activeTenant?.tenant.id || !user?.id) return;
+    
+    requestPrefillResolvedRef.current = true;
+    setEagerResolving(true);
+
+    const resolve = async () => {
+      let clientId: string | null = null;
+      let labHorseId: string | null = null;
+
+      // 1) Ensure client
+      try {
+        clientId = await ensureClientForRequest();
+        if (clientId) {
+          const clientName = fromRequest.initiator_tenant_name_snapshot || 'Client';
+          setEagerResolvedClient({ id: clientId, name: clientName });
+          setFormData(prev => ({ ...prev, client_id: clientId!, clientMode: 'registered' as LabClientMode }));
+        }
+      } catch (e) { console.error('Eager client ensure failed:', e); }
+
+      // 2) Ensure lab horse
+      try {
+        labHorseId = await ensureLabHorseForRequest();
+        if (labHorseId) {
+          const horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Horse';
+          setEagerResolvedHorse({ id: labHorseId, name: horseName });
+        }
+      } catch (e) { console.error('Eager horse ensure failed:', e); }
+
+      // 3) Create party_horse_links junction if both exist
+      if (clientId && labHorseId) {
+        try {
+          await createPartyHorseLink({
+            client_id: clientId,
+            lab_horse_id: labHorseId,
+            relationship_type: 'lab_customer',
+            is_primary: true,
+          });
+        } catch (e) { console.error('Party-horse link creation failed (may already exist):', e); }
+      }
+
+      setEagerResolving(false);
+    };
+
+    resolve();
+  }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id, user?.id]);
+
   const generateSampleId = () => {
     const prefix = 'LAB';
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -576,18 +639,12 @@ export function CreateSampleDialog({
       (isPrimaryLabTenant && formData.receive_now) ? 'accessioned' : 'draft';
     const numberingDeferred = isPrimaryLabTenant ? !formData.receive_now : undefined;
 
-    // Phase 8: Ensure lab_horse for request-origin samples
-    let ensuredLabHorseId: string | null = null;
-    if (fromRequest?.horse_id && isPrimaryLabTenant) {
-      ensuredLabHorseId = await ensureLabHorseForRequest();
-    }
+    // Use eagerly resolved IDs from the request fast-path (already ensured on dialog open)
+    const ensuredLabHorseId: string | null = eagerResolvedHorse?.id || null;
 
-    // Phase 12: Ensure client exists for request-origin samples
-    if (fromRequest && isPrimaryLabTenant && !clientData.client_id) {
-      const autoClientId = await ensureClientForRequest();
-      if (autoClientId) {
-        clientData.client_id = autoClientId;
-      }
+    // Use eagerly resolved client if not already set
+    if (fromRequest && isPrimaryLabTenant && !clientData.client_id && eagerResolvedClient?.id) {
+      clientData.client_id = eagerResolvedClient.id;
     }
     
     // For retests, use the original sample's horse (Phase 7: respect receive_now)
@@ -2137,6 +2194,62 @@ export function CreateSampleDialog({
 
           {/* Step Content - scrollable */}
           <div className="flex-1 min-h-0 overflow-y-auto px-1 pb-6">
+            {/* Fast-path summary cards for request-origin when at Details step or beyond */}
+            {fromRequest && isPrimaryLabTenant && effectiveSteps[step]?.key !== 'client' && effectiveSteps[step]?.key !== 'horses' && effectiveSteps[step]?.key !== 'templates' && (
+              <div className="space-y-2 mb-4">
+                {eagerResolving && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("laboratory.catalog.summaryAutoResolved")}
+                  </div>
+                )}
+                {/* Client summary card */}
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border bg-muted/30 min-h-[44px]">
+                  <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryClient")}</p>
+                    <p className="text-sm font-medium truncate">
+                      {eagerResolvedClient?.name || selectedClient?.name || fromRequest.initiator_tenant_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
+                    </p>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'client'); if (idx >= 0) setStep(idx); }}>
+                    {t("laboratory.catalog.summaryEdit")}
+                  </Button>
+                </div>
+                {/* Horse summary card */}
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border bg-muted/30 min-h-[44px]">
+                  <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryHorse")}</p>
+                    <p className="text-sm font-medium truncate">
+                      {eagerResolvedHorse?.name || formData.selectedHorses[0]?.horse_name || fromRequest.horse_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
+                    </p>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'horses'); if (idx >= 0) setStep(idx); }}>
+                    {t("laboratory.catalog.summaryEdit")}
+                  </Button>
+                </div>
+                {/* Templates summary card */}
+                <div className="flex items-center gap-2 p-2.5 rounded-xl border bg-muted/30 min-h-[44px]">
+                  <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryTemplates")}</p>
+                    <p className="text-sm font-medium truncate">
+                      {formData.template_ids.length > 0 
+                        ? `${formData.template_ids.length} ${t("laboratory.catalog.summaryTemplates").toLowerCase()}`
+                        : t("laboratory.catalog.summaryNotAvailable")
+                      }
+                    </p>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'templates'); if (idx >= 0) setStep(idx); }}>
+                    {t("laboratory.catalog.summaryEdit")}
+                  </Button>
+                </div>
+              </div>
+            )}
             {renderStepContent()}
           </div>
 

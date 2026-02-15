@@ -23,6 +23,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
@@ -737,48 +743,53 @@ const openCreateDialog = () => {
                     <div className={`flex flex-col gap-3 ${isRTL ? 'items-end' : 'items-start'}`}>
                       {/* Actions row - moved to top for mobile visibility */}
                       {canManage && (
-                        <div className={`flex gap-1 ${isRTL ? 'flex-row-reverse self-start' : 'self-end'}`}>
-                          {/* Preview button - Task E */}
+                        <div className={`flex gap-1 items-center ${isRTL ? 'flex-row-reverse self-start' : 'self-end'}`}>
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-9 w-9"
                             onClick={() => {
                               openEditDialog(template);
                               setPreviewOpen(true);
                             }}
                             title={t('laboratory.templates.preview')}
                           >
-                            <Eye className="h-4 w-4 text-primary" />
+                            <Eye className="h-4 w-4 text-muted-foreground" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => {
-                              setTemplateToDuplicate(template);
-                              setDuplicateName(`${template.name} (Copy)`);
-                              setDuplicateDialogOpen(true);
-                            }}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                            className="h-9 w-9"
                             onClick={() => openEditDialog(template)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setTemplateToDelete(template);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                           <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                          {/* Phase 10: Publish/Link to Service */}
+                          {/* Overflow menu for less-common actions */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-9 w-9">
+                                <span className="text-lg leading-none">⋮</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {
+                                setTemplateToDuplicate(template);
+                                setDuplicateName(`${template.name} (Copy)`);
+                                setDuplicateDialogOpen(true);
+                              }}>
+                                <Copy className="h-4 w-4 me-2" />
+                                {t('laboratory.templates.duplicate')}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                setTemplateToDelete(template);
+                                setDeleteDialogOpen(true);
+                              }} className="text-destructive">
+                                <Trash2 className="h-4 w-4 me-2" />
+                                {t('common.delete')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          {/* Phase 10: Publish/Link to Service — safe from scroll zone */}
                           <LabServiceTemplateLinker
                             templateId={template.id}
                             templateName={template.name}

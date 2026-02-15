@@ -1028,6 +1028,15 @@ export const en = {
       // Request actions
       createSampleFromRequest: "Create Sample from Request",
       restartRetest: "Restart / Retest",
+      // Fast-path summary cards
+      summaryClient: "Client",
+      summaryHorse: "Horse",
+      summaryTemplates: "Templates",
+      summaryEdit: "Edit",
+      summaryNotAvailable: "Not available",
+      summaryFromRequest: "From Request",
+      summaryAutoResolved: "Auto-resolved",
+      summaryCount: "{{count}} templates",
     },
     
     // Toast Messages (for hooks)
