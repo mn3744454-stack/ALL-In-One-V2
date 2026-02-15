@@ -17,6 +17,11 @@ export interface LabService {
   price: number | null;
   currency: string | null;
   is_active: boolean;
+  // Phase 13 pricing fields
+  pricing_mode: string;
+  override_price: number | null;
+  discount_type: string | null;
+  discount_value: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +37,11 @@ export interface CreateLabServiceInput {
   price?: number | null;
   currency?: string;
   is_active?: boolean;
+  // Phase 13
+  pricing_mode?: string;
+  override_price?: number | null;
+  discount_type?: string | null;
+  discount_value?: number | null;
 }
 
 // Hook for lab tenant managing their own services
@@ -74,6 +84,10 @@ export function useLabServices() {
           price: input.price ?? null,
           currency: input.currency || null,
           is_active: input.is_active ?? true,
+          pricing_mode: input.pricing_mode || 'sum_templates',
+          override_price: input.override_price ?? null,
+          discount_type: input.discount_type || null,
+          discount_value: input.discount_value ?? null,
         })
         .select()
         .single();
@@ -103,6 +117,10 @@ export function useLabServices() {
           price: updates.price ?? null,
           currency: updates.currency || null,
           is_active: updates.is_active ?? true,
+          pricing_mode: updates.pricing_mode || 'sum_templates',
+          override_price: updates.override_price ?? null,
+          discount_type: updates.discount_type || null,
+          discount_value: updates.discount_value ?? null,
         })
         .eq("id", id)
         .select()

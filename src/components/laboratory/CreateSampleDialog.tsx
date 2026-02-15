@@ -35,6 +35,7 @@ import { useHorses } from "@/hooks/useHorses";
 import { useClients } from "@/hooks/useClients";
 import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
+import { fetchTemplateIdsForServices } from "@/hooks/laboratory/useLabServiceTemplates";
 import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
@@ -452,6 +453,58 @@ export function CreateSampleDialog({
     return horse.id;
   };
 
+  // Phase 12: Ensure client exists for request-origin samples
+  const ensureClientForRequest = async (): Promise<string | null> => {
+    if (!fromRequest || !isPrimaryLabTenant || !activeTenant?.tenant.id) return null;
+
+    const tenantId = activeTenant.tenant.id;
+    // Determine initiator tenant ID from the request
+    const initiatorTenantId = (fromRequest as any).initiator_tenant_id || (fromRequest as any).tenant_id;
+    if (!initiatorTenantId) return null;
+
+    const clientName = fromRequest.initiator_tenant_name_snapshot || 
+      fromRequest.initiator_tenant?.name || 'Unknown Client';
+
+    // Try upsert with linked_tenant_id dedup
+    const { data: client, error } = await supabase
+      .from('clients')
+      .upsert(
+        {
+          tenant_id: tenantId,
+          linked_tenant_id: initiatorTenantId,
+          name: clientName,
+          type: 'organization',
+          status: 'active',
+        },
+        { onConflict: 'tenant_id,linked_tenant_id' }
+      )
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('Failed to upsert client for request:', error);
+      return null;
+    }
+    return client?.id || null;
+  };
+
+  // Phase 4: Auto-prefill templates from service↔template mapping when creating from request
+  useEffect(() => {
+    if (!open || !fromRequest || !isPrimaryLabTenant || !activeTenant?.tenant.id) return;
+    
+    const serviceIds = fromRequest.lab_request_services?.map(s => s.service_id) || [];
+    if (serviceIds.length === 0) return;
+
+    fetchTemplateIdsForServices(activeTenant.tenant.id, serviceIds).then((templateIds) => {
+      if (templateIds.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          template_ids: templateIds,
+        }));
+      }
+    });
+  }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id]);
+
   const generateSampleId = () => {
     const prefix = 'LAB';
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -523,6 +576,14 @@ export function CreateSampleDialog({
     let ensuredLabHorseId: string | null = null;
     if (fromRequest?.horse_id && isPrimaryLabTenant) {
       ensuredLabHorseId = await ensureLabHorseForRequest();
+    }
+
+    // Phase 12: Ensure client exists for request-origin samples
+    if (fromRequest && isPrimaryLabTenant && !clientData.client_id) {
+      const autoClientId = await ensureClientForRequest();
+      if (autoClientId) {
+        clientData.client_id = autoClientId;
+      }
     }
     
     // For retests, use the original sample's horse (Phase 7: respect receive_now)

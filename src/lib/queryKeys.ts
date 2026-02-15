@@ -30,6 +30,7 @@ export const queryKeys = {
   labTestTypes: (tenantId?: string) => ['lab-test-types', tenantId] as const,
   labCredits: (tenantId?: string) => ['lab-credits', tenantId] as const,
   labShares: (tenantId?: string) => ['lab-result-shares', tenantId] as const,
+  labServiceTemplates: (tenantId?: string, serviceId?: string) => ['lab-service-templates', tenantId, serviceId] as const,
   labEvents: (tenantId?: string) => ['lab-events', tenantId] as const,
   
   // Movement
