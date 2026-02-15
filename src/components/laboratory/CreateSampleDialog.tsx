@@ -477,7 +477,7 @@ export function CreateSampleDialog({
 
     const tenantId = activeTenant.tenant.id;
     // Determine initiator tenant ID from the request
-    const initiatorTenantId = (fromRequest as any).initiator_tenant_id || (fromRequest as any).tenant_id;
+    const initiatorTenantId = (fromRequest as any).initiator_tenant_id;
     if (!initiatorTenantId) return null;
 
     const clientName = fromRequest.initiator_tenant_name_snapshot || 
@@ -496,7 +496,7 @@ export function CreateSampleDialog({
         },
         { onConflict: 'tenant_id,linked_tenant_id' }
       )
-      .select('id')
+      .select('id, name')
       .single();
 
     if (error) {
@@ -506,24 +506,7 @@ export function CreateSampleDialog({
     return client?.id || null;
   };
 
-  // Phase 4: Auto-prefill templates from service↔template mapping when creating from request
-  useEffect(() => {
-    if (!open || !fromRequest || !isPrimaryLabTenant || !activeTenant?.tenant.id) return;
-    
-    const serviceIds = fromRequest.lab_request_services?.map(s => s.service_id) || [];
-    if (serviceIds.length === 0) return;
-
-    fetchTemplateIdsForServices(activeTenant.tenant.id, serviceIds).then((templateIds) => {
-      if (templateIds.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          template_ids: templateIds,
-        }));
-      }
-    });
-  }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id]);
-
-  // Eager ensure: resolve client + horse + junction link on dialog open for request-origin
+  // Eager ensure: resolve client + horse + junction link + templates on dialog open for request-origin
   useEffect(() => {
     if (!open || !fromRequest || !isPrimaryLabTenant || requestPrefillResolvedRef.current) return;
     if (!activeTenant?.tenant.id || !user?.id) return;
@@ -535,22 +518,32 @@ export function CreateSampleDialog({
       let clientId: string | null = null;
       let labHorseId: string | null = null;
 
-      // 1) Ensure client
+      // 1) Ensure client (skip gracefully if initiator_tenant_id missing)
       try {
         clientId = await ensureClientForRequest();
         if (clientId) {
-          const clientName = fromRequest.initiator_tenant_name_snapshot || 'Client';
+          const clientName = fromRequest.initiator_tenant_name_snapshot || 
+            fromRequest.initiator_tenant?.name || 'Client';
           setEagerResolvedClient({ id: clientId, name: clientName });
           setFormData(prev => ({ ...prev, client_id: clientId!, clientMode: 'registered' as LabClientMode }));
         }
       } catch (e) { console.error('Eager client ensure failed:', e); }
 
-      // 2) Ensure lab horse
+      // 2) Ensure lab horse (skip gracefully if horse_id missing)
       try {
         labHorseId = await ensureLabHorseForRequest();
         if (labHorseId) {
           const horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Horse';
           setEagerResolvedHorse({ id: labHorseId, name: horseName });
+          // Hydrate wizard horse selection so Edit opens with horse selected
+          setFormData(prev => ({
+            ...prev,
+            selectedHorses: [{
+              horse_id: labHorseId!,
+              horse_type: 'lab_horse' as const,
+              horse_name: horseName,
+            }],
+          }));
         }
       } catch (e) { console.error('Eager horse ensure failed:', e); }
 
@@ -565,6 +558,17 @@ export function CreateSampleDialog({
           });
         } catch (e) { console.error('Party-horse link creation failed (may already exist):', e); }
       }
+
+      // 4) Prefill templates from service↔template mapping
+      try {
+        const serviceIds = fromRequest.lab_request_services?.map(s => s.service_id) || [];
+        if (serviceIds.length > 0) {
+          const templateIds = await fetchTemplateIdsForServices(activeTenant!.tenant.id, serviceIds);
+          if (templateIds.length > 0) {
+            setFormData(prev => ({ ...prev, template_ids: templateIds }));
+          }
+        }
+      } catch (e) { console.error('Template prefill failed:', e); }
 
       setEagerResolving(false);
     };
@@ -2194,7 +2198,7 @@ export function CreateSampleDialog({
 
           {/* Step Content - scrollable */}
           <div className="flex-1 min-h-0 overflow-y-auto px-1 pb-6">
-            {/* Fast-path summary cards for request-origin when at Details step or beyond */}
+          {/* Fast-path summary cards for request-origin when at Details step or beyond */}
             {fromRequest && isPrimaryLabTenant && effectiveSteps[step]?.key !== 'client' && effectiveSteps[step]?.key !== 'horses' && effectiveSteps[step]?.key !== 'templates' && (
               <div className="space-y-2 mb-4">
                 {eagerResolving && (
@@ -2209,10 +2213,11 @@ export function CreateSampleDialog({
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryClient")}</p>
                     <p className="text-sm font-medium truncate">
-                      {eagerResolvedClient?.name || selectedClient?.name || fromRequest.initiator_tenant_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
+                      {selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
                     </p>
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    disabled={eagerResolving}
                     onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'client'); if (idx >= 0) setStep(idx); }}>
                     {t("laboratory.catalog.summaryEdit")}
                   </Button>
@@ -2223,10 +2228,11 @@ export function CreateSampleDialog({
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryHorse")}</p>
                     <p className="text-sm font-medium truncate">
-                      {eagerResolvedHorse?.name || formData.selectedHorses[0]?.horse_name || fromRequest.horse_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
+                      {formData.selectedHorses[0]?.horse_name || eagerResolvedHorse?.name || fromRequest.horse_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
                     </p>
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    disabled={eagerResolving}
                     onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'horses'); if (idx >= 0) setStep(idx); }}>
                     {t("laboratory.catalog.summaryEdit")}
                   </Button>
@@ -2238,12 +2244,13 @@ export function CreateSampleDialog({
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryTemplates")}</p>
                     <p className="text-sm font-medium truncate">
                       {formData.template_ids.length > 0 
-                        ? `${formData.template_ids.length} ${t("laboratory.catalog.summaryTemplates").toLowerCase()}`
+                        ? `${formData.template_ids.length} ${t("common.selected").toLowerCase()}`
                         : t("laboratory.catalog.summaryNotAvailable")
                       }
                     </p>
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
+                    disabled={eagerResolving}
                     onClick={() => { const idx = effectiveSteps.findIndex(s => s.key === 'templates'); if (idx >= 0) setStep(idx); }}>
                     {t("laboratory.catalog.summaryEdit")}
                   </Button>
