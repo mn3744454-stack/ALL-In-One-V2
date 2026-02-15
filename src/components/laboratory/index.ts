@@ -40,3 +40,4 @@ export * from "./TemplateSelectionDialog";
 export * from "./LabServicesCatalog";
 export * from "./LabCatalogViewer";
 export * from "./LabServiceFormDialog";
+export * from "./LabServiceTemplateLinker";

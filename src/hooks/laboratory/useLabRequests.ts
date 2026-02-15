@@ -7,9 +7,15 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
+import { computeServicePrice, type ServicePricingFields } from "@/lib/pricing/servicePricing";
 
 export interface LabRequestService {
   service_id: string;
+  // Phase 13 snapshot fields
+  template_ids_snapshot: string[] | null;
+  unit_price_snapshot: number | null;
+  currency_snapshot: string | null;
+  pricing_rule_snapshot: Record<string, unknown> | null;
   service?: {
     id: string;
     name: string;
@@ -106,8 +112,8 @@ export function useLabRequests() {
       
       // Build select: always include base + horse + services; lab mode also gets initiator tenant name
       const selectStr = isLabFull
-        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_tenant_id_fkey(id, name)`
-        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, service:lab_services(id, name, name_ar, code, category, price, currency))`;
+        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_tenant_id_fkey(id, name)`
+        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
       
       const { data, error } = await supabase
         .from('lab_requests')
@@ -151,15 +157,54 @@ export function useLabRequests() {
       
       if (error) throw error;
 
-      // Step 2: Insert service links if any
+      // Step 2: Insert service links with Phase 13 pricing snapshots
       if (service_ids && service_ids.length > 0) {
-        const serviceRows = service_ids.map(sid => ({
-          lab_request_id: result.id,
-          service_id: sid,
-        }));
+        // Fetch service pricing details for snapshots
+        const { data: serviceDetails } = await supabase
+          .from('lab_services')
+          .select('id, pricing_mode, override_price, discount_type, discount_value, currency, price')
+          .in('id', service_ids);
+
+        const serviceMap = new Map(
+          (serviceDetails || []).map(s => [s.id, s as ServicePricingFields])
+        );
+
+        const serviceRows = [];
+        for (const sid of service_ids) {
+          const svc = serviceMap.get(sid);
+          let snapshotFields: Record<string, unknown> = {};
+
+          if (svc && tenantId) {
+            try {
+              const pricing = await computeServicePrice(sid, tenantId, svc);
+              // Fetch template IDs linked to this service
+              const { data: stMappings } = await supabase
+                .from('lab_service_templates')
+                .select('template_id')
+                .eq('service_id', sid)
+                .eq('tenant_id', tenantId);
+              
+              snapshotFields = {
+                template_ids_snapshot: (stMappings || []).map(m => m.template_id),
+                unit_price_snapshot: pricing.unitPrice,
+                currency_snapshot: pricing.currency,
+                pricing_rule_snapshot: pricing.pricingRule,
+              };
+            } catch (e) {
+              console.error('Failed to compute pricing snapshot for service', sid, e);
+            }
+          }
+
+          serviceRows.push({
+            lab_request_id: result.id,
+            service_id: sid,
+            ...snapshotFields,
+          });
+        }
+
         const { error: linkError } = await supabase
           .from('lab_request_services')
-          .insert(serviceRows);
+          .insert(serviceRows as any);
         
         if (linkError) {
           // Rollback the request if service linking fails

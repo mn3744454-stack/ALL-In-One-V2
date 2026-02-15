@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { Json } from "@/integrations/supabase/types";
 import { useI18n } from "@/i18n";
+import { LabServiceTemplateLinker } from "./LabServiceTemplateLinker";
 
 const TEMPLATE_TYPES = [
   { value: 'standard', label: 'Standard', label_ar: 'قياسي' },
@@ -775,8 +776,15 @@ const openCreateDialog = () => {
                               setDeleteDialogOpen(true);
                             }}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                           <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
+                          {/* Phase 10: Publish/Link to Service */}
+                          <LabServiceTemplateLinker
+                            templateId={template.id}
+                            templateName={template.name}
+                            templateNameAr={template.name_ar}
+                            templateCategory={template.category}
+                          />
                         </div>
                       )}
                       {/* Template info - allow name to wrap */}
