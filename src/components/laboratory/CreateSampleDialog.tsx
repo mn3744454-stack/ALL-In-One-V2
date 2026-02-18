@@ -440,15 +440,36 @@ export function CreateSampleDialog({
         receive_now: fromRequest ? false : true, // Phase 7: default defer for request-origin
       });
     }
-  }, [open, preselectedHorseId, retestOfSample, isRetest, horses, isPrimaryLabTenant, fromRequest]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, preselectedHorseId, retestOfSample, isRetest, isPrimaryLabTenant, fromRequest]);
+  // NOTE: `horses` removed from deps to prevent re-running init after async horse list loads,
+  // which was overwriting eagerly-resolved formData (client_id, selectedHorses, template_ids).
 
-  // Phase 8: Ensure lab_horse exists for request-origin samples (UPSERT for concurrency safety)
+  // Phase 8: Ensure lab_horse exists for request-origin samples
+  // Uses SELECT-then-INSERT pattern because PostgREST upsert cannot target partial unique indexes
   const ensureLabHorseForRequest = async (): Promise<string | null> => {
     if (!fromRequest?.horse_id || !activeTenant?.tenant.id || !user?.id) return null;
     
     const tenantId = activeTenant.tenant.id;
+    const linkedHorseId = fromRequest.horse_id;
     const snapshot = fromRequest.horse_snapshot as Record<string, unknown> | null;
-    
+
+    // Step A: Check if lab_horse already exists for this linked_horse_id
+    const { data: existing, error: selErr } = await supabase
+      .from('lab_horses')
+      .select('id')
+      .eq('tenant_id', tenantId)
+      .eq('linked_horse_id', linkedHorseId)
+      .limit(1)
+      .maybeSingle();
+
+    if (selErr) {
+      console.error('ensureLabHorse SELECT failed:', selErr);
+      return null;
+    }
+    if (existing) return existing.id;
+
+    // Step B: INSERT new lab_horse
     const payload = {
       tenant_id: tenantId,
       created_by: user.id,
@@ -456,57 +477,91 @@ export function CreateSampleDialog({
       name_ar: fromRequest.horse_name_ar_snapshot || fromRequest.horse?.name_ar || null,
       breed_text: (snapshot?.breed as string) || null,
       color_text: (snapshot?.color as string) || null,
-      linked_horse_id: fromRequest.horse_id,
+      linked_horse_id: linkedHorseId,
       source: 'request' as const,
       owner_name: fromRequest.initiator_tenant_name_snapshot || null,
     };
 
-    const { data: horse, error } = await supabase
+    const { data: inserted, error: insErr } = await supabase
       .from('lab_horses')
-      .upsert(payload, { onConflict: 'tenant_id,linked_horse_id' })
+      .insert(payload)
       .select('id')
       .single();
-    
-    if (error) {
-      console.error('Failed to upsert lab horse for request:', error);
+
+    if (insErr) {
+      // Handle unique violation (23505) — race with concurrent insert
+      if (insErr.code === '23505') {
+        const { data: retry } = await supabase
+          .from('lab_horses')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('linked_horse_id', linkedHorseId)
+          .limit(1)
+          .maybeSingle();
+        return retry?.id || null;
+      }
+      console.error('ensureLabHorse INSERT failed:', insErr);
       return null;
     }
-    return horse.id;
+    return inserted.id;
   };
 
   // Phase 12: Ensure client exists for request-origin samples
+  // Uses SELECT-then-INSERT pattern because PostgREST upsert cannot target partial unique indexes
   const ensureClientForRequest = async (): Promise<string | null> => {
     if (!fromRequest || !isPrimaryLabTenant || !activeTenant?.tenant.id) return null;
 
     const tenantId = activeTenant.tenant.id;
-    // Determine initiator tenant ID from the request
     const initiatorTenantId = (fromRequest as any).initiator_tenant_id;
     if (!initiatorTenantId) return null;
 
     const clientName = fromRequest.initiator_tenant_name_snapshot || 
       fromRequest.initiator_tenant?.name || 'Unknown Client';
 
-    // Try upsert with linked_tenant_id dedup
-    const { data: client, error } = await supabase
+    // Step A: Check if client already exists for this linked_tenant_id
+    const { data: existing, error: selErr } = await supabase
       .from('clients')
-      .upsert(
-        {
-          tenant_id: tenantId,
-          linked_tenant_id: initiatorTenantId,
-          name: clientName,
-          type: 'organization',
-          status: 'active',
-        },
-        { onConflict: 'tenant_id,linked_tenant_id' }
-      )
       .select('id, name')
-      .single();
+      .eq('tenant_id', tenantId)
+      .eq('linked_tenant_id', initiatorTenantId)
+      .limit(1)
+      .maybeSingle();
 
-    if (error) {
-      console.error('Failed to upsert client for request:', error);
+    if (selErr) {
+      console.error('ensureClient SELECT failed:', selErr);
       return null;
     }
-    return client?.id || null;
+    if (existing) return existing.id;
+
+    // Step B: INSERT new client
+    const { data: inserted, error: insErr } = await supabase
+      .from('clients')
+      .insert({
+        tenant_id: tenantId,
+        linked_tenant_id: initiatorTenantId,
+        name: clientName,
+        type: 'organization',
+        status: 'active',
+      })
+      .select('id')
+      .single();
+
+    if (insErr) {
+      // Handle unique violation (23505) — race with concurrent insert
+      if (insErr.code === '23505') {
+        const { data: retry } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('linked_tenant_id', initiatorTenantId)
+          .limit(1)
+          .maybeSingle();
+        return retry?.id || null;
+      }
+      console.error('ensureClient INSERT failed:', insErr);
+      return null;
+    }
+    return inserted?.id || null;
   };
 
   // Eager ensure: resolve client + horse + junction link + templates on dialog open for request-origin
