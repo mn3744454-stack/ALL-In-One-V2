@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,8 @@ import { useLabSamples, type CreateLabSampleData, type LabSample } from "@/hooks
 import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { fetchTemplateIdsForServices } from "@/hooks/laboratory/useLabServiceTemplates";
 import { useCreatePartyHorseLink } from "@/hooks/laboratory/usePartyHorseLinks";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 import { useLabCredits } from "@/hooks/laboratory/useLabCredits";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
@@ -156,7 +158,7 @@ export function CreateSampleDialog({
 }: CreateSampleDialogProps) {
   const { t } = useI18n();
   const { horses } = useHorses();
-  const { clients, createClient } = useClients();
+  const { clients, createClient, refresh: refreshClients } = useClients();
   const { createSample } = useLabSamples();
   const { updateRequest } = useLabRequests();
   const { wallet, creditsEnabled, debitCredits } = useLabCredits();
@@ -184,6 +186,7 @@ export function CreateSampleDialog({
   const [eagerResolving, setEagerResolving] = useState(false);
   
   const { mutateAsync: createPartyHorseLink } = useCreatePartyHorseLink();
+  const queryClient = useQueryClient();
   
   // Billing step state: editable prices + Record Payment Now
   const [billingPrices, setBillingPrices] = useState<Record<string, number>>({});
@@ -401,9 +404,9 @@ export function CreateSampleDialog({
         });
       }
       
-      // Determine initial client mode based on tenant type and retest
+      // Determine initial client mode based on tenant type and retest/request
       const initialClientMode: LabClientMode | StableClientMode = isPrimaryLabTenant
-        ? (retestOfSample?.client_id ? 'registered' : 'none')
+        ? (retestOfSample?.client_id ? 'registered' : fromRequest ? 'registered' : 'none')
         : (retestOfSample?.client_id ? 'existing' : retestOfSample?.client_name ? 'walkin' : 'none');
 
       // Notes: prefill from request if applicable
@@ -514,6 +517,8 @@ export function CreateSampleDialog({
     requestPrefillResolvedRef.current = true;
     setEagerResolving(true);
 
+    const tenantId = activeTenant.tenant.id;
+
     const resolve = async () => {
       let clientId: string | null = null;
       let labHorseId: string | null = null;
@@ -526,6 +531,8 @@ export function CreateSampleDialog({
             fromRequest.initiator_tenant?.name || 'Client';
           setEagerResolvedClient({ id: clientId, name: clientName });
           setFormData(prev => ({ ...prev, client_id: clientId!, clientMode: 'registered' as LabClientMode }));
+          // Force client registry to refetch so the new client appears in Clients tab and Step 1 picker
+          refreshClients();
         }
       } catch (e) { console.error('Eager client ensure failed:', e); }
 
@@ -544,6 +551,8 @@ export function CreateSampleDialog({
               horse_name: horseName,
             }],
           }));
+          // Invalidate lab horses query so the horse appears in Lab Horse Registry and Step 2 picker
+          queryClient.invalidateQueries({ queryKey: queryKeys.labHorses(tenantId) });
         }
       } catch (e) { console.error('Eager horse ensure failed:', e); }
 
@@ -556,6 +565,8 @@ export function CreateSampleDialog({
             relationship_type: 'lab_customer',
             is_primary: true,
           });
+          // Also invalidate party-horse links so horse filtering under client works
+          queryClient.invalidateQueries({ queryKey: queryKeys.partyHorseLinks(tenantId) });
         } catch (e) { console.error('Party-horse link creation failed (may already exist):', e); }
       }
 
@@ -563,7 +574,7 @@ export function CreateSampleDialog({
       try {
         const serviceIds = fromRequest.lab_request_services?.map(s => s.service_id) || [];
         if (serviceIds.length > 0) {
-          const templateIds = await fetchTemplateIdsForServices(activeTenant!.tenant.id, serviceIds);
+          const templateIds = await fetchTemplateIdsForServices(tenantId, serviceIds);
           if (templateIds.length > 0) {
             setFormData(prev => ({ ...prev, template_ids: templateIds }));
           }
