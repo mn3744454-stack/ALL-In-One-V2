@@ -244,7 +244,7 @@ export function RequestDetailDialog({
               )}
 
               {/* Lab-only: Create Sample from Request */}
-              {isLabFull && onCreateSample && request.status !== 'cancelled' && (
+              {isLabFull && onCreateSample && ['pending', 'sent', 'processing'].includes(request.status) && (
                 <div className="pt-2">
                   <Button size="sm" onClick={() => onCreateSample(request)} className="gap-2">
                     <FlaskConical className="h-4 w-4" />
