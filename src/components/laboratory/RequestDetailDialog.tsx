@@ -9,6 +9,8 @@ import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabReques
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
   Tag, Building2, MessageSquare, Receipt, FlaskConical,
@@ -74,6 +76,22 @@ export function RequestDetailDialog({
 
   const services = request.lab_request_services || [];
   const isBillable = request.status === 'ready' || request.status === 'received';
+
+  // Check if a sample already exists for this request
+  const { data: linkedSamples } = useQuery({
+    queryKey: ['lab_samples_for_request', request.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('lab_samples')
+        .select('id')
+        .eq('lab_request_id', request.id)
+        .limit(1);
+      return data || [];
+    },
+    enabled: open && isLabFull,
+  });
+  const hasSample = (linkedSamples?.length ?? 0) > 0;
+  const canCreateSample = isLabFull && onCreateSample && !hasSample && ['pending', 'sent', 'processing'].includes(request.status);
 
   const handleMarkReceived = async () => {
     await updateRequest({
@@ -243,13 +261,22 @@ export function RequestDetailDialog({
                 </a>
               )}
 
-              {/* Lab-only: Create Sample from Request */}
-              {isLabFull && onCreateSample && ['pending', 'sent', 'processing'].includes(request.status) && (
+              {/* Lab-only: Create Sample from Request (hidden once sample exists) */}
+              {canCreateSample && (
                 <div className="pt-2">
-                  <Button size="sm" onClick={() => onCreateSample(request)} className="gap-2">
+                  <Button size="sm" onClick={() => onCreateSample!(request)} className="gap-2">
                     <FlaskConical className="h-4 w-4" />
                     {t('laboratory.requests.createSampleFromRequest')}
                   </Button>
+                </div>
+              )}
+              {/* Lab-only: Sample already created indicator */}
+              {isLabFull && hasSample && (
+                <div className="pt-2">
+                  <Badge variant="secondary" className="gap-1">
+                    <FlaskConical className="h-3 w-3" />
+                    {t('laboratory.requests.sampleCreated') || 'Sample created'}
+                  </Badge>
                 </div>
               )}
 

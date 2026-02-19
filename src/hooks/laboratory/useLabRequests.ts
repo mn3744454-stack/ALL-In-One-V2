@@ -47,6 +47,9 @@ export interface LabRequest {
   created_at: string;
   updated_at: string;
   is_demo: boolean;
+  // Dual-tenant model
+  initiator_tenant_id: string | null;
+  lab_tenant_id: string | null;
   // Snapshot fields (written by stable at creation time)
   horse_name_snapshot: string | null;
   horse_name_ar_snapshot: string | null;
@@ -112,7 +115,7 @@ export function useLabRequests() {
       
       // Build select: always include base + horse + services; lab mode also gets initiator tenant name
       const selectStr = isLabFull
-        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_tenant_id_fkey(id, name)`
+        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
         : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
       
       const { data, error } = await supabase
