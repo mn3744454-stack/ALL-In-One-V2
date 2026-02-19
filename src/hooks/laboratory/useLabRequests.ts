@@ -136,6 +136,42 @@ export function useLabRequests() {
       
       const { service_ids, initiator_tenant_id, lab_tenant_id, horse_name_snapshot, horse_name_ar_snapshot, horse_snapshot, initiator_tenant_name_snapshot, ...requestData } = data;
 
+      // Server-side snapshot resolution: fetch horse and tenant data to guarantee snapshots
+      let resolvedHorseName = horse_name_snapshot || null;
+      let resolvedHorseNameAr = horse_name_ar_snapshot || null;
+      let resolvedHorseSnapshot = horse_snapshot || null;
+      let resolvedTenantName = initiator_tenant_name_snapshot || null;
+
+      // Always fetch horse data server-side if snapshots weren't provided or are null
+      if (!resolvedHorseName && requestData.horse_id) {
+        const { data: horseData } = await supabase
+          .from('horses')
+          .select('name, name_ar, breed, color')
+          .eq('id', requestData.horse_id)
+          .single();
+        if (horseData) {
+          resolvedHorseName = horseData.name;
+          resolvedHorseNameAr = horseData.name_ar || null;
+          resolvedHorseSnapshot = {
+            breed: (horseData as any).breed || undefined,
+            color: (horseData as any).color || undefined,
+          };
+        }
+      }
+
+      // Always fetch tenant name server-side if snapshot wasn't provided
+      const effectiveInitiatorId = initiator_tenant_id || tenantId;
+      if (!resolvedTenantName && effectiveInitiatorId) {
+        const { data: tenantData } = await supabase
+          .from('tenants')
+          .select('name')
+          .eq('id', effectiveInitiatorId)
+          .single();
+        if (tenantData) {
+          resolvedTenantName = tenantData.name;
+        }
+      }
+
       // Step 1: Create the lab_request row
       const { data: result, error } = await supabase
         .from('lab_requests')
@@ -148,12 +184,12 @@ export function useLabRequests() {
           notes: requestData.notes || null,
           expected_by: requestData.expected_by || null,
           created_by: user.id,
-          initiator_tenant_id: initiator_tenant_id || tenantId,
+          initiator_tenant_id: effectiveInitiatorId,
           lab_tenant_id: lab_tenant_id || null,
-          horse_name_snapshot: horse_name_snapshot || null,
-          horse_name_ar_snapshot: horse_name_ar_snapshot || null,
-          horse_snapshot: (horse_snapshot || null) as any,
-          initiator_tenant_name_snapshot: initiator_tenant_name_snapshot || null,
+          horse_name_snapshot: resolvedHorseName,
+          horse_name_ar_snapshot: resolvedHorseNameAr,
+          horse_snapshot: (resolvedHorseSnapshot || null) as any,
+          initiator_tenant_name_snapshot: resolvedTenantName,
         } as any)
         .select()
         .single();
