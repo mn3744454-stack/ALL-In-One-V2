@@ -447,7 +447,7 @@ export function CreateSampleDialog({
 
   // Phase 8: Ensure lab_horse exists for request-origin samples
   // Uses SELECT-then-INSERT pattern because PostgREST upsert cannot target partial unique indexes
-  const ensureLabHorseForRequest = async (): Promise<string | null> => {
+  const ensureLabHorseForRequest = async (): Promise<{ id: string; name: string; nameAr: string | null } | null> => {
     if (!fromRequest?.horse_id || !activeTenant?.tenant.id || !user?.id) return null;
     
     const tenantId = activeTenant.tenant.id;
@@ -457,7 +457,7 @@ export function CreateSampleDialog({
     // Step A: Check if lab_horse already exists for this linked_horse_id
     const { data: existing, error: selErr } = await supabase
       .from('lab_horses')
-      .select('id')
+      .select('id, name, name_ar')
       .eq('tenant_id', tenantId)
       .eq('linked_horse_id', linkedHorseId)
       .limit(1)
@@ -467,16 +467,36 @@ export function CreateSampleDialog({
       console.error('ensureLabHorse SELECT failed:', selErr);
       return null;
     }
-    if (existing) return existing.id;
+    if (existing) return { id: existing.id, name: existing.name, nameAr: existing.name_ar };
+
+    // Resolve horse name: snapshots → horses table → fallback
+    let horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name;
+    let horseNameAr = fromRequest.horse_name_ar_snapshot || fromRequest.horse?.name_ar || null;
+    let breedText = (snapshot?.breed as string) || null;
+    let colorText = (snapshot?.color as string) || null;
+
+    // If snapshots are missing, fetch directly from horses table
+    if (!horseName) {
+      const { data: horseData } = await supabase
+        .from('horses')
+        .select('name, name_ar')
+        .eq('id', linkedHorseId)
+        .maybeSingle();
+      if (horseData) {
+        horseName = horseData.name;
+        horseNameAr = horseData.name_ar || horseNameAr;
+      }
+    }
+    horseName = horseName || 'Unknown';
 
     // Step B: INSERT new lab_horse
     const payload = {
       tenant_id: tenantId,
       created_by: user.id,
-      name: fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Unknown',
-      name_ar: fromRequest.horse_name_ar_snapshot || fromRequest.horse?.name_ar || null,
-      breed_text: (snapshot?.breed as string) || null,
-      color_text: (snapshot?.color as string) || null,
+      name: horseName,
+      name_ar: horseNameAr,
+      breed_text: breedText,
+      color_text: colorText,
       linked_horse_id: linkedHorseId,
       source: 'request' as const,
       owner_name: fromRequest.initiator_tenant_name_snapshot || null,
@@ -485,7 +505,7 @@ export function CreateSampleDialog({
     const { data: inserted, error: insErr } = await supabase
       .from('lab_horses')
       .insert(payload)
-      .select('id')
+      .select('id, name, name_ar')
       .single();
 
     if (insErr) {
@@ -493,30 +513,38 @@ export function CreateSampleDialog({
       if (insErr.code === '23505') {
         const { data: retry } = await supabase
           .from('lab_horses')
-          .select('id')
+          .select('id, name, name_ar')
           .eq('tenant_id', tenantId)
           .eq('linked_horse_id', linkedHorseId)
           .limit(1)
           .maybeSingle();
-        return retry?.id || null;
+        return retry ? { id: retry.id, name: retry.name, nameAr: retry.name_ar } : null;
       }
       console.error('ensureLabHorse INSERT failed:', insErr);
       return null;
     }
-    return inserted.id;
+    return inserted ? { id: inserted.id, name: inserted.name, nameAr: inserted.name_ar } : null;
   };
 
   // Phase 12: Ensure client exists for request-origin samples
   // Uses SELECT-then-INSERT pattern because PostgREST upsert cannot target partial unique indexes
-  const ensureClientForRequest = async (): Promise<string | null> => {
+  const ensureClientForRequest = async (): Promise<{ id: string; name: string } | null> => {
     if (!fromRequest || !isPrimaryLabTenant || !activeTenant?.tenant.id) return null;
 
     const tenantId = activeTenant.tenant.id;
-    const initiatorTenantId = (fromRequest as any).initiator_tenant_id;
+    const initiatorTenantId = fromRequest.initiator_tenant_id;
     if (!initiatorTenantId) return null;
 
-    const clientName = fromRequest.initiator_tenant_name_snapshot || 
-      fromRequest.initiator_tenant?.name || 'Unknown Client';
+    // Resolve client name: snapshots → initiator_tenant join → tenants table → fallback
+    let clientName = fromRequest.initiator_tenant_name_snapshot || fromRequest.initiator_tenant?.name;
+    if (!clientName) {
+      const { data: tenantData } = await supabase
+        .from('tenants')
+        .select('name')
+        .eq('id', initiatorTenantId)
+        .maybeSingle();
+      clientName = tenantData?.name || 'Unknown Client';
+    }
 
     // Step A: Check if client already exists for this linked_tenant_id
     const { data: existing, error: selErr } = await supabase
@@ -531,7 +559,7 @@ export function CreateSampleDialog({
       console.error('ensureClient SELECT failed:', selErr);
       return null;
     }
-    if (existing) return existing.id;
+    if (existing) return { id: existing.id, name: existing.name };
 
     // Step B: INSERT new client
     const { data: inserted, error: insErr } = await supabase
@@ -543,7 +571,7 @@ export function CreateSampleDialog({
         type: 'organization',
         status: 'active',
       })
-      .select('id')
+      .select('id, name')
       .single();
 
     if (insErr) {
@@ -551,17 +579,17 @@ export function CreateSampleDialog({
       if (insErr.code === '23505') {
         const { data: retry } = await supabase
           .from('clients')
-          .select('id')
+          .select('id, name')
           .eq('tenant_id', tenantId)
           .eq('linked_tenant_id', initiatorTenantId)
           .limit(1)
           .maybeSingle();
-        return retry?.id || null;
+        return retry ? { id: retry.id, name: retry.name } : null;
       }
       console.error('ensureClient INSERT failed:', insErr);
       return null;
     }
-    return inserted?.id || null;
+    return inserted ? { id: inserted.id, name: inserted.name } : null;
   };
 
   // Eager ensure: resolve client + horse + junction link + templates on dialog open for request-origin
@@ -580,12 +608,11 @@ export function CreateSampleDialog({
 
       // 1) Ensure client (skip gracefully if initiator_tenant_id missing)
       try {
-        clientId = await ensureClientForRequest();
-        if (clientId) {
-          const clientName = fromRequest.initiator_tenant_name_snapshot || 
-            fromRequest.initiator_tenant?.name || 'Client';
-          setEagerResolvedClient({ id: clientId, name: clientName });
-          setFormData(prev => ({ ...prev, client_id: clientId!, clientMode: 'registered' as LabClientMode }));
+        const clientResult = await ensureClientForRequest();
+        if (clientResult) {
+          clientId = clientResult.id;
+          setEagerResolvedClient({ id: clientResult.id, name: clientResult.name });
+          setFormData(prev => ({ ...prev, client_id: clientResult.id, clientMode: 'registered' as LabClientMode }));
           // Force client registry to refetch so the new client appears in Clients tab and Step 1 picker
           refreshClients();
         }
@@ -593,17 +620,17 @@ export function CreateSampleDialog({
 
       // 2) Ensure lab horse (skip gracefully if horse_id missing)
       try {
-        labHorseId = await ensureLabHorseForRequest();
-        if (labHorseId) {
-          const horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name || 'Horse';
-          setEagerResolvedHorse({ id: labHorseId, name: horseName });
+        const horseResult = await ensureLabHorseForRequest();
+        if (horseResult) {
+          labHorseId = horseResult.id;
+          setEagerResolvedHorse({ id: horseResult.id, name: horseResult.name });
           // Hydrate wizard horse selection so Edit opens with horse selected
           setFormData(prev => ({
             ...prev,
             selectedHorses: [{
-              horse_id: labHorseId!,
+              horse_id: horseResult.id,
               horse_type: 'lab_horse' as const,
-              horse_name: horseName,
+              horse_name: horseResult.name,
             }],
           }));
           // Invalidate lab horses query so the horse appears in Lab Horse Registry and Step 2 picker

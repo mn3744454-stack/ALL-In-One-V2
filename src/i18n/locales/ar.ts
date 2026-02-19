@@ -460,6 +460,7 @@ export const ar = {
       unknownService: "خدمة غير معروفة",
       createSampleFromRequest: "إنشاء عينة من الطلب",
       restartRetest: "إعادة / فحص مجدد",
+      sampleCreated: "تم إنشاء عينة",
     },
     
     // Stable Results Tab

@@ -437,6 +437,7 @@ export const en = {
       unknownService: "Unknown Service",
       createSampleFromRequest: "Create Sample from Request",
       restartRetest: "Restart / Retest",
+      sampleCreated: "Sample created",
     },
     
     // Stable Results Tab
