@@ -718,7 +718,9 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const filteredRequests = requests.filter(req => {
     const matchesSearch = !searchQuery || 
       req.test_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      req.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
     
