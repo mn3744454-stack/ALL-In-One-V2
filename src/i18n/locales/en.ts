@@ -519,6 +519,7 @@ export const en = {
       received: "Received",
       unreceived: "Unreceived",
       processing: "Processing",
+      completed: "Completed",
       cancelled: "Cancelled",
       retest: "Retest",
     },
