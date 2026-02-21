@@ -216,8 +216,10 @@ export function RequestDetailDialog({
                     {services.map(s => (
                       <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
                         <Tag className="h-3 w-3" />
-                        {dir === 'rtl' && s.service?.name_ar ? s.service.name_ar : s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service'}
-                        {s.service?.code && <span className="font-mono opacity-70">({s.service.code})</span>}
+                        {dir === 'rtl' && (s.service_name_ar_snapshot || s.service?.name_ar)
+                          ? (s.service_name_ar_snapshot || s.service.name_ar)
+                          : (s.service_name_snapshot || s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service')}
+                        {(s.service_code_snapshot || s.service?.code) && <span className="font-mono opacity-70">({s.service_code_snapshot || s.service?.code})</span>}
                       </Badge>
                     ))}
                   </div>

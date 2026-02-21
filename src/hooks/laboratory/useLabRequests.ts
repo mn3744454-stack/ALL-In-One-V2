@@ -16,6 +16,10 @@ export interface LabRequestService {
   unit_price_snapshot: number | null;
   currency_snapshot: string | null;
   pricing_rule_snapshot: Record<string, unknown> | null;
+  // Service identity snapshots (cross-tenant safe)
+  service_name_snapshot: string | null;
+  service_name_ar_snapshot: string | null;
+  service_code_snapshot: string | null;
   service?: {
     id: string;
     name: string;
@@ -115,8 +119,8 @@ export function useLabRequests() {
       
       // Build select: always include base + horse + services; lab mode also gets initiator tenant name
       const selectStr = isLabFull
-        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
-        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
+        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
+        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
       
       const { data, error } = await supabase
         .from('lab_requests')
