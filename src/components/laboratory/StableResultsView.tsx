@@ -2,39 +2,54 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
+import { useStableLabResults, type StableLabResult } from "@/hooks/laboratory/useStableLabResults";
 import { useI18n } from "@/i18n";
-import { useTenant } from "@/contexts/TenantContext";
-import { Search, FileText, ExternalLink, FlaskConical } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { RequestDetailDialog } from "./RequestDetailDialog";
+import { Search, FlaskConical, Calendar, Building2, Eye } from "lucide-react";
+import { format } from "date-fns";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { StableResultViewerDialog } from "./StableResultViewerDialog";
 
 export function StableResultsView() {
   const { t } = useI18n();
-  const { requests, loading } = useLabRequests();
-  const { activeRole } = useTenant();
+  const { results, loading } = useStableLabResults();
   const [search, setSearch] = useState("");
-  const [detailRequest, setDetailRequest] = useState<LabRequest | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedResult, setSelectedResult] = useState<StableLabResult | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-stable-results');
 
-  const canCreateInvoice = activeRole === 'owner' || activeRole === 'manager';
-
-  const resultsWithData = useMemo(() => {
-    const withResults = requests.filter(
-      (r) => r.result_url || r.result_file_path
-    );
-    if (!search.trim()) return withResults;
+  const filtered = useMemo(() => {
+    if (!search.trim()) return results;
     const q = search.toLowerCase();
-    return withResults.filter(
+    return results.filter(
       (r) =>
-        r.horse?.name?.toLowerCase().includes(q) ||
+        r.horse_name_snapshot?.toLowerCase().includes(q) ||
+        r.horse_name?.toLowerCase().includes(q) ||
+        r.template_name?.toLowerCase().includes(q) ||
         r.test_description?.toLowerCase().includes(q) ||
-        r.external_lab_name?.toLowerCase().includes(q)
+        r.lab_tenant_name?.toLowerCase().includes(q)
     );
-  }, [requests, search]);
+  }, [results, search]);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'final':
+        return <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">{t("laboratory.results.status.final")}</Badge>;
+      case 'reviewed':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">{t("laboratory.results.status.reviewed")}</Badge>;
+      default:
+        return <Badge variant="secondary">{t("laboratory.results.status.draft")}</Badge>;
+    }
+  };
+
+  const getFlagBadge = (flags: string | null) => {
+    if (!flags) return null;
+    const colors: Record<string, string> = {
+      normal: "bg-green-100 text-green-800 border-green-200",
+      abnormal: "bg-orange-100 text-orange-800 border-orange-200",
+      critical: "bg-red-100 text-red-800 border-red-200",
+    };
+    return <Badge variant="outline" className={colors[flags] || ""}>{flags}</Badge>;
+  };
 
   if (loading) {
     return (
@@ -55,7 +70,7 @@ export function StableResultsView() {
           <div className="relative w-full sm:w-64">
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t("laboratory.requests.searchPlaceholder")}
+              placeholder={t("laboratory.results.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="ps-9"
@@ -74,7 +89,7 @@ export function StableResultsView() {
         </div>
       </div>
 
-      {resultsWithData.length === 0 ? (
+      {filtered.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <FlaskConical className="h-10 w-10 mb-3 opacity-30" />
@@ -82,107 +97,81 @@ export function StableResultsView() {
             <p className="text-sm">{t("laboratory.stableResults.noResultsDesc")}</p>
           </CardContent>
         </Card>
-      ) : (
-        viewMode === 'table' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-start">
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.createSample.horse')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.testDescription')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.externalLabName')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.viewResult')}</th>
+      ) : viewMode === 'table' ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-muted-foreground text-start">
+                <th className="py-2 px-3 font-medium text-start">{t('laboratory.createSample.horse')}</th>
+                <th className="py-2 px-3 font-medium text-start">{t('laboratory.preview.testType')}</th>
+                <th className="py-2 px-3 font-medium text-start">{t('laboratory.results.statusFilter')}</th>
+                <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
+                <th className="py-2 px-3 font-medium text-start">{t('laboratory.stableResults.labName')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-b hover:bg-muted/50 cursor-pointer"
+                  onClick={() => setSelectedResult(r)}
+                >
+                  <td className="py-2 px-3 font-medium">{r.horse_name_snapshot || r.horse_name || "—"}</td>
+                  <td className="py-2 px-3 truncate max-w-[200px]">{r.template_name || r.test_description || "—"}</td>
+                  <td className="py-2 px-3">{getStatusBadge(r.status)}</td>
+                  <td className="py-2 px-3 text-muted-foreground">
+                    {r.published_at ? format(new Date(r.published_at), "MMM d, yyyy") : "—"}
+                  </td>
+                  <td className="py-2 px-3 text-muted-foreground">{r.lab_tenant_name || "—"}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {resultsWithData.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="border-b hover:bg-muted/50 cursor-pointer"
-                    onClick={() => { setDetailRequest(r); setDetailOpen(true); }}
-                  >
-                    <td className="py-2 px-3 font-medium">{r.horse?.name || "—"}</td>
-                    <td className="py-2 px-3 truncate max-w-[200px]">{r.test_description}</td>
-                    <td className="py-2 px-3">{r.external_lab_name || t("laboratory.requests.platformLab")}</td>
-                    <td className="py-2 px-3 text-muted-foreground">{formatDistanceToNow(new Date(r.updated_at), { addSuffix: true })}</td>
-                    <td className="py-2 px-3">
-                      {r.result_url && (
-                        <a href={r.result_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary hover:underline text-xs flex items-center gap-1">
-                          <ExternalLink className="h-3 w-3" /> {t("laboratory.requests.viewResult")}
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
-          {resultsWithData.map((r) => (
+          {filtered.map((r) => (
             <Card
               key={r.id}
               className="cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => {
-                setDetailRequest(r);
-                setDetailOpen(true);
-              }}
+              onClick={() => setSelectedResult(r)}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-sm font-medium truncate">
-                    {r.horse?.name || "—"}
+                    {r.horse_name_snapshot || r.horse_name || "—"}
                   </CardTitle>
-                  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 shrink-0">
-                    {t("laboratory.requests.status.ready")}
-                  </Badge>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {getFlagBadge(r.flags)}
+                    {getStatusBadge(r.status)}
+                  </div>
                 </div>
-                <CardDescription className="line-clamp-2 text-xs">
-                  {r.test_description}
+                <CardDescription className="line-clamp-1 text-xs">
+                  {r.template_name || r.test_description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
-                    {r.external_lab_name || t("laboratory.requests.platformLab")}
+                    <Building2 className="h-3 w-3" />
+                    {r.lab_tenant_name || "—"}
                   </span>
-                  <span>
-                    {formatDistanceToNow(new Date(r.updated_at), { addSuffix: true })}
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {r.published_at ? format(new Date(r.published_at), "MMM d") : "—"}
                   </span>
                 </div>
-                {r.result_url && (
-                  <a
-                    href={r.result_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    {t("laboratory.requests.viewResult")}
-                  </a>
-                )}
               </CardContent>
             </Card>
           ))}
         </div>
-        )
       )}
 
-      {/* In-place detail dialog — no tab navigation */}
-      {detailRequest && (
-        <RequestDetailDialog
-          request={detailRequest}
-          open={detailOpen}
-          onOpenChange={(open) => {
-            setDetailOpen(open);
-            if (!open) setDetailRequest(null);
-          }}
-          defaultTab="details"
-          canCreateInvoice={canCreateInvoice}
-          onGenerateInvoice={() => {}}
+      {selectedResult && (
+        <StableResultViewerDialog
+          result={selectedResult}
+          open={!!selectedResult}
+          onOpenChange={(open) => { if (!open) setSelectedResult(null); }}
         />
       )}
     </div>

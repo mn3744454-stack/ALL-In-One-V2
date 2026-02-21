@@ -470,6 +470,8 @@ export const ar = {
       subtitle: "عرض نتائج طلبات الفحوصات",
       noResults: "لا توجد نتائج بعد",
       noResultsDesc: "ستظهر النتائج هنا عندما تنشرها المختبرات",
+      labName: "المختبر",
+      publishedAt: "تاريخ النشر",
     },
     
     // Messages Inbox
@@ -740,6 +742,10 @@ export const ar = {
         reviewed: "مراجع",
         final: "نهائي",
       },
+      publishToStable: "نشر للإسطبل",
+      published: "تم النشر",
+      publishSuccess: "تم نشر النتيجة للإسطبل بنجاح",
+      publishError: "فشل في نشر النتيجة",
     },
     
     // Result Actions

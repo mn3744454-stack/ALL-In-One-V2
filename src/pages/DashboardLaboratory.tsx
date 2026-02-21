@@ -53,7 +53,7 @@ export default function DashboardLaboratory() {
   const isPrimaryLabTenant = isLabTenant && labMode === "full";
   const location = useLocation();
 
-  const { results } = useLabResults();
+  const { results, publishToStable } = useLabResults();
   const { templates } = useLabTemplates();
   
   // Fetch lab horses for edit dialog
@@ -370,6 +370,7 @@ export default function DashboardLaboratory() {
             onOpenChange={(open) => !open && setPreviewResult(null)}
             result={previewResult}
             fullTemplate={previewTemplate}
+            onPublishToStable={publishToStable}
           />
           {/* Lab Horse Edit Dialog - works from both profile and list */}
           <LabHorseEditDialog

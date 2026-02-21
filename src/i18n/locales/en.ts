@@ -447,6 +447,8 @@ export const en = {
       subtitle: "View results from your lab test requests",
       noResults: "No results yet",
       noResultsDesc: "Results will appear here when labs publish them",
+      labName: "Lab",
+      publishedAt: "Published",
     },
     
     // Messages Inbox
@@ -714,6 +716,10 @@ export const en = {
         reviewed: "Reviewed",
         final: "Final",
       },
+      publishToStable: "Publish to Stable",
+      published: "Published",
+      publishSuccess: "Result published to stable successfully",
+      publishError: "Failed to publish result",
     },
     
     // Result Actions

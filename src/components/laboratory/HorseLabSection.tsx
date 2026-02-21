@@ -31,12 +31,16 @@ import {
   FileText,
   Tag,
   ExternalLink,
+  Building2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useStableLabResults, type StableLabResult } from "@/hooks/laboratory/useStableLabResults";
+import { StableResultViewerDialog } from "./StableResultViewerDialog";
 
 interface LabResult {
   id: string;
@@ -72,6 +76,16 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   const navigate = useNavigate();
   const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
+  const { isStable, isClinic } = useModuleAccess();
+  const isRequesterTenant = isStable || isClinic;
+  
+  // Stable/clinic: use published results via RPC
+  const { results: stableResults, loading: stableLoading } = useStableLabResults(
+    isRequesterTenant ? { horseId } : { horseId: undefined, limit: 0 }
+  );
+  const [selectedStableResult, setSelectedStableResult] = useState<StableLabResult | null>(null);
+  
+  // Lab tenant: use direct query
   const [results, setResults] = useState<LabResult[]>([]);
   const [labRequests, setLabRequests] = useState<HorseLabRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -517,6 +531,96 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
       </CardContent>
     </Card>
   );
+
+  // Stable Results view
+  const StableResultsList = () => {
+    if (stableLoading) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-primary" />
+              {t('laboratory.results.title')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FlaskConical className="w-5 h-5 text-primary" />
+            {t('laboratory.results.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {stableResults.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <FlaskConical className="h-12 w-12 mx-auto mb-3 opacity-20" />
+              <p>{t('laboratory.stableResults.noResults')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {stableResults.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedStableResult(r)}
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">
+                      {r.template_name || r.test_description || t('laboratory.results.unknownTest')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {r.published_at ? format(new Date(r.published_at), "MMM d, yyyy") : "—"}
+                      </span>
+                      {r.lab_tenant_name && (
+                        <span className="flex items-center gap-1">
+                          <Building2 className="h-3 w-3" />
+                          {r.lab_tenant_name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {r.flags && (
+                      <Badge className={getFlagColor(r.flags)} variant="secondary">{r.flags}</Badge>
+                    )}
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (isRequesterTenant) {
+    return (
+      <div className="space-y-4">
+        <LabRequestsSection />
+        <StableResultsList />
+        {selectedStableResult && (
+          <StableResultViewerDialog
+            result={selectedStableResult}
+            open={!!selectedStableResult}
+            onOpenChange={(open) => { if (!open) setSelectedStableResult(null); }}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
