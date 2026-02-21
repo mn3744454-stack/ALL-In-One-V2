@@ -518,7 +518,11 @@ export function ResultPreviewDialog({
                 اعتماد
               </Button>
             )}
-            {/* Publish to Stable */}
+          </div>
+          
+          {/* Print/PDF/Share + Publish (all together in footer) */}
+          <div className="flex gap-2 flex-wrap">
+            {/* Publish to Stable - next to PDF/Print */}
             {onPublishToStable && (
               <PublishToStableAction
                 resultId={result.id}
@@ -534,10 +538,6 @@ export function ResultPreviewDialog({
                 }}
               />
             )}
-          </div>
-          
-          {/* Print/Share Buttons */}
-          <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-2" />
               Print

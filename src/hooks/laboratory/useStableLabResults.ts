@@ -24,12 +24,90 @@ export interface StableLabResult {
   horse_name_ar_snapshot: string | null;
   lab_tenant_id: string | null;
   lab_tenant_name: string | null;
+  sample_id: string | null;
+}
+
+/** A group of results belonging to the same sample */
+export interface StableResultGroup {
+  groupKey: string; // sample_id or request_id fallback
+  sampleId: string | null;
+  requestId: string | null;
+  horseName: string;
+  horseId: string | null;
+  labName: string;
+  publishedAt: string | null;
+  physicalSampleId: string | null;
+  testDescription: string | null;
+  overallStatus: string;
+  results: StableLabResult[];
+}
+
+/** Groups organized by horse */
+export interface StableHorseGroup {
+  horseName: string;
+  horseId: string | null;
+  sampleGroups: StableResultGroup[];
 }
 
 interface UseStableLabResultsOptions {
   horseId?: string;
   limit?: number;
   offset?: number;
+}
+
+function groupResults(results: StableLabResult[]): StableHorseGroup[] {
+  // Group by sample_id (fallback request_id)
+  const sampleMap = new Map<string, StableResultGroup>();
+  for (const r of results) {
+    const key = r.sample_id || r.request_id || r.id;
+    if (!sampleMap.has(key)) {
+      sampleMap.set(key, {
+        groupKey: key,
+        sampleId: r.sample_id,
+        requestId: r.request_id,
+        horseName: r.horse_name_snapshot || r.horse_name || "—",
+        horseId: r.horse_id,
+        labName: r.lab_tenant_name || "—",
+        publishedAt: r.published_at,
+        physicalSampleId: r.physical_sample_id,
+        testDescription: r.test_description,
+        overallStatus: r.status,
+        results: [],
+      });
+    }
+    const group = sampleMap.get(key)!;
+    group.results.push(r);
+    // Use the max published_at
+    if (r.published_at && (!group.publishedAt || r.published_at > group.publishedAt)) {
+      group.publishedAt = r.published_at;
+    }
+    // Overall status: final > reviewed > draft
+    const statusRank: Record<string, number> = { draft: 0, reviewed: 1, final: 2 };
+    if ((statusRank[r.status] ?? 0) > (statusRank[group.overallStatus] ?? 0)) {
+      group.overallStatus = r.status;
+    }
+  }
+
+  // Group sample groups by horse
+  const horseMap = new Map<string, StableHorseGroup>();
+  for (const sg of sampleMap.values()) {
+    const horseKey = sg.horseId || sg.horseName;
+    if (!horseMap.has(horseKey)) {
+      horseMap.set(horseKey, {
+        horseName: sg.horseName,
+        horseId: sg.horseId,
+        sampleGroups: [],
+      });
+    }
+    horseMap.get(horseKey)!.sampleGroups.push(sg);
+  }
+
+  // Sort horse groups by most recent publish
+  return Array.from(horseMap.values()).sort((a, b) => {
+    const aDate = a.sampleGroups[0]?.publishedAt || "";
+    const bDate = b.sampleGroups[0]?.publishedAt || "";
+    return bDate.localeCompare(aDate);
+  });
 }
 
 export function useStableLabResults(options: UseStableLabResultsOptions = {}) {
@@ -74,5 +152,7 @@ export function useStableLabResults(options: UseStableLabResultsOptions = {}) {
     fetchResults();
   }, [fetchResults]);
 
-  return { results, loading, refresh: fetchResults };
+  const horseGroups = groupResults(results);
+
+  return { results, horseGroups, loading, refresh: fetchResults };
 }
