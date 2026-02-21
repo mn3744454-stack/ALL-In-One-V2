@@ -118,13 +118,15 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     }
   }, [service, open, form]);
 
-  // Sync linked templates from DB when editing
   useEffect(() => {
-    if (isEdit && mappings.length > 0) {
+    if (!open) return;
+    if (isEdit) {
       setLinkedTemplates(mappings.map((m) => ({
-        template_id: m.template_id, sort_order: m.sort_order, is_required: m.is_required,
+        template_id: m.template_id,
+        sort_order: m.sort_order,
+        is_required: m.is_required,
       })));
-    } else if (!isEdit) {
+    } else {
       if (lockedTemplateId) {
         setLinkedTemplates([{ template_id: lockedTemplateId, sort_order: 0, is_required: true }]);
       } else {

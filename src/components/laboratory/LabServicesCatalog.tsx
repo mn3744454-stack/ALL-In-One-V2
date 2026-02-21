@@ -5,7 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, Clock, Tag, FlaskConical } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, Clock, Tag, FlaskConical, Trash2 } from "lucide-react";
 import { useLabServices, type LabService, type CreateLabServiceInput } from "@/hooks/laboratory/useLabServices";
 import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
@@ -17,6 +27,7 @@ export function LabServicesCatalog() {
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<LabService | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = useState<LabService | null>(null);
 
   const categories = useMemo(() => {
     const cats = new Set(services.map(s => s.category).filter(Boolean) as string[]);
@@ -181,7 +192,17 @@ export function LabServicesCatalog() {
                         )}
                       </div>
                     </div>
-                    <div className="shrink-0" onClick={e => e.stopPropagation()}>
+                    <div className="shrink-0 flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                      {service.is_active && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeactivateTarget(service)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Switch
                         checked={service.is_active}
                         onCheckedChange={checked => toggleActive({ id: service.id, is_active: checked })}
@@ -202,6 +223,31 @@ export function LabServicesCatalog() {
         onSubmit={handleSubmit}
         isLoading={isCreating || isUpdating}
       />
+
+      <AlertDialog open={!!deactivateTarget} onOpenChange={(open) => !open && setDeactivateTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("laboratory.catalog.deactivateTitle") || "Deactivate this service?"}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("laboratory.catalog.deactivateDesc") || "This service will no longer be selectable in new requests. You can reactivate it later."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (deactivateTarget) {
+                  toggleActive({ id: deactivateTarget.id, is_active: false });
+                  setDeactivateTarget(null);
+                }
+              }}
+            >
+              {t("laboratory.catalog.deactivate") || "Deactivate"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
