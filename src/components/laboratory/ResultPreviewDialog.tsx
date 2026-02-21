@@ -510,7 +510,7 @@ export function ResultPreviewDialog({
               </Button>
             )}
             {/* Publish to Stable button */}
-            {onPublishToStable && result.sample?.lab_request_id && !published && (
+            {onPublishToStable && result.sample?.lab_request_id && !published && (result.status === 'reviewed' || result.status === 'final') && (
               <Button
                 size="sm"
                 variant="outline"
@@ -528,13 +528,13 @@ export function ResultPreviewDialog({
                 ) : (
                   <Send className="h-4 w-4 mr-2" />
                 )}
-                نشر للإسطبل
+                Publish to Stable
               </Button>
             )}
             {published && (
               <Badge variant="outline" className="border-green-600 text-green-600 self-center">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                تم النشر
+                Published
               </Badge>
             )}
           </div>
