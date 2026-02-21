@@ -54,6 +54,7 @@ interface ResultPreviewDialogProps {
   fullTemplate?: LabTemplate | null;
   onReview?: (resultId: string) => Promise<void>;
   onFinalize?: (resultId: string) => Promise<void>;
+  onPublishToStable?: (resultId: string) => Promise<boolean>;
 }
 
 export function ResultPreviewDialog({
@@ -63,11 +64,14 @@ export function ResultPreviewDialog({
   fullTemplate,
   onReview,
   onFinalize,
+  onPublishToStable,
 }: ResultPreviewDialogProps) {
   const [designTemplate, setDesignTemplate] = useState<DesignTemplate>('modern');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
+  const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
   if (!result) return null;
 
@@ -504,6 +508,34 @@ export function ResultPreviewDialog({
                 <CheckCircle2 className="h-4 w-4 mr-2" />
                 اعتماد
               </Button>
+            )}
+            {/* Publish to Stable button */}
+            {onPublishToStable && result.sample?.lab_request_id && !published && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+                disabled={isPublishing}
+                onClick={async () => {
+                  setIsPublishing(true);
+                  const ok = await onPublishToStable(result.id);
+                  if (ok) setPublished(true);
+                  setIsPublishing(false);
+                }}
+              >
+                {isPublishing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                نشر للإسطبل
+              </Button>
+            )}
+            {published && (
+              <Badge variant="outline" className="border-green-600 text-green-600 self-center">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                تم النشر
+              </Badge>
             )}
           </div>
           

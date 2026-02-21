@@ -20,6 +20,9 @@ export interface LabResult {
   flags: LabResultFlags | null;
   created_by: string;
   reviewed_by: string | null;
+  published_to_stable: boolean;
+  published_at: string | null;
+  published_by: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields
@@ -27,6 +30,7 @@ export interface LabResult {
     id: string;
     physical_sample_id: string | null;
     horse_name?: string | null;
+    lab_request_id?: string | null;
     horse?: { id: string; name: string; name_ar?: string | null };
     lab_horse?: { id: string; name: string; name_ar?: string | null };
   };
@@ -94,6 +98,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
             id, 
             physical_sample_id,
             horse_name,
+            lab_request_id,
             horse:horses!lab_samples_horse_id_fkey(id, name, name_ar),
             lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar)
           ),
@@ -330,6 +335,35 @@ export function useLabResults(filters: LabResultFilters = {}) {
     }
   };
 
+  const publishToStable = async (resultId: string) => {
+    if (!activeTenant?.tenant.id || !user?.id) {
+      toast.error(tGlobal("laboratory.toasts.noActiveOrganization"));
+      return false;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("lab_results")
+        .update({
+          published_to_stable: true,
+          published_at: new Date().toISOString(),
+          published_by: user.id,
+        })
+        .eq("id", resultId)
+        .eq("tenant_id", activeTenant.tenant.id);
+
+      if (error) throw error;
+
+      toast.success(tGlobal("laboratory.results.publishSuccess"));
+      fetchResults();
+      return true;
+    } catch (error: unknown) {
+      console.error("Error publishing result:", error);
+      toast.error(tGlobal("laboratory.results.publishError"));
+      return false;
+    }
+  };
+
   return {
     results,
     loading,
@@ -340,6 +374,7 @@ export function useLabResults(filters: LabResultFilters = {}) {
     reviewResult,
     finalizeResult,
     deleteResult,
+    publishToStable,
     refresh: fetchResults,
   };
 }
