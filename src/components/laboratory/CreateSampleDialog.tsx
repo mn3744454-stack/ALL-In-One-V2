@@ -469,25 +469,16 @@ export function CreateSampleDialog({
     }
     if (existing) return { id: existing.id, name: existing.name, nameAr: existing.name_ar };
 
-    // Resolve horse name: snapshots → horses table → fallback
-    let horseName = fromRequest.horse_name_snapshot || fromRequest.horse?.name;
-    let horseNameAr = fromRequest.horse_name_ar_snapshot || fromRequest.horse?.name_ar || null;
-    let breedText = (snapshot?.breed as string) || null;
-    let colorText = (snapshot?.color as string) || null;
+    // Resolve horse name from snapshots only (DB trigger guarantees non-NULL snapshots)
+    const horseName = fromRequest.horse_name_snapshot;
+    const horseNameAr = fromRequest.horse_name_ar_snapshot || null;
+    const breedText = (snapshot?.breed as string) || null;
+    const colorText = (snapshot?.color as string) || null;
 
-    // If snapshots are missing, fetch directly from horses table
     if (!horseName) {
-      const { data: horseData } = await supabase
-        .from('horses')
-        .select('name, name_ar')
-        .eq('id', linkedHorseId)
-        .maybeSingle();
-      if (horseData) {
-        horseName = horseData.name;
-        horseNameAr = horseData.name_ar || horseNameAr;
-      }
+      console.error('ensureLabHorseForRequest: horse_name_snapshot is NULL — snapshot trigger may not have run');
+      return null;
     }
-    horseName = horseName || 'Unknown';
 
     // Step B: INSERT new lab_horse
     const payload = {
