@@ -643,13 +643,28 @@ export function CreateSampleDialog({
         } catch (e) { console.error('Party-horse link creation failed (may already exist):', e); }
       }
 
-      // 4) Prefill templates from service↔template mapping
+      // 4) Prefill templates: prefer snapshots from request services, fallback to live mapping
       try {
-        const serviceIds = fromRequest.lab_request_services?.map(s => s.service_id) || [];
-        if (serviceIds.length > 0) {
-          const templateIds = await fetchTemplateIdsForServices(tenantId, serviceIds);
-          if (templateIds.length > 0) {
-            setFormData(prev => ({ ...prev, template_ids: templateIds }));
+        const services = fromRequest.lab_request_services || [];
+        // Collect template IDs from snapshots (jsonb arrays of uuid strings)
+        const snapshotTemplateIds = services
+          .flatMap(s => {
+            const snap = s.template_ids_snapshot;
+            if (Array.isArray(snap) && snap.length > 0) return snap as string[];
+            return [];
+          })
+          .filter((id, i, arr) => arr.indexOf(id) === i); // deduplicate
+
+        if (snapshotTemplateIds.length > 0) {
+          setFormData(prev => ({ ...prev, template_ids: snapshotTemplateIds }));
+        } else {
+          // Fallback to live mapping for backward compatibility (pre-snapshot rows)
+          const serviceIds = services.map(s => s.service_id);
+          if (serviceIds.length > 0) {
+            const templateIds = await fetchTemplateIdsForServices(tenantId, serviceIds);
+            if (templateIds.length > 0) {
+              setFormData(prev => ({ ...prev, template_ids: templateIds }));
+            }
           }
         }
       } catch (e) { console.error('Template prefill failed:', e); }

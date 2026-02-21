@@ -64,6 +64,7 @@ export function GenerateInvoiceDialog({
     getTemplatePrice,
     buildLineItemsFromSample,
     buildLineItemsFromRequest,
+    buildLineItemsFromRequestServices,
     generateInvoice,
     checkExistingInvoice,
     goToInvoice,
@@ -101,15 +102,21 @@ export function GenerateInvoiceDialog({
     }
   }, [open, sourceType, sourceId, checkExistingInvoice, hasChecked]);
 
-  // Build line items based on source type
+  // Build line items: prefer snapshot-based pricing from request services
   const lineItems: LabBillingLineItem[] = useMemo(() => {
     if (sourceType === "lab_sample" && sample) {
       return buildLineItemsFromSample(sample, templates);
     } else if (sourceType === "lab_request" && request) {
+      // Prefer snapshot-based line items from request services
+      const services = request.lab_request_services;
+      if (services && services.length > 0) {
+        return buildLineItemsFromRequestServices(services);
+      }
+      // Fallback to legacy single-line approach
       return buildLineItemsFromRequest(request, 0);
     }
     return [];
-  }, [sourceType, sample, request, templates, buildLineItemsFromSample, buildLineItemsFromRequest]);
+  }, [sourceType, sample, request, templates, buildLineItemsFromSample, buildLineItemsFromRequest, buildLineItemsFromRequestServices]);
 
   // Apply manual price overrides
   const adjustedLineItems = useMemo(() => {

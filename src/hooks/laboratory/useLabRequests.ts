@@ -7,7 +7,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
-import { computeServicePrice, type ServicePricingFields } from "@/lib/pricing/servicePricing";
+// Pricing snapshots are now populated by DB trigger (fn_populate_lrs_service_snapshots)
 
 export interface LabRequestService {
   service_id: string;
@@ -200,50 +200,12 @@ export function useLabRequests() {
       
       if (error) throw error;
 
-      // Step 2: Insert service links with Phase 13 pricing snapshots
+      // Step 2: Insert service links (pricing snapshots are populated by DB trigger)
       if (service_ids && service_ids.length > 0) {
-        // Fetch service pricing details for snapshots
-        const { data: serviceDetails } = await supabase
-          .from('lab_services')
-          .select('id, pricing_mode, override_price, discount_type, discount_value, currency, price')
-          .in('id', service_ids);
-
-        const serviceMap = new Map(
-          (serviceDetails || []).map(s => [s.id, s as ServicePricingFields])
-        );
-
-        const serviceRows = [];
-        for (const sid of service_ids) {
-          const svc = serviceMap.get(sid);
-          let snapshotFields: Record<string, unknown> = {};
-
-          if (svc && tenantId) {
-            try {
-              const pricing = await computeServicePrice(sid, tenantId, svc);
-              // Fetch template IDs linked to this service
-              const { data: stMappings } = await supabase
-                .from('lab_service_templates')
-                .select('template_id')
-                .eq('service_id', sid)
-                .eq('tenant_id', tenantId);
-              
-              snapshotFields = {
-                template_ids_snapshot: (stMappings || []).map(m => m.template_id),
-                unit_price_snapshot: pricing.unitPrice,
-                currency_snapshot: pricing.currency,
-                pricing_rule_snapshot: pricing.pricingRule,
-              };
-            } catch (e) {
-              console.error('Failed to compute pricing snapshot for service', sid, e);
-            }
-          }
-
-          serviceRows.push({
-            lab_request_id: result.id,
-            service_id: sid,
-            ...snapshotFields,
-          });
-        }
+        const serviceRows = service_ids.map(sid => ({
+          lab_request_id: result.id,
+          service_id: sid,
+        }));
 
         const { error: linkError } = await supabase
           .from('lab_request_services')
