@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -609,6 +611,87 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
   );
 }
 
+// Stable mode: group requests by horse
+function StableRequestsByHorse({
+  requests,
+  viewMode,
+  gridColumns,
+  canCreateInvoice,
+  onGenerateInvoice,
+  onOpenDetail,
+  dir,
+}: {
+  requests: LabRequest[];
+  viewMode: 'table' | 'list' | 'grid';
+  gridColumns: 2 | 3 | 4;
+  canCreateInvoice: boolean;
+  onGenerateInvoice: (r: LabRequest) => void;
+  onOpenDetail: (r: LabRequest, tab?: string) => void;
+  dir: string;
+}) {
+  const { t } = useI18n();
+
+  const horseGroups = useMemo(() => {
+    const map = new Map<string, { horseName: string; requests: LabRequest[] }>();
+    for (const req of requests) {
+      const horseKey = req.horse_id || req.horse_name_snapshot || 'unknown';
+      const horseName = dir === 'rtl' && (req.horse_name_ar_snapshot || req.horse?.name_ar)
+        ? (req.horse_name_ar_snapshot || req.horse?.name_ar || t('laboratory.samples.unknownHorse'))
+        : (req.horse_name_snapshot || req.horse?.name || t('laboratory.samples.unknownHorse'));
+      if (!map.has(horseKey)) {
+        map.set(horseKey, { horseName, requests: [] });
+      }
+      map.get(horseKey)!.requests.push(req);
+    }
+    // Sort groups by most recent request
+    return Array.from(map.values()).sort((a, b) => {
+      const aDate = a.requests[0]?.requested_at || "";
+      const bDate = b.requests[0]?.requested_at || "";
+      return bDate.localeCompare(aDate);
+    });
+  }, [requests, dir, t]);
+
+  const [openGroups, setOpenGroups] = useState<Set<string>>(
+    () => new Set(horseGroups.map(g => g.horseName))
+  );
+
+  const toggleGroup = (name: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      {horseGroups.map((group) => (
+        <Collapsible key={group.horseName} open={openGroups.has(group.horseName)} onOpenChange={() => toggleGroup(group.horseName)}>
+          <CollapsibleTrigger className="flex items-center gap-2 w-full text-start py-2 px-1 hover:bg-muted/50 rounded-lg transition-colors">
+            {openGroups.has(group.horseName) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            <span className="font-semibold">{group.horseName}</span>
+            <Badge variant="outline" className="text-xs">{group.requests.length}</Badge>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <div className={getGridClass(gridColumns, viewMode === 'table' ? 'list' : viewMode)}>
+              {group.requests.map((request) => (
+                <RequestCard
+                  key={request.id}
+                  request={request}
+                  canCreateInvoice={canCreateInvoice}
+                  onGenerateInvoice={() => onGenerateInvoice(request)}
+                  onOpenDetail={() => onOpenDetail(request)}
+                />
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      ))}
+    </div>
+  );
+}
+
 interface LabRequestsTabProps {
   onCreateSampleFromRequest?: (request: LabRequest) => void;
 }
@@ -910,6 +993,17 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
             </p>
           </div>
         </Card>
+      ) : isStableMode ? (
+        // Stable mode: group requests by horse
+        <StableRequestsByHorse
+          requests={filteredRequests}
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          canCreateInvoice={canCreateInvoice}
+          onGenerateInvoice={handleGenerateInvoice}
+          onOpenDetail={handleOpenDetail}
+          dir={dir}
+        />
       ) : (
         viewMode === 'table' ? (
           <div className="overflow-x-auto">

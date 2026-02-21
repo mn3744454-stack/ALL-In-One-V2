@@ -85,6 +85,24 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
   );
   const [selectedStableResult, setSelectedStableResult] = useState<StableLabResult | null>(null);
   
+  // Create a single-result group wrapper for the dialog
+  const selectedStableGroup = selectedStableResult ? {
+    groupKey: selectedStableResult.sample_id || selectedStableResult.request_id || selectedStableResult.id,
+    sampleId: selectedStableResult.sample_id,
+    requestId: selectedStableResult.request_id,
+    horseName: selectedStableResult.horse_name_snapshot || selectedStableResult.horse_name || "—",
+    horseId: selectedStableResult.horse_id,
+    labName: selectedStableResult.lab_tenant_name || "—",
+    publishedAt: selectedStableResult.published_at,
+    physicalSampleId: selectedStableResult.physical_sample_id,
+    testDescription: selectedStableResult.test_description,
+    overallStatus: selectedStableResult.status,
+    results: stableResults.filter(r => 
+      (r.sample_id && r.sample_id === selectedStableResult.sample_id) ||
+      (!r.sample_id && r.id === selectedStableResult.id)
+    ),
+  } : null;
+  
   // Lab tenant: use direct query
   const [results, setResults] = useState<LabResult[]>([]);
   const [labRequests, setLabRequests] = useState<HorseLabRequest[]>([]);
@@ -611,9 +629,9 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
       <div className="space-y-4">
         <LabRequestsSection />
         <StableResultsList />
-        {selectedStableResult && (
+        {selectedStableGroup && (
           <StableResultViewerDialog
-            result={selectedStableResult}
+            group={selectedStableGroup}
             open={!!selectedStableResult}
             onOpenChange={(open) => { if (!open) setSelectedStableResult(null); }}
           />
