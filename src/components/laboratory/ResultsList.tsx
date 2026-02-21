@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useLabResults, type LabResultStatus, type LabResultFlags, type LabResult } from "@/hooks/laboratory/useLabResults";
+import { PublishToStableAction } from "./PublishToStableAction";
 import { useLabSamples, type LabSample, type LabSampleStatus } from "@/hooks/laboratory/useLabSamples";
 import { ResultsFilterTabs, type ResultFilterTab } from "./ResultsFilterTabs";
 import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
@@ -100,6 +101,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
     canManage,
     reviewResult,
     finalizeResult,
+    publishToStable,
   } = useLabResults({ 
     status: getStatusFromTab(activeTab),
     dateFrom,
@@ -490,6 +492,40 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                           <Lock className="h-3 w-3 me-1" />
                           {t("laboratory.resultActions.finalize")}
                         </Button>
+                      )}
+                      {/* Publish to Stable - per result */}
+                      {sampleResults
+                        .filter(r => (r.status === 'reviewed' || r.status === 'final') && !!r.sample?.lab_request_id && !r.published_to_stable)
+                        .length > 0 && (
+                        <PublishToStableAction
+                          resultId={sampleResults.filter(r => (r.status === 'reviewed' || r.status === 'final') && !!r.sample?.lab_request_id && !r.published_to_stable)[0].id}
+                          status={sampleResults.filter(r => (r.status === 'reviewed' || r.status === 'final') && !!r.sample?.lab_request_id && !r.published_to_stable)[0].status}
+                          published_to_stable={false}
+                          sample_lab_request_id={sampleResults[0]?.sample?.lab_request_id}
+                          onPublish={async (id) => {
+                            // Publish all eligible results for this sample
+                            const eligible = sampleResults.filter(r => (r.status === 'reviewed' || r.status === 'final') && !!r.sample?.lab_request_id && !r.published_to_stable);
+                            let allOk = true;
+                            for (const r of eligible) {
+                              const ok = await publishToStable(r.id);
+                              if (!ok) allOk = false;
+                            }
+                            return allOk;
+                          }}
+                          compact
+                        />
+                      )}
+                      {/* Show published badge if all eligible are published */}
+                      {sampleResults.some(r => r.published_to_stable) && 
+                       !sampleResults.some(r => (r.status === 'reviewed' || r.status === 'final') && !!r.sample?.lab_request_id && !r.published_to_stable) && (
+                        <PublishToStableAction
+                          resultId={sampleResults[0].id}
+                          status={sampleResults[0].status}
+                          published_to_stable={true}
+                          sample_lab_request_id={sampleResults[0]?.sample?.lab_request_id}
+                          onPublish={publishToStable}
+                          compact
+                        />
                       )}
                     </CardFooter>
                   )}

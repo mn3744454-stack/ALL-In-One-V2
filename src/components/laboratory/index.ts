@@ -5,6 +5,7 @@ export * from "./SamplesFilterTabs";
 export * from "./SampleProgressStepper";
 export * from "./SamplesTable";
 export * from "./ResultCard";
+export * from "./PublishToStableAction";
 export * from "./LabTimeline";
 export * from "./LabCreditsPanel";
 export * from "./CreateSampleDialog";
