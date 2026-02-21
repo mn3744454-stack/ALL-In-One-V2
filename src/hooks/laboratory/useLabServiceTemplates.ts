@@ -50,22 +50,23 @@ export function useLabServiceTemplates(serviceId?: string) {
   });
 
   const syncMutation = useMutation({
-    mutationFn: async (entries: UpsertServiceTemplateInput[]) => {
-      if (!tenantId || !serviceId) throw new Error("Missing tenant or service");
+    mutationFn: async ({ entries, target_service_id }: { entries: UpsertServiceTemplateInput[]; target_service_id?: string }) => {
+      const effectiveServiceId = target_service_id ?? serviceId;
+      if (!tenantId || !effectiveServiceId) throw new Error("Missing tenant or service");
 
       // Delete existing mappings for this service
       const { error: delError } = await supabase
         .from("lab_service_templates")
         .delete()
         .eq("tenant_id", tenantId)
-        .eq("service_id", serviceId);
+        .eq("service_id", effectiveServiceId);
       if (delError) throw delError;
 
       // Insert new ones
       if (entries.length > 0) {
         const rows = entries.map((e, idx) => ({
           tenant_id: tenantId,
-          service_id: serviceId,
+          service_id: effectiveServiceId,
           template_id: e.template_id,
           sort_order: e.sort_order ?? idx,
           is_required: e.is_required ?? true,

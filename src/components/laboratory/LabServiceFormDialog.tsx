@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Plus, Pencil, FileText, X, ChevronUp, ChevronDown, Search } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { toast } from "sonner";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useLabServiceTemplates, type UpsertServiceTemplateInput } from "@/hooks/laboratory/useLabServiceTemplates";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -201,7 +202,12 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
         service_id: serviceId, template_id: lt.template_id,
         sort_order: idx, is_required: lt.is_required,
       }));
-      try { await syncTemplates(entries); } catch (e) { console.error("Failed to sync service templates:", e); }
+      try {
+        await syncTemplates({ entries, target_service_id: serviceId });
+      } catch (e) {
+        console.error("Failed to sync service templates:", e);
+        toast.error(t("laboratory.catalog.templateSyncFailed") || "Failed to link templates to service");
+      }
     }
     onOpenChange(false);
   };
