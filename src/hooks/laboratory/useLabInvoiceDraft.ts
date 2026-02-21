@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import type { LabSample } from "./useLabSamples";
-import type { LabRequest } from "./useLabRequests";
+import type { LabRequest, LabRequestService } from "./useLabRequests";
 import type { LabTemplate } from "./useLabTemplates";
 
 export type LabBillingSourceType = "lab_sample" | "lab_request";
@@ -162,7 +162,29 @@ export function useLabInvoiceDraft() {
   };
 
   /**
-   * Build line items from a lab request (uses test_description as a single line)
+   * Build line items from a lab request's services using snapshot prices (preferred).
+   * Falls back to service name if snapshot is missing.
+   */
+  const buildLineItemsFromRequestServices = (
+    services: LabRequestService[]
+  ): LabBillingLineItem[] => {
+    return services.map((s) => {
+      const name = s.service_name_snapshot || s.service?.name || "Unknown Service";
+      const nameAr = s.service_name_ar_snapshot || s.service?.name_ar || undefined;
+      const price = s.unit_price_snapshot ?? s.service?.price ?? null;
+      
+      return {
+        templateName: name,
+        templateNameAr: nameAr,
+        quantity: 1,
+        unitPrice: price,
+        total: price ?? 0,
+      };
+    });
+  };
+
+  /**
+   * Build line items from a lab request (legacy: uses test_description as a single line)
    */
   const buildLineItemsFromRequest = (
     request: LabRequest,
@@ -290,6 +312,7 @@ export function useLabInvoiceDraft() {
     getTemplatePrice,
     buildLineItemsFromSample,
     buildLineItemsFromRequest,
+    buildLineItemsFromRequestServices,
     generateInvoice,
     checkExistingInvoice,
     goToInvoice,
