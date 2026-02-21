@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -15,19 +15,38 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, Clock, Tag, FlaskConical, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Search, Clock, Tag, FlaskConical, Trash2, MoreVertical, Pencil, Power } from "lucide-react";
 import { useLabServices, type LabService, type CreateLabServiceInput } from "@/hooks/laboratory/useLabServices";
 import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
+
+type DialogTarget = { service: LabService; action: "deactivate" | "delete" } | null;
 
 export function LabServicesCatalog() {
   const { t } = useI18n();
-  const { services, isLoading, createService, updateService, toggleActive, isCreating, isUpdating } = useLabServices();
+  const { services, isLoading, createService, updateService, toggleActive, deleteService, isCreating, isUpdating, isDeleting } = useLabServices();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<LabService | null>(null);
-  const [deactivateTarget, setDeactivateTarget] = useState<LabService | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<DialogTarget>(null);
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference("lab_services");
 
   const categories = useMemo(() => {
     const cats = new Set(services.map(s => s.category).filter(Boolean) as string[]);
@@ -58,18 +77,179 @@ export function LabServicesCatalog() {
     }
   };
 
+  const handleConfirm = async () => {
+    if (!confirmTarget) return;
+    const { service, action } = confirmTarget;
+    if (action === "deactivate") {
+      await toggleActive({ id: service.id, is_active: false });
+    } else {
+      await deleteService(service.id);
+    }
+    setConfirmTarget(null);
+  };
+
+  const openEdit = (service: LabService) => {
+    setEditingService(service);
+    setDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 p-6">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
         </CardContent>
       </Card>
     );
   }
+
+  // Shared action menu for a service
+  const ServiceActions = ({ service, asButtons = false }: { service: LabService; asButtons?: boolean }) => {
+    if (asButtons) {
+      return (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(service)}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          {service.is_active && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-warning" onClick={() => setConfirmTarget({ service, action: "deactivate" })}>
+              <Power className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setConfirmTarget({ service, action: "delete" })}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => openEdit(service)}>
+            <Pencil className="h-4 w-4 me-2" />
+            {t("laboratory.catalog.editService")}
+          </DropdownMenuItem>
+          {service.is_active && (
+            <DropdownMenuItem onClick={() => setConfirmTarget({ service, action: "deactivate" })}>
+              <Power className="h-4 w-4 me-2" />
+              {t("laboratory.catalog.deactivate")}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setConfirmTarget({ service, action: "delete" })}>
+            <Trash2 className="h-4 w-4 me-2" />
+            {t("laboratory.catalog.deleteConfirm")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  // Card used in Grid and List modes
+  const ServiceCard = ({ service }: { service: LabService }) => (
+    <Card
+      variant="elevated"
+      className={`transition-all cursor-pointer hover:shadow-md ${!service.is_active ? "opacity-60" : ""}`}
+      onClick={() => openEdit(service)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold truncate">{service.name}</h3>
+              {service.code && (
+                <Badge variant="outline" className="font-mono text-xs shrink-0">{service.code}</Badge>
+              )}
+              {!service.is_active && (
+                <Badge variant="secondary" className="text-xs shrink-0">{t("laboratory.catalog.inactive")}</Badge>
+              )}
+            </div>
+            {service.name_ar && <p className="text-sm text-muted-foreground truncate" dir="rtl">{service.name_ar}</p>}
+            {viewMode !== 'list' && service.description && (
+              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-2 mt-2">
+              {service.category && (
+                <Badge variant="secondary" className="text-xs"><Tag className="w-3 h-3 mr-1" />{service.category}</Badge>
+              )}
+              {service.sample_type && <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>}
+              {service.turnaround_hours && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{service.turnaround_hours}h</span>
+              )}
+              {service.price != null && (
+                <span className="text-sm font-medium text-primary">{service.price} {service.currency || ""}</span>
+              )}
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2" onClick={e => e.stopPropagation()}>
+            <Switch
+              checked={service.is_active}
+              onCheckedChange={checked => {
+                if (!checked) {
+                  setConfirmTarget({ service, action: "deactivate" });
+                } else {
+                  toggleActive({ id: service.id, is_active: true });
+                }
+              }}
+            />
+            <ServiceActions service={service} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Table view
+  const ServiceTable = () => (
+    <div className="rounded-lg border bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("laboratory.catalog.name")}</TableHead>
+            <TableHead>{t("laboratory.catalog.code")}</TableHead>
+            <TableHead>{t("laboratory.catalog.category")}</TableHead>
+            <TableHead>{t("laboratory.catalog.price")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.catalog.active")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.catalog.actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filtered.map(service => (
+            <TableRow key={service.id} className={`cursor-pointer ${!service.is_active ? "opacity-60" : ""}`} onClick={() => openEdit(service)}>
+              <TableCell>
+                <div>
+                  <span className="font-medium">{service.name}</span>
+                  {service.name_ar && <span className="text-xs text-muted-foreground ms-2" dir="rtl">{service.name_ar}</span>}
+                </div>
+              </TableCell>
+              <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
+              <TableCell>{service.category || "—"}</TableCell>
+              <TableCell>{service.price != null ? `${service.price} ${service.currency || ""}` : "—"}</TableCell>
+              <TableCell className="text-center" onClick={e => e.stopPropagation()}>
+                <Switch
+                  checked={service.is_active}
+                  onCheckedChange={checked => {
+                    if (!checked) setConfirmTarget({ service, action: "deactivate" });
+                    else toggleActive({ id: service.id, is_active: true });
+                  }}
+                />
+              </TableCell>
+              <TableCell className="text-center" onClick={e => e.stopPropagation()}>
+                <ServiceActions service={service} asButtons />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
+  const confirmAction = confirmTarget?.action;
 
   return (
     <>
@@ -83,10 +263,21 @@ export function LabServicesCatalog() {
             </h2>
             <p className="text-sm text-muted-foreground">{t("laboratory.catalog.subtitle")}</p>
           </div>
-          <Button variant="gold" onClick={() => { setEditingService(null); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            {t("laboratory.catalog.addService")}
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <ViewSwitcher
+                viewMode={viewMode}
+                gridColumns={gridColumns}
+                onViewModeChange={setViewMode}
+                onGridColumnsChange={setGridColumns}
+                showLabels={false}
+              />
+            </div>
+            <Button variant="gold" onClick={() => { setEditingService(null); setDialogOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t("laboratory.catalog.addService")}
+            </Button>
+          </div>
         </div>
 
         {/* Search + Category Filter */}
@@ -123,7 +314,7 @@ export function LabServicesCatalog() {
           )}
         </div>
 
-        {/* Services List */}
+        {/* Services */}
         {filtered.length === 0 ? (
           <Card variant="elevated" className="border-dashed">
             <CardContent className="py-12 text-center">
@@ -138,79 +329,12 @@ export function LabServicesCatalog() {
               </Button>
             </CardContent>
           </Card>
+        ) : viewMode === 'table' ? (
+          <ServiceTable />
         ) : (
-          <div className="space-y-3">
+          <div className={getGridClass(gridColumns, viewMode)}>
             {filtered.map(service => (
-              <Card
-                key={service.id}
-                variant="elevated"
-                className={`transition-all cursor-pointer hover:shadow-md ${!service.is_active ? "opacity-60" : ""}`}
-                onClick={() => { setEditingService(service); setDialogOpen(true); }}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold truncate">{service.name}</h3>
-                        {service.code && (
-                          <Badge variant="outline" className="font-mono text-xs shrink-0">
-                            {service.code}
-                          </Badge>
-                        )}
-                        {!service.is_active && (
-                          <Badge variant="secondary" className="text-xs shrink-0">
-                            {t("laboratory.catalog.inactive")}
-                          </Badge>
-                        )}
-                      </div>
-                      {service.name_ar && (
-                        <p className="text-sm text-muted-foreground truncate" dir="rtl">{service.name_ar}</p>
-                      )}
-                      {service.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2 mt-2">
-                        {service.category && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Tag className="w-3 h-3 mr-1" />
-                            {service.category}
-                          </Badge>
-                        )}
-                        {service.sample_type && (
-                          <Badge variant="outline" className="text-xs">{service.sample_type}</Badge>
-                        )}
-                        {service.turnaround_hours && (
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {service.turnaround_hours}h
-                          </span>
-                        )}
-                        {service.price != null && (
-                          <span className="text-sm font-medium text-primary">
-                            {service.price} {service.currency || ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="shrink-0 flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                      {service.is_active && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => setDeactivateTarget(service)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Switch
-                        checked={service.is_active}
-                        onCheckedChange={checked => toggleActive({ id: service.id, is_active: checked })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ServiceCard key={service.id} service={service} />
             ))}
           </div>
         )}
@@ -224,26 +348,25 @@ export function LabServicesCatalog() {
         isLoading={isCreating || isUpdating}
       />
 
-      <AlertDialog open={!!deactivateTarget} onOpenChange={(open) => !open && setDeactivateTarget(null)}>
+      {/* Deactivate / Delete confirmation */}
+      <AlertDialog open={!!confirmTarget} onOpenChange={(open) => !open && setConfirmTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("laboratory.catalog.deactivateTitle") || "Deactivate this service?"}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {confirmAction === "delete" ? t("laboratory.catalog.deleteTitle") : t("laboratory.catalog.deactivateTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("laboratory.catalog.deactivateDesc") || "This service will no longer be selectable in new requests. You can reactivate it later."}
+              {confirmAction === "delete" ? t("laboratory.catalog.deleteDesc") : t("laboratory.catalog.deactivateDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (deactivateTarget) {
-                  toggleActive({ id: deactivateTarget.id, is_active: false });
-                  setDeactivateTarget(null);
-                }
-              }}
+              onClick={handleConfirm}
+              disabled={isDeleting}
             >
-              {t("laboratory.catalog.deactivate") || "Deactivate"}
+              {confirmAction === "delete" ? t("laboratory.catalog.deleteConfirm") : t("laboratory.catalog.deactivate")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
