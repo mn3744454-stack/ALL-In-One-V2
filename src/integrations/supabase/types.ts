@@ -3925,7 +3925,10 @@ export type Database = {
           currency_snapshot: string | null
           lab_request_id: string
           pricing_rule_snapshot: Json | null
+          service_code_snapshot: string | null
           service_id: string
+          service_name_ar_snapshot: string | null
+          service_name_snapshot: string | null
           template_ids_snapshot: Json | null
           unit_price_snapshot: number | null
         }
@@ -3934,7 +3937,10 @@ export type Database = {
           currency_snapshot?: string | null
           lab_request_id: string
           pricing_rule_snapshot?: Json | null
+          service_code_snapshot?: string | null
           service_id: string
+          service_name_ar_snapshot?: string | null
+          service_name_snapshot?: string | null
           template_ids_snapshot?: Json | null
           unit_price_snapshot?: number | null
         }
@@ -3943,7 +3949,10 @@ export type Database = {
           currency_snapshot?: string | null
           lab_request_id?: string
           pricing_rule_snapshot?: Json | null
+          service_code_snapshot?: string | null
           service_id?: string
+          service_name_ar_snapshot?: string | null
+          service_name_snapshot?: string | null
           template_ids_snapshot?: Json | null
           unit_price_snapshot?: number | null
         }
