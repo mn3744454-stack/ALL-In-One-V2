@@ -25,6 +25,8 @@ export interface UpsertServiceTemplateInput {
  * Hook to manage lab_service_templates junction table.
  * Lists, upserts, and deletes service↔template mappings.
  */
+const EMPTY_MAPPINGS: LabServiceTemplate[] = [];
+
 export function useLabServiceTemplates(serviceId?: string) {
   const { activeTenant } = useTenant();
   const { t } = useI18n();
@@ -85,7 +87,7 @@ export function useLabServiceTemplates(serviceId?: string) {
   });
 
   return {
-    mappings: query.data ?? [],
+    mappings: query.data ?? EMPTY_MAPPINGS,
     isLoading: query.isLoading,
     syncTemplates: syncMutation.mutateAsync,
     isSyncing: syncMutation.isPending,
