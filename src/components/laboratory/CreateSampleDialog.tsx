@@ -26,7 +26,7 @@ import {
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, ChevronLeft, ChevronRight, FlaskConical, AlertCircle, Check, CreditCard, FileText, AlertTriangle, ShoppingCart, Users, User, UserPlus, UserX, Receipt, X, CheckCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ClientSelector } from "@/components/horses/orders/ClientSelector";
+import { ClientPickerSheet } from "./ClientPickerSheet";
 import { WalkInClientForm } from "./WalkInClientForm";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { cn } from "@/lib/utils";
@@ -178,6 +178,7 @@ export function CreateSampleDialog({
   const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
   
   // Eager ensure state for request-origin fast path
   const requestPrefillResolvedRef = useRef(false);
@@ -1101,12 +1102,25 @@ export function CreateSampleDialog({
                 </div>
               </div>
               <CollapsibleContent className="pt-2 ps-8">
-                <ClientSelector
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setClientPickerOpen(true)}
+                >
+                  {formData.client_id && selectedClient ? (
+                    <span className="truncate">{selectedClient.name}</span>
+                  ) : (
+                    <span className="text-muted-foreground">{t("laboratory.createSample.selectClient")}</span>
+                  )}
+                </Button>
+                <ClientPickerSheet
+                  open={clientPickerOpen}
+                  onOpenChange={setClientPickerOpen}
                   selectedClientId={formData.client_id || null}
                   onClientSelect={(clientId) => {
                     setFormData(prev => ({ ...prev, client_id: clientId || '' }));
                   }}
-                  placeholder={t("laboratory.createSample.selectClient")}
                 />
               </CollapsibleContent>
             </Collapsible>
@@ -1782,12 +1796,25 @@ export function CreateSampleDialog({
             {/* Existing Client Selector */}
             {formData.clientMode === 'existing' && (
               <div className="space-y-2">
-                <ClientSelector
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setClientPickerOpen(true)}
+                >
+                  {formData.client_id && selectedClient ? (
+                    <span className="truncate">{selectedClient.name}</span>
+                  ) : (
+                    <span className="text-muted-foreground">{t("laboratory.createSample.selectClient")}</span>
+                  )}
+                </Button>
+                <ClientPickerSheet
+                  open={clientPickerOpen}
+                  onOpenChange={setClientPickerOpen}
                   selectedClientId={formData.client_id || null}
                   onClientSelect={(clientId) => {
                     setFormData(prev => ({ ...prev, client_id: clientId || '' }));
                   }}
-                  placeholder={t("laboratory.createSample.selectClient")}
                 />
               </div>
             )}

@@ -41,6 +41,8 @@ const getFiltersForTab = (tab: SampleFilterTab): Partial<LabSampleFilters> => {
       return { status: 'draft' };
     case 'processing':
       return { status: 'processing' };
+    case 'completed':
+      return { status: 'completed' };
     case 'cancelled':
       return { status: 'cancelled' };
     case 'retest':

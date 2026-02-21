@@ -542,6 +542,7 @@ export const ar = {
       received: "مستلم",
       unreceived: "غير مستلم",
       processing: "قيد التحليل",
+      completed: "مكتملة",
       cancelled: "ملغي",
       retest: "إعادة",
     },
