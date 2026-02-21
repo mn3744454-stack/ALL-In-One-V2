@@ -4193,6 +4193,9 @@ export type Database = {
           flags: string | null
           id: string
           interpretation: Json | null
+          published_at: string | null
+          published_by: string | null
+          published_to_stable: boolean
           result_data: Json
           reviewed_by: string | null
           sample_id: string
@@ -4207,6 +4210,9 @@ export type Database = {
           flags?: string | null
           id?: string
           interpretation?: Json | null
+          published_at?: string | null
+          published_by?: string | null
+          published_to_stable?: boolean
           result_data?: Json
           reviewed_by?: string | null
           sample_id: string
@@ -4221,6 +4227,9 @@ export type Database = {
           flags?: string | null
           id?: string
           interpretation?: Json | null
+          published_at?: string | null
+          published_by?: string | null
+          published_to_stable?: boolean
           result_data?: Json
           reviewed_by?: string | null
           sample_id?: string
@@ -8291,6 +8300,15 @@ export type Database = {
           template_name: string
           tenant_display_name: string
         }[]
+      }
+      get_stable_lab_results: {
+        Args: {
+          _horse_id?: string
+          _limit?: number
+          _offset?: number
+          _stable_tenant_id: string
+        }
+        Returns: Json
       }
       get_tenant_id_from_storage_path: {
         Args: { object_path: string }
