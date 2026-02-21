@@ -73,6 +73,13 @@ export function ResultPreviewDialog({
   const { activeTenant } = useTenant();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
+  // Reset published state when result changes
+  const resultId = result?.id;
+  const resultPublished = result?.published_to_stable;
+  if (resultId && published !== (resultPublished ?? false) && !isPublishing) {
+    setPublished(resultPublished ?? false);
+  }
+
   if (!result) return null;
 
   const horseName = result.sample?.horse?.name || 'Unknown Horse';
@@ -482,6 +489,24 @@ export function ResultPreviewDialog({
             </Badge>
           </div>
         </div>
+
+        {/* DEBUG: Publish conditions (dev only) */}
+        {import.meta.env.DEV && (
+          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-300 rounded p-2 text-xs font-mono print:hidden space-y-1">
+            <p><strong>DEBUG Publish Conditions:</strong></p>
+            <p>status: <strong>{result.status}</strong></p>
+            <p>published_to_stable: <strong>{String(result.published_to_stable)}</strong></p>
+            <p>sample_id: {result.sample_id}</p>
+            <p>sample?.lab_request_id: <strong>{String(result.sample?.lab_request_id ?? 'NULL/undefined')}</strong></p>
+            <p>hasLabRequestId: <strong>{String(!!result.sample?.lab_request_id)}</strong></p>
+            <p>canPublishStatus: <strong>{String(result.status === 'reviewed' || result.status === 'final')}</strong></p>
+            <p>hasHandler: <strong>{String(!!onPublishToStable)}</strong></p>
+            <p>published (local): <strong>{String(published)}</strong></p>
+            <p className={(!result.sample?.lab_request_id) ? 'text-red-600 font-bold' : 'text-green-600'}>
+              → Button visible: {String(!!onPublishToStable && !!result.sample?.lab_request_id && !published && (result.status === 'reviewed' || result.status === 'final'))}
+            </p>
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2 justify-between print:hidden">
