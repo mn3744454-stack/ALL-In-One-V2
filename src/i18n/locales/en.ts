@@ -720,6 +720,10 @@ export const en = {
       published: "Published",
       publishSuccess: "Result published to stable successfully",
       publishError: "Failed to publish result",
+      notLinkedToRequest: "This result is not linked to a Stable request and cannot be published",
+      noRequest: "No request",
+      draftCannotPublish: "Review or finalize this result before publishing",
+      publishAll: "Publish All Eligible",
     },
     
     // Result Actions

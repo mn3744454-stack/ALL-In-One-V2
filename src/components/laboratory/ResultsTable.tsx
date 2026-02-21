@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { MoreHorizontal, Eye, CheckCircle2, Lock, AlertTriangle, FileText } from "lucide-react";
+import { MoreHorizontal, Eye, CheckCircle2, Lock, AlertTriangle, FileText, Send } from "lucide-react";
+import { PublishToStableAction } from "./PublishToStableAction";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -66,6 +67,7 @@ interface ResultsTableProps {
   onResultClick?: (resultId: string) => void;
   onReviewResult?: (resultId: string) => void;
   onFinalizeResult?: (resultId: string) => void;
+  onPublishToStable?: (resultId: string) => Promise<boolean>;
 }
 
 export function ResultsTable({
@@ -74,6 +76,7 @@ export function ResultsTable({
   onResultClick,
   onReviewResult,
   onFinalizeResult,
+  onPublishToStable,
 }: ResultsTableProps) {
   const { t, dir, lang } = useI18n();
 
@@ -123,6 +126,7 @@ export function ResultsTable({
             <TableHead>{t("laboratory.table.flags")}</TableHead>
             <TableHead>{t("laboratory.table.resultDate")}</TableHead>
             <TableHead>{t("laboratory.table.createdBy")}</TableHead>
+            <TableHead>{t("laboratory.results.publishToStable")}</TableHead>
             <TableHead className="w-[60px]">{t("laboratory.table.actions")}</TableHead>
           </TableRow>
         </TableHeader>
@@ -173,6 +177,18 @@ export function ResultsTable({
                   <span className="text-sm text-muted-foreground">
                     {result.creator?.full_name || "-"}
                   </span>
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {onPublishToStable ? (
+                    <PublishToStableAction
+                      resultId={result.id}
+                      status={result.status}
+                      published_to_stable={result.published_to_stable}
+                      sample_lab_request_id={result.sample?.lab_request_id}
+                      onPublish={onPublishToStable}
+                      compact
+                    />
+                  ) : null}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>

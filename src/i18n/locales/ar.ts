@@ -746,6 +746,10 @@ export const ar = {
       published: "تم النشر",
       publishSuccess: "تم نشر النتيجة للإسطبل بنجاح",
       publishError: "فشل في نشر النتيجة",
+      notLinkedToRequest: "هذه النتيجة غير مرتبطة بطلب إسطبل ولا يمكن نشرها",
+      noRequest: "بدون طلب",
+      draftCannotPublish: "راجع أو اعتمد النتيجة قبل النشر",
+      publishAll: "نشر جميع المؤهلة",
     },
     
     // Result Actions

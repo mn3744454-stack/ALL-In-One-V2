@@ -42,6 +42,7 @@ import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { ResultSharePanel } from "./ResultSharePanel";
+import { PublishToStableAction } from "./PublishToStableAction";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 
@@ -490,23 +491,6 @@ export function ResultPreviewDialog({
           </div>
         </div>
 
-        {/* DEBUG: Publish conditions (dev only) */}
-        {import.meta.env.DEV && (
-          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-300 rounded p-2 text-xs font-mono print:hidden space-y-1">
-            <p><strong>DEBUG Publish Conditions:</strong></p>
-            <p>status: <strong>{result.status}</strong></p>
-            <p>published_to_stable: <strong>{String(result.published_to_stable)}</strong></p>
-            <p>sample_id: {result.sample_id}</p>
-            <p>sample?.lab_request_id: <strong>{String(result.sample?.lab_request_id ?? 'NULL/undefined')}</strong></p>
-            <p>hasLabRequestId: <strong>{String(!!result.sample?.lab_request_id)}</strong></p>
-            <p>canPublishStatus: <strong>{String(result.status === 'reviewed' || result.status === 'final')}</strong></p>
-            <p>hasHandler: <strong>{String(!!onPublishToStable)}</strong></p>
-            <p>published (local): <strong>{String(published)}</strong></p>
-            <p className={(!result.sample?.lab_request_id) ? 'text-red-600 font-bold' : 'text-green-600'}>
-              → Button visible: {String(!!onPublishToStable && !!result.sample?.lab_request_id && !published && (result.status === 'reviewed' || result.status === 'final'))}
-            </p>
-          </div>
-        )}
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2 justify-between print:hidden">
@@ -534,33 +518,21 @@ export function ResultPreviewDialog({
                 اعتماد
               </Button>
             )}
-            {/* Publish to Stable button */}
-            {onPublishToStable && result.sample?.lab_request_id && !published && (result.status === 'reviewed' || result.status === 'final') && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
-                disabled={isPublishing}
-                onClick={async () => {
+            {/* Publish to Stable */}
+            {onPublishToStable && (
+              <PublishToStableAction
+                resultId={result.id}
+                status={result.status}
+                published_to_stable={published}
+                sample_lab_request_id={result.sample?.lab_request_id}
+                onPublish={async (id) => {
                   setIsPublishing(true);
-                  const ok = await onPublishToStable(result.id);
+                  const ok = await onPublishToStable(id);
                   if (ok) setPublished(true);
                   setIsPublishing(false);
+                  return ok;
                 }}
-              >
-                {isPublishing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4 mr-2" />
-                )}
-                Publish to Stable
-              </Button>
-            )}
-            {published && (
-              <Badge variant="outline" className="border-green-600 text-green-600 self-center">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Published
-              </Badge>
+              />
             )}
           </div>
           
