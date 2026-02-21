@@ -149,14 +149,53 @@ export function useLabServices() {
     onError: () => toast.error(t("laboratory.catalog.updateFailed")),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (serviceId: string) => {
+      // Pre-check: does this service have existing request links?
+      const { count: requestCount, error: countErr } = await supabase
+        .from("lab_request_services")
+        .select("id", { count: "exact", head: true })
+        .eq("service_id", serviceId);
+      if (countErr) throw countErr;
+      if ((requestCount ?? 0) > 0) {
+        throw new Error("HAS_REQUESTS");
+      }
+      // Remove template links first
+      const { error: tmplErr } = await supabase
+        .from("lab_service_templates")
+        .delete()
+        .eq("service_id", serviceId);
+      if (tmplErr) throw tmplErr;
+      // Delete the service
+      const { error } = await supabase
+        .from("lab_services")
+        .delete()
+        .eq("id", serviceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lab-services", tenantId] });
+      toast.success(t("laboratory.catalog.deleted"));
+    },
+    onError: (err: Error) => {
+      if (err.message === "HAS_REQUESTS") {
+        toast.error(t("laboratory.catalog.deleteBlocked"));
+      } else {
+        toast.error(t("laboratory.catalog.deleteFailed"));
+      }
+    },
+  });
+
   return {
     services: query.data ?? [],
     isLoading: query.isLoading,
     createService: createMutation.mutateAsync,
     updateService: updateMutation.mutateAsync,
     toggleActive: toggleActiveMutation.mutateAsync,
+    deleteService: deleteMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
+    isDeleting: deleteMutation.isPending,
   };
 }
 

@@ -1064,6 +1064,21 @@ export const ar = {
       summaryFromRequest: "من الطلب",
       summaryAutoResolved: "تم التعيين تلقائياً",
       summaryCount: "{{count}} قوالب",
+      // Deactivate
+      deactivateTitle: "إلغاء تفعيل هذه الخدمة؟",
+      deactivateDesc: "لن تكون هذه الخدمة متاحة للاختيار في الطلبات الجديدة. يمكنك إعادة تفعيلها لاحقاً.",
+      deactivate: "إلغاء التفعيل",
+      // Hard delete
+      deleteTitle: "حذف الخدمة نهائياً؟",
+      deleteDesc: "سيتم حذف الخدمة. إذا كانت مرتبطة بطلبات أو فواتير، قد يتم حظر الحذف لحماية السجلات.",
+      deleteConfirm: "حذف نهائي",
+      deleteBlocked: "لا يمكن الحذف: هذه الخدمة مستخدمة في طلبات موجودة. قم بإلغاء تفعيلها بدلاً من ذلك.",
+      deleted: "تم حذف الخدمة",
+      deleteFailed: "فشل حذف الخدمة",
+      // Table columns
+      name: "الاسم",
+      active: "نشط",
+      actions: "الإجراءات",
     },
     
     // Toast Messages (for hooks)

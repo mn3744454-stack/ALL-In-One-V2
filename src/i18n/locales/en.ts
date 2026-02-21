@@ -1038,6 +1038,21 @@ export const en = {
       summaryFromRequest: "From Request",
       summaryAutoResolved: "Auto-resolved",
       summaryCount: "{{count}} templates",
+      // Deactivate
+      deactivateTitle: "Deactivate this service?",
+      deactivateDesc: "This service will no longer be selectable in new requests. You can reactivate it later.",
+      deactivate: "Deactivate",
+      // Hard delete
+      deleteTitle: "Delete service permanently?",
+      deleteDesc: "This will remove the service. If it has existing requests or invoices, deletion may be blocked to protect history.",
+      deleteConfirm: "Delete permanently",
+      deleteBlocked: "Cannot delete: this service is used in existing requests. Deactivate it instead.",
+      deleted: "Service deleted",
+      deleteFailed: "Failed to delete service",
+      // Table columns
+      name: "Name",
+      active: "Active",
+      actions: "Actions",
     },
     
     // Toast Messages (for hooks)
