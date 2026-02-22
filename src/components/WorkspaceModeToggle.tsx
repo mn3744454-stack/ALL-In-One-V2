@@ -32,7 +32,7 @@ export function WorkspaceModeToggle() {
         className={cn(
           "h-8 px-3 text-xs gap-1.5 transition-all",
           workspaceMode === "personal"
-            ? "bg-background shadow-sm"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "hover:bg-background/50"
         )}
       >
@@ -46,7 +46,7 @@ export function WorkspaceModeToggle() {
         className={cn(
           "h-8 px-3 text-xs gap-1.5 transition-all",
           workspaceMode === "organization"
-            ? "bg-background shadow-sm"
+            ? "bg-primary text-primary-foreground shadow-sm"
             : "hover:bg-background/50"
         )}
       >

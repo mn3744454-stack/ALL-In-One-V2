@@ -14,7 +14,7 @@ interface MobileHomeGridProps {
 export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { activeRole, activeTenant } = useTenant();
+  const { activeRole, activeTenant, workspaceMode } = useTenant();
   const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled } = useModuleAccess();
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
@@ -64,6 +64,12 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const visibleModules = NAV_MODULES.filter((module) => {
     // Skip dashboard - user is already there
     if (module.key === "dashboard") return false;
+
+    // Check workspace mode visibility
+    const moduleVisibility = module.visibleIn || "both";
+    if (moduleVisibility !== "both" && moduleVisibility !== workspaceMode) {
+      return false;
+    }
 
     // Hide "horses" module for non-horse-owning tenants (Lab, Clinic, etc.)
     if (module.key === "horses" && !isHorseOwningTenant) return false;

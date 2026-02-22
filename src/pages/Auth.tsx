@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import Logo from "@/components/Logo";
-import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
 import heroImage from "@/assets/hero-horse.jpg";
@@ -28,8 +29,11 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
+    confirmPassword: "",
   });
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
 
   useEffect(() => {
     setMode(searchParams.get("mode") === "signup" ? "signup" : "signin");
@@ -60,6 +64,13 @@ const Auth = () => {
         // Client-side validation
         if (password.length < 6) {
           toast.error(t('auth.errors.weakPassword'));
+          setLoading(false);
+          return;
+        }
+
+        if (formData.confirmPassword !== password) {
+          setPasswordMismatch(true);
+          toast.error(t('auth.errors.passwordMismatch') || 'Passwords do not match');
           setLoading(false);
           return;
         }
@@ -155,6 +166,26 @@ const Auth = () => {
                   </div>
                 )}
 
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-navy font-medium">
+                      {t('auth.phone') || 'Phone Number'} <span className="text-muted-foreground text-xs">({t('common.optional') || 'Optional'})</span>
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder={t('auth.enterPhone') || '+966 5XXXXXXXX'}
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="ps-10"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-navy font-medium">
                     {t('auth.emailAddress')}
@@ -198,6 +229,33 @@ const Auth = () => {
                     </button>
                   </div>
                 </div>
+
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-navy font-medium">
+                      {t('auth.confirmPassword') || 'Confirm Password'}
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="confirmPassword"
+                        type={showPassword ? "text" : "password"}
+                        placeholder={t('auth.reenterPassword') || 'Re-enter password'}
+                        value={formData.confirmPassword}
+                        onChange={(e) => {
+                          setFormData({ ...formData, confirmPassword: e.target.value });
+                          setPasswordMismatch(false);
+                        }}
+                        className={cn("ps-10", passwordMismatch && "border-destructive ring-destructive/30")}
+                        required
+                        minLength={6}
+                      />
+                    </div>
+                    {passwordMismatch && (
+                      <p className="text-xs text-destructive">{t('auth.errors.passwordMismatch') || 'Passwords do not match'}</p>
+                    )}
+                  </div>
+                )}
 
                 {mode === "signin" && (
                   <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'}`}>

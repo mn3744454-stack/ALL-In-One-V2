@@ -57,6 +57,8 @@ export interface NavModule {
   moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing";
   /** Only show for specific tenant types */
   tenantType?: string;
+  /** Workspace mode visibility: 'personal', 'organization', or 'both' (default) */
+  visibleIn?: "personal" | "organization" | "both";
 }
 
 export const NAV_MODULES: NavModule[] = [
@@ -65,30 +67,35 @@ export const NAV_MODULES: NavModule[] = [
     icon: Home,
     labelKey: "sidebar.dashboard",
     route: "/dashboard",
+    visibleIn: "both",
   },
   {
     key: "community",
     icon: MessageSquare,
     labelKey: "sidebar.community",
     route: "/community",
+    visibleIn: "both",
   },
   {
     key: "myBookings",
     icon: Ticket,
     labelKey: "sidebar.myBookings",
     route: "/dashboard/my-bookings",
+    visibleIn: "personal",
   },
   {
     key: "myPayments",
     icon: CreditCard,
     labelKey: "sidebar.myPayments",
     route: "/dashboard/my-payments",
+    visibleIn: "personal",
   },
   {
     key: "horses",
     icon: Heart,
     labelKey: "sidebar.horses",
     badgeKey: "horsesCount",
+    visibleIn: "organization",
     children: [
       {
         key: "myHorses",
@@ -137,18 +144,21 @@ export const NAV_MODULES: NavModule[] = [
     icon: Calendar,
     labelKey: "sidebar.schedule",
     route: "/dashboard/schedule",
+    visibleIn: "organization",
   },
   {
     key: "records",
     icon: FileText,
     labelKey: "sidebar.records",
     route: "/dashboard/records",
+    visibleIn: "organization",
   },
   {
     key: "hr",
     icon: Users,
     labelKey: "sidebar.hr",
     roles: ["owner", "manager"],
+    visibleIn: "organization",
     children: [
       {
         key: "team",
@@ -171,6 +181,7 @@ export const NAV_MODULES: NavModule[] = [
     route: "/dashboard/housing",
     roles: ["owner", "manager"],
     moduleKey: "housing",
+    visibleIn: "organization",
   },
   {
     key: "services",
@@ -178,6 +189,7 @@ export const NAV_MODULES: NavModule[] = [
     labelKey: "sidebar.services",
     route: "/dashboard/services",
     roles: ["owner", "manager"],
+    visibleIn: "organization",
   },
   // Finance parent module with children
   {
@@ -185,6 +197,7 @@ export const NAV_MODULES: NavModule[] = [
     icon: Wallet,
     labelKey: "finance.title",
     roles: ["owner", "manager"],
+    visibleIn: "organization",
     children: [
       {
         key: "overview",
@@ -248,6 +261,7 @@ export const NAV_MODULES: NavModule[] = [
     labelKey: "files.title",
     route: "/dashboard/files",
     roles: ["owner", "manager"],
+    visibleIn: "organization",
   },
   {
     key: "sessions",
@@ -256,6 +270,7 @@ export const NAV_MODULES: NavModule[] = [
     route: "/dashboard/academy/sessions",
     roles: ["owner", "manager"],
     tenantType: "academy",
+    visibleIn: "organization",
   },
   {
     key: "manageBookings",
@@ -264,6 +279,7 @@ export const NAV_MODULES: NavModule[] = [
     route: "/dashboard/academy/bookings",
     roles: ["owner", "manager"],
     tenantType: "academy",
+    visibleIn: "organization",
   },
   {
     key: "publicProfile",
@@ -271,6 +287,7 @@ export const NAV_MODULES: NavModule[] = [
     labelKey: "sidebar.publicProfile",
     route: "/dashboard/public-profile",
     roles: ["owner"],
+    visibleIn: "organization",
   },
   {
     key: "settings",
@@ -278,6 +295,7 @@ export const NAV_MODULES: NavModule[] = [
     labelKey: "sidebar.settings",
     route: "/dashboard/settings",
     roles: ["owner"],
+    visibleIn: "organization",
   },
 ];
 

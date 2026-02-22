@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useLabSamples, type LabSampleStatus, type LabSampleFilters, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useSampleInvoiceMap } from "@/hooks/laboratory/useSampleInvoiceMap";
@@ -57,8 +58,19 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const { t, dir } = useI18n();
   const { activeRole } = useTenant();
   const { isLabTenant, labMode } = useModuleAccess();
-  const [activeTab, setActiveTab] = useState<SampleFilterTab>('today');
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Persist activeTab in URL search params
+  const activeTab = (searchParams.get('sampleTab') as SampleFilterTab) || 'today';
+  const setActiveTab = useCallback((tab: SampleFilterTab) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('sampleTab', tab);
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
+  const [search, setSearch] = useState(searchParams.get('q') || "");
   const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>(() => {
     const saved = localStorage.getItem('lab-samples-group-view-mode');
     return (saved === 'clients' ? 'clients' : 'samples') as GroupViewMode;
