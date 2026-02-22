@@ -44,6 +44,9 @@ import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { ResultSharePanel } from "./ResultSharePanel";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { useTenant } from "@/contexts/TenantContext";
+import { useRTL } from "@/hooks/useRTL";
+import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 type DesignTemplate = 'classic' | 'modern' | 'compact';
@@ -72,6 +75,8 @@ export function ResultPreviewDialog({
   const [isPublishing, setIsPublishing] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
+  const { isRTL } = useRTL();
+  const { t } = useI18n();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
   // Reset published state when result changes
@@ -83,7 +88,13 @@ export function ResultPreviewDialog({
 
   if (!result) return null;
 
-  const horseName = result.sample?.horse?.name || 'Unknown Horse';
+  // Cross-tenant safe horse name resolution using snapshot contract
+  const horseName = result.sample
+    ? getLabHorseDisplayName(
+        result.sample,
+        { locale: isRTL ? 'ar' : 'en', fallback: t("laboratory.results.unknownHorse") }
+      )
+    : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || 'Unknown Template';
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
   const collectionDate = format(new Date(result.created_at), "MMM d, yyyy");

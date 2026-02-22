@@ -1,4 +1,8 @@
-import type { LabSample } from "@/hooks/laboratory/useLabSamples";
+interface HorseNameFields {
+  lab_horse?: { name: string; name_ar?: string | null } | null;
+  horse?: { name: string; name_ar?: string | null } | null;
+  horse_name?: string | null;
+}
 
 interface GetLabHorseDisplayNameOptions {
   locale?: 'ar' | 'en';
@@ -14,7 +18,7 @@ interface GetLabHorseDisplayNameOptions {
  * 4. fallback (defaults to "Unknown Horse")
  */
 export function getLabHorseDisplayName(
-  sample: Pick<LabSample, 'lab_horse' | 'horse' | 'horse_name'>,
+  sample: HorseNameFields,
   options: GetLabHorseDisplayNameOptions = {}
 ): string {
   const { locale = 'en', fallback = 'Unknown Horse' } = options;
