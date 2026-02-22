@@ -293,20 +293,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   active={isActive("/dashboard/my-payments")}
                   onNavigate={onClose}
                 />
-                <NavItem
-                  icon={Calendar}
-                  label={t('sidebar.schedule')}
-                  href="/dashboard/schedule"
-                  active={isActive("/dashboard/schedule")}
-                  onNavigate={onClose}
-                />
-                <NavItem
-                  icon={FileText}
-                  label={t('sidebar.records')}
-                  href="/dashboard/records"
-                  active={isActive("/dashboard/records")}
-                  onNavigate={onClose}
-                />
               </>
             )}
 

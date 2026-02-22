@@ -18,13 +18,14 @@ export function WorkspaceRouteGuard({
   redirectTo = "/dashboard",
 }: WorkspaceRouteGuardProps) {
   const navigate = useNavigate();
-  const { workspaceMode, activeTenant, loading: tenantLoading } = useTenant();
+  const { workspaceMode, activeTenant, loading: tenantLoading, tenantHydrated } = useTenant();
   const { hasPermission, loading: permLoading } = usePermissions();
 
-  const loading = tenantLoading || permLoading;
+  // Wait until tenant context is fully hydrated before making any decisions
+  const isReady = tenantHydrated && !tenantLoading && !permLoading;
 
   useEffect(() => {
-    if (loading) return;
+    if (!isReady) return;
 
     // Check workspace mode requirement
     if (requiredMode && workspaceMode !== requiredMode) {
@@ -49,7 +50,7 @@ export function WorkspaceRouteGuard({
       }
     }
   }, [
-    loading,
+    isReady,
     requiredMode,
     requiredPermission,
     workspaceMode,
@@ -59,7 +60,8 @@ export function WorkspaceRouteGuard({
     redirectTo,
   ]);
 
-  if (loading) {
+  // Show loading spinner until fully hydrated
+  if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />

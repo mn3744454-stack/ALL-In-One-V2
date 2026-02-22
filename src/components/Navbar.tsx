@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isHome = location.pathname === "/";
   const { t } = useI18n();
+  const { user } = useAuth();
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -25,12 +27,20 @@ const Navbar = () => {
             <NavLinks variant={isHome ? "light" : "default"} />
             <div className="flex items-center gap-3">
               <LanguageSelector variant={isHome ? "hero" : "default"} />
-              <Button variant={isHome ? "hero-outline" : "ghost"} asChild>
-                <Link to="/auth">{t('landing.nav.signIn')}</Link>
-              </Button>
-              <Button variant={isHome ? "hero" : "gold"} asChild>
-                <Link to="/auth?mode=signup">{t('landing.nav.getStarted')}</Link>
-              </Button>
+              {user ? (
+                <Button variant={isHome ? "hero" : "gold"} asChild>
+                  <Link to="/dashboard">{t('landing.nav.goToDashboard') || 'Go to Dashboard'}</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant={isHome ? "hero-outline" : "ghost"} asChild>
+                    <Link to="/auth">{t('landing.nav.signIn')}</Link>
+                  </Button>
+                  <Button variant={isHome ? "hero" : "gold"} asChild>
+                    <Link to="/auth?mode=signup">{t('landing.nav.getStarted')}</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -53,12 +63,20 @@ const Navbar = () => {
               <div className="py-2">
                 <LanguageSelector variant="default" />
               </div>
-              <Button variant="ghost" asChild className="justify-start">
-                <Link to="/auth" onClick={() => setIsOpen(false)}>{t('landing.nav.signIn')}</Link>
-              </Button>
-              <Button variant="gold" asChild>
-                <Link to="/auth?mode=signup" onClick={() => setIsOpen(false)}>{t('landing.nav.getStarted')}</Link>
-              </Button>
+              {user ? (
+                <Button variant="gold" asChild>
+                  <Link to="/dashboard" onClick={() => setIsOpen(false)}>{t('landing.nav.goToDashboard') || 'Go to Dashboard'}</Link>
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild className="justify-start">
+                    <Link to="/auth" onClick={() => setIsOpen(false)}>{t('landing.nav.signIn')}</Link>
+                  </Button>
+                  <Button variant="gold" asChild>
+                    <Link to="/auth?mode=signup" onClick={() => setIsOpen(false)}>{t('landing.nav.getStarted')}</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

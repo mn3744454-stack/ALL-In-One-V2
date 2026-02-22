@@ -79,18 +79,6 @@ export const PERSONAL_NAV_MODULES: WorkspaceNavModule[] = [
     labelKey: "sidebar.myPayments",
     route: "/dashboard/my-payments",
   },
-  {
-    key: "schedule",
-    icon: Calendar,
-    labelKey: "sidebar.schedule",
-    route: "/dashboard/schedule",
-  },
-  {
-    key: "records",
-    icon: FileText,
-    labelKey: "sidebar.records",
-    route: "/dashboard/records",
-  },
 ];
 
 // Organization workspace modules (tenant-space)

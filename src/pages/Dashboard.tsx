@@ -285,39 +285,41 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Stats Grid - Conditional based on tenant type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {/* Total Horses - only for horse-owning tenants */}
-              {isHorseOwningTenant && (
+            {/* Stats Grid - Only show in organization mode */}
+            {workspaceMode === "organization" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* Total Horses - only for horse-owning tenants */}
+                {isHorseOwningTenant && (
+                  <StatCard
+                    icon={Heart}
+                    label={t("dashboard.totalHorses")}
+                    value={horses.length.toString()}
+                    change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
+                  />
+                )}
                 <StatCard
-                  icon={Heart}
-                  label={t("dashboard.totalHorses")}
-                  value={horses.length.toString()}
-                  change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
+                  icon={Activity}
+                  label={t("dashboard.healthCheckups")}
+                  value="0"
+                  change={t("dashboard.scheduledThisWeek")}
                 />
-              )}
-              <StatCard
-                icon={Activity}
-                label={t("dashboard.healthCheckups")}
-                value="0"
-                change={t("dashboard.scheduledThisWeek")}
-              />
-              <StatCard
-                icon={Users}
-                label={t("dashboard.teamMembers")}
-                value="1"
-                change={t("common.active")}
-              />
-              <StatCard
-                icon={TrendingUp}
-                label={t("dashboard.thisMonth")}
-                value="—"
-                change={t("dashboard.statsComingSoon")}
-              />
-            </div>
+                <StatCard
+                  icon={Users}
+                  label={t("dashboard.teamMembers")}
+                  value="1"
+                  change={t("common.active")}
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  label={t("dashboard.thisMonth")}
+                  value="—"
+                  change={t("dashboard.statsComingSoon")}
+                />
+              </div>
+            )}
 
-            {/* Dashboard Widgets - Only show for users with a tenant */}
-            {activeTenant && (
+            {/* Dashboard Widgets - Only show for users with a tenant in organization mode */}
+            {activeTenant && workspaceMode === "organization" && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <UpcomingScheduleWidget />
                 <RecentActivityWidget />

@@ -720,7 +720,21 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const { createConnection } = useConnections();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get('statusFilter') || 'all');
+
+  // Persist statusFilter in URL search params
+  const handleStatusFilterChange = useCallback((value: string) => {
+    setStatusFilter(value);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value === 'all') {
+        next.delete('statusFilter');
+      } else {
+        next.set('statusFilter', value);
+      }
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LabRequest | null>(null);
   const [detailRequest, setDetailRequest] = useState<LabRequest | null>(null);
@@ -970,7 +984,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
             className="ps-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={t('laboratory.samples.statusFilter') || 'Status'} />
           </SelectTrigger>
@@ -1020,7 +1034,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           ].map((s) => (
             <button
               key={s.value}
-              onClick={() => setStatusFilter(s.value)}
+              onClick={() => handleStatusFilterChange(s.value)}
               className={cn(
                 "shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border min-h-[36px]",
                 statusFilter === s.value

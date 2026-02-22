@@ -49,6 +49,8 @@ interface TenantContextType {
   workspaceMode: WorkspaceMode;
   setWorkspaceMode: (mode: WorkspaceMode) => void;
   loading: boolean;
+  /** True once the initial tenant fetch + rehydration is complete */
+  tenantHydrated: boolean;
   tenantError: string | null;
   retryTenantFetch: () => void;
   setActiveTenant: (tenantId: string) => void;
@@ -77,6 +79,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     return (stored === "personal" || stored === "organization") ? stored : "organization";
   });
   const [loading, setLoading] = useState(true);
+  const [tenantHydrated, setTenantHydrated] = useState(false);
   const [tenantError, setTenantError] = useState<string | null>(null);
   
   // Track if we've ever had a user - to distinguish "not logged in yet" from "logged out"
@@ -162,7 +165,8 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
     } finally {
       setLoading(false);
-      log('fetchTenants finally - loading set to false');
+      setTenantHydrated(true);
+      log('fetchTenants finally - loading set to false, tenantHydrated set to true');
     }
   }, [user]);
 
@@ -185,6 +189,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       setActiveTenantState(null);
       setActiveRoleState(null);
       setLoading(false);
+      setTenantHydrated(true);
       setTenantError(null);
       localStorage.removeItem('activeTenantId');
       localStorage.removeItem('workspaceMode');
@@ -405,6 +410,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         workspaceMode,
         setWorkspaceMode,
         loading,
+        tenantHydrated,
         tenantError,
         retryTenantFetch,
         setActiveTenant,
