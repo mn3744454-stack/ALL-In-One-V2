@@ -1,4 +1,3 @@
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
@@ -29,39 +28,34 @@ export function SamplesFilterTabs({ activeTab, onTabChange, counts }: SamplesFil
   };
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-max min-w-full justify-center rtl:flex-row-reverse">
-        {tabKeys.map((tabId) => {
-          const count = counts?.[tabId];
-          return (
-            <button
-              key={tabId}
-              onClick={() => onTabChange(tabId)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all",
-                "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+      {tabKeys.map((tabId) => {
+        const count = counts?.[tabId];
+        return (
+          <button
+            key={tabId}
+            onClick={() => onTabChange(tabId)}
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border min-h-[36px]",
+              activeTab === tabId
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+            )}
+          >
+            <span>{getLabel(tabId)}</span>
+            {count !== undefined && count > 0 && (
+              <span className={cn(
+                "inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full",
                 activeTab === tabId
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-              )}
-            >
-              <span>{getLabel(tabId)}</span>
-              {count !== undefined && count > 0 && (
-                <span className={cn(
-                  "inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs rounded-full",
-                  activeTab === tabId
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted-foreground/20 text-muted-foreground"
-                )}>
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted-foreground/20 text-muted-foreground"
+              )}>
+                {count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
   );
 }
-
