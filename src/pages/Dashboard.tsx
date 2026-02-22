@@ -72,8 +72,10 @@ const Dashboard = () => {
 
   return (
     <div className="h-dvh w-full bg-cream flex overflow-hidden" dir={dir}>
-      {/* Desktop Sidebar - hidden on mobile */}
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Desktop Sidebar - hidden on mobile and in personal mode */}
+      {workspaceMode === "organization" && (
+        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 min-w-0">
@@ -424,7 +426,7 @@ const Dashboard = () => {
                     </CardHeader>
                     <CardContent>
                       <p className="text-muted-foreground text-center py-8">
-                        {t("dashboard.welcomeMessage")}
+                        {t("dashboard.welcomeMessage").replace("{{name}}", activeTenant?.tenant.name || "")}
                       </p>
                     </CardContent>
                   </Card>

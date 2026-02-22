@@ -504,37 +504,17 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           </nav>
 
 
-          {/* User Section with Language Selector */}
+          {/* User Section */}
           <div className="p-4 border-t border-border/50 bg-white/30">
-            {/* Language Selector */}
-            <div className="mb-3">
-              <LanguageSelector />
-            </div>
-            
-            <div className="p-3 rounded-xl bg-white shadow-sm border border-border/30">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gold to-gold-dark flex items-center justify-center text-navy font-bold shadow-sm shrink-0">
-                  {profile?.full_name?.[0]?.toUpperCase() || "U"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy truncate">
-                    {activeTenant?.tenant.name || "No Organization"}
-                  </p>
-                  <p className="text-xs text-navy/50 capitalize">
-                    {activeRole || "Member"}
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start gap-2 text-navy/60 hover:text-navy hover:bg-navy/5"
-                onClick={handleSignOutClick}
-              >
-                <LogOut className="w-4 h-4" />
-                {t('sidebar.signOut')}
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 text-navy/60 hover:text-navy hover:bg-navy/5"
+              onClick={handleSignOutClick}
+            >
+              <LogOut className="w-4 h-4" />
+              {t('sidebar.signOut')}
+            </Button>
           </div>
         </div>
       </aside>
