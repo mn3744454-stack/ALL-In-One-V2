@@ -51,10 +51,8 @@ export function WorkspaceModeToggle() {
         )}
       >
         <Building2 className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline truncate max-w-[80px]">
-          {workspaceMode === "organization" && activeTenant
-            ? activeTenant.tenant.name
-            : t("workspace.organization")}
+        <span className="hidden sm:inline">
+          {t("workspace.organization")}
         </span>
       </Button>
     </div>
