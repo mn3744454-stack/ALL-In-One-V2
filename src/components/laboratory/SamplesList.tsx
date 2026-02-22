@@ -18,7 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown, SlidersHorizontal } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -242,13 +243,15 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           
           {/* ViewSwitcher for Grid/List/Table */}
           {groupViewMode === 'samples' && (
-            <ViewSwitcher
-              viewMode={viewMode}
-              gridColumns={gridColumns}
-              onViewModeChange={setViewMode}
-              onGridColumnsChange={setGridColumns}
-              showTable={true}
-            />
+            <div className="hidden lg:flex">
+              <ViewSwitcher
+                viewMode={viewMode}
+                gridColumns={gridColumns}
+                onViewModeChange={setViewMode}
+                onGridColumnsChange={setGridColumns}
+                showTable={true}
+              />
+            </div>
           )}
         </div>
 
@@ -287,25 +290,78 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         onTabChange={setActiveTab}
       />
 
-      {/* Advanced Filters */}
-      <AdvancedFilters
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder={t("laboratory.samples.searchPlaceholder")}
-        dateFrom={dateFrom}
-        dateTo={dateTo}
-        onDateFromChange={setDateFrom}
-        onDateToChange={setDateTo}
-        clientId={clientId}
-        onClientChange={setClientId}
-        horseId={horseId}
-        onHorseChange={setHorseId}
-        selectedStatuses={selectedStatuses}
-        onStatusesChange={setSelectedStatuses}
-        statusOptions={statusOptions}
-        onClearAll={handleClearAllFilters}
-        isLabTenant={isPrimaryLabTenant}
-      />
+      {/* Advanced Filters - Desktop: inline, Mobile: Drawer */}
+      <div className="hidden sm:block">
+        <AdvancedFilters
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder={t("laboratory.samples.searchPlaceholder")}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          clientId={clientId}
+          onClientChange={setClientId}
+          horseId={horseId}
+          onHorseChange={setHorseId}
+          selectedStatuses={selectedStatuses}
+          onStatusesChange={setSelectedStatuses}
+          statusOptions={statusOptions}
+          onClearAll={handleClearAllFilters}
+          isLabTenant={isPrimaryLabTenant}
+        />
+      </div>
+      <div className="sm:hidden flex gap-2">
+        <div className="relative flex-1">
+          <FlaskConical className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            placeholder={t("laboratory.samples.searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex h-11 w-full rounded-xl border border-border/50 bg-cream ps-9 pe-4 py-3 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/30 focus-visible:border-gold transition-all"
+          />
+        </div>
+        <Drawer>
+          <DrawerTrigger asChild>
+            <Button variant="outline" size="icon" className="h-11 w-11 shrink-0">
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t("common.filters") || "Filters"}</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-4">
+              <AdvancedFilters
+                search={search}
+                onSearchChange={setSearch}
+                searchPlaceholder={t("laboratory.samples.searchPlaceholder")}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onDateFromChange={setDateFrom}
+                onDateToChange={setDateTo}
+                clientId={clientId}
+                onClientChange={setClientId}
+                horseId={horseId}
+                onHorseChange={setHorseId}
+                selectedStatuses={selectedStatuses}
+                onStatusesChange={setSelectedStatuses}
+                statusOptions={statusOptions}
+                onClearAll={handleClearAllFilters}
+                isLabTenant={isPrimaryLabTenant}
+              />
+            </div>
+            <DrawerFooter>
+              <DrawerClose asChild>
+                <Button>{t("common.apply") || "Apply"}</Button>
+              </DrawerClose>
+              <DrawerClose asChild>
+                <Button variant="outline" onClick={handleClearAllFilters}>{t("common.clearFilters") || "Reset"}</Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </div>
 
       {/* Content based on view mode */}
       {sortedSamples.length === 0 ? (
