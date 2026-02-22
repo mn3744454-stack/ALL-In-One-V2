@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { LabCatalogViewer } from "./LabCatalogViewer";
 import { LabRequestThread } from "./LabRequestThread";
-import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare, SlidersHorizontal, Heart, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
@@ -668,24 +669,38 @@ function StableRequestsByHorse({
     <div className="space-y-3">
       {horseGroups.map((group) => (
         <Collapsible key={group.horseName} open={openGroups.has(group.horseName)} onOpenChange={() => toggleGroup(group.horseName)}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full text-start py-2 px-1 hover:bg-muted/50 rounded-lg transition-colors">
-            {openGroups.has(group.horseName) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-            <span className="font-semibold">{group.horseName}</span>
-            <Badge variant="outline" className="text-xs">{group.requests.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
-            <div className={getGridClass(gridColumns, viewMode === 'table' ? 'list' : viewMode)}>
-              {group.requests.map((request) => (
-                <RequestCard
-                  key={request.id}
-                  request={request}
-                  canCreateInvoice={canCreateInvoice}
-                  onGenerateInvoice={() => onGenerateInvoice(request)}
-                  onOpenDetail={() => onOpenDetail(request)}
-                />
-              ))}
-            </div>
-          </CollapsibleContent>
+          <Card className="overflow-hidden">
+            <CollapsibleTrigger className="flex items-center gap-3 w-full text-start p-4 hover:bg-muted/30 transition-colors">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+                <Heart className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="font-semibold text-base block">{group.horseName}</span>
+                <span className="text-xs text-muted-foreground">
+                  {group.requests.length} {group.requests.length === 1 ? t('laboratory.requests.order') || 'order' : t('laboratory.requests.orders') || 'orders'}
+                </span>
+              </div>
+              <Badge variant="secondary" className="text-xs shrink-0">
+                {group.requests.length}
+              </Badge>
+              {openGroups.has(group.horseName) ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t px-4 pb-4 pt-3">
+                <div className={getGridClass(gridColumns, viewMode === 'table' ? 'list' : viewMode)}>
+                  {group.requests.map((request) => (
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      canCreateInvoice={canCreateInvoice}
+                      onGenerateInvoice={() => onGenerateInvoice(request)}
+                      onOpenDetail={() => onOpenDetail(request)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Card>
         </Collapsible>
       ))}
     </div>
@@ -944,8 +959,8 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
         typeFilter={['laboratory', 'lab']}
       />
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Desktop Filters */}
+      <div className="hidden sm:flex flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -956,7 +971,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-[180px]">
             <SelectValue placeholder={t('laboratory.samples.statusFilter') || 'Status'} />
           </SelectTrigger>
           <SelectContent>
@@ -977,6 +992,45 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
             showTable
             showLabels={false}
           />
+        </div>
+      </div>
+
+      {/* Mobile: Search + Filter button + scrollable status pills */}
+      <div className="sm:hidden space-y-3">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t('laboratory.requests.searchPlaceholder') || 'Search...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="ps-9 h-11"
+            />
+          </div>
+        </div>
+        {/* Scrollable status pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+          {[
+            { value: 'all', label: t('common.all') },
+            { value: 'pending', label: t('laboratory.requests.status.pending') || 'Pending' },
+            { value: 'sent', label: t('laboratory.requests.status.sent') || 'Sent' },
+            { value: 'processing', label: t('laboratory.requests.status.processing') || 'Processing' },
+            { value: 'ready', label: t('laboratory.requests.status.ready') || 'Ready' },
+            { value: 'received', label: t('laboratory.requests.status.received') || 'Received' },
+          ].map((s) => (
+            <button
+              key={s.value}
+              onClick={() => setStatusFilter(s.value)}
+              className={cn(
+                "shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border min-h-[36px]",
+                statusFilter === s.value
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
       </div>
 

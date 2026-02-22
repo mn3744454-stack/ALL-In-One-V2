@@ -8,7 +8,8 @@ import {
   Settings,
   GitCompare,
   ClipboardList,
-  ShoppingBag
+  ShoppingBag,
+  MessageSquare
 } from "lucide-react";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 
@@ -28,6 +29,8 @@ export function LabBottomNavigation({
     if (labMode === 'requests') {
       return [
         { id: "requests", icon: ClipboardList, labelKey: "laboratory.tabs.requests" },
+        { id: "results", icon: FileText, labelKey: "laboratory.bottomNav.results" },
+        { id: "messages", icon: MessageSquare, labelKey: "laboratory.messages.tabLabel" },
         { id: "settings", icon: Settings, labelKey: "laboratory.bottomNav.settings" },
       ];
     }
@@ -40,9 +43,8 @@ export function LabBottomNavigation({
     ];
   }, [labMode]);
 
-  // Only render for primary lab tenants (labMode="full")
-  // Stable/clinic (requests mode) use global MobileBottomNav + internal tabs
-  if (labMode !== 'full') {
+  // Don't render if labMode is neither 'full' nor 'requests'
+  if (labMode !== 'full' && labMode !== 'requests') {
     return null;
   }
 

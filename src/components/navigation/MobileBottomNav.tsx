@@ -18,9 +18,9 @@ export function MobileBottomNav({ onOpenLauncher }: MobileBottomNavProps) {
   const { workspaceMode } = useTenant();
   const { isLabTenant, labMode } = useModuleAccess();
 
-  // Hide this nav on Lab pages when labMode=full (LabBottomNavigation handles it)
+  // Hide this nav on Lab pages when labMode=full or requests (LabBottomNavigation handles it)
   const isOnLabPage = location.pathname.startsWith('/dashboard/laboratory');
-  const shouldHideForLabPage = isLabTenant && labMode === 'full' && isOnLabPage;
+  const shouldHideForLabPage = isOnLabPage && (labMode === 'full' || labMode === 'requests');
 
   // Define items based on workspace mode and tenant type
   const items = useMemo(() => {
