@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStableLabResults, type StableResultGroup, type StableHorseGroup } from "@/hooks/laboratory/useStableLabResults";
 import { useI18n } from "@/i18n";
-import { Search, FlaskConical, Calendar, Building2, ChevronDown, ChevronRight, FileStack } from "lucide-react";
+import { Search, FlaskConical, Calendar, Building2, ChevronDown, ChevronRight, FileStack, Heart } from "lucide-react";
 import { format } from "date-fns";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
@@ -118,24 +118,36 @@ export function StableResultsView() {
 
             return (
               <Collapsible key={horseKey} open={isOpen} onOpenChange={() => toggleHorse(horseKey)}>
-                <CollapsibleTrigger className="flex items-center gap-2 w-full text-start py-2 px-1 hover:bg-muted/50 rounded-lg transition-colors">
-                  {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                  <span className="font-semibold text-base">{horseGroup.horseName}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {horseGroup.sampleGroups.length} {horseGroup.sampleGroups.length === 1 ? 'report' : 'reports'}
-                  </Badge>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
-                  {viewMode === 'table' ? (
-                    <SampleGroupTable groups={horseGroup.sampleGroups} onSelect={setSelectedGroup} getStatusBadge={getStatusBadge} />
-                  ) : (
-                    <div className={getGridClass(gridColumns, viewMode)}>
-                      {horseGroup.sampleGroups.map((sg) => (
-                        <SampleGroupCard key={sg.groupKey} group={sg} onSelect={setSelectedGroup} getStatusBadge={getStatusBadge} />
-                      ))}
+                <Card className="overflow-hidden">
+                  <CollapsibleTrigger className="flex items-center gap-3 w-full text-start p-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+                      <Heart className="h-5 w-5 text-primary" />
                     </div>
-                  )}
-                </CollapsibleContent>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-semibold text-base block">{horseGroup.horseName}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {horseGroup.sampleGroups.length} {horseGroup.sampleGroups.length === 1 ? t('laboratory.stableResults.report') || 'report' : t('laboratory.stableResults.reports') || 'reports'}
+                      </span>
+                    </div>
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      {horseGroup.sampleGroups.length}
+                    </Badge>
+                    {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="border-t px-4 pb-4 pt-3">
+                      {viewMode === 'table' ? (
+                        <SampleGroupTable groups={horseGroup.sampleGroups} onSelect={setSelectedGroup} getStatusBadge={getStatusBadge} />
+                      ) : (
+                        <div className={getGridClass(gridColumns, viewMode)}>
+                          {horseGroup.sampleGroups.map((sg) => (
+                            <SampleGroupCard key={sg.groupKey} group={sg} onSelect={setSelectedGroup} getStatusBadge={getStatusBadge} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Card>
               </Collapsible>
             );
           })}
