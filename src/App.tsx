@@ -135,8 +135,10 @@ const AppRoutes = () => {
         }
       />
       <Route path="/reset-password" element={<ResetPassword />} />
-      {/* Debug route for diagnosing auth/cache issues */}
-      <Route path="/debug/auth" element={<DebugAuth />} />
+      {/* Debug route for diagnosing auth/cache issues - DEV only */}
+      {import.meta.env.DEV && (
+        <Route path="/debug/auth" element={<DebugAuth />} />
+      )}
       <Route
         path="/select-role"
         element={

@@ -2266,6 +2266,10 @@ export const en = {
     viewPublicPage: "View Public Page",
     healthy: "Healthy",
     unknownBreed: "Unknown breed",
+    quickActions: "Quick Actions",
+    communityDesc: "Connect with the equestrian community",
+    myBookingsDesc: "View and manage your bookings",
+    myPaymentsDesc: "Track your payment history",
   },
   horses: {
     title: "Horses",

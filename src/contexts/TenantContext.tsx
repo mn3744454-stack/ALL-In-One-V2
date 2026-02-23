@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 import { tenantSchema, safeValidate } from "@/lib/validations";
 import { debugLog, debugError } from "@/lib/debug";
+import { toast } from "sonner";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
@@ -84,6 +85,11 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   
   // Track if we've ever had a user - to distinguish "not logged in yet" from "logged out"
   const hadUserRef = useRef(false);
+  
+  // Phase 0: Network resilience refs
+  const lastGoodTenantsRef = useRef<TenantMembership[]>([]);
+  const didHydrateOnceRef = useRef(false);
+  const clearSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Workspace mode setter with persistence
   const setWorkspaceMode = useCallback((mode: WorkspaceMode) => {
@@ -122,7 +128,14 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         logError('fetchTenants query error', error);
+        // Keep last good tenants on error
+        if (lastGoodTenantsRef.current.length > 0) {
+          setTenants(lastGoodTenantsRef.current);
+          log('Kept last good tenants on error', { count: lastGoodTenantsRef.current.length });
+        }
         setTenantError('فشل في تحميل بيانات المنظمة. تحقق من الاتصال.');
+        setLoading(false);
+        setTenantHydrated(true);
         return;
       }
 
@@ -135,6 +148,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         })) as TenantMembership[];
         
         setTenants(memberships);
+        lastGoodTenantsRef.current = memberships;
+        didHydrateOnceRef.current = true;
+        setTenantError(null);
 
         // Set active tenant: prefer localStorage, then first tenant
         if (memberships.length > 0) {
@@ -162,6 +178,11 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       logError('fetchTenants exception', err);
+      // Keep last good tenants on exception
+      if (lastGoodTenantsRef.current.length > 0) {
+        setTenants(lastGoodTenantsRef.current);
+        log('Kept last good tenants on exception', { count: lastGoodTenantsRef.current.length });
+      }
       setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
     } finally {
       setLoading(false);
@@ -175,36 +196,84 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     fetchTenants();
   }, [fetchTenants]);
 
-  // Simplified user tracking - fetch on user present, clear on user absent
+  // User tracking with delayed localStorage clear for auth flicker resilience
   useEffect(() => {
     if (user) {
-      // User is present → always fetch fresh memberships
+      // Cancel any pending session clear
+      if (clearSessionTimeoutRef.current) {
+        clearTimeout(clearSessionTimeoutRef.current);
+        clearSessionTimeoutRef.current = null;
+        log('Cancelled pending session clear - user returned');
+      }
       hadUserRef.current = true;
       log('User present, fetching tenants');
       fetchTenants();
+    } else if (hadUserRef.current) {
+      // User was present but now null - could be auth flicker or real logout
+      // Delay clearing to allow token refresh to complete
+      log('User became null, scheduling delayed session clear');
+      
+      if (clearSessionTimeoutRef.current) {
+        clearTimeout(clearSessionTimeoutRef.current);
+      }
+      
+      clearSessionTimeoutRef.current = setTimeout(async () => {
+        // Verify session is truly gone before clearing
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session === null) {
+          log('Session confirmed null after delay, clearing tenant state');
+          setTenants([]);
+          setActiveTenantState(null);
+          setActiveRoleState(null);
+          setLoading(false);
+          setTenantHydrated(true);
+          setTenantError(null);
+          localStorage.removeItem('activeTenantId');
+          localStorage.removeItem('workspaceMode');
+          setWorkspaceModeState("organization");
+          hadUserRef.current = false;
+          lastGoodTenantsRef.current = [];
+          didHydrateOnceRef.current = false;
+        } else {
+          log('Session still valid after delay, keeping tenant state');
+        }
+        clearSessionTimeoutRef.current = null;
+      }, 1000);
     } else {
-      // No user = clear everything
-      log('No user, clearing tenant state');
-      setTenants([]);
-      setActiveTenantState(null);
-      setActiveRoleState(null);
+      // Never had a user - initial load without auth
       setLoading(false);
       setTenantHydrated(true);
-      setTenantError(null);
-      localStorage.removeItem('activeTenantId');
-      localStorage.removeItem('workspaceMode');
-      setWorkspaceModeState("organization");
-      hadUserRef.current = false;
     }
   }, [user, fetchTenants]);
 
-  // Set default workspace mode based on tenants
+  // Cleanup timeout on unmount
   useEffect(() => {
-    if (!loading && tenants.length === 0) {
-      // No tenants => force personal mode
+    return () => {
+      if (clearSessionTimeoutRef.current) {
+        clearTimeout(clearSessionTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Set default workspace mode based on tenants
+  // ONLY force personal when we have definitively confirmed 0 tenants with no error
+  useEffect(() => {
+    if (!loading && didHydrateOnceRef.current && tenants.length === 0 && !tenantError) {
       setWorkspaceMode("personal");
     }
-  }, [loading, tenants.length, setWorkspaceMode]);
+  }, [loading, tenants.length, tenantError, setWorkspaceMode]);
+
+  // Show toast when tenant error occurs
+  useEffect(() => {
+    if (tenantError) {
+      toast.error(tenantError, {
+        action: {
+          label: 'إعادة المحاولة',
+          onClick: () => retryTenantFetch(),
+        },
+      });
+    }
+  }, [tenantError, retryTenantFetch]);
 
   const setActiveTenant = (tenantId: string) => {
     const membership = tenants.find((t) => t.tenant_id === tenantId);
