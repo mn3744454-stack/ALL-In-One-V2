@@ -300,13 +300,15 @@ const Auth = () => {
             <Link to="#" className="text-navy hover:underline">{t('auth.privacyPolicy')}</Link>.
           </p>
 
-          {/* Build Stamp for debugging cache issues */}
-          <div className="mt-4 text-center">
-            <BuildStamp />
-            <Link to="/debug/auth" className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground ml-2">
-              [Debug]
-            </Link>
-          </div>
+          {/* Build Stamp for debugging cache issues - DEV only */}
+          {import.meta.env.DEV && (
+            <div className="mt-4 text-center">
+              <BuildStamp />
+              <Link to="/debug/auth" className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground ml-2">
+                [Debug]
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

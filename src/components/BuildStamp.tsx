@@ -9,6 +9,9 @@ interface BuildStampProps {
  * Shows: Build ID, Supabase host, and anonymized API key fingerprint
  */
 export const BuildStamp = ({ className = "" }: BuildStampProps) => {
+  // Only render in development
+  if (!import.meta.env.DEV) return null;
+  
   const info = getBuildInfo();
   
   return (

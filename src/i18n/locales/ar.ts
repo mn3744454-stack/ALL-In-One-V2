@@ -2292,6 +2292,10 @@ export const ar = {
     viewPublicPage: "عرض الصفحة العامة",
     healthy: "بصحة جيدة",
     unknownBreed: "سلالة غير معروفة",
+    quickActions: "إجراءات سريعة",
+    communityDesc: "تواصل مع مجتمع الفروسية",
+    myBookingsDesc: "عرض وإدارة حجوزاتك",
+    myPaymentsDesc: "تتبع سجل مدفوعاتك",
   },
   horses: {
     title: "الخيول",

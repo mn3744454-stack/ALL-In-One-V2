@@ -111,10 +111,12 @@ const Dashboard = () => {
             {/* Row 2: Workspace + Account */}
             <div className="flex items-center justify-between h-12 px-4 gap-2">
               <WorkspaceModeToggle />
-              <div className="flex items-center gap-2">
-                <TenantSwitcher />
-                <RoleSwitcher />
-              </div>
+              {workspaceMode === "organization" && (
+                <div className="flex items-center gap-2">
+                  <TenantSwitcher />
+                  <RoleSwitcher />
+                </div>
+              )}
             </div>
           </div>
 
@@ -186,6 +188,56 @@ const Dashboard = () => {
 
             {/* Mobile Home Grid - Quick access to all modules */}
             <MobileHomeGrid className="mb-8" />
+
+            {/* Personal Quick Actions - always visible in personal mode */}
+            {workspaceMode === "personal" && (
+              <div className="mb-8">
+                <h2 className="font-display text-lg font-semibold text-navy mb-4">
+                  {t("dashboard.quickActions") || "Quick Actions"}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Link to="/dashboard/community" className="block">
+                    <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
+                      <CardContent className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                          <Users className="w-6 h-6 text-gold" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-navy">{t("navigation.community") || "Community"}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.communityDesc") || "Connect with the equestrian community"}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                  <Link to="/dashboard/my-bookings" className="block">
+                    <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
+                      <CardContent className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                          <Calendar className="w-6 h-6 text-gold" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-navy">{t("navigation.myBookings") || "My Bookings"}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.myBookingsDesc") || "View and manage your bookings"}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                  <Link to="/dashboard/my-payments" className="block">
+                    <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
+                      <CardContent className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                          <TrendingUp className="w-6 h-6 text-gold" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-navy">{t("navigation.myPayments") || "My Payments"}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.myPaymentsDesc") || "Track your payment history"}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* Getting Started Card - Only show when no tenants */}
             {hasNoTenants && (
