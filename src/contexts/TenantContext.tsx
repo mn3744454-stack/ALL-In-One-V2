@@ -86,10 +86,13 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   // Track if we've ever had a user - to distinguish "not logged in yet" from "logged out"
   const hadUserRef = useRef(false);
   
-  // Phase 0: Network resilience refs
+  // Network resilience refs
   const lastGoodTenantsRef = useRef<TenantMembership[]>([]);
   const didHydrateOnceRef = useRef(false);
   const clearSessionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  // Track previous user ID to avoid redundant fetches on same user
+  const prevUserIdRef = useRef<string | null>(null);
 
   // Workspace mode setter with persistence
   const setWorkspaceMode = useCallback((mode: WorkspaceMode) => {
@@ -97,16 +100,21 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("workspaceMode", mode);
   }, []);
 
-  const fetchTenants = useCallback(async () => {
-    log('fetchTenants start', { userId: user?.id });
+  const fetchTenants = useCallback(async (isBackground = false) => {
+    log('fetchTenants start', { userId: user?.id, isBackground });
 
-    // No user = no need to fetch tenants (don't clear state here!)
+    // No user = no need to fetch tenants
     if (!user) {
       log('fetchTenants: no user, skipping fetch');
       return;
     }
 
-    setLoading(true);
+    // Only set loading=true for initial/foreground fetches.
+    // Background fetches must NOT flip loading, because that would cause
+    // WorkspaceRouteGuard to unmount children (killing open modals).
+    if (!isBackground) {
+      setLoading(true);
+    }
     setTenantError(null);
 
     try {
@@ -134,8 +142,10 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           log('Kept last good tenants on error', { count: lastGoodTenantsRef.current.length });
         }
         setTenantError('فشل في تحميل بيانات المنظمة. تحقق من الاتصال.');
-        setLoading(false);
-        setTenantHydrated(true);
+        if (!isBackground) {
+          setLoading(false);
+          setTenantHydrated(true);
+        }
         return;
       }
 
@@ -185,15 +195,17 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       }
       setTenantError('فشل في تحميل المنظمات. حاول مرة أخرى.');
     } finally {
-      setLoading(false);
-      setTenantHydrated(true);
-      log('fetchTenants finally - loading set to false, tenantHydrated set to true');
+      if (!isBackground) {
+        setLoading(false);
+        setTenantHydrated(true);
+        log('fetchTenants finally - loading set to false, tenantHydrated set to true');
+      }
     }
   }, [user]);
 
   const retryTenantFetch = useCallback(() => {
     log('retryTenantFetch called');
-    fetchTenants();
+    fetchTenants(false);
   }, [fetchTenants]);
 
   // User tracking with delayed localStorage clear for auth flicker resilience
@@ -206,11 +218,17 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         log('Cancelled pending session clear - user returned');
       }
       hadUserRef.current = true;
-      log('User present, fetching tenants');
-      fetchTenants();
+      
+      // Only fetch tenants if user ID actually changed (prevents re-fetch on TOKEN_REFRESHED)
+      if (user.id !== prevUserIdRef.current) {
+        log('User ID changed, fetching tenants', { prev: prevUserIdRef.current, new: user.id });
+        prevUserIdRef.current = user.id;
+        fetchTenants(false); // Initial/foreground fetch
+      } else {
+        log('Same user ID, skipping tenant re-fetch');
+      }
     } else if (hadUserRef.current) {
       // User was present but now null - could be auth flicker or real logout
-      // Delay clearing to allow token refresh to complete
       log('User became null, scheduling delayed session clear');
       
       if (clearSessionTimeoutRef.current) {
@@ -234,6 +252,7 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           hadUserRef.current = false;
           lastGoodTenantsRef.current = [];
           didHydrateOnceRef.current = false;
+          prevUserIdRef.current = null;
         } else {
           log('Session still valid after delay, keeping tenant state');
         }
@@ -289,8 +308,8 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshTenants = async () => {
-    setLoading(true);
-    await fetchTenants();
+    // Use background mode so it doesn't unmount children
+    await fetchTenants(true);
   };
 
   const createTenant = async (tenantData: Partial<Tenant>): Promise<{
@@ -301,7 +320,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
     debugLog("Input data", tenantData);
 
     try {
-      // Ensure we are authenticated (avoid running inserts with anon role)
       const {
         data: { user: authUser },
         error: authUserError,
@@ -321,7 +339,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       const currentUserId = authUser.id;
       debugLog("Using authenticated user", { user_id: currentUserId });
 
-      // Prepare and validate input data
       const dataToValidate = {
         name: tenantData.name || "",
         type: tenantData.type || "stable",
@@ -346,7 +363,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
 
       const validatedData = validation.data;
 
-      // Step A: INSERT into tenants
       debugLog("Step A: Inserting into tenants...");
       
       const { data: tenant, error: tenantError } = await supabase
@@ -378,7 +394,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       }
       debugLog("Step A SUCCESS", { id: tenant.id, name: tenant.name });
 
-      // Step B: INSERT into tenant_members
       debugLog("Step B: Inserting into tenant_members...");
       
       const { error: memberError } = await supabase
@@ -394,7 +409,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       if (memberError) {
         debugError("Step B FAILED", memberError);
         
-        // Rollback: Delete orphan tenant
         debugLog("Rolling back: Deleting orphan tenant...", { id: tenant.id });
         const { error: rollbackError } = await supabase
           .from("tenants")
@@ -423,7 +437,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       }
       debugLog("Step B SUCCESS - Member created as owner");
 
-      // Step C: Initialize tenant capability defaults
       debugLog("Step C: Initializing tenant capability defaults...");
       
       try {
@@ -433,7 +446,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
         });
 
         if (rpcError) {
-          // Non-blocking - log warning but don't fail onboarding
           debugError("Step C WARNING - Failed to initialize defaults (non-blocking)", {
             message: rpcError.message,
           });
@@ -441,11 +453,9 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
           debugLog("Step C SUCCESS - Tenant capability defaults initialized");
         }
       } catch (rpcFetchErr) {
-        // Non-blocking for Step C
         debugError("Step C fetch exception (non-blocking)", rpcFetchErr);
       }
 
-      // Refresh tenants and return success
       debugLog("Refreshing tenants...");
       await refreshTenants();
       debugLog("=== CREATE TENANT COMPLETE ===");
@@ -453,7 +463,6 @@ export const TenantProvider = ({ children }: { children: ReactNode }) => {
       return { data: tenant as Tenant, error: null };
       
     } catch (unexpectedError) {
-      // Catch-all for any unexpected errors
       debugError("=== CREATE TENANT UNEXPECTED ERROR ===", unexpectedError);
       
       const errorMessage = unexpectedError instanceof Error 

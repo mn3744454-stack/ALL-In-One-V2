@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { withTimeout, BOOTSTRAP_TIMEOUT_MS } from "@/lib/withTimeout";
@@ -36,6 +36,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Track current user ID to avoid unnecessary state updates on TOKEN_REFRESHED
+  const currentUserIdRef = useRef<string | null>(null);
 
   const fetchProfile = async (userId: string): Promise<void> => {
     log('fetchProfile start', { userId });
@@ -78,7 +81,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      const newUser = currentSession?.user ?? null;
+      setUser(newUser);
+      currentUserIdRef.current = newUser?.id ?? null;
 
       if (currentSession?.user) {
         // Fire and forget - don't block bootstrap on profile fetch
@@ -101,9 +106,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     log('Setting up auth state listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        log('authStateChange', { event, userId: newSession?.user?.id });
+        const newUserId = newSession?.user?.id ?? null;
+        log('authStateChange', { event, userId: newUserId });
+        
+        // Always update session (contains fresh tokens)
         setSession(newSession);
+        
+        // For TOKEN_REFRESHED: skip setUser if same user ID to avoid
+        // downstream re-renders that cascade through TenantContext and
+        // WorkspaceRouteGuard, which can unmount open modals/wizards.
+        if (event === 'TOKEN_REFRESHED' && newUserId === currentUserIdRef.current) {
+          log('TOKEN_REFRESHED for same user, skipping setUser to prevent cascade');
+          return;
+        }
+        
+        // Real identity change — update user state
         setUser(newSession?.user ?? null);
+        currentUserIdRef.current = newUserId;
 
         if (newSession?.user) {
           // Fire and forget profile fetch
@@ -163,16 +182,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signOut = async () => {
     log('signOut start - clearing state immediately');
     
-    // Clear state immediately (optimistic UI) - this triggers redirect via ProtectedRoute
+    // Clear state immediately (optimistic UI)
     setUser(null);
     setSession(null);
     setProfile(null);
+    currentUserIdRef.current = null;
 
-    // Ensure a visible response even on public routes (e.g. '/')
-    // We don't rely on router hooks here since this is a context file.
     try {
       if (window.location.pathname !== "/auth") {
-        // Replace to avoid back button returning to an authenticated-only page.
         window.history.replaceState(null, "", "/auth");
       }
     } catch {
@@ -180,7 +197,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // Try global sign out with timeout (non-blocking)
       await Promise.race([
         supabase.auth.signOut(),
         new Promise((_, reject) => 
@@ -191,7 +207,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       logError('signOut global failed, using local fallback', err);
       try {
-        // Fallback: local-only sign out (no network required)
         await supabase.auth.signOut({ scope: 'local' });
         log('signOut local fallback success');
       } catch (localErr) {

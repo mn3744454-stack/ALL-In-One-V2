@@ -122,6 +122,8 @@ export const ar = {
     movement: "الوصول والمغادرة",
     housing: "الإسكان",
     notificationSettings: "الإشعارات",
+    favorites: "المفضلة",
+    myPurchases: "مشترياتي",
   },
   pushNotifications: {
     settingsTitle: "إعدادات الإشعارات",
