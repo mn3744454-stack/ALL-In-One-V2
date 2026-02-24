@@ -6,6 +6,7 @@ import { NAV_MODULES, type NavModule } from "@/navigation/navConfig";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
 import { cn } from "@/lib/utils";
 import { ModuleIconCard, getModuleColorScheme } from "./ModuleIconCard";
+import { toast } from "sonner";
 
 interface MobileHomeGridProps {
   className?: string;
@@ -92,9 +93,15 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
     return true;
   });
 
+  // Placeholder routes that show "Coming Soon"
+  const comingSoonRoutes = ["/dashboard/favorites", "/dashboard/my-purchases"];
+
   const handleModuleClick = (module: NavModule) => {
+    if (module.route && comingSoonRoutes.includes(module.route)) {
+      toast.info(t("common.comingSoon"));
+      return;
+    }
     if (module.children && module.children.length > 0) {
-      // Navigate to a module sub-page that will show children as icons
       navigate(`/dashboard/mobile/${module.key}`);
     } else if (module.route) {
       navigate(module.route);

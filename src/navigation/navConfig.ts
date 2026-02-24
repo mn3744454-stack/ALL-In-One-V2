@@ -91,6 +91,20 @@ export const NAV_MODULES: NavModule[] = [
     visibleIn: "personal",
   },
   {
+    key: "favorites",
+    icon: Heart,
+    labelKey: "sidebar.favorites",
+    route: "/dashboard/favorites",
+    visibleIn: "personal",
+  },
+  {
+    key: "myPurchases",
+    icon: ShoppingCart,
+    labelKey: "sidebar.myPurchases",
+    route: "/dashboard/my-purchases",
+    visibleIn: "personal",
+  },
+  {
     key: "horses",
     icon: Heart,
     labelKey: "sidebar.horses",

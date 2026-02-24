@@ -99,6 +99,8 @@ export const en = {
     movement: "Movement",
     housing: "Housing",
     notificationSettings: "Notifications",
+    favorites: "Favorites",
+    myPurchases: "My Purchases",
   },
   pushNotifications: {
     settingsTitle: "Notification Settings",

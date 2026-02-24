@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
+import { toast } from "sonner";
 import {
   Building2,
   Search,
@@ -34,6 +35,9 @@ import {
   Users,
   Calendar,
   LogOut,
+  CreditCard,
+  ShoppingCart,
+  Star,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/ui/language-selector";
 
@@ -66,7 +70,6 @@ const Dashboard = () => {
   };
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
-  // Lab and Clinic tenants don't own horses - they provide services to horses
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
 
@@ -81,23 +84,14 @@ const Dashboard = () => {
       <main className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Top Bar */}
         <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
-          {/* Mobile Header - Two rows */}
+          {/* Mobile Header */}
           <div className="lg:hidden">
-            {/* Row 1: Icons */}
+            {/* Row 1: Workspace toggle (wider area) + actions */}
             <div className="flex items-center justify-between h-14 px-4 border-b border-border/30">
-              <div className="flex items-center gap-2">
-                {/* Add Horse */}
-                {activeTenant && <AddHorseDialog />}
-                
-                {/* Invitations */}
-                <NotificationsPanel />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {/* Language Selector */}
+              <WorkspaceModeToggle />
+              <div className="flex items-center gap-1.5">
                 <LanguageSelector />
-                
-                {/* Logout */}
+                <NotificationsPanel />
                 <button
                   onClick={handleLogoutClick}
                   className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
@@ -108,25 +102,23 @@ const Dashboard = () => {
               </div>
             </div>
             
-            {/* Row 2: Workspace + Account */}
-            <div className="flex items-center justify-between h-12 px-4 gap-2">
-              <WorkspaceModeToggle />
-              {workspaceMode === "organization" && (
-                <div className="flex items-center gap-2">
+            {/* Row 2: Tenant/role context - only in organization mode */}
+            {workspaceMode === "organization" && (
+              <div className="flex items-center justify-between h-12 px-4 gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <TenantSwitcher />
                   <RoleSwitcher />
                 </div>
-              )}
-            </div>
+                {activeTenant && <AddHorseDialog />}
+              </div>
+            )}
           </div>
 
-          {/* Desktop Header - Responsive layout to prevent overlap */}
-          <div className="hidden lg:flex flex-wrap items-center justify-between gap-4 min-h-16 py-3 px-8">
-            {/* Left side: Workspace and Tenant controls */}
+          {/* Desktop Header - Single structured row */}
+          <div className="hidden lg:flex items-center justify-between gap-4 h-16 px-8">
+            {/* Left: Workspace + Tenant controls */}
             <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
-              {/* Workspace Mode Toggle */}
               <WorkspaceModeToggle />
-              {/* Tenant Switcher - only in organization mode */}
               {workspaceMode === "organization" && (
                 <>
                   <TenantSwitcher />
@@ -135,9 +127,8 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Right side: Search and actions */}
+            {/* Right: Search + actions */}
             <div className="flex items-center gap-3 flex-shrink-0">
-              {/* Search - constrained width */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -146,17 +137,9 @@ const Dashboard = () => {
                   className="w-48 xl:w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
                 />
               </div>
-              
-              {/* Language Selector */}
               <LanguageSelector />
-              
-              {/* Invitations */}
               <NotificationsPanel />
-
-              {/* Add Horse */}
               {activeTenant && <AddHorseDialog />}
-              
-              {/* Logout */}
               <button
                 onClick={handleLogoutClick}
                 className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
@@ -189,22 +172,22 @@ const Dashboard = () => {
             {/* Mobile Home Grid - Quick access to all modules */}
             <MobileHomeGrid className="mb-8" />
 
-            {/* Personal Quick Actions - always visible in personal mode */}
+            {/* Personal Quick Actions - desktop only (mobile uses MobileHomeGrid above) */}
             {workspaceMode === "personal" && (
-              <div className="mb-8">
+              <div className="hidden lg:block mb-8">
                 <h2 className="font-display text-lg font-semibold text-navy mb-4">
-                  {t("dashboard.quickActions") || "Quick Actions"}
+                  {t("dashboard.quickActions")}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Link to="/dashboard/community" className="block">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                  <Link to="/community" className="block">
                     <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
                       <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
                           <Users className="w-6 h-6 text-gold" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-navy">{t("navigation.community") || "Community"}</h3>
-                          <p className="text-sm text-muted-foreground">{t("dashboard.communityDesc") || "Connect with the equestrian community"}</p>
+                          <h3 className="font-semibold text-navy">{t("sidebar.community")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.communityDesc")}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -216,8 +199,8 @@ const Dashboard = () => {
                           <Calendar className="w-6 h-6 text-gold" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-navy">{t("navigation.myBookings") || "My Bookings"}</h3>
-                          <p className="text-sm text-muted-foreground">{t("dashboard.myBookingsDesc") || "View and manage your bookings"}</p>
+                          <h3 className="font-semibold text-navy">{t("sidebar.myBookings")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.myBookingsDesc")}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -226,15 +209,49 @@ const Dashboard = () => {
                     <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
                       <CardContent className="p-6 flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
-                          <TrendingUp className="w-6 h-6 text-gold" />
+                          <CreditCard className="w-6 h-6 text-gold" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-navy">{t("navigation.myPayments") || "My Payments"}</h3>
-                          <p className="text-sm text-muted-foreground">{t("dashboard.myPaymentsDesc") || "Track your payment history"}</p>
+                          <h3 className="font-semibold text-navy">{t("sidebar.myPayments")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("dashboard.myPaymentsDesc")}</p>
                         </div>
                       </CardContent>
                     </Card>
                   </Link>
+                  {/* Favorites - Coming Soon */}
+                  <button
+                    onClick={() => toast.info(t("common.comingSoon"))}
+                    className="block text-left w-full"
+                  >
+                    <Card variant="elevated" className="hover:border-muted-foreground/30 transition-all cursor-pointer h-full opacity-75">
+                      <CardContent className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <Star className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-navy">{t("sidebar.favorites")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("common.comingSoon")}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </button>
+                  {/* My Purchases - Coming Soon */}
+                  <button
+                    onClick={() => toast.info(t("common.comingSoon"))}
+                    className="block text-left w-full"
+                  >
+                    <Card variant="elevated" className="hover:border-muted-foreground/30 transition-all cursor-pointer h-full opacity-75">
+                      <CardContent className="p-6 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <ShoppingCart className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-navy">{t("sidebar.myPurchases")}</h3>
+                          <p className="text-sm text-muted-foreground">{t("common.comingSoon")}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </button>
                 </div>
               </div>
             )}
@@ -271,7 +288,7 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Public Profile Setup Reminder - for owners who haven't set up their public profile */}
+            {/* Public Profile Setup Reminder */}
             {needsPublicProfileSetup && (
               <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
                 <CardContent className="p-6">
@@ -300,7 +317,7 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* View Public Profile Button - for owners with completed public profile */}
+            {/* View Public Profile Button */}
             {hasPublicProfile && (
               <Card variant="elevated" className="mb-8 border-success/30 bg-gradient-to-r from-success/5 to-transparent">
                 <CardContent className="p-6">
@@ -342,7 +359,6 @@ const Dashboard = () => {
             {/* Stats Grid - Only show in organization mode */}
             {workspaceMode === "organization" && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {/* Total Horses - only for horse-owning tenants */}
                 {isHorseOwningTenant && (
                   <StatCard
                     icon={Heart}
@@ -427,7 +443,6 @@ const Dashboard = () => {
                   </Card>
                 </div>
               ) : !activeTenant ? (
-                /* Available Services - Show for users without tenant */
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
                     <CardHeader>
@@ -470,7 +485,6 @@ const Dashboard = () => {
                   </Card>
                 </div>
               ) : (
-                /* Default content for non-horse-owning tenants (Lab, Clinic, etc.) */
                 <div className="lg:col-span-2">
                   <Card variant="elevated">
                     <CardHeader>

@@ -37,7 +37,7 @@ export function WorkspaceModeToggle() {
         )}
       >
         <User className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">{t("workspace.personal")}</span>
+        <span>{t("workspace.personal")}</span>
       </Button>
       <Button
         variant={workspaceMode === "organization" ? "default" : "ghost"}
@@ -51,9 +51,7 @@ export function WorkspaceModeToggle() {
         )}
       >
         <Building2 className="w-3.5 h-3.5" />
-        <span className="hidden sm:inline">
-          {t("workspace.organization")}
-        </span>
+        <span>{t("workspace.organization")}</span>
       </Button>
     </div>
   );
