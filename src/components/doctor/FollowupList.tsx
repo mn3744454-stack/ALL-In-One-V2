@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Check, X } from "lucide-react";
 import { useFollowups } from "@/hooks/doctor/useFollowups";
+import { useI18n } from "@/i18n";
 import { format } from "date-fns";
 
 interface FollowupListProps {
@@ -14,6 +15,7 @@ interface FollowupListProps {
 
 export function FollowupList({ consultationId }: FollowupListProps) {
   const { followups, loading, createFollowup, markStatus, deleteFollowup, isCreating } = useFollowups(consultationId);
+  const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
   const [followupDate, setFollowupDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -41,30 +43,30 @@ export function FollowupList({ consultationId }: FollowupListProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Follow-ups</CardTitle>
+        <CardTitle className="text-base">{t('doctor.followups')}</CardTitle>
         <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-1" />{showForm ? "Cancel" : "Add"}
+          <Plus className="h-4 w-4 mr-1" />{showForm ? t('common.cancel') : t('common.add')}
         </Button>
       </CardHeader>
       <CardContent>
         {showForm && (
           <form onSubmit={handleAdd} className="space-y-3 mb-4 p-4 border rounded-lg bg-muted/30">
             <div>
-              <Label>Date *</Label>
+              <Label>{t('doctor.dateRequired')}</Label>
               <Input type="datetime-local" value={followupDate} onChange={e => setFollowupDate(e.target.value)} required />
             </div>
             <div>
-              <Label>Notes</Label>
+              <Label>{t('common.notes')}</Label>
               <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
             </div>
-            <Button type="submit" size="sm" disabled={isCreating}>Schedule Follow-up</Button>
+            <Button type="submit" size="sm" disabled={isCreating}>{t('doctor.scheduleFollowup')}</Button>
           </form>
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         ) : followups.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No follow-ups scheduled.</p>
+          <p className="text-sm text-muted-foreground">{t('doctor.noFollowups')}</p>
         ) : (
           <div className="space-y-2">
             {followups.map(f => (
@@ -79,10 +81,10 @@ export function FollowupList({ consultationId }: FollowupListProps) {
                 <div className="flex gap-1">
                   {f.status === "pending" && (
                     <>
-                      <Button variant="ghost" size="icon" onClick={() => markStatus(f.id, "completed")} title="Mark completed">
+                      <Button variant="ghost" size="icon" onClick={() => markStatus(f.id, "completed")} title={t('doctor.markCompleted')}>
                         <Check className="h-4 w-4 text-green-600" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => markStatus(f.id, "cancelled")} title="Cancel">
+                      <Button variant="ghost" size="icon" onClick={() => markStatus(f.id, "cancelled")} title={t('doctor.cancelFollowup')}>
                         <X className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </>

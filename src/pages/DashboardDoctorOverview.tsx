@@ -11,12 +11,14 @@ import { usePatients } from "@/hooks/doctor/usePatients";
 import { useFollowups } from "@/hooks/doctor/useFollowups";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n";
 import { format, isToday, isFuture } from "date-fns";
 
 export default function DashboardDoctorOverview() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { activeTenant } = useTenant();
+  const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
 
   const { consultations } = useConsultations();
@@ -33,73 +35,70 @@ export default function DashboardDoctorOverview() {
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} currentPath={location.pathname} />
       <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
-        <MobilePageHeader title="Doctor Dashboard" />
+        <MobilePageHeader title={t('doctor.dashboard')} />
         <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5" /></Button>
             <div>
-              <h1 className="text-xl font-bold flex items-center gap-2"><Activity className="h-5 w-5" />Doctor Dashboard</h1>
-              <p className="text-muted-foreground text-sm">Overview of your practice</p>
+              <h1 className="text-xl font-bold flex items-center gap-2"><Activity className="h-5 w-5" />{t('doctor.dashboard')}</h1>
+              <p className="text-muted-foreground text-sm">{t('doctor.overviewSubtitle')}</p>
             </div>
           </div>
           <NotificationsPanel />
         </header>
 
         <div className="container mx-auto px-4 py-6 max-w-7xl">
-          {/* Stats row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Patients</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('doctor.statPatients')}</CardTitle></CardHeader>
               <CardContent><div className="text-2xl font-bold flex items-center gap-2"><Heart className="h-5 w-5 text-primary" />{patients.length}</div></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Active Consultations</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('doctor.statActiveConsultations')}</CardTitle></CardHeader>
               <CardContent><div className="text-2xl font-bold flex items-center gap-2"><ClipboardList className="h-5 w-5 text-primary" />{activeConsultations.length}</div></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Today's Follow-ups</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('doctor.statTodayFollowups')}</CardTitle></CardHeader>
               <CardContent><div className="text-2xl font-bold flex items-center gap-2"><Calendar className="h-5 w-5 text-primary" />{todayFollowups.length}</div></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Revenue (Paid)</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('doctor.statRevenue')}</CardTitle></CardHeader>
               <CardContent><div className="text-2xl font-bold flex items-center gap-2"><TrendingUp className="h-5 w-5 text-primary" />{totalRevenue.toLocaleString()} SAR</div></CardContent>
             </Card>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Recent Consultations */}
             <Card>
-              <CardHeader><CardTitle>Recent Consultations</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t('doctor.recentConsultations')}</CardTitle></CardHeader>
               <CardContent>
                 {consultations.slice(0, 5).map(c => (
                   <div key={c.id} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div>
-                      <p className="font-medium">{c.horse_name_snapshot || "Unknown"}</p>
-                      <p className="text-sm text-muted-foreground">{c.consultation_type} · {c.chief_complaint?.slice(0, 40) || "No complaint"}</p>
+                      <p className="font-medium">{c.horse_name_snapshot || t('common.unknown')}</p>
+                      <p className="text-sm text-muted-foreground">{c.consultation_type} · {c.chief_complaint?.slice(0, 40) || t('doctor.noComplaint')}</p>
                     </div>
                     <span className={`text-xs px-2 py-1 rounded-full ${c.status === 'completed' ? 'bg-green-100 text-green-700' : c.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-muted text-muted-foreground'}`}>
                       {c.status}
                     </span>
                   </div>
                 ))}
-                {consultations.length === 0 && <p className="text-muted-foreground text-sm">No consultations yet</p>}
+                {consultations.length === 0 && <p className="text-muted-foreground text-sm">{t('doctor.noConsultationsYet')}</p>}
               </CardContent>
             </Card>
 
-            {/* Upcoming Follow-ups */}
             <Card>
-              <CardHeader><CardTitle>Upcoming Follow-ups</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t('doctor.upcomingFollowups')}</CardTitle></CardHeader>
               <CardContent>
                 {upcomingFollowups.slice(0, 5).map(f => (
                   <div key={f.id} className="flex items-center justify-between py-2 border-b last:border-0">
                     <div>
                       <p className="text-sm font-medium">{format(new Date(f.followup_date), "MMM d, yyyy")}</p>
-                      <p className="text-sm text-muted-foreground">{f.notes?.slice(0, 50) || "No notes"}</p>
+                      <p className="text-sm text-muted-foreground">{f.notes?.slice(0, 50) || t('common.notes')}</p>
                     </div>
                     <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">{f.status}</span>
                   </div>
                 ))}
-                {upcomingFollowups.length === 0 && <p className="text-muted-foreground text-sm">No upcoming follow-ups</p>}
+                {upcomingFollowups.length === 0 && <p className="text-muted-foreground text-sm">{t('doctor.noUpcomingFollowups')}</p>}
               </CardContent>
             </Card>
           </div>

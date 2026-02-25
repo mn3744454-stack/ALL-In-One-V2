@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDoctorServices, type DoctorService } from "@/hooks/doctor/useDoctorServices";
+import { useI18n } from "@/i18n";
 
 interface ServiceFormDialogProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface ServiceFormDialogProps {
 
 export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDialogProps) {
   const { createService, updateService, isCreating, isUpdating } = useDoctorServices();
+  const { t } = useI18n();
   const isEdit = !!service;
 
   const [name, setName] = useState(service?.name || "");
@@ -58,42 +60,42 @@ export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDi
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Service" : "Add Service"}</DialogTitle>
+          <DialogTitle>{isEdit ? t('doctor.editService') : t('doctor.addService')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Name *</Label>
+            <Label>{t('doctor.nameRequired')}</Label>
             <Input value={name} onChange={e => setName(e.target.value)} required />
           </div>
           <div>
-            <Label>Name (Arabic)</Label>
+            <Label>{t('doctor.nameArabic')}</Label>
             <Input value={nameAr} onChange={e => setNameAr(e.target.value)} dir="rtl" />
           </div>
           <div>
-            <Label>Category</Label>
+            <Label>{t('doctor.category')}</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('doctor.selectCategory')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="consultation">Consultation</SelectItem>
-                <SelectItem value="procedure">Procedure</SelectItem>
-                <SelectItem value="follow_up">Follow-up</SelectItem>
-                <SelectItem value="emergency">Emergency</SelectItem>
-                <SelectItem value="dental">Dental</SelectItem>
-                <SelectItem value="reproductive">Reproductive</SelectItem>
+                <SelectItem value="consultation">{t('doctor.catConsultation')}</SelectItem>
+                <SelectItem value="procedure">{t('doctor.catProcedure')}</SelectItem>
+                <SelectItem value="follow_up">{t('doctor.catFollowUp')}</SelectItem>
+                <SelectItem value="emergency">{t('doctor.catEmergency')}</SelectItem>
+                <SelectItem value="dental">{t('doctor.catDental')}</SelectItem>
+                <SelectItem value="reproductive">{t('doctor.catReproductive')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Base Price (SAR)</Label>
+            <Label>{t('doctor.basePrice')}</Label>
             <Input type="number" step="0.01" value={basePrice} onChange={e => setBasePrice(e.target.value)} />
           </div>
           <div>
-            <Label>Description</Label>
+            <Label>{t('common.description')}</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={isCreating || isUpdating}>{isEdit ? "Save" : "Add Service"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={isCreating || isUpdating}>{isEdit ? t('common.save') : t('doctor.addService')}</Button>
           </div>
         </form>
       </DialogContent>
