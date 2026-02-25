@@ -19,6 +19,9 @@ const tenantTypeLabels: Record<string, string> = {
   pharmacy: "Pharmacy",
   transport: "Transport",
   auction: "Auction",
+  horse_owner: "Horse Owner",
+  trainer: "Trainer",
+  doctor: "Doctor",
 };
 
 export const TenantSwitcher = () => {

@@ -183,7 +183,55 @@ const AppRoutes = () => {
         path="/create-profile/owner"
         element={
           <ProtectedRoute>
-            <CreateStableProfile tenantType="stable" />
+            <CreateStableProfile tenantType="horse_owner" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/horse-owner"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="horse_owner" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/pharmacy"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="pharmacy" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/transport"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="transport" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/auction"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="auction" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/trainer"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="trainer" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/create-profile/doctor"
+        element={
+          <ProtectedRoute>
+            <CreateStableProfile tenantType="doctor" />
           </ProtectedRoute>
         }
       />

@@ -8,10 +8,13 @@ import {
   Stethoscope, 
   FlaskConical, 
   GraduationCap, 
-  User,
   Heart,
   ArrowRight,
-  Check
+  Check,
+  Pill,
+  Gavel,
+  Truck,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nContext";
@@ -45,6 +48,13 @@ const SelectRole = () => {
       color: "from-emerald-500 to-emerald-400",
     },
     {
+      id: "doctor",
+      icon: Stethoscope,
+      titleKey: "selectRole.doctor",
+      descriptionKey: "selectRole.doctorDesc",
+      color: "from-cyan-500 to-cyan-400",
+    },
+    {
       id: "lab-owner",
       icon: FlaskConical,
       titleKey: "selectRole.labOwner",
@@ -59,11 +69,32 @@ const SelectRole = () => {
       color: "from-purple-500 to-purple-400",
     },
     {
-      id: "employee",
-      icon: User,
-      titleKey: "selectRole.employee",
-      descriptionKey: "selectRole.employeeDesc",
-      color: "from-teal-500 to-teal-400",
+      id: "academy",
+      icon: GraduationCap,
+      titleKey: "selectRole.academy",
+      descriptionKey: "selectRole.academyDesc",
+      color: "from-violet-500 to-violet-400",
+    },
+    {
+      id: "pharmacy",
+      icon: Pill,
+      titleKey: "selectRole.pharmacy",
+      descriptionKey: "selectRole.pharmacyDesc",
+      color: "from-orange-500 to-orange-400",
+    },
+    {
+      id: "transport",
+      icon: Truck,
+      titleKey: "selectRole.transport",
+      descriptionKey: "selectRole.transportDesc",
+      color: "from-amber-600 to-amber-500",
+    },
+    {
+      id: "auction",
+      icon: Gavel,
+      titleKey: "selectRole.auction",
+      descriptionKey: "selectRole.auctionDesc",
+      color: "from-red-500 to-red-400",
     },
   ];
 
@@ -75,24 +106,34 @@ const SelectRole = () => {
     );
   };
 
+  const roleToRoute: Record<string, string> = {
+    "horse-owner": "/create-profile/horse-owner",
+    "stable-owner": "/create-profile/stable",
+    "veterinarian": "/create-profile/clinic",
+    "doctor": "/create-profile/doctor",
+    "lab-owner": "/create-profile/lab",
+    "trainer": "/create-profile/trainer",
+    "academy": "/create-profile/academy",
+    "pharmacy": "/create-profile/pharmacy",
+    "transport": "/create-profile/transport",
+    "auction": "/create-profile/auction",
+  };
+
   const handleContinue = () => {
     if (selectedRoles.length === 0) {
       toast.error(t('selectRole.selectAtLeastOne'));
       return;
     }
 
-    // Navigate based on primary role selection
-    if (selectedRoles.includes("stable-owner")) {
-      navigate("/create-profile/stable");
-    } else if (selectedRoles.includes("veterinarian")) {
-      navigate("/create-profile/clinic");
-    } else if (selectedRoles.includes("lab-owner")) {
-      navigate("/create-profile/lab");
-    } else if (selectedRoles.includes("trainer")) {
-      navigate("/create-profile/academy");
-    } else {
-      navigate("/create-profile/owner");
-    }
+    // Navigate to the first selected role's creation flow
+    // Priority order for routing
+    const priorityOrder = [
+      "stable-owner", "veterinarian", "doctor", "lab-owner",
+      "trainer", "academy", "pharmacy", "transport", "auction", "horse-owner"
+    ];
+
+    const primaryRole = priorityOrder.find(r => selectedRoles.includes(r)) || selectedRoles[0];
+    navigate(roleToRoute[primaryRole] || "/create-profile/horse-owner");
   };
 
   return (

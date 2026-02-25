@@ -11,7 +11,7 @@ import { AlertCircle, Building2, CheckCircle, Loader2, UserPlus } from "lucide-r
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
-type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
+type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction" | "horse_owner" | "trainer" | "doctor";
 
 const tenantTypeLabels: Record<TenantType, string> = {
   stable: "Stable",
@@ -21,6 +21,9 @@ const tenantTypeLabels: Record<TenantType, string> = {
   pharmacy: "Pharmacy",
   transport: "Transport Company",
   auction: "Auction House",
+  horse_owner: "Horse Owner",
+  trainer: "Independent Trainer",
+  doctor: "Independent Doctor",
 };
 
 const roleLabels: Record<string, string> = {

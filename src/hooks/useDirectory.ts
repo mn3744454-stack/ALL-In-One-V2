@@ -30,6 +30,9 @@ export const TENANT_TYPES = [
   { value: "academy", label: "Training Academy", labelAr: "أكاديمية تدريب" },
   { value: "transport", label: "Transport", labelAr: "نقل خيول" },
   { value: "auction", label: "Auction House", labelAr: "مزاد" },
+  { value: "horse_owner", label: "Horse Owner", labelAr: "مالك خيل" },
+  { value: "trainer", label: "Independent Trainer", labelAr: "مدرب مستقل" },
+  { value: "doctor", label: "Independent Doctor", labelAr: "طبيب بيطري مستقل" },
 ] as const;
 
 export const REGIONS = [
