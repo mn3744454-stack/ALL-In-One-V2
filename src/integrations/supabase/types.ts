@@ -1229,6 +1229,430 @@ export type Database = {
           },
         ]
       }
+      doctor_consultations: {
+        Row: {
+          actual_cost: number | null
+          chief_complaint: string | null
+          completed_at: string | null
+          consultation_type: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          diagnosis: string | null
+          findings: string | null
+          horse_name_ar_snapshot: string | null
+          horse_name_snapshot: string | null
+          horse_snapshot: Json | null
+          id: string
+          patient_id: string
+          priority: string
+          published_at: string | null
+          published_by: string | null
+          published_to_stable: boolean
+          recommendations: string | null
+          scheduled_for: string | null
+          stable_name_snapshot: string | null
+          stable_tenant_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          chief_complaint?: string | null
+          completed_at?: string | null
+          consultation_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          diagnosis?: string | null
+          findings?: string | null
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
+          horse_snapshot?: Json | null
+          id?: string
+          patient_id: string
+          priority?: string
+          published_at?: string | null
+          published_by?: string | null
+          published_to_stable?: boolean
+          recommendations?: string | null
+          scheduled_for?: string | null
+          stable_name_snapshot?: string | null
+          stable_tenant_id?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          actual_cost?: number | null
+          chief_complaint?: string | null
+          completed_at?: string | null
+          consultation_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          diagnosis?: string | null
+          findings?: string | null
+          horse_name_ar_snapshot?: string | null
+          horse_name_snapshot?: string | null
+          horse_snapshot?: Json | null
+          id?: string
+          patient_id?: string
+          priority?: string
+          published_at?: string | null
+          published_by?: string | null
+          published_to_stable?: boolean
+          recommendations?: string | null
+          scheduled_for?: string | null
+          stable_name_snapshot?: string | null
+          stable_tenant_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_consultations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_stable_tenant_id_fkey"
+            columns: ["stable_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_stable_tenant_id_fkey"
+            columns: ["stable_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_consultations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_followups: {
+        Row: {
+          consultation_id: string
+          created_at: string
+          created_by: string | null
+          followup_date: string
+          id: string
+          notes: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          consultation_id: string
+          created_at?: string
+          created_by?: string | null
+          followup_date: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          consultation_id?: string
+          created_at?: string
+          created_by?: string | null
+          followup_date?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_followups_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_followups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_followups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_followups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_patients: {
+        Row: {
+          approx_age: string | null
+          breed_text: string | null
+          color_text: string | null
+          created_at: string
+          created_by: string | null
+          gender: string | null
+          id: string
+          is_archived: boolean
+          linked_horse_id: string | null
+          metadata: Json
+          microchip_number: string | null
+          name: string
+          name_ar: string | null
+          notes: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          passport_number: string | null
+          source: string
+          stable_name: string | null
+          tenant_id: string
+          ueln: string | null
+          updated_at: string
+        }
+        Insert: {
+          approx_age?: string | null
+          breed_text?: string | null
+          color_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          linked_horse_id?: string | null
+          metadata?: Json
+          microchip_number?: string | null
+          name: string
+          name_ar?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          passport_number?: string | null
+          source?: string
+          stable_name?: string | null
+          tenant_id: string
+          ueln?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approx_age?: string | null
+          breed_text?: string | null
+          color_text?: string | null
+          created_at?: string
+          created_by?: string | null
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          linked_horse_id?: string | null
+          metadata?: Json
+          microchip_number?: string | null
+          name?: string
+          name_ar?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          passport_number?: string | null
+          source?: string
+          stable_name?: string | null
+          tenant_id?: string
+          ueln?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_patients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_patients_linked_horse_id_fkey"
+            columns: ["linked_horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_patients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_patients_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_prescriptions: {
+        Row: {
+          consultation_id: string
+          created_at: string
+          dose: string | null
+          duration_days: number | null
+          end_date: string | null
+          frequency: string | null
+          id: string
+          medication_name: string
+          notes: string | null
+          start_date: string | null
+          tenant_id: string
+        }
+        Insert: {
+          consultation_id: string
+          created_at?: string
+          dose?: string | null
+          duration_days?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          medication_name: string
+          notes?: string | null
+          start_date?: string | null
+          tenant_id: string
+        }
+        Update: {
+          consultation_id?: string
+          created_at?: string
+          dose?: string | null
+          duration_days?: number | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          medication_name?: string
+          notes?: string | null
+          start_date?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_prescriptions_consultation_id_fkey"
+            columns: ["consultation_id"]
+            isOneToOne: false
+            referencedRelation: "doctor_consultations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_prescriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_prescriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctor_services: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          description_ar: string | null
+          id: string
+          is_active: boolean
+          name: string
+          name_ar: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "doctor_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       embryo_transfers: {
         Row: {
           assigned_to: string | null
