@@ -26,6 +26,7 @@ import {
   Tags,
   BarChart3,
   UserCircle,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -292,5 +293,49 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     labelKey: "sidebar.settings",
     route: "/dashboard/settings",
     roles: ["owner"],
+  },
+  // Doctor-only modules
+  {
+    key: "doctorOverview",
+    icon: Activity,
+    labelKey: "sidebar.doctorOverview",
+    route: "/dashboard/doctor",
+    tenantType: "doctor",
+  },
+  {
+    key: "doctorPatients",
+    icon: Heart,
+    labelKey: "sidebar.doctorPatients",
+    route: "/dashboard/doctor/patients",
+    tenantType: "doctor",
+  },
+  {
+    key: "doctorConsultations",
+    icon: ClipboardList,
+    labelKey: "sidebar.doctorConsultations",
+    route: "/dashboard/doctor/consultations",
+    tenantType: "doctor",
+  },
+  {
+    key: "doctorServices",
+    icon: Package,
+    labelKey: "sidebar.doctorServices",
+    route: "/dashboard/doctor/services",
+    tenantType: "doctor",
+  },
+  {
+    key: "doctorClients",
+    icon: UserCircle,
+    labelKey: "clients.title",
+    route: "/dashboard/clients",
+    tenantType: "doctor",
+  },
+  {
+    key: "doctorFinance",
+    icon: Wallet,
+    labelKey: "finance.title",
+    route: "/dashboard/finance",
+    roles: ["owner", "manager"],
+    tenantType: "doctor",
   },
 ];

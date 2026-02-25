@@ -21,6 +21,7 @@ export interface ModuleAccess {
   isLabTenant: boolean;
   isStable: boolean;
   isClinic: boolean;
+  isDoctor: boolean;
   isVetIndependent: boolean;
   isTransport: boolean;
   isAcademy: boolean;
@@ -51,8 +52,8 @@ export function useModuleAccess(): ModuleAccess {
   const isLabTenant = tenantType === 'lab';
   const isStable = tenantType === 'stable';
   const isClinic = tenantType === 'clinic';
-  // Note: 'vet' is not currently a valid TenantType, but we keep this for future extensibility
-  const isVetIndependent = false; // tenantType === 'vet' when supported
+  const isDoctor = tenantType === 'doctor';
+  const isVetIndependent = tenantType === 'doctor';
   const isTransport = tenantType === 'transport';
   const isAcademy = tenantType === 'academy';
   const isPharmacy = tenantType === 'pharmacy';
@@ -148,6 +149,7 @@ export function useModuleAccess(): ModuleAccess {
     isLabTenant,
     isStable,
     isClinic,
+    isDoctor,
     isVetIndependent,
     isTransport,
     isAcademy,
