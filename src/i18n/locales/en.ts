@@ -101,6 +101,10 @@ export const en = {
     notificationSettings: "Notifications",
     favorites: "Favorites",
     myPurchases: "My Purchases",
+    doctorOverview: "Overview",
+    doctorPatients: "Patients",
+    doctorConsultations: "Consultations",
+    doctorServices: "Services",
   },
   pushNotifications: {
     settingsTitle: "Notification Settings",
