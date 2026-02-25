@@ -91,7 +91,6 @@ const Dashboard = () => {
               <WorkspaceModeToggle />
               <div className="flex items-center gap-1.5">
                 <LanguageSelector />
-                <NotificationsPanel />
                 <button
                   onClick={handleLogoutClick}
                   className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
@@ -127,16 +126,8 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Right: Search + actions */}
+            {/* Right: actions (search moved to greeting row) */}
             <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t("dashboard.searchPlaceholder")}
-                  className="w-48 xl:w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
-                />
-              </div>
               <LanguageSelector />
               <NotificationsPanel />
               {activeTenant && <AddHorseDialog />}
@@ -157,16 +148,35 @@ const Dashboard = () => {
           <PushPermissionBanner />
           {/* Dashboard Content */}
           <div className="p-4 lg:p-8">
-            {/* Welcome Section */}
-            <div className="mb-8">
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-2">
-                {t("dashboard.welcome")}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
-              </h1>
-              <p className="text-muted-foreground">
-                {activeTenant
-                  ? t("dashboard.todayAt").replace("{{org}}", activeTenant.tenant.name)
-                  : t("dashboard.noTenantMessage")}
-              </p>
+            {/* Welcome Section + Search + Mobile Notifications */}
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
+                    {t("dashboard.welcome")}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+                  </h1>
+                  {/* Mobile notifications bell - moved here from top row */}
+                  <div className="lg:hidden mb-1">
+                    <NotificationsPanel />
+                  </div>
+                </div>
+                <p className="text-muted-foreground">
+                  {activeTenant
+                    ? t("dashboard.todayAt").replace("{{org}}", activeTenant.tenant.name)
+                    : t("dashboard.noTenantMessage")}
+                </p>
+              </div>
+              {/* Desktop search bar - in greeting row */}
+              <div className="hidden lg:block flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder={t("dashboard.searchPlaceholder")}
+                    className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Mobile Home Grid - Quick access to all modules */}
