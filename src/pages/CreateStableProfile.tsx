@@ -17,13 +17,18 @@ import {
   Camera,
   Stethoscope,
   FlaskConical,
-  GraduationCap
+  GraduationCap,
+  Heart,
+  Pill,
+  Gavel,
+  Truck,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n/I18nContext";
 
-type TenantType = "stable" | "clinic" | "lab" | "academy";
+type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction" | "horse_owner" | "trainer" | "doctor";
 
 interface CreateStableProfileProps {
   tenantType?: TenantType;
@@ -54,6 +59,12 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     clinic: { titleKey: "createProfile.tenantTypes.clinic", descriptionKey: "createProfile.tenantTypes.clinicDesc", icon: Stethoscope },
     lab: { titleKey: "createProfile.tenantTypes.lab", descriptionKey: "createProfile.tenantTypes.labDesc", icon: FlaskConical },
     academy: { titleKey: "createProfile.tenantTypes.academy", descriptionKey: "createProfile.tenantTypes.academyDesc", icon: GraduationCap },
+    horse_owner: { titleKey: "createProfile.tenantTypes.horse_owner", descriptionKey: "createProfile.tenantTypes.horse_ownerDesc", icon: Heart },
+    pharmacy: { titleKey: "createProfile.tenantTypes.pharmacy", descriptionKey: "createProfile.tenantTypes.pharmacyDesc", icon: Pill },
+    transport: { titleKey: "createProfile.tenantTypes.transport", descriptionKey: "createProfile.tenantTypes.transportDesc", icon: Truck },
+    auction: { titleKey: "createProfile.tenantTypes.auction", descriptionKey: "createProfile.tenantTypes.auctionDesc", icon: Gavel },
+    trainer: { titleKey: "createProfile.tenantTypes.trainer", descriptionKey: "createProfile.tenantTypes.trainerDesc", icon: GraduationCap },
+    doctor: { titleKey: "createProfile.tenantTypes.doctor", descriptionKey: "createProfile.tenantTypes.doctorDesc", icon: Stethoscope },
   };
 
   const config = tenantTypeConfig[tenantType];

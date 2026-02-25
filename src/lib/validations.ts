@@ -42,7 +42,7 @@ export type InvitationFormData = z.infer<typeof invitationSchema>;
 // Tenant validation schema
 export const tenantSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200, "Name must be less than 200 characters"),
-  type: z.enum(["stable", "clinic", "lab", "academy", "pharmacy", "transport", "auction"], { required_error: "Type is required" }),
+  type: z.enum(["stable", "clinic", "lab", "academy", "pharmacy", "transport", "auction", "horse_owner", "trainer", "doctor"], { required_error: "Type is required" }),
   description: z.string().trim().max(1000, "Description must be less than 1000 characters").optional().nullable(),
   address: z.string().trim().max(500, "Address must be less than 500 characters").optional().nullable(),
   phone: z.string().trim().max(50, "Phone must be less than 50 characters").optional().nullable(),

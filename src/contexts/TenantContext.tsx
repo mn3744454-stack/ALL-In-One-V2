@@ -5,7 +5,7 @@ import { tenantSchema, safeValidate } from "@/lib/validations";
 import { debugLog, debugError } from "@/lib/debug";
 import { toast } from "sonner";
 
-type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction";
+type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction" | "horse_owner" | "trainer" | "doctor";
 // Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 export type WorkspaceMode = "personal" | "organization";
