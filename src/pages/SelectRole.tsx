@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/Logo";
 import { 
@@ -10,20 +8,16 @@ import {
   GraduationCap, 
   Heart,
   ArrowRight,
-  Check,
   Pill,
   Gavel,
   Truck,
-  User
 } from "lucide-react";
-import { toast } from "sonner";
 import { useI18n } from "@/i18n/I18nContext";
 
 const SelectRole = () => {
   const navigate = useNavigate();
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const roles = [
     {
@@ -98,14 +92,6 @@ const SelectRole = () => {
     },
   ];
 
-  const toggleRole = (roleId: string) => {
-    setSelectedRoles((prev) =>
-      prev.includes(roleId)
-        ? prev.filter((id) => id !== roleId)
-        : [...prev, roleId]
-    );
-  };
-
   const roleToRoute: Record<string, string> = {
     "horse-owner": "/create-profile/horse-owner",
     "stable-owner": "/create-profile/stable",
@@ -119,21 +105,8 @@ const SelectRole = () => {
     "auction": "/create-profile/auction",
   };
 
-  const handleContinue = () => {
-    if (selectedRoles.length === 0) {
-      toast.error(t('selectRole.selectAtLeastOne'));
-      return;
-    }
-
-    // Navigate to the first selected role's creation flow
-    // Priority order for routing
-    const priorityOrder = [
-      "stable-owner", "veterinarian", "doctor", "lab-owner",
-      "trainer", "academy", "pharmacy", "transport", "auction", "horse-owner"
-    ];
-
-    const primaryRole = priorityOrder.find(r => selectedRoles.includes(r)) || selectedRoles[0];
-    navigate(roleToRoute[primaryRole] || "/create-profile/horse-owner");
+  const handleSelectRole = (roleId: string) => {
+    navigate(roleToRoute[roleId] || "/create-profile/horse-owner");
   };
 
   return (
@@ -152,60 +125,31 @@ const SelectRole = () => {
 
         {/* Role Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {roles.map((role) => {
-            const isSelected = selectedRoles.includes(role.id);
-            return (
-              <Card
-                key={role.id}
-                variant="elevated"
-                className={`cursor-pointer transition-all duration-300 hover:-translate-y-1 ${
-                  isSelected 
-                    ? "ring-2 ring-gold border-gold shadow-gold" 
-                    : "hover:shadow-lg"
-                }`}
-                onClick={() => toggleRole(role.id)}
-              >
-                <CardContent className="p-6 relative">
-                  {isSelected && (
-                    <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'} w-6 h-6 rounded-full bg-gold flex items-center justify-center`}>
-                      <Check className="w-4 h-4 text-navy" />
-                    </div>
-                  )}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center mb-4 shadow-lg`}>
-                    <role.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="font-display text-lg font-semibold text-navy mb-2">
-                    {t(role.titleKey)}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {t(role.descriptionKey)}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {roles.map((role) => (
+            <Card
+              key={role.id}
+              variant="elevated"
+              className="cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-2 hover:ring-gold/50"
+              onClick={() => handleSelectRole(role.id)}
+            >
+              <CardContent className="p-6">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center mb-4 shadow-lg`}>
+                  <role.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-display text-lg font-semibold text-navy mb-2">
+                  {t(role.titleKey)}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t(role.descriptionKey)}
+                </p>
+                <div className={`mt-4 flex items-center gap-1 text-sm font-medium text-gold`}>
+                  {t('selectRole.continue')}
+                  <ArrowRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-
-        {/* Continue Button */}
-        <div className="flex justify-center">
-          <Button
-            variant="gold"
-            size="xl"
-            onClick={handleContinue}
-            disabled={selectedRoles.length === 0}
-            className="min-w-[200px]"
-          >
-            {t('selectRole.continue')}
-            <ArrowRight className={`w-5 h-5 ${isRTL ? 'rotate-180' : ''}`} />
-          </Button>
-        </div>
-
-        {/* Selected Count */}
-        {selectedRoles.length > 0 && (
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            {selectedRoles.length} {selectedRoles.length > 1 ? t('selectRole.rolesSelected') : t('selectRole.roleSelected')}
-          </p>
-        )}
       </div>
     </div>
   );
