@@ -59,6 +59,12 @@ import DashboardClients from "./pages/DashboardClients";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import DebugAuth from "./pages/DebugAuth";
+// Doctor pages
+import DashboardDoctorOverview from "./pages/DashboardDoctorOverview";
+import DashboardDoctorPatients from "./pages/DashboardDoctorPatients";
+import DashboardDoctorConsultations from "./pages/DashboardDoctorConsultations";
+import DashboardDoctorConsultationDetail from "./pages/DashboardDoctorConsultationDetail";
+import DashboardDoctorServices from "./pages/DashboardDoctorServices";
 // Finance child pages
 import { DashboardFinancePOS, DashboardFinanceCategories, FinanceCustomerBalances } from "./pages/finance";
 
@@ -432,6 +438,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Doctor module routes - org only */}
+      <Route path="/dashboard/doctor" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorOverview /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/patients" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorPatients /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultations /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/new" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/:id" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/services" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorServices /></WorkspaceRouteGuard></ProtectedRoute>} />
       <Route
         path="/dashboard/clients"
         element={
