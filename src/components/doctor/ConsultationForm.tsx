@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConsultations, type DoctorConsultation } from "@/hooks/doctor/useConsultations";
 import { usePatients } from "@/hooks/doctor/usePatients";
+import { useI18n } from "@/i18n";
 
 interface ConsultationFormProps {
   consultation?: DoctorConsultation;
@@ -18,6 +19,7 @@ export function ConsultationForm({ consultation, onSuccess, onCancel }: Consulta
   const isEdit = !!consultation;
   const { createConsultation, updateConsultation, isCreating, isUpdating } = useConsultations();
   const { patients } = usePatients();
+  const { t } = useI18n();
 
   const [patientId, setPatientId] = useState(consultation?.patient_id || "");
   const [consultationType, setConsultationType] = useState(consultation?.consultation_type || "checkup");
@@ -58,85 +60,85 @@ export function ConsultationForm({ consultation, onSuccess, onCancel }: Consulta
 
   return (
     <Card>
-      <CardHeader><CardTitle>{isEdit ? "Edit Consultation" : "New Consultation"}</CardTitle></CardHeader>
+      <CardHeader><CardTitle>{isEdit ? t('doctor.editConsultation') : t('doctor.newConsultation')}</CardTitle></CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Patient *</Label>
+            <Label>{t('doctor.patient')}</Label>
             <Select value={patientId} onValueChange={setPatientId} required>
-              <SelectTrigger><SelectValue placeholder="Select patient" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('doctor.selectPatient')} /></SelectTrigger>
               <SelectContent>
                 {patients.map(p => (
                   <SelectItem key={p.id} value={p.id}>{p.name}{p.owner_name ? ` (${p.owner_name})` : ""}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {patients.length === 0 && <p className="text-sm text-muted-foreground mt-1">No patients registered. Add one first.</p>}
+            {patients.length === 0 && <p className="text-sm text-muted-foreground mt-1">{t('doctor.noPatientsRegistered')}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Type</Label>
+              <Label>{t('doctor.type')}</Label>
               <Select value={consultationType} onValueChange={setConsultationType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="checkup">Checkup</SelectItem>
-                  <SelectItem value="emergency">Emergency</SelectItem>
-                  <SelectItem value="follow_up">Follow-up</SelectItem>
-                  <SelectItem value="procedure">Procedure</SelectItem>
-                  <SelectItem value="dental">Dental</SelectItem>
-                  <SelectItem value="reproductive">Reproductive</SelectItem>
+                  <SelectItem value="checkup">{t('doctor.checkup')}</SelectItem>
+                  <SelectItem value="emergency">{t('doctor.emergency')}</SelectItem>
+                  <SelectItem value="follow_up">{t('doctor.followUp')}</SelectItem>
+                  <SelectItem value="procedure">{t('doctor.procedure')}</SelectItem>
+                  <SelectItem value="dental">{t('doctor.dental')}</SelectItem>
+                  <SelectItem value="reproductive">{t('doctor.reproductive')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Priority</Label>
+              <Label>{t('doctor.priority')}</Label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="low">{t('doctor.low')}</SelectItem>
+                  <SelectItem value="normal">{t('doctor.normal')}</SelectItem>
+                  <SelectItem value="high">{t('doctor.high')}</SelectItem>
+                  <SelectItem value="urgent">{t('doctor.urgent')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <Label>Scheduled For</Label>
+            <Label>{t('doctor.scheduledFor')}</Label>
             <Input type="datetime-local" value={scheduledFor} onChange={e => setScheduledFor(e.target.value)} />
           </div>
 
           <div>
-            <Label>Chief Complaint</Label>
+            <Label>{t('doctor.chiefComplaint')}</Label>
             <Textarea value={chiefComplaint} onChange={e => setChiefComplaint(e.target.value)} rows={2} />
           </div>
 
           <div>
-            <Label>Findings</Label>
+            <Label>{t('doctor.findings')}</Label>
             <Textarea value={findings} onChange={e => setFindings(e.target.value)} rows={2} />
           </div>
 
           <div>
-            <Label>Diagnosis</Label>
+            <Label>{t('doctor.diagnosis')}</Label>
             <Textarea value={diagnosis} onChange={e => setDiagnosis(e.target.value)} rows={2} />
           </div>
 
           <div>
-            <Label>Recommendations</Label>
+            <Label>{t('doctor.recommendations')}</Label>
             <Textarea value={recommendations} onChange={e => setRecommendations(e.target.value)} rows={2} />
           </div>
 
           <div>
-            <Label>Cost ({consultation?.currency || "SAR"})</Label>
+            <Label>{t('doctor.cost')} ({consultation?.currency || "SAR"})</Label>
             <Input type="number" step="0.01" value={actualCost} onChange={e => setActualCost(e.target.value)} placeholder="0.00" />
           </div>
 
           <div className="flex justify-end gap-2">
-            {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>}
+            {onCancel && <Button type="button" variant="outline" onClick={onCancel}>{t('common.cancel')}</Button>}
             <Button type="submit" disabled={isCreating || isUpdating || !patientId}>
-              {isEdit ? "Save" : "Create Consultation"}
+              {isEdit ? t('common.save') : t('doctor.createConsultation')}
             </Button>
           </div>
         </form>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePatients, type DoctorPatient } from "@/hooks/doctor/usePatients";
+import { useI18n } from "@/i18n";
 
 interface PatientFormDialogProps {
   open: boolean;
@@ -15,6 +16,7 @@ interface PatientFormDialogProps {
 
 export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDialogProps) {
   const { createPatient, updatePatient, isCreating, isUpdating } = usePatients();
+  const { t } = useI18n();
   const isEdit = !!patient;
 
   const [name, setName] = useState(patient?.name || "");
@@ -30,7 +32,6 @@ export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDi
   const [stableName, setStableName] = useState(patient?.stable_name || "");
   const [notes, setNotes] = useState(patient?.notes || "");
 
-  // Reset form when patient changes
   const resetForm = () => {
     setName(patient?.name || "");
     setNameAr(patient?.name_ar || "");
@@ -80,71 +81,71 @@ export function PatientFormDialog({ open, onOpenChange, patient }: PatientFormDi
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Patient" : "Add Patient"}</DialogTitle>
+          <DialogTitle>{isEdit ? t('doctor.editPatient') : t('doctor.addPatient')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
-              <Label>Name *</Label>
+              <Label>{t('doctor.nameRequired')}</Label>
               <Input value={name} onChange={e => setName(e.target.value)} required />
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <Label>Name (Arabic)</Label>
+              <Label>{t('doctor.nameArabic')}</Label>
               <Input value={nameAr} onChange={e => setNameAr(e.target.value)} dir="rtl" />
             </div>
             <div>
-              <Label>Gender</Label>
+              <Label>{t('doctor.gender')}</Label>
               <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('common.select')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="stallion">Stallion</SelectItem>
-                  <SelectItem value="mare">Mare</SelectItem>
-                  <SelectItem value="gelding">Gelding</SelectItem>
-                  <SelectItem value="colt">Colt</SelectItem>
-                  <SelectItem value="filly">Filly</SelectItem>
+                  <SelectItem value="stallion">{t('doctor.stallion')}</SelectItem>
+                  <SelectItem value="mare">{t('doctor.mare')}</SelectItem>
+                  <SelectItem value="gelding">{t('doctor.gelding')}</SelectItem>
+                  <SelectItem value="colt">{t('doctor.colt')}</SelectItem>
+                  <SelectItem value="filly">{t('doctor.filly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Approx. Age</Label>
-              <Input value={approxAge} onChange={e => setApproxAge(e.target.value)} placeholder="e.g. 5 years" />
+              <Label>{t('doctor.approxAge')}</Label>
+              <Input value={approxAge} onChange={e => setApproxAge(e.target.value)} placeholder={t('doctor.approxAgePlaceholder')} />
             </div>
             <div>
-              <Label>Breed</Label>
+              <Label>{t('doctor.breed')}</Label>
               <Input value={breedText} onChange={e => setBreedText(e.target.value)} />
             </div>
             <div>
-              <Label>Color</Label>
+              <Label>{t('doctor.color')}</Label>
               <Input value={colorText} onChange={e => setColorText(e.target.value)} />
             </div>
             <div>
-              <Label>Microchip #</Label>
+              <Label>{t('doctor.microchip')}</Label>
               <Input value={microchipNumber} onChange={e => setMicrochipNumber(e.target.value)} />
             </div>
             <div>
-              <Label>Passport #</Label>
+              <Label>{t('doctor.passport')}</Label>
               <Input value={passportNumber} onChange={e => setPassportNumber(e.target.value)} />
             </div>
             <div>
-              <Label>Owner Name</Label>
+              <Label>{t('doctor.ownerName')}</Label>
               <Input value={ownerName} onChange={e => setOwnerName(e.target.value)} />
             </div>
             <div>
-              <Label>Owner Phone</Label>
+              <Label>{t('doctor.ownerPhone')}</Label>
               <Input value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)} />
             </div>
             <div className="col-span-2">
-              <Label>Stable Name</Label>
+              <Label>{t('doctor.stableName')}</Label>
               <Input value={stableName} onChange={e => setStableName(e.target.value)} />
             </div>
             <div className="col-span-2">
-              <Label>Notes</Label>
+              <Label>{t('common.notes')}</Label>
               <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={isCreating || isUpdating}>{isEdit ? "Save" : "Add Patient"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={isCreating || isUpdating}>{isEdit ? t('common.save') : t('doctor.addPatient')}</Button>
           </div>
         </form>
       </DialogContent>

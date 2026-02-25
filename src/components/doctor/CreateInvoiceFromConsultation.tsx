@@ -13,6 +13,7 @@ import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/i18n";
 import type { DoctorConsultation } from "@/hooks/doctor/useConsultations";
 import { toast } from "sonner";
 
@@ -25,6 +26,7 @@ interface Props {
 export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation }: Props) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
+  const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
 
   const { createInvoice, isCreating } = useInvoices(tenantId);
@@ -79,13 +81,13 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
           link_kind: "final",
           amount,
         });
-        toast.success("Invoice created and linked to consultation");
+        toast.success(t('doctor.invoiceCreated'));
       }
 
       onOpenChange(false);
     } catch (err) {
       console.error("Error creating invoice:", err);
-      toast.error("Failed to create invoice");
+      toast.error(t('doctor.invoiceFailed'));
     } finally {
       setLoading(false);
     }
@@ -95,12 +97,11 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Invoice from Consultation</DialogTitle>
+          <DialogTitle>{t('doctor.createInvoiceTitle')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Client Picker */}
           <div>
-            <Label>Client</Label>
+            <Label>{t('doctor.client')}</Label>
             <Popover open={clientPickerOpen} onOpenChange={setClientPickerOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -109,15 +110,15 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
                   aria-expanded={clientPickerOpen}
                   className="w-full justify-between font-normal"
                 >
-                  {selectedClient ? selectedClient.name : "Select a client…"}
+                  {selectedClient ? selectedClient.name : t('doctor.selectClient')}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                 <Command>
-                  <CommandInput placeholder="Search clients…" />
+                  <CommandInput placeholder={t('doctor.searchClients')} />
                   <CommandList>
-                    <CommandEmpty>No clients found.</CommandEmpty>
+                    <CommandEmpty>{t('doctor.noClientsFound')}</CommandEmpty>
                     <CommandGroup>
                       {activeClients.map(client => (
                         <CommandItem
@@ -139,29 +140,28 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
                 </Command>
               </PopoverContent>
             </Popover>
-            <p className="text-xs text-muted-foreground mt-1">Or type a name below if no client record exists.</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('doctor.clientFallbackHint')}</p>
           </div>
 
-          {/* Fallback client name */}
           {!selectedClientId && (
             <div>
-              <Label>Client Name (manual)</Label>
-              <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Client or stable name" />
+              <Label>{t('doctor.clientNameManual')}</Label>
+              <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder={t('doctor.clientNamePlaceholder')} />
             </div>
           )}
 
           <div>
-            <Label>Total Amount ({consultation.currency || "SAR"})</Label>
+            <Label>{t('doctor.totalAmount')} ({consultation.currency || "SAR"})</Label>
             <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
           </div>
           <div>
-            <Label>Notes</Label>
+            <Label>{t('common.notes')}</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={loading || isCreating}>
-              {loading ? "Creating..." : "Create Invoice"}
+              {loading ? t('doctor.creating') : t('doctor.createInvoice')}
             </Button>
           </div>
         </form>

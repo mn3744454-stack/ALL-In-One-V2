@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Package, Plus, Menu, Edit } from "lucide-react";
 import { useDoctorServices, type DoctorService } from "@/hooks/doctor/useDoctorServices";
 import { ServiceFormDialog } from "@/components/doctor/ServiceFormDialog";
+import { useI18n } from "@/i18n";
 
 export default function DashboardDoctorServices() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function DashboardDoctorServices() {
   const [formOpen, setFormOpen] = useState(false);
   const [editService, setEditService] = useState<DoctorService | null>(null);
   const location = useLocation();
+  const { t } = useI18n();
 
   const { services, loading, toggleActive } = useDoctorServices(showInactive);
 
@@ -23,11 +25,11 @@ export default function DashboardDoctorServices() {
     <div className="flex min-h-screen bg-background">
       <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} currentPath={location.pathname} />
       <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
-        <MobilePageHeader title="Services" />
+        <MobilePageHeader title={t('doctor.services')} />
         <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}><Menu className="h-5 w-5" /></Button>
-            <h1 className="text-xl font-bold flex items-center gap-2"><Package className="h-5 w-5" />Services</h1>
+            <h1 className="text-xl font-bold flex items-center gap-2"><Package className="h-5 w-5" />{t('doctor.services')}</h1>
           </div>
           <NotificationsPanel />
         </header>
@@ -35,17 +37,17 @@ export default function DashboardDoctorServices() {
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           <div className="flex items-center justify-between mb-6">
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Switch checked={showInactive} onCheckedChange={setShowInactive} />Show Inactive
+              <Switch checked={showInactive} onCheckedChange={setShowInactive} />{t('doctor.showInactive')}
             </label>
             <Button onClick={() => { setEditService(null); setFormOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" />Add Service
+              <Plus className="h-4 w-4 mr-1" />{t('doctor.addService')}
             </Button>
           </div>
 
           {loading ? (
             <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
           ) : services.length === 0 ? (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No services configured. Add your first service.</CardContent></Card>
+            <Card><CardContent className="py-12 text-center text-muted-foreground">{t('doctor.noServices')}</CardContent></Card>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {services.map(s => (

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
 import { usePrescriptions } from "@/hooks/doctor/usePrescriptions";
+import { useI18n } from "@/i18n";
 
 interface PrescriptionListProps {
   consultationId: string;
@@ -12,6 +13,7 @@ interface PrescriptionListProps {
 
 export function PrescriptionList({ consultationId }: PrescriptionListProps) {
   const { prescriptions, loading, createPrescription, deletePrescription, isCreating } = usePrescriptions(consultationId);
+  const { t } = useI18n();
   const [showForm, setShowForm] = useState(false);
   const [medicationName, setMedicationName] = useState("");
   const [dose, setDose] = useState("");
@@ -39,9 +41,9 @@ export function PrescriptionList({ consultationId }: PrescriptionListProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Prescriptions</CardTitle>
+        <CardTitle className="text-base">{t('doctor.prescriptions')}</CardTitle>
         <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-1" />{showForm ? "Cancel" : "Add"}
+          <Plus className="h-4 w-4 mr-1" />{showForm ? t('common.cancel') : t('common.add')}
         </Button>
       </CardHeader>
       <CardContent>
@@ -49,34 +51,34 @@ export function PrescriptionList({ consultationId }: PrescriptionListProps) {
           <form onSubmit={handleAdd} className="space-y-3 mb-4 p-4 border rounded-lg bg-muted/30">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <Label>Medication *</Label>
+                <Label>{t('doctor.medication')}</Label>
                 <Input value={medicationName} onChange={e => setMedicationName(e.target.value)} required />
               </div>
               <div>
-                <Label>Dose</Label>
-                <Input value={dose} onChange={e => setDose(e.target.value)} placeholder="e.g. 500mg" />
+                <Label>{t('doctor.dose')}</Label>
+                <Input value={dose} onChange={e => setDose(e.target.value)} placeholder={t('doctor.dosePlaceholder')} />
               </div>
               <div>
-                <Label>Frequency</Label>
-                <Input value={frequency} onChange={e => setFrequency(e.target.value)} placeholder="e.g. twice daily" />
+                <Label>{t('doctor.frequency')}</Label>
+                <Input value={frequency} onChange={e => setFrequency(e.target.value)} placeholder={t('doctor.frequencyPlaceholder')} />
               </div>
               <div>
-                <Label>Duration (days)</Label>
+                <Label>{t('doctor.durationDays')}</Label>
                 <Input type="number" value={durationDays} onChange={e => setDurationDays(e.target.value)} />
               </div>
               <div>
-                <Label>Notes</Label>
+                <Label>{t('common.notes')}</Label>
                 <Input value={notes} onChange={e => setNotes(e.target.value)} />
               </div>
             </div>
-            <Button type="submit" size="sm" disabled={isCreating}>Add Prescription</Button>
+            <Button type="submit" size="sm" disabled={isCreating}>{t('doctor.addPrescription')}</Button>
           </form>
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         ) : prescriptions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No prescriptions added.</p>
+          <p className="text-sm text-muted-foreground">{t('doctor.noPrescriptions')}</p>
         ) : (
           <div className="space-y-2">
             {prescriptions.map(rx => (
@@ -86,7 +88,7 @@ export function PrescriptionList({ consultationId }: PrescriptionListProps) {
                   <div className="flex gap-3 text-sm text-muted-foreground">
                     {rx.dose && <span>{rx.dose}</span>}
                     {rx.frequency && <span>{rx.frequency}</span>}
-                    {rx.duration_days && <span>{rx.duration_days} days</span>}
+                    {rx.duration_days && <span>{rx.duration_days} {t('doctor.durationDays').toLowerCase()}</span>}
                   </div>
                   {rx.notes && <p className="text-sm text-muted-foreground mt-1">{rx.notes}</p>}
                 </div>
