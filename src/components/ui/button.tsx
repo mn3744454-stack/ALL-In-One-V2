@@ -9,10 +9,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
         outline: "border-2 border-border bg-transparent hover:bg-muted hover:border-primary/30 rounded-xl",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary-hover rounded-xl shadow-sm hover:shadow-md",
         ghost: "hover:bg-muted hover:text-foreground rounded-xl",
         link: "text-primary underline-offset-4 hover:underline",
         // Custom elegant variants
@@ -20,7 +20,7 @@ const buttonVariants = cva(
         navy: "bg-gradient-to-r from-navy to-navy-light text-cream font-semibold shadow-navy hover:shadow-lg rounded-xl hover:scale-[1.02] active:scale-[0.98]",
         hero: "bg-gradient-to-r from-gold to-gold-light text-navy font-bold shadow-gold hover:shadow-lg rounded-full hover:scale-[1.02] active:scale-[0.98]",
         "hero-outline": "border-2 border-cream/30 bg-transparent text-cream hover:bg-cream/10 rounded-full backdrop-blur-sm",
-        glass: "bg-card/80 backdrop-blur-xl border border-border/50 text-foreground hover:bg-card/90 rounded-xl shadow-md",
+        glass: "bg-card/80 backdrop-blur-xl border border-border/50 text-foreground hover:bg-card/90 rounded-xl shadow-soft hover:shadow-medium",
       },
       size: {
         default: "h-11 px-6 py-2",
