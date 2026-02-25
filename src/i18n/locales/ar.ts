@@ -124,6 +124,10 @@ export const ar = {
     notificationSettings: "الإشعارات",
     favorites: "المفضلة",
     myPurchases: "مشترياتي",
+    doctorOverview: "نظرة عامة",
+    doctorPatients: "المرضى",
+    doctorConsultations: "الاستشارات",
+    doctorServices: "الخدمات",
   },
   pushNotifications: {
     settingsTitle: "إعدادات الإشعارات",

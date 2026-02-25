@@ -41,6 +41,7 @@ import {
   Warehouse,
   FolderOpen,
   Wallet,
+  Activity,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -446,6 +447,40 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     active={isActive("/dashboard/files")}
                     onNavigate={onClose}
                   />
+                )}
+
+                {/* Doctor-specific nav items */}
+                {activeTenant?.tenant.type === "doctor" && (
+                  <>
+                    <NavItem
+                      icon={Activity}
+                      label={t('sidebar.doctorOverview')}
+                      href="/dashboard/doctor"
+                      active={isActive("/dashboard/doctor")}
+                      onNavigate={onClose}
+                    />
+                    <NavItem
+                      icon={Heart}
+                      label={t('sidebar.doctorPatients')}
+                      href="/dashboard/doctor/patients"
+                      active={isActive("/dashboard/doctor/patients")}
+                      onNavigate={onClose}
+                    />
+                    <NavItem
+                      icon={ClipboardList}
+                      label={t('sidebar.doctorConsultations')}
+                      href="/dashboard/doctor/consultations"
+                      active={isActive("/dashboard/doctor/consultations")}
+                      onNavigate={onClose}
+                    />
+                    <NavItem
+                      icon={Package}
+                      label={t('sidebar.doctorServices')}
+                      href="/dashboard/doctor/services"
+                      active={isActive("/dashboard/doctor/services")}
+                      onNavigate={onClose}
+                    />
+                  </>
                 )}
 
                 {/* Academy sessions & bookings - for academy owners/managers */}
