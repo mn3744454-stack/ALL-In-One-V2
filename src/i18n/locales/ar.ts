@@ -720,6 +720,7 @@ export const ar = {
     // Results List & Card
     results: {
       title: "نتائج المختبر",
+      analyses: "التحاليل",
       searchPlaceholder: "البحث في النتائج...",
       statusFilter: "الحالة",
       allStatus: "جميع الحالات",
@@ -2121,6 +2122,8 @@ export const ar = {
       close: "إغلاق",
       markAsSent: "تحديد كمُرسلة",
       markAsSentDesc: "سيتم تحديث الحالة فقط. لن يتم إرسال رسالة للعميل.",
+      horse: "الحصان",
+      sample: "العينة",
     },
     expenses: {
       title: "المصروفات",
@@ -3044,6 +3047,24 @@ export const ar = {
       credit: "دائن",
       balance: "الرصيد",
       dateRange: "نطاق التاريخ",
+      print: "طباعة",
+      exportCSV: "تصدير CSV",
+      exportPDF: "تصدير PDF",
+      scope: {
+        title: "نطاق كشف الحساب",
+        all: "الكل",
+        selectHorses: "اختر الخيول",
+        selectServices: "اختر الخدمات",
+        searchHorses: "ابحث عن خيل...",
+        searchServices: "ابحث عن خدمة...",
+        selectAll: "تحديد الكل",
+        clear: "مسح",
+        generate: "إنشاء كشف الحساب",
+        cancel: "إلغاء",
+        summary: "ملخص التحديد",
+        horsesSelected: "تم تحديد {count} خيل",
+        servicesSelected: "تم تحديد {count} خدمة",
+      },
     },
   },
   connections: {

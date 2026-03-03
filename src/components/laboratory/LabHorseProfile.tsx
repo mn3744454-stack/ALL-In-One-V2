@@ -338,7 +338,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         <TableHeader>
           <TableRow>
             <TableHead className="text-center">{t("laboratory.samples.title")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.templates.title")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.results.analyses")}</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>

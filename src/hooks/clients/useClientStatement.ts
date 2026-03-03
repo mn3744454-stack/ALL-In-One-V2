@@ -54,7 +54,7 @@ export function useClientStatement(
         query = query.gte("created_at", dateFrom);
       }
       if (dateTo) {
-        query = query.lte("created_at", dateTo);
+        query = query.lte("created_at", dateTo + "T23:59:59.999Z");
       }
 
       const { data: entries, error } = await query;

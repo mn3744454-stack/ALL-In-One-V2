@@ -694,6 +694,7 @@ export const en = {
     // Results List & Card
     results: {
       title: "Laboratory Results",
+      analyses: "Analyses",
       searchPlaceholder: "Search results...",
       statusFilter: "Status",
       allStatus: "All Status",
@@ -2095,6 +2096,8 @@ export const en = {
       close: "Close",
       markAsSent: "Mark as Sent",
       markAsSentDesc: "This only updates the status. No message will be sent to the client.",
+      horse: "Horse",
+      sample: "Sample",
     },
     expenses: {
       title: "Expenses",
@@ -3018,6 +3021,24 @@ export const en = {
       credit: "Credit",
       balance: "Balance",
       dateRange: "Date Range",
+      print: "Print",
+      exportCSV: "Export CSV",
+      exportPDF: "Export PDF",
+      scope: {
+        title: "Statement Scope",
+        all: "All",
+        selectHorses: "Select Horses",
+        selectServices: "Select Services",
+        searchHorses: "Search horses...",
+        searchServices: "Search services...",
+        selectAll: "Select all",
+        clear: "Clear",
+        generate: "Generate Statement",
+        cancel: "Cancel",
+        summary: "Selected summary",
+        horsesSelected: "{count} horses selected",
+        servicesSelected: "{count} services selected",
+      },
     },
   },
   connections: {
