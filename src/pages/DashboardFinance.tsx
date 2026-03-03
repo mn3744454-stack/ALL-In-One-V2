@@ -10,6 +10,10 @@ import { useI18n } from "@/i18n";
 import { useInvoices, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { supabase } from "@/integrations/supabase/client";
 import { useExpenses } from "@/hooks/finance/useExpenses";
+import { useLedgerEntries } from "@/hooks/finance/useLedger";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
 import {
   InvoicesList,
@@ -21,7 +25,7 @@ import {
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
-import { isThisMonth } from "date-fns";
+import { isThisMonth, format } from "date-fns";
 import {
   Menu,
   FileText,
@@ -258,7 +262,38 @@ function ExpensesTab() {
 }
 
 function LedgerTab() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+  const { entries, isLoading } = useLedgerEntries(tenantId);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+
+  const filteredEntries = useMemo(() => {
+    return entries.filter((e) => {
+      if (dateFrom && e.created_at < dateFrom) return false;
+      if (dateTo && e.created_at > dateTo + "T23:59:59") return false;
+      return true;
+    });
+  }, [entries, dateFrom, dateTo]);
+
+  // Compute stats from entries
+  const stats = useMemo(() => {
+    const clientSet = new Set(entries.map(e => e.client_id).filter(Boolean));
+    const totalReceivable = entries
+      .filter(e => e.entry_type === 'invoice')
+      .reduce((sum, e) => sum + Math.abs(e.amount), 0);
+    const totalPaid = entries
+      .filter(e => e.entry_type === 'payment')
+      .reduce((sum, e) => sum + Math.abs(e.amount), 0);
+    return {
+      customers: clientSet.size,
+      receivable: totalReceivable,
+      collected: totalPaid,
+    };
+  }, [entries]);
 
   return (
     <div className="space-y-6">
@@ -271,7 +306,7 @@ function LedgerTab() {
                 <Users className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0</p>
+                <p className="text-2xl font-bold text-navy">{stats.customers}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.ledger.customers")}</p>
               </div>
             </div>
@@ -284,7 +319,7 @@ function LedgerTab() {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0 SAR</p>
+                <p className="text-2xl font-bold text-navy font-mono tabular-nums" dir="ltr">{formatAmount(stats.receivable)}</p>
                 <p className="text-xs text-muted-foreground">{t("finance.ledger.receivable")}</p>
               </div>
             </div>
@@ -293,28 +328,94 @@ function LedgerTab() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                <TrendingDown className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <TrendingDown className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-navy">0 SAR</p>
-                <p className="text-xs text-muted-foreground">{t("finance.ledger.overdue")}</p>
+                <p className="text-2xl font-bold text-navy font-mono tabular-nums" dir="ltr">{formatAmount(stats.collected)}</p>
+                <p className="text-xs text-muted-foreground">{t("finance.ledger.collected")}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Empty State */}
-      <Card>
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Wallet className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h3 className="font-semibold text-navy mb-2">{t("finance.ledger.empty")}</h3>
-          <p className="text-sm text-muted-foreground">{t("finance.ledger.emptyDesc")}</p>
-        </CardContent>
-      </Card>
+      {/* Date Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Input
+          type="date"
+          value={dateFrom}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="w-full sm:w-44"
+          placeholder={t("common.from")}
+        />
+        <Input
+          type="date"
+          value={dateTo}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="w-full sm:w-44"
+          placeholder={t("common.to")}
+        />
+      </div>
+
+      {/* Entries Table */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+        </div>
+      ) : filteredEntries.length === 0 ? (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <Wallet className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold text-navy mb-2">{t("finance.ledger.empty")}</h3>
+            <p className="text-sm text-muted-foreground">{t("finance.ledger.emptyDesc")}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="rounded-md border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-start p-3 font-medium">{t("common.date")}</th>
+                <th className="text-start p-3 font-medium">{t("common.type")}</th>
+                <th className="text-start p-3 font-medium">{t("common.description")}</th>
+                <th className="text-end p-3 font-medium">{t("finance.ledger.debit")}</th>
+                <th className="text-end p-3 font-medium">{t("finance.ledger.credit")}</th>
+                <th className="text-end p-3 font-medium">{t("clients.statement.balance")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredEntries.map((entry) => {
+                const isDebit = entry.amount > 0;
+                return (
+                  <tr key={entry.id} className="border-b hover:bg-muted/30">
+                    <td className="p-3 font-mono text-xs" dir="ltr">
+                      {format(new Date(entry.created_at), "dd-MM-yyyy")}
+                    </td>
+                    <td className="p-3">
+                      <Badge variant={entry.entry_type === 'payment' ? 'default' : 'secondary'} className="text-xs">
+                        {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
+                      </Badge>
+                    </td>
+                    <td className="p-3 max-w-[300px] truncate">{entry.description || "-"}</td>
+                    <td className="p-3 text-end font-mono tabular-nums" dir="ltr">
+                      {isDebit ? formatAmount(entry.amount) : "-"}
+                    </td>
+                    <td className="p-3 text-end font-mono tabular-nums text-primary" dir="ltr">
+                      {!isDebit ? formatAmount(Math.abs(entry.amount)) : "-"}
+                    </td>
+                    <td className="p-3 text-end font-mono tabular-nums font-medium" dir="ltr">
+                      {formatAmount(entry.balance_after)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

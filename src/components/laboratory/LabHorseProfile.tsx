@@ -78,6 +78,20 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
     [results, horseId]
   );
 
+  // Group results by sample for the Results tab (must be before early returns)
+  const groupedResults = useMemo(() => {
+    const groups = new Map<string, { sample: LabSample | null; results: LabResult[] }>();
+    horseResults.forEach((result) => {
+      const sampleId = result.sample?.id || "unknown";
+      if (!groups.has(sampleId)) {
+        const matchedSample = horseSamples.find(s => s.id === sampleId) || null;
+        groups.set(sampleId, { sample: matchedSample, results: [] });
+      }
+      groups.get(sampleId)!.results.push(result);
+    });
+    return Array.from(groups.entries());
+  }, [horseResults, horseSamples]);
+
   // Fetch financial summary
   const { data: financialSummary, isLoading: financialLoading } = useLabHorseFinancialSummary(horseId);
 
@@ -243,68 +257,106 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
     </div>
   );
 
-  // Result card renderer
-  const renderResultCard = (result: LabResult) => {
-    const templateName = lang === 'ar'
+
+  const getTemplateName = (result: LabResult) =>
+    lang === 'ar'
       ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
       : (result.template?.name || t("laboratory.results.unknownTemplate"));
 
-    return (
-      <Card 
-        key={result.id} 
-        className="cursor-pointer hover:bg-muted/50 transition-colors"
-        onClick={() => handleResultClick(result)}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{templateName}</p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                {format(new Date(result.created_at), "dd-MM-yyyy")}
-              </div>
+  // Result card renderer (used inside grouped view)
+  const renderResultCard = (result: LabResult) => (
+    <Card 
+      key={result.id} 
+      className="cursor-pointer hover:bg-muted/50 transition-colors"
+      onClick={() => handleResultClick(result)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{getTemplateName(result)}</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              {format(new Date(result.created_at), "dd-MM-yyyy")}
             </div>
-            <Badge
-              variant={result.status === 'final' ? 'default' : 'secondary'}
-              className={cn(
-                result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
-                result.status === 'reviewed' && "bg-accent text-accent-foreground",
-                result.status === 'draft' && "bg-muted text-muted-foreground"
-              )}
-            >
-              {t(`laboratory.resultStatus.${result.status}`)}
-            </Badge>
           </div>
-        </CardContent>
-      </Card>
-    );
-  };
+          <Badge
+            variant={result.status === 'final' ? 'default' : 'secondary'}
+            className={cn(
+              result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
+              result.status === 'reviewed' && "bg-accent text-accent-foreground",
+              result.status === 'draft' && "bg-muted text-muted-foreground"
+            )}
+          >
+            {t(`laboratory.resultStatus.${result.status}`)}
+          </Badge>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
-  // Results table renderer
+  // Grouped results card renderer
+  const renderGroupedResultsCards = () => (
+    <div className="space-y-6">
+      {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
+        <div key={sampleId} className="space-y-2">
+          {/* Sample header */}
+          <div className="flex items-center gap-2 px-1">
+            <FlaskConical className="h-4 w-4 text-muted-foreground" />
+            <span className="font-semibold text-sm">
+              {sample ? (
+                <>
+                  {sample.daily_number && `#${sample.daily_number} · `}
+                  {sample.physical_sample_id || sample.id.slice(0, 8)}
+                </>
+              ) : (
+                sampleId === "unknown" ? t("laboratory.results.unknownSample") : sampleId.slice(0, 8)
+              )}
+            </span>
+            {sample && (
+              <>
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(sample.collection_date), "dd-MM-yyyy")}
+                </span>
+                <SampleStatusBadge status={sample.status} />
+              </>
+            )}
+            <Badge variant="outline" className="ms-auto text-xs">{sampleResults.length}</Badge>
+          </div>
+          {/* Nested result cards */}
+          <div className={cn("ps-6 space-y-2", dir === 'rtl' && "pe-6 ps-0")}>
+            {sampleResults.map(renderResultCard)}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  // Grouped results table renderer
   const renderResultsTable = () => (
     <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="text-center">{t("laboratory.samples.title")}</TableHead>
             <TableHead className="text-center">{t("laboratory.templates.title")}</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {horseResults.map((result) => {
-            const templateName = lang === 'ar'
-              ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
-              : (result.template?.name || t("laboratory.results.unknownTemplate"));
-
-            return (
+          {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
+            sampleResults.map((result, idx) => (
               <TableRow
                 key={result.id}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleResultClick(result)}
               >
+                {/* Show sample info only on first row of group */}
+                <TableCell className={cn("text-center font-mono text-sm", idx > 0 && "text-transparent")}>
+                  {sample ? (sample.daily_number ? `#${sample.daily_number}` : (sample.physical_sample_id || sample.id.slice(0, 8))) : "-"}
+                </TableCell>
                 <TableCell className="text-center font-medium">
-                  {templateName}
+                  {getTemplateName(result)}
                 </TableCell>
                 <TableCell className="text-center">
                   {format(new Date(result.created_at), "dd-MM-yyyy")}
@@ -322,8 +374,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                   </Badge>
                 </TableCell>
               </TableRow>
-            );
-          })}
+            ))
+          ))}
         </TableBody>
       </Table>
     </div>
@@ -648,11 +700,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             ) : (
               <>
                 {resultsView === 'table' && renderResultsTable()}
-                {(resultsView === 'grid' || resultsView === 'list') && (
-                  <div className={getGridClass(resultsGridCols, resultsView)}>
-                    {horseResults.map(renderResultCard)}
-                  </div>
-                )}
+                {(resultsView === 'grid' || resultsView === 'list') && renderGroupedResultsCards()}
               </>
             )}
           </div>
