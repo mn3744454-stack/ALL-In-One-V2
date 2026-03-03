@@ -105,6 +105,7 @@ export const en = {
     doctorPatients: "Patients",
     doctorConsultations: "Consultations",
     doctorServices: "Services",
+    pos: "Point of Sale",
   },
   pushNotifications: {
     settingsTitle: "Notification Settings",
@@ -512,6 +513,7 @@ export const en = {
       depositLabel: "Intake Deposit",
       finalLabel: "Final Payment",
       sampleFee: "Sample Fee",
+      invoiceCreated: "Invoice created successfully",
     },
     
     // Alerts
@@ -2933,6 +2935,7 @@ export const en = {
     empty: "No clients yet",
     emptyDescription: "Add your first client to get started",
     outstandingBalance: "Outstanding",
+    balance: "Balance",
     quickAdd: "Quick Add Client",
     filters: {
       all: "All Clients",

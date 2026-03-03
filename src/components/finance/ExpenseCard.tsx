@@ -4,6 +4,7 @@ import { ExpenseStatusBadge } from "./ExpenseStatusBadge";
 import { SecureImage } from "@/components/ui/SecureImage";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -78,11 +79,8 @@ export function ExpenseCard({
   const Icon = categoryIcons[expense.category] || CircleDollarSign;
   const colorClass = categoryColors[expense.category] || "bg-muted text-muted-foreground";
 
-  const formatCurrency = (amount: number, currency: string = "SAR") => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
-      style: "currency",
-      currency,
-    }).format(amount);
+  const formatAmount = (amount: number, currency: string = "SAR") => {
+    return formatCurrency(amount, currency);
   };
 
   return (
@@ -107,7 +105,7 @@ export function ExpenseCard({
               </div>
               <div className="text-start sm:text-end shrink-0">
                 <p className="text-base sm:text-lg font-bold text-navy">
-                  {formatCurrency(expense.amount, expense.currency)}
+                  {formatAmount(expense.amount, expense.currency)}
                 </p>
               </div>
             </div>

@@ -48,6 +48,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmbeddedCheckout, type CheckoutLineItem } from "@/components/pos/EmbeddedCheckout";
@@ -866,6 +867,19 @@ export function CreateSampleDialog({
 
   const handleCheckoutComplete = (invoiceId: string) => {
     setCheckoutOpen(false);
+    // Do NOT close the parent dialog immediately - show success feedback
+    // and let user stay in context
+    toast.success(t("laboratory.checkout.invoiceCreated"), {
+      action: {
+        label: t("finance.invoices.view"),
+        onClick: () => {
+          onOpenChange(false);
+          onSuccess?.();
+          window.location.href = `/dashboard/finance?selected=${invoiceId}`;
+        },
+      },
+      duration: 6000,
+    });
     onOpenChange(false);
     onSuccess?.();
   };

@@ -42,6 +42,7 @@ import {
   FolderOpen,
   Wallet,
   Activity,
+  ShoppingCart,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -195,6 +196,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
     { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
     { icon: UsersIcon, label: t('clients.title'), href: "/dashboard/clients" },
+    { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos" },
   ], [t]);
 
   // Don't render sidebar at all on mobile/tablet (<1024px)
