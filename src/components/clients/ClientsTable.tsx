@@ -65,9 +65,10 @@ export function ClientsTable({
           <TableRow>
             <TableHead className="text-center">{t("clients.form.name")}</TableHead>
             <TableHead className="text-center">{t("clients.form.phone")}</TableHead>
-            <TableHead className="text-center">{t("clients.form.email")}</TableHead>
             <TableHead className="text-center">{t("clients.form.type")}</TableHead>
-            <TableHead className="text-center">{t("clients.balance")}</TableHead>
+            <TableHead className="text-center">{t("clients.form.creditLimit")}</TableHead>
+            <TableHead className="text-center">{t("clients.outstandingBalance")}</TableHead>
+            <TableHead className="text-center">{t("finance.creditLimit.available")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
             <TableHead className="text-center">{t("common.actions")}</TableHead>
           </TableRow>
@@ -75,6 +76,9 @@ export function ClientsTable({
         <TableBody>
           {clients.map((client) => {
             const hasBalance = (client.outstanding_balance || 0) > 0;
+            const creditLimit = client.credit_limit || 0;
+            const outstanding = client.outstanding_balance || 0;
+            const available = Math.max(0, creditLimit - Math.max(0, outstanding));
             
             return (
               <TableRow key={client.id} className="hover:bg-muted/50">
@@ -84,19 +88,22 @@ export function ClientsTable({
                 <TableCell className="text-center font-mono text-sm" dir="ltr">
                   {client.phone || "-"}
                 </TableCell>
-                <TableCell className="text-center text-sm">
-                  {client.email || "-"}
-                </TableCell>
                 <TableCell className="text-center">
                   <Badge variant="outline" className="text-xs">
                     {t(TYPE_LABELS[client.type])}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                  {creditLimit > 0 ? formatCurrency(creditLimit, "SAR") : "-"}
+                </TableCell>
                 <TableCell className={cn(
                   "text-center font-mono tabular-nums",
                   hasBalance && "text-destructive"
                 )} dir="ltr">
-                  {formatCurrency(client.outstanding_balance || 0, "SAR")}
+                  {formatCurrency(outstanding, "SAR")}
+                </TableCell>
+                <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
+                  {creditLimit > 0 ? formatCurrency(available, "SAR") : "-"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge

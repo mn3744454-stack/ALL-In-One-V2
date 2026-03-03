@@ -867,20 +867,17 @@ export function CreateSampleDialog({
 
   const handleCheckoutComplete = (invoiceId: string) => {
     setCheckoutOpen(false);
-    // Do NOT close the parent dialog immediately - show success feedback
-    // and let user stay in context
+    // Show success toast with "View Invoice" that opens in new tab (preserves context)
     toast.success(t("laboratory.checkout.invoiceCreated"), {
       action: {
         label: t("finance.invoices.view"),
         onClick: () => {
-          onOpenChange(false);
-          onSuccess?.();
-          window.location.href = `/dashboard/finance?selected=${invoiceId}`;
+          window.open(`/dashboard/finance?selected=${invoiceId}`, '_blank');
         },
       },
       duration: 6000,
     });
-    onOpenChange(false);
+    // Call onSuccess to refresh data but do NOT close the dialog or navigate away
     onSuccess?.();
   };
 

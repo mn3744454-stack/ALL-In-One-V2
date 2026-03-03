@@ -684,6 +684,7 @@ export const ar = {
     
     // Samples List & Card
     samples: {
+      title: "العينة",
       searchPlaceholder: "البحث في العينات...",
       statusFilter: "الحالة",
       allStatus: "جميع الحالات",

@@ -74,6 +74,7 @@ export function InvoiceDetailsSheet({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [invoiceContext, setInvoiceContext] = useState<{ horseName?: string; sampleLabel?: string } | null>(null);
 
   // Use payment hook for ledger-derived data
   const { summary: paymentSummary } = useInvoicePayments(invoiceId);
@@ -91,6 +92,7 @@ export function InvoiceDetailsSheet({
     } else {
       setInvoice(null);
       setItems([]);
+      setInvoiceContext(null);
     }
   }, [open, invoiceId]);
 
@@ -154,6 +156,40 @@ export function InvoiceDetailsSheet({
       });
 
       setItems(enrichedItems as unknown as InvoiceItem[]);
+
+      // Resolve horse/sample context from lab_sample items
+      try {
+        if (labSampleIds.length > 0) {
+          const { data: samplesWithHorse } = await supabase
+            .from('lab_samples')
+            .select('id, daily_number, physical_sample_id, lab_horse_id')
+            .in('id', labSampleIds);
+          
+          if (samplesWithHorse && samplesWithHorse.length > 0) {
+            const sample = samplesWithHorse[0] as any;
+            const sLabel = sample.daily_number ? `#${sample.daily_number}` : sample.physical_sample_id?.slice(0, 12) || null;
+            let hName: string | null = null;
+            
+            if (sample.lab_horse_id) {
+              const { data: horse } = await supabase
+                .from('lab_horses')
+                .select('name, name_ar')
+                .eq('id', sample.lab_horse_id)
+                .maybeSingle();
+              if (horse) {
+                hName = (horse as any).name || (horse as any).name_ar || null;
+              }
+            }
+            setInvoiceContext({ horseName: hName || undefined, sampleLabel: sLabel || undefined });
+          } else {
+            setInvoiceContext(null);
+          }
+        } else {
+          setInvoiceContext(null);
+        }
+      } catch {
+        setInvoiceContext(null);
+      }
     } catch (error) {
       console.error("Error fetching invoice details:", error);
       toast.error(t("common.error"));
@@ -360,6 +396,19 @@ export function InvoiceDetailsSheet({
                 )}
               </div>
             </div>
+
+            {/* Horse/Sample Context */}
+            {invoiceContext && (invoiceContext.horseName || invoiceContext.sampleLabel) && (
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-3 flex items-center gap-3 text-sm">
+                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
+                    {invoiceContext.horseName && <span className="font-medium">{t("laboratory.labHorses.name")}: {invoiceContext.horseName}</span>}
+                    {invoiceContext.sampleLabel && <span className="text-muted-foreground">{t("laboratory.samples.title")}: {invoiceContext.sampleLabel}</span>}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Notes (positioned near header for context) */}
             {invoice.notes && (

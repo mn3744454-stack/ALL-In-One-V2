@@ -700,7 +700,61 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
             ) : (
               <>
                 {resultsView === 'table' && renderResultsTable()}
-                {(resultsView === 'grid' || resultsView === 'list') && renderGroupedResultsCards()}
+                {resultsView === 'list' && renderGroupedResultsCards()}
+                {resultsView === 'grid' && (
+                  <div className={getGridClass(resultsGridCols, resultsView)}>
+                    {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
+                      <Card key={sampleId} className="overflow-hidden">
+                        <CardHeader className="p-3 pb-1">
+                          <div className="flex items-center gap-2">
+                            <FlaskConical className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-semibold text-sm">
+                              {sample ? (
+                                <>
+                                  {sample.daily_number && `#${sample.daily_number} · `}
+                                  {sample.physical_sample_id || sample.id.slice(0, 8)}
+                                </>
+                              ) : (
+                                sampleId === "unknown" ? t("laboratory.results.unknownSample") : sampleId.slice(0, 8)
+                              )}
+                            </span>
+                            <Badge variant="outline" className="ms-auto text-xs">{sampleResults.length}</Badge>
+                          </div>
+                          {sample && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(sample.collection_date), "dd-MM-yyyy")}
+                              </span>
+                              <SampleStatusBadge status={sample.status} />
+                            </div>
+                          )}
+                        </CardHeader>
+                        <CardContent className="p-3 pt-1 space-y-1">
+                          {sampleResults.map(result => (
+                            <div
+                              key={result.id}
+                              className="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
+                              onClick={() => handleResultClick(result)}
+                            >
+                              <span className="text-sm truncate">{getTemplateName(result)}</span>
+                              <Badge
+                                variant={result.status === 'final' ? 'default' : 'secondary'}
+                                className={cn(
+                                  "text-xs shrink-0",
+                                  result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
+                                  result.status === 'reviewed' && "bg-accent text-accent-foreground",
+                                  result.status === 'draft' && "bg-muted text-muted-foreground"
+                                )}
+                              >
+                                {t(`laboratory.resultStatus.${result.status}`)}
+                              </Badge>
+                            </div>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </div>
