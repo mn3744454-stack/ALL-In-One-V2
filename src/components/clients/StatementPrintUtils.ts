@@ -24,8 +24,8 @@ export function printStatement(data: StatementPrintData) {
     .map(
       (e) => `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${format(new Date(e.date), "yyyy-MM-dd HH:mm")}</td>
-      <td style="padding:6px 8px">${e.description || "-"}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${format(new Date(e.date), "dd-MM-yyyy hh:mm a")}</td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${e.description || "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600" dir="ltr">${formatCurrency(e.balance)}</td>
@@ -100,7 +100,7 @@ export function printStatement(data: StatementPrintData) {
 export function exportCSV(data: StatementPrintData) {
   const headers = ["Date", "Description", "Debit", "Credit", "Balance"];
   const rows = data.entries.map((e) => [
-    format(new Date(e.date), "yyyy-MM-dd HH:mm"),
+    format(new Date(e.date), "dd-MM-yyyy hh:mm a"),
     `"${(e.description || "").replace(/"/g, '""')}"`,
     e.debit > 0 ? e.debit.toFixed(2) : "",
     e.credit > 0 ? e.credit.toFixed(2) : "",
@@ -135,8 +135,8 @@ export function exportPDF(data: StatementPrintData) {
     .map(
       (e) => `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${format(new Date(e.date), "yyyy-MM-dd HH:mm")}</td>
-      <td style="padding:6px 8px">${e.description || "-"}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${format(new Date(e.date), "dd-MM-yyyy hh:mm a")}</td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${e.description || "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600" dir="ltr">${formatCurrency(e.balance)}</td>

@@ -352,8 +352,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-center">{t("common.date")}</TableHead>
-                          <TableHead>{t("common.description")}</TableHead>
+                          <TableHead className="text-center w-[160px]">{t("common.date")}</TableHead>
+                          <TableHead className={dir === "rtl" ? "text-right" : "text-left"}>{t("common.description")}</TableHead>
                           <TableHead className="text-center">{t("clients.statement.debit")}</TableHead>
                           <TableHead className="text-center">{t("clients.statement.credit")}</TableHead>
                           <TableHead className="text-center">{t("clients.statement.balance")}</TableHead>
@@ -362,15 +362,15 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       <TableBody>
                         {entries.map((entry) => (
                           <TableRow key={entry.id}>
-                            <TableCell className="text-center font-mono text-sm tabular-nums" dir="ltr">
-                              {format(new Date(entry.date), "yyyy-MM-dd HH:mm")}
+                            <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
+                              {format(new Date(entry.date), "dd-MM-yyyy hh:mm a")}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="text-xs shrink-0">
                                   {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                                 </Badge>
-                                <span className="text-sm truncate max-w-[350px]" title={entry.description}>{entry.description}</span>
+                                <span className={cn("text-sm truncate max-w-[400px]", dir === "rtl" ? "text-right" : "text-left")} title={entry.description}>{entry.description}</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center font-mono tabular-nums" dir="ltr">
@@ -402,7 +402,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                               {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                             </Badge>
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                              {format(new Date(entry.date), "dd-MM-yyyy")}
+                              {format(new Date(entry.date), "dd-MM-yyyy hh:mm a")}
                             </span>
                           </div>
                         </div>

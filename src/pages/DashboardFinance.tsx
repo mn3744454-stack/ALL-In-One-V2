@@ -389,36 +389,24 @@ function LedgerTab() {
 
       {/* Date Filter */}
       <div className="flex flex-col sm:flex-row gap-3">
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="w-full sm:w-44"
-          placeholder={t("common.from")}
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="w-full sm:w-44"
-          placeholder={t("common.to")}
-        />
-        {isOwner && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleManualBackfill}
-            disabled={backfillRunning}
-            className="gap-2"
-          >
-            {backfillRunning ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            Enrich Descriptions
-          </Button>
-        )}
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">{t("common.from")}</label>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="w-full sm:w-44"
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs text-muted-foreground">{t("common.to")}</label>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="w-full sm:w-44"
+          />
+        </div>
       </div>
 
       {/* Entries Table */}
@@ -441,9 +429,9 @@ function LedgerTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-start p-3 font-medium w-[120px]">{t("common.date")}</th>
+                <th className="text-start p-3 font-medium w-[160px]">{t("common.date")}</th>
                 <th className="text-start p-3 font-medium w-[90px]">{t("common.type")}</th>
-                <th className="text-start p-3 font-medium">{t("common.description")}</th>
+                <th className={cn("p-3 font-medium", dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</th>
                 <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.debit")}</th>
                 <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.credit")}</th>
                 <th className="text-center p-3 font-medium w-[110px]">{t("clients.statement.balance")}</th>
@@ -454,15 +442,15 @@ function LedgerTab() {
                 const isDebit = entry.amount > 0;
                 return (
                   <tr key={entry.id} className="border-b hover:bg-muted/30">
-                    <td className="p-3 font-mono text-xs" dir="ltr">
-                      {format(new Date(entry.created_at), "dd-MM-yyyy")}
+                    <td className="p-3 font-mono text-xs whitespace-nowrap" dir="ltr">
+                      {format(new Date(entry.created_at), "dd-MM-yyyy hh:mm a")}
                     </td>
                     <td className="p-3">
                       <Badge variant={entry.entry_type === 'payment' ? 'default' : 'secondary'} className="text-xs">
                         {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                       </Badge>
                     </td>
-                    <td className="p-3 max-w-[400px] truncate" title={entry.description || ""}>{entry.description || "-"}</td>
+                    <td className={cn("p-3 max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={entry.description || ""}>{entry.description || "-"}</td>
                     <td className="p-3 text-center font-mono tabular-nums" dir="ltr">
                       {isDebit ? formatAmount(entry.amount) : "-"}
                     </td>
