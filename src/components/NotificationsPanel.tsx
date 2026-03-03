@@ -143,11 +143,15 @@ function NotificationCard({
                 !notification.is_read ? "font-semibold" : "font-medium"
               )}
             >
-              {notification.title}
+              {t(`notifications.events.${notification.event_type}.title`) !== `notifications.events.${notification.event_type}.title`
+                ? t(`notifications.events.${notification.event_type}.title`)
+                : notification.title}
             </p>
             {notification.body && (
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {notification.body}
+                {t(`notifications.events.${notification.event_type}.body`) !== `notifications.events.${notification.event_type}.body`
+                  ? t(`notifications.events.${notification.event_type}.body`)
+                  : notification.body}
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-1">

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
 
 export interface Invoice {
   id: string;
@@ -106,7 +107,7 @@ export function useInvoices(tenantId?: string) {
       return data as unknown as Invoice;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Invoice created successfully" });
     },
     onError: (error) => {
@@ -128,7 +129,7 @@ export function useInvoices(tenantId?: string) {
       return data as unknown as Invoice;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Invoice updated successfully" });
     },
     onError: (error) => {
@@ -147,7 +148,7 @@ export function useInvoices(tenantId?: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Invoice deleted successfully" });
     },
     onError: (error) => {

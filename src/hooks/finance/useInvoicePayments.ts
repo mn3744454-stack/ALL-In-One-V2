@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useToast } from "@/hooks/use-toast";
 import { postLedgerForPayments, type PaymentEntry } from "@/lib/finance/postLedgerForPayments";
+import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
 
 export interface InvoicePayment {
   id: string;
@@ -115,14 +116,7 @@ export function useInvoicePayments(invoiceId?: string | null) {
           : `Payment recorded. Outstanding: ${result.outstandingAmount.toFixed(2)}` 
       });
 
-      // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ["invoice-payments", tenantId, invoiceId] });
-      queryClient.invalidateQueries({ queryKey: ["invoices", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["ledger-entries", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["customer-balances", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["client-statement", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["lab-horse-financial", tenantId] });
-      queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
+      invalidateFinanceQueries(queryClient, tenantId);
     },
     onError: (error) => {
       console.error("Payment error:", error);

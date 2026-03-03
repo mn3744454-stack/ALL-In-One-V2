@@ -117,7 +117,7 @@ export async function postLedgerForPayments(
           reference_id: invoiceId,
           amount: -payment.amount, // Negative for payments (reduces balance)
           balance_after: newBalance,
-          description: `Payment for Invoice ${invoice.invoice_number}`,
+          description: `Payment | Method: ${payment.payment_method} | ${invoice.invoice_number}`,
           payment_method: payment.payment_method,
           payment_session_id: paymentSessionId,
           metadata: metadataObj,

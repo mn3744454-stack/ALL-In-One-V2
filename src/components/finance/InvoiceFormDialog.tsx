@@ -23,6 +23,7 @@ import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 
 interface InvoiceFormDialogProps {
   open: boolean;
@@ -137,18 +138,7 @@ export function InvoiceFormDialog({
     });
   };
 
-  // Invalidate all dependent queries after actions
-  const invalidateQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    queryClient.invalidateQueries({ queryKey: ["invoice-items"] });
-    queryClient.invalidateQueries({ queryKey: ["invoice-payments"] });
-    queryClient.invalidateQueries({ queryKey: ["ledger-entries"] });
-    queryClient.invalidateQueries({ queryKey: ["customer-balances"] });
-    queryClient.invalidateQueries({ queryKey: ["client-statement"] });
-    queryClient.invalidateQueries({ queryKey: ["lab-horse-financial"] });
-    queryClient.invalidateQueries({ queryKey: ["lab-horses-with-metrics"] });
-    queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
-  };
+  const invalidateAllFinance = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant.id);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +229,7 @@ export function InvoiceFormDialog({
         }
       }
 
-      invalidateQueries();
+      invalidateAllFinance();
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
