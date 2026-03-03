@@ -79,6 +79,16 @@ export function formatDateTime(date: Date | string, formatStr: string = 'dd/MM/y
 }
 
 /**
+ * Format date-time with 12-hour AM/PM format and ALWAYS English digits
+ * For Arabic UI, AM/PM stays in English (standard for Arabic financial docs)
+ */
+export function formatDateTime12h(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
+  return format(d, 'dd-MM-yyyy hh:mm a');
+}
+
+/**
  * Format time only with ALWAYS English digits
  */
 export function formatTime(date: Date | string, formatStr: string = 'HH:mm'): string {

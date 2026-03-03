@@ -2135,6 +2135,7 @@ export const en = {
       selectCategory: "Select a category",
       descriptionPlaceholder: "What was this expense for?",
       vendorPlaceholder: "Vendor or supplier name",
+      notes: "Notes",
       notesPlaceholder: "Additional notes...",
       noVendor: "No vendor",
       viewReceipt: "View Receipt",

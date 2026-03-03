@@ -2161,6 +2161,7 @@ export const ar = {
       selectCategory: "اختر فئة",
       descriptionPlaceholder: "لماذا هذا المصروف؟",
       vendorPlaceholder: "اسم المورد أو البائع",
+      notes: "ملاحظات",
       notesPlaceholder: "ملاحظات إضافية...",
       noVendor: "لا يوجد مورد",
       viewReceipt: "عرض الإيصال",
