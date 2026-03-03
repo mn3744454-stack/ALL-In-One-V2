@@ -35,7 +35,7 @@ import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoiceItems, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
-import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
+import { useInvoicePaymentsBatch } from "@/hooks/finance/useInvoicePaymentsBatch";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatters";
@@ -68,6 +68,8 @@ export function InvoicesList({
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
+  const invoiceIds = useMemo(() => invoices.map(i => i.id), [invoices]);
+  const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
   const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const filteredInvoices = useMemo(() => {
@@ -214,32 +216,44 @@ export function InvoicesList({
                     <TableHead>{t("finance.invoices.client")}</TableHead>
                     <TableHead>{t("common.date")}</TableHead>
                     <TableHead className="text-end">{t("finance.invoices.total")}</TableHead>
+                    <TableHead className="text-end">{t("finance.payments.paidSoFar")}</TableHead>
+                    <TableHead className="text-end">{t("finance.payments.outstanding")}</TableHead>
                     <TableHead className="text-end">{t("common.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredInvoices.map((invoice) => (
-                    <TableRow
-                      key={invoice.id}
-                      className={cn(
-                        "cursor-pointer hover:bg-muted/50",
-                        selectedInvoiceId === invoice.id && "bg-primary/5"
-                      )}
-                      onClick={() => onInvoiceClick?.(invoice.id)}
-                    >
-                      <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
-                      <TableCell>{invoice.client_name || "-"}</TableCell>
-                      <TableCell className="font-mono text-sm" dir="ltr">
-                        {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
-                      </TableCell>
-                      <TableCell className="text-end font-mono tabular-nums" dir="ltr">
-                        {formatAmount(invoice.total_amount)}
-                      </TableCell>
-                      <TableCell className="text-end">
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredInvoices.map((invoice) => {
+                    const paid = getPaidAmount(invoice.id);
+                    const remaining = Math.max(0, invoice.total_amount - paid);
+                    return (
+                      <TableRow
+                        key={invoice.id}
+                        className={cn(
+                          "cursor-pointer hover:bg-muted/50",
+                          selectedInvoiceId === invoice.id && "bg-primary/5"
+                        )}
+                        onClick={() => onInvoiceClick?.(invoice.id)}
+                      >
+                        <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
+                        <TableCell>{invoice.client_name || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm" dir="ltr">
+                          {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
+                        </TableCell>
+                        <TableCell className="text-end font-mono tabular-nums" dir="ltr">
+                          {formatAmount(invoice.total_amount)}
+                        </TableCell>
+                        <TableCell className="text-end font-mono tabular-nums text-primary" dir="ltr">
+                          {paid > 0 ? formatAmount(paid) : "-"}
+                        </TableCell>
+                        <TableCell className={cn("text-end font-mono tabular-nums", remaining > 0.01 && "text-destructive")} dir="ltr">
+                          {formatAmount(remaining)}
+                        </TableCell>
+                        <TableCell className="text-end">
+                          <InvoiceStatusBadge status={invoice.status} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -256,6 +270,7 @@ export function InvoicesList({
                 >
                   <InvoiceCard
                     invoice={invoice}
+                    paidAmount={getPaidAmount(invoice.id)}
                     onEdit={() => onEdit?.(invoice)}
                     onDelete={() => setDeleteId(invoice.id)}
                     onView={() => onInvoiceClick?.(invoice.id)}

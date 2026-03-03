@@ -658,6 +658,7 @@ export const en = {
     
     // Samples List & Card
     samples: {
+      title: "Sample",
       searchPlaceholder: "Search samples...",
       statusFilter: "Status",
       allStatus: "All Status",

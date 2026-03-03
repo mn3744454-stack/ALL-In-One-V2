@@ -27,6 +27,7 @@ import type { Invoice } from "@/hooks/finance/useInvoices";
 
 interface InvoiceCardProps {
   invoice: Invoice;
+  paidAmount?: number;
   onEdit?: () => void;
   onDelete?: () => void;
   onView?: () => void;
@@ -38,6 +39,7 @@ interface InvoiceCardProps {
 
 export function InvoiceCard({
   invoice,
+  paidAmount = 0,
   onEdit,
   onDelete,
   onView,
@@ -85,6 +87,14 @@ export function InvoiceCard({
                 <p className="text-base sm:text-lg font-bold text-navy font-mono tabular-nums" dir="ltr">
                   {formatAmount(invoice.total_amount, invoice.currency)}
                 </p>
+                {paidAmount > 0 && (
+                  <div className="flex items-center gap-2 text-xs font-mono tabular-nums" dir="ltr">
+                    <span className="text-primary">{t("finance.payments.paidSoFar")}: {formatAmount(paidAmount, invoice.currency)}</span>
+                    {invoice.total_amount - paidAmount > 0.01 && (
+                      <span className="text-destructive">{t("finance.payments.outstanding")}: {formatAmount(invoice.total_amount - paidAmount, invoice.currency)}</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
