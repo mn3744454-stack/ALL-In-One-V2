@@ -2057,6 +2057,7 @@ export const ar = {
     tabs: {
       invoices: "الفواتير",
       expenses: "المصروفات",
+      payments: "المدفوعات",
       ledger: "دفتر الحسابات",
     },
     invoices: {
