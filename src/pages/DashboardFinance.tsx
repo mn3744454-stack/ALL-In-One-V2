@@ -264,10 +264,57 @@ function ExpensesTab() {
 function LedgerTab() {
   const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
+  const { isOwner } = usePermissions();
   const tenantId = activeTenant?.tenant?.id;
   const { entries, isLoading } = useLedgerEntries(tenantId);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [backfillRunning, setBackfillRunning] = useState(false);
+
+  // Auto-run backfill once per tenant
+  useEffect(() => {
+    if (!tenantId || !isOwner) return;
+    const key = `ledgerBackfillDone:${tenantId}`;
+    if (localStorage.getItem(key) === "true") return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        setBackfillRunning(true);
+        const { backfillLedgerDescriptions } = await import("@/lib/finance/backfillLedgerDescriptions");
+        const result = await backfillLedgerDescriptions(tenantId);
+        if (!cancelled) {
+          localStorage.setItem(key, "true");
+          const { toast } = await import("sonner");
+          toast.success(`Ledger enrichment: ${result.updated} updated, ${result.skipped} skipped, ${result.errors} errors`);
+        }
+      } catch (err) {
+        console.error("Backfill error:", err);
+      } finally {
+        if (!cancelled) setBackfillRunning(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [tenantId, isOwner]);
+
+  const handleManualBackfill = async () => {
+    if (!tenantId) return;
+    setBackfillRunning(true);
+    try {
+      const { backfillLedgerDescriptions } = await import("@/lib/finance/backfillLedgerDescriptions");
+      const result = await backfillLedgerDescriptions(tenantId);
+      localStorage.setItem(`ledgerBackfillDone:${tenantId}`, "true");
+      const { toast } = await import("sonner");
+      toast.success(`Updated: ${result.updated}, Skipped: ${result.skipped}, Errors: ${result.errors}`);
+    } catch (err) {
+      console.error("Backfill error:", err);
+      const { toast } = await import("sonner");
+      toast.error("Backfill failed");
+    } finally {
+      setBackfillRunning(false);
+    }
+  };
 
   const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
@@ -356,6 +403,22 @@ function LedgerTab() {
           className="w-full sm:w-44"
           placeholder={t("common.to")}
         />
+        {isOwner && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualBackfill}
+            disabled={backfillRunning}
+            className="gap-2"
+          >
+            {backfillRunning ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            Enrich Descriptions
+          </Button>
+        )}
       </div>
 
       {/* Entries Table */}

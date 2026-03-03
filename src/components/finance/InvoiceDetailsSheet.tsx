@@ -177,7 +177,9 @@ export function InvoiceDetailsSheet({
                 .eq('id', sample.lab_horse_id)
                 .maybeSingle();
               if (horse) {
-                hName = (horse as any).name || (horse as any).name_ar || null;
+                hName = dir === 'rtl' 
+                  ? ((horse as any).name_ar || (horse as any).name || null)
+                  : ((horse as any).name || (horse as any).name_ar || null);
               }
             }
             setInvoiceContext({ horseName: hName || undefined, sampleLabel: sLabel || undefined });
@@ -397,18 +399,7 @@ export function InvoiceDetailsSheet({
               </div>
             </div>
 
-            {/* Horse/Sample Context */}
-            {invoiceContext && (invoiceContext.horseName || invoiceContext.sampleLabel) && (
-              <Card className="bg-primary/5 border-primary/20">
-                <CardContent className="p-3 flex items-center gap-3 text-sm">
-                  <FileText className="h-4 w-4 text-primary shrink-0" />
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {invoiceContext.horseName && <span className="font-medium">{t("laboratory.labHorses.name")}: {invoiceContext.horseName}</span>}
-                    {invoiceContext.sampleLabel && <span className="text-muted-foreground">{t("laboratory.samples.title")}: {invoiceContext.sampleLabel}</span>}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Horse/Sample context removed from here - integrated into Invoice Info card below */}
 
             {/* Notes (positioned near header for context) */}
             {invoice.notes && (
@@ -458,6 +449,32 @@ export function InvoiceDetailsSheet({
                       <p className="font-medium font-mono" dir="ltr">
                         {format(new Date(invoice.due_date), "dd-MM-yyyy")}
                       </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Horse context */}
+                {invoiceContext?.horseName && (
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {t("finance.invoices.horse")}
+                      </p>
+                      <p className="font-medium">{invoiceContext.horseName}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Sample context */}
+                {invoiceContext?.sampleLabel && (
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {t("finance.invoices.sample")}
+                      </p>
+                      <p className="font-medium font-mono" dir="ltr">{invoiceContext.sampleLabel}</p>
                     </div>
                   </div>
                 )}
@@ -553,6 +570,39 @@ export function InvoiceDetailsSheet({
                 </>
               )}
             </div>
+
+            {/* Payment Timeline */}
+            {paymentSummary && paymentSummary.payments.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  {t("finance.payments.paymentHistory")}
+                </h3>
+                <div className="space-y-2">
+                  {paymentSummary.payments.map((payment) => (
+                    <Card key={payment.id}>
+                      <CardContent className="p-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-mono tabular-nums" dir="ltr">
+                              {format(new Date(payment.created_at), "dd-MM-yyyy HH:mm")}
+                            </p>
+                            {payment.payment_method && (
+                              <Badge variant="outline" className="text-xs mt-1">
+                                {t(`finance.paymentMethods.${payment.payment_method}`) || payment.payment_method}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="font-mono text-sm font-medium tabular-nums text-primary shrink-0" dir="ltr">
+                            {formatAmount(payment.amount)}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Close Button */}
             <Button
