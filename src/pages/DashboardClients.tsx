@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { useI18n } from "@/i18n";
 import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "@/hooks/useClients";
+import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
 import { ClientsList, ClientFilters, ClientFormDialog, ClientStatementTab, ClientsTable } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -32,6 +33,7 @@ export default function DashboardClients() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useI18n();
   const { clients, loading, canManage, createClient, updateClient, deleteClient } = useClients();
+  const { getBalance, loading: balancesLoading } = useLedgerBalances();
 
   // View preference
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('clients-page');
@@ -46,8 +48,16 @@ export default function DashboardClients() {
   const [statementClient, setStatementClient] = useState<Client | null>(null);
 
   // Filter clients
+  // Enrich clients with ledger-derived balances
+  const enrichedClients = useMemo(() => {
+    return clients.map(c => ({
+      ...c,
+      outstanding_balance: getBalance(c.id),
+    }));
+  }, [clients, getBalance]);
+
   const filteredClients = useMemo(() => {
-    let result = clients;
+    let result = enrichedClients;
 
     // Search filter
     if (search.trim()) {
@@ -74,7 +84,7 @@ export default function DashboardClients() {
     }
 
     return result;
-  }, [clients, search, statusFilter, typeFilter]);
+  }, [enrichedClients, search, statusFilter, typeFilter]);
 
   const handleEdit = (client: Client) => {
     setEditingClient(client);

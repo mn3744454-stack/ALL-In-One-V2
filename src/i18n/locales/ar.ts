@@ -128,6 +128,7 @@ export const ar = {
     doctorPatients: "المرضى",
     doctorConsultations: "الاستشارات",
     doctorServices: "الخدمات",
+    pos: "نقطة البيع",
   },
   pushNotifications: {
     settingsTitle: "إعدادات الإشعارات",
@@ -535,6 +536,7 @@ export const ar = {
       depositLabel: "دفعة الاستلام",
       finalLabel: "الدفعة النهائية",
       sampleFee: "رسوم العينة",
+      invoiceCreated: "تم إنشاء الفاتورة بنجاح",
     },
     
     // Alerts
@@ -2959,6 +2961,7 @@ export const ar = {
     empty: "لا يوجد عملاء",
     emptyDescription: "أضف أول عميل للبدء",
     outstandingBalance: "المستحق",
+    balance: "الرصيد",
     quickAdd: "إضافة عميل سريعة",
     filters: {
       all: "جميع العملاء",
