@@ -1,141 +1,88 @@
 
-## Phase 7: "Receive & Number Now" Choice + Phase 8: Auto Lab Horse for Request-Origin Samples
 
-### Overview
+# Diagnosis: Why Changes Appear Not Applied
 
-**Phase 7** adds a "Receive & Number Now" vs "Defer" choice to the lab wizard's Details step. When "Receive Now" is chosen, the sample is created with `status='accessioned'` (triggering daily number assignment). When deferred, `status='draft'` and `numbering_deferred=true`.
+## The Core Problem
 
-**Phase 8** eliminates "Unknown Horse" for request-origin samples by auto-creating (or reusing) a `lab_horses` record from request snapshots and linking it via `lab_horse_id`.
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
----
+**However, there are real remaining issues the user is seeing:**
 
-### Phase 7: Numbering Now == Receive Now
+### 1. Realtime Sync Uses WRONG Query Keys
 
-#### 7.1 DB: No migration needed
-The `numbering_deferred` column already exists on `lab_samples` (confirmed in types.ts). The trigger `set_daily_sample_number` already respects it.
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-#### 7.2 Frontend: CreateSampleDialog.tsx
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-**Add to FormData interface:**
-```typescript
-receive_now: boolean; // true = accessioned + number, false = draft + deferred
-```
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-**Modify LAB_STEPS:** No new step needed. The existing `details` step (for lab tenants) already contains daily number inputs. We add a radio choice at the top of the details step content (lab tenant path only):
-- "Receive & Number Now" -- shows daily number inputs, sets `receive_now=true`
-- "Save as Draft (Number Later)" -- hides daily number inputs, sets `receive_now=false`
+### 3. Ledger "Enrich" Button Still Visible
 
-**Default value:** `receive_now: true` (most common lab workflow)
-- Exception: when `fromRequest` is present, default to `receive_now: false` (request samples typically need physical receipt first)
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-**Submission logic changes in `createSamplesForAllHorses()`:**
-- If `receive_now === true`: set `status: 'accessioned'`, `numbering_deferred: false`
-- If `receive_now === false`: set `status: 'draft'`, `numbering_deferred: true`, skip daily_number unless manually entered
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-#### 7.3 useLabSamples.ts: CreateLabSampleData
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-Add `numbering_deferred?: boolean` to the interface (it's already in the DB types but not in the create data interface).
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-#### 7.4 i18n additions
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-English keys under `laboratory.createSample`:
-- `receiveNow`: "Receive & Number Now"
-- `receiveNowDesc`: "Sample is physically received. A daily number will be assigned."
-- `deferNumbering`: "Save as Draft"  
-- `deferNumberingDesc`: "Number will be assigned when sample is received later."
-- `steps.details` remains "Details"
+### 6. Scope Selector / Statement Content
 
-Arabic equivalents:
-- `receiveNow`: "استلام وترقيم الآن"
-- `receiveNowDesc`: "العينة مستلمة فعلياً. سيتم تعيين رقم يومي."
-- `deferNumbering`: "حفظ كمسودة"
-- `deferNumberingDesc`: "سيتم تعيين الرقم عند استلام العينة لاحقاً."
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-### Phase 8: Auto Lab Horse for Request-Origin Samples
+## Execution Plan
 
-#### 8.1 useLabHorses.ts: Expand CreateLabHorseData
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-Add optional fields to `CreateLabHorseData`:
-```typescript
-linked_horse_id?: string;
-source?: 'manual' | 'platform' | 'request';
-```
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-Note: The DB column `source` currently accepts `'manual' | 'platform'`. We need a migration to expand the check constraint (or use `'platform'` as the value for request-created horses if a constraint exists).
-
-#### 8.2 DB: Check if source constraint exists
-
-If there's a CHECK constraint on `lab_horses.source`, we need a migration to add `'request'` as a valid value. If no constraint (just text column), no migration needed.
-
-Based on the types.ts showing `source: 'manual' | 'platform'`, this appears to be a TS-level type but likely also a DB constraint. A small migration will be needed:
-
-```sql
-ALTER TABLE public.lab_horses 
-  DROP CONSTRAINT IF EXISTS lab_horses_source_check;
-ALTER TABLE public.lab_horses 
-  ADD CONSTRAINT lab_horses_source_check 
-  CHECK (source IN ('manual', 'platform', 'request'));
-```
-
-#### 8.3 CreateSampleDialog.tsx: `ensureLabHorseForRequest()`
-
-New async helper function called at submit time when `fromRequest` is present:
+Change the finance table mappings to use the **actual** query key prefixes:
 
 ```
-async function ensureLabHorseForRequest():
-  1. Query lab_horses WHERE linked_horse_id = fromRequest.horse_id 
-     AND tenant_id = current tenant AND is_archived = false
-  2. If found: return existing lab_horse.id
-  3. If not found: INSERT into lab_horses with:
-     - name: fromRequest.horse_name_snapshot
-     - name_ar: fromRequest.horse_name_ar_snapshot  
-     - breed_text: horse_snapshot?.breed
-     - color_text: horse_snapshot?.color
-     - linked_horse_id: fromRequest.horse_id
-     - source: 'request'
-     - owner_name: fromRequest.initiator_tenant_name_snapshot
-  4. Return new lab_horse.id
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
 ```
 
-#### 8.4 Submission flow change
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-In `createSamplesForAllHorses()`, when `fromRequest` is present:
-- Before creating samples, call `ensureLabHorseForRequest()` 
-- Set `lab_horse_id` on each created sample instead of relying on `horse_name` alone
-- Keep `horse_name` as fallback display field
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-#### 8.5 Horse step prefill for fromRequest
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
-When `fromRequest` is set, the initial `selectedHorses` array currently uses `horse_type: 'walk_in'`. Change to:
-- Still prefill with snapshot name
-- At submit, override with the ensured `lab_horse_id`
-- The horse step remains functional (user can change selection)
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
-#### 8.6 Client behavior (MVP)
+### Step 3: Hide Backfill Button from Non-Admins
 
-Keep current approach: `walkInClient.client_name = fromRequest.initiator_tenant_name_snapshot`. No auto-creation of clients table entries.
+**File:** `src/pages/DashboardFinance.tsx`
 
----
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-### Files to Modify
+### Step 4: Stabilize Invoice Table Column Widths
 
-| File | Phase | Changes |
-|------|-------|---------|
-| `src/components/laboratory/CreateSampleDialog.tsx` | 7, 8 | Add receive_now radio, ensureLabHorseForRequest(), submission logic |
-| `src/hooks/laboratory/useLabSamples.ts` | 7 | Add `numbering_deferred` to CreateLabSampleData |
-| `src/hooks/laboratory/useLabHorses.ts` | 8 | Add `linked_horse_id` and `source` to CreateLabHorseData, LabHorse source type |
-| `src/i18n/locales/en.ts` | 7 | Add receiveNow/deferNumbering keys |
-| `src/i18n/locales/ar.ts` | 7 | Add Arabic equivalents |
-| New SQL migration | 8 | Expand source constraint on lab_horses (if needed) |
+**File:** `src/components/finance/InvoicesList.tsx`
+
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+
+### Step 5: Fix Expenses Table View Alignment
+
+**File:** `src/components/finance/ExpensesList.tsx`
+
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
 
 ### Verification Checklist
 
-- Walk-in sample with "Receive Now": created as accessioned, daily_number assigned
-- Walk-in sample with "Defer": created as draft, no daily_number, numbering_deferred=true
-- Request-origin sample with "Defer": draft, no number, lab_horse auto-created
-- Request-origin sample appears in Samples list with horse name (not unknown)
-- Same horse from second request reuses existing lab_horse (no duplicates)
-- Manual daily_number entry still respected in both paths
-- Multi-horse creation works with both paths
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
+
