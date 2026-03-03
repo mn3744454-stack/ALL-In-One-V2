@@ -2,6 +2,15 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -23,7 +32,11 @@ import { ExpenseCard } from "./ExpenseCard";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { EXPENSE_CATEGORIES, type Expense } from "@/hooks/finance/useExpenses";
+import { ViewSwitcher } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
+import { formatCurrency } from "@/lib/formatters";
 import { Search, Receipt, Filter } from "lucide-react";
+import { format } from "date-fns";
 
 interface ExpensesListProps {
   expenses: Expense[];
@@ -49,6 +62,8 @@ export function ExpensesList({
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-expenses');
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
@@ -138,6 +153,14 @@ export function ExpensesList({
             <SelectItem value="rejected">{t("finance.expenses.statuses.rejected")}</SelectItem>
           </SelectContent>
         </Select>
+
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={true}
+        />
       </div>
 
       {/* Results */}
@@ -156,6 +179,43 @@ export function ExpensesList({
               {t("finance.expenses.tryDifferentFilters")}
             </p>
           )}
+        </div>
+      ) : viewMode === 'table' ? (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[110px]">{t("common.date")}</TableHead>
+                <TableHead>{t("finance.expenses.vendor")}</TableHead>
+                <TableHead>{t("finance.expenses.category")}</TableHead>
+                <TableHead className="text-center w-[110px]">{t("finance.expenses.amount")}</TableHead>
+                <TableHead className="text-center w-[100px]">{t("common.status")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredExpenses.map((expense) => (
+                <TableRow key={expense.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onEdit?.(expense)}>
+                  <TableCell className="font-mono text-sm" dir="ltr">
+                    {format(new Date(expense.expense_date), "dd-MM-yyyy")}
+                  </TableCell>
+                  <TableCell>{expense.vendor_name || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {t(`finance.expenses.categories.${expense.category}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                    {formatAmount(expense.amount)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={expense.status === 'paid' ? 'default' : 'secondary'} className="text-xs">
+                      {t(`finance.expenses.statuses.${expense.status}`)}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <div className="space-y-3">

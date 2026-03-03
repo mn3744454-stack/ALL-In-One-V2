@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { invalidateFinanceQueries } from "./invalidateFinanceQueries";
 
 export interface Expense {
   id: string;
@@ -80,7 +81,7 @@ export function useExpenses(tenantId?: string) {
       return data as unknown as Expense;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Expense created successfully" });
     },
     onError: (error) => {
@@ -102,7 +103,7 @@ export function useExpenses(tenantId?: string) {
       return data as unknown as Expense;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Expense updated successfully" });
     },
     onError: (error) => {
@@ -121,7 +122,7 @@ export function useExpenses(tenantId?: string) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses", tenantId] });
+      invalidateFinanceQueries(queryClient, tenantId);
       toast({ title: "Expense deleted successfully" });
     },
     onError: (error) => {

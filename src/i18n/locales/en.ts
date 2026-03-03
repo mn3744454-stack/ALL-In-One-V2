@@ -3575,6 +3575,15 @@ export const en = {
       trainer: "Trainer",
       employee: "Employee",
     },
+    events: {
+      "connection.request_received": { title: "New Connection Request", body: "You have received a new partnership request" },
+      "connection.accepted": { title: "Connection Accepted", body: "Your connection request has been accepted" },
+      "connection.rejected": { title: "Connection Declined", body: "Your connection request has been declined" },
+      "lab_request.new": { title: "New Lab Request", body: "A new lab request has been submitted" },
+      "lab_request.status_changed": { title: "Lab Request Updated", body: "A lab request status has changed" },
+      "lab_request.result_published": { title: "Lab Results Available", body: "Lab results have been published" },
+      "lab_request.message_added": { title: "New Message", body: "A new message has been added to a lab request" },
+    },
   },
   doctor: {
     dashboard: "Doctor Dashboard",

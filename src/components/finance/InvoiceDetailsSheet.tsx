@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useQueryClient } from "@tanstack/react-query";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
@@ -204,13 +205,7 @@ export function InvoiceDetailsSheet({
   const formatAmount = (amount: number) => formatCurrency(amount, invoice?.currency || "SAR");
 
   // Invalidate all dependent queries after actions
-  const invalidateQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ["invoices"] });
-    queryClient.invalidateQueries({ queryKey: ["invoice-items"] });
-    queryClient.invalidateQueries({ queryKey: ["lab-horse-financial"] });
-    queryClient.invalidateQueries({ queryKey: ["lab-horses-with-metrics"] });
-    queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
-  };
+  const invalidateQueries = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant?.id);
 
   const handlePaymentSuccess = () => {
     invalidateQueries();

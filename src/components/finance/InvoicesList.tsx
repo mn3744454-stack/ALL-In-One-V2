@@ -212,13 +212,13 @@ export function InvoicesList({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("finance.invoices.number")}</TableHead>
+                    <TableHead className="w-[120px]">{t("finance.invoices.number")}</TableHead>
                     <TableHead>{t("finance.invoices.client")}</TableHead>
-                    <TableHead>{t("common.date")}</TableHead>
-                    <TableHead className="text-end">{t("finance.invoices.total")}</TableHead>
-                    <TableHead className="text-end">{t("finance.payments.paidSoFar")}</TableHead>
-                    <TableHead className="text-end">{t("finance.payments.outstanding")}</TableHead>
-                    <TableHead className="text-end">{t("common.status")}</TableHead>
+                    <TableHead className="w-[110px]">{t("common.date")}</TableHead>
+                    <TableHead className="text-center w-[110px]">{t("finance.invoices.total")}</TableHead>
+                    <TableHead className="text-center w-[110px]">{t("finance.payments.paidSoFar")}</TableHead>
+                    <TableHead className="text-center w-[110px]">{t("finance.payments.outstanding")}</TableHead>
+                    <TableHead className="text-center w-[100px]">{t("common.status")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -239,16 +239,16 @@ export function InvoicesList({
                         <TableCell className="font-mono text-sm" dir="ltr">
                           {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
                         </TableCell>
-                        <TableCell className="text-end font-mono tabular-nums" dir="ltr">
+                        <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                           {formatAmount(invoice.total_amount)}
                         </TableCell>
-                        <TableCell className="text-end font-mono tabular-nums text-primary" dir="ltr">
+                        <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
                           {paid > 0 ? formatAmount(paid) : "-"}
                         </TableCell>
-                        <TableCell className={cn("text-end font-mono tabular-nums", remaining > 0.01 && "text-destructive")} dir="ltr">
+                        <TableCell className={cn("text-center font-mono tabular-nums", remaining > 0.01 && "text-destructive")} dir="ltr">
                           {formatAmount(remaining)}
                         </TableCell>
-                        <TableCell className="text-end">
+                        <TableCell className="text-center">
                           <InvoiceStatusBadge status={invoice.status} />
                         </TableCell>
                       </TableRow>

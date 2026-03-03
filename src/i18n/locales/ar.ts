@@ -3601,6 +3601,15 @@ export const ar = {
       trainer: "مدرب",
       employee: "موظف",
     },
+    events: {
+      "connection.request_received": { title: "طلب اتصال جديد", body: "لديك طلب شراكة جديد" },
+      "connection.accepted": { title: "تم قبول الاتصال", body: "تم قبول طلب الاتصال الخاص بك" },
+      "connection.rejected": { title: "تم رفض الاتصال", body: "تم رفض طلب الاتصال الخاص بك" },
+      "lab_request.new": { title: "طلب مختبر جديد", body: "تم تقديم طلب مختبر جديد" },
+      "lab_request.status_changed": { title: "تحديث طلب المختبر", body: "تم تغيير حالة طلب المختبر" },
+      "lab_request.result_published": { title: "نتائج المختبر متاحة", body: "تم نشر نتائج المختبر" },
+      "lab_request.message_added": { title: "رسالة جديدة", body: "تمت إضافة رسالة جديدة لطلب المختبر" },
+    },
   },
   doctor: {
     dashboard: "لوحة الطبيب",

@@ -441,12 +441,12 @@ function LedgerTab() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-start p-3 font-medium">{t("common.date")}</th>
-                <th className="text-start p-3 font-medium">{t("common.type")}</th>
+                <th className="text-start p-3 font-medium w-[120px]">{t("common.date")}</th>
+                <th className="text-start p-3 font-medium w-[90px]">{t("common.type")}</th>
                 <th className="text-start p-3 font-medium">{t("common.description")}</th>
-                <th className="text-end p-3 font-medium">{t("finance.ledger.debit")}</th>
-                <th className="text-end p-3 font-medium">{t("finance.ledger.credit")}</th>
-                <th className="text-end p-3 font-medium">{t("clients.statement.balance")}</th>
+                <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.debit")}</th>
+                <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.credit")}</th>
+                <th className="text-center p-3 font-medium w-[110px]">{t("clients.statement.balance")}</th>
               </tr>
             </thead>
             <tbody>
@@ -462,14 +462,14 @@ function LedgerTab() {
                         {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                       </Badge>
                     </td>
-                    <td className="p-3 max-w-[300px] truncate">{entry.description || "-"}</td>
-                    <td className="p-3 text-end font-mono tabular-nums" dir="ltr">
+                    <td className="p-3 max-w-[400px] truncate" title={entry.description || ""}>{entry.description || "-"}</td>
+                    <td className="p-3 text-center font-mono tabular-nums" dir="ltr">
                       {isDebit ? formatAmount(entry.amount) : "-"}
                     </td>
-                    <td className="p-3 text-end font-mono tabular-nums text-primary" dir="ltr">
+                    <td className="p-3 text-center font-mono tabular-nums text-primary" dir="ltr">
                       {!isDebit ? formatAmount(Math.abs(entry.amount)) : "-"}
                     </td>
-                    <td className="p-3 text-end font-mono tabular-nums font-medium" dir="ltr">
+                    <td className="p-3 text-center font-mono tabular-nums font-medium" dir="ltr">
                       {formatAmount(entry.balance_after)}
                     </td>
                   </tr>

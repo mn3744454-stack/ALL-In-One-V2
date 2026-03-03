@@ -263,7 +263,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     {t("clients.statement.title")}
                   </CardTitle>
                   <Badge variant="outline" className="font-mono text-xs" dir="ltr">
-                    {scopeConfig.dateFrom} → {scopeConfig.dateTo}
+                    {isRTL ? `من ${scopeConfig.dateFrom} إلى ${scopeConfig.dateTo}` : `From ${scopeConfig.dateFrom} To ${scopeConfig.dateTo}`}
                   </Badge>
                   {scopeConfig.mode === "horses" && (
                     <Badge variant="secondary" className="text-xs">
@@ -370,7 +370,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                                 <Badge variant="outline" className="text-xs shrink-0">
                                   {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                                 </Badge>
-                                <span className="text-sm truncate max-w-[200px]">{entry.description}</span>
+                                <span className="text-sm truncate max-w-[350px]" title={entry.description}>{entry.description}</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center font-mono tabular-nums" dir="ltr">
