@@ -580,7 +580,7 @@ export function InvoiceDetailsSheet({
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-mono tabular-nums" dir="ltr">
-                              {format(new Date(payment.created_at), "dd-MM-yyyy hh:mm a")}
+                              {formatDateTime12h(payment.created_at, lang)}
                             </p>
                             {payment.payment_method && (
                               <Badge variant="outline" className="text-xs mt-1">

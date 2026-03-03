@@ -22,6 +22,7 @@ export interface LedgerEntry {
   amount: number;
   balance_after: number;
   description?: string;
+  payment_method?: string;
   created_by?: string;
   created_at: string;
 }
@@ -76,7 +77,7 @@ export function useLedgerEntries(tenantId?: string, clientId?: string) {
 
       let query = supabase
         .from("ledger_entries" as any)
-        .select("*")
+        .select("id, tenant_id, client_id, entry_type, reference_type, reference_id, amount, balance_after, description, payment_method, created_by, created_at")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false });
 

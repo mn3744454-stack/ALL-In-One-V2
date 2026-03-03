@@ -11,7 +11,6 @@ import { format } from 'date-fns';
 
 /**
  * Format currency with ALWAYS English digits (0-9)
- * Arabic UI can have Arabic text but digits must be English
  */
 export function formatCurrency(amount: number, currency: string = 'SAR'): string {
   return new Intl.NumberFormat('en-US', {
@@ -61,7 +60,6 @@ export function formatPercent(value: number, decimals: number = 0): string {
 
 /**
  * Format date with ALWAYS English digits
- * Uses date-fns format which preserves English digits
  */
 export function formatDate(date: Date | string, formatStr: string = 'dd/MM/yyyy'): string {
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -79,13 +77,36 @@ export function formatDateTime(date: Date | string, formatStr: string = 'dd/MM/y
 }
 
 /**
- * Format date-time with 12-hour AM/PM format and ALWAYS English digits
- * For Arabic UI, AM/PM stays in English (standard for Arabic financial docs)
+ * Format date-time with 12-hour clock and locale-aware AM/PM indicator.
+ * Arabic UI → ص/م  |  English UI → AM/PM
+ * 
+ * @param date - Date to format
+ * @param lang - Current UI language ('ar' | 'en')
  */
-export function formatDateTime12h(date: Date | string): string {
+export function formatDateTime12h(date: Date | string, lang: string = 'en'): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '-';
-  return format(d, 'dd-MM-yyyy hh:mm a');
+  const base = format(d, 'dd-MM-yyyy hh:mm');
+  const hours = d.getHours();
+  if (lang === 'ar') {
+    return `${base} ${hours < 12 ? 'ص' : 'م'}`;
+  }
+  return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
+}
+
+/**
+ * Format time-only with locale-aware AM/PM.
+ * Arabic UI → ص/م  |  English UI → AM/PM
+ */
+export function formatTime12h(date: Date | string, lang: string = 'en'): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '-';
+  const base = format(d, 'hh:mm');
+  const hours = d.getHours();
+  if (lang === 'ar') {
+    return `${base} ${hours < 12 ? 'ص' : 'م'}`;
+  }
+  return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
 }
 
 /**

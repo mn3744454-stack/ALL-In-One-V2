@@ -16,4 +16,8 @@ export function invalidateFinanceQueries(queryClient: QueryClient, tenantId?: st
   queryClient.invalidateQueries({ queryKey: ["lab-horses-with-metrics"] });
   queryClient.invalidateQueries({ queryKey: ["finance-summary"] });
   queryClient.invalidateQueries({ queryKey: ["expenses", tenantId] });
+  // Also refresh clients (balance-derived metrics may change)
+  queryClient.invalidateQueries({ queryKey: ["clients", tenantId] });
+  queryClient.invalidateQueries({ queryKey: ["ledger-balance"] });
+  queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
 }
