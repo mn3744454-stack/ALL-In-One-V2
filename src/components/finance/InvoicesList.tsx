@@ -18,15 +18,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { InvoiceCard } from "./InvoiceCard";
+import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
+import { ViewSwitcher, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoiceItems, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
+import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { Search, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface InvoicesListProps {
   invoices: Invoice[];
@@ -52,6 +67,8 @@ export function InvoicesList({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
+  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
@@ -131,7 +148,7 @@ export function InvoicesList({
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters + View Switcher */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search
@@ -161,6 +178,14 @@ export function InvoicesList({
             <SelectItem value="cancelled">{t("finance.invoices.statuses.cancelled")}</SelectItem>
           </SelectContent>
         </Select>
+
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={true}
+        />
       </div>
 
       {/* Results */}
@@ -179,29 +204,71 @@ export function InvoicesList({
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredInvoices.map((invoice) => (
-            <div
-              key={invoice.id}
-              onClick={() => onInvoiceClick?.(invoice.id)}
-              className={cn(
-                "cursor-pointer transition-colors",
-                selectedInvoiceId === invoice.id && "ring-2 ring-primary rounded-xl"
-              )}
-            >
-              <InvoiceCard
-                invoice={invoice}
-                onEdit={() => onEdit?.(invoice)}
-                onDelete={() => setDeleteId(invoice.id)}
-                onView={() => onInvoiceClick?.(invoice.id)}
-                onDownloadPDF={() => handleDownloadPDF(invoice)}
-                onPrint={() => handlePrint(invoice)}
-                onSend={() => onUpdateStatus?.(invoice.id, "sent")}
-                onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
-              />
+        <>
+          {viewMode === 'table' ? (
+            <div className="rounded-md border overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("finance.invoices.number")}</TableHead>
+                    <TableHead>{t("finance.invoices.client")}</TableHead>
+                    <TableHead>{t("common.date")}</TableHead>
+                    <TableHead className="text-end">{t("finance.invoices.total")}</TableHead>
+                    <TableHead className="text-end">{t("common.status")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInvoices.map((invoice) => (
+                    <TableRow
+                      key={invoice.id}
+                      className={cn(
+                        "cursor-pointer hover:bg-muted/50",
+                        selectedInvoiceId === invoice.id && "bg-primary/5"
+                      )}
+                      onClick={() => onInvoiceClick?.(invoice.id)}
+                    >
+                      <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
+                      <TableCell>{invoice.client_name || "-"}</TableCell>
+                      <TableCell className="font-mono text-sm" dir="ltr">
+                        {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
+                      </TableCell>
+                      <TableCell className="text-end font-mono tabular-nums" dir="ltr">
+                        {formatAmount(invoice.total_amount)}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <InvoiceStatusBadge status={invoice.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredInvoices.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  onClick={() => onInvoiceClick?.(invoice.id)}
+                  className={cn(
+                    "cursor-pointer transition-colors",
+                    selectedInvoiceId === invoice.id && "ring-2 ring-primary rounded-xl"
+                  )}
+                >
+                  <InvoiceCard
+                    invoice={invoice}
+                    onEdit={() => onEdit?.(invoice)}
+                    onDelete={() => setDeleteId(invoice.id)}
+                    onView={() => onInvoiceClick?.(invoice.id)}
+                    onDownloadPDF={() => handleDownloadPDF(invoice)}
+                    onPrint={() => handlePrint(invoice)}
+                    onSend={() => onUpdateStatus?.(invoice.id, "sent")}
+                    onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete Confirmation */}

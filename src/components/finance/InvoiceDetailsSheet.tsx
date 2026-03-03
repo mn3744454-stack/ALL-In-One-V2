@@ -361,6 +361,17 @@ export function InvoiceDetailsSheet({
               </div>
             </div>
 
+            {/* Notes (positioned near header for context) */}
+            {invoice.notes && (
+              <Card className="bg-muted/30 border-dashed">
+                <CardContent className="p-3">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {invoice.notes}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Invoice Info */}
             <Card>
               <CardContent className="p-4 space-y-3">
@@ -467,17 +478,32 @@ export function InvoiceDetailsSheet({
                 <span>{t("finance.invoices.total")}</span>
                 <span className="font-mono tabular-nums" dir="ltr">{formatAmount(invoice.total_amount)}</span>
               </div>
-            </div>
 
-            {/* Notes */}
-            {invoice.notes && (
-              <div className="space-y-2">
-                <h3 className="font-semibold">{t("finance.invoices.notes")}</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {invoice.notes}
-                </p>
-              </div>
-            )}
+              {/* Payment Summary */}
+              {paymentSummary && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between text-sm">
+                    <span className="flex items-center gap-1.5">
+                      <History className="h-3.5 w-3.5" />
+                      {t("finance.payments.paidSoFar")}
+                    </span>
+                    <span className="font-mono tabular-nums text-primary" dir="ltr">
+                      {formatAmount(paymentSummary.paidAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>{t("finance.payments.outstanding")}</span>
+                    <span className={cn(
+                      "font-mono tabular-nums",
+                      paymentSummary.outstandingAmount > 0.01 && "text-destructive"
+                    )} dir="ltr">
+                      {formatAmount(paymentSummary.outstandingAmount)}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Close Button */}
             <Button
