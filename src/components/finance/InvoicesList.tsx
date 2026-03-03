@@ -234,8 +234,8 @@ export function InvoicesList({
                         )}
                         onClick={() => onInvoiceClick?.(invoice.id)}
                       >
-                        <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
-                        <TableCell>{invoice.client_name || "-"}</TableCell>
+                        <TableCell className="font-mono text-sm whitespace-nowrap">{invoice.invoice_number}</TableCell>
+                        <TableCell className="min-w-[120px] whitespace-nowrap">{invoice.client_name || "-"}</TableCell>
                         <TableCell className="font-mono text-sm" dir="ltr">
                           {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
                         </TableCell>
