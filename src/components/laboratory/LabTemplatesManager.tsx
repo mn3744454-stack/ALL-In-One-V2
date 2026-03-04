@@ -852,7 +852,7 @@ const openCreateDialog = () => {
           className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col" 
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          {/* Task C: Sticky header with solid background, proper z-index, close button included */}
+          {/* Sticky header with solid background, proper z-index */}
           <div className={`sticky top-0 z-20 bg-background border-b px-6 py-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <div className={`flex items-center justify-between gap-3 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
               <DialogTitle className="text-lg">
