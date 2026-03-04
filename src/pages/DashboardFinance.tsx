@@ -4,6 +4,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
@@ -14,7 +15,7 @@ import { useLedgerEntries } from "@/hooks/finance/useLedger";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
+
 import {
   InvoicesList,
   InvoiceFormDialog,
@@ -38,8 +39,6 @@ import {
   TrendingDown,
   DollarSign,
   Users,
-  Sparkles,
-  Trash2,
   Loader2,
   Printer,
   Download,
@@ -476,45 +475,45 @@ function LedgerTab() {
         <>
           {/* Desktop table */}
           <div className="hidden sm:block rounded-md border overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-start p-3 font-medium w-[160px]">{t("common.date")}</th>
-                  <th className="text-start p-3 font-medium w-[90px]">{t("common.type")}</th>
-                  <th className={cn("p-3 font-medium", dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.debit")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.credit")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("clients.statement.balance")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px]">{t("common.date")}</TableHead>
+                  <TableHead className="w-[90px]">{t("common.type")}</TableHead>
+                  <TableHead className={cn(dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</TableHead>
+                  <TableHead className="w-[110px]">{t("finance.ledger.debit")}</TableHead>
+                  <TableHead className="w-[110px]">{t("finance.ledger.credit")}</TableHead>
+                  <TableHead className="w-[110px]">{t("clients.statement.balance")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredEntries.map((entry) => {
                   const isDebit = entry.amount > 0;
                   return (
-                    <tr key={entry.id} className="border-b hover:bg-muted/30">
-                      <td className="p-3 font-mono text-xs whitespace-nowrap" dir="ltr">
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
                         {formatDateTime12h(entry.created_at, lang)}
-                      </td>
-                      <td className="p-3">
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={entry.entry_type === 'payment' ? 'default' : 'secondary'} className="text-xs">
                           {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                         </Badge>
-                      </td>
-                      <td className={cn("p-3 max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getDesc(entry)}>{getDesc(entry)}</td>
-                      <td className="p-3 text-center font-mono tabular-nums" dir="ltr">
+                      </TableCell>
+                      <TableCell className={cn("max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getDesc(entry)}>{getDesc(entry)}</TableCell>
+                      <TableCell className="font-mono tabular-nums" dir="ltr">
                         {isDebit ? formatAmount(entry.amount) : "-"}
-                      </td>
-                      <td className="p-3 text-center font-mono tabular-nums text-primary" dir="ltr">
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums text-primary" dir="ltr">
                         {!isDebit ? formatAmount(Math.abs(entry.amount)) : "-"}
-                      </td>
-                      <td className="p-3 text-center font-mono tabular-nums font-medium" dir="ltr">
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums font-medium" dir="ltr">
                         {formatAmount(entry.balance_after)}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile stacked rows */}
@@ -558,6 +557,33 @@ function PaymentsTab() {
   const [dateTo, setDateTo] = useState("");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, string>>(new Map());
+
+  // Enrich payment descriptions
+  useEffect(() => {
+    const paymentOnly = entries.filter((e) => e.entry_type === "payment");
+    if (paymentOnly.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const result = await enrichLedgerDescriptions(
+        paymentOnly.map((e) => ({
+          id: e.id,
+          entry_type: e.entry_type,
+          description: e.description,
+          reference_id: e.reference_id,
+          payment_method: e.payment_method,
+        }))
+      );
+      if (!cancelled) {
+        const map = new Map<string, string>();
+        result.forEach((v, k) => map.set(k, v.display));
+        setEnrichedDescs(map);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [entries]);
+
+  const getPaymentDesc = (entry: any) => enrichedDescs.get(entry.id) || entry.description || "-";
 
   // Filter to payment entries only
   const paymentEntries = useMemo(() => {
@@ -596,7 +622,7 @@ function PaymentsTab() {
       id: e.id,
       date: e.created_at,
       entry_type: e.payment_method || t("finance.ledger.entryTypes.payment"),
-      description: e.description || "-",
+      description: getPaymentDesc(e),
       debit: 0,
       credit: Math.abs(e.amount),
       balance: e.balance_after,
@@ -615,7 +641,7 @@ function PaymentsTab() {
     const csvEntries = paymentEntries.map((e) => ({
       date: e.created_at,
       entry_type: e.payment_method || "payment",
-      description: e.description || "-",
+      description: getPaymentDesc(e),
       debit: 0,
       credit: Math.abs(e.amount),
       balance: e.balance_after,
@@ -731,40 +757,40 @@ function PaymentsTab() {
         <>
           {/* Desktop table */}
           <div className="hidden sm:block rounded-md border overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-start p-3 font-medium w-[160px]">{t("common.date")}</th>
-                  <th className="text-start p-3 font-medium">{t("common.description")}</th>
-                  <th className="text-center p-3 font-medium w-[100px]">{t("finance.payments.method")}</th>
-                  <th className="text-center p-3 font-medium w-[120px]">{t("finance.payments.amount")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("clients.statement.balance")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px]">{t("common.date")}</TableHead>
+                  <TableHead className={cn(dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</TableHead>
+                  <TableHead className="w-[100px]">{t("finance.payments.method")}</TableHead>
+                  <TableHead className="w-[120px]">{t("finance.payments.amount")}</TableHead>
+                  <TableHead className="w-[110px]">{t("clients.statement.balance")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {paymentEntries.map((entry) => (
-                  <tr key={entry.id} className="border-b hover:bg-muted/30">
-                    <td className="p-3 font-mono text-xs whitespace-nowrap" dir="ltr">
+                  <TableRow key={entry.id}>
+                    <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
                       {formatDateTime12h(entry.created_at, lang)}
-                    </td>
-                    <td className={cn("p-3 max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={entry.description || ""}>
-                      {entry.description || "-"}
-                    </td>
-                    <td className="p-3 text-center">
+                    </TableCell>
+                    <TableCell className={cn("max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getPaymentDesc(entry)}>
+                      {getPaymentDesc(entry)}
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className="text-xs">
                         {t(`finance.paymentMethods.${entry.payment_method}`) || entry.payment_method || "-"}
                       </Badge>
-                    </td>
-                    <td className="p-3 text-center font-mono tabular-nums text-primary" dir="ltr">
+                    </TableCell>
+                    <TableCell className="font-mono tabular-nums text-primary" dir="ltr">
                       {formatAmount(Math.abs(entry.amount))}
-                    </td>
-                    <td className="p-3 text-center font-mono tabular-nums font-medium" dir="ltr">
+                    </TableCell>
+                    <TableCell className="font-mono tabular-nums font-medium" dir="ltr">
                       {formatAmount(entry.balance_after)}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile stacked */}
@@ -779,9 +805,7 @@ function PaymentsTab() {
                     {formatDateTime12h(entry.created_at, lang)}
                   </span>
                 </div>
-                {entry.description && (
-                  <p className="text-sm text-muted-foreground truncate">{entry.description}</p>
-                )}
+                <p className="text-sm text-muted-foreground truncate">{getPaymentDesc(entry)}</p>
                 <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
                   <span className="text-primary">{formatAmount(Math.abs(entry.amount))}</span>
                   <span className="font-medium">{formatAmount(entry.balance_after)}</span>
@@ -815,14 +839,6 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
   
   const { activeTenant } = useTenant();
   const { t, dir } = useI18n();
-  const {
-    canManageDemo,
-    demoExists,
-    loadDemoData,
-    removeDemoData,
-    isLoading: isDemoLoading,
-    isRemoving,
-  } = useFinanceDemo();
 
   useEffect(() => {
     if (initialTab && !selectedInvoiceId) {
@@ -875,70 +891,26 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
             <p className="text-muted-foreground">{t("finance.subtitle")}</p>
           </div>
           
-          {canManageDemo && (
-            <div className="flex gap-2">
-              {demoExists ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeDemoData()}
-                  disabled={isRemoving}
-                  className="gap-2"
-                >
-                  {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  {t("common.removeDemo")}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadDemoData()}
-                  disabled={isDemoLoading}
-                  className="gap-2"
-                >
-                  {isDemoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {t("common.loadDemo")}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
-
-        {/* Mobile Demo Actions */}
-        {canManageDemo && (
-          <div className="lg:hidden flex justify-end mb-4">
-            {demoExists ? (
-              <Button variant="outline" size="sm" onClick={() => removeDemoData()} disabled={isRemoving} className="gap-2">
-                {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                <span className="hidden xs:inline">{t("common.removeDemo")}</span>
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => loadDemoData()} disabled={isDemoLoading} className="gap-2">
-                {isDemoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                <span className="hidden xs:inline">{t("common.loadDemo")}</span>
-              </Button>
-            )}
-          </div>
-        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FinanceTab)}>
-          <TabsList className="mb-4 lg:mb-6 w-full sm:w-auto overflow-x-auto">
-            <TabsTrigger value="invoices" className="gap-1.5 text-xs sm:text-sm">
-              <FileText className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.invoices")}</span>
+          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-4 h-auto p-1">
+            <TabsTrigger value="invoices" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <FileText className="w-5 h-5" />
+              <span>{t("finance.tabs.invoices")}</span>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-1.5 text-xs sm:text-sm">
-              <Receipt className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.expenses")}</span>
+            <TabsTrigger value="expenses" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <Receipt className="w-5 h-5" />
+              <span>{t("finance.tabs.expenses")}</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="gap-1.5 text-xs sm:text-sm">
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.payments")}</span>
+            <TabsTrigger value="payments" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <CreditCard className="w-5 h-5" />
+              <span>{t("finance.tabs.payments")}</span>
             </TabsTrigger>
-            <TabsTrigger value="ledger" className="gap-1.5 text-xs sm:text-sm">
-              <Wallet className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.ledger")}</span>
+            <TabsTrigger value="ledger" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <Wallet className="w-5 h-5" />
+              <span>{t("finance.tabs.ledger")}</span>
             </TabsTrigger>
           </TabsList>
 

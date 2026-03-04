@@ -16,7 +16,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useExpenses, EXPENSE_CATEGORIES, type CreateExpenseInput } from "@/hooks/finance/useExpenses";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, Camera, X, Loader2 } from "lucide-react";
 
 interface ExpenseFormDialogProps {
   open: boolean;
@@ -162,12 +162,12 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+        <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b -mx-6 px-6 -mt-2 pt-2">
           <DialogTitle>{t("finance.expenses.create")}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-y-auto flex-1 px-1 -mx-1">
           {/* Category */}
           <div className="space-y-2">
             <Label>{t("finance.expenses.category")} *</Label>
@@ -247,21 +247,35 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
                 </Button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-gold transition-colors">
-                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground">
-                  {t("finance.expenses.uploadReceipt")}
-                </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  PNG, JPG, PDF (max 10MB)
-                </span>
-                <input
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex flex-col gap-2">
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:border-gold transition-colors">
+                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                  <span className="text-sm text-muted-foreground">
+                    {t("finance.expenses.uploadReceipt")}
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG, PDF (max 10MB)
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {/* Mobile camera capture */}
+                <label className="sm:hidden flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors">
+                  <Camera className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{t("finance.expenses.takePhoto") || "Take Photo"}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             )}
           </div>
 
@@ -276,7 +290,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>

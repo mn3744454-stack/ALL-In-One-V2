@@ -195,7 +195,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: TrendingUp, label: t('finance.overview'), href: "/dashboard/finance" },
     { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
     { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
-    { icon: UsersIcon, label: t('clients.title'), href: "/dashboard/clients" },
+    { icon: UsersIcon, label: t('clients.title'), href: "/dashboard/finance/customer-balances" },
     { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos" },
   ], [t]);
 

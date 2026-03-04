@@ -242,14 +242,14 @@ export function InvoiceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b -mx-6 px-6 -mt-2 pt-2">
           <DialogTitle>
             {isEditMode ? t("finance.invoices.edit") : t("finance.invoices.create")}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto flex-1 px-1 -mx-1">
           {/* Client and Dates */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -344,7 +344,7 @@ export function InvoiceFormDialog({
             />
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>
