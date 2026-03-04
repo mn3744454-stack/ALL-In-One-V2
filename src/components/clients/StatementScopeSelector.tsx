@@ -121,27 +121,25 @@ export function StatementScopeSelector({
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 space-y-4">
           {/* Date range */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-foreground min-w-[32px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">
                 {t("clients.statement.scope.dateFrom")}
               </label>
               <Input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="flex-1"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-foreground min-w-[32px]">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-foreground">
                 {t("clients.statement.scope.dateTo")}
               </label>
               <Input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="flex-1"
               />
             </div>
           </div>
