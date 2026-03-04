@@ -4,12 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
   Table,
   TableBody,
   TableCell,
@@ -20,7 +14,6 @@ import {
 import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
-import { ClientStatementTab } from "@/components/clients";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
