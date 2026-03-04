@@ -557,6 +557,33 @@ function PaymentsTab() {
   const [dateTo, setDateTo] = useState("");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, string>>(new Map());
+
+  // Enrich payment descriptions
+  useEffect(() => {
+    const paymentOnly = entries.filter((e) => e.entry_type === "payment");
+    if (paymentOnly.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const result = await enrichLedgerDescriptions(
+        paymentOnly.map((e) => ({
+          id: e.id,
+          entry_type: e.entry_type,
+          description: e.description,
+          reference_id: e.reference_id,
+          payment_method: e.payment_method,
+        }))
+      );
+      if (!cancelled) {
+        const map = new Map<string, string>();
+        result.forEach((v, k) => map.set(k, v.display));
+        setEnrichedDescs(map);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [entries]);
+
+  const getPaymentDesc = (entry: any) => enrichedDescs.get(entry.id) || entry.description || "-";
 
   // Filter to payment entries only
   const paymentEntries = useMemo(() => {
@@ -595,7 +622,7 @@ function PaymentsTab() {
       id: e.id,
       date: e.created_at,
       entry_type: e.payment_method || t("finance.ledger.entryTypes.payment"),
-      description: e.description || "-",
+      description: getPaymentDesc(e),
       debit: 0,
       credit: Math.abs(e.amount),
       balance: e.balance_after,
@@ -614,7 +641,7 @@ function PaymentsTab() {
     const csvEntries = paymentEntries.map((e) => ({
       date: e.created_at,
       entry_type: e.payment_method || "payment",
-      description: e.description || "-",
+      description: getPaymentDesc(e),
       debit: 0,
       credit: Math.abs(e.amount),
       balance: e.balance_after,
