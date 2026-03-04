@@ -14,7 +14,8 @@ import {
 import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
 import { usePermissions } from "@/hooks/usePermissions";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
@@ -363,7 +364,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                         {entries.map((entry) => (
                           <TableRow key={entry.id}>
                             <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
-                              {format(new Date(entry.date), "dd-MM-yyyy hh:mm a")}
+                              {formatDateTime12h(entry.date, getCurrentLanguage())}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
@@ -402,7 +403,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                               {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                             </Badge>
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                              {format(new Date(entry.date), "dd-MM-yyyy hh:mm a")}
+                              {formatDateTime12h(entry.date, getCurrentLanguage())}
                             </span>
                           </div>
                         </div>

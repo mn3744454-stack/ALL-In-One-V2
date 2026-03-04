@@ -32,7 +32,8 @@ import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { getCurrentLanguage } from "@/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -580,7 +581,7 @@ export function InvoiceDetailsSheet({
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-mono tabular-nums" dir="ltr">
-                              {formatDateTime12h(payment.created_at, lang)}
+                              {formatDateTime12h(payment.created_at, getCurrentLanguage())}
                             </p>
                             {payment.payment_method && (
                               <Badge variant="outline" className="text-xs mt-1">
