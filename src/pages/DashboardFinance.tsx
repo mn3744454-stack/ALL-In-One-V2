@@ -14,7 +14,7 @@ import { useLedgerEntries } from "@/hooks/finance/useLedger";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useFinanceDemo } from "@/hooks/finance/useFinanceDemo";
+
 import {
   InvoicesList,
   InvoiceFormDialog,
@@ -38,8 +38,6 @@ import {
   TrendingDown,
   DollarSign,
   Users,
-  Sparkles,
-  Trash2,
   Loader2,
   Printer,
   Download,
@@ -815,14 +813,6 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
   
   const { activeTenant } = useTenant();
   const { t, dir } = useI18n();
-  const {
-    canManageDemo,
-    demoExists,
-    loadDemoData,
-    removeDemoData,
-    isLoading: isDemoLoading,
-    isRemoving,
-  } = useFinanceDemo();
 
   useEffect(() => {
     if (initialTab && !selectedInvoiceId) {
@@ -875,70 +865,26 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
             <p className="text-muted-foreground">{t("finance.subtitle")}</p>
           </div>
           
-          {canManageDemo && (
-            <div className="flex gap-2">
-              {demoExists ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeDemoData()}
-                  disabled={isRemoving}
-                  className="gap-2"
-                >
-                  {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  {t("common.removeDemo")}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadDemoData()}
-                  disabled={isDemoLoading}
-                  className="gap-2"
-                >
-                  {isDemoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  {t("common.loadDemo")}
-                </Button>
-              )}
-            </div>
-          )}
         </div>
-
-        {/* Mobile Demo Actions */}
-        {canManageDemo && (
-          <div className="lg:hidden flex justify-end mb-4">
-            {demoExists ? (
-              <Button variant="outline" size="sm" onClick={() => removeDemoData()} disabled={isRemoving} className="gap-2">
-                {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                <span className="hidden xs:inline">{t("common.removeDemo")}</span>
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => loadDemoData()} disabled={isDemoLoading} className="gap-2">
-                {isDemoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                <span className="hidden xs:inline">{t("common.loadDemo")}</span>
-              </Button>
-            )}
-          </div>
-        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FinanceTab)}>
-          <TabsList className="mb-4 lg:mb-6 w-full sm:w-auto overflow-x-auto">
-            <TabsTrigger value="invoices" className="gap-1.5 text-xs sm:text-sm">
-              <FileText className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.invoices")}</span>
+          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-4 h-auto p-1">
+            <TabsTrigger value="invoices" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <FileText className="w-5 h-5" />
+              <span>{t("finance.tabs.invoices")}</span>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-1.5 text-xs sm:text-sm">
-              <Receipt className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.expenses")}</span>
+            <TabsTrigger value="expenses" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <Receipt className="w-5 h-5" />
+              <span>{t("finance.tabs.expenses")}</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="gap-1.5 text-xs sm:text-sm">
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.payments")}</span>
+            <TabsTrigger value="payments" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <CreditCard className="w-5 h-5" />
+              <span>{t("finance.tabs.payments")}</span>
             </TabsTrigger>
-            <TabsTrigger value="ledger" className="gap-1.5 text-xs sm:text-sm">
-              <Wallet className="w-4 h-4" />
-              <span className="hidden xs:inline">{t("finance.tabs.ledger")}</span>
+            <TabsTrigger value="ledger" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <Wallet className="w-5 h-5" />
+              <span>{t("finance.tabs.ledger")}</span>
             </TabsTrigger>
           </TabsList>
 

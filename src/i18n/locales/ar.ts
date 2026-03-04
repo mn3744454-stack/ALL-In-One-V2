@@ -79,6 +79,8 @@ export const ar = {
     minCharacters: "يجب إدخال 5 أحرف على الأقل",
     print: "طباعة",
     export: "تصدير",
+    from: "من",
+    to: "إلى",
   },
   workspace: {
     personal: "شخصي",
