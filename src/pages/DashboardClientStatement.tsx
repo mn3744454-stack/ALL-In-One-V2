@@ -5,18 +5,13 @@ import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { ClientStatementTab } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { ArrowLeft, ArrowRight, Menu } from "lucide-react";
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function DashboardClientStatement() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
   const { t, dir } = useI18n();
   const isRTL = dir === "rtl";
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { clients } = useClients();
 
   const client = useMemo(
@@ -28,27 +23,13 @@ export default function DashboardClientStatement() {
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <DashboardSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        currentPath={location.pathname}
-      />
-
+    <div className="min-h-screen bg-background">
       <main className="flex-1 flex flex-col min-w-0 pb-24 lg:pb-0">
         {/* Mobile Header */}
         <MobilePageHeader title={t("clients.statement.title")} showBack />
 
-        {/* Desktop Header */}
+        {/* Desktop Header — clean top bar, no sidebar */}
         <header className="hidden lg:flex items-center h-16 px-6 border-b bg-background/95 backdrop-blur gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-            className="shrink-0"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
           <Button
             variant="ghost"
             size="sm"

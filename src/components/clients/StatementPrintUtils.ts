@@ -26,6 +26,34 @@ function formatTimeForPrint(dateStr: string, lang: string = 'en'): string {
   return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
 }
 
+// Terminology labels
+function getLabels(isRTL?: boolean) {
+  if (isRTL) {
+    return {
+      title: "كشف الحساب",
+      date: "التاريخ",
+      description: "الوصف",
+      debit: "المبلغ المطلوب",
+      credit: "المبلغ المسدد",
+      balance: "الإجمالي بعد الحركة",
+      totalDebit: "إجمالي المبلغ المطلوب",
+      totalCredit: "إجمالي المبلغ المسدد",
+      closingBalance: "الرصيد الختامي",
+    };
+  }
+  return {
+    title: "Account Statement",
+    date: "Date",
+    description: "Description",
+    debit: "Amount Due",
+    credit: "Amount Paid",
+    balance: "Balance After",
+    totalDebit: "Total Amount Due",
+    totalCredit: "Total Amount Paid",
+    closingBalance: "Closing Balance",
+  };
+}
+
 /**
  * Open a clean print window with just the statement content
  */
@@ -33,18 +61,23 @@ export function printStatement(data: StatementPrintData) {
   const dir = data.isRTL ? "rtl" : "ltr";
   const textAlign = data.isRTL ? "right" : "left";
   const lang = data.lang || (data.isRTL ? 'ar' : 'en');
+  const labels = getLabels(data.isRTL);
   
   const rows = data.entries
     .map(
       (e) => {
         const desc = data.enrichedDescriptions?.get(e.id) || e.description || "-";
+        // Convert pipe-separated enriched descriptions to multi-line for print
+        const descHtml = desc.includes(" | ")
+          ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${part}</strong>` : `<span style="color:#666;font-size:12px">${part}</span>`).join("<br>")
+          : desc;
         return `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${formatTimeForPrint(e.date, lang)}</td>
-      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${desc}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600" dir="ltr">${formatCurrency(e.balance)}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${formatTimeForPrint(e.date, lang)}</td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${formatCurrency(e.balance)}</td>
     </tr>`;
       }
     )
@@ -54,7 +87,7 @@ export function printStatement(data: StatementPrintData) {
 <html dir="${dir}">
 <head>
 <meta charset="UTF-8">
-<title>Account Statement - ${data.clientName}</title>
+<title>${labels.title} - ${data.clientName}</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   h1 { font-size: 20px; margin-bottom: 4px; }
@@ -70,20 +103,20 @@ export function printStatement(data: StatementPrintData) {
 </style>
 </head>
 <body>
-<h1>${data.isRTL ? "كشف الحساب" : "Account Statement"}</h1>
+<h1>${labels.title}</h1>
 <div class="meta">${data.clientName} &nbsp;|&nbsp; <span dir="ltr">${data.dateFrom} → ${data.dateTo}</span></div>
 
 <div class="summary">
   <div class="summary-card">
-    <div class="label">${data.isRTL ? "إجمالي المدين" : "Total Debits"}</div>
+    <div class="label">${labels.totalDebit}</div>
     <div class="value" dir="ltr">${formatCurrency(data.totalDebits)}</div>
   </div>
   <div class="summary-card">
-    <div class="label">${data.isRTL ? "إجمالي الدائن" : "Total Credits"}</div>
+    <div class="label">${labels.totalCredit}</div>
     <div class="value" dir="ltr">${formatCurrency(data.totalCredits)}</div>
   </div>
   <div class="summary-card">
-    <div class="label">${data.isRTL ? "الرصيد الختامي" : "Closing Balance"}</div>
+    <div class="label">${labels.closingBalance}</div>
     <div class="value" dir="ltr">${formatCurrency(data.closingBalance)}</div>
   </div>
 </div>
@@ -91,11 +124,11 @@ export function printStatement(data: StatementPrintData) {
 <table>
   <thead>
     <tr>
-      <th>${data.isRTL ? "التاريخ" : "Date"}</th>
-      <th>${data.isRTL ? "الوصف" : "Description"}</th>
-      <th style="text-align:center">${data.isRTL ? "مدين" : "Debit"}</th>
-      <th style="text-align:center">${data.isRTL ? "دائن" : "Credit"}</th>
-      <th style="text-align:center">${data.isRTL ? "الرصيد" : "Balance"}</th>
+      <th>${labels.date}</th>
+      <th>${labels.description}</th>
+      <th style="text-align:center">${labels.debit}</th>
+      <th style="text-align:center">${labels.credit}</th>
+      <th style="text-align:center">${labels.balance}</th>
     </tr>
   </thead>
   <tbody>${rows}</tbody>
@@ -116,7 +149,8 @@ export function printStatement(data: StatementPrintData) {
  */
 export function exportCSV(data: StatementPrintData) {
   const lang = data.lang || (data.isRTL ? 'ar' : 'en');
-  const headers = ["Date", "Description", "Debit", "Credit", "Balance"];
+  const labels = getLabels(data.isRTL);
+  const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance];
   const rows = data.entries.map((e) => [
     formatTimeForPrint(e.date, lang),
     `"${(data.enrichedDescriptions?.get(e.id) || e.description || "").replace(/"/g, '""')}"`,
@@ -127,10 +161,10 @@ export function exportCSV(data: StatementPrintData) {
 
   // Add summary row
   rows.push([]);
-  rows.push(["", "Total", data.totalDebits.toFixed(2), data.totalCredits.toFixed(2), data.closingBalance.toFixed(2)]);
+  rows.push(["", `"${labels.closingBalance}"`, data.totalDebits.toFixed(2), data.totalCredits.toFixed(2), data.closingBalance.toFixed(2)]);
 
   const csv = [headers.join(","), ...rows.map((r) => (r as string[]).join(","))].join("\n");
-  const BOM = "\uFEFF"; // For Excel Arabic support
+  const BOM = "\uFEFF";
   const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -144,7 +178,6 @@ export function exportCSV(data: StatementPrintData) {
  * Export statement as PDF using print-to-PDF approach (supports Arabic)
  */
 export function exportPDF(data: StatementPrintData) {
-  // Reuse the same approach as printStatement
   printStatement(data);
 }
 
@@ -170,6 +203,7 @@ export function printLedgerEntries(data: {
   const dir = data.isRTL ? "rtl" : "ltr";
   const textAlign = data.isRTL ? "right" : "left";
   const lang = data.lang || (data.isRTL ? 'ar' : 'en');
+  const labels = getLabels(data.isRTL);
 
   const rows = data.entries
     .map(
@@ -205,19 +239,19 @@ export function printLedgerEntries(data: {
 <table>
   <thead>
     <tr>
-      <th>${data.isRTL ? "التاريخ" : "Date"}</th>
+      <th>${labels.date}</th>
       <th style="text-align:center">${data.isRTL ? "النوع" : "Type"}</th>
-      <th>${data.isRTL ? "الوصف" : "Description"}</th>
-      <th style="text-align:center">${data.isRTL ? "مدين" : "Debit"}</th>
-      <th style="text-align:center">${data.isRTL ? "دائن" : "Credit"}</th>
-      <th style="text-align:center">${data.isRTL ? "الرصيد" : "Balance"}</th>
+      <th>${labels.description}</th>
+      <th style="text-align:center">${labels.debit}</th>
+      <th style="text-align:center">${labels.credit}</th>
+      <th style="text-align:center">${labels.balance}</th>
     </tr>
   </thead>
   <tbody>${rows}</tbody>
 </table>
 <div class="footer">
-  ${data.isRTL ? "إجمالي المدين" : "Total Debits"}: ${formatCurrency(data.totalDebits)} &nbsp;|&nbsp;
-  ${data.isRTL ? "إجمالي الدائن" : "Total Credits"}: ${formatCurrency(data.totalCredits)}
+  ${labels.totalDebit}: ${formatCurrency(data.totalDebits)} &nbsp;|&nbsp;
+  ${labels.totalCredit}: ${formatCurrency(data.totalCredits)}
 </div>
 </body>
 </html>`;
@@ -244,9 +278,11 @@ export function exportLedgerCSV(data: {
     balance: number;
   }>;
   lang?: string;
+  isRTL?: boolean;
 }) {
   const lang = data.lang || 'en';
-  const headers = ["Date", "Type", "Description", "Debit", "Credit", "Balance"];
+  const labels = getLabels(data.isRTL);
+  const headers = [labels.date, data.isRTL ? "النوع" : "Type", labels.description, labels.debit, labels.credit, labels.balance];
   const rows = data.entries.map((e) => [
     formatTimeForPrint(e.date, lang),
     e.entry_type,
