@@ -264,7 +264,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     {t("clients.statement.title")}
                   </CardTitle>
                   <Badge variant="outline" className="font-mono text-xs" dir="ltr">
-                    {isRTL ? `من ${scopeConfig.dateFrom} إلى ${scopeConfig.dateTo}` : `From ${scopeConfig.dateFrom} To ${scopeConfig.dateTo}`}
+                    {t("clients.statement.scope.dateFrom")} {scopeConfig.dateFrom} {t("clients.statement.scope.dateTo")} {scopeConfig.dateTo}
                   </Badge>
                   {scopeConfig.mode === "horses" && (
                     <Badge variant="secondary" className="text-xs">

@@ -3029,6 +3029,8 @@ export const en = {
       scope: {
         title: "Statement Scope",
         all: "All",
+        dateFrom: "From",
+        dateTo: "To",
         selectHorses: "Select Horses",
         selectServices: "Select Services",
         searchHorses: "Search horses...",

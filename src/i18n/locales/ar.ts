@@ -3055,6 +3055,8 @@ export const ar = {
       scope: {
         title: "نطاق كشف الحساب",
         all: "الكل",
+        dateFrom: "من",
+        dateTo: "إلى",
         selectHorses: "اختر الخيول",
         selectServices: "اختر الخدمات",
         searchHorses: "ابحث عن خيل...",
