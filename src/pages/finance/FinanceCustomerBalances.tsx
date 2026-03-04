@@ -24,13 +24,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FinanceCustomerBalances() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useI18n();
   const { clients, loading: clientsLoading } = useClients();
   const { getBalance, loading: balancesLoading } = useLedgerBalances();
 
   const [search, setSearch] = useState("");
-  const [statementClient, setStatementClient] = useState<Client | null>(null);
   const [paymentClientId, setPaymentClientId] = useState<string | null>(null);
 
   const loading = clientsLoading || balancesLoading;
@@ -70,7 +70,7 @@ export default function FinanceCustomerBalances() {
   }, [filteredClients, getBalance]);
 
   const handleViewStatement = (client: Client) => {
-    setStatementClient(client);
+    navigate(`/dashboard/clients/${client.id}/statement`);
   };
 
   const handleRecordPayment = (clientId: string) => {
@@ -236,22 +236,6 @@ export default function FinanceCustomerBalances() {
         </div>
       </main>
 
-      {/* Statement Sheet */}
-      <Sheet open={!!statementClient} onOpenChange={(open) => !open && setStatementClient(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{t("clients.statement.title")}</SheetTitle>
-          </SheetHeader>
-          {statementClient && (
-            <div className="mt-4">
-              <ClientStatementTab 
-                clientId={statementClient.id} 
-                clientName={statementClient.name}
-              />
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* Record Payment Dialog - placeholder for client-level payment */}
       {paymentClientId && (
