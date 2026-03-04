@@ -1,88 +1,49 @@
 
 
-# Diagnosis: Why Changes Appear Not Applied
+# Fix Plan: Scope Selector Header RTL + Date Layout
 
-## The Core Problem
+## Root Causes
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+### Task A — RTL/LTR header alignment
+**File:** `src/components/ui/sheet.tsx` line 81 + `src/components/clients/StatementScopeSelector.tsx` line 116-118
 
-**However, there are real remaining issues the user is seeing:**
+The `SheetHeader` uses `sm:text-left` (line 81) which is hardcoded LTR. In RTL, text should align to `text-start` instead. The close (X) button positioning (line 67-68) is already RTL-aware (`isRTL ? "left-4" : "right-4"`), so that's fine.
 
-### 1. Realtime Sync Uses WRONG Query Keys
+The real issue: `SheetHeader` uses `sm:text-left` instead of `sm:text-start`. This means in RTL the title/description text aligns left (wrong side). Fix: change to `sm:text-start` in `SheetHeader`.
 
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+### Task B — From/To stacked on desktop
+**File:** `src/components/clients/StatementScopeSelector.tsx` lines 124-147
 
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+The date range container uses `space-y-2` (vertical stack) with no responsive grid. Both date rows are always stacked. Fix: use `grid grid-cols-1 sm:grid-cols-2 gap-3` so they sit side-by-side on desktop, with label above each input.
 
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+## Changes
 
-### 3. Ledger "Enrich" Button Still Visible
+### 1. `src/components/ui/sheet.tsx` — SheetHeader (line 81)
+Change `sm:text-left` → `sm:text-start` for RTL-safe alignment.
 
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
+### 2. `src/components/clients/StatementScopeSelector.tsx` — Date range section (lines 124-147)
+Replace the stacked layout with a responsive grid where each cell has label above input:
 
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
-
----
-
-## Execution Plan
-
-### Step 1: Fix Realtime Sync Query Keys (Critical)
-
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
-
-Change the finance table mappings to use the **actual** query key prefixes:
-
-```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```tsx
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-foreground">
+      {t("clients.statement.scope.dateFrom")}
+    </label>
+    <Input type="date" value={dateFrom} onChange={...} />
+  </div>
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-foreground">
+      {t("clients.statement.scope.dateTo")}
+    </label>
+    <Input type="date" value={dateTo} onChange={...} />
+  </div>
+</div>
 ```
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
-
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
-
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
-
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
-
-### Step 3: Hide Backfill Button from Non-Admins
-
-**File:** `src/pages/DashboardFinance.tsx`
-
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
-
-### Step 4: Stabilize Invoice Table Column Widths
-
-**File:** `src/components/finance/InvoicesList.tsx`
-
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
-
-### Step 5: Fix Expenses Table View Alignment
-
-**File:** `src/components/finance/ExpensesList.tsx`
-
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
-
-### Verification Checklist
-
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+## Verification Checklist
+- **RTL desktop:** Title "نطاق كشف الحساب" aligns to the right (start), X on the left — correct
+- **LTR desktop:** Title aligns left (start), X on the right — correct
+- **Desktop (both dirs):** From/To date inputs appear side-by-side in one row, labels above
+- **Mobile (both dirs):** Date inputs stack vertically, labels above each
 
