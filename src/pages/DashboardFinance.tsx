@@ -805,9 +805,7 @@ function PaymentsTab() {
                     {formatDateTime12h(entry.created_at, lang)}
                   </span>
                 </div>
-                {entry.description && (
-                  <p className="text-sm text-muted-foreground truncate">{entry.description}</p>
-                )}
+                <p className="text-sm text-muted-foreground truncate">{getPaymentDesc(entry)}</p>
                 <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
                   <span className="text-primary">{formatAmount(Math.abs(entry.amount))}</span>
                   <span className="font-medium">{formatAmount(entry.balance_after)}</span>
