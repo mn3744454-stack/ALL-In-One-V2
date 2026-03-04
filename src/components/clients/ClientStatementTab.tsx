@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,22 +11,214 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
+import { useStatementEnrichment, type EnrichedStatementData, type EnrichedHorse } from "@/hooks/clients/useStatementEnrichment";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
-import { Download, Printer, FileText, Filter, FileDown } from "lucide-react";
+import { Download, Printer, FileText, Filter, FileDown, ChevronDown } from "lucide-react";
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
+import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 interface ClientStatementTabProps {
   clientId: string;
   clientName?: string;
+}
+
+/** Renders the multi-line "story" description for a statement entry */
+function EntryDescription({
+  entry,
+  enriched,
+  isRTL,
+  t,
+}: {
+  entry: StatementEntry;
+  enriched?: EnrichedStatementData;
+  isRTL: boolean;
+  t: (key: string) => string;
+}) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const typeBadge = (
+    <Badge variant="outline" className="text-xs shrink-0">
+      {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
+    </Badge>
+  );
+
+  // No enrichment available — fallback to raw description
+  if (!enriched) {
+    return (
+      <div className="flex items-center gap-2">
+        {typeBadge}
+        <span className="text-sm text-muted-foreground">{entry.description || "-"}</span>
+      </div>
+    );
+  }
+
+  // Payment row
+  if (entry.entry_type === "payment") {
+    return (
+      <div className="space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          {typeBadge}
+          {enriched.paymentMethod && (
+            <Badge variant="secondary" className="text-xs">
+              {enriched.paymentMethod}
+            </Badge>
+          )}
+          {enriched.invoiceNumber && (
+            <span className="text-sm font-medium font-mono" dir="ltr">
+              {enriched.invoiceNumber}
+            </span>
+          )}
+        </div>
+        {enriched.horses.length > 0 && (
+          <p className="text-xs text-muted-foreground ps-1">
+            {enriched.horses.map((h) => h.horseName).filter(Boolean).join(", ")}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  // Invoice row
+  if (entry.entry_type === "invoice") {
+    const hasHorses = enriched.horses.length > 0;
+    const isMulti = enriched.isMultiHorse;
+
+    // Horse summary line
+    let horseSummary = "";
+    if (hasHorses) {
+      const names = enriched.horses.map((h) => h.horseName).filter(Boolean);
+      if (names.length <= 2) {
+        horseSummary = names.join(", ");
+      } else {
+        horseSummary = `${names.slice(0, 2).join(", ")} (+${names.length - 2})`;
+      }
+    }
+
+    return (
+      <div className="space-y-0.5">
+        {/* Line 1: badge + invoice number */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {typeBadge}
+          {enriched.invoiceNumber && (
+            <span className="text-sm font-semibold font-mono" dir="ltr">
+              {enriched.invoiceNumber}
+            </span>
+          )}
+        </div>
+
+        {/* Line 2: horse name(s) + sample */}
+        {hasHorses && !isMulti && (
+          <p className="text-xs text-muted-foreground ps-1">
+            🐴 {enriched.horses[0].horseName}
+            {enriched.horses[0].samples.length > 0 && (
+              <span className="ms-2 font-mono" dir="ltr">
+                {t("clients.statement.sampleLabel")}: {enriched.horses[0].samples.map((s) => s.sampleLabel).join(", ")}
+              </span>
+            )}
+          </p>
+        )}
+
+        {/* Multi-horse summary */}
+        {isMulti && (
+          <p className="text-xs text-muted-foreground ps-1">
+            🐴 {t("clients.statement.horsesLabel")}: {horseSummary}
+          </p>
+        )}
+
+        {/* Line 3: items summary */}
+        {enriched.itemsSummary && (
+          <p className="text-xs text-muted-foreground ps-1">
+            {t("clients.statement.itemsLabel")}: {enriched.itemsSummary}
+          </p>
+        )}
+
+        {/* Expandable multi-horse details */}
+        {isMulti && (
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-1 text-xs text-primary hover:underline ps-1 mt-0.5">
+                <ChevronDown className={cn("h-3 w-3 transition-transform", detailsOpen && "rotate-180")} />
+                {detailsOpen ? t("clients.statement.hideDetails") : t("clients.statement.showDetails")}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="ps-3 mt-1 space-y-1 border-s-2 border-muted ms-1">
+                {enriched.horses.map((horse) => (
+                  <div key={horse.horseId} className="text-xs">
+                    <span className="font-medium">{horse.horseName}</span>
+                    {horse.samples.length > 0 && (
+                      <span className="text-muted-foreground ms-1 font-mono" dir="ltr">
+                        ({horse.samples.map((s) => s.sampleLabel).join(", ")})
+                      </span>
+                    )}
+                    {horse.items.length > 0 && (
+                      <span className="text-muted-foreground ms-1">
+                        — {horse.items.join(", ")}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </div>
+    );
+  }
+
+  // Other entry types (credit, adjustment)
+  return (
+    <div className="flex items-center gap-2">
+      {typeBadge}
+      <span className="text-sm text-muted-foreground">{entry.description || "-"}</span>
+    </div>
+  );
+}
+
+/** Convert enriched data to a flat string for print/export */
+export function enrichedToString(
+  entry: StatementEntry,
+  enriched?: EnrichedStatementData,
+  lang: string = "en"
+): string {
+  if (!enriched) return entry.description || "-";
+
+  const parts: string[] = [];
+
+  if (entry.entry_type === "payment") {
+    if (enriched.paymentMethod) parts.push(enriched.paymentMethod);
+    if (enriched.invoiceNumber) parts.push(enriched.invoiceNumber);
+    if (enriched.horses.length > 0) {
+      parts.push(enriched.horses.map((h) => h.horseName).filter(Boolean).join(", "));
+    }
+  } else if (entry.entry_type === "invoice") {
+    if (enriched.invoiceNumber) parts.push(enriched.invoiceNumber);
+    if (enriched.horses.length > 0) {
+      const horseNames = enriched.horses.map((h) => h.horseName).filter(Boolean);
+      if (enriched.isMultiHorse) {
+        parts.push(`(${horseNames.join(", ")})`);
+      } else {
+        parts.push(horseNames[0]);
+        const samples = enriched.horses[0].samples.map((s) => s.sampleLabel).join(", ");
+        if (samples) parts.push(samples);
+      }
+    }
+    if (enriched.itemsSummary) parts.push(enriched.itemsSummary);
+  } else {
+    return entry.description || "-";
+  }
+
+  return parts.join(" | ") || entry.description || "-";
 }
 
 export function ClientStatementTab({ clientId, clientName }: ClientStatementTabProps) {
@@ -34,12 +226,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const { hasPermission, isOwner } = usePermissions();
   const { activeTenant } = useTenant();
   const isRTL = dir === "rtl";
+  const lang = getCurrentLanguage();
 
   const canViewStatement = isOwner || hasPermission("clients.statement.view");
   const canExport = isOwner || hasPermission("clients.statement.export");
 
   // Scope selector state
-  const [scopeOpen, setScopeOpen] = useState(true); // Open on mount
+  const [scopeOpen, setScopeOpen] = useState(true);
   const [scopeConfig, setScopeConfig] = useState<StatementScopeConfig>({
     dateFrom: format(subMonths(new Date(), 3), "yyyy-MM-dd"),
     dateTo: format(new Date(), "yyyy-MM-dd"),
@@ -54,7 +247,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     async function fetchHorses() {
       if (!activeTenant?.tenant?.id || !clientId) return;
 
-      // Get horse IDs from invoice_items via invoices for this client
       const { data: invoices } = await supabase
         .from("invoices")
         .select("id")
@@ -65,7 +257,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
       const invoiceIds = invoices.map((inv: any) => inv.id);
 
-      // Get lab_sample entity_ids from invoice_items
       const { data: items } = await supabase
         .from("invoice_items" as any)
         .select("entity_id")
@@ -77,7 +268,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
       if (sampleIds.length === 0) return;
 
-      // Get unique horse IDs from lab_samples
       const { data: samples } = await supabase
         .from("lab_samples")
         .select("lab_horse_id")
@@ -88,7 +278,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       const horseIds = [...new Set((samples as any[]).map((s) => s.lab_horse_id).filter(Boolean))];
       if (horseIds.length === 0) return;
 
-      // Fetch horse names
       const { data: horses } = await supabase
         .from("lab_horses")
         .select("id, name, name_ar")
@@ -110,7 +299,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
   // Filter entries by horse if scope is "horses"
   const [horseFilteredEntryIds, setHorseFilteredEntryIds] = useState<Set<string> | null>(null);
-  
+
   useEffect(() => {
     async function filterByHorses() {
       if (scopeConfig.mode !== "horses" || scopeConfig.selectedHorseIds.length === 0 || !statement) {
@@ -118,7 +307,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         return;
       }
 
-      // Get invoice IDs from ledger entries
       const invoiceRefs = statement.entries
         .filter((e) => e.reference_type === "invoice" && e.reference_id)
         .map((e) => e.reference_id!);
@@ -128,7 +316,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         return;
       }
 
-      // Get invoice_items with lab_sample entity_type
       const { data: items } = await supabase
         .from("invoice_items" as any)
         .select("invoice_id, entity_id")
@@ -141,8 +328,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       }
 
       const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
-      
-      // Get samples and check horse_id
+
       const { data: samples } = await supabase
         .from("lab_samples")
         .select("id, lab_horse_id")
@@ -165,7 +351,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         });
       }
 
-      // Include payment entries for matching invoices too
       const allowedEntryIds = new Set<string>();
       statement.entries.forEach((e) => {
         if (e.reference_id && matchingInvoiceIds.has(e.reference_id)) {
@@ -184,6 +369,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     if (horseFilteredEntryIds === null) return statement.entries;
     return statement.entries.filter((e) => horseFilteredEntryIds.has(e.id));
   }, [statement, horseFilteredEntryIds]);
+
+  // Enrichment
+  const { enrichment, isEnriching } = useStatementEnrichment(entries);
 
   const summary = useMemo(() => {
     let totalDebit = 0;
@@ -211,15 +399,23 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     );
   }
 
+  // Build enriched descriptions map for print/CSV
+  const enrichedDescriptions = new Map<string, string>();
+  entries.forEach((e) => {
+    enrichedDescriptions.set(e.id, enrichedToString(e, enrichment.get(e.id), lang));
+  });
+
   const printData = {
     clientName: clientName || clientId,
     dateFrom: scopeConfig.dateFrom,
     dateTo: scopeConfig.dateTo,
     entries,
+    enrichedDescriptions,
     totalDebits: summary.totalDebit,
     totalCredits: summary.totalCredit,
     closingBalance: summary.closingBalance,
     isRTL,
+    lang,
   };
 
   const handlePrint = () => printStatement(printData);
@@ -239,7 +435,6 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       />
 
       {!hasGenerated ? (
-        /* Prompt to open scope */
         <Card>
           <CardContent className="py-12 text-center space-y-4">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
@@ -362,17 +557,17 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       </TableHeader>
                       <TableBody>
                         {entries.map((entry) => (
-                          <TableRow key={entry.id}>
+                          <TableRow key={entry.id} className="align-top">
                             <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
-                              {formatDateTime12h(entry.date, getCurrentLanguage())}
+                              {formatDateTime12h(entry.date, lang)}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs shrink-0">
-                                  {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
-                                </Badge>
-                                <span className={cn("text-sm truncate max-w-[400px]", dir === "rtl" ? "text-right" : "text-left")} title={entry.description}>{entry.description}</span>
-                              </div>
+                              <EntryDescription
+                                entry={entry}
+                                enriched={enrichment.get(entry.id)}
+                                isRTL={isRTL}
+                                t={t}
+                              />
                             </TableCell>
                             <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                               {entry.debit > 0 ? (
@@ -398,25 +593,23 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     {entries.map((entry) => (
                       <div key={entry.id} className="p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">
-                              {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
-                            </Badge>
-                            <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                              {formatDateTime12h(entry.date, getCurrentLanguage())}
-                            </span>
-                          </div>
+                          <span className="font-mono text-xs text-muted-foreground" dir="ltr">
+                            {formatDateTime12h(entry.date, lang)}
+                          </span>
                         </div>
-                        {entry.description && (
-                          <p className="text-sm text-muted-foreground truncate">{entry.description}</p>
-                        )}
+                        <EntryDescription
+                          entry={entry}
+                          enriched={enrichment.get(entry.id)}
+                          isRTL={isRTL}
+                          t={t}
+                        />
                         <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
                           <div className="flex gap-4">
                             {entry.debit > 0 && (
-                              <span className="text-destructive">{t("clients.statement.debit")}: {formatCurrency(entry.debit)}</span>
+                              <span className="text-destructive">{formatCurrency(entry.debit)}</span>
                             )}
                             {entry.credit > 0 && (
-                              <span className="text-primary">{t("clients.statement.credit")}: {formatCurrency(entry.credit)}</span>
+                              <span className="text-primary">{formatCurrency(entry.credit)}</span>
                             )}
                           </div>
                           <span className="font-medium">{formatCurrency(entry.balance)}</span>
