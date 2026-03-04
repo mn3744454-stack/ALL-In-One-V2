@@ -15,7 +15,7 @@ import {
 import { useI18n } from "@/i18n";
 import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
-import { ClientsList, ClientFilters, ClientFormDialog, ClientStatementTab, ClientsTable } from "@/components/clients";
+import { ClientsList, ClientFilters, ClientFormDialog, ClientsTable } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
@@ -24,6 +24,7 @@ import { Plus, Search, Users, Menu } from "lucide-react";
 
 export default function DashboardClients() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useI18n();
   const { clients, loading, canManage, createClient, updateClient, deleteClient } = useClients();
@@ -39,7 +40,6 @@ export default function DashboardClients() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Client | null>(null);
-  const [statementClient, setStatementClient] = useState<Client | null>(null);
 
   // Filter clients
   // Enrich clients with ledger-derived balances
@@ -90,7 +90,7 @@ export default function DashboardClients() {
   };
 
   const handleViewStatement = (client: Client) => {
-    setStatementClient(client);
+    navigate(`/dashboard/clients/${client.id}/statement`);
   };
 
   const confirmDelete = async () => {
@@ -256,23 +256,6 @@ export default function DashboardClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Statement Sheet */}
-      <Sheet open={!!statementClient} onOpenChange={(open) => !open && setStatementClient(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{t("clients.statement.title")}</SheetTitle>
-          </SheetHeader>
-          {statementClient && (
-            <div className="mt-4">
-              <ClientStatementTab 
-                clientId={statementClient.id} 
-                clientName={statementClient.name}
-              />
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
