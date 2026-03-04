@@ -1920,6 +1920,7 @@ export const en = {
       invoices: "Invoices",
       expenses: "Expenses",
       ledger: "Ledger",
+      payments: "Payments",
     },
     pos: {
       title: "Point of Sale",
