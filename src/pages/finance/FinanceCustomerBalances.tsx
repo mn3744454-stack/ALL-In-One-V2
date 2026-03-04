@@ -1,14 +1,8 @@
 import { useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -20,7 +14,6 @@ import {
 import { useI18n } from "@/i18n";
 import { useClients, Client } from "@/hooks/useClients";
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
-import { ClientStatementTab } from "@/components/clients";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
@@ -31,13 +24,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function FinanceCustomerBalances() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t, dir } = useI18n();
   const { clients, loading: clientsLoading } = useClients();
   const { getBalance, loading: balancesLoading } = useLedgerBalances();
 
   const [search, setSearch] = useState("");
-  const [statementClient, setStatementClient] = useState<Client | null>(null);
   const [paymentClientId, setPaymentClientId] = useState<string | null>(null);
 
   const loading = clientsLoading || balancesLoading;
@@ -77,7 +70,7 @@ export default function FinanceCustomerBalances() {
   }, [filteredClients, getBalance]);
 
   const handleViewStatement = (client: Client) => {
-    setStatementClient(client);
+    navigate(`/dashboard/clients/${client.id}/statement`);
   };
 
   const handleRecordPayment = (clientId: string) => {
@@ -243,22 +236,6 @@ export default function FinanceCustomerBalances() {
         </div>
       </main>
 
-      {/* Statement Sheet */}
-      <Sheet open={!!statementClient} onOpenChange={(open) => !open && setStatementClient(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{t("clients.statement.title")}</SheetTitle>
-          </SheetHeader>
-          {statementClient && (
-            <div className="mt-4">
-              <ClientStatementTab 
-                clientId={statementClient.id} 
-                clientName={statementClient.name}
-              />
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* Record Payment Dialog - placeholder for client-level payment */}
       {paymentClientId && (

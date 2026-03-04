@@ -1,133 +1,88 @@
 
 
-# Fix Plan: Statement Date Labels + Full-Page Layout
+# Diagnosis: Why Changes Appear Not Applied
 
-## Findings & Root Cause
+## The Core Problem
 
-### Issue #1 — Missing "From / To" labels on date inputs
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-**Root cause:** `StatementScopeSelector.tsx` lines 124-137 render two `<Input type="date">` with only a dash `–` between them. No `<Label>` or text label exists. The same problem repeats in `ClientStatementTab.tsx` line 267 where the date range badge uses inline hardcoded strings (`من ... إلى` / `From ... To`) — but these aren't proper i18n keys.
+**However, there are real remaining issues the user is seeing:**
 
-**i18n keys available:** `clients.statement.scope` namespace has no `from`/`to` keys. However, existing keys exist at `sharing.dateFrom` ("From Date" / "من تاريخ") and `sharing.dateTo` ("To Date" / "إلى تاريخ"). Best approach: add dedicated keys under `clients.statement.scope.dateFrom` and `clients.statement.scope.dateTo`.
+### 1. Realtime Sync Uses WRONG Query Keys
 
-### Issue #2 — Statement constrained in a Sheet
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-**Root cause:** `DashboardClients.tsx` lines 267-281 wrap `ClientStatementTab` inside a `<Sheet>` with `className="w-full sm:max-w-2xl"`. This caps the width at 672px on desktop, leaving massive blank space. The Sheet also overlaps the Scope Selector Sheet (which is itself another Sheet), creating a double-sheet nesting problem.
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-**Chosen approach: Option 1 — Dedicated route** (`/dashboard/clients/:clientId/statement`)
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-Justification:
-- Eliminates the Sheet constraint entirely
-- Clean browser navigation (Back button works)
-- Full viewport width for table
-- Scope selector can remain a Sheet overlay on the full-page view
-- No double-sheet nesting
-- Consistent with how other detail pages work in the app
+### 3. Ledger "Enrich" Button Still Visible
 
----
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-## Implementation Plan
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-### Step 1: Add i18n keys for From/To labels
-- Add `clients.statement.scope.dateFrom` and `clients.statement.scope.dateTo` to both `en.ts` and `ar.ts`
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-**en.ts** (inside `clients.statement.scope`):
-```
-dateFrom: "From",
-dateTo: "To",
-```
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-**ar.ts** (inside `clients.statement.scope`):
-```
-dateFrom: "من",
-dateTo: "إلى",
-```
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-### Step 2: Add labels to StatementScopeSelector date inputs
-Replace the date range section (lines 123-138) with labeled inputs:
+### 6. Scope Selector / Statement Content
 
-```tsx
-{/* Date range */}
-<div className="space-y-2">
-  <div className="flex items-center gap-2">
-    <label className="text-sm font-medium min-w-[32px]">
-      {t("clients.statement.scope.dateFrom")}
-    </label>
-    <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="flex-1" />
-  </div>
-  <div className="flex items-center gap-2">
-    <label className="text-sm font-medium min-w-[32px]">
-      {t("clients.statement.scope.dateTo")}
-    </label>
-    <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="flex-1" />
-  </div>
-</div>
-```
-
-### Step 3: Fix statement header badge to use i18n keys
-In `ClientStatementTab.tsx` line 267, replace hardcoded strings:
-```tsx
-<Badge variant="outline" className="font-mono text-xs" dir="ltr">
-  {t("clients.statement.scope.dateFrom")} {scopeConfig.dateFrom} {t("clients.statement.scope.dateTo")} {scopeConfig.dateTo}
-</Badge>
-```
-
-### Step 4: Create dedicated Statement page
-Create `src/pages/DashboardClientStatement.tsx`:
-- Read `clientId` from route params
-- Fetch client name from `useClients` or direct query
-- Render `ClientStatementTab` at full page width
-- Include Back button to `/dashboard/clients`
-- Include `MobilePageHeader` for mobile nav
-
-### Step 5: Add route to App.tsx
-```tsx
-<Route path="/dashboard/clients/:clientId/statement" element={
-  <ProtectedRoute><WorkspaceRouteGuard requiredMode="organization">
-    <DashboardClientStatement />
-  </WorkspaceRouteGuard></ProtectedRoute>
-} />
-```
-
-### Step 6: Replace Sheet in DashboardClients with navigation
-In `DashboardClients.tsx`:
-- Remove the entire `<Sheet>` block (lines 266-281)
-- Change `setStatementClient(client)` calls to `navigate(`/dashboard/clients/${client.id}/statement`)`
-- Remove `statementClient` state variable and Sheet imports
-
-### Step 7: Same fix for FinanceCustomerBalances.tsx
-Apply the same navigation approach if it also wraps statement in a Sheet.
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-## Files Changed
+## Execution Plan
 
-| File | Change |
-|------|--------|
-| `src/i18n/locales/en.ts` | Add `dateFrom`, `dateTo` keys under `clients.statement.scope` |
-| `src/i18n/locales/ar.ts` | Add `dateFrom`, `dateTo` keys under `clients.statement.scope` |
-| `src/components/clients/StatementScopeSelector.tsx` | Add From/To labels to date inputs |
-| `src/components/clients/ClientStatementTab.tsx` | Fix badge to use i18n keys |
-| `src/pages/DashboardClientStatement.tsx` | **NEW** — full-page statement route |
-| `src/App.tsx` | Add route `/dashboard/clients/:clientId/statement` |
-| `src/pages/DashboardClients.tsx` | Remove Sheet, navigate to route instead |
-| `src/pages/finance/FinanceCustomerBalances.tsx` | Same Sheet→route fix |
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
----
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-## Verification Checklist
+Change the finance table mappings to use the **actual** query key prefixes:
 
-**Desktop:**
-1. Go to Clients → click Statement action on any client → browser navigates to `/dashboard/clients/:id/statement`
-2. Scope Selector opens with clear "From" / "To" labels (Arabic: "من" / "إلى")
-3. Generate statement → full-width table fills viewport, no blank empty space
-4. Date range badge in header shows "From YYYY-MM-DD To YYYY-MM-DD" (or Arabic equivalent)
-5. Print/CSV/PDF buttons work from full-page view
-6. Back button returns to Clients list
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```
 
-**Mobile:**
-1. Same flow — statement renders full-width stacked cards
-2. No horizontal scroll
-3. Scope selector Sheet covers screen properly
-4. Date labels readable and properly aligned in RTL
+This is the single biggest fix -- it's why "no refresh" doesn't work.
+
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+
+### Step 3: Hide Backfill Button from Non-Admins
+
+**File:** `src/pages/DashboardFinance.tsx`
+
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+
+### Step 4: Stabilize Invoice Table Column Widths
+
+**File:** `src/components/finance/InvoicesList.tsx`
+
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+
+### Step 5: Fix Expenses Table View Alignment
+
+**File:** `src/components/finance/ExpensesList.tsx`
+
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+
+### Verification Checklist
+
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 

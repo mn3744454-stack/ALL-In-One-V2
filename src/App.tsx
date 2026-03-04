@@ -56,6 +56,7 @@ import NotFound from "./pages/NotFound";
 import AcceptConnectionPage from "./pages/AcceptConnectionPage";
 import DashboardNotificationSettings from "./pages/DashboardNotificationSettings";
 import DashboardClients from "./pages/DashboardClients";
+import DashboardClientStatement from "./pages/DashboardClientStatement";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import DebugAuth from "./pages/DebugAuth";
@@ -451,6 +452,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization">
               <DashboardClients />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/clients/:clientId/statement"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardClientStatement />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
