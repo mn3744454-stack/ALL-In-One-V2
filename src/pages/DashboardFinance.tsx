@@ -4,6 +4,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
@@ -474,45 +475,45 @@ function LedgerTab() {
         <>
           {/* Desktop table */}
           <div className="hidden sm:block rounded-md border overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-start p-3 font-medium w-[160px]">{t("common.date")}</th>
-                  <th className="text-start p-3 font-medium w-[90px]">{t("common.type")}</th>
-                  <th className={cn("p-3 font-medium", dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.debit")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("finance.ledger.credit")}</th>
-                  <th className="text-center p-3 font-medium w-[110px]">{t("clients.statement.balance")}</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px]">{t("common.date")}</TableHead>
+                  <TableHead className="w-[90px]">{t("common.type")}</TableHead>
+                  <TableHead className={cn(dir === "rtl" ? "text-right" : "text-left")}>{t("common.description")}</TableHead>
+                  <TableHead className="w-[110px]">{t("finance.ledger.debit")}</TableHead>
+                  <TableHead className="w-[110px]">{t("finance.ledger.credit")}</TableHead>
+                  <TableHead className="w-[110px]">{t("clients.statement.balance")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredEntries.map((entry) => {
                   const isDebit = entry.amount > 0;
                   return (
-                    <tr key={entry.id} className="border-b hover:bg-muted/30">
-                      <td className="p-3 font-mono text-xs whitespace-nowrap" dir="ltr">
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
                         {formatDateTime12h(entry.created_at, lang)}
-                      </td>
-                      <td className="p-3">
+                      </TableCell>
+                      <TableCell>
                         <Badge variant={entry.entry_type === 'payment' ? 'default' : 'secondary'} className="text-xs">
                           {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                         </Badge>
-                      </td>
-                      <td className={cn("p-3 max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getDesc(entry)}>{getDesc(entry)}</td>
-                      <td className="p-3 text-center font-mono tabular-nums" dir="ltr">
+                      </TableCell>
+                      <TableCell className={cn("max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getDesc(entry)}>{getDesc(entry)}</TableCell>
+                      <TableCell className="font-mono tabular-nums" dir="ltr">
                         {isDebit ? formatAmount(entry.amount) : "-"}
-                      </td>
-                      <td className="p-3 text-center font-mono tabular-nums text-primary" dir="ltr">
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums text-primary" dir="ltr">
                         {!isDebit ? formatAmount(Math.abs(entry.amount)) : "-"}
-                      </td>
-                      <td className="p-3 text-center font-mono tabular-nums font-medium" dir="ltr">
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums font-medium" dir="ltr">
                         {formatAmount(entry.balance_after)}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           {/* Mobile stacked rows */}
