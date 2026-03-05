@@ -5302,7 +5302,7 @@ export type Database = {
         Row: {
           amount: number
           balance_after: number
-          client_id: string
+          client_id: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -5318,7 +5318,7 @@ export type Database = {
         Insert: {
           amount: number
           balance_after: number
-          client_id: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -5334,7 +5334,7 @@ export type Database = {
         Update: {
           amount?: number
           balance_after?: number
-          client_id?: string
+          client_id?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
