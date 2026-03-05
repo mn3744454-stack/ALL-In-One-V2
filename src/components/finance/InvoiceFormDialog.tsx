@@ -78,7 +78,6 @@ export function InvoiceFormDialog({
         notes: invoice.notes || "",
       });
       
-      // Populate line items from existing items
       if (existingItems.length > 0) {
         setLineItems(existingItems.map(item => ({
           id: item.id,
@@ -91,7 +90,6 @@ export function InvoiceFormDialog({
         })));
       }
     } else if (open && !isEditMode) {
-      // Reset form for create mode
       setFormData({
         client_id: "",
         client_name: "",
@@ -107,25 +105,20 @@ export function InvoiceFormDialog({
     }
   }, [open, isEditMode, invoice, existingItems]);
 
-  // Calculate totals
   const calculations = useMemo(() => {
     const subtotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
     const taxRate = parseFloat(formData.tax_rate) || 0;
     const taxAmount = subtotal * (taxRate / 100);
     const discountAmount = parseFloat(formData.discount_amount) || 0;
     const totalAmount = subtotal + taxAmount - discountAmount;
-
     return { subtotal, taxAmount, discountAmount, totalAmount };
   }, [lineItems, formData.tax_rate, formData.discount_amount]);
 
-  // Generate invoice number
   const generateInvoiceNumber = () => {
     const prefix = activeTenant?.tenant.name?.substring(0, 3).toUpperCase() || "INV";
     const year = new Date().getFullYear();
     const month = String(new Date().getMonth() + 1).padStart(2, "0");
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0");
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
     return `${prefix}-${year}${month}-${random}`;
   };
 
@@ -145,7 +138,6 @@ export function InvoiceFormDialog({
     if (!activeTenant?.tenant.id) return;
 
     try {
-      // Validate
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
       if (validItems.length === 0) {
         toast.error(t("finance.invoices.noItemsError") || "Please add at least one item");
@@ -153,7 +145,6 @@ export function InvoiceFormDialog({
       }
 
       if (isEditMode && invoice) {
-        // UPDATE existing invoice
         await updateInvoice({
           id: invoice.id,
           client_id: formData.client_id || undefined,
@@ -167,13 +158,11 @@ export function InvoiceFormDialog({
           notes: formData.notes || undefined,
         });
 
-        // Delete existing items and recreate them
         await supabase
           .from("invoice_items" as any)
           .delete()
           .eq("invoice_id", invoice.id);
 
-        // Create updated invoice items
         for (const item of validItems) {
           await supabase.from("invoice_items" as any).insert({
             invoice_id: invoice.id,
@@ -188,7 +177,6 @@ export function InvoiceFormDialog({
 
         toast.success(t("finance.invoices.updated"));
       } else {
-        // CREATE new invoice
         const invoiceNumber = generateInvoiceNumber();
 
         const input: CreateInvoiceInput = {
@@ -208,7 +196,6 @@ export function InvoiceFormDialog({
 
         const newInvoice = await createInvoice(input);
 
-        // Create invoice items
         if (newInvoice) {
           for (const item of validItems) {
             await supabase.from("invoice_items" as any).insert({
@@ -222,7 +209,6 @@ export function InvoiceFormDialog({
             });
           }
 
-          // Post ledger entry for the invoice (if client exists)
           if (formData.client_id && activeTenant?.tenant.id) {
             await postLedgerForInvoice(newInvoice.id, activeTenant.tenant.id);
           }
@@ -242,109 +228,111 @@ export function InvoiceFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b -mx-6 px-6 -mt-2 pt-2">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {isEditMode ? t("finance.invoices.edit") : t("finance.invoices.create")}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto flex-1 px-1 -mx-1">
-          {/* Client and Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>{t("finance.invoices.client")}</Label>
-              <Select value={formData.client_id} onValueChange={handleClientChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t("finance.invoices.selectClient")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="space-y-6 overflow-y-auto overflow-x-hidden flex-1 px-6 py-4">
+            {/* Client and Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>{t("finance.invoices.client")}</Label>
+                <Select value={formData.client_id} onValueChange={handleClientChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("finance.invoices.selectClient")} />
+                  </SelectTrigger>
+                  <SelectContent className="z-[60]">
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <Label>{t("finance.invoices.issueDate")}</Label>
-              <Input
-                type="date"
-                value={formData.issue_date}
-                onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label>{t("finance.invoices.issueDate")}</Label>
+                <Input
+                  type="date"
+                  value={formData.issue_date}
+                  onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label>{t("finance.invoices.dueDate")}</Label>
-              <Input
-                type="date"
-                value={formData.due_date}
-                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-              />
-            </div>
-          </div>
-
-          {/* Line Items */}
-          <div className="space-y-2">
-            <Label>{t("finance.invoices.lineItems")}</Label>
-            <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} currency="SAR" />
-          </div>
-
-          {/* Tax and Discount */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>{t("finance.invoices.taxRate")} (%)</Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                step="0.1"
-                value={formData.tax_rate}
-                onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t("finance.invoices.discount")}</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.discount_amount}
-                onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">{t("finance.invoices.tax")}</Label>
-              <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium font-mono tabular-nums" dir="ltr">
-                {formatCurrency(calculations.taxAmount)}
+              <div className="space-y-2">
+                <Label>{t("finance.invoices.dueDate")}</Label>
+                <Input
+                  type="date"
+                  value={formData.due_date}
+                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                />
               </div>
             </div>
 
+            {/* Line Items */}
             <div className="space-y-2">
-              <Label className="text-gold font-bold">{t("finance.invoices.totalAmount")}</Label>
-              <div className="h-10 flex items-center px-3 bg-gold/10 rounded-md font-bold text-navy font-mono tabular-nums" dir="ltr">
-                {formatCurrency(calculations.totalAmount)}
+              <Label>{t("finance.invoices.lineItems")}</Label>
+              <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} currency="SAR" />
+            </div>
+
+            {/* Tax and Discount */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>{t("finance.invoices.taxRate")} (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={formData.tax_rate}
+                  onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                />
               </div>
+
+              <div className="space-y-2">
+                <Label>{t("finance.invoices.discount")}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.discount_amount}
+                  onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">{t("finance.invoices.tax")}</Label>
+                <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium font-mono tabular-nums" dir="ltr">
+                  {formatCurrency(calculations.taxAmount)}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-gold font-bold">{t("finance.invoices.totalAmount")}</Label>
+                <div className="h-10 flex items-center px-3 bg-gold/10 rounded-md font-bold text-navy font-mono tabular-nums" dir="ltr">
+                  {formatCurrency(calculations.totalAmount)}
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label>{t("finance.invoices.notes")}</Label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder={t("finance.invoices.notesPlaceholder")}
+                rows={3}
+              />
             </div>
           </div>
 
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label>{t("finance.invoices.notes")}</Label>
-            <Textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder={t("finance.invoices.notesPlaceholder")}
-              rows={3}
-            />
-          </div>
-
-          <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2">
+          <DialogFooter className="px-6 py-4 border-t shrink-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("common.cancel")}
             </Button>

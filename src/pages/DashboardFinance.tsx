@@ -27,8 +27,10 @@ import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
 import { isThisMonth, format } from "date-fns";
-import { enrichLedgerDescriptions } from "@/lib/finance/enrichLedgerDescriptions";
+import { enrichLedgerDescriptions, type EnrichedDescription } from "@/lib/finance/enrichLedgerDescriptions";
 import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/StatementPrintUtils";
+import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
+import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
 import {
   Menu,
   FileText,
@@ -243,6 +245,13 @@ function ExpensesTab() {
         onDelete={deleteExpense}
         onUpdateStatus={async (id, status) => {
           await updateExpense({ id, status: status as any });
+          if (status === "approved" && activeTenant?.tenant?.id) {
+            try {
+              await postLedgerForExpense(id, activeTenant.tenant.id);
+            } catch (err) {
+              console.error("Failed to post expense to ledger:", err);
+            }
+          }
         }}
         canManage={canManage}
       />
@@ -263,7 +272,7 @@ function LedgerTab() {
   const { entries, isLoading } = useLedgerEntries(tenantId);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, string>>(new Map());
+  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, EnrichedDescription>>(new Map());
 
   // Auto-run backfill once per tenant (owner only)
   useEffect(() => {
@@ -310,15 +319,17 @@ function LedgerTab() {
         }))
       );
       if (!cancelled) {
-        const map = new Map<string, string>();
-        result.forEach((v, k) => map.set(k, v.display));
-        setEnrichedDescs(map);
+        setEnrichedDescs(result);
       }
     })();
     return () => { cancelled = true; };
   }, [entries]);
 
-  const getDesc = (entry: any) => enrichedDescs.get(entry.id) || entry.description || "-";
+  const getDesc = (entry: any) => {
+    const e = enrichedDescs.get(entry.id);
+    return e?.display || entry.description || "-";
+  };
+  const getEnrichment = (entry: any) => enrichedDescs.get(entry.id);
 
   const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
@@ -499,7 +510,9 @@ function LedgerTab() {
                           {t(`finance.ledger.entryTypes.${entry.entry_type}`) || entry.entry_type}
                         </Badge>
                       </TableCell>
-                      <TableCell className={cn("max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getDesc(entry)}>{getDesc(entry)}</TableCell>
+                      <TableCell className={cn("max-w-[400px]", dir === "rtl" ? "text-right" : "text-left")}>
+                        <LedgerRowPreview enrichment={getEnrichment(entry)} fallbackText={getDesc(entry)} dir={dir} />
+                      </TableCell>
                       <TableCell className="font-mono tabular-nums" dir="ltr">
                         {isDebit ? formatAmount(entry.amount) : "-"}
                       </TableCell>
@@ -530,7 +543,9 @@ function LedgerTab() {
                       {formatDateTime12h(entry.created_at, lang)}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{getDesc(entry)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    <LedgerRowPreview enrichment={getEnrichment(entry)} fallbackText={getDesc(entry)} dir={dir} />
+                  </p>
                   <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
                     <div className="flex gap-4">
                       {isDebit && <span className="text-destructive">{formatAmount(entry.amount)}</span>}
@@ -557,7 +572,7 @@ function PaymentsTab() {
   const [dateTo, setDateTo] = useState("");
   const [methodFilter, setMethodFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, string>>(new Map());
+  const [enrichedDescs, setEnrichedDescs] = useState<Map<string, EnrichedDescription>>(new Map());
 
   // Enrich payment descriptions
   useEffect(() => {
@@ -575,15 +590,17 @@ function PaymentsTab() {
         }))
       );
       if (!cancelled) {
-        const map = new Map<string, string>();
-        result.forEach((v, k) => map.set(k, v.display));
-        setEnrichedDescs(map);
+        setEnrichedDescs(result);
       }
     })();
     return () => { cancelled = true; };
   }, [entries]);
 
-  const getPaymentDesc = (entry: any) => enrichedDescs.get(entry.id) || entry.description || "-";
+  const getPaymentDesc = (entry: any) => {
+    const e = enrichedDescs.get(entry.id);
+    return e?.display || entry.description || "-";
+  };
+  const getPaymentEnrichment = (entry: any) => enrichedDescs.get(entry.id);
 
   // Filter to payment entries only
   const paymentEntries = useMemo(() => {
@@ -773,8 +790,8 @@ function PaymentsTab() {
                     <TableCell className="font-mono text-xs whitespace-nowrap" dir="ltr">
                       {formatDateTime12h(entry.created_at, lang)}
                     </TableCell>
-                    <TableCell className={cn("max-w-[400px] truncate", dir === "rtl" ? "text-right" : "text-left")} title={getPaymentDesc(entry)}>
-                      {getPaymentDesc(entry)}
+                    <TableCell className={cn("max-w-[400px]", dir === "rtl" ? "text-right" : "text-left")}>
+                      <LedgerRowPreview enrichment={getPaymentEnrichment(entry)} fallbackText={getPaymentDesc(entry)} dir={dir} />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">
@@ -805,7 +822,9 @@ function PaymentsTab() {
                     {formatDateTime12h(entry.created_at, lang)}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground truncate">{getPaymentDesc(entry)}</p>
+                <p className="text-sm text-muted-foreground">
+                  <LedgerRowPreview enrichment={getPaymentEnrichment(entry)} fallbackText={getPaymentDesc(entry)} dir={dir} />
+                </p>
                 <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
                   <span className="text-primary">{formatAmount(Math.abs(entry.amount))}</span>
                   <span className="font-medium">{formatAmount(entry.balance_after)}</span>

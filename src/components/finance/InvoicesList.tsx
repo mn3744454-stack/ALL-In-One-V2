@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -26,11 +27,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { InvoiceCard } from "./InvoiceCard";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
-import { ViewSwitcher, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
+import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { usePermissions } from "@/hooks/usePermissions";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
@@ -39,7 +48,18 @@ import { useInvoicePaymentsBatch } from "@/hooks/finance/useInvoicePaymentsBatch
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatters";
-import { Search, FileText } from "lucide-react";
+import {
+  Search,
+  FileText,
+  MoreHorizontal,
+  Eye,
+  Download,
+  Printer,
+  Send,
+  CheckCircle,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -64,6 +84,7 @@ export function InvoicesList({
 }: InvoicesListProps) {
   const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -72,9 +93,14 @@ export function InvoicesList({
   const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
   const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
 
+  const canEdit = hasPermission("finance.invoice.edit");
+  const canDelete = hasPermission("finance.invoice.delete");
+  const canMarkPaid = hasPermission("finance.invoice.markPaid");
+  const canSend = hasPermission("finance.invoice.send");
+  const canPrint = hasPermission("finance.invoice.print");
+
   const filteredInvoices = useMemo(() => {
     return invoices.filter((invoice) => {
-      // Search filter
       if (search) {
         const searchLower = search.toLowerCase();
         const matchesSearch =
@@ -82,12 +108,9 @@ export function InvoicesList({
           invoice.client_name?.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
-
-      // Status filter
       if (statusFilter !== "all" && invoice.status !== statusFilter) {
         return false;
       }
-
       return true;
     });
   }, [invoices, search, statusFilter]);
@@ -101,7 +124,6 @@ export function InvoicesList({
 
   const handleDownloadPDF = async (invoice: Invoice) => {
     try {
-      // Fetch invoice items
       const { data: items } = await supabase
         .from("invoice_items" as any)
         .select("*")
@@ -147,6 +169,85 @@ export function InvoicesList({
       </div>
     );
   }
+
+  const renderInvoiceActions = (invoice: Invoice) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onInvoiceClick?.(invoice.id)}>
+          <Eye className="w-4 h-4 me-2" />
+          {t("finance.invoices.view")}
+        </DropdownMenuItem>
+        {canPrint && (
+          <>
+            <DropdownMenuItem onClick={() => handleDownloadPDF(invoice)}>
+              <Download className="w-4 h-4 me-2" />
+              {t("finance.invoices.downloadPDF")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePrint(invoice)}>
+              <Printer className="w-4 h-4 me-2" />
+              {t("finance.invoices.print")}
+            </DropdownMenuItem>
+          </>
+        )}
+        <DropdownMenuSeparator />
+        {canSend && invoice.status === "draft" && (
+          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "sent")}>
+            <Send className="w-4 h-4 me-2" />
+            {t("finance.invoices.markAsSent")}
+          </DropdownMenuItem>
+        )}
+        {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "paid")}>
+            <CheckCircle className="w-4 h-4 me-2 text-success" />
+            {t("finance.invoices.markPaid")}
+          </DropdownMenuItem>
+        )}
+        {canEdit && invoice.status === "draft" && (
+          <DropdownMenuItem onClick={() => onEdit?.(invoice)}>
+            <Pencil className="w-4 h-4 me-2" />
+            {t("common.edit")}
+          </DropdownMenuItem>
+        )}
+        {canDelete && invoice.status === "draft" && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setDeleteId(invoice.id)} className="text-destructive">
+              <Trash2 className="w-4 h-4 me-2" />
+              {t("common.delete")}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  const renderCard = (invoice: Invoice) => (
+    <div
+      key={invoice.id}
+      onClick={() => onInvoiceClick?.(invoice.id)}
+      className={cn(
+        "cursor-pointer transition-colors",
+        selectedInvoiceId === invoice.id && "ring-2 ring-primary rounded-xl"
+      )}
+    >
+      <InvoiceCard
+        invoice={invoice}
+        paidAmount={getPaidAmount(invoice.id)}
+        onEdit={() => onEdit?.(invoice)}
+        onDelete={() => setDeleteId(invoice.id)}
+        onView={() => onInvoiceClick?.(invoice.id)}
+        onDownloadPDF={() => handleDownloadPDF(invoice)}
+        onPrint={() => handlePrint(invoice)}
+        onSend={() => onUpdateStatus?.(invoice.id, "sent")}
+        onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -205,85 +306,64 @@ export function InvoicesList({
             </p>
           )}
         </div>
-      ) : (
-        <>
-          {viewMode === 'table' ? (
-            <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[120px]">{t("finance.invoices.number")}</TableHead>
-                    <TableHead>{t("finance.invoices.client")}</TableHead>
-                    <TableHead className="w-[110px]">{t("common.date")}</TableHead>
-                    <TableHead className="text-center w-[110px]">{t("finance.invoices.total")}</TableHead>
-                    <TableHead className="text-center w-[110px]">{t("finance.payments.paidSoFar")}</TableHead>
-                    <TableHead className="text-center w-[110px]">{t("finance.payments.outstanding")}</TableHead>
-                    <TableHead className="text-center w-[100px]">{t("common.status")}</TableHead>
+      ) : viewMode === 'table' ? (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[120px]">{t("finance.invoices.number")}</TableHead>
+                <TableHead>{t("finance.invoices.client")}</TableHead>
+                <TableHead className="w-[110px]">{t("common.date")}</TableHead>
+                <TableHead className="text-center w-[110px]">{t("finance.invoices.total")}</TableHead>
+                <TableHead className="text-center w-[110px]">{t("finance.payments.paidSoFar")}</TableHead>
+                <TableHead className="text-center w-[110px]">{t("finance.payments.outstanding")}</TableHead>
+                <TableHead className="text-center w-[100px]">{t("common.status")}</TableHead>
+                <TableHead className="w-[50px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredInvoices.map((invoice) => {
+                const paid = getPaidAmount(invoice.id);
+                const remaining = Math.max(0, invoice.total_amount - paid);
+                return (
+                  <TableRow
+                    key={invoice.id}
+                    className={cn(
+                      "cursor-pointer hover:bg-muted/50",
+                      selectedInvoiceId === invoice.id && "bg-primary/5"
+                    )}
+                    onClick={() => onInvoiceClick?.(invoice.id)}
+                  >
+                    <TableCell className="font-mono text-sm whitespace-nowrap">{invoice.invoice_number}</TableCell>
+                    <TableCell className="min-w-[120px] whitespace-nowrap">{invoice.client_name || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm" dir="ltr">
+                      {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
+                    </TableCell>
+                    <TableCell className="text-center font-mono tabular-nums" dir="ltr">
+                      {formatAmount(invoice.total_amount)}
+                    </TableCell>
+                    <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
+                      {paid > 0 ? formatAmount(paid) : "-"}
+                    </TableCell>
+                    <TableCell className={cn("text-center font-mono tabular-nums", remaining > 0.01 && "text-destructive")} dir="ltr">
+                      {formatAmount(remaining)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <InvoiceStatusBadge status={invoice.status} />
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {renderInvoiceActions(invoice)}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInvoices.map((invoice) => {
-                    const paid = getPaidAmount(invoice.id);
-                    const remaining = Math.max(0, invoice.total_amount - paid);
-                    return (
-                      <TableRow
-                        key={invoice.id}
-                        className={cn(
-                          "cursor-pointer hover:bg-muted/50",
-                          selectedInvoiceId === invoice.id && "bg-primary/5"
-                        )}
-                        onClick={() => onInvoiceClick?.(invoice.id)}
-                      >
-                        <TableCell className="font-mono text-sm whitespace-nowrap">{invoice.invoice_number}</TableCell>
-                        <TableCell className="min-w-[120px] whitespace-nowrap">{invoice.client_name || "-"}</TableCell>
-                        <TableCell className="font-mono text-sm" dir="ltr">
-                          {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
-                        </TableCell>
-                        <TableCell className="text-center font-mono tabular-nums" dir="ltr">
-                          {formatAmount(invoice.total_amount)}
-                        </TableCell>
-                        <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
-                          {paid > 0 ? formatAmount(paid) : "-"}
-                        </TableCell>
-                        <TableCell className={cn("text-center font-mono tabular-nums", remaining > 0.01 && "text-destructive")} dir="ltr">
-                          {formatAmount(remaining)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <InvoiceStatusBadge status={invoice.status} />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredInvoices.map((invoice) => (
-                <div
-                  key={invoice.id}
-                  onClick={() => onInvoiceClick?.(invoice.id)}
-                  className={cn(
-                    "cursor-pointer transition-colors",
-                    selectedInvoiceId === invoice.id && "ring-2 ring-primary rounded-xl"
-                  )}
-                >
-                  <InvoiceCard
-                    invoice={invoice}
-                    paidAmount={getPaidAmount(invoice.id)}
-                    onEdit={() => onEdit?.(invoice)}
-                    onDelete={() => setDeleteId(invoice.id)}
-                    onView={() => onInvoiceClick?.(invoice.id)}
-                    onDownloadPDF={() => handleDownloadPDF(invoice)}
-                    onPrint={() => handlePrint(invoice)}
-                    onSend={() => onUpdateStatus?.(invoice.id, "sent")}
-                    onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className={viewMode === 'grid' ? getGridClass(gridColumns, viewMode) : 'space-y-3'}>
+          {filteredInvoices.map((invoice) => renderCard(invoice))}
+        </div>
       )}
 
       {/* Delete Confirmation */}

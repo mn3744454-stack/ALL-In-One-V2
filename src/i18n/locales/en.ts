@@ -2184,7 +2184,7 @@ export const en = {
       paidSoFar: "Paid So Far",
       outstanding: "Outstanding",
       paymentDetails: "Payment Details",
-      method: "Method",
+      method: "Payment Method",
       amount: "Amount",
       reference: "Reference",
       referencePlaceholder: "Check #, Txn ID...",
