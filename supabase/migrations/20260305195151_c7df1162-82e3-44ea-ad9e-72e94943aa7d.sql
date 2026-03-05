@@ -1,0 +1,1 @@
+ALTER TABLE public.ledger_entries ALTER COLUMN client_id DROP NOT NULL;

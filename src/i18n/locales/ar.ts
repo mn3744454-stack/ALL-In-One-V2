@@ -2210,7 +2210,7 @@ export const ar = {
       paidSoFar: "المدفوع حتى الآن",
       outstanding: "المتبقي",
       paymentDetails: "تفاصيل الدفع",
-      method: "الطريقة",
+      method: "طريقة الدفع",
       amount: "المبلغ",
       reference: "المرجع",
       referencePlaceholder: "رقم الشيك، رقم التحويل...",

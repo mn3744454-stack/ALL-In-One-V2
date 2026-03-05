@@ -28,14 +28,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ExpenseCard } from "./ExpenseCard";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { EXPENSE_CATEGORIES, type Expense } from "@/hooks/finance/useExpenses";
-import { ViewSwitcher } from "@/components/ui/ViewSwitcher";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { formatCurrency } from "@/lib/formatters";
-import { Search, Receipt, Filter } from "lucide-react";
+import {
+  Search,
+  Receipt,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Eye,
+} from "lucide-react";
 import { format } from "date-fns";
 
 interface ExpensesListProps {
@@ -67,7 +82,6 @@ export function ExpensesList({
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
-      // Search filter
       if (search) {
         const searchLower = search.toLowerCase();
         const matchesSearch =
@@ -76,17 +90,8 @@ export function ExpensesList({
           expense.notes?.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
-
-      // Category filter
-      if (categoryFilter !== "all" && expense.category !== categoryFilter) {
-        return false;
-      }
-
-      // Status filter
-      if (statusFilter !== "all" && expense.status !== statusFilter) {
-        return false;
-      }
-
+      if (categoryFilter !== "all" && expense.category !== categoryFilter) return false;
+      if (statusFilter !== "all" && expense.status !== statusFilter) return false;
       return true;
     });
   }, [expenses, search, categoryFilter, statusFilter]);
@@ -107,6 +112,47 @@ export function ExpensesList({
       </div>
     );
   }
+
+  const renderExpenseActions = (expense: Expense) => {
+    if (!canManage) return null;
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {expense.status === "pending" && (
+            <>
+              <DropdownMenuItem onClick={() => onUpdateStatus?.(expense.id, "approved")}>
+                <CheckCircle className="w-4 h-4 me-2 text-success" />
+                {t("finance.expenses.approve")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUpdateStatus?.(expense.id, "rejected")}>
+                <XCircle className="w-4 h-4 me-2 text-destructive" />
+                {t("finance.expenses.reject")}
+              </DropdownMenuItem>
+            </>
+          )}
+          {expense.receipt_asset_id && (
+            <DropdownMenuItem onClick={() => onViewReceipt?.(expense)}>
+              <Eye className="w-4 h-4 me-2" />
+              {t("finance.expenses.viewReceipt")}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem onClick={() => onEdit?.(expense)}>
+            <Pencil className="w-4 h-4 me-2" />
+            {t("common.edit")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDeleteId(expense.id)} className="text-destructive">
+            <Trash2 className="w-4 h-4 me-2" />
+            {t("common.delete")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -190,6 +236,7 @@ export function ExpensesList({
                 <TableHead className="min-w-[100px]">{t("finance.expenses.category")}</TableHead>
                 <TableHead className="text-center w-[110px] whitespace-nowrap">{t("finance.expenses.amount")}</TableHead>
                 <TableHead className="text-center w-[100px] whitespace-nowrap">{t("common.status")}</TableHead>
+                {canManage && <TableHead className="w-[50px]" />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -212,13 +259,18 @@ export function ExpensesList({
                       {t(`finance.expenses.statuses.${expense.status}`)}
                     </Badge>
                   </TableCell>
+                  {canManage && (
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      {renderExpenseActions(expense)}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className={viewMode === 'grid' ? getGridClass(gridColumns, viewMode) : 'space-y-3'}>
           {filteredExpenses.map((expense) => (
             <ExpenseCard
               key={expense.id}

@@ -1,8 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 
-interface EnrichedDescription {
+export interface EnrichedDescription {
   display: string;
   horseName?: string;
+  horseNameAr?: string;
   sampleLabel?: string;
   items?: string[];
   paymentMethod?: string;
@@ -11,12 +12,7 @@ interface EnrichedDescription {
 
 /**
  * Resolves enriched display descriptions for ledger entries at render time.
- * This handles BOTH old (generic) and new (already enriched) descriptions.
- * 
- * For entries with generic descriptions like "Invoice INV-LAB-001",
- * it resolves horse, sample, and item info from the DB.
- * 
- * For entries already enriched with " | " segments, it returns as-is.
+ * Handles BOTH old (generic) and new (already enriched) descriptions.
  */
 export async function enrichLedgerDescriptions(
   entries: Array<{
@@ -29,13 +25,11 @@ export async function enrichLedgerDescriptions(
 ): Promise<Map<string, EnrichedDescription>> {
   const result = new Map<string, EnrichedDescription>();
 
-  // Separate entries into already-enriched vs needs-enrichment
   const needsEnrichment: typeof entries = [];
 
   for (const entry of entries) {
     const desc = entry.description || "";
     if (desc.includes(" | ")) {
-      // Already enriched
       result.set(entry.id, { display: desc });
     } else {
       needsEnrichment.push(entry);
@@ -44,7 +38,6 @@ export async function enrichLedgerDescriptions(
 
   if (needsEnrichment.length === 0) return result;
 
-  // Collect invoice reference_ids for batch resolution
   const invoiceIds = [
     ...new Set(
       needsEnrichment
@@ -54,9 +47,11 @@ export async function enrichLedgerDescriptions(
   ];
 
   if (invoiceIds.length === 0) {
-    // No references to resolve — return original descriptions
     for (const entry of needsEnrichment) {
-      result.set(entry.id, { display: entry.description || "-" });
+      result.set(entry.id, {
+        display: entry.description || "-",
+        paymentMethod: entry.payment_method || undefined,
+      });
     }
     return result;
   }
@@ -70,7 +65,7 @@ export async function enrichLedgerDescriptions(
   const invoiceMap = new Map<string, string>();
   invoices?.forEach((inv: any) => invoiceMap.set(inv.id, inv.invoice_number));
 
-  // Batch fetch invoice_items for all relevant invoices
+  // Batch fetch invoice_items
   const { data: allItems } = await supabase
     .from("invoice_items" as any)
     .select("invoice_id, description, entity_type, entity_id")
@@ -83,7 +78,6 @@ export async function enrichLedgerDescriptions(
     entity_id: string | null;
   }>;
 
-  // Group items by invoice_id
   const itemsByInvoice = new Map<string, typeof typedItems>();
   typedItems.forEach((item) => {
     const list = itemsByInvoice.get(item.invoice_id) || [];
@@ -91,7 +85,7 @@ export async function enrichLedgerDescriptions(
     itemsByInvoice.set(item.invoice_id, list);
   });
 
-  // Collect all lab_sample entity_ids for batch horse resolution
+  // Collect lab_sample entity_ids for batch horse resolution
   const sampleIds = [
     ...new Set(
       typedItems
@@ -101,7 +95,7 @@ export async function enrichLedgerDescriptions(
   ];
 
   // Batch fetch samples + horses
-  let sampleToHorse = new Map<string, { horseName: string; sampleLabel: string }>();
+  let sampleToHorse = new Map<string, { horseName: string; horseNameAr: string; sampleLabel: string }>();
   if (sampleIds.length > 0) {
     const { data: samples } = await supabase
       .from("lab_samples")
@@ -115,7 +109,7 @@ export async function enrichLedgerDescriptions(
         ),
       ];
 
-      let horseNames = new Map<string, string>();
+      let horseData = new Map<string, { name: string; nameAr: string }>();
       if (horseIds.length > 0) {
         const { data: horses } = await supabase
           .from("lab_horses")
@@ -123,7 +117,10 @@ export async function enrichLedgerDescriptions(
           .in("id", horseIds);
 
         horses?.forEach((h: any) => {
-          horseNames.set(h.id, h.name || h.name_ar || "");
+          horseData.set(h.id, {
+            name: h.name || "",
+            nameAr: h.name_ar || "",
+          });
         });
       }
 
@@ -131,15 +128,17 @@ export async function enrichLedgerDescriptions(
         const sLabel = s.daily_number
           ? `#${s.daily_number}`
           : s.physical_sample_id?.slice(0, 12) || "";
+        const horse = s.lab_horse_id ? horseData.get(s.lab_horse_id) : undefined;
         sampleToHorse.set(s.id, {
-          horseName: s.lab_horse_id ? horseNames.get(s.lab_horse_id) || "" : "",
+          horseName: horse?.name || "",
+          horseNameAr: horse?.nameAr || "",
           sampleLabel: sLabel,
         });
       });
     }
   }
 
-  // Build enriched descriptions for each entry
+  // Build enriched descriptions
   for (const entry of needsEnrichment) {
     const invoiceNumber = entry.reference_id
       ? invoiceMap.get(entry.reference_id) || ""
@@ -149,6 +148,10 @@ export async function enrichLedgerDescriptions(
       : [];
 
     const parts: string[] = [];
+    let horseName = "";
+    let horseNameAr = "";
+    let sampleLabel = "";
+    const itemNames: string[] = [];
 
     if (entry.entry_type === "payment") {
       parts.push("Payment");
@@ -157,23 +160,31 @@ export async function enrichLedgerDescriptions(
     } else if (entry.entry_type === "invoice") {
       if (invoiceNumber) parts.push(`Invoice ${invoiceNumber}`);
 
-      // Resolve horse/sample from items
       const labSampleItems = items.filter(
         (i) => i.entity_type === "lab_sample" && i.entity_id
       );
       if (labSampleItems.length > 0) {
         const resolved = sampleToHorse.get(labSampleItems[0].entity_id!);
-        if (resolved?.horseName) parts.push(`Horse: ${resolved.horseName}`);
-        if (resolved?.sampleLabel) parts.push(`Sample: ${resolved.sampleLabel}`);
+        if (resolved?.horseName) {
+          horseName = resolved.horseName;
+          parts.push(`Horse: ${resolved.horseName}`);
+        }
+        if (resolved?.horseNameAr) {
+          horseNameAr = resolved.horseNameAr;
+        }
+        if (resolved?.sampleLabel) {
+          sampleLabel = resolved.sampleLabel;
+          parts.push(`Sample: ${resolved.sampleLabel}`);
+        }
       }
 
-      // Add item descriptions (max 3)
-      const itemNames = items
+      const names = items
         .map((i) => i.description)
         .filter(Boolean)
         .slice(0, 3);
-      if (itemNames.length > 0) {
-        parts.push(`Items: ${itemNames.join(", ")}`);
+      itemNames.push(...names);
+      if (names.length > 0) {
+        parts.push(`Items: ${names.join(", ")}`);
       }
     } else {
       parts.push(entry.description || entry.entry_type);
@@ -181,7 +192,12 @@ export async function enrichLedgerDescriptions(
 
     result.set(entry.id, {
       display: parts.join(" | ") || entry.description || "-",
-      invoiceNumber,
+      invoiceNumber: invoiceNumber || undefined,
+      horseName: horseName || undefined,
+      horseNameAr: horseNameAr || undefined,
+      sampleLabel: sampleLabel || undefined,
+      items: itemNames.length > 0 ? itemNames : undefined,
+      paymentMethod: entry.payment_method || undefined,
     });
   }
 
