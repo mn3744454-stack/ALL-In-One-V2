@@ -432,6 +432,17 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
+                {/* Clients - for owners and managers */}
+                {["owner", "manager"].includes(activeRole || "") && (
+                  <NavItem
+                    icon={UserCircle}
+                    label={t('clients.title')}
+                    href="/dashboard/clients"
+                    active={isActive("/dashboard/clients")}
+                    onNavigate={onClose}
+                  />
+                )}
+
                 {/* Finance NavGroup - for owners and managers */}
                 {["owner", "manager"].includes(activeRole || "") && (
                   <NavGroup
