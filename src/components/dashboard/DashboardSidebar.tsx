@@ -23,8 +23,9 @@ import {
   FileText,
   Users,
   Settings,
-  TrendingUp,
+  BookOpen,
   Heart,
+  Banknote,
   LogOut,
   MessageSquare,
   Globe,
@@ -192,10 +193,11 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
   // Build Finance nav items (includes Clients for non-lab tenants)
   const financeNavItems = useMemo(() => [
-    { icon: TrendingUp, label: t('finance.overview'), href: "/dashboard/finance" },
+    { icon: BookOpen, label: t('finance.tabs.ledger'), href: "/dashboard/finance/ledger" },
     { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
     { icon: CreditCard, label: t('finance.expenses.title'), href: "/dashboard/finance/expenses" },
-    { icon: UsersIcon, label: t('clients.title'), href: "/dashboard/finance/customer-balances" },
+    { icon: Banknote, label: t('finance.tabs.payments'), href: "/dashboard/finance/payments" },
+    { icon: UsersIcon, label: t('finance.customerBalances.title'), href: "/dashboard/finance/customer-balances" },
     { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos" },
   ], [t]);
 
