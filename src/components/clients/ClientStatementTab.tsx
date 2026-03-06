@@ -531,7 +531,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
           {/* Statement entries */}
           <Card>
             <CardContent className="p-0">
-              {isLoading ? (
+              {(isLoading || isEnriching) ? (
                 <div className="p-4 space-y-2">
                   {[1, 2, 3, 4].map((i) => (
                     <Skeleton key={i} className="h-10 w-full" />
