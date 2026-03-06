@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardFinance from "../DashboardFinance";
 
 // Valid tab values that can be set via URL
-type FinanceTab = "invoices" | "expenses" | "ledger";
+type FinanceTab = "invoices" | "expenses" | "ledger" | "payments";
 
 /**
  * Wrapper component that handles tab preselection for Finance child routes.
@@ -15,7 +15,7 @@ export default function DashboardFinanceWrapper() {
   const navigate = useNavigate();
 
   // Validate tab parameter
-  const validTabs: FinanceTab[] = ["invoices", "expenses", "ledger"];
+  const validTabs: FinanceTab[] = ["invoices", "expenses", "ledger", "payments"];
   const isValidTab = tab && validTabs.includes(tab as FinanceTab);
 
   useEffect(() => {
