@@ -29,8 +29,9 @@ export async function enrichLedgerDescriptions(
 
   for (const entry of entries) {
     const desc = entry.description || "";
-    if (desc.includes(" | ")) {
-      result.set(entry.id, { display: desc });
+    // Only short-circuit when there's no reference_id to resolve AND desc already has pipes
+    if (!entry.reference_id && desc.includes(" | ")) {
+      result.set(entry.id, { display: desc, paymentMethod: entry.payment_method || undefined });
     } else {
       needsEnrichment.push(entry);
     }
@@ -138,7 +139,7 @@ export async function enrichLedgerDescriptions(
     }
   }
 
-  // Build enriched descriptions
+  // Build enriched descriptions — shared resolution for both invoice and payment entries
   for (const entry of needsEnrichment) {
     const invoiceNumber = entry.reference_id
       ? invoiceMap.get(entry.reference_id) || ""
@@ -153,39 +154,37 @@ export async function enrichLedgerDescriptions(
     let sampleLabel = "";
     const itemNames: string[] = [];
 
+    // Shared: resolve lab_sample → horse/sample for ANY entry type with invoice items
+    const labSampleItems = items.filter(
+      (i) => i.entity_type === "lab_sample" && i.entity_id
+    );
+    if (labSampleItems.length > 0) {
+      const resolved = sampleToHorse.get(labSampleItems[0].entity_id!);
+      if (resolved?.horseName) horseName = resolved.horseName;
+      if (resolved?.horseNameAr) horseNameAr = resolved.horseNameAr;
+      if (resolved?.sampleLabel) sampleLabel = resolved.sampleLabel;
+    }
+
+    // Shared: always collect item descriptions
+    const names = items
+      .map((i) => i.description)
+      .filter(Boolean)
+      .slice(0, 3);
+    itemNames.push(...names);
+
+    // Build display string per entry type
     if (entry.entry_type === "payment") {
       parts.push("Payment");
       if (entry.payment_method) parts.push(`Method: ${entry.payment_method}`);
       if (invoiceNumber) parts.push(invoiceNumber);
+      if (horseName) parts.push(`Horse: ${horseName}`);
+      if (sampleLabel) parts.push(`Sample: ${sampleLabel}`);
+      if (names.length > 0) parts.push(`Items: ${names.join(", ")}`);
     } else if (entry.entry_type === "invoice") {
       if (invoiceNumber) parts.push(`Invoice ${invoiceNumber}`);
-
-      const labSampleItems = items.filter(
-        (i) => i.entity_type === "lab_sample" && i.entity_id
-      );
-      if (labSampleItems.length > 0) {
-        const resolved = sampleToHorse.get(labSampleItems[0].entity_id!);
-        if (resolved?.horseName) {
-          horseName = resolved.horseName;
-          parts.push(`Horse: ${resolved.horseName}`);
-        }
-        if (resolved?.horseNameAr) {
-          horseNameAr = resolved.horseNameAr;
-        }
-        if (resolved?.sampleLabel) {
-          sampleLabel = resolved.sampleLabel;
-          parts.push(`Sample: ${resolved.sampleLabel}`);
-        }
-      }
-
-      const names = items
-        .map((i) => i.description)
-        .filter(Boolean)
-        .slice(0, 3);
-      itemNames.push(...names);
-      if (names.length > 0) {
-        parts.push(`Items: ${names.join(", ")}`);
-      }
+      if (horseName) parts.push(`Horse: ${horseName}`);
+      if (sampleLabel) parts.push(`Sample: ${sampleLabel}`);
+      if (names.length > 0) parts.push(`Items: ${names.join(", ")}`);
     } else {
       parts.push(entry.description || entry.entry_type);
     }
