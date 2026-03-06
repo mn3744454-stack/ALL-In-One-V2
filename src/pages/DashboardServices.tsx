@@ -95,79 +95,50 @@ const DashboardServices = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-cream flex overflow-x-hidden">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("nav.services")} backTo="/dashboard" />
 
-      {/* Main Content */}
-      <main className="flex-1 min-h-screen min-w-0">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("nav.services")} backTo="/dashboard" />
-
-        {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              <TenantSwitcher />
-              <div className="hidden md:block">
-                <RoleSwitcher />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search services..."
-                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
-                />
-              </div>
-              <NotificationsPanel />
-            </div>
+      {/* Services Content */}
+      <div className="p-4 lg:p-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
+              Services
+            </h1>
+            <p className="text-muted-foreground">
+              Manage the services your business offers
+            </p>
           </div>
-        </header>
-
-        {/* Services Content */}
-        <div className="p-4 lg:p-8">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
-                Services
-              </h1>
-              <p className="text-muted-foreground">
-                Manage the services your business offers
-              </p>
-            </div>
-            <ServiceFormDialog
-              onSubmit={handleCreate}
-              isLoading={createService.isPending}
-            />
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-            <StatCard label="Total" value={services.length} />
-            <StatCard label="Active" value={services.filter((s) => s.is_active).length} />
-            <StatCard label="Public" value={services.filter((s) => s.is_public).length} />
-            <StatCard label="Private" value={services.filter((s) => !s.is_public).length} />
-          </div>
-
-          {/* Services List */}
-          <ServicesList
-            services={services}
-            isLoading={isLoading}
-            onCreate={handleCreate}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
-            onToggleActive={handleToggleActive}
-            isCreating={createService.isPending}
-            isUpdating={updateService.isPending}
-            isDeleting={deleteService.isPending}
+          <ServiceFormDialog
+            onSubmit={handleCreate}
+            isLoading={createService.isPending}
           />
         </div>
-      </main>
-    </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <StatCard label="Total" value={services.length} />
+          <StatCard label="Active" value={services.filter((s) => s.is_active).length} />
+          <StatCard label="Public" value={services.filter((s) => s.is_public).length} />
+          <StatCard label="Private" value={services.filter((s) => !s.is_public).length} />
+        </div>
+
+        {/* Services List */}
+        <ServicesList
+          services={services}
+          isLoading={isLoading}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+          onToggleActive={handleToggleActive}
+          isCreating={createService.isPending}
+          isUpdating={updateService.isPending}
+          isDeleting={deleteService.isPending}
+        />
+      </div>
+    </DashboardShell>
   );
 };
 
