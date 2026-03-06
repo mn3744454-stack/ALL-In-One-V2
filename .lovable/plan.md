@@ -1,88 +1,103 @@
 
 
-# Diagnosis: Why Changes Appear Not Applied
+# Audit: Exposing "Clients" in Sidebar for All Organization Tenants
 
-## The Core Problem
+## 1. Route Confirmation
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
-
-**However, there are real remaining issues the user is seeing:**
-
-### 1. Realtime Sync Uses WRONG Query Keys
-
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
-
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
-
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
-
-### 3. Ledger "Enrich" Button Still Visible
-
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
-
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
-
----
-
-## Execution Plan
-
-### Step 1: Fix Realtime Sync Query Keys (Critical)
-
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
-
-Change the finance table mappings to use the **actual** query key prefixes:
-
+**Route exists and works** — `src/App.tsx` lines 449-458:
+```tsx
+<Route path="/dashboard/clients" element={
+  <ProtectedRoute>
+    <WorkspaceRouteGuard requiredMode="organization">
+      <DashboardClients />
+    </WorkspaceRouteGuard>
+  </ProtectedRoute>
+} />
 ```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+- Component: `src/pages/DashboardClients.tsx` (line 25)
+- Guards: `ProtectedRoute` + `WorkspaceRouteGuard requiredMode="organization"` — correct, no tenant-type restriction.
+- Statement sub-route also exists at `/dashboard/clients/:clientId/statement` (line 459-466).
+
+## 2. Why "Clients" Is NOT Visible in the Sidebar
+
+**Root cause**: `DashboardSidebar.tsx` is hardcoded (not config-driven). There is **no `<NavItem>` for `/dashboard/clients`** anywhere in the sidebar component.
+
+The only place "Clients" appears navigation-wise:
+- **`navConfig.ts` line 350-354**: `doctorClients` — gated to `tenantType: "doctor"` only
+- **`workspaceNavConfig.ts` line 262-264**: nested inside `finance.children` (not a top-level item)
+- **`labNavConfig.ts` line 94-97**: lab-specific config (used by mobile grid, not desktop sidebar)
+
+The desktop sidebar (`DashboardSidebar.tsx`) has **zero references** to `/dashboard/clients` as a standalone item. It only has "Customer Balances" under the Finance NavGroup (line 200), which goes to `/dashboard/finance/customer-balances` — a different page.
+
+## 3. Proposed Fix (3 files, minimal changes)
+
+### File 1: `src/components/dashboard/DashboardSidebar.tsx`
+
+Add a `<NavItem>` for Clients between Services and Finance (around line 433), gated by `owner`/`manager` role (same pattern as Services, HR, Files):
+
+```tsx
+{/* Clients - for owners and managers */}
+{["owner", "manager"].includes(activeRole || "") && (
+  <NavItem
+    icon={UsersIcon}
+    label={t('clients.title')}
+    href="/dashboard/clients"
+    active={isActive("/dashboard/clients")}
+    onNavigate={onClose}
+  />
+)}
 ```
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+`UsersIcon` is already imported in this file (used for Customer Balances). `clients.title` already exists in i18n: EN="Clients", AR="العملاء".
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+### File 2: `src/navigation/navConfig.ts`
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+Add a top-level `clients` entry (visible in organization mode, all tenant types):
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+```typescript
+{
+  key: "clients",
+  icon: UserCircle,
+  labelKey: "clients.title",
+  route: "/dashboard/clients",
+  roles: ["owner", "manager"],
+  visibleIn: "organization",
+},
+```
 
-### Step 3: Hide Backfill Button from Non-Admins
+Place it after `services` (around line 208). This feeds the mobile nav/launcher.
 
-**File:** `src/pages/DashboardFinance.tsx`
+### File 3: `src/navigation/workspaceNavConfig.ts`
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+Add a top-level `clients` entry in `ORG_NAV_MODULES` (after `services`, around line 240):
 
-### Step 4: Stabilize Invoice Table Column Widths
+```typescript
+{
+  key: "clients",
+  icon: UserCircle,
+  labelKey: "clients.title",
+  route: "/dashboard/clients",
+  roles: ["owner", "manager"],
+},
+```
 
-**File:** `src/components/finance/InvoicesList.tsx`
+**No i18n changes needed** — `clients.title` already exists (EN: "Clients", AR: "العملاء").
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+**No new permissions needed** — follows the same `owner`/`manager` role gating pattern used by Services, HR, Files, and Finance.
 
-### Step 5: Fix Expenses Table View Alignment
+**Finance "Customer Balances" unchanged** — stays as a Finance sub-item at `/dashboard/finance/customer-balances` (financial lens).
 
-**File:** `src/components/finance/ExpensesList.tsx`
+## 4. Verification Checklist
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
-
-### Verification Checklist
-
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+| Scenario | Expected |
+|---|---|
+| Stable owner/manager | Sees "Clients" (العملاء) in sidebar, opens `/dashboard/clients` |
+| Lab owner/manager | Same — sees "Clients" in sidebar |
+| Clinic owner/manager | Same |
+| Doctor owner/manager | Same (plus existing doctor-specific nav) |
+| Academy owner/manager | Same |
+| Staff (not owner/manager) | "Clients" hidden (role gating) |
+| Personal mode | "Clients" hidden (not in sidebar's org block) |
+| Finance → Customer Balances | Unchanged, still under Finance group |
+| No duplicate entries | "Clients" = CRM page, "Customer Balances" = financial balances |
 
