@@ -170,8 +170,7 @@ const DashboardRevenue = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </DashboardShell>
   );
 };
 
