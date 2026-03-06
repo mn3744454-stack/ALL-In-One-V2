@@ -267,21 +267,18 @@ export default function DashboardSchedule() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("schedule.title")} backTo="/dashboard" />
 
-      <main className="flex-1 overflow-auto">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("schedule.title")} backTo="/dashboard" />
-
-        <div className="p-4 lg:p-8">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-navy">{t("schedule.title")}</h1>
-            <p className="text-muted-foreground">{t("schedule.subtitle")}</p>
-          </div>
+      <div className="p-4 lg:p-8">
+      {/* Page Title - Desktop */}
+      <div className="hidden lg:flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">{t("schedule.title")}</h1>
+          <p className="text-muted-foreground">{t("schedule.subtitle")}</p>
         </div>
+      </div>
 
         {/* Filters */}
         <Card className="mb-6">

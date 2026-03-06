@@ -223,6 +223,6 @@ export default function DashboardClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardShell>
   );
 }
