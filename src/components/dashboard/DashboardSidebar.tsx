@@ -44,6 +44,7 @@ import {
   Wallet,
   Activity,
   ShoppingCart,
+  UserCircle,
 } from "lucide-react";
 
 interface NavItemProps {
