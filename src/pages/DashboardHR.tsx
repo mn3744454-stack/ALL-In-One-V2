@@ -4,9 +4,8 @@ import { useI18n } from '@/i18n';
 import { useEmployees } from '@/hooks/hr';
 import { useTenant } from '@/contexts/TenantContext';
 import { EmployeesList } from '@/components/hr';
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
-import { useState } from 'react';
-import { Menu, Settings } from 'lucide-react';
+import { DashboardShell } from '@/components/layout/DashboardShell';
+import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MobilePageHeader } from '@/components/navigation';
 

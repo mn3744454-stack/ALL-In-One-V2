@@ -17,7 +17,7 @@ import { useClients, Client, ClientStatus, ClientType, CreateClientData } from "
 import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
 import { ClientsList, ClientFilters, ClientFormDialog, ClientsTable } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Plus, Search, Users, Menu } from "lucide-react";
