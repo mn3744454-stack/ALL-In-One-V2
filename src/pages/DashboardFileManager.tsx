@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -362,21 +362,18 @@ export default function DashboardFileManager() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("files.title")} backTo="/dashboard" />
 
-      <main className="flex-1 overflow-auto">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("files.title")} backTo="/dashboard" />
-
-        <div className="p-4 lg:p-8">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-navy">{t("files.title")}</h1>
-            <p className="text-muted-foreground">{t("files.subtitle")}</p>
-          </div>
+      <div className="p-4 lg:p-8">
+      {/* Page Title - Desktop */}
+      <div className="hidden lg:flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">{t("files.title")}</h1>
+          <p className="text-muted-foreground">{t("files.subtitle")}</p>
         </div>
+      </div>
 
         {/* Stats */}
         <FileStats {...stats} loading={isLoading} />
@@ -515,8 +512,6 @@ export default function DashboardFileManager() {
             </CardContent>
           </Card>
         )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
-}
