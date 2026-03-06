@@ -579,8 +579,8 @@ const AppRoutes = () => {
         path="/dashboard/finance/payments"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="payments.view">
-              <DashboardPayments />
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardFinance initialTab="payments" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }

@@ -170,6 +170,7 @@ function ExpensesTab() {
   );
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
+  // TODO: Replace with hasPermission("finance.expenses.manage") once permission key is defined
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const stats = useMemo(() => {
