@@ -964,7 +964,6 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
           existingItems={editingInvoiceItems}
           onSuccess={handleEditComplete}
         />
-      </main>
-    </div>
+    </DashboardShell>
   );
 }
