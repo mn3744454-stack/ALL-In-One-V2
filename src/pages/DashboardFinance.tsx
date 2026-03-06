@@ -843,7 +843,6 @@ interface DashboardFinanceProps {
 
 export default function DashboardFinance({ initialTab }: DashboardFinanceProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [editingInvoiceItems, setEditingInvoiceItems] = useState<InvoiceItem[]>([]);
   
