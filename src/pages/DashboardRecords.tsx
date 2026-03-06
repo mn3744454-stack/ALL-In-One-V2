@@ -297,5 +297,6 @@ export default function DashboardRecords() {
           </TabsContent>
         </Tabs>
       </div>
+    </DashboardShell>
   );
 }
