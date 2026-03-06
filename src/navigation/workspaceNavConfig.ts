@@ -202,6 +202,13 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     roles: ["owner", "manager"],
   },
   {
+    key: "clients",
+    icon: UserCircle,
+    labelKey: "clients.title",
+    route: "/dashboard/clients",
+    roles: ["owner", "manager"],
+  },
+  {
     key: "finance",
     icon: Wallet,
     labelKey: "finance.title",

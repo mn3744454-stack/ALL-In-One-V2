@@ -206,6 +206,14 @@ export const NAV_MODULES: NavModule[] = [
     roles: ["owner", "manager"],
     visibleIn: "organization",
   },
+  {
+    key: "clients",
+    icon: UserCircle,
+    labelKey: "clients.title",
+    route: "/dashboard/clients",
+    roles: ["owner", "manager"],
+    visibleIn: "organization",
+  },
   // Finance parent module with children
   {
     key: "finance",
