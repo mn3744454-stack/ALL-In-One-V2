@@ -219,7 +219,6 @@ function ScheduleCalendar({
 }
 
 export default function DashboardSchedule() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [view, setView] = useState<"list" | "calendar" | "grid">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState<string>("all");

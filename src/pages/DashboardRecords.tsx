@@ -169,7 +169,6 @@ function ActivityList({
 }
 
 export default function DashboardRecords() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState<string>("all");
