@@ -1,112 +1,88 @@
-# Fix Plan: Unified Enrichment Pipeline for Ledger + Payments Hover Parity (Patched)
 
-## Root Causes
 
-1. **LedgerTab pre-filter** (`DashboardFinance.tsx:305-308`): Only sends entries WITHOUT `" | "` to enrichment. Entries that already have pipe-separated descriptions (written at invoice/payment creation time) are excluded entirely — they never get structured fields.
-2. **Short-circuit in enrichment** (`enrichLedgerDescriptions.ts:32-33`): If `desc.includes(" | ")`, immediately stores `{ display: desc }` with zero structured fields. Even if `reference_id` exists, no invoice_items/horses/samples are fetched.
-3. **Payment branch** (`enrichLedgerDescriptions.ts:156-159`): Only builds display string with method + invoice number. Never resolves `invoice_items → lab_samples → lab_horses` for payment entries, so "paid for what?" is missing.
+# Diagnosis: Why Changes Appear Not Applied
 
-## Changes
+## The Core Problem
 
-### File 1: `src/lib/finance/enrichLedgerDescriptions.ts`
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-**Change the short-circuit logic (lines 30-37):**
+**However, there are real remaining issues the user is seeing:**
 
-- If `entry.reference_id` exists → always push to `needsEnrichment` (use existing description as fallback display only)
-- Only short-circuit when `reference_id` is null AND description has pipes
+### 1. Realtime Sync Uses WRONG Query Keys
 
-**Important guard (edge-case safety):**
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-- If `needsEnrichment` contains entries but `invoiceIds.length === 0` (e.g., reference_id missing/invalid), return a safe fallback object per entry:
-  - `display: entry.description || "-"` plus `paymentMethod` if present
-  - This prevents breaking hover/cards when data is partially missing
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-**Change the payment branch (lines 156-159):**
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-- After building payment display string, also resolve `invoice_items` via `reference_id` (same as invoice branch)
-- Populate `items[]` for payment entries ALWAYS (even if no lab_sample link)
-- If any invoice_items have `entity_type='lab_sample'`, also populate `horseName`, `horseNameAr`, `sampleLabel`
-- This directly enables “paid for what?” in Payments hover preview
+### 3. Ledger "Enrich" Button Still Visible
 
-**Shared resolution requirement (must be explicit):**
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-- The invoice_items → (optional) lab_sample → horse/sample resolution must run for BOTH `payment` and `invoice` entry types.
-- If there are no `lab_sample` items, still return `items[]` so the preview shows “what it was for” at least on the items level.
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-This means the "Build enriched descriptions" loop (lines 141-202) must share the invoice_items/horse/sample resolution for BOTH `payment` and `invoice` entry types (not only invoice).
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-### File 2: `src/pages/DashboardFinance.tsx`
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-**LedgerTab enrichment** `useEffect` **(lines 303-326):**
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-- Remove the `genericEntries` pre-filter — send ALL entries to `enrichLedgerDescriptions`.
-- Rationale: the enrichment function now safely short-circuits only when `reference_id` is null AND pipes exist, so passing all entries is safe and guarantees structured fields for anything linkable.
+### 6. Scope Selector / Statement Content
 
-**PaymentsTab enrichment** `useEffect` **(lines 577-597):**
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
-- Ensure we still send ALL payment entries (not only those without pipes).
-- Keep the existing shaping/map to the minimal entry object `{ id, entry_type, description, reference_id, payment_method }`, but do NOT add any `" | "` based exclusion.
-- This guarantees payment hover previews can resolve invoice_items/horses/samples.
+---
 
-Both tabs already store `Map<string, EnrichedDescription>` and wire `LedgerRowPreview` — no change needed there.
+## Execution Plan
 
-### File 3: `src/components/finance/LedgerRowPreview.tsx`
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-- Already correct — renders all structured fields. No changes needed.
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-## Concrete Implementation
-
-### `enrichLedgerDescriptions.ts` — new short-circuit:
+Change the finance table mappings to use the **actual** query key prefixes:
 
 ```
-for (const entry of entries) {
-  const desc = entry.description || "";
-  if (!entry.reference_id && desc.includes(" | ")) {
-    // No reference to resolve — keep existing display
-    result.set(entry.id, { display: desc, paymentMethod: entry.payment_method || undefined });
-  } else {
-    needsEnrichment.push(entry);
-  }
-}
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
 ```
 
-### `enrichLedgerDescriptions.ts` — payment branch gets items/horse/sample (and items even without lab_sample):
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-In the "Build enriched descriptions" loop:
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-- For BOTH `payment` and `invoice`:
-  - Resolve `invoiceNumber` from invoices map
-  - Resolve `itemsByInvoice` from invoice_items
-  - Always collect `itemNames` from `items.map(i.description)`
-  - If any item has `entity_type='lab_sample'`, resolve sample → horse/sampleLabel (same as invoice currently does)
-- Payment display can remain the same (Payment | Method | INV...), but enriched object MUST include:
-  - `invoiceNumber`, `items[]` (if any), `horseName/horseNameAr/sampleLabel` (when resolvable), `paymentMethod`
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
-### `enrichLedgerDescriptions.ts` — safety guard when invoiceIds is empty:
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
-- If `invoiceIds.length === 0`, do not attempt invoice/items fetch; return safe fallback objects for `needsEnrichment`.
+### Step 3: Hide Backfill Button from Non-Admins
 
-### `DashboardFinance.tsx` — LedgerTab `useEffect`:
+**File:** `src/pages/DashboardFinance.tsx`
 
-Remove `genericEntries` filter. Send all entries to `enrichLedgerDescriptions`.
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-### `DashboardFinance.tsx` — PaymentsTab `useEffect`:
+### Step 4: Stabilize Invoice Table Column Widths
 
-Send all payment entries (no `" | "` exclusion), keeping the minimal object mapping.
+**File:** `src/components/finance/InvoicesList.tsx`
 
-## Gates
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
 
-**Gate 1**: Update `enrichLedgerDescriptions.ts` — fix short-circuit + add items/horse/sample to payment branch (and ensure items[] is populated even without lab_sample). Add the empty-invoiceIds safety guard.  
-  
-**Gate 2**: Update `DashboardFinance.tsx` LedgerTab useEffect — remove pre-filter and send all entries.  
-  
-**Gate 3**: Verify both tabs show rich hover for all entry types.
+### Step 5: Fix Expenses Table View Alignment
 
-## Verification
+**File:** `src/components/finance/ExpensesList.tsx`
 
-1. Ledger → hover invoice row created from Invoices page → shows invoice# + items (even if no lab_sample link)
-2. Ledger → hover invoice row from lab flow → shows invoice# + horse + sample + items (unchanged)
-3. Payments → hover any payment → shows invoice# + method + items + horse/sample when applicable
-4. Arabic UI → horse `name_ar` shown, labels Arabic
-5. No N+1 queries — all batch fetched
-6. Print/CSV unaffected (uses `.display` string)
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+
+### Verification Checklist
+
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
+

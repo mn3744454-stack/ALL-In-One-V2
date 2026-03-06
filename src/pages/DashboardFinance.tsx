@@ -302,15 +302,11 @@ function LedgerTab() {
   // Display-level enrichment for old entries (Gate 3 Option B)
   useEffect(() => {
     if (!entries || entries.length === 0) return;
-    const genericEntries = entries.filter(
-      (e) => e.description && !e.description.includes(" | ")
-    );
-    if (genericEntries.length === 0) return;
 
     let cancelled = false;
     (async () => {
       const result = await enrichLedgerDescriptions(
-        genericEntries.map((e) => ({
+        entries.map((e) => ({
           id: e.id,
           entry_type: e.entry_type,
           description: e.description,
