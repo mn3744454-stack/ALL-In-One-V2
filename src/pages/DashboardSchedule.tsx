@@ -400,8 +400,7 @@ export default function DashboardSchedule() {
             onItemClick={handleItemClick}
           />
         )}
-        </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

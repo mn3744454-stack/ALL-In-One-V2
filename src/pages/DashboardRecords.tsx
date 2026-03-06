@@ -295,7 +295,7 @@ export default function DashboardRecords() {
               </CardContent>
             </Card>
           </TabsContent>
+        </Tabs>
       </div>
-    </DashboardShell>
   );
 }
