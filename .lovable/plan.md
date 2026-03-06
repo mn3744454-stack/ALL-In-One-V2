@@ -1,88 +1,170 @@
 
 
-# Diagnosis: Why Changes Appear Not Applied
+# Finance Module Focused Audit — Report
 
-## The Core Problem
+## Executive Summary
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+- **InvoiceFormDialog is non-interactive** because `existingItems = []` default parameter creates a new array reference every render, causing the `useEffect` (line 106) to re-run and reset all form state on every keystroke/selection. This is the definitive root cause — not z-index or pointer-events.
+- **Table header/cell alignment mismatch**: `TableHead` base class is `text-center` (table.tsx line 49) but `TableCell` has no default text alignment, causing headers and cells to misalign visually.
+- **Actions column header is empty** in both InvoicesList (line 321) and ExpensesList (line 239) — no label text.
+- **Grid mode works mechanically** (`getGridClass` is correctly applied) but InvoiceCard and ExpenseCard use a horizontal flex layout that breaks readability at narrow widths (3/4 columns).
+- All three issues have clean, minimal fixes with no architectural changes needed.
 
-**However, there are real remaining issues the user is seeing:**
+## Evidence Map
 
-### 1. Realtime Sync Uses WRONG Query Keys
-
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
-
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
-
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
-
-### 3. Ledger "Enrich" Button Still Visible
-
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
-
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+| Component | File | Lines | Finding |
+|---|---|---|---|
+| InvoiceFormDialog | `InvoiceFormDialog.tsx` | 43, 67-106 | `existingItems = []` default + useEffect dependency → form resets every render |
+| Create dialog mount | `DashboardFinance.tsx` | 157-159 | No `existingItems` prop passed → default `[]` kicks in |
+| DialogContent | `dialog.tsx` | 42 | `grid` display base, overridden by `flex` — resolved correctly |
+| SelectContent | `select.tsx` | 65-89 | Portal with `z-50` base; `z-[60]` override present and working |
+| TableHead base | `table.tsx` | 49 | `text-center` default |
+| TableCell base | `table.tsx` | 59 | No text alignment default (inherits `text-start`) |
+| Invoices table header | `InvoicesList.tsx` | 312-322 | Actions head (321) has no label |
+| Invoices date cell | `InvoicesList.tsx` | 339-341 | Missing `whitespace-nowrap` on TableCell date |
+| Expenses table header | `ExpensesList.tsx` | 232-240 | Actions head (239) has no label |
+| InvoiceCard layout | `InvoiceCard.tsx` | 69 | Horizontal flex (`flex items-start gap-3`) — cramped at narrow grid |
+| ExpenseCard layout | `ExpenseCard.tsx` | 89 | Same horizontal flex pattern |
 
 ---
 
-## Execution Plan
+## PART A — InvoiceFormDialog Root Cause
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+### The Definitive Root Cause: `existingItems` Default Array Resets Form
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+**Mechanism (step by step):**
 
-Change the finance table mappings to use the **actual** query key prefixes:
+1. Create Invoice dialog opens — `InvoiceFormDialog` renders with `existingItems` not passed by parent (DashboardFinance.tsx line 157-159).
+2. Default parameter `existingItems = []` (line 43) creates a **new array reference** `[]`.
+3. `useEffect` at line 67-106 runs, enters the `else if (open && !isEditMode)` branch (line 92), sets `formData` to blank values including `client_id: ""`.
+4. User selects a client → `handleClientChange` (line 125) calls `setFormData({...formData, client_id: clientId})`.
+5. State updates → component re-renders.
+6. On re-render, `existingItems = []` creates another **new** `[]` reference.
+7. `useEffect` dependency `existingItems` has changed (new reference) → effect re-runs.
+8. `open` is still `true`, `isEditMode` is still `false` → enters reset branch again.
+9. `setFormData({client_id: "", ...})` → **user's selection is immediately erased**.
+10. Same cycle happens for ANY input change (typing, qty, price).
+
+**This is NOT a z-index, pointer-events, or portal issue.** The inputs DO respond — the state just gets immediately reset.
+
+### Fix
+
+Replace the `useEffect` with a pattern that only initializes on dialog open/close transitions, not on every render:
 
 ```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+// InvoiceFormDialog.tsx — change useEffect at lines 67-106:
+// Use a ref to track whether form has been initialized for current open session.
+// On open=true: initialize once. On open=false: mark uninitialized.
+// Remove existingItems from dependency array entirely.
 ```
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+Concretely:
+- Add `const initializedRef = useRef(false)` 
+- In the effect: if `!open`, reset `initializedRef.current = false` and return
+- If `open && !initializedRef.current`: do the initialization, then set `initializedRef.current = true`
+- Dependencies: `[open]` only
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+This is the standard React dialog form initialization pattern.
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+### Acceptance Criteria
+- [ ] Open Create Invoice → select client → value persists in trigger
+- [ ] Type in description/qty/price → text stays, totals update
+- [ ] Click Add Item → row added, stays visible
+- [ ] Close and reopen → form resets to blank (clean slate)
+- [ ] Edit mode → form populates from invoice data, edits persist
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+---
 
-### Step 3: Hide Backfill Button from Non-Admins
+## PART B — Table Layout Corrections
 
-**File:** `src/pages/DashboardFinance.tsx`
+### Issue 1: Empty Actions Header
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+- `InvoicesList.tsx` line 321: `<TableHead className="w-[50px]" />` — no label
+- `ExpensesList.tsx` line 239: `{canManage && <TableHead className="w-[50px]" />}` — no label
 
-### Step 4: Stabilize Invoice Table Column Widths
+**Fix**: Add `{t("common.actions")}` as content to both TableHead elements.
 
-**File:** `src/components/finance/InvoicesList.tsx`
+### Issue 2: Header/Cell Alignment Mismatch
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+`TableHead` base class is `text-center` (table.tsx line 49). But several cells use `text-start` content (client name, vendor, invoice number) while their headers also say `text-center`. This creates a visual mismatch where header labels are centered but cell data is left-aligned.
 
-### Step 5: Fix Expenses Table View Alignment
+**Fix per column (InvoicesList)**:
+- Invoice Number (head line 314): add `text-start` to override base `text-center`
+- Client (head line 315): add `text-start`
+- Date (head line 316): add `whitespace-nowrap`; cell (line 339): add `whitespace-nowrap`
+- Numeric columns (total/paid/outstanding): already `text-center` — correct
+- Status: `text-center` — correct
+- Actions: `text-center` — correct
 
-**File:** `src/components/finance/ExpensesList.tsx`
+**Fix per column (ExpensesList)**:
+- Date (head line 234): already has `whitespace-nowrap` — correct
+- Vendor (head line 235): add `text-start`
+- Category (head line 236): add `text-start`
+- Amount: `text-center` — correct
+- Status: `text-center` — correct
+- Actions: add label + `text-center`
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+### Acceptance Criteria
+- [ ] All header labels align with their cell content direction
+- [ ] Date columns never wrap on desktop
+- [ ] Actions column shows "Actions" / "إجراءات" header
+- [ ] Numeric columns remain centered with `tabular-nums`
 
-### Verification Checklist
+---
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+## PART C — Grid Card Readability
+
+### Problem
+
+Both InvoiceCard (line 69) and ExpenseCard (line 89) use `flex items-start gap-3` — a horizontal layout with icon + content + menu side by side. At 3-4 grid columns (~250px card width), the content area squeezes to ~150px, causing:
+- Amount text overlaps with menu button
+- Client/vendor name truncates to 2-3 characters
+- Paid/Outstanding line wraps chaotically
+
+### Fix Strategy
+
+Make cards stack vertically at narrow widths using container-aware responsive design:
+
+**InvoiceCard changes:**
+1. Icon: hide at narrow grid widths OR reduce to `w-8 h-8`
+2. Content + Menu row: ensure menu is `absolute top-2 right-2` (or `end-2` for RTL) instead of flex sibling, so it doesn't compete for width
+3. Amount: move below title instead of beside it (stack vertically)
+4. Paid/Outstanding: use `line-clamp-1` and smaller font (`text-[10px]`)
+5. Wrap: replace `truncate` with `line-clamp-2` on client name
+
+**ExpenseCard changes:**
+- Same pattern: icon shrinks, menu becomes absolute-positioned, amount stacks below title
+- Description: `line-clamp-2` instead of `truncate`
+
+### Acceptance Criteria
+- [ ] 2-column grid: cards fully readable, no overlaps
+- [ ] 3-column grid: all key info visible (number, client, amount, status, menu)
+- [ ] 4-column grid: same — may hide secondary info (paid/outstanding) but core data readable
+- [ ] Menu (⋯) always accessible, never collides with amount
+- [ ] RTL: icon/menu positioning mirrors correctly
+- [ ] List mode: no regression (cards still look good full-width)
+
+---
+
+## Gate Plan
+
+### Gate 1: Fix InvoiceFormDialog (Hard Blocker)
+**Files**: `src/components/finance/InvoiceFormDialog.tsx`
+**Change**: Replace useEffect (lines 67-106) with ref-guarded initialization that runs once per dialog open. Remove `existingItems` from dependency array.
+**Verify**: Select client persists, inputs editable, add item works, totals recalculate.
+
+### Gate 2: Table Alignment + Actions Header
+**Files**: `src/components/finance/InvoicesList.tsx`, `src/components/finance/ExpensesList.tsx`
+**Change**: Add `text-start` to text-column headers, add `whitespace-nowrap` to date cells, add `{t("common.actions")}` to actions column header.
+**Verify**: Headers align with cells, dates don't wrap, actions header labeled.
+
+### Gate 3: Card Grid Readability
+**Files**: `src/components/finance/InvoiceCard.tsx`, `src/components/finance/ExpenseCard.tsx`
+**Change**: Restructure card layout — absolute-position menu, stack content vertically, use `line-clamp` instead of `truncate`, reduce icon at narrow widths.
+**Verify**: Cards readable at 2/3/4 columns with no overlaps.
+
+### Regression Risks
+- Gate 1: Zero risk — only changes form initialization timing, no external API changes.
+- Gate 2: Low risk — CSS class additions only. Verify all table modes in both languages.
+- Gate 3: Medium risk — card layout changes affect list mode too. Must verify list + grid + RTL all look correct.
 
