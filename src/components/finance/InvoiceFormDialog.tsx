@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,9 +63,17 @@ export function InvoiceFormDialog({
     { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0, total_price: 0 },
   ]);
 
-  // Populate form when editing
+  // Populate form once per dialog open — ref prevents re-init on every render
+  const initializedRef = useRef(false);
   useEffect(() => {
-    if (open && isEditMode && invoice) {
+    if (!open) {
+      initializedRef.current = false;
+      return;
+    }
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    if (isEditMode && invoice) {
       setFormData({
         client_id: invoice.client_id || "",
         client_name: invoice.client_name || "",
@@ -89,7 +97,7 @@ export function InvoiceFormDialog({
           entity_id: item.entity_id,
         })));
       }
-    } else if (open && !isEditMode) {
+    } else {
       setFormData({
         client_id: "",
         client_name: "",
@@ -103,7 +111,7 @@ export function InvoiceFormDialog({
         { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0, total_price: 0 },
       ]);
     }
-  }, [open, isEditMode, invoice, existingItems]);
+  }, [open]);
 
   const calculations = useMemo(() => {
     const subtotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
