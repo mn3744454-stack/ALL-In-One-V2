@@ -63,7 +63,7 @@ const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Con
           {children}
           <SheetPrimitive.Close 
             className={cn(
-              "absolute top-4 rounded-md border border-border p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary",
+              "absolute top-4 rounded-md border border-gold/40 p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary",
               isRTL ? "left-4" : "right-4"
             )}
           >
