@@ -54,13 +54,13 @@ export function LedgerRowPreview({ enrichment, fallbackText, dir }: LedgerRowPre
           )}
           {displayHorseName && (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">{t("horses.horse")}</span>
+              <span className="text-xs text-muted-foreground">{t("finance.invoices.horse")}</span>
               <span className="font-medium text-sm">{displayHorseName}</span>
             </div>
           )}
           {enrichment.sampleLabel && (
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">{t("lab.samples.sample")}</span>
+              <span className="text-xs text-muted-foreground">{t("finance.invoices.sample")}</span>
               <span className="font-mono text-xs">{enrichment.sampleLabel}</span>
             </div>
           )}
