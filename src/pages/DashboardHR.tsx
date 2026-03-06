@@ -10,10 +10,9 @@ import { Button } from '@/components/ui/button';
 import { MobilePageHeader } from '@/components/navigation';
 
 export default function DashboardHR() {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { activeRole } = useTenant();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const canManage = activeRole === 'owner' || activeRole === 'manager';
   
@@ -36,59 +35,51 @@ export default function DashboardHR() {
         <title>{t('hr.title')} | Khail</title>
       </Helmet>
 
-      <div className="min-h-screen bg-background flex" dir={dir}>
-        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <DashboardShell
+        headerRight={canManage ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/dashboard/hr/settings')}
+            className="gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            {t('hr.settings.title')}
+          </Button>
+        ) : undefined}
+      >
+        {/* Mobile Header */}
+        <MobilePageHeader 
+          title={t('hr.title')} 
+          backTo="/dashboard"
+          rightElement={canManage ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/dashboard/hr/settings')}
+              className="shrink-0"
+            >
+              <Settings className="h-5 w-5" />
+            </Button>
+          ) : undefined}
+        />
 
-        <main className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header */}
-          <MobilePageHeader 
-            title={t('hr.title')} 
-            backTo="/dashboard"
-            rightElement={canManage ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/dashboard/hr/settings')}
-                className="shrink-0"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-            ) : undefined}
+        {/* Content */}
+        <div className="p-4 sm:p-6 lg:p-8">
+          <EmployeesList
+            employees={employees}
+            isLoading={isLoading}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onCreateEmployee={createEmployee}
+            onUpdateEmployee={updateEmployee}
+            onActivateEmployee={activateEmployee}
+            onDeactivateEmployee={deactivateEmployee}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
           />
-
-          {/* Desktop Header */}
-          <header className="hidden lg:flex items-center justify-between p-6 border-b border-border bg-card">
-            <h1 className="text-xl font-semibold">{t('hr.title')}</h1>
-            {canManage && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/dashboard/hr/settings')}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                {t('hr.settings.title')}
-              </Button>
-            )}
-          </header>
-
-          {/* Content */}
-          <div className="flex-1 p-4 sm:p-6 lg:p-8">
-            <EmployeesList
-              employees={employees}
-              isLoading={isLoading}
-              filters={filters}
-              onFiltersChange={setFilters}
-              onCreateEmployee={createEmployee}
-              onUpdateEmployee={updateEmployee}
-              onActivateEmployee={activateEmployee}
-              onDeactivateEmployee={deactivateEmployee}
-              isCreating={isCreating}
-              isUpdating={isUpdating}
-            />
-          </div>
-        </main>
-      </div>
+        </div>
+      </DashboardShell>
     </>
   );
 }
