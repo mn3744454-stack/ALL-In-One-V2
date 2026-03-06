@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -169,7 +169,6 @@ function ActivityList({
 }
 
 export default function DashboardRecords() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [moduleFilter, setModuleFilter] = useState<string>("all");
@@ -210,21 +209,18 @@ export default function DashboardRecords() {
   };
 
   return (
-    <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("records.title")} backTo="/dashboard" />
 
-      <main className="flex-1 overflow-auto">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("records.title")} backTo="/dashboard" />
-
-        <div className="p-4 lg:p-8">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-navy">{t("records.title")}</h1>
-            <p className="text-muted-foreground">{t("records.subtitle")}</p>
-          </div>
+      <div className="p-4 lg:p-8">
+      {/* Page Title - Desktop */}
+      <div className="hidden lg:flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-navy">{t("records.title")}</h1>
+          <p className="text-muted-foreground">{t("records.subtitle")}</p>
         </div>
+      </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
@@ -299,8 +295,7 @@ export default function DashboardRecords() {
             </Card>
           </TabsContent>
         </Tabs>
-        </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

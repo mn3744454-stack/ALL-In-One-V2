@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -843,7 +843,6 @@ interface DashboardFinanceProps {
 
 export default function DashboardFinance({ initialTab }: DashboardFinanceProps = {}) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [editingInvoiceItems, setEditingInvoiceItems] = useState<InvoiceItem[]>([]);
   
@@ -892,21 +891,17 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
   };
 
   return (
-    <div className="min-h-screen bg-cream flex">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <main className="flex-1 overflow-auto">
+    <DashboardShell>
         <MobilePageHeader title={t("finance.title")} />
 
         <div className="p-4 lg:p-8">
 
-        {/* Desktop Header */}
+        {/* Page Title - Desktop */}
         <div className="hidden lg:flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-navy">{t("finance.title")}</h1>
             <p className="text-muted-foreground">{t("finance.subtitle")}</p>
           </div>
-          
         </div>
 
         {/* Tabs */}
@@ -968,7 +963,6 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
           existingItems={editingInvoiceItems}
           onSuccess={handleEditComplete}
         />
-      </main>
-    </div>
+    </DashboardShell>
   );
 }

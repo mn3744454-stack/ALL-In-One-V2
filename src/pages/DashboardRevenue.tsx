@@ -5,7 +5,7 @@ import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantPaymentIntents, getReferenceTypeLabel } from "@/hooks/usePayments";
 import { useState } from "react";
@@ -64,29 +64,11 @@ const DashboardRevenue = () => {
   const pendingPayments = paymentIntents?.filter(p => p.status === 'pending' || p.status === 'draft').length || 0;
 
   return (
-    <div className="min-h-screen w-full bg-cream flex overflow-x-hidden">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("nav.revenue")} backTo="/dashboard" />
 
-      {/* Main Content */}
-      <main className="flex-1 min-h-screen min-w-0">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("nav.revenue")} backTo="/dashboard" />
-
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              <TenantSwitcher />
-              <div className="hidden md:block">
-                <RoleSwitcher />
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <NotificationsPanel />
-            </div>
-          </div>
-        </header>
-
-        <div className="p-4 lg:p-8">
+      <div className="p-4 lg:p-8">
           {/* Back Button & Title */}
           <div className="flex items-center gap-4 mb-6">
             <Button
@@ -188,8 +170,7 @@ const DashboardRevenue = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </DashboardShell>
   );
 };
 

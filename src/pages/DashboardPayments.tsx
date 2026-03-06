@@ -5,7 +5,7 @@ import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import { useUserPaymentIntents } from "@/hooks/usePayments";
 import { useState } from "react";
@@ -34,27 +34,9 @@ const DashboardPayments = () => {
   const cancelledPayments = paymentIntents?.filter(p => p.status === 'cancelled') || [];
 
   return (
-    <div className="min-h-screen w-full bg-cream flex overflow-x-hidden">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main Content */}
-      <main className="flex-1 min-h-screen min-w-0">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("nav.payments")} backTo="/dashboard" />
-
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              <TenantSwitcher />
-              <div className="hidden md:block">
-                <RoleSwitcher />
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <NotificationsPanel />
-            </div>
-          </div>
-        </header>
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("nav.payments")} backTo="/dashboard" />
 
         <div className="p-4 lg:p-8">
           {/* Back Button & Title */}
@@ -152,9 +134,8 @@ const DashboardPayments = () => {
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 };
 
