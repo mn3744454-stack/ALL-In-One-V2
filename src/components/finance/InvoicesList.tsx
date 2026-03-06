@@ -311,14 +311,14 @@ export function InvoicesList({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[120px]">{t("finance.invoices.number")}</TableHead>
-                <TableHead>{t("finance.invoices.client")}</TableHead>
-                <TableHead className="w-[110px]">{t("common.date")}</TableHead>
+                <TableHead className="w-[120px] text-start">{t("finance.invoices.number")}</TableHead>
+                <TableHead className="text-start">{t("finance.invoices.client")}</TableHead>
+                <TableHead className="w-[110px] whitespace-nowrap">{t("common.date")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.invoices.total")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.payments.paidSoFar")}</TableHead>
                 <TableHead className="text-center w-[110px]">{t("finance.payments.outstanding")}</TableHead>
                 <TableHead className="text-center w-[100px]">{t("common.status")}</TableHead>
-                <TableHead className="w-[50px]" />
+                <TableHead className="w-[50px] text-center">{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -336,7 +336,7 @@ export function InvoicesList({
                   >
                     <TableCell className="font-mono text-sm whitespace-nowrap">{invoice.invoice_number}</TableCell>
                     <TableCell className="min-w-[120px] whitespace-nowrap">{invoice.client_name || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm" dir="ltr">
+                    <TableCell className="font-mono text-sm whitespace-nowrap" dir="ltr">
                       {format(new Date(invoice.issue_date), "dd-MM-yyyy")}
                     </TableCell>
                     <TableCell className="text-center font-mono tabular-nums" dir="ltr">

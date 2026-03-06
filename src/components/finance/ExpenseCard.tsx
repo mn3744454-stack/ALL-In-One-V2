@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExpenseStatusBadge } from "./ExpenseStatusBadge";
-import { SecureImage } from "@/components/ui/SecureImage";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
 import { formatCurrency } from "@/lib/formatters";
@@ -25,7 +24,6 @@ import {
   Pencil,
   Trash2,
   Receipt,
-  Eye,
   CheckCircle,
   XCircle,
   CircleDollarSign,
@@ -75,44 +73,70 @@ export function ExpenseCard({
   onViewReceipt,
   canManage = false,
 }: ExpenseCardProps) {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const Icon = categoryIcons[expense.category] || CircleDollarSign;
   const colorClass = categoryColors[expense.category] || "bg-muted text-muted-foreground";
 
-  const formatAmount = (amount: number, currency: string = "SAR") => {
-    return formatCurrency(amount, currency);
-  };
-
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow relative">
       <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start gap-3 sm:gap-4">
-          {/* Category Icon - smaller on mobile */}
-          <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", colorClass)}>
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+        {/* Actions menu — absolute positioned */}
+        {canManage && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="absolute top-2 end-2 h-8 w-8 shrink-0 z-10">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {expense.status === "pending" && (
+                <>
+                  <DropdownMenuItem onClick={onApprove}>
+                    <CheckCircle className="w-4 h-4 me-2 text-success" />
+                    {t("finance.expenses.approve")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={onReject}>
+                    <XCircle className="w-4 h-4 me-2 text-destructive" />
+                    {t("finance.expenses.reject")}
+                  </DropdownMenuItem>
+                </>
+              )}
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil className="w-4 h-4 me-2" />
+                {t("common.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                <Trash2 className="w-4 h-4 me-2" />
+                {t("common.delete")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <div className={cn("flex items-start gap-3", canManage && "pe-8")}>
+          {/* Category Icon */}
+          <div className={cn("w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", colorClass)}>
+            <Icon className="w-4 h-4 sm:w-6 sm:h-6" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2 mb-1">
-              <div className="min-w-0">
-                <h4 className="font-medium text-navy text-sm sm:text-base truncate">
-                  {expense.description || t(`finance.expenses.categories.${expense.category}`)}
-                </h4>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                  {expense.vendor_name || t("finance.expenses.noVendor")}
-                </p>
-              </div>
-              <div className="text-start sm:text-end shrink-0">
-                <p className="text-base sm:text-lg font-bold text-navy">
-                  {formatAmount(expense.amount, expense.currency)}
-                </p>
-              </div>
-            </div>
+            <h4 className="font-medium text-navy text-sm sm:text-base line-clamp-1">
+              {expense.description || t(`finance.expenses.categories.${expense.category}`)}
+            </h4>
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+              {expense.vendor_name || t("finance.expenses.noVendor")}
+            </p>
 
+            {/* Amount — below title */}
+            <p className="text-base sm:text-lg font-bold text-navy font-mono tabular-nums mt-1" dir="ltr">
+              {formatCurrency(expense.amount, expense.currency)}
+            </p>
+
+            {/* Meta row */}
             <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-2">
               <ExpenseStatusBadge status={expense.status} />
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {format(new Date(expense.expense_date), "MMM d, yyyy")}
               </span>
               {expense.receipt_asset_id && (
@@ -134,39 +158,6 @@ export function ExpenseCard({
               </p>
             )}
           </div>
-
-          {/* Actions */}
-          {canManage && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {expense.status === "pending" && (
-                  <>
-                    <DropdownMenuItem onClick={onApprove}>
-                      <CheckCircle className="w-4 h-4 me-2 text-success" />
-                      {t("finance.expenses.approve")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onReject}>
-                      <XCircle className="w-4 h-4 me-2 text-destructive" />
-                      {t("finance.expenses.reject")}
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuItem onClick={onEdit}>
-                  <Pencil className="w-4 h-4 me-2" />
-                  {t("common.edit")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                  <Trash2 className="w-4 h-4 me-2" />
-                  {t("common.delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
         </div>
       </CardContent>
     </Card>
