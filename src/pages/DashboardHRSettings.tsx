@@ -99,7 +99,7 @@ export default function DashboardHRSettings() {
               ) : (
                 modules.map((module) => {
                   const Icon = module.icon;
-                  const isEnabled = isModuleEnabled(module.key as keyof typeof import('@/hooks/hr/useHRSettings').HRModules extends never ? string : any);
+                  const isEnabled = isModuleEnabled(module.key as any);
 
                   return (
                     <div
