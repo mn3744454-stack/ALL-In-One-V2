@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -249,9 +250,12 @@ const DashboardVet = () => {
   const isUsingMockFollowups = followups.length === 0 && !followupsLoading;
 
   return (
-    <DashboardShell
-      headerRight={
-        canManage ? (
+    <DashboardShell>
+      {/* Mobile Page Header */}
+      <MobilePageHeader title={t("sidebar.vetHealth")} />
+      <PageToolbar
+        title={t("sidebar.vetHealth")}
+        actions={canManage ? (
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
               <CalendarCheck className="w-4 h-4" />
@@ -262,11 +266,8 @@ const DashboardVet = () => {
               <span className="hidden sm:inline">{t("vet.newTreatment")}</span>
             </Button>
           </div>
-        ) : undefined
-      }
-    >
-      {/* Mobile Page Header */}
-      <MobilePageHeader title={t("sidebar.vetHealth")} />
+        ) : undefined}
+      />
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8 pb-24 lg:pb-8">

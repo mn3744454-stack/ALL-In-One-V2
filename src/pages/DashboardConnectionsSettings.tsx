@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -164,6 +165,7 @@ const DashboardConnectionsSettings = () => {
         title={t("connections.title")}
         backTo="/dashboard/settings"
       />
+      <PageToolbar title={t("connections.title")} />
 
       <div className="flex-1 p-4 lg:p-8">
         {!canManage && (

@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Heart, ClipboardList, Calendar, TrendingUp } from "lucide-react";
 import { useConsultations } from "@/hooks/doctor/useConsultations";
@@ -28,6 +29,7 @@ export default function DashboardDoctorOverview() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t('doctor.dashboard')} />
+      <PageToolbar title={t('doctor.dashboard')} />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

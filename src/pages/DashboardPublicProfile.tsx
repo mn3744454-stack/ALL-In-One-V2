@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useI18n } from "@/i18n";
 
 const DashboardPublicProfile = () => {
@@ -35,6 +36,7 @@ const DashboardPublicProfile = () => {
   return (
     <DashboardShell>
       <MobilePageHeader title={t("publicProfile.title")} backTo="/dashboard" />
+      <PageToolbar title={t("publicProfile.title")} />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button
           variant="ghost"

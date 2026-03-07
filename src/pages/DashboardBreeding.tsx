@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useBreedingAttempts } from "@/hooks/breeding/useBreedingAttempts";
 import { usePregnancies } from "@/hooks/breeding/usePregnancies";
@@ -159,6 +160,7 @@ export default function DashboardBreeding() {
       <DashboardShell>
         {/* Mobile Page Header */}
         <MobilePageHeader title={t("sidebar.breeding")} />
+        <PageToolbar title={t("sidebar.breeding")} />
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto min-h-0 pb-24 lg:pb-0">

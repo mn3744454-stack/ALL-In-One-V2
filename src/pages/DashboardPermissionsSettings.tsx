@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RtlTabs, RtlTabsList, RtlTabsTrigger, RtlTabsContent } from "@/components/ui/RtlTabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -140,13 +141,10 @@ const DashboardPermissionsSettings = () => {
   }
 
   return (
-    <DashboardShell
-      headerRight={
-        <BackButton onClick={() => navigate("/dashboard/settings")} />
-      }
-    >
+    <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("settings.permissionsRoles.title")} backTo="/dashboard/settings" />
+      <PageToolbar title={t("settings.permissionsRoles.title")} />
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8">

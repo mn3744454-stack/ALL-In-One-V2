@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useI18n } from '@/i18n';
 import { useHRSettings } from '@/hooks/hr/useHRSettings';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { PageToolbar } from '@/components/layout/PageToolbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { MobilePageHeader } from '@/components/navigation';
@@ -16,6 +17,7 @@ export default function DashboardHRAttendance() {
     <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t('hr.attendance.title')} backTo="/dashboard/hr" />
+      <PageToolbar title={t('hr.attendance.title')} />
 
       <div className="flex-1 p-4 lg:p-8 flex items-center justify-center">
         {!isEnabled && !isLoading && (

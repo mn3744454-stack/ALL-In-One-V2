@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -80,6 +81,7 @@ const DashboardOrganizationSettings = () => {
   return (
     <DashboardShell>
       <MobilePageHeader title={t("organizationSettings.title")} backTo="/dashboard" />
+      <PageToolbar title={t("organizationSettings.title")} />
 
       <div className="flex-1 p-4 lg:p-8">
         {!canManage && (

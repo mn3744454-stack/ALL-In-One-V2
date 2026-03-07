@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/ui/language-selector";
@@ -149,6 +149,19 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   } = useModuleAccess();
   const { t, dir } = useI18n();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Auto-scroll sidebar to active nav item on route change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!navRef.current) return;
+      const activeEl = navRef.current.querySelector('[class*="from-gold"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname, searchParams.toString()]);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -265,7 +278,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav ref={navRef} className="flex-1 p-3 space-y-1 overflow-y-auto">
             {/* Dashboard - always visible */}
             <NavItem
               icon={Home}

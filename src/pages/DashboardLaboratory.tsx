@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from "react";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -112,13 +113,13 @@ export default function DashboardLaboratory() {
   }
 
   return (
-    <DashboardShell
-      headerRight={
-        labMode === 'full' ? <LabCreditsPanel compact /> : undefined
-      }
-    >
+    <DashboardShell>
       {/* Mobile Page Header */}
       <MobilePageHeader title={t("sidebar.laboratory")} />
+      <PageToolbar
+        title={t("sidebar.laboratory")}
+        actions={labMode === 'full' ? <LabCreditsPanel compact /> : undefined}
+      />
 
       <div className="flex-1 overflow-y-auto min-h-0 pb-20 lg:pb-0">
         <div className="container mx-auto px-4 py-6 max-w-7xl">

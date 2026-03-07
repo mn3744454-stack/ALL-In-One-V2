@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ export default function DashboardDoctorServices() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t('doctor.services')} />
+      <PageToolbar title={t('doctor.services')} />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex items-center justify-between mb-6">

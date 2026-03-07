@@ -18,6 +18,7 @@ import { useLedgerBalances } from "@/hooks/finance/useLedgerBalance";
 import { ClientsList, ClientFilters, ClientFormDialog, ClientsTable } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Plus, Search, Users } from "lucide-react";
@@ -114,15 +115,17 @@ export default function DashboardClients() {
   };
 
   return (
-    <DashboardShell
-      headerRight={canManage ? (
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("clients.create")}
-        </Button>
-      ) : undefined}
-    >
+    <DashboardShell>
       <MobilePageHeader title={t("clients.title")} showBack />
+      <PageToolbar
+        title={t("clients.title")}
+        actions={canManage ? (
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("clients.create")}
+          </Button>
+        ) : undefined}
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 w-full pb-24 lg:pb-6">
 

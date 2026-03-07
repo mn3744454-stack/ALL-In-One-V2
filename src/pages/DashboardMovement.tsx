@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import {
   MovementsList,
   MovementBottomNav,
@@ -49,18 +50,18 @@ export default function DashboardMovement() {
   } = useMovementDemo();
 
   return (
-    <DashboardShell
-      headerRight={
-        demoExists ? (
+    <DashboardShell>
+      {/* Mobile Page Header */}
+      <MobilePageHeader title={t("sidebar.movement")} />
+      <PageToolbar
+        title={t("sidebar.movement")}
+        actions={demoExists ? (
           <Badge variant="outline" className="text-amber-600 border-amber-300">
             <FlaskConical className="h-3 w-3 me-1" />
             {t("movement.demo.title")}
           </Badge>
-        ) : undefined
-      }
-    >
-      {/* Mobile Page Header */}
-      <MobilePageHeader title={t("sidebar.movement")} />
+        ) : undefined}
+      />
 
       <div className="flex-1 overflow-y-auto min-h-0 pb-20 lg:pb-0">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
