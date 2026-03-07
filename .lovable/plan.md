@@ -1,88 +1,86 @@
 
 
-# Diagnosis: Why Changes Appear Not Applied
+# Understanding & Fix Plan: 3 Post-Migration Issues
 
-## The Core Problem
+## What I Understood
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+You raised three issues visible across the platform after the DashboardShell migration:
 
-**However, there are real remaining issues the user is seeing:**
+### Issue 1: Sidebar doesn't scroll to active item
+When you click a sub-item like "Payroll" (كشف الرواتب) under HR, the page opens correctly but the sidebar resets its scroll to the top. The active item is not visible — the user loses context of where they are. Image 2 shows the correct state (active item visible + highlighted), Image 1 shows the broken state.
 
-### 1. Realtime Sync Uses WRONG Query Keys
+**Root cause**: `NavGroup` uses `useState(isAnyActive)` to set initial open state, but the sidebar `<nav>` element never scrolls to bring the active item into view after navigation. When the sidebar has many items and the active one is below the fold, it's invisible.
 
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+### Issue 2: Page titles disappeared
+Before the migration, pages had their own inline `<h1>` titles (e.g., "كشف الرواتب", "دليل الفريق"). After migration to DashboardShell, the global `DashboardHeader` only shows controls (Tenant/Role/Language/etc.) but **no page title**. Every page lost its desktop title.
 
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+**Root cause**: `DashboardHeader` has no `title` prop and renders no title. The old per-page headers that included titles were removed during migration.
 
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+### Issue 3: Action buttons misplaced in global header
+Page-specific buttons like "+ إضافة دفعة" (Add Payment) and "⚙ إعدادات الموارد البشرية" (HR Settings) are rendered via `headerRight` inside the global header bar, mixed with notifications/language/tenant controls. This is semantically wrong — these buttons belong to the page content, not the global chrome.
 
-### 3. Ledger "Enrich" Button Still Visible
-
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
-
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+**Root cause**: `DashboardShell` accepts `headerRight` which injects page-specific actions into `DashboardHeader`. This was a design shortcut during migration.
 
 ---
 
-## Execution Plan
+## Proposed Solution (Platform-Wide)
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+### Fix 1: Auto-scroll sidebar to active item
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+In `DashboardSidebar.tsx`, add a `useEffect` that finds the active nav link and calls `scrollIntoView({ block: 'nearest' })` on navigation. This ensures the sidebar always shows the user where they are.
 
-Change the finance table mappings to use the **actual** query key prefixes:
+**Files**: `src/components/dashboard/DashboardSidebar.tsx`
+
+### Fix 2: Add page title row below DashboardHeader
+
+Add a **page toolbar row** inside each page's content (NOT in the global header). This row contains:
+- The page title (`<h1>`)
+- Page-specific action buttons (the ones currently in `headerRight`)
+
+This is NOT a new shell-level component — it's a simple reusable `PageToolbar` component that each page renders as the first child inside `<DashboardShell>`. It renders inside the scrollable main area but visually appears right below the header.
 
 ```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+┌─────────────────────────────────────────┐
+│ DashboardHeader (global controls only)  │  ← shrink-0, no page actions
+├─────────────────────────────────────────┤
+│ PageToolbar: "كشف الرواتب" [+ إضافة]   │  ← inside <main>, per-page
+│─────────────────────────────────────────│
+│ Page content (cards, tables, etc.)      │  ← scrolls together with toolbar
+└─────────────────────────────────────────┘
 ```
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+**Implementation**:
+1. Create `src/components/layout/PageToolbar.tsx` — accepts `title`, `actions` (ReactNode), renders `hidden lg:flex` (desktop only, mobile uses MobilePageHeader).
+2. Remove `headerRight` prop from `DashboardShell` and `DashboardHeader`.
+3. Update all ~8 pages that use `headerRight` to instead render `<PageToolbar>` as their first child inside DashboardShell.
+4. Update all other pages to also add `<PageToolbar title={...} />` for their page title (even those without actions).
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+### Fix 3: Combined with Fix 2
+The `headerRight` removal solves the misplaced buttons problem. Action buttons move into `PageToolbar` where they semantically belong.
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+---
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+## Files to Change
 
-### Step 3: Hide Backfill Button from Non-Admins
+| File | Change |
+|------|--------|
+| **NEW** `src/components/layout/PageToolbar.tsx` | Reusable title + actions row |
+| `src/components/layout/DashboardShell.tsx` | Remove `headerRight` prop |
+| `src/components/layout/DashboardHeader.tsx` | Remove `rightSlot` prop |
+| `src/components/dashboard/DashboardSidebar.tsx` | Add auto-scroll to active item |
+| ~25 pages in `src/pages/Dashboard*.tsx` | Add `<PageToolbar>`, remove `headerRight` |
 
-**File:** `src/pages/DashboardFinance.tsx`
+---
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+## PageToolbar Design
 
-### Step 4: Stabilize Invoice Table Column Widths
+```tsx
+// Desktop only (hidden on mobile — MobilePageHeader handles mobile)
+<div className="hidden lg:flex items-center justify-between px-8 py-4">
+  <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+  {actions && <div className="flex items-center gap-3">{actions}</div>}
+</div>
+```
 
-**File:** `src/components/finance/InvoicesList.tsx`
-
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
-
-### Step 5: Fix Expenses Table View Alignment
-
-**File:** `src/components/finance/ExpensesList.tsx`
-
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
-
-### Verification Checklist
-
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+This keeps the global header clean (only tenant/role/language/notifications) and puts page context where it belongs — inside the page.
 
