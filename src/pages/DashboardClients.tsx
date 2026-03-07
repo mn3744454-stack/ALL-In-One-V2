@@ -114,15 +114,17 @@ export default function DashboardClients() {
   };
 
   return (
-    <DashboardShell
-      headerRight={canManage ? (
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("clients.create")}
-        </Button>
-      ) : undefined}
-    >
+    <DashboardShell>
       <MobilePageHeader title={t("clients.title")} showBack />
+      <PageToolbar
+        title={t("clients.title")}
+        actions={canManage ? (
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4 me-2" />
+            {t("clients.create")}
+          </Button>
+        ) : undefined}
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 w-full pb-24 lg:pb-6">
 

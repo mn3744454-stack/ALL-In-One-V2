@@ -149,6 +149,19 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   } = useModuleAccess();
   const { t, dir } = useI18n();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Auto-scroll sidebar to active nav item on route change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!navRef.current) return;
+      const activeEl = navRef.current.querySelector('[class*="from-gold"]');
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname, searchParams.toString()]);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;

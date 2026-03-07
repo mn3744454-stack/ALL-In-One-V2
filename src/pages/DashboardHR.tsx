@@ -35,19 +35,7 @@ export default function DashboardHR() {
         <title>{t('hr.title')} | Khail</title>
       </Helmet>
 
-      <DashboardShell
-        headerRight={canManage ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/dashboard/hr/settings')}
-            className="gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            {t('hr.settings.title')}
-          </Button>
-        ) : undefined}
-      >
+      <DashboardShell>
         {/* Mobile Header */}
         <MobilePageHeader 
           title={t('hr.title')} 
@@ -60,6 +48,20 @@ export default function DashboardHR() {
               className="shrink-0"
             >
               <Settings className="h-5 w-5" />
+            </Button>
+          ) : undefined}
+        />
+        <PageToolbar
+          title={t('hr.title')}
+          actions={canManage ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/dashboard/hr/settings')}
+              className="gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              {t('hr.settings.title')}
             </Button>
           ) : undefined}
         />

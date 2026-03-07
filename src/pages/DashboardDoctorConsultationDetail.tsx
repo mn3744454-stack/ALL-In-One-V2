@@ -68,7 +68,7 @@ export default function DashboardDoctorConsultationDetail() {
     cancelled: t('doctor.cancelled'),
   };
 
-  const headerRight = (
+  const detailActions = (
     <div className="flex items-center gap-2">
       <Button variant="outline" size="sm" onClick={() => setEditing(true)}><Edit className="h-4 w-4 mr-1" />{t('common.edit')}</Button>
       <Button variant="outline" size="sm" onClick={() => setInvoiceDialogOpen(true)}><Receipt className="h-4 w-4 mr-1" />{t('doctor.createInvoice')}</Button>
@@ -76,8 +76,9 @@ export default function DashboardDoctorConsultationDetail() {
   );
 
   return (
-    <DashboardShell headerRight={headerRight}>
+    <DashboardShell>
       <MobilePageHeader title={consultation.horse_name_snapshot || t('doctor.consultations')} />
+      <PageToolbar title={consultation.horse_name_snapshot || t('doctor.consultationDetail')} actions={detailActions} />
 
       <div className="container mx-auto px-4 py-6 max-w-4xl space-y-6">
         <div className="hidden lg:flex items-center gap-4 mb-2">

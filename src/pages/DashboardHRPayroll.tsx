@@ -129,20 +129,20 @@ export default function DashboardHRPayroll() {
         <title>{t('hr.payroll.title')} | Khail</title>
       </Helmet>
 
-      <DashboardShell
-        headerRight={
-          canManage ? (
-            <Button onClick={() => setShowAddDialog(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t('hr.payroll.addPayment')}
-            </Button>
-          ) : undefined
-        }
-      >
+      <DashboardShell>
         {/* Mobile Header */}
         <MobilePageHeader 
           title={t('hr.payroll.title')} 
           backTo="/dashboard/hr"
+        />
+        <PageToolbar
+          title={t('hr.payroll.title')}
+          actions={canManage ? (
+            <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('hr.payroll.addPayment')}
+            </Button>
+          ) : undefined}
         />
 
         {/* Content */}

@@ -140,13 +140,10 @@ const DashboardPermissionsSettings = () => {
   }
 
   return (
-    <DashboardShell
-      headerRight={
-        <BackButton onClick={() => navigate("/dashboard/settings")} />
-      }
-    >
+    <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("settings.permissionsRoles.title")} backTo="/dashboard/settings" />
+      <PageToolbar title={t("settings.permissionsRoles.title")} />
 
       {/* Content */}
       <main className="flex-1 overflow-y-auto min-h-0 p-4 lg:p-8">
