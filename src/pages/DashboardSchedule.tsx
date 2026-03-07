@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -269,6 +270,7 @@ export default function DashboardSchedule() {
     <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("schedule.title")} backTo="/dashboard" />
+      <PageToolbar title={t("schedule.title")} />
 
       <div className="p-4 lg:p-8">
       {/* Page Title - Desktop */}

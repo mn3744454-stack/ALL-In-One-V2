@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -19,6 +20,7 @@ const DashboardHorses = () => {
     <DashboardShell>
       {/* Mobile Page Header */}
       <MobilePageHeader title={t("sidebar.myHorses")} />
+      <PageToolbar title={t("sidebar.myHorses")} />
 
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto min-h-0">
