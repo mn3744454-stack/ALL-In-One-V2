@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -113,6 +114,7 @@ const DashboardNotificationSettings = () => {
   return (
     <DashboardShell>
       <MobilePageHeader title={t("pushNotifications.settingsTitle")} backTo="/dashboard/settings" />
+      <PageToolbar title={t("pushNotifications.settingsTitle")} />
 
       <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
         {/* Header */}

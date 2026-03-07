@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n';
 import { useHRSettings } from '@/hooks/hr/useHRSettings';
 import { useHRDemo } from '@/hooks/hr/useHRDemo';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { PageToolbar } from '@/components/layout/PageToolbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -71,6 +72,7 @@ export default function DashboardHRSettings() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t('hr.settings.title')} backTo="/dashboard/hr" />
+      <PageToolbar title={t('hr.settings.title')} />
 
       <div className="flex-1 p-4 lg:p-8 max-w-3xl mx-auto w-full">
         <div className="space-y-6">

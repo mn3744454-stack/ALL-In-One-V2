@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ export default function DashboardDoctorConsultations() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t('doctor.consultations')} />
+      <PageToolbar title={t('doctor.consultations')} />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { MobilePageHeader } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export default function DashboardDoctorPatients() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t('doctor.patients')} />
+      <PageToolbar title={t('doctor.patients')} />
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
