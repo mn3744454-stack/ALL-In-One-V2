@@ -62,17 +62,17 @@ const DashboardHorseOrders = () => {
   const { orders, loading, refresh, createOrder, updateOrder, updateStatus, deleteOrder } =
     useHorseOrders({
       ...filters,
-      typeId: selectedTypeId || undefined,
+      order_type_id: selectedTypeId || undefined,
     });
 
   const { orderTypes } = useHorseOrderTypes();
 
   const pinnedTabs = useMemo(
-    () => orderTypes.filter((t) => t.is_pinned),
+    () => orderTypes.filter((t) => t.pin_as_tab),
     [orderTypes]
   );
   const moreTypes = useMemo(
-    () => orderTypes.filter((t) => !t.is_pinned),
+    () => orderTypes.filter((t) => !t.pin_as_tab),
     [orderTypes]
   );
 
