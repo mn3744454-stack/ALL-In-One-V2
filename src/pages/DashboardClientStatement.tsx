@@ -6,6 +6,7 @@ import { useClients } from "@/hooks/useClients";
 import { ClientStatementTab } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function DashboardClientStatement() {
@@ -26,6 +27,7 @@ export default function DashboardClientStatement() {
   return (
     <DashboardShell>
       <MobilePageHeader title={t("clients.statement.title")} showBack />
+      <PageToolbar title={clientName ? `${t("clients.statement.title")} - ${clientName}` : t("clients.statement.title")} />
 
       <div className="p-4 lg:p-6">
         {/* Desktop back + title */}
