@@ -67,15 +67,10 @@ const DashboardConnectionsSettings = () => {
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  const handleAddPartner = async (data: {
-    type: string;
-    email?: string;
-    phone?: string;
-  }) => {
+  const handleAddPartner = async (recipientTenantId: string) => {
     await createConnection.mutateAsync({
-      connectionType: data.type as any,
-      recipientEmail: data.email,
-      recipientPhone: data.phone,
+      connectionType: "b2b" as any,
+      recipientTenantId: recipientTenantId,
     });
     setAddPartnerOpen(false);
   };

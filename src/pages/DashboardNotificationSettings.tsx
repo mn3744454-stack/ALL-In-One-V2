@@ -55,7 +55,7 @@ const DashboardNotificationSettings = () => {
         .select("id, device_label, platform, is_active, last_seen_at, created_at")
         .eq("user_id", user.id)
         .order("last_seen_at", { ascending: false });
-      return (data || []) as PushDevice[];
+      return (data || []) as unknown as PushDevice[];
     },
     enabled: !!user?.id,
   });

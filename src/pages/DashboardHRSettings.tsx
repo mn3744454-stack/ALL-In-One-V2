@@ -59,11 +59,8 @@ export default function DashboardHRSettings() {
   ];
 
   const handleModuleToggle = async (key: string, enabled: boolean) => {
-    const current = settings?.enabled_modules || [];
-    const next = enabled
-      ? [...current, key]
-      : current.filter((m: string) => m !== key);
-    await updateModules(next);
+    const current = settings?.enabled_modules || {} as Record<string, boolean>;
+    await updateModules({ ...current, [key]: enabled });
   };
 
   const handleRemoveDemo = async () => {
