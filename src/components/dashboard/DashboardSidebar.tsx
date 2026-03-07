@@ -68,6 +68,7 @@ const NavItem = ({
 }: NavItemProps) => {
   const content = (
     <div
+      data-nav-active={active ? "true" : undefined}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group",
         active
@@ -155,7 +156,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!navRef.current) return;
-      const activeEl = navRef.current.querySelector('[class*="from-gold"]');
+      const activeEl = navRef.current.querySelector('[data-nav-active="true"]');
       if (activeEl) {
         activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }

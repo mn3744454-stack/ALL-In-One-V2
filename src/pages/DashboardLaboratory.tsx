@@ -61,7 +61,7 @@ export default function DashboardLaboratory() {
   // Available tabs based on lab mode
   const availableTabs = useMemo(() => {
     if (labMode === 'requests') return ['requests', 'results', 'messages', 'settings'];
-    return ['samples', 'results', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
+    return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
   }, [labMode]);
 
   const activeTab = useMemo(() => {
