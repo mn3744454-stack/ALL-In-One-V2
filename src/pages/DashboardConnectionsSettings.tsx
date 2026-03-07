@@ -165,6 +165,7 @@ const DashboardConnectionsSettings = () => {
         title={t("connections.title")}
         backTo="/dashboard/settings"
       />
+      <PageToolbar title={t("connections.title")} />
 
       <div className="flex-1 p-4 lg:p-8">
         {!canManage && (
