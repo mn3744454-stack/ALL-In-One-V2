@@ -5,6 +5,7 @@ import { useEmployees } from '@/hooks/hr';
 import { useTenant } from '@/contexts/TenantContext';
 import { EmployeesList } from '@/components/hr';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { PageToolbar } from '@/components/layout/PageToolbar';
 import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MobilePageHeader } from '@/components/navigation';

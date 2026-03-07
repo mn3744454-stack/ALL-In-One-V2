@@ -5,6 +5,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
 import { useEmployees } from '@/hooks/hr';
 import { DashboardShell } from '@/components/layout/DashboardShell';
+import { PageToolbar } from '@/components/layout/PageToolbar';
 import { MobilePageHeader } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
