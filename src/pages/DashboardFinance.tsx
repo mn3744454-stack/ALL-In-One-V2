@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -893,6 +894,7 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
   return (
     <DashboardShell>
         <MobilePageHeader title={t("finance.title")} />
+        <PageToolbar title={t("finance.title")} />
 
         <div className="p-4 lg:p-8">
 

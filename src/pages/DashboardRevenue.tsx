@@ -6,6 +6,7 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantPaymentIntents, getReferenceTypeLabel } from "@/hooks/usePayments";
 import { useState } from "react";
@@ -67,6 +68,7 @@ const DashboardRevenue = () => {
     <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("nav.revenue")} backTo="/dashboard" />
+      <PageToolbar title={t("nav.revenue")} />
 
       <div className="p-4 lg:p-8">
           {/* Back Button & Title */}

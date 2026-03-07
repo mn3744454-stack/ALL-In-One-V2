@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { UnitsManager, AreasManager, HousingBottomNav } from "@/components/housing";
 import { useHousingDemo } from "@/hooks/housing";
 import { useI18n } from "@/i18n";
@@ -71,6 +72,7 @@ export default function DashboardHousing() {
 
       {/* Mobile Page Header */}
       <MobilePageHeader title={t("housing.title")} />
+      <PageToolbar title={t("housing.title")} />
 
       {/* Content */}
       <div className="flex-1 p-4 md:p-6">

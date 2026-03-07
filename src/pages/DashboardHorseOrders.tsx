@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrders, OrderFilters as OrderFiltersType, CreateOrderData, HorseOrder } from "@/hooks/useHorseOrders";
@@ -106,6 +107,7 @@ const DashboardHorseOrders = () => {
     <DashboardShell>
       {/* Mobile Page Header */}
       <MobilePageHeader title={t("sidebar.orders")} />
+      <PageToolbar title={t("sidebar.orders")} />
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto min-h-0 pb-24 lg:pb-0">
