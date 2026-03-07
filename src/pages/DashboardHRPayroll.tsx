@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
 import { useEmployees } from '@/hooks/hr';
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { DashboardShell } from '@/components/layout/DashboardShell';
 import { MobilePageHeader } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,76 +62,55 @@ const initialFormData: PaymentFormData = {
   currency: 'SAR',
   payment_period: '',
   notes: '',
-  create_expense: false,
+  create_expense: true,
 };
 
 export default function DashboardHRPayroll() {
-  const { t, dir, lang } = useI18n();
+  const { t, dir } = useI18n();
   const { activeRole } = useTenant();
+  const canManage = activeRole === 'owner' || activeRole === 'manager';
+  const dateLocale: Locale = dir === 'rtl' ? arLocale : enUS;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
-  const [filters, setFilters] = useState<PayrollFilters>({
-    employeeId: '',
-    period: '',
-    search: '',
-  });
-  
-  const { payments, isLoading, createPayment, isCreating } = useSalaryPayments();
+  const [filters, setFilters] = useState<PayrollFilters>({ employeeId: '', period: '', search: '' });
+
   const { employees } = useEmployees();
-  
-  const canManage = activeRole === 'owner' || activeRole === 'manager';
-  const dateLocale: Locale = lang === 'ar' ? arLocale : enUS;
-  
-  // Internal employees for salary payments
-  const internalEmployees = useMemo(() => 
-    employees.filter(e => e.employment_kind === 'internal' && e.is_active),
+  const { payments, isLoading, createPayment, isCreating } = useSalaryPayments();
+
+  const internalEmployees = useMemo(
+    () => employees.filter(e => e.is_active && e.employment_kind === 'internal'),
     [employees]
   );
 
-  // Get unique periods from payments
   const periods = useMemo(() => {
-    const uniquePeriods = new Set<string>();
-    payments.forEach(p => {
-      if (p.payment_period) uniquePeriods.add(p.payment_period);
-    });
-    return Array.from(uniquePeriods).sort().reverse();
+    const set = new Set(payments.map(p => p.payment_period).filter(Boolean));
+    return Array.from(set).sort().reverse();
   }, [payments]);
 
-  // Filter payments
   const filteredPayments = useMemo(() => {
-    return payments.filter(payment => {
-      if (filters.employeeId && payment.employee_id !== filters.employeeId) return false;
-      if (filters.period && payment.payment_period !== filters.period) return false;
+    return payments.filter(p => {
+      if (filters.employeeId && p.employee_id !== filters.employeeId) return false;
+      if (filters.period && p.payment_period !== filters.period) return false;
       if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const employeeName = payment.employee?.full_name?.toLowerCase() || '';
-        if (!employeeName.includes(searchLower)) return false;
+        const q = filters.search.toLowerCase();
+        const name = p.employee?.full_name?.toLowerCase() || '';
+        if (!name.includes(q)) return false;
       }
       return true;
     });
   }, [payments, filters]);
 
-  // Calculate totals
-  const totals = useMemo(() => {
-    const sum = filteredPayments.reduce((acc, p) => acc + p.amount, 0);
-    return {
-      total: sum,
-      count: filteredPayments.length,
-    };
-  }, [filteredPayments]);
+  const totals = useMemo(() => ({
+    total: filteredPayments.reduce((sum, p) => sum + p.amount, 0),
+    count: filteredPayments.length,
+  }), [filteredPayments]);
 
-  const formatCurrency = (amount: number, currency: string = 'SAR') => {
-    return new Intl.NumberFormat(lang === 'ar' ? 'ar-SA' : 'en-SA', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number, currency = 'SAR') =>
+    new Intl.NumberFormat(dir === 'rtl' ? 'ar-SA' : 'en-US', { style: 'currency', currency }).format(amount);
 
   const handleSubmit = async () => {
     if (!formData.employee_id || !formData.amount) return;
-    
     await createPayment({
       employee_id: formData.employee_id,
       amount: parseFloat(formData.amount),
@@ -140,7 +119,6 @@ export default function DashboardHRPayroll() {
       notes: formData.notes || undefined,
       create_expense: formData.create_expense,
     });
-    
     setFormData(initialFormData);
     setShowAddDialog(false);
   };
@@ -151,190 +129,176 @@ export default function DashboardHRPayroll() {
         <title>{t('hr.payroll.title')} | Khail</title>
       </Helmet>
 
-      <div className="min-h-screen bg-background flex" dir={dir}>
-        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <DashboardShell
+        headerRight={
+          canManage ? (
+            <Button onClick={() => setShowAddDialog(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('hr.payroll.addPayment')}
+            </Button>
+          ) : undefined
+        }
+      >
+        {/* Mobile Header */}
+        <MobilePageHeader 
+          title={t('hr.payroll.title')} 
+          backTo="/dashboard/hr"
+        />
 
-        <main className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header */}
-          <MobilePageHeader 
-            title={t('hr.payroll.title')} 
-            backTo="/dashboard/hr"
-          />
-
-          {/* Desktop Header */}
-          <header className="hidden lg:flex items-center justify-between p-6 border-b border-border bg-card">
-            <div>
-              <h1 className="text-xl font-semibold">{t('hr.payroll.title')}</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t('hr.payroll.description')}
-              </p>
-            </div>
-            {canManage && (
-              <Button
-                onClick={() => setShowAddDialog(true)}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {t('hr.payroll.addPayment')}
-              </Button>
-            )}
-          </header>
-
-          {/* Content */}
-          <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Wallet className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('hr.payroll.totalPaid')}</p>
-                      <p className="text-lg font-semibold">{formatCurrency(totals.total)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-success/10">
-                      <FileText className="h-5 w-5 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('hr.payroll.paymentsCount')}</p>
-                      <p className="text-lg font-semibold">{totals.count}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="col-span-2 lg:col-span-2">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-warning/10">
-                      <TrendingUp className="h-5 w-5 text-warning" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">{t('hr.payroll.averagePerEmployee')}</p>
-                      <p className="text-lg font-semibold">
-                        {employees.length > 0 
-                          ? formatCurrency(totals.total / employees.filter(e => e.is_active && e.employment_kind === 'internal').length || 0)
-                          : formatCurrency(0)}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Filters */}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder={t('hr.payroll.searchEmployee')}
-                      value={filters.search}
-                      onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                      className="ps-10"
-                    />
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Wallet className="h-5 w-5 text-primary" />
                   </div>
-                  
-                  <Select
-                    value={filters.employeeId}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, employeeId: value === 'all' ? '' : value }))}
-                  >
-                    <SelectTrigger className="w-full sm:w-48">
-                      <SelectValue placeholder={t('hr.payroll.filterByEmployee')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('common.all')}</SelectItem>
-                      {employees.filter(e => e.employment_kind === 'internal').map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={filters.period}
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, period: value === 'all' ? '' : value }))}
-                  >
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder={t('hr.payroll.filterByPeriod')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t('common.all')}</SelectItem>
-                      {periods.map((period) => (
-                        <SelectItem key={period} value={period}>
-                          {period}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t('hr.payroll.totalPaid')}</p>
+                    <p className="text-lg font-semibold">{formatCurrency(totals.total)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <FileText className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t('hr.payroll.paymentsCount')}</p>
+                    <p className="text-lg font-semibold">{totals.count}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Payments List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t('hr.payroll.recentPayments')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
-                        </div>
-                        <Skeleton className="h-6 w-20" />
-                      </div>
-                    ))}
+            <Card className="col-span-2 lg:col-span-2">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-warning/10">
+                    <TrendingUp className="h-5 w-5 text-warning" />
                   </div>
-                ) : filteredPayments.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>{t('hr.payroll.noPayments')}</p>
+                  <div>
+                    <p className="text-sm text-muted-foreground">{t('hr.payroll.averagePerEmployee')}</p>
+                    <p className="text-lg font-semibold">
+                      {employees.length > 0 
+                        ? formatCurrency(totals.total / employees.filter(e => e.is_active && e.employment_kind === 'internal').length || 0)
+                        : formatCurrency(0)}
+                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {filteredPayments.map((payment) => (
-                      <PaymentRow 
-                        key={payment.id} 
-                        payment={payment} 
-                        formatCurrency={formatCurrency}
-                        dateLocale={dateLocale}
-                        t={t}
-                      />
-                    ))}
-                  </div>
-                )}
+                </div>
               </CardContent>
             </Card>
-
-            {/* Mobile FAB */}
-            {canManage && (
-              <Button
-                onClick={() => setShowAddDialog(true)}
-                className="lg:hidden fixed bottom-20 end-4 h-14 w-14 rounded-full shadow-lg z-50"
-                size="icon"
-              >
-                <Plus className="h-6 w-6" />
-              </Button>
-            )}
           </div>
-        </main>
-      </div>
+
+          {/* Filters */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t('hr.payroll.searchEmployee')}
+                    value={filters.search}
+                    onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                    className="ps-10"
+                  />
+                </div>
+                
+                <Select
+                  value={filters.employeeId}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, employeeId: value === 'all' ? '' : value }))}
+                >
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder={t('hr.payroll.filterByEmployee')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.all')}</SelectItem>
+                    {employees.filter(e => e.employment_kind === 'internal').map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filters.period}
+                  onValueChange={(value) => setFilters(prev => ({ ...prev, period: value === 'all' ? '' : value }))}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder={t('hr.payroll.filterByPeriod')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('common.all')}</SelectItem>
+                    {periods.map((period) => (
+                      <SelectItem key={period} value={period}>
+                        {period}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payments List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">{t('hr.payroll.recentPayments')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  ))}
+                </div>
+              ) : filteredPayments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>{t('hr.payroll.noPayments')}</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredPayments.map((payment) => (
+                    <PaymentRow 
+                      key={payment.id} 
+                      payment={payment} 
+                      formatCurrency={formatCurrency}
+                      dateLocale={dateLocale}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Mobile FAB */}
+          {canManage && (
+            <Button
+              onClick={() => setShowAddDialog(true)}
+              className="lg:hidden fixed bottom-20 end-4 h-14 w-14 rounded-full shadow-lg z-50"
+              size="icon"
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+          )}
+        </div>
+      </DashboardShell>
 
       {/* Add Payment Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

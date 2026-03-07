@@ -1,11 +1,10 @@
 import { useState, useMemo } from "react";
-import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import {
   MovementsList,
   MovementBottomNav,
@@ -14,12 +13,11 @@ import {
 } from "@/components/movement";
 import { useMovementDemo } from "@/hooks/movement/useMovementDemo";
 import { useI18n } from "@/i18n";
-import { ArrowLeftRight, MapPin, Settings, ArrowLeft, Menu, FlaskConical, Loader2 } from "lucide-react";
+import { ArrowLeftRight, MapPin, Settings, FlaskConical, Loader2 } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardMovement() {
   const { t } = useI18n();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const availableTabs = useMemo(() => ['movements', 'locations', 'settings'], []);
@@ -39,7 +37,6 @@ export default function DashboardMovement() {
   };
   
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
     canManageDemo,
@@ -52,49 +49,20 @@ export default function DashboardMovement() {
   } = useMovementDemo();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Desktop Sidebar */}
-      <DashboardSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        currentPath={location.pathname}
-      />
+    <DashboardShell
+      headerRight={
+        demoExists ? (
+          <Badge variant="outline" className="text-amber-600 border-amber-300">
+            <FlaskConical className="h-3 w-3 me-1" />
+            {t("movement.demo.title")}
+          </Badge>
+        ) : undefined
+      }
+    >
+      {/* Mobile Page Header */}
+      <MobilePageHeader title={t("sidebar.movement")} />
 
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
-        {/* Mobile Page Header */}
-        <MobilePageHeader title={t("sidebar.movement")} />
-
-        {/* Desktop Header */}
-        <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(true)}
-              className="shrink-0"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                <ArrowLeftRight className="h-5 w-5" />
-                {t("movement.title")}
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                {t("movement.subtitle")}
-              </p>
-            </div>
-          </div>
-          
-          {/* Demo mode indicator */}
-          {demoExists && (
-            <Badge variant="outline" className="text-amber-600 border-amber-300">
-              <FlaskConical className="h-3 w-3 me-1" />
-              {t("movement.demo.title")}
-            </Badge>
-          )}
-        </header>
-
+      <div className="flex-1 overflow-y-auto min-h-0 pb-20 lg:pb-0">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -180,6 +148,6 @@ export default function DashboardMovement() {
         open={recordDialogOpen}
         onOpenChange={setRecordDialogOpen}
       />
-    </div>
+    </DashboardShell>
   );
 }
