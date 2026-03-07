@@ -7,7 +7,6 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import {
   useServices,
@@ -99,7 +98,6 @@ const DashboardServices = () => {
     <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("nav.services")} backTo="/dashboard" />
-      <PageToolbar title={t("nav.services")} />
 
       {/* Services Content */}
       <div className="p-4 lg:p-8">

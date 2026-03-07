@@ -6,6 +6,8 @@ import { useI18n } from "@/i18n";
 
 interface DashboardShellProps {
   children: ReactNode;
+  /** Optional extra actions rendered in the header's right slot */
+  headerRight?: ReactNode;
   /** Hide the sidebar entirely (for personal mode pages or detail views) */
   hideSidebar?: boolean;
 }
@@ -24,7 +26,7 @@ interface DashboardShellProps {
  * Mobile/tablet rendering is left to page children (MobilePageHeader, 
  * MobileBottomNav, etc.) which are rendered inside the scrollable main area.
  */
-export function DashboardShell({ children, hideSidebar }: DashboardShellProps) {
+export function DashboardShell({ children, headerRight, hideSidebar }: DashboardShellProps) {
   const { workspaceMode } = useTenant();
   const { dir } = useI18n();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,7 +46,7 @@ export function DashboardShell({ children, hideSidebar }: DashboardShellProps) {
       {/* Right column */}
       <div className="flex-1 flex flex-col min-h-0 min-w-0">
         {/* Consistent desktop header */}
-        <DashboardHeader />
+        <DashboardHeader rightSlot={headerRight} />
 
         {/* Scrollable main content */}
         <main className="flex-1 overflow-y-auto min-h-0 min-w-0">

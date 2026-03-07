@@ -5,8 +5,6 @@ import { PublicProfileSettings } from "@/components/dashboard/PublicProfileSetti
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useI18n } from "@/i18n";
 
 const DashboardPublicProfile = () => {
@@ -21,11 +19,9 @@ const DashboardPublicProfile = () => {
 
   if (!activeTenant) {
     return (
-      <DashboardShell>
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">No tenant selected</p>
-        </div>
-      </DashboardShell>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">No tenant selected</p>
+      </div>
     );
   }
 
@@ -34,9 +30,10 @@ const DashboardPublicProfile = () => {
   }
 
   return (
-    <DashboardShell>
+    <div className="min-h-screen bg-background">
+      {/* Mobile Header */}
       <MobilePageHeader title={t("publicProfile.title")} backTo="/dashboard" />
-      <PageToolbar title={t("publicProfile.title")} />
+
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button
           variant="ghost"
@@ -46,9 +43,10 @@ const DashboardPublicProfile = () => {
           <ArrowLeft className="h-4 w-4 me-2" />
           {t("common.back")}
         </Button>
+        
         <PublicProfileSettings />
       </div>
-    </DashboardShell>
+    </div>
   );
 };
 

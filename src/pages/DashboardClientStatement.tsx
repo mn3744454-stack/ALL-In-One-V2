@@ -5,8 +5,6 @@ import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { ClientStatementTab } from "@/components/clients";
 import { MobilePageHeader } from "@/components/navigation";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { PageToolbar } from "@/components/layout/PageToolbar";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function DashboardClientStatement() {
@@ -25,13 +23,13 @@ export default function DashboardClientStatement() {
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <DashboardShell>
-      <MobilePageHeader title={t("clients.statement.title")} showBack />
-      <PageToolbar title={clientName ? `${t("clients.statement.title")} - ${clientName}` : t("clients.statement.title")} />
+    <div className="min-h-screen bg-background">
+      <main className="flex-1 flex flex-col min-w-0 pb-24 lg:pb-0">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t("clients.statement.title")} showBack />
 
-      <div className="p-4 lg:p-6">
-        {/* Desktop back + title */}
-        <div className="hidden lg:flex items-center gap-4 mb-6">
+        {/* Desktop Header — clean top bar, no sidebar */}
+        <header className="hidden lg:flex items-center h-16 px-6 border-b bg-background/95 backdrop-blur gap-4">
           <Button
             variant="ghost"
             size="sm"
@@ -49,14 +47,15 @@ export default function DashboardClientStatement() {
               <p className="text-sm text-muted-foreground">{clientName}</p>
             )}
           </div>
-        </div>
+        </header>
 
-        <div className="w-full max-w-7xl mx-auto">
+        {/* Full-width statement content */}
+        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
           {clientId && (
             <ClientStatementTab clientId={clientId} clientName={clientName} />
           )}
         </div>
-      </div>
-    </DashboardShell>
+      </main>
+    </div>
   );
 }

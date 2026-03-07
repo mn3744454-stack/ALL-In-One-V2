@@ -1,13 +1,13 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { PageToolbar } from "@/components/layout/PageToolbar";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key, Link2, BellRing } from "lucide-react";
+import { Menu, Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key, Link2, BellRing } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -16,6 +16,7 @@ import { useI18n } from "@/i18n";
 type LabMode = "none" | "requests" | "full";
 
 const DashboardOrganizationSettings = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { 
@@ -79,39 +80,86 @@ const DashboardOrganizationSettings = () => {
   ];
 
   return (
-    <DashboardShell>
-      <MobilePageHeader title={t("organizationSettings.title")} backTo="/dashboard" />
-      <PageToolbar title={t("organizationSettings.title")} />
+    <div className="flex min-h-screen bg-cream">
+      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 p-4 lg:p-8">
-        {!canManage && (
-          <Alert className="mb-6 bg-amber-50 border-amber-200">
-            <Shield className="w-4 h-4 text-amber-600" />
-            <AlertDescription className="text-amber-800">
-              {t("organizationSettings.ownerOnly")}
-            </AlertDescription>
-          </Alert>
-        )}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Header */}
+        <MobilePageHeader title={t("organizationSettings.title")} backTo="/dashboard" />
 
-        <div className="max-w-3xl space-y-6">
-          {/* Permissions & Roles Card */}
-          {(activeRole === "owner" || activeRole === "manager") && (
+        {/* Desktop Header */}
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
+          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="font-display text-xl font-bold text-navy">
+                  {t("organizationSettings.title")}
+                </h1>
+                <p className="text-sm text-muted-foreground hidden sm:block">
+                  {activeTenant?.tenant.name}
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 p-4 lg:p-8">
+          {!canManage && (
+            <Alert className="mb-6 bg-amber-50 border-amber-200">
+              <Shield className="w-4 h-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                {t("organizationSettings.ownerOnly")}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="max-w-3xl space-y-6">
+            {/* Permissions & Roles Card */}
+            {(activeRole === "owner" || activeRole === "manager") && (
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Key className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>{t("settings.permissionsRoles.title")}</CardTitle>
+                        <CardDescription>
+                          {t("settings.permissionsRoles.desc")}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => navigate("/dashboard/settings/permissions")}
+                      className="gap-2"
+                    >
+                      {t("settings.permissionsRoles.open")}
+                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+            )}
+
+            {/* Notification Settings Card - visible to all users */}
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Key className="w-5 h-5 text-primary" />
+                      <BellRing className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle>{t("settings.permissionsRoles.title")}</CardTitle>
+                      <CardTitle>{t("settings.notifications.title")}</CardTitle>
                       <CardDescription>
-                        {t("settings.permissionsRoles.desc")}
+                        {t("settings.notifications.desc")}
                       </CardDescription>
                     </div>
                   </div>
                   <Button
-                    onClick={() => navigate("/dashboard/settings/permissions")}
+                    onClick={() => navigate("/dashboard/settings/notifications")}
                     className="gap-2"
                   >
                     {t("settings.permissionsRoles.open")}
@@ -120,66 +168,34 @@ const DashboardOrganizationSettings = () => {
                 </div>
               </CardHeader>
             </Card>
-          )}
 
-          {/* Notification Settings Card */}
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <BellRing className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle>{t("settings.notifications.title")}</CardTitle>
-                    <CardDescription>
-                      {t("settings.notifications.desc")}
-                    </CardDescription>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/dashboard/settings/notifications")}
-                  className="gap-2"
-                >
-                  {t("settings.notifications.open")}
-                  <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-                </Button>
-              </div>
-            </CardHeader>
-          </Card>
-
-          {/* Connections Card */}
-          {canManage && (
-            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Link2 className="w-5 h-5 text-primary" />
+            {/* Connections & Sharing Card */}
+            {(activeRole === "owner" || activeRole === "manager") && (
+              <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Link2 className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>{t("connections.title")}</CardTitle>
+                        <CardDescription>
+                          {t("connections.description")}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle>{t("connections.title")}</CardTitle>
-                      <CardDescription>
-                        {t("connections.description")}
-                      </CardDescription>
-                    </div>
+                    <Button
+                      onClick={() => navigate("/dashboard/settings/connections")}
+                      className="gap-2"
+                    >
+                      {t("settings.permissionsRoles.open")}
+                      <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/dashboard/settings/connections")}
-                    className="gap-2"
-                  >
-                    {t("connections.manage")}
-                    <ChevronRight className="w-4 h-4 rtl:rotate-180" />
-                  </Button>
-                </div>
-              </CardHeader>
-            </Card>
-          )}
-
-          {/* Modules Card */}
-          {canManage && (
+                </CardHeader>
+              </Card>
+            )}
             <Card>
               <CardHeader>
                 <CardTitle>{t("organizationSettings.modules")}</CardTitle>
@@ -188,43 +204,42 @@ const DashboardOrganizationSettings = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {modules.map((module) => {
-                  const Icon = module.icon;
-                  return (
-                    <div
-                      key={module.id}
-                      className="flex items-center justify-between p-4 rounded-lg border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Icon className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{module.title}</p>
-                          <p className="text-sm text-muted-foreground">{module.description}</p>
-                        </div>
+                {modules.map((module) => (
+                  <div
+                    key={module.id}
+                    className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/50"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <module.icon className="w-5 h-5 text-primary" />
                       </div>
-                      <Switch
-                        checked={module.enabled}
-                        onCheckedChange={(checked) => handleToggleModule(module.id, checked)}
-                        disabled={loading}
-                      />
+                      <div>
+                        <p className="font-medium text-foreground">{module.title}</p>
+                        <p className="text-sm text-muted-foreground">{module.description}</p>
+                      </div>
                     </div>
-                  );
-                })}
+                    <Switch
+                      checked={module.enabled}
+                      onCheckedChange={(checked) => handleToggleModule(module.id, checked)}
+                      disabled={!canManage || loading}
+                    />
+                  </div>
+                ))}
               </CardContent>
             </Card>
-          )}
 
-          {/* Laboratory Mode */}
-          {canManage && (
+            {/* Lab Mode Card */}
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <FlaskConical className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <FlaskConical className="w-5 h-5 text-primary" />
+                  </div>
                   <div>
-                    <CardTitle>{t("organizationSettings.laboratory.title")}</CardTitle>
-                    <CardDescription>{t("organizationSettings.laboratory.description")}</CardDescription>
+                    <CardTitle>{t("organizationSettings.labMode")}</CardTitle>
+                    <CardDescription>
+                      {t("organizationSettings.labModeDescription")}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -232,12 +247,17 @@ const DashboardOrganizationSettings = () => {
                 <RadioGroup
                   value={labMode}
                   onValueChange={(value) => handleLabModeChange(value as LabMode)}
-                  disabled={loading}
+                  disabled={!canManage || loading}
+                  className="space-y-3"
                 >
                   {labModes.map((mode) => (
-                    <div key={mode.value} className="flex items-center space-x-2 rtl:space-x-reverse p-3 rounded-lg hover:bg-muted/50">
+                    <div
+                      key={mode.value}
+                      className="flex items-center space-x-3 rtl:space-x-reverse p-4 rounded-xl border border-border/50 bg-background/50 cursor-pointer hover:bg-accent/50 transition-colors"
+                      onClick={() => canManage && !loading && handleLabModeChange(mode.value)}
+                    >
                       <RadioGroupItem value={mode.value} id={`lab-${mode.value}`} />
-                      <Label htmlFor={`lab-${mode.value}`} className="cursor-pointer flex-1">
+                      <Label htmlFor={`lab-${mode.value}`} className="flex-1 cursor-pointer">
                         {mode.label}
                       </Label>
                     </div>
@@ -245,10 +265,10 @@ const DashboardOrganizationSettings = () => {
                 </RadioGroup>
               </CardContent>
             </Card>
-          )}
-        </div>
+          </div>
+        </main>
       </div>
-    </DashboardShell>
+    </div>
   );
 };
 

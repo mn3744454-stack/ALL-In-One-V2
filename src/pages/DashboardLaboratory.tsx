@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from "react";
-import { PageToolbar } from "@/components/layout/PageToolbar";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,10 +23,11 @@ import {
 import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { FlaskConical, FileText, Settings, Clock, Info, FileStack, ArrowLeft, GitCompare, Menu, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
 import { StableResultsView } from "@/components/laboratory/StableResultsView";
 import { StableMessagesView } from "@/components/laboratory/StableMessagesView";
+import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { MobilePageHeader } from "@/components/navigation";
 import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
@@ -45,6 +45,7 @@ export default function DashboardLaboratory() {
   const [createSampleOpen, setCreateSampleOpen] = useState(false);
   const [createResultOpen, setCreateResultOpen] = useState(false);
   const [previewResult, setPreviewResult] = useState<LabResult | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editHorseId, setEditHorseId] = useState<string | null>(null);
   const [fromRequest, setFromRequest] = useState<LabRequest | null>(null);
   
@@ -57,71 +58,122 @@ export default function DashboardLaboratory() {
   
   // Fetch lab horses for edit dialog
   const { labHorses } = useLabHorses({ includeArchived: true });
+  const editHorse = useMemo(() => {
+    if (!editHorseId) return null;
+    return labHorses.find(h => h.id === editHorseId) || null;
+  }, [editHorseId, labHorses]);
 
-  // Available tabs based on lab mode
+  // Compute available tabs based on labMode
   const availableTabs = useMemo(() => {
-    if (labMode === 'requests') return ['requests', 'results', 'messages', 'settings'];
+    if (labMode === 'requests') {
+      return ['requests', 'results', 'messages', 'settings'];
+    }
+    // Full lab mode - now includes 'horses'
     return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
   }, [labMode]);
 
+  // Get active tab from URL, validate, or use first available (smart default)
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
-    return availableTabs[0];
+    return availableTabs[0]; // Smart default to first available
   }, [searchParams, availableTabs]);
+
+  // Sync URL when tab is not valid or missing for primary lab tenants
+  useEffect(() => {
+    const urlTab = searchParams.get('tab');
+    
+    // For primary lab tenants, ensure tab is always in URL (default to samples)
+    if (isPrimaryLabTenant && !urlTab) {
+      navigate(`/dashboard/laboratory?tab=samples`, { replace: true });
+      return;
+    }
+    
+    // Redirect to first available tab if current tab is invalid
+    if (urlTab && !availableTabs.includes(urlTab)) {
+      const next = new URLSearchParams(searchParams);
+      // Preserve requestId context by redirecting to 'requests' tab
+      const hasRequestId = searchParams.has('requestId');
+      next.set('tab', hasRequestId ? 'requests' : availableTabs[0]);
+      setSearchParams(next, { replace: true });
+    }
+  }, [availableTabs, searchParams, setSearchParams, isPrimaryLabTenant, navigate]);
 
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
-    next.delete('horseId');
-    next.delete('sampleId');
+    // Clear horseId if leaving horses tab
+    if (tab !== 'horses') {
+      next.delete('horseId');
+    }
     setSearchParams(next, { replace: true });
   };
 
-  // Find the editing horse from labHorses
-  const editHorse = editHorseId
-    ? labHorses.find((h: LabHorse) => h.id === editHorseId) ?? null
-    : null;
-
-  // Handle result preview
-  const handlePreviewResult = (result: LabResult) => {
-    setPreviewResult(result);
-  };
-
-  // Find template for preview
-  const previewTemplate = previewResult
-    ? templates.find(t => t.id === previewResult.template_id) ?? null
-    : null;
-
-  // Back from horse profile
   const handleBackFromHorseProfile = () => {
     const next = new URLSearchParams(searchParams);
     next.delete('horseId');
     setSearchParams(next, { replace: true });
   };
 
+  const handlePreviewResult = (result: LabResult) => {
+    setPreviewResult(result);
+  };
+
+  // Get full template for preview
+  const previewTemplate = previewResult 
+    ? templates.find(t => t.id === previewResult.template_id)
+    : null;
+
   if (moduleLoading) {
     return (
-      <DashboardShell>
-        <div className="flex-1 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
-        </div>
-      </DashboardShell>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
 
   return (
-    <DashboardShell>
-      {/* Mobile Page Header */}
-      <MobilePageHeader title={t("sidebar.laboratory")} />
-      <PageToolbar
-        title={t("sidebar.laboratory")}
-        actions={labMode === 'full' ? <LabCreditsPanel compact /> : undefined}
+    <div className="flex min-h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <DashboardSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        currentPath={location.pathname}
       />
 
-      <div className="flex-1 overflow-y-auto min-h-0 pb-20 lg:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-0">
+        {/* Mobile Page Header */}
+        <MobilePageHeader title={t("sidebar.laboratory")} />
+
+        {/* Desktop Header with Sidebar trigger */}
+        <header className="hidden lg:flex items-center justify-between h-16 px-6 border-b bg-background/95 backdrop-blur">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(true)}
+              className="shrink-0"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <FlaskConical className="h-5 w-5" />
+                {t("laboratory.title")}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {t("laboratory.subtitle")}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {labMode === 'full' && <LabCreditsPanel compact />}
+            <NotificationsPanel />
+          </div>
+        </header>
+
         <div className="container mx-auto px-4 py-6 max-w-7xl">
           {/* Mobile Credits - only for full mode */}
           {labMode === 'full' && (
@@ -130,7 +182,7 @@ export default function DashboardLaboratory() {
             </div>
           )}
 
-          {/* Demo Alert - Only shown in requests mode */}
+          {/* Demo Alert - Only shown in requests mode (MVP banner removed for full lab mode) */}
           {labMode === 'requests' && (
             <Alert className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950 hidden lg:flex">
               <Info className="h-4 w-4 text-blue-600" />
@@ -142,7 +194,7 @@ export default function DashboardLaboratory() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            {/* Hide internal tabs for primary lab tenants */}
+            {/* Hide internal tabs for primary lab tenants - they use sidebar/mobile nav instead */}
             {!isPrimaryLabTenant && (
               <TabsList className="mb-6 hidden lg:flex">
                 {labMode === 'requests' ? (
@@ -246,6 +298,7 @@ export default function DashboardLaboratory() {
                   horseId={searchParams.get('horseId')!}
                   onBack={handleBackFromHorseProfile}
                   onSampleClick={(sampleId) => {
+                    // Navigate to samples tab with selected sample
                     const next = new URLSearchParams(searchParams);
                     next.set('tab', 'samples');
                     next.set('sampleId', sampleId);
@@ -289,7 +342,7 @@ export default function DashboardLaboratory() {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - renders for both labMode="full" and "requests" */}
       <LabBottomNavigation
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -321,6 +374,7 @@ export default function DashboardLaboratory() {
             onFinalize={async (id) => { await finalizeResult(id); }}
             onPublishToStable={publishToStable}
           />
+          {/* Lab Horse Edit Dialog - works from both profile and list */}
           <LabHorseEditDialog
             open={!!editHorse}
             onOpenChange={(open) => !open && setEditHorseId(null)}
@@ -329,6 +383,6 @@ export default function DashboardLaboratory() {
           />
         </>
       )}
-    </DashboardShell>
+    </div>
   );
 }

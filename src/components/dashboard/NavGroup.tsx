@@ -69,7 +69,6 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
                 key={item.href}
                 to={item.href}
                 onClick={onNavigate}
-                data-nav-active={isActive ? "true" : undefined}
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm",
                   isActive

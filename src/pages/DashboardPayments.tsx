@@ -6,7 +6,6 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { PageToolbar } from "@/components/layout/PageToolbar";
 import { useTenant } from "@/contexts/TenantContext";
 import { useUserPaymentIntents } from "@/hooks/usePayments";
 import { useState } from "react";
@@ -38,7 +37,6 @@ const DashboardPayments = () => {
     <DashboardShell>
       {/* Mobile Header */}
       <MobilePageHeader title={t("nav.payments")} backTo="/dashboard" />
-      <PageToolbar title={t("nav.payments")} />
 
         <div className="p-4 lg:p-8">
           {/* Back Button & Title */}

@@ -11,6 +11,11 @@ import { useI18n } from "@/i18n";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 
+interface DashboardHeaderProps {
+  /** Optional extra actions on the right side (e.g. "Create" button) */
+  rightSlot?: ReactNode;
+}
+
 /**
  * Shared desktop header for all organization dashboard pages.
  * Always renders WorkspaceModeToggle, TenantSwitcher, RoleSwitcher,
@@ -18,7 +23,7 @@ import { useState } from "react";
  * 
  * Desktop only — mobile headers are handled by MobilePageHeader separately.
  */
-export function DashboardHeader() {
+export function DashboardHeader({ rightSlot }: DashboardHeaderProps) {
   const { workspaceMode } = useTenant();
   const { signOut } = useAuth();
   const { t } = useI18n();
@@ -41,6 +46,7 @@ export function DashboardHeader() {
 
           {/* Right: actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
+            {rightSlot}
             <LanguageSelector />
             <NotificationsPanel />
             <button
