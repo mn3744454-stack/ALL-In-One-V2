@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Menu, Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb, CalendarCheck } from "lucide-react";
+import { Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb, CalendarCheck } from "lucide-react";
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
@@ -253,7 +253,6 @@ const mockFollowups = [
 
 const DashboardVet = () => {
   const { t } = useI18n();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showVisitDialog, setShowVisitDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -271,9 +270,7 @@ const DashboardVet = () => {
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
-    if (urlTab && availableTabs.includes(urlTab)) {
-      return urlTab;
-    }
+    if (urlTab && availableTabs.includes(urlTab)) return urlTab;
     return availableTabs[0];
   }, [searchParams, availableTabs]);
 
@@ -297,7 +294,6 @@ const DashboardVet = () => {
     cancelVisit 
   } = useVetVisits({ search: searchQuery });
 
-  // Use mock data when no real data exists
   const displayTreatments = treatments.length > 0 ? treatments : mockTreatments;
   const displayVaccinations = vaccinations.length > 0 ? vaccinations : mockVaccinations;
   const displayFollowups = followups.length > 0 ? followups : mockFollowups;
@@ -306,195 +302,168 @@ const DashboardVet = () => {
   const isUsingMockVaccinations = vaccinations.length === 0 && !vaccinationsLoading;
   const isUsingMockFollowups = followups.length === 0 && !followupsLoading;
 
+  // Header right: Schedule Visit + New Treatment CTAs
+  const headerRight = canManage ? (
+    <div className="flex gap-2">
+      <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
+        <CalendarCheck className="w-4 h-4" />
+        <span className="hidden sm:inline">{t("vetVisits.scheduleVisit")}</span>
+      </Button>
+      <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+        <Plus className="w-4 h-4" />
+        <span className="hidden sm:inline">{t("vet.newTreatment")}</span>
+      </Button>
+    </div>
+  ) : undefined;
+
   return (
-    <div className="flex min-h-screen bg-cream">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell headerRight={headerRight}>
+      <MobilePageHeader title={t("sidebar.vetHealth")} />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Page Header */}
-        <MobilePageHeader title={t("sidebar.vetHealth")} />
-
-        {/* Header - Desktop/Tablet */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden md:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-4">
-              <button
-                className="p-2 rounded-xl hover:bg-navy/5 lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="w-5 h-5 text-navy" />
-              </button>
-              <div>
-                <h1 className="font-display text-xl font-bold text-navy">{t("vet.title")}</h1>
-                <p className="text-sm text-muted-foreground hidden sm:block">
-                  {t("vet.subtitle")}
-                </p>
-              </div>
-            </div>
-
-            {canManage && (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
-                  <CalendarCheck className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vetVisits.scheduleVisit")}</span>
-                </Button>
-                <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.newTreatment")}</span>
-                </Button>
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <TabsList className="hidden lg:flex">
-                <TabsTrigger value="treatments" className="gap-2">
-                  <Stethoscope className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.tabs.treatments")}</span>
-                </TabsTrigger>
-                <TabsTrigger value="vaccinations" className="gap-2">
-                  <Syringe className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.tabs.vaccinations")}</span>
-                </TabsTrigger>
-                <TabsTrigger value="visits" className="gap-2">
-                  <CalendarCheck className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.tabs.visits")}</span>
-                  {todayVisits.length > 0 && (
-                    <span className="ms-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
-                      {todayVisits.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="followups" className="gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.tabs.followups")}</span>
-                  {overdueFollowups.length > 0 && (
-                    <span className="ms-1 px-1.5 py-0.5 text-xs bg-destructive text-destructive-foreground rounded-full">
-                      {overdueFollowups.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-                {isOwnerOrManager && (
-                  <TabsTrigger value="settings" className="gap-2">
-                    <Settings className="w-4 h-4" />
-                    <span className="hidden sm:inline">{t("vet.tabs.settings")}</span>
-                  </TabsTrigger>
+      <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <TabsList className="hidden lg:flex">
+              <TabsTrigger value="treatments" className="gap-2">
+                <Stethoscope className="w-4 h-4" />
+                <span className="hidden sm:inline">{t("vet.tabs.treatments")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="vaccinations" className="gap-2">
+                <Syringe className="w-4 h-4" />
+                <span className="hidden sm:inline">{t("vet.tabs.vaccinations")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="visits" className="gap-2">
+                <CalendarCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">{t("vet.tabs.visits")}</span>
+                {todayVisits.length > 0 && (
+                  <span className="ms-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
+                    {todayVisits.length}
+                  </span>
                 )}
-              </TabsList>
+              </TabsTrigger>
+              <TabsTrigger value="followups" className="gap-2">
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">{t("vet.tabs.followups")}</span>
+                {overdueFollowups.length > 0 && (
+                  <span className="ms-1 px-1.5 py-0.5 text-xs bg-destructive text-destructive-foreground rounded-full">
+                    {overdueFollowups.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              {isOwnerOrManager && (
+                <TabsTrigger value="settings" className="gap-2">
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t("vet.tabs.settings")}</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
 
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder={t("common.search")}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="ps-9"
-                />
-              </div>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder={t("common.search")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="ps-9"
+              />
             </div>
+          </div>
 
-            <TabsContent value="treatments">
-              {isUsingMockTreatments && (
-                <Alert className="bg-amber-50 border-amber-200 mb-4">
-                  <Lightbulb className="w-4 h-4 text-amber-600" />
-                  <AlertDescription className="text-amber-800">
-                    هذه بيانات تجريبية للعرض. قم بإنشاء أول علاج للبدء!
-                    <span className="block text-xs mt-1 opacity-75">These are demo treatments. Create your first treatment to get started!</span>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <VetTreatmentsList
-                treatments={displayTreatments as any}
-                loading={treatmentsLoading}
-                emptyMessage={t("vet.emptyMessages.treatments")}
-              />
-            </TabsContent>
-
-            <TabsContent value="vaccinations">
-              {isUsingMockVaccinations && (
-                <Alert className="bg-amber-50 border-amber-200 mb-4">
-                  <Lightbulb className="w-4 h-4 text-amber-600" />
-                  <AlertDescription className="text-amber-800">
-                    هذه بيانات تجريبية للعرض. قم بجدولة أول تطعيم للبدء!
-                    <span className="block text-xs mt-1 opacity-75">These are demo vaccinations. Schedule your first vaccination to get started!</span>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <VaccinationsList
-                vaccinations={displayVaccinations as any}
-                loading={vaccinationsLoading}
-                onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
-                onCancel={!isUsingMockVaccinations && canManage ? skipVaccination : undefined}
-                emptyMessage={t("vet.emptyMessages.vaccinations")}
-              />
-            </TabsContent>
-
-            <TabsContent value="visits">
-              <VetVisitsList
-                visits={visits}
-                horses={horses}
-                loading={visitsLoading}
-                emptyMessage={t("vet.emptyMessages.visits")}
-                onConfirm={canManage ? confirmVisit : undefined}
-                onStart={canManage ? startVisit : undefined}
-                onComplete={canManage ? completeVisit : undefined}
-                onCancel={canManage ? cancelVisit : undefined}
-              />
-            </TabsContent>
-
-            <TabsContent value="followups">
-              {isUsingMockFollowups && (
-                <Alert className="bg-amber-50 border-amber-200 mb-4">
-                  <Lightbulb className="w-4 h-4 text-amber-600" />
-                  <AlertDescription className="text-amber-800">
-                    هذه بيانات تجريبية للعرض. المتابعات تُنشأ تلقائياً من العلاجات.
-                    <span className="block text-xs mt-1 opacity-75">These are demo follow-ups. Follow-ups are created automatically from treatments!</span>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <VetFollowupsList
-                followups={displayFollowups as any}
-                loading={followupsLoading}
-                onMarkDone={!isUsingMockFollowups && canManage ? markAsDone : undefined}
-                onCancel={!isUsingMockFollowups && canManage ? markAsCancelled : undefined}
-                emptyMessage={t("vet.emptyMessages.followups")}
-              />
-            </TabsContent>
-
-            {isOwnerOrManager && (
-              <TabsContent value="settings">
-                <div className="space-y-6">
-                  <div>
-                    <h2 className="font-display text-lg font-semibold text-navy mb-4">{t("vet.vaccinationPrograms")}</h2>
-                    <VaccinationProgramManager />
-                  </div>
-                </div>
-              </TabsContent>
+          <TabsContent value="treatments">
+            {isUsingMockTreatments && (
+              <Alert className="bg-amber-50 border-amber-200 mb-4">
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  هذه بيانات تجريبية للعرض. قم بإنشاء أول علاج للبدء!
+                  <span className="block text-xs mt-1 opacity-75">These are demo treatments. Create your first treatment to get started!</span>
+                </AlertDescription>
+              </Alert>
             )}
-          </Tabs>
-        </main>
+            <VetTreatmentsList
+              treatments={displayTreatments as any}
+              loading={treatmentsLoading}
+              emptyMessage={t("vet.emptyMessages.treatments")}
+            />
+          </TabsContent>
 
-        {/* Bottom Navigation for Mobile */}
-        <VetBottomNavigation
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          showSettings={isOwnerOrManager}
-          overdueCount={overdueFollowups.length}
-          todayVisitsCount={todayVisits.length}
-        />
-      </div>
+          <TabsContent value="vaccinations">
+            {isUsingMockVaccinations && (
+              <Alert className="bg-amber-50 border-amber-200 mb-4">
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  هذه بيانات تجريبية للعرض. قم بجدولة أول تطعيم للبدء!
+                  <span className="block text-xs mt-1 opacity-75">These are demo vaccinations. Schedule your first vaccination to get started!</span>
+                </AlertDescription>
+              </Alert>
+            )}
+            <VaccinationsList
+              vaccinations={displayVaccinations as any}
+              loading={vaccinationsLoading}
+              onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
+              onCancel={!isUsingMockVaccinations && canManage ? skipVaccination : undefined}
+              emptyMessage={t("vet.emptyMessages.vaccinations")}
+            />
+          </TabsContent>
 
+          <TabsContent value="visits">
+            <VetVisitsList
+              visits={visits}
+              horses={horses}
+              loading={visitsLoading}
+              emptyMessage={t("vet.emptyMessages.visits")}
+              onConfirm={canManage ? confirmVisit : undefined}
+              onStart={canManage ? startVisit : undefined}
+              onComplete={canManage ? completeVisit : undefined}
+              onCancel={canManage ? cancelVisit : undefined}
+            />
+          </TabsContent>
+
+          <TabsContent value="followups">
+            {isUsingMockFollowups && (
+              <Alert className="bg-amber-50 border-amber-200 mb-4">
+                <Lightbulb className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  هذه بيانات تجريبية للعرض. المتابعات تُنشأ تلقائياً من العلاجات.
+                  <span className="block text-xs mt-1 opacity-75">These are demo follow-ups. Follow-ups are created automatically from treatments!</span>
+                </AlertDescription>
+              </Alert>
+            )}
+            <VetFollowupsList
+              followups={displayFollowups as any}
+              loading={followupsLoading}
+              onMarkDone={!isUsingMockFollowups && canManage ? markAsDone : undefined}
+              onCancel={!isUsingMockFollowups && canManage ? markAsCancelled : undefined}
+              emptyMessage={t("vet.emptyMessages.followups")}
+            />
+          </TabsContent>
+
+          {isOwnerOrManager && (
+            <TabsContent value="settings">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="font-display text-lg font-semibold text-navy mb-4">{t("vet.vaccinationPrograms")}</h2>
+                  <VaccinationProgramManager />
+                </div>
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
+      </main>
+
+      <VetBottomNavigation
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        showSettings={isOwnerOrManager}
+        overdueCount={overdueFollowups.length}
+        todayVisitsCount={todayVisits.length}
+      />
       <CreateVetTreatmentDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
       <CreateVetVisitDialog 
         open={showVisitDialog} 
         onOpenChange={setShowVisitDialog} 
         onSubmit={createVisit}
       />
-    </div>
+    </DashboardShell>
   );
 };
 

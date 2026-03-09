@@ -1,10 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TenantSwitcher } from "@/components/TenantSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useHorseOrders, OrderFilters as OrderFiltersType, CreateOrderData, HorseOrder } from "@/hooks/useHorseOrders";
@@ -36,8 +33,6 @@ import {
 } from "@/components/ui/sheet";
 import {
   Settings,
-  Search,
-  Menu,
   ClipboardList,
   Plus,
   Sliders,
@@ -51,7 +46,6 @@ const OrderTimelineWrapper = ({ orderId }: { orderId: string }) => {
 
 const DashboardHorseOrders = () => {
   const { t } = useI18n();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { activeTenant, activeRole } = useTenant();
   const { horses } = useHorses();
   
@@ -113,151 +107,111 @@ const DashboardHorseOrders = () => {
   const horseOptions = horses.map(h => ({ id: h.id, name: h.name }));
   const viewingOrder = orders.find(o => o.id === viewingOrderId);
 
-  return (
-    <div className="h-dvh w-full bg-cream flex overflow-hidden">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-0 min-w-0">
-        {/* Mobile Page Header */}
-        <MobilePageHeader title={t("sidebar.orders")} />
-
-        {/* Top Bar - Desktop/Tablet */}
-        <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden md:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-              <button
-                className="p-2 rounded-xl hover:bg-muted lg:hidden shrink-0"
-                onClick={() => setSidebarOpen(true)}
-                aria-label={t("common.openMenu")}
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              
-              <TenantSwitcher />
-              
-              <div className="hidden md:block">
-                <RoleSwitcher />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 sm:gap-3">
-              <div className="relative hidden md:block">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t("orders.filters.searchOrders")}
-                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
-                  value={filters.search || ""}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                />
-              </div>
-              
-              {canManage && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <OrderTypesManager 
-                      trigger={
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <ClipboardList className="w-4 h-4 me-2" />
-                          {t("orders.manageOrderTypes")}
-                        </DropdownMenuItem>
-                      }
-                    />
-                    <CapabilitiesManager 
-                      trigger={
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Sliders className="w-4 h-4 me-2" />
-                          {t("orders.serviceCapabilities")}
-                        </DropdownMenuItem>
-                      }
-                    />
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              
-              <NotificationsPanel />
-            </div>
-          </div>
-        </header>
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto min-h-0 pb-24 lg:pb-0">
-          <div className="p-4 lg:p-8">
-            {!activeTenant ? (
-              <div className="text-center py-12">
-                <ClipboardList className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h2 className="font-display text-xl font-semibold text-navy mb-2">
-                  {t("orders.noOrganizationSelected")}
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                  {t("orders.createOrJoinOrganization")}
-                </p>
-                <Link to="/select-role">
-                  <Button variant="gold">{t("dashboard.createOrganization")}</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Header with tabs and actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h1 className="font-display text-2xl font-bold text-navy">{t("orders.title")}</h1>
-                    <p className="text-sm text-muted-foreground">
-                      {t("orders.subtitle")}
-                    </p>
-                  </div>
-                  {canManage && (
-                    <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      {t("orders.newOrder")}
-                    </Button>
-                  )}
-                </div>
-
-                {/* Pinned Tabs */}
-                <PinnedTabs
-                  pinnedTabs={pinnedTabs}
-                  moreTypes={moreTypes}
-                  selectedTypeId={selectedTypeId}
-                  onSelectType={setSelectedTypeId}
-                />
-
-                {/* Filters */}
-                <OrderFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  horses={horseOptions}
-                />
-
-                {/* Orders List */}
-                <OrdersList
-                  orders={orders}
-                  loading={loading}
-                  canManage={canManage}
-                  onCreateOrder={() => setCreateDialogOpen(true)}
-                  onViewOrder={(order) => setViewingOrderId(order.id)}
-                  onEditOrder={(order) => setEditingOrder(order)}
-                  onStatusChange={handleStatusChange}
-                  onDeleteOrder={handleDeleteOrder}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Navigation for Mobile */}
-        <OrdersBottomNavigation
-          activeTab={mobileStatusTab}
-          onTabChange={setMobileStatusTab}
-          showSettings={canManage}
+  // Header right: settings dropdown
+  const headerRight = canManage ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Settings className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <OrderTypesManager 
+          trigger={
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <ClipboardList className="w-4 h-4 me-2" />
+              {t("orders.manageOrderTypes")}
+            </DropdownMenuItem>
+          }
         />
-      </main>
+        <CapabilitiesManager 
+          trigger={
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Sliders className="w-4 h-4 me-2" />
+              {t("orders.serviceCapabilities")}
+            </DropdownMenuItem>
+          }
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : undefined;
+
+  return (
+    <DashboardShell headerRight={headerRight}>
+      {/* Mobile Page Header */}
+      <MobilePageHeader title={t("sidebar.orders")} />
+
+      {/* Content Area */}
+      <div className="flex-1 pb-24 lg:pb-0">
+        <div className="p-4 lg:p-8">
+          {!activeTenant ? (
+            <div className="text-center py-12">
+              <ClipboardList className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-semibold text-navy mb-2">
+                {t("orders.noOrganizationSelected")}
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                {t("orders.createOrJoinOrganization")}
+              </p>
+              <Link to="/select-role">
+                <Button variant="gold">{t("dashboard.createOrganization")}</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Header with tabs and actions */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="font-display text-2xl font-bold text-navy">{t("orders.title")}</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {t("orders.subtitle")}
+                  </p>
+                </div>
+                {canManage && (
+                  <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    {t("orders.newOrder")}
+                  </Button>
+                )}
+              </div>
+
+              {/* Pinned Tabs */}
+              <PinnedTabs
+                pinnedTabs={pinnedTabs}
+                moreTypes={moreTypes}
+                selectedTypeId={selectedTypeId}
+                onSelectType={setSelectedTypeId}
+              />
+
+              {/* Filters */}
+              <OrderFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                horses={horseOptions}
+              />
+
+              {/* Orders List */}
+              <OrdersList
+                orders={orders}
+                loading={loading}
+                canManage={canManage}
+                onCreateOrder={() => setCreateDialogOpen(true)}
+                onViewOrder={(order) => setViewingOrderId(order.id)}
+                onEditOrder={(order) => setEditingOrder(order)}
+                onStatusChange={handleStatusChange}
+                onDeleteOrder={handleDeleteOrder}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Navigation for Mobile */}
+      <OrdersBottomNavigation
+        activeTab={mobileStatusTab}
+        onTabChange={setMobileStatusTab}
+        showSettings={canManage}
+      />
 
       {/* Create Order Dialog */}
       <CreateOrderDialog
@@ -291,7 +245,7 @@ const DashboardHorseOrders = () => {
           )}
         </SheetContent>
       </Sheet>
-    </div>
+    </DashboardShell>
   );
 };
 
