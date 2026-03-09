@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
-import { Menu, Shield, ArrowRight, Plus, Loader2 } from "lucide-react";
+import { Shield, Plus, Loader2 } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -21,7 +21,6 @@ import { RoleEditorDialog, RolesList, MemberRoleAssignment } from "@/components/
 import { toast } from "sonner";
 
 const DashboardRolesSettings = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedRoleKey, setSelectedRoleKey] = useState<string | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -29,7 +28,7 @@ const DashboardRolesSettings = () => {
   const { activeTenant, activeRole } = useTenant();
   const { allDefinitions, loading: loadingPermissions } = usePermissions();
   const { bundles, getBundlePermissions, loading: loadingBundles } = usePermissionBundles();
-const { 
+  const { 
     roles, 
     isLoading: loadingRoles, 
     createRoleAsync, 
@@ -39,13 +38,9 @@ const {
     isUpdating,
     isDeleting,
   } = useTenantRoles();
-  const { 
-    getRoleBundles, 
-  } = useTenantRoleBundles();
-  const { 
-    getRolePermissions, 
-  } = useTenantRolePermissions();
-const {
+  const { getRoleBundles } = useTenantRoleBundles();
+  const { getRolePermissions } = useTenantRolePermissions();
+  const {
     setRoleAccessAsync,
     isUpdating: updatingRoleAccess,
   } = useSetTenantRoleAccess();
@@ -56,18 +51,14 @@ const {
     isOwner,
   } = useMemberRoleAssignment();
 
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   const isOwnerRole = activeRole === "owner";
   const loading = loadingPermissions || loadingBundles || loadingRoles;
 
-  // Temporarily disabled until Patch 3 (enum to text conversion)
   const handleCreateRole = () => {
     toast.info("الأدوار المخصصة ستُفعّل بعد Patch 3 (تحويل tenant_members.role إلى text)");
-    // setSelectedRoleKey(null);
-    // setIsNew(true);
-    // setEditorOpen(true);
   };
 
   const handleEditRole = (role: typeof roles[0]) => {
@@ -92,7 +83,6 @@ const {
     bundleIds: string[];
   }) => {
     try {
-      // Step 1: Create or update the role first (sequential to avoid race condition)
       if (isNew) {
         await createRoleAsync({
           role_key: data.role_key,
@@ -111,19 +101,16 @@ const {
         });
       }
 
-      // Step 2: Only after role exists, set permissions and bundles atomically
       await setRoleAccessAsync({ 
         roleKey: data.role_key, 
         permissionKeys: data.permissionKeys, 
         bundleIds: data.bundleIds 
       });
 
-      // Only close dialog after both operations succeed
       toast.success(isNew ? "تم إنشاء الدور بنجاح" : "تم تحديث الدور بنجاح");
       setEditorOpen(false);
     } catch (error: any) {
       console.error("Error saving role:", error);
-      // Don't close dialog on error - let user retry
       toast.error(error.message || "فشل في حفظ الدور");
     }
   };
@@ -147,128 +134,79 @@ const {
 
   const selectedRole = roles.find((r) => r.role_key === selectedRoleKey) || null;
 
-  // Redirect if not owner
+  // CTA: "Create Role" → headerRight
+  const createRoleCTA = isOwnerRole ? (
+    <Button onClick={handleCreateRole} className="gap-2" size="sm">
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">{t("roles.createRole")}</span>
+    </Button>
+  ) : undefined;
+
+  // Access denied view
   if (!loading && !isOwnerRole && activeTenant) {
     return (
-      <div className="flex min-h-screen bg-cream">
-        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50">
-            <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-              <div className="flex items-center gap-4">
-                <button
-                  className="p-2 rounded-xl hover:bg-navy/5 lg:hidden"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <Menu className="w-5 h-5 text-navy" />
-                </button>
-                <h1 className="font-display text-xl font-bold text-navy">
-                  {t("roles.title")}
-                </h1>
-              </div>
-            </div>
-          </header>
-          <main className="flex-1 p-4 lg:p-8 flex items-center justify-center">
-            <Card className="max-w-md">
-              <CardContent className="p-8 text-center">
-                <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">{t("permissions.accessDenied")}</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t("roles.ownerOnlyPage")}
-                </p>
-                <Button variant="outline" onClick={() => navigate("/dashboard/settings")}>
-                  {t("common.back")}
-                </Button>
-              </CardContent>
-            </Card>
-          </main>
+      <DashboardShell>
+        <div className="flex-1 p-4 lg:p-8 flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8 text-center">
+              <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold mb-2">{t("permissions.accessDenied")}</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {t("roles.ownerOnlyPage")}
+              </p>
+              <Button variant="outline" onClick={() => navigate("/dashboard/settings")}>
+                {t("common.back")}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </DashboardShell>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-cream">
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell headerRight={createRoleCTA}>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("roles.title")} backTo="/dashboard/settings" />
 
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("roles.title")} backTo="/dashboard/settings" />
-
-        {/* Desktop Header */}
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 hidden lg:block">
-          <div className="flex items-center justify-between h-16 px-4 lg:px-8">
-            <div className="flex items-center gap-4">
-              <div>
-                <h1 className="font-display text-xl font-bold text-navy">
-                  {t("roles.title")}
-                </h1>
-                <p className="text-sm text-muted-foreground hidden sm:block">
-                  {activeTenant?.tenant.name}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {isOwnerRole && (
-                <Button onClick={handleCreateRole} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  {t("roles.createRole")}
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/dashboard/settings")}
-                className="gap-2"
-              >
-                <ArrowRight className={dir === "rtl" ? "rotate-180" : ""} />
-                {t("common.back")}
-              </Button>
-            </div>
+      {/* Content */}
+      <div className="flex-1 p-4 lg:p-8">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        </header>
+        ) : (
+          <>
+            <Alert className="mb-6 bg-primary/5 border-primary/20">
+              <Shield className="w-4 h-4 text-primary" />
+              <AlertDescription className="text-foreground">
+                {t("roles.desc")}
+              </AlertDescription>
+            </Alert>
 
-        {/* Content */}
-        <main className="flex-1 p-4 lg:p-8">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="grid lg:grid-cols-2 gap-6">
+              <RolesList
+                roles={roles}
+                selectedRoleKey={selectedRoleKey}
+                onSelectRole={setSelectedRoleKey}
+                onEditRole={handleEditRole}
+                onDeleteRole={handleDeleteRole}
+                getRolePermissionCount={getRolePermissionCount}
+                getRoleBundleCount={getRoleBundleCount}
+                getMemberCount={getMemberCount}
+                isOwner={isOwnerRole}
+              />
+
+              <MemberRoleAssignment
+                members={members}
+                roles={roles}
+                onUpdateRole={updateMemberRole}
+                isUpdating={updatingMemberRole}
+                isOwner={isOwnerRole}
+              />
             </div>
-          ) : (
-            <>
-              <Alert className="mb-6 bg-primary/5 border-primary/20">
-                <Shield className="w-4 h-4 text-primary" />
-                <AlertDescription className="text-foreground">
-                  {t("roles.desc")}
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid lg:grid-cols-2 gap-6">
-                {/* Roles List */}
-                <RolesList
-                  roles={roles}
-                  selectedRoleKey={selectedRoleKey}
-                  onSelectRole={setSelectedRoleKey}
-                  onEditRole={handleEditRole}
-                  onDeleteRole={handleDeleteRole}
-                  getRolePermissionCount={getRolePermissionCount}
-                  getRoleBundleCount={getRoleBundleCount}
-                  getMemberCount={getMemberCount}
-                  isOwner={isOwnerRole}
-                />
-
-                {/* Member Role Assignment */}
-                <MemberRoleAssignment
-                  members={members}
-                  roles={roles}
-                  onUpdateRole={updateMemberRole}
-                  isUpdating={updatingMemberRole}
-                  isOwner={isOwnerRole}
-                />
-              </div>
-            </>
-          )}
-        </main>
+          </>
+        )}
       </div>
 
       {/* Role Editor Dialog */}
@@ -285,7 +223,7 @@ const {
         isLoading={isCreating || isUpdating || updatingRoleAccess}
         isNew={isNew}
       />
-    </div>
+    </DashboardShell>
   );
 };
 

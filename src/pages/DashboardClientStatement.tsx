@@ -1,17 +1,14 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { useClients } from "@/hooks/useClients";
 import { ClientStatementTab } from "@/components/clients";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default function DashboardClientStatement() {
   const { clientId } = useParams<{ clientId: string }>();
-  const navigate = useNavigate();
-  const { t, dir } = useI18n();
-  const isRTL = dir === "rtl";
+  const { t } = useI18n();
   const { clients } = useClients();
 
   const client = useMemo(
@@ -20,42 +17,28 @@ export default function DashboardClientStatement() {
   );
 
   const clientName = client?.name || "";
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="flex-1 flex flex-col min-w-0 pb-24 lg:pb-0">
-        {/* Mobile Header */}
-        <MobilePageHeader title={t("clients.statement.title")} showBack />
+    <DashboardShell>
+      {/* Mobile Header */}
+      <MobilePageHeader title={t("clients.statement.title")} showBack />
 
-        {/* Desktop Header — clean top bar, no sidebar */}
-        <header className="hidden lg:flex items-center h-16 px-6 border-b bg-background/95 backdrop-blur gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/dashboard/clients")}
-            className="gap-2"
-          >
-            <BackIcon className="h-4 w-4" />
-            {t("common.back")}
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">
-              {t("clients.statement.title")}
-            </h1>
-            {clientName && (
-              <p className="text-sm text-muted-foreground">{clientName}</p>
-            )}
-          </div>
-        </header>
+      {/* Inline client name context */}
+      <div className="hidden lg:block px-6 py-3 border-b border-border/50">
+        <h2 className="text-lg font-semibold text-foreground">
+          {t("clients.statement.title")}
+        </h2>
+        {clientName && (
+          <p className="text-sm text-muted-foreground">{clientName}</p>
+        )}
+      </div>
 
-        {/* Full-width statement content */}
-        <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
-          {clientId && (
-            <ClientStatementTab clientId={clientId} clientName={clientName} />
-          )}
-        </div>
-      </main>
-    </div>
+      {/* Full-width statement content */}
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+        {clientId && (
+          <ClientStatementTab clientId={clientId} clientName={clientName} />
+        )}
+      </div>
+    </DashboardShell>
   );
 }
