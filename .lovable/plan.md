@@ -1,88 +1,215 @@
-
-
-# Diagnosis: Why Changes Appear Not Applied
-
-## The Core Problem
-
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
-
-**However, there are real remaining issues the user is seeing:**
-
-### 1. Realtime Sync Uses WRONG Query Keys
-
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
-
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
-
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
-
-### 3. Ledger "Enrich" Button Still Visible
-
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
-
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+# Forensic Report — Desktop Shell Migration (Snapshots A → B → C) — **Revised (CTA-Safe + Execution-Ready)**
 
 ---
 
-## Execution Plan
+## A) Executive Summary
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+- **`DashboardShell` + `DashboardHeader exist** and correctly implement the Golden Layout Contract (`h-dvh overflow-hidden`, independent sidebar/main scroll, unified header with all core controls).
+- **Current post-revert state is a partial migration checkpoint (Snapshot C)**: a subset of pages are on `DashboardShell`, while the rest still render `DashboardSidebar` directly (mixed experience persists).
+- **No pages were deleted and no routes are broken** in the current state.
+- **The main risk discovered from Snapshot B (fully-migrated attempt)** is **CTA regression**: some pages had important actions (“Add/ إنشاء / تسجيل / إضافة…”) embedded in ad-hoc headers. During migration, those headers were removed and CTAs were not consistently preserved.
+- **Next work must be executed with a strict CTA Preservation Contract** so migration can finish without losing page actions, and without adding technical debt.
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+---
 
-Change the finance table mappings to use the **actual** query key prefixes:
+## B) Timeline (A → B → C)
 
-```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
-```
+### Snapshot A (baseline ~2026-03-06 22:00)
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+- No `DashboardShell` / `DashboardHeader`.
+- All org pages rendered their own outer layout + `DashboardSidebar`.
+- Some pages used `h-dvh` (correct scroll behavior), many used `min-h-screen` (broken sidebar scroll).
+- Headers were inconsistent across pages (missing tenant/role/language/logout on many).
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+### Snapshot A → B (~2026-03-07 until ~20:00)
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+- **Created**:
+  - `src/components/layout/DashboardShell.tsx`
+  - `src/components/layout/DashboardHeader.tsx`
+- **Migration expanded beyond the first batch** (fully migrated hypothesis state = Snapshot B).
+- **Reported symptom**: “buttons disappeared” (high confidence root cause = removal of ad-hoc header blocks without relocating CTAs into Shell headerRight or page toolbars).
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+### Revert → Snapshot C (current)
 
-### Step 3: Hide Backfill Button from Non-Admins
+- Reverted back to a partial migration checkpoint (Shell/Header still exist; subset of pages migrated; remainder reverted).
+- This reintroduced the **mixed layout** state (dual-scroll pages + single-scroll pages co-existing).
 
-**File:** `src/pages/DashboardFinance.tsx`
+---
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+## C) Findings (Ranked)
 
-### Step 4: Stabilize Invoice Table Column Widths
+### 1) Partial Migration Creates Split Experience
 
-**File:** `src/components/finance/InvoicesList.tsx`
+- Migrated pages: correct dual-scroll + consistent header.
+- Unmigrated pages: single-scroll or fragmented header controls, and inconsistent sidebar behavior.
+- This is the primary UX inconsistency and must be resolved by completing migration.
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+### 2) CTA Regression Risk is Real (Observed in Snapshot B)
 
-### Step 5: Fix Expenses Table View Alignment
+- Some pages place core actions in their custom desktop headers:
+  - Examples: “Add Sample / إنشاء عينة”, “Add Payment / تسجيل دفعة”, “Create / إضافة”, “Settings shortcuts”… etc.
+- When replacing page headers with `DashboardShell`, these actions must not be lost.
+- Therefore, completing migration must follow a strict CTA contract (see Section E).
 
-**File:** `src/components/finance/ExpensesList.tsx`
+### 3) Dead Code Accumulates After Migration
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+- Pages migrated to Shell may still import and keep unused header/sidebar-related props/state (`sidebarOpen`, `Menu`, `TenantSwitcher` etc.).
+- Not a functional bug, but increases maintenance overhead and causes confusion.
 
-### Verification Checklist
+---
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+## D) Evidence Index
 
+
+| Finding                                           | File                                        | Proof                                  |
+| ------------------------------------------------- | ------------------------------------------- | -------------------------------------- |
+| Shell implements Golden Layout                    | `src/components/layout/DashboardShell.tsx`  | `h-dvh w-full ... overflow-hidden`     |
+| Header has all standard controls                  | `src/components/layout/DashboardHeader.tsx` | consistent controls present            |
+| Migrated pages import Shell                       | `src/pages/*`                               | imports show mixed state               |
+| Unmigrated pages still use Sidebar directly       | multiple `src/pages/*`                      | `import DashboardSidebar` remains      |
+| No routes deleted                                 | `src/App.tsx`                               | routes still point to valid components |
+| Sidebar scroll constraint relies on parent height | `DashboardSidebar.tsx nav overflow-y-auto`  | breaks under `min-h-screen`            |
+
+
+---
+
+## E) CTA Preservation Contract (MANDATORY)
+
+Two valid CTA patterns inside `DashboardShell`:
+
+### Pattern 1 — `headerRight` (preferred for top-level page CTAs)
+
+Use for page-level “global” actions:
+
+- Add/Create button
+- Settings button
+- Export/Print button (if page-wide)
+- Primary module action
+
+### Pattern 2 — Inline page toolbar (preferred for contextual/tab-specific CTAs)
+
+Use for actions that belong to a sub-view (tab, filter bar, table toolbar):
+
+- “Add Item” inside a form panel
+- Tab-specific “Create” buttons
+- Filters + view switchers + actions menu
+
+### Hard Rule
+
+When migrating any page:
+
+- **Identify all desktop-visible CTAs in the old header**
+- **Relocate them** to `headerRight` or an inline toolbar
+- **Never silently drop CTAs**
+
+---
+
+## F) Recovery Decision
+
+Proceed with **Option 2: Complete Migration** from current state (Snapshot C), but with CTA contract + guardrails so we do not repeat Snapshot B regressions.
+
+- Reverting further loses working progress unnecessarily.
+- The Shell/Header are correct.
+- The remaining work is mechanical but must be executed carefully.
+
+---
+
+## G) Phase 1 — Complete Migration (file list + steps, NO code)
+
+### Guardrails (must follow in implementation)
+
+1. **Do not delete any business logic or UI components** besides:
+  - old Sidebar rendering
+  - old ad-hoc header wrapper
+  - desktop-only sidebarOpen/Menu toggles that are redundant after Shell
+2. **No route changes. No page deletions.**
+3. **Desktop-only focus**: mobile navigation stays untouched.
+4. **After each page migration**:
+  - remove unused imports only if truly unused
+  - verify CTAs still exist (see validation checklist)
+
+---
+
+### Pages to migrate (remaining), grouped by complexity
+
+#### Group 1 — pages using `h-dvh` but custom header (need header unification + Shell adoption)
+
+1. `src/pages/Dashboard.tsx`
+2. `src/pages/DashboardHorses.tsx`
+3. `src/pages/DashboardHorseOrders.tsx`
+4. `src/pages/DashboardBreeding.tsx`
+
+#### Group 2 — pages using `min-h-screen` (standard mechanical migration)
+
+5. `src/pages/DashboardLaboratory.tsx`
+6. `src/pages/DashboardVet.tsx`
+7. `src/pages/DashboardMovement.tsx`
+8. `src/pages/DashboardHRPayroll.tsx`
+9. `src/pages/DashboardHRSettings.tsx`
+10. `src/pages/DashboardOrganizationSettings.tsx`
+11. `src/pages/DashboardConnectionsSettings.tsx`
+12. `src/pages/DashboardPermissionsSettings.tsx`
+13. `src/pages/DashboardRolesSettings.tsx`
+14. `src/pages/DashboardNotificationSettings.tsx`
+15. `src/pages/DashboardPublicProfile.tsx`
+16. `src/pages/DashboardClientStatement.tsx`
+17. `src/pages/finance/FinanceCustomerBalances.tsx`
+18. `src/pages/finance/DashboardFinanceCategories.tsx`
+19. `src/pages/finance/DashboardFinancePOS.tsx`
+20. Doctor module pages (migrate all that import DashboardSidebar directly):
+
+- `src/pages/DashboardDoctorOverview.tsx`
+- `src/pages/DashboardDoctorPatients.tsx`
+- `src/pages/DashboardDoctorConsultations.tsx`
+- `src/pages/DashboardDoctorConsultationDetail.tsx` (if exists)
+- `src/pages/DashboardDoctorServices.tsx`
+
+---
+
+### Per-file migration steps (CTA-safe)
+
+1. Replace `DashboardSidebar` usage with `DashboardShell`
+2. Remove `sidebarOpen` + `Menu` button used only to toggle sidebar on desktop
+3. Remove ad-hoc desktop `<header>` block
+4. **CTA relocation step (mandatory)**:
+  - list CTAs previously in header
+  - move to `headerRight` OR keep inline within page content/toolbars
+5. Remove RTL layout hacks (`flex-row-reverse`) used to force sidebar direction
+6. Remove unused imports after the page compiles conceptually (no dead header/sidebar imports)
+7. Keep any mobile-specific header/nav elements inside page content if they already exist and are mobile-only
+
+---
+
+### Cleanup pass
+
+- Remove dead imports and unused header/sidebar state in already-migrated pages (example frequently affected):
+  - `src/pages/DashboardPayments.tsx` (if Shell handles tenant/role/notifications/menu)
+
+---
+
+## H) Validation Checklist (Desktop-only)
+
+For every migrated page:
+
+1. **Dual-scroll**:
+  - sidebar scrolls independently
+  - main content scrolls independently
+2. **Header consistency**:
+  - tenant/role/language/workspace/notifications/logout visible where applicable
+3. **No CTA loss**:
+  - any “Create/Add/Settings/Primary action” is still visible and functional
+4. **No double sidebar** and no “blank long scroll”
+5. **Dialog/Sheet** sanity:
+  - open a dialog/sheet on that page: no clipping, no overlay issues
+
+RTL (Arabic):
+
+- sidebar is on right
+- header controls still visible
+- no manual `flex-row-reverse` hacks remain in pages
+
+---
+
+## I) Recommended Next Step
+
+Proceed with **Complete Migration** of the remaining pages using the CTA Preservation Contract, then run the desktop validation checklist. After stability is confirmed, sidebar collapse/flyout behavior can be treated as a separate Phase (not required to fix the dual-scroll regression).
