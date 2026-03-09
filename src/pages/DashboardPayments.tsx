@@ -15,9 +15,7 @@ import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
 const DashboardPayments = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-  const { activeTenant } = useTenant();
   const { data: paymentIntents, isLoading } = useUserPaymentIntents();
   const { t } = useI18n();
 
