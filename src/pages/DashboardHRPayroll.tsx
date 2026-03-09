@@ -317,8 +317,7 @@ export default function DashboardHRPayroll() {
               </Button>
             )}
           </div>
-        </main>
-      </div>
+      </DashboardShell>
 
       {/* Add Payment Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
