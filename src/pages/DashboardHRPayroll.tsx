@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
 import { useEmployees } from '@/hooks/hr';
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { DashboardShell } from '@/components/layout/DashboardShell';
 import { MobilePageHeader } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
