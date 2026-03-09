@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardShell } from "@/components/layout/DashboardShell";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,7 +65,6 @@ const initialFormData: CategoryFormData = {
 };
 
 export default function DashboardFinanceCategories() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"income" | "expense">("expense");
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -75,12 +74,11 @@ export default function DashboardFinanceCategories() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { t, dir } = useI18n();
-  const { activeTenant, activeRole } = useTenant();
+  const { activeRole } = useTenant();
   const { categories, loading: isLoading, createCategory, updateCategory, deleteCategory, refresh } = useCustomFinancialCategories();
 
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  // Filter categories by type
   const incomeCategories = useMemo(
     () => categories.filter((c) => c.category_type === "income"),
     [categories]
@@ -156,7 +154,6 @@ export default function DashboardFinanceCategories() {
 
   const handleDelete = async () => {
     if (!deletingId) return;
-
     try {
       await deleteCategory(deletingId);
       toast.success(t("common.success"));
@@ -168,170 +165,155 @@ export default function DashboardFinanceCategories() {
     }
   };
 
-  // Get parent category options
   const parentOptions = useMemo(() => {
     return categories
       .filter((c) => c.category_type === formData.category_type && c.id !== editingId)
-      .filter((c) => !c.parent_id); // Only top-level categories can be parents
+      .filter((c) => !c.parent_id);
   }, [categories, formData.category_type, editingId]);
+
+  // CTA: "Add Category" → headerRight
+  const addCategoryCTA = canManage ? (
+    <Button onClick={handleOpenCreate} size="sm" className="gap-2">
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">{t("finance.categories.addCategory")}</span>
+    </Button>
+  ) : undefined;
 
   if (!canManage) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <Tags className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-semibold text-navy mb-2">
-              {t("permissions.accessDenied")}
-            </h2>
-            <p className="text-muted-foreground">
-              {t("permissions.accessDeniedDesc")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card variant="elevated" className="max-w-md w-full">
+            <CardContent className="p-6 text-center">
+              <Tags className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-semibold text-navy mb-2">
+                {t("permissions.accessDenied")}
+              </h2>
+              <p className="text-muted-foreground">
+                {t("permissions.accessDeniedDesc")}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
   return (
-    <div className={cn("min-h-screen bg-cream flex", dir === "rtl" && "flex-row-reverse")}>
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell headerRight={addCategoryCTA}>
+      <MobilePageHeader title={t("finance.categories.title")} backTo="/dashboard/finance" />
 
-      <main className="flex-1 overflow-auto">
-        <MobilePageHeader title={t("finance.categories.title")} backTo="/dashboard/finance" />
+      <div className="p-4 lg:p-8">
+        {/* Mobile Add Button */}
+        <div className="lg:hidden flex justify-end mb-4">
+          <Button onClick={handleOpenCreate} size="sm">
+            <Plus className="w-4 h-4 me-2" />
+            {t("common.add")}
+          </Button>
+        </div>
 
-        <div className="p-4 lg:p-8">
-          {/* Desktop Header */}
-          <div className="hidden lg:flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-navy">{t("finance.categories.title")}</h1>
-              <p className="text-muted-foreground">{t("finance.categories.subtitle")}</p>
-            </div>
-            <Button onClick={handleOpenCreate}>
-              <Plus className="w-4 h-4 me-2" />
-              {t("finance.categories.addCategory")}
-            </Button>
-          </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "income" | "expense")}>
+          <TabsList className="mb-6">
+            <TabsTrigger value="expense" className="gap-2">
+              <TrendingDown className="w-4 h-4" />
+              {t("finance.categories.expenseCategories")}
+            </TabsTrigger>
+            <TabsTrigger value="income" className="gap-2">
+              <TrendingUp className="w-4 h-4" />
+              {t("finance.categories.incomeCategories")}
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Mobile Add Button */}
-          <div className="lg:hidden flex justify-end mb-4">
-            <Button onClick={handleOpenCreate} size="sm">
-              <Plus className="w-4 h-4 me-2" />
-              {t("common.add")}
-            </Button>
-          </div>
+          <TabsContent value={activeTab}>
+            {isLoading ? (
+              <div className="py-12 text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">{t("common.loading")}</p>
+              </div>
+            ) : currentCategories.length === 0 ? (
+              <Card variant="elevated">
+                <CardContent className="py-12 text-center">
+                  <Tags className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="font-semibold text-navy mb-2">
+                    {t("finance.categories.empty")}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {t("finance.categories.emptyDesc")}
+                  </p>
+                  <Button onClick={handleOpenCreate}>
+                    <Plus className="w-4 h-4 me-2" />
+                    {t("finance.categories.addCategory")}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {currentCategories.map((category) => {
+                  const parentCategory = category.parent_id
+                    ? categories.find((c) => c.id === category.parent_id)
+                    : null;
 
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "income" | "expense")}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="expense" className="gap-2">
-                <TrendingDown className="w-4 h-4" />
-                {t("finance.categories.expenseCategories")}
-              </TabsTrigger>
-              <TabsTrigger value="income" className="gap-2">
-                <TrendingUp className="w-4 h-4" />
-                {t("finance.categories.incomeCategories")}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={activeTab}>
-              {isLoading ? (
-                <div className="py-12 text-center">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-                  <p className="text-muted-foreground">{t("common.loading")}</p>
-                </div>
-              ) : currentCategories.length === 0 ? (
-                <Card variant="elevated">
-                  <CardContent className="py-12 text-center">
-                    <Tags className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                    <h3 className="font-semibold text-navy mb-2">
-                      {t("finance.categories.empty")}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {t("finance.categories.emptyDesc")}
-                    </p>
-                    <Button onClick={handleOpenCreate}>
-                      <Plus className="w-4 h-4 me-2" />
-                      {t("finance.categories.addCategory")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {currentCategories.map((category) => {
-                    const parentCategory = category.parent_id
-                      ? categories.find((c) => c.id === category.parent_id)
-                      : null;
-
-                    return (
-                      <Card key={category.id} variant="elevated">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={cn(
-                                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                                  category.category_type === "income"
-                                    ? "bg-emerald-100 text-emerald-600"
-                                    : "bg-red-100 text-red-600"
-                                )}
-                              >
-                                {category.category_type === "income" ? (
-                                  <TrendingUp className="w-5 h-5" />
-                                ) : (
-                                  <TrendingDown className="w-5 h-5" />
-                                )}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h4 className="font-medium text-navy">
-                                    {dir === "rtl" && category.name_ar ? category.name_ar : category.name}
-                                  </h4>
-                                  {category.account_code && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {category.account_code}
-                                    </Badge>
-                                  )}
-                                </div>
-                                {parentCategory && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {t("finance.categories.parentLabel")}: {parentCategory.name}
-                                  </p>
-                                )}
-                                {category.description && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {category.description}
-                                  </p>
-                                )}
-                              </div>
+                  return (
+                    <Card key={category.id} variant="elevated">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={cn(
+                                "w-10 h-10 rounded-lg flex items-center justify-center",
+                                category.category_type === "income"
+                                  ? "bg-emerald-100 text-emerald-600"
+                                  : "bg-red-100 text-red-600"
+                              )}
+                            >
+                              {category.category_type === "income" ? (
+                                <TrendingUp className="w-5 h-5" />
+                              ) : (
+                                <TrendingDown className="w-5 h-5" />
+                              )}
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenEdit(category)}
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenDelete(category.id)}
-                              >
-                                <Trash2 className="w-4 h-4 text-destructive" />
-                              </Button>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium text-navy">
+                                  {dir === "rtl" && category.name_ar ? category.name_ar : category.name}
+                                </h4>
+                                {category.account_code && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {category.account_code}
+                                  </Badge>
+                                )}
+                              </div>
+                              {parentCategory && (
+                                <p className="text-xs text-muted-foreground">
+                                  {t("finance.categories.parentLabel")}: {parentCategory.name}
+                                </p>
+                              )}
+                              {category.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {category.description}
+                                </p>
+                              )}
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(category)}>
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(category.id)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog open={showFormDialog} onOpenChange={setShowFormDialog}>
@@ -341,7 +323,6 @@ export default function DashboardFinanceCategories() {
               {editingId ? t("finance.categories.editCategory") : t("finance.categories.addCategory")}
             </DialogTitle>
           </DialogHeader>
-
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>{t("finance.categories.name")}</Label>
@@ -351,7 +332,6 @@ export default function DashboardFinanceCategories() {
                 placeholder={t("finance.categories.namePlaceholder")}
               />
             </div>
-
             <div className="space-y-2">
               <Label>{t("finance.categories.nameAr")}</Label>
               <Input
@@ -361,23 +341,19 @@ export default function DashboardFinanceCategories() {
                 dir="rtl"
               />
             </div>
-
             <div className="space-y-2">
               <Label>{t("finance.categories.type")}</Label>
               <Select
                 value={formData.category_type}
                 onValueChange={(v) => setFormData({ ...formData, category_type: v as "income" | "expense", parent_id: null })}
               >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">{t("finance.categories.expense")}</SelectItem>
                   <SelectItem value="income">{t("finance.categories.income")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label>{t("finance.categories.accountCode")}</Label>
               <Input
@@ -387,7 +363,6 @@ export default function DashboardFinanceCategories() {
                 dir="ltr"
               />
             </div>
-
             {parentOptions.length > 0 && (
               <div className="space-y-2">
                 <Label>{t("finance.categories.parent")}</Label>
@@ -401,15 +376,12 @@ export default function DashboardFinanceCategories() {
                   <SelectContent>
                     <SelectItem value="none">{t("finance.categories.noParent")}</SelectItem>
                     {parentOptions.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
+                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             )}
-
             <div className="space-y-2">
               <Label>{t("finance.categories.description")}</Label>
               <Input
@@ -419,7 +391,6 @@ export default function DashboardFinanceCategories() {
               />
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowFormDialog(false)}>
               {t("common.cancel")}
@@ -449,6 +420,6 @@ export default function DashboardFinanceCategories() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </DashboardShell>
   );
 }

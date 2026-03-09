@@ -1,104 +1,88 @@
 
 
-# Migration Plan — Remaining Pages to DashboardShell (Page-by-Page, CTA-Safe)
+# Diagnosis: Why Changes Appear Not Applied
 
-## Pages to Migrate (14 files, in priority order)
+## The Core Problem
 
----
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-### 1. `src/pages/DashboardHRPayroll.tsx`
-**Before CTAs:** Desktop header (line 165-181) has **"Add Payment" button** (Plus icon + `t('hr.payroll.addPayment')`) — visible when `canManage`.
-**After CTAs:** Move "Add Payment" button → `headerRight` prop.
-**Changes:** Remove `min-h-screen` outer div (line 154), `DashboardSidebar` (line 155), `sidebarOpen` state (line 71), desktop `<header>` block (lines 165-181), `dir={dir}` on outer div. Replace with `<DashboardShell headerRight={canManage ? <AddPaymentButton /> : undefined}>`. Keep MobilePageHeader + mobile FAB inside children.
+**However, there are real remaining issues the user is seeing:**
 
-### 2. `src/pages/DashboardHRSettings.tsx`
-**Before CTAs:** Desktop header (lines 106-127) has **Back button** (`ChevronLeft` → `/dashboard/hr`) and a centered title with Settings icon. No primary CTA.
-**After CTAs:** No CTA to relocate. Back button becomes unnecessary (Shell header provides context).
-**Changes:** Remove `min-h-screen` outer div (line 98), `DashboardSidebar` (line 99), `sidebarOpen` state (line 41), desktop `<header>` (lines 106-127), `dir={dir}`, `Menu` import. Wrap in `<DashboardShell>`. Keep MobilePageHeader inside children.
+### 1. Realtime Sync Uses WRONG Query Keys
 
-### 3. `src/pages/DashboardOrganizationSettings.tsx`
-**Before CTAs:** Desktop header (lines 91-104) has title + tenant name only. No primary CTA in header.
-**After CTAs:** No CTA to relocate.
-**Changes:** Remove `min-h-screen` outer div (line 83), `DashboardSidebar` (line 84), `sidebarOpen` state (line 19), desktop `<header>` (lines 91-104), `Menu` import. Wrap in `<DashboardShell>`. Keep MobilePageHeader inside children.
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-### 4. `src/pages/DashboardConnectionsSettings.tsx`
-**Before CTAs:** Desktop header (lines 171-187) has title + tenant name. No CTA in header (the "Add Partner" button is inside the ConnectionsList tab content, not header).
-**After CTAs:** No CTA to relocate.
-**Changes:** Remove `min-h-screen` outer div (line 162), `DashboardSidebar` (line 163), `sidebarOpen` state (line 31), desktop `<header>` (lines 171-187). Wrap in `<DashboardShell>`. Keep MobilePageHeader and dialogs outside Shell if needed (they're portaled).
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-### 5. `src/pages/DashboardPermissionsSettings.tsx`
-**Before CTAs:** Desktop header (lines 174-188) has title + tenant name + **BackButton** to `/dashboard/settings`. No primary CTA in header (the "Create Bundle" button is inside the bundles tab content).
-**After CTAs:** No CTA to relocate from header. BackButton drops (Shell provides context).
-**Changes:** Remove `min-h-screen` outer div (lines 126-127 access-denied view AND line 166 main view), `DashboardSidebar` in both branches, `sidebarOpen` state (line 33), both desktop `<header>` blocks. Wrap both views in `<DashboardShell>`. Keep dialogs outside Shell (portaled).
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-### 6. `src/pages/DashboardRolesSettings.tsx`
-**Before CTAs:** Desktop header (lines 199-229) has **"Create Role" button** (Plus + `t("roles.createRole")`) when `isOwnerRole`, and a **Back button** to `/dashboard/settings`.
-**After CTAs:** Move "Create Role" button → `headerRight`. Drop Back button (Shell provides global context).
-**Changes:** Remove `min-h-screen` in both branches (lines 153 + 191), `DashboardSidebar` in both, `sidebarOpen` state (line 24), both desktop headers. Wrap in `<DashboardShell headerRight={isOwnerRole ? <CreateRoleButton /> : undefined}>`. Keep RoleEditorDialog + AlertDialog outside (portaled).
+### 3. Ledger "Enrich" Button Still Visible
 
-### 7. `src/pages/DashboardNotificationSettings.tsx`
-**Before CTAs:** No desktop header block at all — just an inline icon+title div (lines 127-138). No CTA.
-**After CTAs:** No CTA to relocate.
-**Changes:** Remove `min-h-screen` outer div (line 119), `DashboardSidebar` (line 120), `sidebarOpen` state (line 44), `Menu` import. Wrap in `<DashboardShell>`. Keep MobilePageHeader inside children.
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-### 8. `src/pages/DashboardPublicProfile.tsx`
-**Before CTAs:** No sidebar at all currently. Desktop has a ghost **Back button** (lines 38-45). No primary CTA.
-**After CTAs:** No CTA to relocate. Drop Back button.
-**Changes:** Remove `min-h-screen` outer div (line 33). Wrap in `<DashboardShell>`. Keep MobilePageHeader and PublicProfileSettings inside children.
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-### 9. `src/pages/DashboardClientStatement.tsx`
-**Before CTAs:** No sidebar. Desktop header (lines 32-50) has **Back button** to `/dashboard/clients` + title + client name. No primary CTA.
-**After CTAs:** No CTA to relocate. Back button drops (Shell provides global nav context). Consider keeping a lightweight breadcrumb-style link inline instead.
-**Changes:** Remove `min-h-screen` outer div (line 26). Wrap in `<DashboardShell>`. Keep MobilePageHeader + statement content inside children. The client name subtitle can stay as inline content.
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-### 10. `src/pages/DashboardDoctorConsultationDetail.tsx`
-**Before CTAs:** Desktop header (lines 86-97 main view, lines 41-48 new view) has:
-- **"New consultation" view:** Back button + title + NotificationsPanel
-- **"Detail" view:** Back button, title, **Edit button** (`Edit` icon + `t('common.edit')`), **Create Invoice button** (`Receipt` icon + `t('doctor.createInvoice')`), NotificationsPanel
-**After CTAs:** Move Edit + Create Invoice buttons → `headerRight`. Drop Back button and NotificationsPanel (Shell provides both).
-**Changes:** Remove `min-h-screen` in all 3 branches (lines 37, 58, 82), `DashboardSidebar` in all, `sidebarOpen` state (line 24), all desktop `<header>` blocks, `Menu`/`NotificationsPanel` imports. Wrap in `<DashboardShell headerRight={...}>` with conditional CTAs.
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-### 11. `src/pages/finance/FinanceCustomerBalances.tsx`
-**Before CTAs:** Desktop header (lines 107-127) has **Menu hamburger** + Wallet icon + title/description. No primary CTA button in header.
-**After CTAs:** No CTA to relocate.
-**Changes:** Remove `min-h-screen` outer div (line 94), `DashboardSidebar` (lines 96-100), `sidebarOpen` state (line 28), desktop `<header>` (lines 107-127), `Menu`/`Wallet` icon header usage, `location`/`currentPath` prop. Wrap in `<DashboardShell>`. Keep MobilePageHeader + RecordPaymentDialog inside/after children.
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-### 12. `src/pages/finance/DashboardFinanceCategories.tsx`
-**Before CTAs:** Inline desktop header div (lines 205-214) has **"Add Category" button** (Plus + `t("finance.categories.addCategory")`).
-**After CTAs:** Move "Add Category" button → `headerRight`.
-**Changes:** Remove `min-h-screen` + `flex-row-reverse` RTL hack outer div (line 197), `DashboardSidebar` (line 198), `sidebarOpen` state (line 68), inline desktop header div (lines 205-214). Also update the access-denied early return (lines 178-193) to use Shell. Wrap in `<DashboardShell headerRight={<AddCategoryButton />}>`. Keep MobilePageHeader + dialogs inside/after children.
+### 6. Scope Selector / Statement Content
 
-### 13. `src/pages/finance/DashboardFinancePOS.tsx`
-**Before CTAs:** No desktop header at all. The POS layout is its own full-screen experience with `POSSessionBar` + `POSLayoutResponsive`. No traditional header CTAs.
-**After CTAs:** No CTA to relocate. POS is a special case — the POSLayoutResponsive manages its own layout internally.
-**Changes:** Remove `min-h-screen` + `flex-row-reverse` RTL hack outer div (line 246), `DashboardSidebar` (line 247), `sidebarOpen` state (line 46). Wrap in `<DashboardShell>`. The `<main>` with `flex-1 flex flex-col overflow-hidden` becomes just the children content. Also update loading/access-denied early returns (lines 132-157) to use Shell.
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-## After All Migrations: Cleanup Pass (separate step)
+## Execution Plan
 
-Clean dead imports/state from previously-migrated pages:
-- `src/pages/DashboardPayments.tsx`: Remove unused `TenantSwitcher`, `RoleSwitcher`, `NotificationsPanel`, `Menu`, `sidebarOpen` state, `X` icon import if unused.
-- Any other migrated page with leftover sidebar/header imports.
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
----
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-## Verification Checklist (per page, desktop only)
+Change the finance table mappings to use the **actual** query key prefixes:
 
-| Page | Dual-scroll | Header controls | No missing CTAs | No double sidebar | Dialogs OK | RTL OK |
-|------|:-:|:-:|:-:|:-:|:-:|:-:|
-| HRPayroll | ☐ | ☐ | ☐ Add Payment | ☐ | ☐ | ☐ |
-| HRSettings | ☐ | ☐ | ☐ (none) | ☐ | ☐ AlertDialog | ☐ |
-| OrgSettings | ☐ | ☐ | ☐ (none) | ☐ | ☐ | ☐ |
-| Connections | ☐ | ☐ | ☐ (none) | ☐ | ☐ AddPartner/CreateGrant | ☐ |
-| Permissions | ☐ | ☐ | ☐ (none) | ☐ | ☐ BundleEditor/Viewer/Delete | ☐ |
-| Roles | ☐ | ☐ | ☐ Create Role | ☐ | ☐ RoleEditor/AlertDialog | ☐ |
-| Notifications | ☐ | ☐ | ☐ (none) | ☐ | ☐ | ☐ |
-| PublicProfile | ☐ | ☐ | ☐ (none) | ☐ | ☐ | ☐ |
-| ClientStatement | ☐ | ☐ | ☐ (none) | ☐ | ☐ | ☐ |
-| DoctorConsultDetail | ☐ | ☐ | ☐ Edit + CreateInvoice | ☐ | ☐ CreateInvoice dialog | ☐ |
-| CustomerBalances | ☐ | ☐ | ☐ (none) | ☐ | ☐ RecordPayment | ☐ |
-| FinanceCategories | ☐ | ☐ | ☐ Add Category | ☐ | ☐ Form/Delete dialogs | ☐ |
-| FinancePOS | ☐ | ☐ | ☐ (none — POS internal) | ☐ | ☐ Open/Close session | ☐ |
-| DashboardPayments (cleanup) | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```
+
+This is the single biggest fix -- it's why "no refresh" doesn't work.
+
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+
+### Step 3: Hide Backfill Button from Non-Admins
+
+**File:** `src/pages/DashboardFinance.tsx`
+
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+
+### Step 4: Stabilize Invoice Table Column Widths
+
+**File:** `src/components/finance/InvoicesList.tsx`
+
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+
+### Step 5: Fix Expenses Table View Alignment
+
+**File:** `src/components/finance/ExpensesList.tsx`
+
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+
+### Verification Checklist
+
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 

@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
 import { useEmployees } from '@/hooks/hr';
-import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { DashboardShell } from '@/components/layout/DashboardShell';
 import { MobilePageHeader } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,7 +68,6 @@ const initialFormData: PaymentFormData = {
 export default function DashboardHRPayroll() {
   const { t, dir, lang } = useI18n();
   const { activeRole } = useTenant();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
   const [filters, setFilters] = useState<PayrollFilters>({
@@ -145,40 +144,25 @@ export default function DashboardHRPayroll() {
     setShowAddDialog(false);
   };
 
+  const addPaymentCTA = canManage ? (
+    <Button onClick={() => setShowAddDialog(true)} className="gap-2" size="sm">
+      <Plus className="h-4 w-4" />
+      <span className="hidden sm:inline">{t('hr.payroll.addPayment')}</span>
+    </Button>
+  ) : undefined;
+
   return (
     <>
       <Helmet>
         <title>{t('hr.payroll.title')} | Khail</title>
       </Helmet>
 
-      <div className="min-h-screen bg-background flex" dir={dir}>
-        <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-        <main className="flex-1 flex flex-col min-w-0">
-          {/* Mobile Header */}
-          <MobilePageHeader 
-            title={t('hr.payroll.title')} 
-            backTo="/dashboard/hr"
-          />
-
-          {/* Desktop Header */}
-          <header className="hidden lg:flex items-center justify-between p-6 border-b border-border bg-card">
-            <div>
-              <h1 className="text-xl font-semibold">{t('hr.payroll.title')}</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {t('hr.payroll.description')}
-              </p>
-            </div>
-            {canManage && (
-              <Button
-                onClick={() => setShowAddDialog(true)}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {t('hr.payroll.addPayment')}
-              </Button>
-            )}
-          </header>
+      <DashboardShell headerRight={addPaymentCTA}>
+        {/* Mobile Header */}
+        <MobilePageHeader 
+          title={t('hr.payroll.title')} 
+          backTo="/dashboard/hr"
+        />
 
           {/* Content */}
           <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
@@ -333,8 +317,7 @@ export default function DashboardHRPayroll() {
               </Button>
             )}
           </div>
-        </main>
-      </div>
+      </DashboardShell>
 
       {/* Add Payment Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
