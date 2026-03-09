@@ -68,7 +68,6 @@ const initialFormData: PaymentFormData = {
 export default function DashboardHRPayroll() {
   const { t, dir, lang } = useI18n();
   const { activeRole } = useTenant();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
   const [filters, setFilters] = useState<PayrollFilters>({
