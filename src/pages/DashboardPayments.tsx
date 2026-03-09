@@ -1,16 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TenantSwitcher } from "@/components/TenantSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { useTenant } from "@/contexts/TenantContext";
 import { useUserPaymentIntents } from "@/hooks/usePayments";
-import { useState } from "react";
 import {
-  Menu,
   CreditCard,
   TrendingUp,
   Clock,
