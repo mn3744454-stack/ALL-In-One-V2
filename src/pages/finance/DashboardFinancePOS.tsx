@@ -28,10 +28,9 @@ import { usePOSCore, type PaymentMethod } from "@/hooks/pos/usePOSCore";
 
 // UI
 import { Card, CardContent } from "@/components/ui/card";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { ShoppingCart } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ServiceWithPrice {
   id: string;
@@ -43,8 +42,7 @@ interface ServiceWithPrice {
 }
 
 export default function DashboardFinancePOS() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const { isRTL } = useRTL();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -108,7 +106,6 @@ export default function DashboardFinancePOS() {
   const [expectedCash, setExpectedCash] = useState(0);
   useEffect(() => {
     if (openSession) {
-      // Simple calculation: opening_cash + cash sales
       const fetchExpected = async () => {
         const { data } = await supabase
           .from("invoices")
@@ -123,36 +120,37 @@ export default function DashboardFinancePOS() {
     }
   }, [openSession, lastCreatedInvoice]);
 
-  // Permission check - use hasPermission instead of activeRole
+  // Permission check
   const canAccess = isOwner || hasPermission("pos.sale.create");
-  const canOpenSession = isOwner || hasPermission("pos.session.open");
-  const canCloseSession = isOwner || hasPermission("pos.session.close");
-  const canApplyDiscount = isOwner || hasPermission("pos.discount.apply");
 
   if (loadingPermissions) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4 animate-pulse" />
-            <p className="text-muted-foreground">{t("common.loading")}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="p-6 text-center">
+              <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4 animate-pulse" />
+              <p className="text-muted-foreground">{t("common.loading")}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
   if (!canAccess) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">{t("permissions.accessDenied")}</h2>
-            <p className="text-muted-foreground">{t("permissions.accessDeniedDesc")}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="p-6 text-center">
+              <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">{t("permissions.accessDenied")}</h2>
+              <p className="text-muted-foreground">{t("permissions.accessDeniedDesc")}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
@@ -172,7 +170,7 @@ export default function DashboardFinancePOS() {
   };
 
   const handleAddItem = (item: ServiceWithPrice) => {
-    if (item.unit_price === null) return; // Don't add items without price
+    if (item.unit_price === null) return;
     addItem({
       id: item.id,
       name: item.name,
@@ -180,15 +178,11 @@ export default function DashboardFinancePOS() {
       unit_price: item.unit_price,
       service_id: item.id,
     });
-    if (isMobile && currentStep === "catalog") {
-      // Stay on catalog, sticky bar shows cart
-    }
   };
 
   const handleCompleteSale = async () => {
     if (!tenantId || !openSession) return;
     
-    // Snapshot cart BEFORE the sale clears it
     const cartSnapshot = cart.map(item => ({
       description: item.name,
       description_ar: item.name_ar,
@@ -206,7 +200,6 @@ export default function DashboardFinancePOS() {
         payment_method: paymentMethod,
         discount_amount: discountAmount,
       });
-      // Use snapshot for receipt (cart is cleared in createSale)
       setLastInvoiceItems(cartSnapshot);
       setReceiptDialogOpen(true);
       setCurrentStep("receipt");
@@ -228,7 +221,6 @@ export default function DashboardFinancePOS() {
     setReceiptDialogOpen(false);
   };
 
-  // Catalog items for grid
   const catalogItems = useMemo(() => 
     services.map(s => ({
       id: s.id,
@@ -243,13 +235,11 @@ export default function DashboardFinancePOS() {
   const canPay = cart.length > 0 && hasOpenSession;
 
   return (
-    <div className={cn("min-h-screen bg-background flex", dir === "rtl" && "flex-row-reverse")}>
-      <DashboardSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <DashboardShell>
+      {/* Mobile header */}
+      <MobilePageHeader title={t("finance.pos.title")} backTo="/dashboard/finance" />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile header */}
-        <MobilePageHeader title={t("finance.pos.title")} backTo="/dashboard/finance" />
-
+      <div className="flex-1 flex flex-col overflow-hidden">
         <POSLayoutResponsive
           currentStep={currentStep}
           onStepChange={setCurrentStep}
@@ -315,7 +305,7 @@ export default function DashboardFinancePOS() {
             ) : null
           }
         />
-      </main>
+      </div>
 
       {/* Dialogs */}
       <OpenSessionDialog
@@ -333,6 +323,6 @@ export default function DashboardFinancePOS() {
         onConfirm={handleCloseSession}
         isLoading={isClosing}
       />
-    </div>
+    </DashboardShell>
   );
 }
