@@ -1,88 +1,207 @@
+# Final Verification Plan — Billing Links Fix + Phase 7 Proof (Corrected Final Version)
 
+## A. Billing Links — Critical Schema Violation Confirmed and Final Fix Required
 
-# Diagnosis: Why Changes Appear Not Applied
+**Problem**: `billing_links.invoice_id` has a foreign key constraint `REFERENCES public.invoices(id) ON DELETE CASCADE`.  
 
-## The Core Problem
+The current code inserts `admission.id` as `invoice_id`. This is a **foreign key violation** and therefore invalid at the database level.
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+This placeholder pattern must be removed completely.
 
-**However, there are real remaining issues the user is seeing:**
+### Final Correct Fix Strategy
 
-### 1. Realtime Sync Uses WRONG Query Keys
+Billing links must only be created when a **real invoice row** already exists.
 
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+The correct workflow is:
 
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+1. **Admission creation**
 
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+   - Create the admission
 
-### 3. Ledger "Enrich" Button Still Visible
+   - Create and link movement correctly
 
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
+   - **Do not create any billing link yet**
 
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
+   - Reason: there is no real invoice yet
 
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
+2. **During the billing workflow**
 
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
+   - When staff creates a real invoice related to the stay, create a billing link using:
 
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
+     - `source_type = 'boarding'`
 
-### 6. Scope Selector / Statement Content
+     - `source_id = admission.id`
 
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+     - `invoice_id = real invoice id`
+
+     - `link_kind = 'deposit' | 'final' | other valid kind`
+
+   - This must happen only after the invoice exists
+
+3. **Checkout financial review**
+
+   - Query real billing links for the admission
+
+   - If no billing links exist yet, the admission-scoped values should correctly return zero
+
+   - This is truthful and valid behavior
+
+4. **Deposit handling**
+
+   - Deposit must be represented only when a real deposit invoice exists
+
+   - Then create a real billing link with:
+
+     - `link_kind = 'deposit'`
+
+     - `invoice_id = actual deposit invoice id`
+
+### Required Code Changes
+
+In `src/hooks/housing/useBoardingAdmissions.ts`:
+
+- Remove the fake billing link insert block from `createAdmission`
+
+- Remove the fake billing link insert block from `confirmCheckout`
+
+Do **not** insert any `billing_links` row using `admission.id` as `invoice_id`.
+
+Keep the existing `createBillingLink()` mutation as the correct mechanism for linking real invoices later.
+
+### Expected Result
+
+- No FK violations
+
+- Billing links only reference real invoices
+
+- Financial review remains correct
+
+- Zero linked invoices = zero billed/paid/balance in the admission-scoped section
 
 ---
 
-## Execution Plan
+## B. Phase 7 — Horse-Scoped Sharing Proof (Accepted as Satisfied)
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+**Finding**: Phase 7 is satisfied by the existing `HorseSharesPanel` integration in Horse Profile.
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+### Concrete Proof
 
-Change the finance table mappings to use the **actual** query key prefixes:
+1. **Location in Horse Profile**
 
-```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
-```
+   - `HorseProfile.tsx` includes:
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+     - `<HorseSharesPanel horseId={horse.id} horseName={horse.name} />`
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+2. **User flow**
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+   - From Horse Profile, the user opens the Sharing area
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+   - The user can click **Create Share**
 
-### Step 3: Hide Backfill Button from Non-Admins
+   - This opens `CreateHorseShareDialog`
 
-**File:** `src/pages/DashboardFinance.tsx`
+   - The dialog supports horse-specific scope configuration such as:
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+     - packs / scope bundles
 
-### Step 4: Stabilize Invoice Table Column Widths
+     - `includeVet`
 
-**File:** `src/components/finance/InvoicesList.tsx`
+     - `includeLab`
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+     - `includeFiles`
 
-### Step 5: Fix Expenses Table View Alignment
+     - optional recipient email
 
-**File:** `src/components/finance/ExpensesList.tsx`
+     - date filtering
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+     - expiry
 
-### Verification Checklist
+   - It creates a share through the existing RPC / token flow
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+   - It returns a horse-scoped share URL
 
+3. **Infrastructure reused**
+
+   - `horse_shares`
+
+   - `horse_share_packs`
+
+   - `create_horse_share` RPC
+
+   - `get_horse_share_view`
+
+   - `revoke_horse_share`
+
+   - existing privacy / alias patterns
+
+4. **Clarification: token sharing vs consent grants**
+
+   - Token-based horse sharing is the correct implementation for the required Phase 7 scope:
+
+     - horse-scoped share action from Horse Profile
+
+   - Tenant-level `consent_grants` remain a separate pattern for broader ongoing cross-tenant relationships
+
+   - No new sharing model is required for this phase
+
+### Final Conclusion for Phase 7
+
+Phase 7 is considered fulfilled by the Horse Profile integration of `HorseSharesPanel`, provided the flow is already working as described in the codebase.
+
+No additional new sharing UI is required for this phase.
+
+---
+
+## C. Required Changes Summary
+
+| File | Change |
+
+|------|--------|
+
+| `src/hooks/housing/useBoardingAdmissions.ts` | Remove fake billing link inserts from `createAdmission` and `confirmCheckout` |
+
+| `src/hooks/housing/useAdmissionFinancials.ts` | Keep existing logic that reads only real billing links and returns zeros when none exist |
+
+No other structural changes are required for this verification pass unless implementation reality contradicts the report.
+
+---
+
+## D. Final Verification Summary
+
+| Item | Status |
+
+|------|--------|
+
+| Billing links use only real invoice IDs | Must be enforced now |
+
+| Placeholder invoice_id pattern removed | Required now |
+
+| FK integrity respected | Required now |
+
+| Financial review works when zero links exist | Already valid and should remain |
+
+| HorseSharesPanel on Horse Profile | Verified |
+
+| Horse-scoped share action exists | Verified |
+
+| Existing sharing infrastructure reused | Verified |
+
+| Phase 7 satisfied by current HorseSharesPanel integration | Accepted |
+
+---
+
+## E. Execute Now
+
+Apply the focused billing-links fix exactly as described above.
+
+After applying it, return a concise final report with:
+
+1. Exact code changes made
+
+2. Confirmation that fake billing links were removed
+
+3. Confirmation that FK integrity is now respected
+
+4. Confirmation that financial review still works correctly when no linked invoices exist
+
+5. Final verdict: whether the Stable horse ecosystem implementation is now complete for the agreed scope
