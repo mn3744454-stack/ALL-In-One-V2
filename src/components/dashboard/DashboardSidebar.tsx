@@ -643,29 +643,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             )}
           </nav>
 
-          {/* Collapse toggle — desktop only */}
-          <div className="p-2 border-t border-border/50 hidden lg:flex justify-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleCollapsed}
-                  className="p-2 rounded-xl hover:bg-navy/5 transition-colors"
-                  aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-                >
-                  <ChevronsLeft
-                    className={cn(
-                      "w-5 h-5 text-navy/50 transition-transform duration-200",
-                      collapsed && "rotate-180",
-                      dir === "rtl" && "scale-x-[-1]"
-                    )}
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={tooltipSide} className="font-medium">
-                {collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-              </TooltipContent>
-            </Tooltip>
-          </div>
 
           {/* User Section — only visible on mobile overlay, hidden on desktop (header has logout) */}
           <div className="p-4 border-t border-border/50 bg-white/30 lg:hidden">
