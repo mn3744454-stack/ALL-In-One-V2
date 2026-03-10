@@ -1722,6 +1722,7 @@ export const en = {
         stepRates: "Rates",
         stepDetails: "Details",
         stepReview: "Review",
+        overrideHint: "You can override below",
         selectHorse: "Select Horse",
         selectClient: "Client / Payer (optional)",
         noClient: "No client (assign later)",

@@ -1748,6 +1748,7 @@ export const ar = {
         stepRates: "الأسعار",
         stepDetails: "التفاصيل",
         stepReview: "المراجعة",
+        overrideHint: "يمكنك التعديل أدناه",
         selectHorse: "اختر الخيل",
         selectClient: "العميل / الدافع (اختياري)",
         noClient: "بدون عميل (تعيين لاحقاً)",
