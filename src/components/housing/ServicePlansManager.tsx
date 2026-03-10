@@ -17,6 +17,8 @@ import { Plus, Pencil, Package, Trash2 } from "lucide-react";
 
 export function ServicePlansManager() {
   const { t } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
