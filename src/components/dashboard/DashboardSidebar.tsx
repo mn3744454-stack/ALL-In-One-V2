@@ -13,7 +13,13 @@ import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
-import { Users as UsersIcon, BellRing } from "lucide-react";
+import { Users as UsersIcon, BellRing, ChevronsLeft } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 import {
   Building2,
   Home,
@@ -55,6 +61,8 @@ interface NavItemProps {
   badge?: number;
   onNavigate?: () => void;
   highlight?: boolean;
+  collapsed?: boolean;
+  tooltipSide?: "left" | "right";
 }
 
 const NavItem = ({
@@ -65,12 +73,15 @@ const NavItem = ({
   badge,
   onNavigate,
   highlight,
+  collapsed,
+  tooltipSide = "right",
 }: NavItemProps) => {
   const content = (
     <div
       data-active={active ? "true" : undefined}
       className={cn(
-        "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group",
+        "flex items-center rounded-xl transition-all cursor-pointer group",
+        collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
         active
           ? "bg-gradient-to-r from-gold/20 to-gold/10 border border-gold/30 shadow-sm"
           : highlight
@@ -91,39 +102,61 @@ const NavItem = ({
       >
         <Icon className="w-5 h-5" />
       </div>
-      <span
-        className={cn(
-          "flex-1 font-medium",
-          active ? "text-navy" : highlight ? "text-orange-700" : "text-navy/70"
-        )}
-      >
-        {label}
-      </span>
-      {badge !== undefined && badge > 0 && (
-        <span
-          className={cn(
-            "px-2 py-0.5 text-xs rounded-full font-medium",
-            active ? "bg-gold/30 text-navy" : "bg-navy/10 text-navy/60"
+      {!collapsed && (
+        <>
+          <span
+            className={cn(
+              "flex-1 font-medium",
+              active ? "text-navy" : highlight ? "text-orange-700" : "text-navy/70"
+            )}
+          >
+            {label}
+          </span>
+          {badge !== undefined && badge > 0 && (
+            <span
+              className={cn(
+                "px-2 py-0.5 text-xs rounded-full font-medium",
+                active ? "bg-gold/30 text-navy" : "bg-navy/10 text-navy/60"
+              )}
+            >
+              {badge}
+            </span>
           )}
-        >
-          {badge}
-        </span>
-      )}
-      {highlight && (
-        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+          {highlight && (
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+          )}
+        </>
       )}
     </div>
   );
 
-  if (href) {
-    return (
-      <Link to={href} onClick={onNavigate}>
-        {content}
-      </Link>
-    );
-  }
+  const wrappedContent = collapsed ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        {href ? (
+          <Link to={href} onClick={onNavigate}>
+            {content}
+          </Link>
+        ) : (
+          content
+        )}
+      </TooltipTrigger>
+      <TooltipContent side={tooltipSide} className="font-medium">
+        {label}
+        {badge !== undefined && badge > 0 && (
+          <span className="ms-1.5 text-xs opacity-70">({badge})</span>
+        )}
+      </TooltipContent>
+    </Tooltip>
+  ) : href ? (
+    <Link to={href} onClick={onNavigate}>
+      {content}
+    </Link>
+  ) : (
+    content
+  );
 
-  return content;
+  return wrappedContent;
 };
 
 interface DashboardSidebarProps {
@@ -131,6 +164,8 @@ interface DashboardSidebarProps {
   onClose: () => void;
   currentPath?: string;
 }
+
+const COLLAPSED_KEY = "sidebar-collapsed";
 
 export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
   const isDesktop = useIsDesktop();
@@ -152,14 +187,29 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
+  // Collapsed state — desktop only, persisted
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(COLLAPSED_KEY) === "true";
+  });
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    localStorage.setItem(COLLAPSED_KEY, String(next));
+  };
+
+  const tooltipSide: "left" | "right" = dir === "rtl" ? "left" : "right";
+
   // Auto-scroll active nav item into view on route change
   useEffect(() => {
+    if (collapsed) return; // No scroll needed in icon-only rail
     const timer = setTimeout(() => {
       const el = navRef.current?.querySelector('[data-active="true"]');
       el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 100);
     return () => clearTimeout(timer);
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, collapsed]);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -264,12 +314,16 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     ? (isOpen ? 'translate-x-0' : 'translate-x-full')
     : (isOpen ? 'translate-x-0' : '-translate-x-full');
 
+  // Common collapsed/tooltipSide props for nav items
+  const navProps = { collapsed, tooltipSide } as const;
+
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 z-50 w-64 bg-gradient-to-b from-cream via-cream to-cream-dark/50 border-border/50 transform transition-transform duration-300 shadow-xl lg:shadow-none lg:static lg:translate-x-0",
+          "fixed inset-y-0 z-50 bg-gradient-to-b from-cream via-cream to-cream-dark/50 border-border/50 transform transition-all duration-200 shadow-xl lg:shadow-none lg:static lg:translate-x-0",
+          collapsed ? "w-16" : "w-64",
           sidebarPositionClasses,
           sidebarTransformClasses,
           dir === 'rtl' ? 'border-l' : 'border-r'
@@ -277,19 +331,24 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       >
         <div className="flex flex-col h-full">
           {/* Logo + Close Button */}
-          <div className="p-5 border-b border-border/50 flex items-center justify-between gap-3 bg-white/50">
-            <Logo />
-            <button
-              className="p-2 rounded-xl hover:bg-navy/5 lg:hidden transition-colors"
-              onClick={onClose}
-              aria-label="Close menu"
-            >
-              <X className="w-5 h-5 text-navy/60" />
-            </button>
+          <div className={cn(
+            "border-b border-border/50 flex items-center bg-white/50",
+            collapsed ? "p-2 justify-center" : "p-5 justify-between gap-3"
+          )}>
+            <Logo iconOnly={collapsed} size={collapsed ? "sm" : "default"} />
+            {!collapsed && (
+              <button
+                className="p-2 rounded-xl hover:bg-navy/5 lg:hidden transition-colors"
+                onClick={onClose}
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5 text-navy/60" />
+              </button>
+            )}
           </div>
 
           {/* Navigation */}
-          <nav ref={navRef} className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav ref={navRef} className={cn("flex-1 space-y-1 overflow-y-auto", collapsed ? "p-1.5" : "p-3")}>
             {/* Dashboard - always visible */}
             <NavItem
               icon={Home}
@@ -297,6 +356,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               href="/dashboard"
               active={isActive("/dashboard")}
               onNavigate={onClose}
+              {...navProps}
             />
 
             {/* PERSONAL WORKSPACE MODE - show personal nav items */}
@@ -308,6 +368,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   href="/community"
                   active={isActive("/community")}
                   onNavigate={onClose}
+                  {...navProps}
                 />
                 <NavItem
                   icon={Ticket}
@@ -315,6 +376,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   href="/dashboard/my-bookings"
                   active={isActive("/dashboard/my-bookings")}
                   onNavigate={onClose}
+                  {...navProps}
                 />
                 <NavItem
                   icon={CreditCard}
@@ -322,6 +384,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   href="/dashboard/my-payments"
                   active={isActive("/dashboard/my-payments")}
                   onNavigate={onClose}
+                  {...navProps}
                 />
               </>
             )}
@@ -337,6 +400,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/community"
                     active={isActive("/community")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -351,6 +415,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                         href={section.route}
                         active={isLabTabActive(section.tab)}
                         onNavigate={onClose}
+                        {...navProps}
                       />
                     ))}
                   </>
@@ -363,6 +428,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('sidebar.horses')}
                     items={horsesNavItems}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -374,6 +440,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/vet"
                     active={isActive("/dashboard/vet")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -385,6 +452,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/laboratory"
                     active={isActive("/dashboard/laboratory")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -393,14 +461,16 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   label={t('sidebar.schedule')} 
                   href="/dashboard/schedule"
                   active={isActive("/dashboard/schedule")}
-                  onNavigate={onClose} 
+                  onNavigate={onClose}
+                  {...navProps}
                 />
                 <NavItem 
                   icon={FileText} 
                   label={t('sidebar.records')} 
                   href="/dashboard/records"
                   active={isActive("/dashboard/records")}
-                  onNavigate={onClose} 
+                  onNavigate={onClose}
+                  {...navProps}
                 />
                 
                 {/* HR / Team NavGroup - for owners and managers */}
@@ -410,6 +480,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('sidebar.hr')}
                     items={hrNavItems}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
                 
@@ -421,6 +492,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/housing"
                     active={isActive("/dashboard/housing")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -432,6 +504,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/services"
                     active={isActive("/dashboard/services")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
                 
@@ -443,6 +516,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/clients"
                     active={isActive("/dashboard/clients")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -453,6 +527,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('finance.title')}
                     items={financeNavItems}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -464,6 +539,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     href="/dashboard/files"
                     active={isActive("/dashboard/files")}
                     onNavigate={onClose}
+                    {...navProps}
                   />
                 )}
 
@@ -476,6 +552,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       href="/dashboard/doctor"
                       active={isActive("/dashboard/doctor")}
                       onNavigate={onClose}
+                      {...navProps}
                     />
                     <NavItem
                       icon={Heart}
@@ -483,6 +560,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       href="/dashboard/doctor/patients"
                       active={isActive("/dashboard/doctor/patients")}
                       onNavigate={onClose}
+                      {...navProps}
                     />
                     <NavItem
                       icon={ClipboardList}
@@ -490,6 +568,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       href="/dashboard/doctor/consultations"
                       active={isActive("/dashboard/doctor/consultations")}
                       onNavigate={onClose}
+                      {...navProps}
                     />
                     <NavItem
                       icon={Package}
@@ -497,6 +576,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       href="/dashboard/doctor/services"
                       active={isActive("/dashboard/doctor/services")}
                       onNavigate={onClose}
+                      {...navProps}
                     />
                   </>
                 )}
@@ -511,6 +591,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                         href="/dashboard/academy/sessions"
                         active={isActive("/dashboard/academy/sessions")}
                         onNavigate={onClose}
+                        {...navProps}
                       />
                       <NavItem
                         icon={Ticket}
@@ -518,6 +599,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                         href="/dashboard/academy/bookings"
                         active={isActive("/dashboard/academy/bookings")}
                         onNavigate={onClose}
+                        {...navProps}
                       />
                     </>
                   )}
@@ -531,17 +613,19 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     active={isActive("/dashboard/public-profile")}
                     onNavigate={onClose}
                     highlight={needsPublicProfileSetup}
+                    {...navProps}
                   />
                 )}
 
                 {/* Settings section */}
-                <div className="pt-4 mt-4 border-t border-border/50 space-y-1">
+                <div className={cn("pt-4 mt-4 border-t border-border/50 space-y-1")}>
                   {activeRole === "owner" ? (
                     <NavGroup
                       icon={Settings}
                       label={t('sidebar.settings')}
                       items={settingsNavItems}
                       onNavigate={onClose}
+                      {...navProps}
                     />
                   ) : (
                     /* Non-owners only see notification settings */
@@ -550,13 +634,38 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       label={t('sidebar.notificationSettings')} 
                       href="/dashboard/settings/notifications"
                       active={isActive("/dashboard/settings/notifications")}
-                      onNavigate={onClose} 
+                      onNavigate={onClose}
+                      {...navProps}
                     />
                   )}
                 </div>
               </>
             )}
           </nav>
+
+          {/* Collapse toggle — desktop only */}
+          <div className="p-2 border-t border-border/50 hidden lg:flex justify-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleCollapsed}
+                  className="p-2 rounded-xl hover:bg-navy/5 transition-colors"
+                  aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+                >
+                  <ChevronsLeft
+                    className={cn(
+                      "w-5 h-5 text-navy/50 transition-transform duration-200",
+                      collapsed && "rotate-180",
+                      dir === "rtl" && "scale-x-[-1]"
+                    )}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side={tooltipSide} className="font-medium">
+                {collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+              </TooltipContent>
+            </Tooltip>
+          </div>
 
           {/* User Section — only visible on mobile overlay, hidden on desktop (header has logout) */}
           <div className="p-4 border-t border-border/50 bg-white/30 lg:hidden">
@@ -587,6 +696,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           onClick={onClose}
         />
       )}
-    </>
+    </TooltipProvider>
   );
 };
