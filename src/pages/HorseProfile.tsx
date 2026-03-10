@@ -69,10 +69,16 @@ interface Horse {
   father_name?: string | null;
   images?: string[] | null;
   videos?: string[] | null;
+  current_location_id?: string | null;
+  current_area_id?: string | null;
+  housing_unit_id?: string | null;
   breed_data?: { name: string } | null;
   color_data?: { name: string } | null;
-  branch_data?: { name: string } | null;
+  branch_data?: { name: string; id: string } | null;
   stable_data?: { name: string } | null;
+  area_data?: { id: string; name: string; name_ar: string | null } | null;
+  unit_data?: { id: string; code: string; name: string | null; name_ar: string | null } | null;
+  location_data?: { id: string; name: string; city: string | null } | null;
 }
 
 const HorseProfile = () => {
