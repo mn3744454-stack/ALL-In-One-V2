@@ -159,7 +159,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 100);
     return () => clearTimeout(timer);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -343,7 +343,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 {/* LAB TENANT PRIMARY NAV - Lab sections as top-level items */}
                 {isLabTenant && labMode === 'full' && (
                   <>
-                    {LAB_NAV_SECTIONS.map((section) => (
+                    {LAB_NAV_SECTIONS.filter(s => s.key !== 'clients').map((section) => (
                       <NavItem
                         key={section.key}
                         icon={section.icon}
