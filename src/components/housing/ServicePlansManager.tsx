@@ -97,7 +97,6 @@ export function ServicePlansManager() {
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                     )}
-                    </Button>
                   </div>
                 </div>
                 {plan.description && <p className="text-xs text-muted-foreground mb-2">{plan.description}</p>}
