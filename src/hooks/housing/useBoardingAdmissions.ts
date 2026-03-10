@@ -231,25 +231,6 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         changed_by: user.id,
       });
 
-      // Step 5: Create initial billing link (deposit placeholder)
-      // This links the admission to billing infrastructure so financial review works
-      if (data.client_id) {
-        try {
-          await supabase.from('billing_links').insert({
-            tenant_id: tenantId,
-            source_type: 'boarding',
-            source_id: admission.id,
-            invoice_id: admission.id, // Self-reference as placeholder until invoice is generated
-            link_kind: 'deposit',
-            amount: 0,
-            created_by: user.id,
-          });
-        } catch {
-          // Non-critical — billing link can be created later
-          console.warn('Billing link creation skipped (non-critical)');
-        }
-      }
-
       return { ...admission, status: 'active', checkin_movement_id: movementId };
     },
     onSuccess: () => {
