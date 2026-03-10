@@ -108,8 +108,11 @@ const HorseProfile = () => {
           *,
           breed_data:horse_breeds(name),
           color_data:horse_colors(name),
-          branch_data:branches!branch_id(name),
-          stable_data:stables(name)
+          branch_data:branches!branch_id(id, name),
+          stable_data:stables(name),
+          area_data:facility_areas!current_area_id(id, name, name_ar),
+          unit_data:housing_units!housing_unit_id(id, code, name, name_ar),
+          location_data:locations!current_location_id(id, name, city)
         `)
         .eq("id", id)
         .single();
