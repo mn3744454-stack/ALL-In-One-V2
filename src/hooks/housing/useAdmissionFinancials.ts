@@ -60,13 +60,27 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
           if (invoiceIds.length > 0) {
             const { data: invoices } = await supabase
               .from('invoices')
-              .select('id, total_amount, status, amount_paid')
+              .select('id, total_amount, status')
               .in('id', invoiceIds);
 
             if (invoices) {
               for (const inv of invoices) {
                 result.admissionBilled += Number(inv.total_amount) || 0;
-                result.admissionPaid += Number(inv.amount_paid) || 0;
+              }
+            }
+
+            // Get payments from ledger entries linked to these invoices
+            const { data: payments } = await supabase
+              .from('ledger_entries')
+              .select('amount')
+              .eq('tenant_id', tenantId)
+              .eq('entry_type', 'payment')
+              .in('reference_id', invoiceIds);
+
+            if (payments) {
+              for (const p of payments) {
+                // Payments are negative in ledger
+                result.admissionPaid += Math.abs(Number(p.amount) || 0);
               }
             }
           }
