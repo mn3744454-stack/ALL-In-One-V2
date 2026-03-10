@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoardingAdmissions, type AdmissionStatus, type BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
+import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { useI18n } from "@/i18n";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart } from "lucide-react";
 import { format } from "date-fns";
@@ -14,29 +15,25 @@ import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 
-function getStatusBadge(status: AdmissionStatus) {
+function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
     case 'active':
-      return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="h-3 w-3 me-1" />Active</Badge>;
+      return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="h-3 w-3 me-1" />{t('housing.admissions.status.active')}</Badge>;
     case 'checkout_pending':
-      return <Badge variant="outline" className="text-amber-600 border-amber-300"><Clock className="h-3 w-3 me-1" />Pending Checkout</Badge>;
+      return <Badge variant="outline" className="text-amber-600 border-amber-300"><Clock className="h-3 w-3 me-1" />{t('housing.admissions.status.checkoutPending')}</Badge>;
     case 'checked_out':
-      return <Badge variant="secondary"><LogOut className="h-3 w-3 me-1" />Checked Out</Badge>;
+      return <Badge variant="secondary"><LogOut className="h-3 w-3 me-1" />{t('housing.admissions.status.checkedOut')}</Badge>;
     case 'cancelled':
-      return <Badge variant="destructive">Cancelled</Badge>;
+      return <Badge variant="destructive">{t('housing.admissions.status.cancelled')}</Badge>;
     case 'draft':
-      return <Badge variant="outline">Draft</Badge>;
+      return <Badge variant="outline">{t('housing.admissions.status.draft')}</Badge>;
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
 }
 
-function getChecksWarningCount(checks: Record<string, any>): number {
-  return Object.values(checks).filter((c: any) => c?.status === 'warning').length;
-}
-
 export function AdmissionsList() {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState<AdmissionStatus | 'all'>('active');
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -51,10 +48,10 @@ export function AdmissionsList() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Boarding Admissions</h2>
+        <h2 className="text-lg font-semibold">{t('housing.admissions.title')}</h2>
         <Button onClick={() => setWizardOpen(true)} size="sm">
           <Plus className="h-4 w-4 me-1" />
-          New Admission
+          {t('housing.admissions.newAdmission')}
         </Button>
       </div>
 
@@ -65,16 +62,16 @@ export function AdmissionsList() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by horse or client..."
+            placeholder={t('housing.admissions.searchPlaceholder')}
             className="ps-9"
           />
         </div>
         <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
           <TabsList>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="checkout_pending">Pending</TabsTrigger>
-            <TabsTrigger value="checked_out">Checked Out</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="active">{t('housing.admissions.status.active')}</TabsTrigger>
+            <TabsTrigger value="checkout_pending">{t('housing.admissions.status.checkoutPending')}</TabsTrigger>
+            <TabsTrigger value="checked_out">{t('housing.admissions.status.checkedOut')}</TabsTrigger>
+            <TabsTrigger value="all">{t('common.all')}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -88,17 +85,17 @@ export function AdmissionsList() {
         <Card>
           <CardContent className="py-12 text-center">
             <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No admissions found</p>
+            <p className="text-muted-foreground">{t('housing.admissions.empty')}</p>
             <Button variant="outline" size="sm" className="mt-3" onClick={() => setWizardOpen(true)}>
               <Plus className="h-4 w-4 me-1" />
-              Create First Admission
+              {t('housing.admissions.createFirst')}
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
           {admissions.map((admission) => {
-            const warningCount = getChecksWarningCount(admission.admission_checks || {});
+            const warnCount = getWarningCount(admission.admission_checks || {});
             return (
               <Card
                 key={admission.id}
@@ -116,21 +113,21 @@ export function AdmissionsList() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">
-                          {admission.horse?.name || 'Unknown Horse'}
+                          {admission.horse?.name || t('common.unknown')}
                         </span>
-                        {getStatusBadge(admission.status)}
-                        {warningCount > 0 && (
+                        {getStatusBadge(admission.status, t)}
+                        {warnCount > 0 && (
                           <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
                             <AlertTriangle className="h-3 w-3" />
-                            {warningCount}
+                            {warnCount}
                           </Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
                         {admission.client?.name && (
-                          <span>Client: {admission.client.name}</span>
+                          <span>{t('housing.admissions.detail.client')}: {admission.client.name}</span>
                         )}
-                        <span>Since {format(new Date(admission.admitted_at), 'MMM d, yyyy')}</span>
+                        <span>{t('housing.admissions.list.since')} {format(new Date(admission.admitted_at), 'MMM d, yyyy')}</span>
                         {admission.unit && (
                           <Badge variant="secondary" className="text-xs">
                             {admission.unit.code}
@@ -143,7 +140,7 @@ export function AdmissionsList() {
                         <span className="text-sm font-medium">
                           {admission.monthly_rate} {admission.rate_currency}
                         </span>
-                        <span className="text-xs text-muted-foreground block">/month</span>
+                        <span className="text-xs text-muted-foreground block">/{t('housing.admissions.wizard.cycleMonthly').toLowerCase()}</span>
                       </div>
                     )}
                   </div>
@@ -154,10 +151,7 @@ export function AdmissionsList() {
         </div>
       )}
 
-      {/* Wizard */}
       <AdmissionWizard open={wizardOpen} onOpenChange={setWizardOpen} />
-
-      {/* Detail Sheet */}
       <AdmissionDetailSheet
         admissionId={selectedAdmissionId}
         open={!!selectedAdmissionId}

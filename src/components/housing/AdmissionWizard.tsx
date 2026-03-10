@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,6 @@ import { useHorses } from "@/hooks/useHorses";
 import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing/useBoardingAdmissions";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
-import { useHorseMovements, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -67,20 +66,19 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
   const { createAdmission, isCreating } = useBoardingAdmissions();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
-  const { recordMovement } = useHorseMovements();
   const [clients, setClients] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
 
-  // Load clients/branches when dialog opens
-  useState(() => {
-    if (!tenantId) return;
+  // Load clients/branches when dialog opens — proper useEffect
+  useEffect(() => {
+    if (!open || !tenantId) return;
     supabase.from('clients').select('id, name, name_ar, phone').eq('tenant_id', tenantId).eq('status', 'active').then(({ data }) => {
       setClients(data || []);
     });
     supabase.from('branches').select('id, name').eq('tenant_id', tenantId).eq('is_active', true).then(({ data }) => {
       setBranches(data || []);
     });
-  });
+  }, [open, tenantId]);
 
   const selectedHorse = horses.find(h => h.id === form.horseId);
   const selectedClient = clients.find((c: any) => c.id === form.clientId);
@@ -94,7 +92,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
   const canGoNext = () => {
     switch (step) {
       case 'horse': return !!form.horseId;
-      case 'client': return true; // Optional
+      case 'client': return true;
       case 'housing': return !!form.branchId;
       case 'rates': return true;
       case 'details': return true;
@@ -133,20 +131,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
         expected_departure: form.expectedDeparture || null,
       };
 
+      // createAdmission now handles movement creation + linking internally
       await createAdmission(data);
-
-      // Record check-in movement
-      const movementData: CreateMovementData = {
-        horse_id: form.horseId,
-        movement_type: 'in',
-        to_location_id: form.branchId,
-        to_area_id: form.areaId || null,
-        to_unit_id: form.unitId || null,
-        reason: 'Boarding admission check-in',
-        notes: form.specialInstructions || undefined,
-      };
-
-      await recordMovement(movementData);
 
       resetForm();
       onOpenChange(false);
@@ -165,12 +151,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
     });
   };
 
+  const stepLabels: Record<Step, string> = {
+    horse: t('housing.admissions.wizard.stepHorse'),
+    client: t('housing.admissions.wizard.stepClient'),
+    housing: t('housing.admissions.wizard.stepHousing'),
+    rates: t('housing.admissions.wizard.stepRates'),
+    details: t('housing.admissions.wizard.stepDetails'),
+    review: t('housing.admissions.wizard.stepReview'),
+  };
+
   const renderStep = () => {
     switch (step) {
       case 'horse':
         return (
           <div className="space-y-3">
-            <Label>Select Horse *</Label>
+            <Label>{t('housing.admissions.wizard.selectHorse')} *</Label>
             <div className="grid gap-2 max-h-64 overflow-y-auto">
               {horses.filter(h => h.status === 'active').map(horse => (
                 <button
@@ -203,7 +198,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
       case 'client':
         return (
           <div className="space-y-3">
-            <Label>Client / Payer (optional)</Label>
+            <Label>{t('housing.admissions.wizard.selectClient')}</Label>
             <button
               type="button"
               onClick={() => setForm(f => ({ ...f, clientId: '' }))}
@@ -212,7 +207,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
                 !form.clientId ? "border-primary bg-primary/5" : "border-border"
               )}
             >
-              <span className="text-sm text-muted-foreground">No client (assign later)</span>
+              <span className="text-sm text-muted-foreground">{t('housing.admissions.wizard.noClient')}</span>
             </button>
             <div className="grid gap-2 max-h-56 overflow-y-auto">
               {clients.map((client: any) => (
@@ -240,9 +235,9 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
         return (
           <div className="space-y-4">
             <div>
-              <Label>Branch *</Label>
+              <Label>{t('housing.admissions.wizard.branch')} *</Label>
               <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v, areaId: '', unitId: '' }))}>
-                <SelectTrigger><SelectValue placeholder="Select branch" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectBranch')} /></SelectTrigger>
                 <SelectContent>
                   {branches.map((b: any) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -252,9 +247,9 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
             </div>
             {form.branchId && filteredAreas.length > 0 && (
               <div>
-                <Label>Area (optional)</Label>
+                <Label>{t('housing.admissions.wizard.area')}</Label>
                 <Select value={form.areaId} onValueChange={v => setForm(f => ({ ...f, areaId: v, unitId: '' }))}>
-                  <SelectTrigger><SelectValue placeholder="Select area" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectArea')} /></SelectTrigger>
                   <SelectContent>
                     {filteredAreas.map(a => (
                       <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
@@ -265,9 +260,9 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
             )}
             {form.branchId && filteredUnits.length > 0 && (
               <div>
-                <Label>Unit / Stall (optional)</Label>
+                <Label>{t('housing.admissions.wizard.unit')}</Label>
                 <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectUnit')} /></SelectTrigger>
                   <SelectContent>
                     {filteredUnits.filter(u => u.is_active).map(u => (
                       <SelectItem key={u.id} value={u.id}>
@@ -285,7 +280,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Daily Rate</Label>
+                <Label>{t('housing.admissions.wizard.dailyRate')}</Label>
                 <Input
                   type="number"
                   value={form.dailyRate}
@@ -294,7 +289,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
                 />
               </div>
               <div>
-                <Label>Monthly Rate</Label>
+                <Label>{t('housing.admissions.wizard.monthlyRate')}</Label>
                 <Input
                   type="number"
                   value={form.monthlyRate}
@@ -305,18 +300,18 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Billing Cycle</Label>
+                <Label>{t('housing.admissions.wizard.billingCycle')}</Label>
                 <Select value={form.billingCycle} onValueChange={v => setForm(f => ({ ...f, billingCycle: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="daily">{t('housing.admissions.wizard.cycleDaily')}</SelectItem>
+                    <SelectItem value="weekly">{t('housing.admissions.wizard.cycleWeekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('housing.admissions.wizard.cycleMonthly')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Currency</Label>
+                <Label>{t('housing.admissions.wizard.currency')}</Label>
                 <Select value={form.rateCurrency} onValueChange={v => setForm(f => ({ ...f, rateCurrency: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -328,7 +323,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
               </div>
             </div>
             <div>
-              <Label>Expected Departure</Label>
+              <Label>{t('housing.admissions.wizard.expectedDeparture')}</Label>
               <Input
                 type="date"
                 value={form.expectedDeparture}
@@ -341,32 +336,32 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
         return (
           <div className="space-y-4">
             <div>
-              <Label>Reason</Label>
+              <Label>{t('housing.admissions.wizard.reason')}</Label>
               <Select value={form.reason} onValueChange={v => setForm(f => ({ ...f, reason: v }))}>
-                <SelectTrigger><SelectValue placeholder="Select reason" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectReason')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="boarding">Boarding</SelectItem>
-                  <SelectItem value="training">Training</SelectItem>
-                  <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="breeding">Breeding</SelectItem>
-                  <SelectItem value="temporary">Temporary</SelectItem>
+                  <SelectItem value="boarding">{t('housing.admissions.reasons.boarding')}</SelectItem>
+                  <SelectItem value="training">{t('housing.admissions.reasons.training')}</SelectItem>
+                  <SelectItem value="medical">{t('housing.admissions.reasons.medical')}</SelectItem>
+                  <SelectItem value="breeding">{t('housing.admissions.reasons.breeding')}</SelectItem>
+                  <SelectItem value="temporary">{t('housing.admissions.reasons.temporary')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Emergency Contact</Label>
+              <Label>{t('housing.admissions.wizard.emergencyContact')}</Label>
               <Input
                 value={form.emergencyContact}
                 onChange={e => setForm(f => ({ ...f, emergencyContact: e.target.value }))}
-                placeholder="Phone number or contact info"
+                placeholder={t('housing.admissions.wizard.emergencyContactPlaceholder')}
               />
             </div>
             <div>
-              <Label>Special Instructions</Label>
+              <Label>{t('housing.admissions.wizard.specialInstructions')}</Label>
               <Textarea
                 value={form.specialInstructions}
                 onChange={e => setForm(f => ({ ...f, specialInstructions: e.target.value }))}
-                placeholder="Any special care requirements..."
+                placeholder={t('housing.admissions.wizard.specialInstructionsPlaceholder')}
                 rows={3}
               />
             </div>
@@ -379,7 +374,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center gap-2">
                   <Heart className="h-4 w-4 text-primary" />
-                  <span className="font-medium">{selectedHorse?.name || 'Unknown'}</span>
+                  <span className="font-medium">{selectedHorse?.name || t('common.unknown')}</span>
                 </div>
                 {selectedClient && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -403,42 +398,33 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CreditCard className="h-4 w-4" />
                     <span>
-                      {form.monthlyRate && `${form.monthlyRate} ${form.rateCurrency}/month`}
+                      {form.monthlyRate && `${form.monthlyRate} ${form.rateCurrency}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}`}
                       {form.monthlyRate && form.dailyRate && ' | '}
-                      {form.dailyRate && `${form.dailyRate} ${form.rateCurrency}/day`}
+                      {form.dailyRate && `${form.dailyRate} ${form.rateCurrency}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}`}
                     </span>
                   </div>
                 )}
                 {form.reason && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <FileText className="h-4 w-4" />
-                    <Badge variant="outline" className="capitalize">{form.reason}</Badge>
+                    <Badge variant="outline" className="capitalize">{t(`housing.admissions.reasons.${form.reason}`)}</Badge>
                   </div>
                 )}
               </CardContent>
             </Card>
             {!form.clientId && (
               <Badge variant="outline" className="text-amber-600 border-amber-300">
-                ⚠ No client assigned
+                ⚠ {t('housing.admissions.warnings.noClient')}
               </Badge>
             )}
             {!form.unitId && (
               <Badge variant="outline" className="text-amber-600 border-amber-300">
-                ⚠ No housing unit assigned
+                ⚠ {t('housing.admissions.warnings.noUnit')}
               </Badge>
             )}
           </div>
         );
     }
-  };
-
-  const stepLabels: Record<Step, string> = {
-    horse: 'Horse',
-    client: 'Client',
-    housing: 'Housing',
-    rates: 'Rates',
-    details: 'Details',
-    review: 'Review',
   };
 
   const content = (
@@ -470,16 +456,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
           size="sm"
         >
           <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
-          {stepIndex === 0 ? 'Cancel' : 'Back'}
+          {stepIndex === 0 ? t('common.cancel') : t('common.back')}
         </Button>
         {step === 'review' ? (
           <Button onClick={handleSubmit} disabled={isCreating} size="sm">
-            {isCreating ? 'Creating...' : 'Confirm Admission'}
+            {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
             <Check className="h-4 w-4 ms-1" />
           </Button>
         ) : (
           <Button onClick={goNext} disabled={!canGoNext()} size="sm">
-            Next
+            {t('common.next')}
             <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
           </Button>
         )}
@@ -492,7 +478,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent>
           <DrawerHeader>
-            <DrawerTitle>New Admission</DrawerTitle>
+            <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
           </DrawerHeader>
           <div className="p-4 pb-8">{content}</div>
         </DrawerContent>
@@ -504,7 +490,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Admission</DialogTitle>
+          <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
         </DialogHeader>
         {content}
       </DialogContent>
