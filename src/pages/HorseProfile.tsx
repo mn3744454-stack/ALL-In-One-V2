@@ -421,7 +421,7 @@ const HorseProfile = () => {
         {/* Housing & Movement Section */}
         <HorseLocationSection
           horseId={horse.id}
-          currentLocation={horse.location_data || (horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, city: null } : null)}
+          currentLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, city: null } : null}
           currentArea={horse.area_data}
           currentUnit={horse.unit_data}
           homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
