@@ -4,9 +4,10 @@ interface LogoProps {
   className?: string;
   variant?: "default" | "light";
   size?: "sm" | "default";
+  iconOnly?: boolean;
 }
 
-const Logo = ({ className = "", variant = "default", size = "default" }: LogoProps) => {
+const Logo = ({ className = "", variant = "default", size = "default", iconOnly = false }: LogoProps) => {
   const textColor = variant === "light" ? "text-cream" : "text-navy";
   const isSmall = size === "sm";
   
@@ -24,14 +25,16 @@ const Logo = ({ className = "", variant = "default", size = "default" }: LogoPro
           </svg>
         </div>
       </div>
-      <div className="flex flex-col">
-        <span className={`font-display ${isSmall ? "text-lg" : "text-xl"} font-bold tracking-tight ${textColor}`}>
-          Khail
-        </span>
-        <span className={`${isSmall ? "text-[9px]" : "text-[10px]"} uppercase tracking-widest ${variant === "light" ? "text-cream/70" : "text-muted-foreground"}`}>
-          Horse Management
-        </span>
-      </div>
+      {!iconOnly && (
+        <div className="flex flex-col">
+          <span className={`font-display ${isSmall ? "text-lg" : "text-xl"} font-bold tracking-tight ${textColor}`}>
+            Khail
+          </span>
+          <span className={`${isSmall ? "text-[9px]" : "text-[10px]"} uppercase tracking-widest ${variant === "light" ? "text-cream/70" : "text-muted-foreground"}`}>
+            Horse Management
+          </span>
+        </div>
+      )}
     </Link>
   );
 };
