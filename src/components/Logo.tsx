@@ -7,7 +7,7 @@ interface LogoProps {
   iconOnly?: boolean;
 }
 
-const Logo = ({ className = "", variant = "default", size = "default" }: LogoProps) => {
+const Logo = ({ className = "", variant = "default", size = "default", iconOnly = false }: LogoProps) => {
   const textColor = variant === "light" ? "text-cream" : "text-navy";
   const isSmall = size === "sm";
   
