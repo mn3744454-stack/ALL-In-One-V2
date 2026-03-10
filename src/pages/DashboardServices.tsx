@@ -15,8 +15,6 @@ import {
 import { Building2, Package, ArrowLeft } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
-import { MobilePageHeader } from "@/components/navigation";
-import { useI18n } from "@/i18n";
 
 const DashboardServices = () => {
   const navigate = useNavigate();
