@@ -41,6 +41,7 @@ import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
+import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
 
 interface Horse {
   id: string;
@@ -69,10 +70,15 @@ interface Horse {
   father_name?: string | null;
   images?: string[] | null;
   videos?: string[] | null;
+  current_location_id?: string | null;
+  current_area_id?: string | null;
+  housing_unit_id?: string | null;
   breed_data?: { name: string } | null;
   color_data?: { name: string } | null;
-  branch_data?: { name: string } | null;
+  branch_data?: { name: string; id: string } | null;
   stable_data?: { name: string } | null;
+  area_data?: { id: string; name: string; name_ar: string | null } | null;
+  unit_data?: { id: string; code: string; name: string | null; name_ar: string | null } | null;
 }
 
 const HorseProfile = () => {
@@ -102,8 +108,10 @@ const HorseProfile = () => {
           *,
           breed_data:horse_breeds(name),
           color_data:horse_colors(name),
-          branch_data:branches!branch_id(name),
-          stable_data:stables(name)
+          branch_data:branches!branch_id(id, name),
+          stable_data:stables(name),
+          area_data:facility_areas!current_area_id(id, name, name_ar),
+          unit_data:housing_units!housing_unit_id(id, code, name, name_ar)
         `)
         .eq("id", id)
         .single();
@@ -409,6 +417,15 @@ const HorseProfile = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Housing & Movement Section */}
+        <HorseLocationSection
+          horseId={horse.id}
+          currentLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, city: null } : null}
+          currentArea={horse.area_data}
+          currentUnit={horse.unit_data}
+          homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
+        />
 
         {/* Media Gallery */}
         <HorseMediaGallery 

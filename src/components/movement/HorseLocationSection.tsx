@@ -136,7 +136,7 @@ export function HorseLocationSection({
               {t("movement.horseSection.recentMovements")}
             </h4>
             {movements.length > 0 && (
-              <Link to="/dashboard/movement">
+              <Link to="/dashboard/housing?tab=movement">
                 <Button variant="ghost" size="sm" className="text-xs h-7">
                   {t("movement.horseSection.viewAll")}
                   {dir === 'rtl' ? (

@@ -155,7 +155,7 @@ export function RecordMovementDialog({
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
-      clear_housing: false, // We don't expose clear_housing toggle in MVP
+      clear_housing: formData.movementType === 'out',
     };
 
     await recordMovement(data);

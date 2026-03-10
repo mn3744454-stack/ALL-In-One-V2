@@ -1524,7 +1524,8 @@ export const en = {
     tabs: {
       units: "Units",
       areas: "Areas",
-      settings: "Settings",
+      admissions: "Admissions",
+      movement: "Arrivals & Departures",
     },
     areas: {
       title: "Facility Areas",
