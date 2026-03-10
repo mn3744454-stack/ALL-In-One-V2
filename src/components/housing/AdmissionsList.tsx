@@ -34,6 +34,8 @@ function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
 
 export function AdmissionsList() {
   const { t } = useI18n();
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission('boarding.admission.create');
   const [statusFilter, setStatusFilter] = useState<AdmissionStatus | 'all'>('active');
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
