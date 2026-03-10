@@ -1525,6 +1525,7 @@ export const en = {
       units: "Units",
       areas: "Areas",
       admissions: "Admissions",
+      plans: "Plans",
       movement: "Arrivals & Departures",
     },
     areas: {

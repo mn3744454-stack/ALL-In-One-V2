@@ -1551,6 +1551,7 @@ export const ar = {
       units: "الوحدات",
       areas: "المناطق",
       admissions: "الإيواء",
+      plans: "الخطط",
       movement: "الوصول والمغادرة",
     },
     areas: {
