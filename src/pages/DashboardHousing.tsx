@@ -88,15 +88,7 @@ export default function DashboardHousing() {
           </TabsContent>
 
           <TabsContent value="admissions" className="mt-0">
-            <Card>
-              <CardContent className="p-6 text-center py-12">
-                <ClipboardCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">{t('housing.tabs.admissions')}</h3>
-                <p className="text-muted-foreground text-sm">
-                  Coming soon — manage horse boarding admissions, check-ins, and checkouts.
-                </p>
-              </CardContent>
-            </Card>
+            <AdmissionsList />
           </TabsContent>
 
           <TabsContent value="movement" className="mt-0">
