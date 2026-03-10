@@ -1,88 +1,108 @@
 
 
-# Diagnosis: Why Changes Appear Not Applied
+# Stable vs Lab Sidebar Forensic Audit — Evidence & Patch Plan
 
-## The Core Problem
+## Findings
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
-
-**However, there are real remaining issues the user is seeing:**
-
-### 1. Realtime Sync Uses WRONG Query Keys
-
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
-
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
-
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
-
-### 3. Ledger "Enrich" Button Still Visible
-
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
-
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
-
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
-
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
-
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
-
-### 6. Scope Selector / Statement Content
-
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+The DashboardShell, DashboardHeader, and sidebar **render identically** for both tenants. There is no layout-contract difference. The issues are confined to **two bugs** in `DashboardSidebar.tsx`.
 
 ---
 
-## Execution Plan
+## Evidence
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+### Bug 1: `scrollIntoView` ignores query-param changes
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+**File**: `src/components/dashboard/DashboardSidebar.tsx`, lines 156-162
 
-Change the finance table mappings to use the **actual** query key prefixes:
-
+```tsx
+useEffect(() => {
+  const timer = setTimeout(() => {
+    const el = navRef.current?.querySelector('[data-active="true"]');
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 100);
+  return () => clearTimeout(timer);
+}, [location.pathname]); // ← BUG: only watches pathname
 ```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+
+**Why Lab is affected**: Lab nav uses query-param routing (`/dashboard/laboratory?tab=samples`, `?tab=results`, etc.). When switching tabs, `location.pathname` stays `/dashboard/laboratory` — the effect never re-fires. The active state updates visually (via `isLabTabActive` re-render), but the sidebar never scrolls to the newly active item.
+
+**Why Stable is unaffected**: Stable uses path-based routes (`/dashboard/horses`, `/dashboard/vet`, etc.) — every navigation changes `pathname`, so `scrollIntoView` always fires.
+
+### Bug 2: Lab "Clients" duplicate + broken active state
+
+**File**: `src/navigation/labNavConfig.ts`, lines 91-97
+
+```tsx
+{ 
+  key: "clients", 
+  tab: null as unknown as string, // Not a lab tab, standalone page
+  icon: Users, 
+  labelKey: "clients.title",
+  route: "/dashboard/clients",
+},
 ```
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+This entry renders at **line 346-356** of `DashboardSidebar.tsx` via `LAB_NAV_SECTIONS.map(...)` with:
+```tsx
+active={isLabTabActive(section.tab)}  // isLabTabActive(null) → always false
+```
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+Meanwhile, the **standalone** Clients entry at **lines 438-447** also renders for owner/manager:
+```tsx
+active={isActive("/dashboard/clients")}  // correct path-based check
+```
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+**Result for Lab owner**: Two "Clients" entries appear. The LAB_NAV_SECTIONS one is **never active** (because `isLabTabActive(null)` always returns false since `pathname` won't start with `/dashboard/laboratory`). The standalone one IS active but appears lower, creating confusion.
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+---
 
-### Step 3: Hide Backfill Button from Non-Admins
+## Root Causes (Ranked)
 
-**File:** `src/pages/DashboardFinance.tsx`
+| # | Cause | Impact | File | Lines |
+|---|---|---|---|---|
+| RC1 | `scrollIntoView` useEffect depends only on `pathname`, not `search` | Lab tab switches don't auto-scroll | `DashboardSidebar.tsx` | 162 |
+| RC2 | LAB_NAV_SECTIONS includes `clients` with `tab: null`, rendered with `isLabTabActive(null)` which always returns false | Duplicate Clients entry, one permanently inactive | `labNavConfig.ts` 91-97, `DashboardSidebar.tsx` 346-356 |
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+---
 
-### Step 4: Stabilize Invoice Table Column Widths
+## Minimal Patch Plan (2 diffs, 1 file each)
 
-**File:** `src/components/finance/InvoicesList.tsx`
+### Diff 1: `src/components/dashboard/DashboardSidebar.tsx` line 162
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+Change dependency array to include `location.search`:
 
-### Step 5: Fix Expenses Table View Alignment
+```tsx
+// Before:
+}, [location.pathname]);
 
-**File:** `src/components/finance/ExpensesList.tsx`
+// After:
+}, [location.pathname, location.search]);
+```
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+### Diff 2: `src/components/dashboard/DashboardSidebar.tsx` line 346
 
-### Verification Checklist
+Filter out the `clients` entry from LAB_NAV_SECTIONS (the standalone Clients at line 438 is the canonical one with correct active logic and proper owner/manager gating):
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+```tsx
+// Before:
+{LAB_NAV_SECTIONS.map((section) => (
+
+// After:
+{LAB_NAV_SECTIONS.filter(s => s.key !== 'clients').map((section) => (
+```
+
+No changes to `labNavConfig.ts` needed (mobile bottom nav may still reference it).
+
+---
+
+## Acceptance Tests
+
+| Test | Expected |
+|---|---|
+| Lab tenant: click Samples → Results → Timeline tabs | Active highlight moves; sidebar auto-scrolls to active item |
+| Lab tenant: navigate to Settings (bottom of sidebar) | Settings group expands, active item scrolled into view |
+| Lab tenant owner: inspect sidebar | Exactly ONE "Clients" entry (the standalone one at line 438) |
+| Lab tenant: on `/dashboard/clients` | Clients entry has `data-active="true"` and gold highlight |
+| Stable tenant: all routes | Zero behavioral change — path-based routing unaffected |
+| Both tenants: desktop header | Always visible at ≥1024px on every dashboard route |
 
