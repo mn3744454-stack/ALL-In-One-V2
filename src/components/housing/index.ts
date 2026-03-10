@@ -12,3 +12,8 @@ export * from './AdmissionWizard';
 export * from './AdmissionDetailSheet';
 export * from './CheckoutDialog';
 export * from './CareNotesList';
+export * from './CheckoutFinancialReview';
+export * from './ServicePlansManager';
+export * from './BoardingDashboardWidgets';
+export * from './HorseAdmissionCard';
+export * from './HorseProfileCareNotes';

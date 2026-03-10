@@ -5,3 +5,5 @@ export * from './useHousingDemo';
 export * from './useBoardingAdmissions';
 export * from './useHorseCareNotes';
 export * from './admissionChecks';
+export * from './useAdmissionFinancials';
+export * from './useStableServicePlans';
