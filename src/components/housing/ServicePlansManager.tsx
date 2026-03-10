@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useStableServicePlans, type StableServicePlan, type CreatePlanData } from "@/hooks/housing/useStableServicePlans";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { Plus, Pencil, Package, Trash2 } from "lucide-react";
 
