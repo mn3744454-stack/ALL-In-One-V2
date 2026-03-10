@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSingleAdmission, useAdmissionStatusHistory } from "@/hooks/housing/useBoardingAdmissions";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
 import {
@@ -28,6 +29,8 @@ interface AdmissionDetailSheetProps {
 
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
   const { t, dir } = useI18n();
+  const { hasPermission } = usePermissions();
+  const canCheckout = hasPermission('boarding.admission.checkout');
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
   const { data: history = [] } = useAdmissionStatusHistory(admissionId);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -165,7 +168,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               )}
 
               {/* Actions */}
-              {(admission.status === 'active' || admission.status === 'checkout_pending') && (
+              {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
                 <div className="flex gap-2 pt-2">
                   <Button
                     variant="outline"

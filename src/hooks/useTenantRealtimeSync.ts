@@ -33,6 +33,10 @@ const TABLE_TO_PREFIXES: Record<string, (tid: string) => string[][]> = {
   horse_movements:        (t) => [['horse-movements', t]],
   housing_units:          (t) => [['housing-units', t], ['facility-areas', t]],
   housing_unit_occupants: (t) => [['unit-occupants', t], ['housing-units', t]],
+  boarding_admissions:    (t) => [['boarding-admissions', t], ['boarding-admission', t]],
+  boarding_status_history:(t) => [['boarding-status-history', t], ['boarding-admissions', t]],
+  horse_care_notes:       (t) => [['horse-care-notes', t]],
+  stable_service_plans:   (t) => [['stable-service-plans', t]],
 };
 
 /** All 20 realtime-enabled tables */

@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoardingAdmissions, type AdmissionStatus, type BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { getWarningCount } from "@/hooks/housing/admissionChecks";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart } from "lucide-react";
 import { format } from "date-fns";
@@ -34,6 +35,8 @@ function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
 
 export function AdmissionsList() {
   const { t } = useI18n();
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission('boarding.admission.create');
   const [statusFilter, setStatusFilter] = useState<AdmissionStatus | 'all'>('active');
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -49,10 +52,12 @@ export function AdmissionsList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{t('housing.admissions.title')}</h2>
-        <Button onClick={() => setWizardOpen(true)} size="sm">
-          <Plus className="h-4 w-4 me-1" />
-          {t('housing.admissions.newAdmission')}
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setWizardOpen(true)} size="sm">
+            <Plus className="h-4 w-4 me-1" />
+            {t('housing.admissions.newAdmission')}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

@@ -1,407 +1,88 @@
-Stable Horse Ecosystem QA / UAT Report — Final Corrective Pass
 
-## 1. Executive Verdict
 
-Ready with important issues.
+# Diagnosis: Why Changes Appear Not Applied
 
-The architecture is sound and the data flow design is correct. However, there are critical runtime defects, permission wiring gaps, and operational consistency gaps that must be fixed before production sign-off.
+## The Core Problem
 
----
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-## 2. What Was Validated Successfully
+**However, there are real remaining issues the user is seeing:**
 
-| Area | Status | Evidence |
+### 1. Realtime Sync Uses WRONG Query Keys
 
-|------|--------|----------|
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-| Admission lifecycle state machine | Correct | `draft → active → checkout_pending → checked_out` enforced in code with guards |
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-| Draft-then-promote check-in consistency | Correct | Movement failure causes rollback of draft admission |
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-| Checkout fail-and-hold consistency | Correct | Movement failure leaves record in `checkout_pending` |
+### 3. Ledger "Enrich" Button Still Visible
 
-| Duplicate admission blocking | Correct | Existing active/draft/checkout_pending checked before insert |
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-| Status history tracking | Correct | Transitions logged to `boarding_status_history` |
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-| Admission checks computation | Correct | Centralized and recomputed on create/update |
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-| Plan selection + prefill in wizard | Correct | Prefills rate/cycle/currency from selected plan |
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-| Plan snapshot independence | Correct | Admission stores snapshotted values, not dynamic references |
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-| Billing link FK integrity | Correct | Fake placeholder billing links removed |
+### 6. Scope Selector / Statement Content
 
-| Financial review zero-state | Correct | Returns zeros when no billing links exist |
-
-| Housing tabs + routing | Correct | Tabs + URL search params + mobile nav present |
-
-| Horse Profile admission card | Correct | Active admission summary visible |
-
-| Dashboard widgets | Correct | Live stat widgets implemented |
-
-| Checkout dialog two-step flow | Correct | Initiate vs confirm behavior present |
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-## 3. Defects Found
+## Execution Plan
 
-### D1: `horse_care_notes.title` is NOT NULL but code inserts NULL
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-- **Severity**: Critical
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-- **Area**: Care Notes
+Change the finance table mappings to use the **actual** query key prefixes:
 
-- **What happens**: The DB schema defines `title text NOT NULL`, while the code still sends `title: data.title || null`.
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```
 
-- **Why it matters**: Care note creation fails whenever title is omitted, even though UI marks title as optional.
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-- **Required fix**: Either:
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-  - change the DDL to allow NULL or default `''`
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
-  - or change code to always send `title: data.title || ''`
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
----
+### Step 3: Hide Backfill Button from Non-Admins
 
-### D2: Boarding permissions are defined but not actually wired into the existing RBAC role/bundle structure
+**File:** `src/pages/DashboardFinance.tsx`
 
-- **Severity**: Critical
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-- **Area**: Permissions / RLS
+### Step 4: Stabilize Invoice Table Column Widths
 
-- **What happens**: `boarding.admission.*` permission definitions exist, and RLS depends on permission checks, but the report indicates there is no actual role/bundle assignment for those permissions.
+**File:** `src/components/finance/InvoicesList.tsx`
 
-- **Why it matters**: Managers/staff may be fully blocked from boarding operations, and possibly even more roles depending on current RBAC configuration.
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
 
-- **Required fix**: Add a migration that wires the boarding permissions into the **existing RBAC structure actually used by the project** (for example via `tenant_role_permissions`, `tenant_role_bundles`, `bundle_permissions`, or equivalent current schema — do not invent a new table name if it does not exist).
+### Step 5: Fix Expenses Table View Alignment
 
-- At minimum, ensure:
+**File:** `src/components/finance/ExpensesList.tsx`
 
-  - owner has full boarding permissions
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
 
-  - manager has create/view/update/checkout
+### Verification Checklist
 
-  - lower roles only get what is intended
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 
----
-
-### D3: No UI-level permission gates in housing components
-
-- **Severity**: High
-
-- **Area**: Permissions / UX
-
-- **What happens**: Action buttons appear even for users who may not actually have permission.
-
-- **Why it matters**: Users see actions they cannot perform and then hit permission errors.
-
-- **Required fix**: Add UI gating using the project’s existing permission-checking pattern `usePermissions`, `hasPermission`, `PermissionGuard`, or equivalent).
-
-- At minimum gate:
-
-  - New Admission
-
-  - Admission edit/update actions
-
-  - Initiate checkout
-
-  - Confirm checkout
-
-  - Service plan management
-
-  - Care note destructive/edit actions where applicable
-
----
-
-### D4: Realtime sync missing for boarding tables
-
-- **Severity**: High
-
-- **Area**: Realtime / UX
-
-- **What happens**: Boarding-related updates do not appear live across tabs/users.
-
-- **Why it matters**: Operational workflows become stale and inconsistent with the rest of the platform’s realtime behavior.
-
-- **Required fix**:
-
-  - add new boarding tables to the realtime publication where needed
-
-  - add them to the project’s realtime sync mapping / invalidation strategy
-
----
-
-### D5: Admission update mutation appears too permissive for terminal states
-
-- **Severity**: High
-
-- **Area**: Admissions Integrity
-
-- **What happens**: `updateAdmission` appears able to update admissions without clearly restricting `checked_out` / `cancelled` states.
-
-- **Why it matters**: Closed admissions should not remain broadly editable.
-
-- **Required fix**:
-
-  - explicitly block or tightly scope updates when admission is `checked_out`
-
-  - define whether `checkout_pending` is editable and which fields remain editable
-
-  - define terminal-state rules clearly in code
-
----
-
-### D6: Transfer during active admission does not sync admission housing fields
-
-- **Severity**: High
-
-- **Area**: Data Integrity
-
-- **What happens**: When a horse moves between units/areas during an active admission, `boarding_admissions.unit_id` and `area_id` may remain stale.
-
-- **Why it matters**: Admission Detail can show outdated housing assignment, which is an operational data integrity issue, not just a design preference.
-
-- **Required fix**:
-
-  - when transfer happens during an active admission, update the active admission’s housing fields
-
-  - or explicitly define a stronger source of truth and render from that consistently
-
-- This must not remain a future design placeholder.
-
----
-
-### D7: Potential RLS policy overlap/conflict on `horse_care_notes`
-
-- **Severity**: Medium
-
-- **Area**: RLS
-
-- **What happens**: The report suggests multiple UPDATE policies may exist, and permissive OR behavior could weaken the intended stricter authorship rule.
-
-- **Why it matters**: A weaker older policy could bypass the stricter new one.
-
-- **Required fix**:
-
-  - audit existing UPDATE policies on `horse_care_notes`
-
-  - remove/replace any conflicting older UPDATE policies
-
-  - ensure the final effective policy matches the intended authorship restriction
-
----
-
-### D8: Locale-aware formatting is incomplete
-
-- **Severity**: Medium
-
-- **Area**: i18n / UX
-
-- **What happens**: Date formatting and some raw labels still appear English-style in Arabic mode.
-
-- **Why it matters**: UI becomes partially bilingual in an inconsistent way.
-
-- **Required fix**:
-
-  - use locale-aware date formatting
-
-  - translate raw `plan_type` / `billing_cycle` display values
-
-  - verify Arabic mode visually across housing/admissions/plans
-
----
-
-### D9: No confirmation before soft-deleting care notes
-
-- **Severity**: Medium
-
-- **Area**: UX
-
-- **What happens**: Delete action can occur too quickly without confirmation.
-
-- **Why it matters**: Easy accidental note deletion.
-
-- **Required fix**: Add confirmation dialog before delete/deactivate.
-
----
-
-### D10: `boarding_status_history` does not record initial `null → draft`
-
-- **Severity**: Low
-
-- **Area**: Audit Completeness
-
-- **What happens**: History starts at `draft → active` and misses the initial creation state.
-
-- **Why it matters**: Audit trail is slightly incomplete.
-
-- **Required fix**: Insert initial creation history entry if full audit completeness is desired.
-
----
-
-## 4. Edge Cases and Risk Areas
-
-| Scenario | Risk |
-
-|----------|------|
-
-| No active branches | User may get stuck in wizard without clear guidance |
-
-| No units in selected branch | Housing step may feel incomplete or confusing |
-
-| Cancellation flow | `cancelled` exists conceptually but needs clear implementation/status rule |
-
-| Multiple concurrent admission attempts | Race risk remains possible |
-
-| Checkout override permission | Defined but must be verified/enforced in actual flow |
-
-| Transfer during active admission | Must sync admission housing fields |
-
-| Terminal-state edits | Must be blocked or narrowly scoped |
-
----
-
-## 5. Permissions / RLS Findings
-
-| Finding | Severity |
-
-|---------|----------|
-
-| Boarding permissions must be wired into the project’s actual RBAC schema | Critical |
-
-| No UI permission guards yet | High |
-
-| `boarding.checkout.override_balance` must be verified in actual checkout logic | Medium |
-
-| `stable_service_plans` permission style should remain consistent with project RBAC conventions | Low |
-
-| Care note UPDATE policy overlap must be resolved explicitly | Medium |
-
----
-
-## 6. UX / i18n / Mobile Findings
-
-| Finding | Severity |
-
-|---------|----------|
-
-| Mobile housing bottom nav is dense with 5 items | Low |
-
-| Arabic date/month formatting still needs verification and likely adjustment | Medium |
-
-| Raw plan labels need translation polish | Medium |
-
-| No delete confirmation on care notes | Medium |
-
-| Wizard mobile presentation is otherwise acceptable | OK |
-
----
-
-## 7. Data Integrity Findings
-
-| Area | Finding |
-
-|------|---------|
-
-| Admission ↔ Movement | Good |
-
-| Admission ↔ Housing on check-in/out | Good |
-
-| Transfer ↔ active admission sync | Must be fixed |
-
-| Billing links | Correct after removing placeholders |
-
-| Care note authorship | Good direction, but final RLS must be cleaned up |
-
-| Plan snapshot behavior | Good |
-
----
-
-## 8. Regression Findings
-
-| Area | Status |
-
-|------|--------|
-
-| Horse Profile | No major regression observed |
-
-| Movement module | No major regression observed |
-
-| Finance display | No major regression observed |
-
-| Navigation | No major regression observed |
-
-| i18n | No major regression, but still needs polish |
-
-| Mobile layout | No major regression observed |
-
----
-
-## 9. Final Fix List Before Sign-Off
-
-### P0 (Must fix immediately)
-
-1. Fix `horse_care_notes.title` NOT NULL mismatch
-
-2. Wire boarding permissions into the project’s real RBAC role/bundle structure
-
-### P1 (Must fix before approval)
-
-3. Add UI-level permission gates for housing/admission/plan actions
-
-4. Add boarding tables to realtime publication + realtime sync mapping
-
-5. Restrict admission updates for terminal states `checked_out`, etc.)
-
-6. Fix transfer ↔ active admission housing sync
-
-7. Verify and clean up `horse_care_notes` UPDATE RLS policy overlap
-
-### P2 (Should fix before production if possible)
-
-8. Add delete confirmation for care notes
-
-9. Translate raw plan labels and improve Arabic date formatting
-
-10. Verify `boarding.checkout.override_balance` behavior in the actual checkout flow
-
-### P3 (Nice to complete)
-
-11. Add `null → draft` initial status history entry
-
-12. Define/implement cancellation flow more explicitly
-
----
-
-## 10. Final Recommendation
-
-Approve only after P0 and P1 fixes are completed.
-
-Do not treat this as final production sign-off yet.
-
-After the above fixes, the implementation should be considered production-ready for the agreed scope.
-
----
-
-## 11. Required Next Step
-
-Implement the P0 and P1 fixes above, then return a concise completion report with:
-
-1. Exact files/migrations changed
-
-2. How boarding permissions were wired into the real RBAC structure
-
-3. How UI permission gating was added
-
-4. How transfer now updates the active admission housing fields
-
-5. How terminal-state admission edits are restricted
-
-6. How care note title mismatch was fixed
-
-7. How the `horse_care_notes` UPDATE policy conflict was resolved
-
-8. How realtime was added for the new tables
-
-9. Final statement: whether the system is now ready for sign-off

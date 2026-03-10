@@ -11,11 +11,14 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useStableServicePlans, type StableServicePlan, type CreatePlanData } from "@/hooks/housing/useStableServicePlans";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { Plus, Pencil, Package, Trash2 } from "lucide-react";
 
 export function ServicePlansManager() {
   const { t } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
@@ -56,10 +59,12 @@ export function ServicePlansManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t('housing.plans.title')}</h2>
-        <Button onClick={openCreate} size="sm">
-          <Plus className="h-4 w-4 me-1" />
-          {t('housing.plans.addPlan')}
-        </Button>
+        {canManagePlans && (
+          <Button onClick={openCreate} size="sm">
+            <Plus className="h-4 w-4 me-1" />
+            {t('housing.plans.addPlan')}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -87,9 +92,11 @@ export function ServicePlansManager() {
                   </div>
                   <div className="flex items-center gap-1">
                     {!plan.is_active && <Badge variant="secondary">{t('common.inactive')}</Badge>}
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(plan)}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
+                    {canManagePlans && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(plan)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
                 {plan.description && <p className="text-xs text-muted-foreground mb-2">{plan.description}</p>}

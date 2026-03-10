@@ -93,6 +93,7 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
 
   const handleDelete = async (note: HorseCareNote) => {
     if (!canEditNote(note)) return;
+    if (!confirm(t('housing.careNotes.confirmDelete') || 'Are you sure you want to delete this note?')) return;
     await deleteNote(note.id);
   };
 
