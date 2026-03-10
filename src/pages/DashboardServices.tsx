@@ -21,7 +21,6 @@ import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
 const DashboardServices = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { t } = useI18n();
