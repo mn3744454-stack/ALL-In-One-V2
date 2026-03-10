@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { computeAdmissionChecks, type AdmissionChecks } from './admissionChecks';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
@@ -68,6 +69,16 @@ export interface AdmissionFilters {
 // Helper to access new tables that may not be in generated types yet
 const fromTable = (table: string) => (supabase as any).from(table);
 
+const ADMISSION_SELECT = `
+  *,
+  horse:horses!horse_id(id, name, name_ar, avatar_url),
+  client:clients!client_id(id, name, name_ar, phone),
+  branch:branches!branch_id(id, name),
+  area:facility_areas!area_id(id, name, name_ar),
+  unit:housing_units!unit_id(id, code, name),
+  admitted_by_profile:profiles!admitted_by(id, full_name)
+`;
+
 export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
@@ -80,15 +91,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       if (!tenantId) return [];
 
       let query = fromTable('boarding_admissions')
-        .select(`
-          *,
-          horse:horses!horse_id(id, name, name_ar, avatar_url),
-          client:clients!client_id(id, name, name_ar, phone),
-          branch:branches!branch_id(id, name),
-          area:facility_areas!area_id(id, name, name_ar),
-          unit:housing_units!unit_id(id, code, name),
-          admitted_by_profile:profiles!admitted_by(id, full_name)
-        `)
+        .select(ADMISSION_SELECT)
         .eq('tenant_id', tenantId)
         .order('admitted_at', { ascending: false });
 
@@ -116,6 +119,10 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     enabled: !!tenantId,
   });
 
+  /**
+   * Create admission + check-in movement atomically (best-effort).
+   * Returns the admission with checkin_movement_id linked.
+   */
   const createMutation = useMutation({
     mutationFn: async (data: CreateAdmissionData) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
@@ -132,19 +139,17 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error('This horse already has an active admission');
       }
 
-      const checks: Record<string, any> = {};
-      checks.horse_exists = { status: 'pass', message: 'Horse verified' };
-      checks.branch_selected = { status: 'pass', message: 'Branch selected' };
-      checks.client_assigned = data.client_id
-        ? { status: 'pass', message: 'Client assigned' }
-        : { status: 'warning', message: 'No client/payer assigned' };
-      checks.housing_assigned = data.unit_id
-        ? { status: 'pass', message: 'Housing unit assigned' }
-        : { status: 'warning', message: 'No housing unit assigned' };
-      checks.emergency_contact = data.emergency_contact
-        ? { status: 'pass', message: 'Emergency contact provided' }
-        : { status: 'warning', message: 'No emergency contact' };
+      const checks = computeAdmissionChecks({
+        horse_id: data.horse_id,
+        branch_id: data.branch_id,
+        client_id: data.client_id,
+        unit_id: data.unit_id,
+        emergency_contact: data.emergency_contact,
+        daily_rate: data.daily_rate,
+        monthly_rate: data.monthly_rate,
+      });
 
+      // Step 1: Create admission (without movement id yet)
       const { data: admission, error } = await fromTable('boarding_admissions')
         .insert({
           tenant_id: tenantId,
@@ -170,7 +175,41 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (error) throw error;
 
-      // Create status history
+      // Step 2: Create check-in movement via RPC
+      const { data: movementId, error: mvError } = await supabase.rpc(
+        'record_horse_movement_with_housing',
+        {
+          p_tenant_id: tenantId,
+          p_horse_id: data.horse_id,
+          p_movement_type: 'in',
+          p_from_location_id: null,
+          p_to_location_id: data.branch_id,
+          p_from_area_id: null,
+          p_from_unit_id: null,
+          p_to_area_id: data.area_id || null,
+          p_to_unit_id: data.unit_id || null,
+          p_movement_at: new Date().toISOString(),
+          p_reason: 'Boarding admission check-in',
+          p_notes: data.special_instructions || null,
+          p_internal_location_note: null,
+          p_is_demo: false,
+          p_clear_housing: false,
+        }
+      );
+
+      if (mvError) {
+        // Movement failed — admission exists but movement didn't link.
+        // Log but don't fail the whole flow; admission is still valid.
+        console.error('Check-in movement failed:', mvError.message);
+      } else if (movementId) {
+        // Step 3: Link movement to admission
+        await fromTable('boarding_admissions')
+          .update({ checkin_movement_id: movementId, updated_at: new Date().toISOString() })
+          .eq('id', admission.id)
+          .eq('tenant_id', tenantId);
+      }
+
+      // Step 4: Create status history
       await fromTable('boarding_status_history').insert({
         admission_id: admission.id,
         tenant_id: tenantId,
@@ -184,24 +223,35 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     onSuccess: () => {
       toast.success('Admission created successfully');
       queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['horses'] });
+      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to create admission');
     },
   });
 
-  const checkoutMutation = useMutation({
-    mutationFn: async ({ admissionId, checkoutNotes }: { admissionId: string; checkoutNotes?: string }) => {
+  /**
+   * Initiate checkout: active → checkout_pending
+   */
+  const initiateCheckoutMutation = useMutation({
+    mutationFn: async ({ admissionId }: { admissionId: string }) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
 
+      const { data: current } = await fromTable('boarding_admissions')
+        .select('status')
+        .eq('id', admissionId)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (current?.status !== 'active') {
+        throw new Error('Only active admissions can initiate checkout');
+      }
+
       const { error } = await fromTable('boarding_admissions')
-        .update({
-          status: 'checked_out',
-          checked_out_at: new Date().toISOString(),
-          checked_out_by: user.id,
-          checkout_notes: checkoutNotes || null,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ status: 'checkout_pending', updated_at: new Date().toISOString() })
         .eq('id', admissionId)
         .eq('tenant_id', tenantId);
 
@@ -211,50 +261,142 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         admission_id: admissionId,
         tenant_id: tenantId,
         from_status: 'active',
-        to_status: 'checked_out',
+        to_status: 'checkout_pending',
         changed_by: user.id,
       });
     },
     onSuccess: () => {
-      toast.success('Checkout completed successfully');
       queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Failed to checkout');
+      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ admissionId, newStatus, reason }: { admissionId: string; newStatus: AdmissionStatus; reason?: string }) => {
+  /**
+   * Confirm checkout: checkout_pending → checked_out + movement
+   */
+  const confirmCheckoutMutation = useMutation({
+    mutationFn: async ({ admissionId, checkoutNotes }: { admissionId: string; checkoutNotes?: string }) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
 
-      const { data: current } = await fromTable('boarding_admissions')
-        .select('status')
+      const { data: admission } = await fromTable('boarding_admissions')
+        .select('*')
         .eq('id', admissionId)
+        .eq('tenant_id', tenantId)
         .single();
 
+      if (!admission) throw new Error('Admission not found');
+      if (admission.status !== 'checkout_pending') {
+        throw new Error('Admission must be in checkout_pending status');
+      }
+
+      // Step 1: Create checkout movement via RPC
+      const { data: movementId, error: mvError } = await supabase.rpc(
+        'record_horse_movement_with_housing',
+        {
+          p_tenant_id: tenantId,
+          p_horse_id: admission.horse_id,
+          p_movement_type: 'out',
+          p_from_location_id: admission.branch_id,
+          p_to_location_id: null,
+          p_from_area_id: admission.area_id || null,
+          p_from_unit_id: admission.unit_id || null,
+          p_to_area_id: null,
+          p_to_unit_id: null,
+          p_movement_at: new Date().toISOString(),
+          p_reason: 'Boarding admission checkout',
+          p_notes: checkoutNotes || null,
+          p_internal_location_note: null,
+          p_is_demo: false,
+          p_clear_housing: true,
+        }
+      );
+
+      if (mvError) {
+        console.error('Checkout movement failed:', mvError.message);
+        // Don't block checkout entirely — update admission status anyway
+      }
+
+      // Step 2: Update admission to checked_out with movement link
       const { error } = await fromTable('boarding_admissions')
         .update({
-          status: newStatus,
+          status: 'checked_out',
+          checked_out_at: new Date().toISOString(),
+          checked_out_by: user.id,
+          checkout_notes: checkoutNotes || null,
+          checkout_movement_id: movementId || null,
           updated_at: new Date().toISOString(),
-          ...(newStatus === 'checked_out' ? { checked_out_at: new Date().toISOString(), checked_out_by: user.id } : {}),
         })
         .eq('id', admissionId)
         .eq('tenant_id', tenantId);
 
       if (error) throw error;
 
+      // Step 3: Status history
       await fromTable('boarding_status_history').insert({
         admission_id: admissionId,
         tenant_id: tenantId,
-        from_status: current?.status || null,
-        to_status: newStatus,
+        from_status: 'checkout_pending',
+        to_status: 'checked_out',
         changed_by: user.id,
-        reason: reason || null,
+        reason: checkoutNotes || null,
       });
     },
     onSuccess: () => {
+      toast.success('Checkout completed successfully');
       queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['horses'] });
+      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to checkout');
+    },
+  });
+
+  /**
+   * Update admission fields and recompute checks
+   */
+  const updateMutation = useMutation({
+    mutationFn: async ({ admissionId, ...updates }: Partial<CreateAdmissionData> & { admissionId: string }) => {
+      if (!tenantId) throw new Error('Missing tenant');
+
+      // Fetch current admission to merge for checks recomputation
+      const { data: current } = await fromTable('boarding_admissions')
+        .select('*')
+        .eq('id', admissionId)
+        .eq('tenant_id', tenantId)
+        .single();
+
+      if (!current) throw new Error('Admission not found');
+
+      const merged = { ...current, ...updates };
+      const checks = computeAdmissionChecks({
+        horse_id: merged.horse_id,
+        branch_id: merged.branch_id,
+        client_id: merged.client_id,
+        unit_id: merged.unit_id,
+        emergency_contact: merged.emergency_contact,
+        daily_rate: merged.daily_rate,
+        monthly_rate: merged.monthly_rate,
+      });
+
+      const { error } = await fromTable('boarding_admissions')
+        .update({
+          ...updates,
+          admission_checks: checks,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', admissionId)
+        .eq('tenant_id', tenantId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Admission updated');
+      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
     },
   });
 
@@ -263,9 +405,11 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     isLoading,
     createAdmission: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
-    checkout: checkoutMutation.mutateAsync,
-    isCheckingOut: checkoutMutation.isPending,
-    updateStatus: updateStatusMutation.mutateAsync,
+    initiateCheckout: initiateCheckoutMutation.mutateAsync,
+    isInitiatingCheckout: initiateCheckoutMutation.isPending,
+    confirmCheckout: confirmCheckoutMutation.mutateAsync,
+    isConfirmingCheckout: confirmCheckoutMutation.isPending,
+    updateAdmission: updateMutation.mutateAsync,
   };
 }
 
@@ -279,15 +423,7 @@ export function useSingleAdmission(admissionId: string | null) {
       if (!tenantId || !admissionId) return null;
 
       const { data, error } = await fromTable('boarding_admissions')
-        .select(`
-          *,
-          horse:horses!horse_id(id, name, name_ar, avatar_url),
-          client:clients!client_id(id, name, name_ar, phone),
-          branch:branches!branch_id(id, name),
-          area:facility_areas!area_id(id, name, name_ar),
-          unit:housing_units!unit_id(id, code, name),
-          admitted_by_profile:profiles!admitted_by(id, full_name)
-        `)
+        .select(ADMISSION_SELECT)
         .eq('id', admissionId)
         .eq('tenant_id', tenantId)
         .single();

@@ -12,9 +12,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useBoardingAdmissions, type BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
-import { useHorseMovements, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/i18n";
+import { AlertTriangle, CheckCircle2, LogOut } from "lucide-react";
 
 interface CheckoutDialogProps {
   admission: BoardingAdmission;
@@ -24,31 +25,27 @@ interface CheckoutDialogProps {
 }
 
 export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: CheckoutDialogProps) {
+  const { t } = useI18n();
   const [notes, setNotes] = useState('');
-  const { checkout, isCheckingOut } = useBoardingAdmissions();
-  const { recordMovement } = useHorseMovements();
+  const { initiateCheckout, isInitiatingCheckout, confirmCheckout, isConfirmingCheckout } = useBoardingAdmissions();
 
-  const handleCheckout = async () => {
+  const isPending = admission.status === 'checkout_pending';
+  const isProcessing = isInitiatingCheckout || isConfirmingCheckout;
+
+  const handleInitiate = async () => {
     try {
-      await checkout({
+      await initiateCheckout({ admissionId: admission.id });
+    } catch {
+      // Error handled in mutation
+    }
+  };
+
+  const handleConfirm = async () => {
+    try {
+      await confirmCheckout({
         admissionId: admission.id,
         checkoutNotes: notes || undefined,
       });
-
-      // Record checkout movement with clear_housing
-      const movementData: CreateMovementData = {
-        horse_id: admission.horse_id,
-        movement_type: 'out',
-        from_location_id: admission.branch_id,
-        from_area_id: admission.area_id || null,
-        from_unit_id: admission.unit_id || null,
-        reason: 'Boarding admission checkout',
-        notes: notes || undefined,
-        clear_housing: true,
-      };
-
-      await recordMovement(movementData);
-
       setNotes('');
       onSuccess?.();
     } catch {
@@ -60,9 +57,17 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Checkout: {admission.horse?.name}</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isPending
+              ? t('housing.admissions.checkout.confirmTitle')
+              : t('housing.admissions.checkout.initiateTitle')
+            }: {admission.horse?.name}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This will check out the horse and release the housing unit.
+            {isPending
+              ? t('housing.admissions.checkout.confirmDesc')
+              : t('housing.admissions.checkout.initiateDesc')
+            }
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -71,41 +76,53 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
           <div className="text-sm space-y-1">
             {admission.unit && (
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Unit:</span>
+                <span className="text-muted-foreground">{t('housing.admissions.detail.unit')}:</span>
                 <Badge variant="secondary">{admission.unit.code}</Badge>
-                <span className="text-xs text-muted-foreground">(will be released)</span>
+                {isPending && (
+                  <span className="text-xs text-muted-foreground">({t('housing.admissions.checkout.willBeReleased')})</span>
+                )}
               </div>
             )}
             {admission.client && (
               <div>
-                <span className="text-muted-foreground">Client: </span>
+                <span className="text-muted-foreground">{t('housing.admissions.detail.client')}: </span>
                 <span className="font-medium">{admission.client.name}</span>
               </div>
             )}
           </div>
 
-          {/* Balance warning placeholder - Phase 4 will enhance */}
+          {/* Financial review placeholder - Phase 4 */}
           <div className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded-lg">
             <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-            <span className="text-muted-foreground">Financial review will be enhanced in a future update</span>
+            <span className="text-muted-foreground">{t('housing.admissions.checkout.financialReviewPlaceholder')}</span>
           </div>
 
-          <div>
-            <Label>Checkout Notes</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any notes about the checkout..."
-              rows={2}
-            />
-          </div>
+          {/* Notes - only show during confirmation step */}
+          {isPending && (
+            <div>
+              <Label>{t('housing.admissions.checkout.notes')}</Label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t('housing.admissions.checkout.notesPlaceholder')}
+                rows={2}
+              />
+            </div>
+          )}
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isCheckingOut}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleCheckout} disabled={isCheckingOut}>
-            {isCheckingOut ? 'Processing...' : 'Confirm Checkout'}
-          </AlertDialogAction>
+          <AlertDialogCancel disabled={isProcessing}>{t('common.cancel')}</AlertDialogCancel>
+          {isPending ? (
+            <AlertDialogAction onClick={handleConfirm} disabled={isProcessing}>
+              <LogOut className="h-4 w-4 me-1" />
+              {isProcessing ? t('common.loading') : t('housing.admissions.checkout.confirmCheckout')}
+            </AlertDialogAction>
+          ) : (
+            <Button onClick={handleInitiate} disabled={isProcessing} variant="default">
+              {isProcessing ? t('common.loading') : t('housing.admissions.checkout.initiateCheckout')}
+            </Button>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

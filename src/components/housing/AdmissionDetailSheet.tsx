@@ -8,15 +8,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } from "@/hooks/housing/useBoardingAdmissions";
+import { useSingleAdmission, useAdmissionStatusHistory } from "@/hooks/housing/useBoardingAdmissions";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
-  CheckCircle2, AlertTriangle, LogOut, Calendar, FileText, MessageSquare
+  CheckCircle2, AlertTriangle, LogOut, Calendar, FileText
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
@@ -28,7 +27,7 @@ interface AdmissionDetailSheetProps {
 }
 
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
-  const { dir } = useI18n();
+  const { t, dir } = useI18n();
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
   const { data: history = [] } = useAdmissionStatusHistory(admissionId);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -41,7 +40,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
-            <SheetTitle>Admission Detail</SheetTitle>
+            <SheetTitle>{t('housing.admissions.detail.title')}</SheetTitle>
           </SheetHeader>
 
           {isLoading || !admission ? (
@@ -63,11 +62,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h3 className="font-semibold">{admission.horse?.name || 'Unknown'}</h3>
+                      <h3 className="font-semibold">{admission.horse?.name || t('common.unknown')}</h3>
                       <div className="flex items-center gap-2 mt-1">
-                        <StatusBadge status={admission.status} />
+                        <StatusBadge status={admission.status} t={t} />
                         {admission.reason && (
-                          <Badge variant="outline" className="capitalize text-xs">{admission.reason}</Badge>
+                          <Badge variant="outline" className="capitalize text-xs">
+                            {t(`housing.admissions.reasons.${admission.reason}`)}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -93,36 +94,36 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               <Card>
                 <CardContent className="p-4 space-y-3">
                   {admission.client && (
-                    <DetailRow icon={User} label="Client" value={admission.client.name} />
+                    <DetailRow icon={User} label={t('housing.admissions.detail.client')} value={admission.client.name} />
                   )}
                   {admission.branch && (
-                    <DetailRow icon={Building2} label="Branch" value={admission.branch.name} />
+                    <DetailRow icon={Building2} label={t('housing.admissions.detail.branch')} value={admission.branch.name} />
                   )}
                   {admission.area && (
-                    <DetailRow icon={Building2} label="Area" value={admission.area.name} />
+                    <DetailRow icon={Building2} label={t('housing.admissions.detail.area')} value={admission.area.name} />
                   )}
                   {admission.unit && (
-                    <DetailRow icon={DoorOpen} label="Unit" value={admission.unit.code} />
+                    <DetailRow icon={DoorOpen} label={t('housing.admissions.detail.unit')} value={admission.unit.code} />
                   )}
-                  <DetailRow icon={Calendar} label="Admitted" value={format(new Date(admission.admitted_at), 'PPp')} />
+                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={format(new Date(admission.admitted_at), 'PPp')} />
                   {admission.expected_departure && (
-                    <DetailRow icon={Calendar} label="Expected Departure" value={format(new Date(admission.expected_departure), 'PP')} />
+                    <DetailRow icon={Calendar} label={t('housing.admissions.detail.expectedDeparture')} value={format(new Date(admission.expected_departure), 'PP')} />
                   )}
                   {admission.checked_out_at && (
-                    <DetailRow icon={LogOut} label="Checked Out" value={format(new Date(admission.checked_out_at), 'PPp')} />
+                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={format(new Date(admission.checked_out_at), 'PPp')} />
                   )}
                   {(admission.monthly_rate || admission.daily_rate) && (
                     <DetailRow
                       icon={CreditCard}
-                      label="Rate"
-                      value={`${admission.monthly_rate ? `${admission.monthly_rate}/month` : ''}${admission.daily_rate ? ` ${admission.daily_rate}/day` : ''} ${admission.rate_currency}`}
+                      label={t('housing.admissions.detail.rate')}
+                      value={`${admission.monthly_rate ? `${admission.monthly_rate}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}` : ''}${admission.daily_rate ? ` ${admission.daily_rate}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}` : ''} ${admission.rate_currency}`}
                     />
                   )}
                   {admission.special_instructions && (
-                    <DetailRow icon={FileText} label="Instructions" value={admission.special_instructions} />
+                    <DetailRow icon={FileText} label={t('housing.admissions.detail.instructions')} value={admission.special_instructions} />
                   )}
                   {admission.emergency_contact && (
-                    <DetailRow icon={User} label="Emergency Contact" value={admission.emergency_contact} />
+                    <DetailRow icon={User} label={t('housing.admissions.detail.emergencyContact')} value={admission.emergency_contact} />
                   )}
                 </CardContent>
               </Card>
@@ -133,7 +134,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      Status History
+                      {t('housing.admissions.detail.statusHistory')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
@@ -144,7 +145,9 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                           <span className="text-muted-foreground">{format(new Date(h.created_at), 'MMM d, HH:mm')}</span>
                           <span>→ <Badge variant="outline" className="text-xs capitalize">{h.to_status}</Badge></span>
                           {h.changed_by_profile?.full_name && (
-                            <span className="text-muted-foreground text-xs">by {h.changed_by_profile.full_name}</span>
+                            <span className="text-muted-foreground text-xs">
+                              {t('housing.admissions.detail.by')} {h.changed_by_profile.full_name}
+                            </span>
                           )}
                         </div>
                       ))}
@@ -170,7 +173,10 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     onClick={() => setCheckoutOpen(true)}
                   >
                     <LogOut className="h-4 w-4 me-1" />
-                    Checkout
+                    {admission.status === 'checkout_pending'
+                      ? t('housing.admissions.checkout.confirmCheckout')
+                      : t('housing.admissions.checkout.initiateCheckout')
+                    }
                   </Button>
                 </div>
               )}
@@ -194,11 +200,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: (key: string) => string }) {
   switch (status) {
-    case 'active': return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="h-3 w-3 me-1" />Active</Badge>;
-    case 'checkout_pending': return <Badge variant="outline" className="text-amber-600"><Clock className="h-3 w-3 me-1" />Pending</Badge>;
-    case 'checked_out': return <Badge variant="secondary"><LogOut className="h-3 w-3 me-1" />Checked Out</Badge>;
+    case 'active': return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="h-3 w-3 me-1" />{t('housing.admissions.status.active')}</Badge>;
+    case 'checkout_pending': return <Badge variant="outline" className="text-amber-600"><Clock className="h-3 w-3 me-1" />{t('housing.admissions.status.checkoutPending')}</Badge>;
+    case 'checked_out': return <Badge variant="secondary"><LogOut className="h-3 w-3 me-1" />{t('housing.admissions.status.checkedOut')}</Badge>;
+    case 'draft': return <Badge variant="outline">{t('housing.admissions.status.draft')}</Badge>;
+    case 'cancelled': return <Badge variant="destructive">{t('housing.admissions.status.cancelled')}</Badge>;
     default: return <Badge variant="outline" className="capitalize">{status}</Badge>;
   }
 }
