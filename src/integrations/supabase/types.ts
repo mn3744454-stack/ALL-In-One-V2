@@ -9167,6 +9167,7 @@ export type Database = {
         Args: { check_slug: string; exclude_tenant_id?: string }
         Returns: boolean
       }
+      is_stable_internal_role: { Args: { role_name: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
