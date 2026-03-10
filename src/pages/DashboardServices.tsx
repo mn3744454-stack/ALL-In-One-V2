@@ -1,10 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TenantSwitcher } from "@/components/TenantSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
@@ -16,7 +12,9 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
-import { Building2, Menu, Search, Package, ArrowLeft } from "lucide-react";
+import { Building2, Package, ArrowLeft } from "lucide-react";
+import { MobilePageHeader } from "@/components/navigation";
+import { useI18n } from "@/i18n";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
