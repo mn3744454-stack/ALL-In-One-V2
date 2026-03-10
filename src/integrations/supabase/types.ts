@@ -347,6 +347,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "boarding_admissions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "stable_service_plans"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "boarding_admissions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -7526,6 +7533,75 @@ export type Database = {
           {
             foreignKeyName: "sharing_audit_log_target_tenant_id_fkey"
             columns: ["target_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stable_service_plans: {
+        Row: {
+          base_price: number
+          billing_cycle: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          includes: Json
+          is_active: boolean
+          is_public: boolean
+          name: string
+          name_ar: string | null
+          plan_type: string
+          sort_order: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          billing_cycle?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          includes?: Json
+          is_active?: boolean
+          is_public?: boolean
+          name: string
+          name_ar?: string | null
+          plan_type?: string
+          sort_order?: number | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          billing_cycle?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          includes?: Json
+          is_active?: boolean
+          is_public?: boolean
+          name?: string
+          name_ar?: string | null
+          plan_type?: string
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stable_service_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stable_service_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
