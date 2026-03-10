@@ -42,6 +42,8 @@ import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
+import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
+import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 
 interface Horse {
   id: string;
@@ -418,6 +420,9 @@ const HorseProfile = () => {
           </Card>
         </div>
 
+        {/* Active Admission Card (Phase 4) */}
+        <HorseAdmissionCard horseId={horse.id} />
+
         {/* Housing & Movement Section */}
         <HorseLocationSection
           horseId={horse.id}
@@ -426,6 +431,9 @@ const HorseProfile = () => {
           currentUnit={horse.unit_data}
           homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
         />
+
+        {/* Care Notes (Phase 6) */}
+        <HorseProfileCareNotes horseId={horse.id} />
 
         {/* Media Gallery */}
         <HorseMediaGallery 

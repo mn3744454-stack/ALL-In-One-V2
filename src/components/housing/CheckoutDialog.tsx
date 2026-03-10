@@ -14,8 +14,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useBoardingAdmissions, type BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
+import { CheckoutFinancialReview } from "./CheckoutFinancialReview";
 import { useI18n } from "@/i18n";
-import { AlertTriangle, CheckCircle2, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 interface CheckoutDialogProps {
   admission: BoardingAdmission;
@@ -91,11 +92,11 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
             )}
           </div>
 
-          {/* Financial review placeholder - Phase 4 */}
-          <div className="flex items-center gap-2 text-sm p-2 bg-muted/50 rounded-lg">
-            <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-            <span className="text-muted-foreground">{t('housing.admissions.checkout.financialReviewPlaceholder')}</span>
-          </div>
+          {/* Dual-layer Financial Review (Phase 4) */}
+          <CheckoutFinancialReview
+            admissionId={admission.id}
+            clientId={admission.client_id}
+          />
 
           {/* Notes - only show during confirmation step */}
           {isPending && (

@@ -5,11 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UnitsManager, AreasManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
+import { ServicePlansManager } from "@/components/housing/ServicePlansManager";
 import { MovementsList, RecordMovementDialog } from "@/components/movement";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Warehouse, AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight } from "lucide-react";
+import { Warehouse, AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight, Package } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
@@ -19,12 +20,12 @@ export default function DashboardHousing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
 
-  const availableTabs = useMemo(() => ['units', 'areas', 'admissions', 'movement'], []);
+  const availableTabs = useMemo(() => ['units', 'areas', 'admissions', 'plans', 'movement'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
     if (urlTab && availableTabs.includes(urlTab)) {
-      return urlTab as 'units' | 'areas' | 'admissions' | 'movement';
+      return urlTab;
     }
     return 'units';
   }, [searchParams, availableTabs]);
@@ -73,6 +74,10 @@ export default function DashboardHousing() {
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
             </TabsTrigger>
+            <TabsTrigger value="plans" className="gap-2">
+              <Package className="h-4 w-4" />
+              {t('housing.tabs.plans')}
+            </TabsTrigger>
             <TabsTrigger value="movement" className="gap-2">
               <ArrowLeftRight className="h-4 w-4" />
               {t('housing.tabs.movement')}
@@ -89,6 +94,10 @@ export default function DashboardHousing() {
 
           <TabsContent value="admissions" className="mt-0">
             <AdmissionsList />
+          </TabsContent>
+
+          <TabsContent value="plans" className="mt-0">
+            <ServicePlansManager />
           </TabsContent>
 
           <TabsContent value="movement" className="mt-0">

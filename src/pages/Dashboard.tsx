@@ -14,6 +14,7 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
 import { FinancialSummaryWidget } from "@/components/dashboard/FinancialSummaryWidget";
+import { BoardingDashboardWidgets } from "@/components/housing/BoardingDashboardWidgets";
 import { MobileHomeGrid, MobileBottomNav, MobileLauncher } from "@/components/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
@@ -347,11 +348,17 @@ const Dashboard = () => {
 
           {/* Dashboard Widgets - Only show for users with a tenant in organization mode */}
           {activeTenant && workspaceMode === "organization" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <UpcomingScheduleWidget />
-              <RecentActivityWidget />
-              <FinancialSummaryWidget />
-            </div>
+            <>
+              {/* Boarding Stats Widgets */}
+              <div className="mb-6">
+                <BoardingDashboardWidgets />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <UpcomingScheduleWidget />
+                <RecentActivityWidget />
+                <FinancialSummaryWidget />
+              </div>
+            </>
           )}
 
           {/* Content Grid */}
