@@ -209,6 +209,228 @@ export type Database = {
           },
         ]
       }
+      boarding_admissions: {
+        Row: {
+          admission_checks: Json
+          admitted_at: string
+          admitted_by: string | null
+          area_id: string | null
+          balance_cleared: boolean
+          billing_cycle: string
+          branch_id: string
+          checked_out_at: string | null
+          checked_out_by: string | null
+          checkin_movement_id: string | null
+          checkout_movement_id: string | null
+          checkout_notes: string | null
+          client_id: string | null
+          created_at: string
+          daily_rate: number | null
+          emergency_contact: string | null
+          expected_departure: string | null
+          horse_id: string
+          id: string
+          is_demo: boolean
+          monthly_rate: number | null
+          plan_id: string | null
+          rate_currency: string
+          reason: string | null
+          special_instructions: string | null
+          status: string
+          tenant_id: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          admission_checks?: Json
+          admitted_at?: string
+          admitted_by?: string | null
+          area_id?: string | null
+          balance_cleared?: boolean
+          billing_cycle?: string
+          branch_id: string
+          checked_out_at?: string | null
+          checked_out_by?: string | null
+          checkin_movement_id?: string | null
+          checkout_movement_id?: string | null
+          checkout_notes?: string | null
+          client_id?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          emergency_contact?: string | null
+          expected_departure?: string | null
+          horse_id: string
+          id?: string
+          is_demo?: boolean
+          monthly_rate?: number | null
+          plan_id?: string | null
+          rate_currency?: string
+          reason?: string | null
+          special_instructions?: string | null
+          status?: string
+          tenant_id: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admission_checks?: Json
+          admitted_at?: string
+          admitted_by?: string | null
+          area_id?: string | null
+          balance_cleared?: boolean
+          billing_cycle?: string
+          branch_id?: string
+          checked_out_at?: string | null
+          checked_out_by?: string | null
+          checkin_movement_id?: string | null
+          checkout_movement_id?: string | null
+          checkout_notes?: string | null
+          client_id?: string | null
+          created_at?: string
+          daily_rate?: number | null
+          emergency_contact?: string | null
+          expected_departure?: string | null
+          horse_id?: string
+          id?: string
+          is_demo?: boolean
+          monthly_rate?: number | null
+          plan_id?: string | null
+          rate_currency?: string
+          reason?: string | null
+          special_instructions?: string | null
+          status?: string
+          tenant_id?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boarding_admissions_admitted_by_fkey"
+            columns: ["admitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_area_id_fkey"
+            columns: ["area_id"]
+            isOneToOne: false
+            referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_checked_out_by_fkey"
+            columns: ["checked_out_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_admissions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "housing_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boarding_status_history: {
+        Row: {
+          admission_id: string
+          changed_by: string | null
+          created_at: string
+          from_status: string | null
+          id: string
+          reason: string | null
+          tenant_id: string
+          to_status: string
+        }
+        Insert: {
+          admission_id: string
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          reason?: string | null
+          tenant_id: string
+          to_status: string
+        }
+        Update: {
+          admission_id?: string
+          changed_by?: string | null
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          reason?: string | null
+          tenant_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boarding_status_history_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_status_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_status_history_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       branches: {
         Row: {
           address: string | null
@@ -2137,6 +2359,96 @@ export type Database = {
           },
           {
             foreignKeyName: "horse_breeds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      horse_care_notes: {
+        Row: {
+          admission_id: string | null
+          body: string | null
+          created_at: string
+          created_by: string | null
+          created_by_role: string | null
+          horse_id: string
+          id: string
+          is_active: boolean
+          note_type: string
+          priority: string
+          tenant_id: string
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          admission_id?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          horse_id: string
+          id?: string
+          is_active?: boolean
+          note_type?: string
+          priority?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          admission_id?: string | null
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          horse_id?: string
+          id?: string
+          is_active?: boolean
+          note_type?: string
+          priority?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_care_notes_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_care_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_care_notes_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_care_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_care_notes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"

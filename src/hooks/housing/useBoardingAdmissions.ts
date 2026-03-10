@@ -149,7 +149,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         monthly_rate: data.monthly_rate,
       });
 
-      // Step 1: Create admission (without movement id yet)
+      // Step 1: Create admission in draft state first (safe fallback)
       const { data: admission, error } = await fromTable('boarding_admissions')
         .insert({
           tenant_id: tenantId,
@@ -167,7 +167,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           emergency_contact: data.emergency_contact || null,
           expected_departure: data.expected_departure || null,
           admitted_by: user.id,
-          status: 'active',
+          status: 'draft', // Start as draft until movement succeeds
           admission_checks: checks,
         })
         .select()
@@ -198,27 +198,38 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       );
 
       if (mvError) {
-        // Movement failed — admission exists but movement didn't link.
-        // Log but don't fail the whole flow; admission is still valid.
-        console.error('Check-in movement failed:', mvError.message);
-      } else if (movementId) {
-        // Step 3: Link movement to admission
+        // Movement failed — rollback: delete the draft admission
         await fromTable('boarding_admissions')
-          .update({ checkin_movement_id: movementId, updated_at: new Date().toISOString() })
+          .delete()
           .eq('id', admission.id)
           .eq('tenant_id', tenantId);
+        throw new Error(`Check-in movement failed: ${mvError.message}`);
+      }
+
+      // Step 3: Promote to active + link movement (atomic update)
+      const { error: promoteError } = await fromTable('boarding_admissions')
+        .update({
+          status: 'active',
+          checkin_movement_id: movementId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', admission.id)
+        .eq('tenant_id', tenantId);
+
+      if (promoteError) {
+        throw new Error(`Failed to activate admission: ${promoteError.message}`);
       }
 
       // Step 4: Create status history
       await fromTable('boarding_status_history').insert({
         admission_id: admission.id,
         tenant_id: tenantId,
-        from_status: null,
+        from_status: 'draft',
         to_status: 'active',
         changed_by: user.id,
       });
 
-      return admission;
+      return { ...admission, status: 'active', checkin_movement_id: movementId };
     },
     onSuccess: () => {
       toast.success('Admission created successfully');
@@ -312,8 +323,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       );
 
       if (mvError) {
-        console.error('Checkout movement failed:', mvError.message);
-        // Don't block checkout entirely — update admission status anyway
+        // Movement failed — admission stays in checkout_pending (recoverable)
+        throw new Error(`Checkout movement failed: ${mvError.message}. Admission remains in checkout_pending.`);
       }
 
       // Step 2: Update admission to checked_out with movement link
@@ -323,7 +334,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           checked_out_at: new Date().toISOString(),
           checked_out_by: user.id,
           checkout_notes: checkoutNotes || null,
-          checkout_movement_id: movementId || null,
+          checkout_movement_id: movementId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', admissionId)
