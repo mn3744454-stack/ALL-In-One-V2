@@ -25,10 +25,11 @@ import { useHorses } from "@/hooks/useHorses";
 import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing/useBoardingAdmissions";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package } from "lucide-react";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -36,7 +37,7 @@ interface AdmissionWizardProps {
   onSuccess?: () => void;
 }
 
-const STEPS = ['horse', 'client', 'housing', 'rates', 'details', 'review'] as const;
+const STEPS = ['horse', 'client', 'housing', 'plan', 'rates', 'details', 'review'] as const;
 type Step = typeof STEPS[number];
 
 export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWizardProps) {
@@ -52,6 +53,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
     branchId: '' as string,
     areaId: '' as string,
     unitId: '' as string,
+    planId: '' as string,
     dailyRate: '' as string,
     monthlyRate: '' as string,
     billingCycle: 'monthly',
@@ -66,10 +68,11 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
   const { createAdmission, isCreating } = useBoardingAdmissions();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
+  const { activePlans } = useStableServicePlans();
   const [clients, setClients] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
 
-  // Load clients/branches when dialog opens — proper useEffect
+  // Load clients/branches when dialog opens
   useEffect(() => {
     if (!open || !tenantId) return;
     supabase.from('clients').select('id, name, name_ar, phone').eq('tenant_id', tenantId).eq('status', 'active').then(({ data }) => {
@@ -82,11 +85,31 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
 
   const selectedHorse = horses.find(h => h.id === form.horseId);
   const selectedClient = clients.find((c: any) => c.id === form.clientId);
+  const selectedPlan = activePlans.find(p => p.id === form.planId);
   const filteredAreas = areas.filter(a => a.branch_id === form.branchId);
   const filteredUnits = units.filter(u => {
     if (form.areaId) return u.area_id === form.areaId;
     return u.branch_id === form.branchId;
   });
+
+  // When plan is selected, prefill rate fields
+  const handlePlanSelect = (planId: string) => {
+    setForm(f => {
+      if (planId === '__none__') {
+        return { ...f, planId: '' };
+      }
+      const plan = activePlans.find(p => p.id === planId);
+      if (!plan) return { ...f, planId: '' };
+      return {
+        ...f,
+        planId,
+        billingCycle: plan.billing_cycle,
+        rateCurrency: plan.currency,
+        monthlyRate: plan.billing_cycle === 'monthly' ? String(plan.base_price) : f.monthlyRate,
+        dailyRate: plan.billing_cycle === 'daily' ? String(plan.base_price) : f.dailyRate,
+      };
+    });
+  };
 
   const stepIndex = STEPS.indexOf(step);
   const canGoNext = () => {
@@ -94,6 +117,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
       case 'horse': return !!form.horseId;
       case 'client': return true;
       case 'housing': return !!form.branchId;
+      case 'plan': return true;
       case 'rates': return true;
       case 'details': return true;
       case 'review': return true;
@@ -121,6 +145,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
         branch_id: form.branchId,
         area_id: form.areaId || null,
         unit_id: form.unitId || null,
+        plan_id: form.planId || null,
         daily_rate: form.dailyRate ? parseFloat(form.dailyRate) : null,
         monthly_rate: form.monthlyRate ? parseFloat(form.monthlyRate) : null,
         billing_cycle: form.billingCycle,
@@ -131,7 +156,6 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
         expected_departure: form.expectedDeparture || null,
       };
 
-      // createAdmission now handles movement creation + linking internally
       await createAdmission(data);
 
       resetForm();
@@ -145,7 +169,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
   const resetForm = () => {
     setStep('horse');
     setForm({
-      horseId: '', clientId: '', branchId: '', areaId: '', unitId: '',
+      horseId: '', clientId: '', branchId: '', areaId: '', unitId: '', planId: '',
       dailyRate: '', monthlyRate: '', billingCycle: 'monthly', rateCurrency: 'SAR',
       reason: '', specialInstructions: '', emergencyContact: '', expectedDeparture: '',
     });
@@ -155,6 +179,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
     horse: t('housing.admissions.wizard.stepHorse'),
     client: t('housing.admissions.wizard.stepClient'),
     housing: t('housing.admissions.wizard.stepHousing'),
+    plan: t('housing.plans.title'),
     rates: t('housing.admissions.wizard.stepRates'),
     details: t('housing.admissions.wizard.stepDetails'),
     review: t('housing.admissions.wizard.stepReview'),
@@ -275,9 +300,60 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
             )}
           </div>
         );
+      case 'plan':
+        return (
+          <div className="space-y-3">
+            <Label>{t('housing.plans.selectPlan')}</Label>
+            {/* No plan option */}
+            <button
+              type="button"
+              onClick={() => handlePlanSelect('__none__')}
+              className={cn(
+                "w-full p-3 rounded-lg border text-start",
+                !form.planId ? "border-primary bg-primary/5" : "border-border"
+              )}
+            >
+              <span className="text-sm text-muted-foreground">{t('housing.plans.noPlan')}</span>
+            </button>
+            <div className="grid gap-2 max-h-56 overflow-y-auto">
+              {activePlans.map(plan => (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => handlePlanSelect(plan.id)}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border text-start",
+                    form.planId === plan.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
+                  )}
+                >
+                  <Package className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{plan.name}</p>
+                    {plan.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{plan.name_ar}</p>}
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">{plan.base_price} {plan.currency}</Badge>
+                      <Badge variant="outline" className="text-xs capitalize">{plan.billing_cycle}</Badge>
+                    </div>
+                  </div>
+                  {form.planId === plan.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                </button>
+              ))}
+              {activePlans.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-3">{t('housing.plans.empty')}</p>
+              )}
+            </div>
+          </div>
+        );
       case 'rates':
         return (
           <div className="space-y-4">
+            {selectedPlan && (
+              <div className="flex items-center gap-2 p-2 rounded bg-muted/50 text-xs text-muted-foreground">
+                <Package className="h-3.5 w-3.5" />
+                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan.name}</span>
+                <span className="ms-auto text-xs">{t('housing.admissions.wizard.overrideHint')}</span>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t('housing.admissions.wizard.dailyRate')}</Label>
@@ -392,6 +468,12 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWiza
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <DoorOpen className="h-4 w-4" />
                     <span>{filteredUnits.find(u => u.id === form.unitId)?.code}</span>
+                  </div>
+                )}
+                {selectedPlan && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span>{selectedPlan.name}</span>
                   </div>
                 )}
                 {(form.monthlyRate || form.dailyRate) && (

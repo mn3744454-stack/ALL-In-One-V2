@@ -51,6 +51,7 @@ export interface CreateAdmissionData {
   branch_id: string;
   area_id?: string | null;
   unit_id?: string | null;
+  plan_id?: string | null;
   daily_rate?: number | null;
   monthly_rate?: number | null;
   billing_cycle?: string;
@@ -121,7 +122,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
   /**
    * Create admission + check-in movement atomically (best-effort).
-   * Returns the admission with checkin_movement_id linked.
+   * Also creates initial billing link if client is assigned.
    */
   const createMutation = useMutation({
     mutationFn: async (data: CreateAdmissionData) => {
@@ -158,6 +159,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           branch_id: data.branch_id,
           area_id: data.area_id || null,
           unit_id: data.unit_id || null,
+          plan_id: data.plan_id || null,
           daily_rate: data.daily_rate || null,
           monthly_rate: data.monthly_rate || null,
           billing_cycle: data.billing_cycle || 'monthly',
@@ -167,7 +169,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           emergency_contact: data.emergency_contact || null,
           expected_departure: data.expected_departure || null,
           admitted_by: user.id,
-          status: 'draft', // Start as draft until movement succeeds
+          status: 'draft',
           admission_checks: checks,
         })
         .select()
@@ -206,7 +208,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error(`Check-in movement failed: ${mvError.message}`);
       }
 
-      // Step 3: Promote to active + link movement (atomic update)
+      // Step 3: Promote to active + link movement
       const { error: promoteError } = await fromTable('boarding_admissions')
         .update({
           status: 'active',
@@ -228,6 +230,25 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         to_status: 'active',
         changed_by: user.id,
       });
+
+      // Step 5: Create initial billing link (deposit placeholder)
+      // This links the admission to billing infrastructure so financial review works
+      if (data.client_id) {
+        try {
+          await supabase.from('billing_links').insert({
+            tenant_id: tenantId,
+            source_type: 'boarding',
+            source_id: admission.id,
+            invoice_id: admission.id, // Self-reference as placeholder until invoice is generated
+            link_kind: 'deposit',
+            amount: 0,
+            created_by: user.id,
+          });
+        } catch {
+          // Non-critical — billing link can be created later
+          console.warn('Billing link creation skipped (non-critical)');
+        }
+      }
 
       return { ...admission, status: 'active', checkin_movement_id: movementId };
     },
@@ -323,7 +344,6 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       );
 
       if (mvError) {
-        // Movement failed — admission stays in checkout_pending (recoverable)
         throw new Error(`Checkout movement failed: ${mvError.message}. Admission remains in checkout_pending.`);
       }
 
@@ -351,6 +371,23 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         changed_by: user.id,
         reason: checkoutNotes || null,
       });
+
+      // Step 4: Create final billing link for checkout
+      if (admission.client_id) {
+        try {
+          await supabase.from('billing_links').insert({
+            tenant_id: tenantId,
+            source_type: 'boarding',
+            source_id: admissionId,
+            invoice_id: admissionId, // Placeholder — replaced when invoice is generated
+            link_kind: 'final',
+            amount: null,
+            created_by: user.id,
+          });
+        } catch {
+          console.warn('Final billing link creation skipped (non-critical)');
+        }
+      }
     },
     onSuccess: () => {
       toast.success('Checkout completed successfully');
@@ -360,6 +397,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['admission-financials', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['billing-links', tenantId] });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to checkout');
@@ -373,7 +412,6 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     mutationFn: async ({ admissionId, ...updates }: Partial<CreateAdmissionData> & { admissionId: string }) => {
       if (!tenantId) throw new Error('Missing tenant');
 
-      // Fetch current admission to merge for checks recomputation
       const { data: current } = await fromTable('boarding_admissions')
         .select('*')
         .eq('id', admissionId)
@@ -411,6 +449,41 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     },
   });
 
+  /**
+   * Create a billing link for an admission (for manual invoice attachment)
+   */
+  const createBillingLinkMutation = useMutation({
+    mutationFn: async ({ admissionId, invoiceId, linkKind, amount }: {
+      admissionId: string;
+      invoiceId: string;
+      linkKind: 'deposit' | 'final' | 'refund' | 'credit_note';
+      amount?: number | null;
+    }) => {
+      if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
+
+      const { data, error } = await supabase.from('billing_links').insert({
+        tenant_id: tenantId,
+        source_type: 'boarding',
+        source_id: admissionId,
+        invoice_id: invoiceId,
+        link_kind: linkKind,
+        amount: amount ?? null,
+        created_by: user.id,
+      }).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Billing link created');
+      queryClient.invalidateQueries({ queryKey: ['admission-financials', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['billing-links', tenantId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to create billing link');
+    },
+  });
+
   return {
     admissions,
     isLoading,
@@ -421,6 +494,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     confirmCheckout: confirmCheckoutMutation.mutateAsync,
     isConfirmingCheckout: confirmCheckoutMutation.isPending,
     updateAdmission: updateMutation.mutateAsync,
+    createBillingLink: createBillingLinkMutation.mutateAsync,
+    isCreatingBillingLink: createBillingLinkMutation.isPending,
   };
 }
 

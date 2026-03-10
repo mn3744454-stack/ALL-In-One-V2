@@ -4,8 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { FileText, Utensils, Pill, AlertTriangle, MessageSquare, GraduationCap, Stethoscope, Pencil, Trash2 } from "lucide-react";
+import { FileText, Utensils, Pill, AlertTriangle, MessageSquare, GraduationCap, Stethoscope, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { CareNotesList } from "./CareNotesList";
@@ -35,14 +34,12 @@ export function HorseProfileCareNotes({ horseId, admissionId }: HorseProfileCare
   const { user } = useAuth();
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
-  // Fetch all notes for this horse (not scoped to a single admission)
-  const { notes: allNotes, isLoading } = useHorseCareNotes(horseId);
+  const { notes: allNotes, isLoading, canEditNote } = useHorseCareNotes(horseId);
 
   if (isLoading) return null;
   if (allNotes.length === 0 && !admissionId) return null;
 
-  // If admissionId provided, also show admission-linked view
-  // Otherwise show the full CareNotesList component which handles CRUD
+  // If admissionId provided, show admission-linked CareNotesList which handles CRUD
   if (admissionId) {
     return <CareNotesList horseId={horseId} admissionId={admissionId} />;
   }
@@ -98,7 +95,7 @@ export function HorseProfileCareNotes({ horseId, admissionId }: HorseProfileCare
         <div className="space-y-2">
           {filteredNotes.slice(0, 10).map(note => {
             const Icon = NOTE_TYPE_ICONS[note.note_type] || FileText;
-            const isExternallyAuthored = note.created_by !== null && note.created_by !== user?.id && note.created_by_role && !['owner', 'manager', 'staff'].includes(note.created_by_role);
+            const editable = canEditNote(note);
 
             return (
               <div key={note.id} className="p-2 rounded-lg bg-muted/30 text-sm">
@@ -112,8 +109,11 @@ export function HorseProfileCareNotes({ horseId, admissionId }: HorseProfileCare
                       {t(`housing.careNotes.priorities.${note.priority}`)}
                     </Badge>
                   )}
-                  {isExternallyAuthored && (
-                    <Badge variant="outline" className="text-xs">{t('housing.careNotes.external')}</Badge>
+                  {!editable && (
+                    <Badge variant="outline" className="text-xs gap-1">
+                      <Lock className="h-2.5 w-2.5" />
+                      {t('housing.careNotes.external')}
+                    </Badge>
                   )}
                   <span className="text-xs text-muted-foreground ms-auto">
                     {format(new Date(note.created_at), 'MMM d')}
