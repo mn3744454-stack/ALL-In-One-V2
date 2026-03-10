@@ -169,6 +169,22 @@ export const NAV_MODULES: NavModule[] = [
     ],
   },
   {
+    key: "vetHealth",
+    icon: Stethoscope,
+    labelKey: "sidebar.vetHealth",
+    route: "/dashboard/vet",
+    moduleKey: "vet",
+    visibleIn: "organization",
+  },
+  {
+    key: "laboratory",
+    icon: FlaskConical,
+    labelKey: "sidebar.laboratory",
+    route: "/dashboard/laboratory",
+    moduleKey: "lab",
+    visibleIn: "organization",
+  },
+  {
     key: "housing",
     icon: Warehouse,
     labelKey: "sidebar.housing",

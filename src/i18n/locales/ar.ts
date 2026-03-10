@@ -1550,7 +1550,8 @@ export const ar = {
     tabs: {
       units: "الوحدات",
       areas: "المناطق",
-      settings: "الإعدادات",
+      admissions: "الإيواء",
+      movement: "الوصول والمغادرة",
     },
     areas: {
       title: "مناطق المنشأة",
