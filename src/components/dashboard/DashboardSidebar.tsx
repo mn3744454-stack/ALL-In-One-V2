@@ -343,7 +343,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 {/* LAB TENANT PRIMARY NAV - Lab sections as top-level items */}
                 {isLabTenant && labMode === 'full' && (
                   <>
-                    {LAB_NAV_SECTIONS.map((section) => (
+                    {LAB_NAV_SECTIONS.filter(s => s.key !== 'clients').map((section) => (
                       <NavItem
                         key={section.key}
                         icon={section.icon}
