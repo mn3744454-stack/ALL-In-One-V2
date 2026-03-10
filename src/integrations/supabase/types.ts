@@ -2386,7 +2386,7 @@ export type Database = {
           note_type: string
           priority: string
           tenant_id: string
-          title: string
+          title: string | null
           updated_at: string
           valid_from: string | null
           valid_until: string | null
@@ -2403,7 +2403,7 @@ export type Database = {
           note_type?: string
           priority?: string
           tenant_id: string
-          title: string
+          title?: string | null
           updated_at?: string
           valid_from?: string | null
           valid_until?: string | null
@@ -2420,7 +2420,7 @@ export type Database = {
           note_type?: string
           priority?: string
           tenant_id?: string
-          title?: string
+          title?: string | null
           updated_at?: string
           valid_from?: string | null
           valid_until?: string | null
