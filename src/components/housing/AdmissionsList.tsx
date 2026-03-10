@@ -51,10 +51,12 @@ export function AdmissionsList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{t('housing.admissions.title')}</h2>
-        <Button onClick={() => setWizardOpen(true)} size="sm">
-          <Plus className="h-4 w-4 me-1" />
-          {t('housing.admissions.newAdmission')}
-        </Button>
+        {canCreate && (
+          <Button onClick={() => setWizardOpen(true)} size="sm">
+            <Plus className="h-4 w-4 me-1" />
+            {t('housing.admissions.newAdmission')}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}

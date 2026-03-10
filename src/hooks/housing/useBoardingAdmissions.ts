@@ -386,6 +386,11 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (!current) throw new Error('Admission not found');
 
+      // Block updates on terminal states
+      if (['checked_out', 'cancelled'].includes(current.status)) {
+        throw new Error('Cannot update a closed admission');
+      }
+
       const merged = { ...current, ...updates };
       const checks = computeAdmissionChecks({
         horse_id: merged.horse_id,
