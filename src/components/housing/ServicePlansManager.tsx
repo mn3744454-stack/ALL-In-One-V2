@@ -59,10 +59,12 @@ export function ServicePlansManager() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t('housing.plans.title')}</h2>
-        <Button onClick={openCreate} size="sm">
-          <Plus className="h-4 w-4 me-1" />
-          {t('housing.plans.addPlan')}
-        </Button>
+        {canManagePlans && (
+          <Button onClick={openCreate} size="sm">
+            <Plus className="h-4 w-4 me-1" />
+            {t('housing.plans.addPlan')}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
