@@ -40,7 +40,7 @@ import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
-import { useI18n } from "@/i18n";
+import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
 
 interface Horse {
   id: string;
