@@ -152,6 +152,15 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
+  // Auto-scroll active nav item into view on route change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = navRef.current?.querySelector('[data-active="true"]');
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
@@ -208,6 +217,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const settingsNavItems = useMemo(() => [
     { icon: Settings, label: t('sidebar.settings'), href: "/dashboard/settings" },
     { icon: Shield, label: t('settings.roles.title') || 'Roles', href: "/dashboard/settings/roles" },
+    { icon: Shield, label: t('settings.permissions.title') || 'Permissions', href: "/dashboard/settings/permissions" },
     { icon: Link2, label: t('settings.connections') || 'Connections', href: "/dashboard/settings/connections" },
     { icon: BellRing, label: t('sidebar.notificationSettings'), href: "/dashboard/settings/notifications" },
   ], [t]);
