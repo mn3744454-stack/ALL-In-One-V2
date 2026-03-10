@@ -29,6 +29,8 @@ interface AdmissionDetailSheetProps {
 
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
   const { t, dir } = useI18n();
+  const { hasPermission } = usePermissions();
+  const canCheckout = hasPermission('boarding.admission.checkout');
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
   const { data: history = [] } = useAdmissionStatusHistory(admissionId);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
