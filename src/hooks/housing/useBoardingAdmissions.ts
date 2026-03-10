@@ -372,22 +372,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         reason: checkoutNotes || null,
       });
 
-      // Step 4: Create final billing link for checkout
-      if (admission.client_id) {
-        try {
-          await supabase.from('billing_links').insert({
-            tenant_id: tenantId,
-            source_type: 'boarding',
-            source_id: admissionId,
-            invoice_id: admissionId, // Placeholder — replaced when invoice is generated
-            link_kind: 'final',
-            amount: null,
-            created_by: user.id,
-          });
-        } catch {
-          console.warn('Final billing link creation skipped (non-critical)');
-        }
-      }
+      // Billing links are created separately when real invoices exist
     },
     onSuccess: () => {
       toast.success('Checkout completed successfully');
