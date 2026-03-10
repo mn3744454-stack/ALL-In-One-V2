@@ -159,7 +159,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }, 100);
     return () => clearTimeout(timer);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
