@@ -7,16 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useHorseCareNotes, type CareNoteType, type HorseCareNote } from "@/hooks/housing/useHorseCareNotes";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
-import { Plus, FileText, AlertTriangle, Utensils, Pill, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { Plus, FileText, AlertTriangle, Utensils, Pill, MessageSquare, Pencil, Trash2, Lock } from "lucide-react";
 
 interface CareNotesListProps {
   horseId: string;
@@ -33,7 +29,7 @@ const NOTE_TYPE_ICONS: Record<string, React.ElementType> = {
 
 export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
   const { t } = useI18n();
-  const { notes, isLoading, createNote, isCreating, updateNote, deleteNote } = useHorseCareNotes(horseId, admissionId);
+  const { notes, isLoading, createNote, isCreating, updateNote, deleteNote, canEditNote } = useHorseCareNotes(horseId, admissionId);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<HorseCareNote | null>(null);
   const [form, setForm] = useState({
@@ -60,6 +56,7 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
   };
 
   const openEdit = (note: HorseCareNote) => {
+    if (!canEditNote(note)) return;
     setEditingNote(note);
     setForm({
       note_type: note.note_type,
@@ -72,7 +69,6 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
 
   const handleSave = async () => {
     if (!form.body.trim()) return;
-
     if (editingNote) {
       await updateNote({
         id: editingNote.id,
@@ -95,8 +91,9 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
     setEditingNote(null);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteNote(id);
+  const handleDelete = async (note: HorseCareNote) => {
+    if (!canEditNote(note)) return;
+    await deleteNote(note.id);
   };
 
   return (
@@ -118,6 +115,7 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
           <div className="space-y-2">
             {notes.map((note: HorseCareNote) => {
               const Icon = NOTE_TYPE_ICONS[note.note_type] || FileText;
+              const editable = canEditNote(note);
               return (
                 <div key={note.id} className="p-2 rounded-lg bg-muted/30 text-sm group">
                   <div className="flex items-center gap-2 mb-1">
@@ -130,17 +128,22 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
                         {priorityLabel(note.priority)}
                       </Badge>
                     )}
+                    {!editable && (
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    )}
                     <span className="text-xs text-muted-foreground ms-auto">
                       {format(new Date(note.created_at), 'MMM d')}
                     </span>
-                    <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); openEdit(note); }}>
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(note.id); }}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                    {editable && (
+                      <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); openEdit(note); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={(e) => { e.stopPropagation(); handleDelete(note); }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {note.title && <p className="font-medium text-sm">{note.title}</p>}
                   <p className="text-muted-foreground text-xs whitespace-pre-wrap">{note.body}</p>
@@ -168,6 +171,9 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
                     <SelectItem value="feed_plan">{t('housing.careNotes.types.feed_plan')}</SelectItem>
                     <SelectItem value="care_note">{t('housing.careNotes.types.care_note')}</SelectItem>
                     <SelectItem value="restriction">{t('housing.careNotes.types.restriction')}</SelectItem>
+                    <SelectItem value="medication">{t('housing.careNotes.types.medication')}</SelectItem>
+                    <SelectItem value="training">{t('housing.careNotes.types.training')}</SelectItem>
+                    <SelectItem value="vet_note">{t('housing.careNotes.types.vet_note')}</SelectItem>
                     <SelectItem value="general">{t('housing.careNotes.types.general')}</SelectItem>
                   </SelectContent>
                 </Select>
