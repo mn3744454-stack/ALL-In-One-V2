@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
   const [isOpen, setIsOpen] = useState(isAnyActive);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const activeRef = useRef<HTMLAnchorElement>(null);
+  const closeTimerRef = useRef<number | undefined>(undefined);
 
   // Auto-expand when a child becomes active (URL navigation, back/forward)
   useEffect(() => {
@@ -43,38 +44,67 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
     }
   }, [location.pathname, isAnyActive]);
 
-  // ── Collapsed mode: icon + Popover flyout ──
+  const handleMouseEnter = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = undefined;
+    }
+    setPopoverOpen(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    closeTimerRef.current = window.setTimeout(() => {
+      setPopoverOpen(false);
+    }, 150);
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  // ── Collapsed mode: icon + hover Popover flyout ──
   if (collapsed) {
     return (
       <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "w-full flex justify-center px-0 py-2.5 rounded-xl transition-all cursor-pointer group",
-              isAnyActive
-                ? "bg-gold/10 border border-gold/20"
-                : "hover:bg-navy/5"
-            )}
-            aria-expanded={popoverOpen}
-            aria-label={label}
-          >
-            <div
+        <div
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <PopoverTrigger asChild>
+            <button
               className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0",
+                "w-full flex justify-center px-0 py-2.5 rounded-xl transition-all cursor-pointer group",
                 isAnyActive
-                  ? "bg-gold text-navy shadow-sm"
-                  : "bg-navy/5 text-navy/60 group-hover:bg-navy/10 group-hover:text-navy/80"
+                  ? "bg-gold/10 border border-gold/20"
+                  : "hover:bg-navy/5"
               )}
+              aria-expanded={popoverOpen}
+              aria-label={label}
+              onFocus={() => setPopoverOpen(true)}
             >
-              <Icon className="w-5 h-5" />
-            </div>
-          </button>
-        </PopoverTrigger>
+              <div
+                className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0",
+                  isAnyActive
+                    ? "bg-gold text-navy shadow-sm"
+                    : "bg-navy/5 text-navy/60 group-hover:bg-navy/10 group-hover:text-navy/80"
+                )}
+              >
+                <Icon className="w-5 h-5" />
+              </div>
+            </button>
+          </PopoverTrigger>
+        </div>
         <PopoverContent
           side={tooltipSide}
           align="start"
           className="w-52 p-2"
           onCloseAutoFocus={(e) => e.preventDefault()}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
           <p className="text-xs font-semibold text-muted-foreground px-2 pb-1.5 mb-1 border-b border-border/50">
             {label}
