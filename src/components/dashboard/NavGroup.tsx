@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,10 +17,27 @@ interface NavGroupProps {
   onNavigate?: () => void;
 }
 
+/** Prefix-aware active check: exact match OR nested child route */
+const isPathActive = (pathname: string, href: string) =>
+  pathname === href || pathname.startsWith(href + "/");
+
 export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps) => {
   const location = useLocation();
-  const isAnyActive = items.some(item => location.pathname === item.href);
+  const isAnyActive = items.some(item => isPathActive(location.pathname, item.href));
   const [isOpen, setIsOpen] = useState(isAnyActive);
+  const activeRef = useRef<HTMLAnchorElement>(null);
+
+  // Auto-expand when a child becomes active (URL navigation, back/forward)
+  useEffect(() => {
+    if (isAnyActive) setIsOpen(true);
+  }, [isAnyActive]);
+
+  // Auto-scroll active child into view within the sidebar
+  useEffect(() => {
+    if (isAnyActive && activeRef.current) {
+      activeRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [location.pathname, isAnyActive]);
 
   return (
     <div>
@@ -63,12 +80,14 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
         <div className="mt-2 ms-6 ps-3 border-s-2 border-gold/30 space-y-1">
           {items.map((item) => {
             const ItemIcon = item.icon;
-            const isActive = location.pathname === item.href;
+            const isActive = isPathActive(location.pathname, item.href);
             return (
               <Link
                 key={item.href}
                 to={item.href}
+                ref={isActive ? activeRef : undefined}
                 onClick={onNavigate}
+                data-active={isActive ? "true" : undefined}
                 className={cn(
                   "flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm",
                   isActive

@@ -1,138 +1,88 @@
 
 
-# Desktop Sidebar + Header Forensic Audit — Evidence Report
+# Diagnosis: Why Changes Appear Not Applied
 
-## 1. Reproduction Matrix
+## The Core Problem
 
-| Route | Header visible? | Sidebar indep. scroll? | Dual-scroll? | Active highlight? | Group auto-expands? | scrollIntoView? | Duplicates? | Evidence |
-|---|---|---|---|---|---|---|---|---|
-| `/dashboard` | Yes | Yes | Yes | **Yes** (exact match) | N/A | No | No | `isActive("/dashboard")` line 274 |
-| `/dashboard/finance/payments` | Yes | Yes | Yes | **Yes** (child match) | **No** (only on mount) | No | **Yes** — top-level Payments also exists | NavGroup line 22: `useState(isAnyActive)` |
-| `/dashboard/payments` | Yes | Yes | Yes | **Yes** (exact) | N/A | No | **Yes** — duplicate of Finance/Payments | Sidebar line 335 |
-| `/dashboard/my-bookings` (org mode) | Yes | Yes | Yes | **Yes** | N/A | No | **Yes** — personal item in org | Sidebar line 320-328 |
-| `/dashboard/settings/roles` | Yes | Yes | Yes | **No** — nothing highlights | N/A | No | No | No nav entry exists; Settings uses exact `===` (line 541) |
-| `/dashboard/settings/permissions` | Yes | Yes | Yes | **No** | N/A | No | No | Same — no entry |
-| `/dashboard/settings/connections` | Yes | Yes | Yes | **No** | N/A | No | No | Same |
-| `/dashboard/doctor/consultations/:id` | Yes | Yes | Yes | **No** | N/A | No | No | `isActive("/dashboard/doctor/consultations")` exact fails for `/consultations/abc` |
-| `/dashboard/hr/payroll` (via URL) | Yes | Yes | Yes | **Yes** (child exact) | **No** — HR group stays collapsed | No | No | NavGroup `useState` ignores post-mount changes |
-| `/dashboard/clients` | Yes | Yes | Yes | **Yes** | N/A | No | No | Single entry (line 438); Finance has "Customer Balances" (different concept) |
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-### Header Breakpoint Analysis
+**However, there are real remaining issues the user is seeing:**
 
-- **DashboardHeader**: `hidden lg:block` → visible at **≥1024px** (Sidebar.tsx line 34)
-- **MobilePageHeader**: `lg:hidden` → visible at **<1024px** (MobilePageHeader.tsx line 40)
-- **DashboardSidebar**: `if (!isDesktop) return null` where `useIsDesktop()` = `>=1024px` (use-mobile.tsx line 33)
-- **Verdict**: At the `lg` breakpoint (1024px), the transition is clean — both CSS and JS use the same 1024px threshold. At 900–1023px, mobile nav handles everything. **No header gap exists.**
+### 1. Realtime Sync Uses WRONG Query Keys
 
----
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-## 2. Root-Cause Tree (ranked)
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-### RC1: Exact `===` path matching breaks nested/detail routes
-- **Files**: `DashboardSidebar.tsx:219`, `NavGroup.tsx:22`, `NavGroup.tsx:66`
-- **Code**: `const isActive = (path: string) => location.pathname === path;`
-- **Proof**: Navigate to `/dashboard/settings/roles` → inspect sidebar → no element has gold/active styling. Navigate to `/dashboard/doctor/consultations/abc123` → "Consultations" has no active class.
-- **Affected routes**: All settings sub-pages, doctor consultation details, any future nested routes.
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-### RC2: NavGroup uses `useState(initialValue)` — doesn't auto-expand on route change
-- **File**: `NavGroup.tsx:23`
-- **Code**: `const [isOpen, setIsOpen] = useState(isAnyActive);`
-- **Proof**: Collapse HR group → paste `/dashboard/hr/payroll` in address bar → HR group stays collapsed despite child being active. `useState` ignores subsequent `isAnyActive` changes.
+### 3. Ledger "Enrich" Button Still Visible
 
-### RC3: Duplicate "Payments" — top-level AND inside Finance group
-- **Sidebar line 330-339**: `<NavItem href="/dashboard/payments" />` (top-level, gated by `payments.view`)
-- **Finance group line 200**: `{ href: "/dashboard/finance/payments" }` (inside NavGroup)
-- Per memory `finance/payments-route-unification`, `/dashboard/finance/payments` is the canonical route. The top-level `/dashboard/payments` is legacy.
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
-### RC4: "My Bookings" leaks into org mode
-- **Sidebar line 320-328**: In org mode block, shows `<NavItem href="/dashboard/my-bookings" />` gated by `bookings.view`. This is a personal workspace concept. Per memory `workspace-navigation-gating-rule`, personal items should not appear in org mode.
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-### RC5: Duplicate Logout button
-- **Sidebar line 558-569**: Sign-out button in sidebar footer
-- **DashboardHeader line 52-58**: Logout button in header
-- Both visible simultaneously on desktop.
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-### RC6: No `scrollIntoView` for active nav items
-- Searched entire `src/components/dashboard/` — 0 results for `scrollIntoView`.
-- When sidebar has many items (owner with all modules), bottom items like Settings are not scrolled into view.
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-### RC7: Settings sub-pages have no sidebar nav entries
-- Only two items in settings section (lines 535-552): "Settings" (`/dashboard/settings`) and "Notification Settings" (`/dashboard/settings/notifications`).
-- Routes `/dashboard/settings/roles`, `/dashboard/settings/permissions`, `/dashboard/settings/connections` have no sidebar representation.
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
+
+### 6. Scope Selector / Statement Content
+
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-## 3. Proposed Patch Plan
+## Execution Plan
 
-### Phase 1: Fix active matching + auto-expand (2 files, LOW risk)
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-**`DashboardSidebar.tsx` line 219** — Replace exact match with prefix match:
-```tsx
-const isActive = (path: string) => {
-  if (path === "/dashboard") return location.pathname === "/dashboard";
-  return location.pathname === path || location.pathname.startsWith(path + "/");
-};
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+
+Change the finance table mappings to use the **actual** query key prefixes:
+
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
 ```
 
-**`NavGroup.tsx` line 22-23** — Same prefix match + add `useEffect` for reactive expansion:
-```tsx
-const isAnyActive = items.some(item =>
-  location.pathname === item.href || location.pathname.startsWith(item.href + "/")
-);
-const [isOpen, setIsOpen] = useState(isAnyActive);
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-useEffect(() => {
-  if (isAnyActive) setIsOpen(true);
-}, [isAnyActive]);
-```
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-**`NavGroup.tsx` line 66** — Same prefix match for child items:
-```tsx
-const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + "/");
-```
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
-**Add `data-active` + scrollIntoView** in NavGroup active child + sidebar `useEffect`:
-```tsx
-// In NavGroup child Link:
-data-active={isActive ? "true" : undefined}
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
-// In DashboardSidebar, after nav ref:
-useEffect(() => {
-  const el = navRef.current?.querySelector('[data-active="true"]');
-  el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-}, [location.pathname]);
-```
+### Step 3: Hide Backfill Button from Non-Admins
 
-### Phase 2: Remove duplicates (1 file, MEDIUM risk)
+**File:** `src/pages/DashboardFinance.tsx`
 
-**`DashboardSidebar.tsx`**:
-- **Remove lines 320-328**: "My Bookings" from org mode (personal item).
-- **Remove lines 330-339**: Top-level "Payments" (canonical location is Finance group's `/dashboard/finance/payments`).
-- **Remove lines 558-569**: Sidebar logout button (DashboardHeader already has it). OR add `lg:hidden` to keep it for mobile overlay only.
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-### Phase 3: Settings NavGroup (1 file, LOW risk)
+### Step 4: Stabilize Invoice Table Column Widths
 
-Convert settings section (lines 535-552) to a NavGroup:
-```
-Settings (NavGroup)
-  ├── General → /dashboard/settings
-  ├── Roles → /dashboard/settings/roles
-  ├── Permissions → /dashboard/settings/permissions
-  ├── Connections → /dashboard/settings/connections
-  └── Notifications → /dashboard/settings/notifications
-```
+**File:** `src/components/finance/InvoicesList.tsx`
 
----
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
 
-## 4. Acceptance Tests
+### Step 5: Fix Expenses Table View Alignment
 
-| Test | Expected |
-|---|---|
-| Navigate to `/dashboard/settings/roles` | Settings group expanded, "Roles" highlighted |
-| Navigate to `/dashboard/doctor/consultations/abc` | "Consultations" highlighted |
-| Collapse Finance → navigate to `/dashboard/finance/invoices` via URL | Finance auto-expands, "Invoices" highlighted |
-| Org mode sidebar | No "My Bookings", no top-level "Payments", only one Logout visible |
-| Switch to Arabic (RTL) | Sidebar on right side, active states correct, no layout hacks |
-| Resize 1023→1024px | Clean transition: mobile nav → desktop shell (no gap, no flash) |
-| Navigate to bottom Settings item with many nav items | Active item auto-scrolls into sidebar viewport |
+**File:** `src/components/finance/ExpensesList.tsx`
+
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+
+### Verification Checklist
+
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 

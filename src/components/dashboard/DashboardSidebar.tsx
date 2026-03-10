@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LanguageSelector } from "@/components/ui/language-selector";
 import Logo from "@/components/Logo";
 import { NavGroup } from "@/components/dashboard/NavGroup";
 import { LogoutConfirmDialog } from "@/components/LogoutConfirmDialog";
@@ -14,7 +13,6 @@ import { useIsDesktop } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
-import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES } from "@/navigation/workspaceNavConfig";
 import { Users as UsersIcon, BellRing } from "lucide-react";
 import {
   Building2,
@@ -45,6 +43,8 @@ import {
   Activity,
   ShoppingCart,
   UserCircle,
+  Shield,
+  Link2,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -68,6 +68,7 @@ const NavItem = ({
 }: NavItemProps) => {
   const content = (
     <div
+      data-active={active ? "true" : undefined}
       className={cn(
         "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all cursor-pointer group",
         active
@@ -149,6 +150,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   } = useModuleAccess();
   const { t, dir } = useI18n();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -192,7 +194,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
   ], [t]);
 
-  // Build Finance nav items (includes Clients for non-lab tenants)
+  // Build Finance nav items
   const financeNavItems = useMemo(() => [
     { icon: BookOpen, label: t('finance.tabs.ledger'), href: "/dashboard/finance/ledger" },
     { icon: FileText, label: t('finance.invoices.title'), href: "/dashboard/finance/invoices" },
@@ -200,6 +202,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Banknote, label: t('finance.tabs.payments'), href: "/dashboard/finance/payments" },
     { icon: UsersIcon, label: t('finance.customerBalances.title'), href: "/dashboard/finance/customer-balances" },
     { icon: ShoppingCart, label: t('sidebar.pos'), href: "/dashboard/finance/pos" },
+  ], [t]);
+
+  // Build Settings nav items (owner-only sub-pages)
+  const settingsNavItems = useMemo(() => [
+    { icon: Settings, label: t('sidebar.settings'), href: "/dashboard/settings" },
+    { icon: Shield, label: t('settings.roles.title') || 'Roles', href: "/dashboard/settings/roles" },
+    { icon: Link2, label: t('settings.connections') || 'Connections', href: "/dashboard/settings/connections" },
+    { icon: BellRing, label: t('sidebar.notificationSettings'), href: "/dashboard/settings/notifications" },
   ], [t]);
 
   // Don't render sidebar at all on mobile/tablet (<1024px)
@@ -216,7 +226,11 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     await signOut();
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  /** Prefix-aware active check: exact for /dashboard, prefix for everything else */
+  const isActive = (path: string) => {
+    if (path === "/dashboard") return location.pathname === "/dashboard";
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
 
   // Check if module is enabled
   const isModuleEnabled = (moduleKey?: string): boolean => {
@@ -265,7 +279,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav ref={navRef} className="flex-1 p-3 space-y-1 overflow-y-auto">
             {/* Dashboard - always visible */}
             <NavItem
               icon={Home}
@@ -312,28 +326,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('sidebar.community')}
                     href="/community"
                     active={isActive("/community")}
-                    onNavigate={onClose}
-                  />
-                )}
-                
-                {/* Bookings - requires permission */}
-                {hasPermission('bookings.view') && (
-                  <NavItem
-                    icon={Ticket}
-                    label={t('sidebar.myBookings')}
-                    href="/dashboard/my-bookings"
-                    active={isActive("/dashboard/my-bookings")}
-                    onNavigate={onClose}
-                  />
-                )}
-                
-                {/* Payments - requires permission */}
-                {hasPermission('payments.view') && (
-                  <NavItem
-                    icon={CreditCard}
-                    label={t('sidebar.payments')}
-                    href="/dashboard/payments"
-                    active={isActive("/dashboard/payments")}
                     onNavigate={onClose}
                   />
                 )}
@@ -532,31 +524,32 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
+                {/* Settings section */}
                 <div className="pt-4 mt-4 border-t border-border/50 space-y-1">
-                  {activeRole === "owner" && (
+                  {activeRole === "owner" ? (
+                    <NavGroup
+                      icon={Settings}
+                      label={t('sidebar.settings')}
+                      items={settingsNavItems}
+                      onNavigate={onClose}
+                    />
+                  ) : (
+                    /* Non-owners only see notification settings */
                     <NavItem 
-                      icon={Settings} 
-                      label={t('sidebar.settings')} 
-                      href="/dashboard/settings"
-                      active={isActive("/dashboard/settings")}
+                      icon={BellRing} 
+                      label={t('sidebar.notificationSettings')} 
+                      href="/dashboard/settings/notifications"
+                      active={isActive("/dashboard/settings/notifications")}
                       onNavigate={onClose} 
                     />
                   )}
-                  <NavItem 
-                    icon={BellRing} 
-                    label={t('sidebar.notificationSettings')} 
-                    href="/dashboard/settings/notifications"
-                    active={isActive("/dashboard/settings/notifications")}
-                    onNavigate={onClose} 
-                  />
                 </div>
               </>
             )}
           </nav>
 
-
-          {/* User Section */}
-          <div className="p-4 border-t border-border/50 bg-white/30">
+          {/* User Section — only visible on mobile overlay, hidden on desktop (header has logout) */}
+          <div className="p-4 border-t border-border/50 bg-white/30 lg:hidden">
             <Button
               variant="ghost"
               size="sm"
