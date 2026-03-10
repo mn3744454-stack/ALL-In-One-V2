@@ -79,7 +79,6 @@ interface Horse {
   stable_data?: { name: string } | null;
   area_data?: { id: string; name: string; name_ar: string | null } | null;
   unit_data?: { id: string; code: string; name: string | null; name_ar: string | null } | null;
-  location_data?: { id: string; name: string; city: string | null } | null;
 }
 
 const HorseProfile = () => {
