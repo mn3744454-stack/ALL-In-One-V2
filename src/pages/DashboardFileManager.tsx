@@ -274,7 +274,6 @@ function FileListRow({
 }
 
 export default function DashboardFileManager() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");

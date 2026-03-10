@@ -1,16 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TenantSwitcher } from "@/components/TenantSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PaymentIntentCard } from "@/components/payments/PaymentIntentCard";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantPaymentIntents, getReferenceTypeLabel } from "@/hooks/usePayments";
-import { useState } from "react";
 import {
-  Menu,
   TrendingUp,
   Clock,
   ChevronLeft,
@@ -21,7 +16,6 @@ import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
 const DashboardRevenue = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { data: paymentIntents, isLoading } = useTenantPaymentIntents();
@@ -31,22 +25,24 @@ const DashboardRevenue = () => {
   const canViewRevenue = activeRole === 'owner' || activeRole === 'manager';
   if (!activeTenant || !canViewRevenue) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full">
-          <CardContent className="p-6 text-center">
-            <TrendingUp className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-semibold text-navy mb-2">
-              Access Restricted
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              You need to be an owner or manager of an organization to view revenue.
-            </p>
-            <Button onClick={() => navigate("/dashboard")}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card variant="elevated" className="max-w-md w-full">
+            <CardContent className="p-6 text-center">
+              <TrendingUp className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-semibold text-navy mb-2">
+                Access Restricted
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                You need to be an owner or manager of an organization to view revenue.
+              </p>
+              <Button onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 

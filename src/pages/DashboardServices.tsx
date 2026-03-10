@@ -1,10 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TenantSwitcher } from "@/components/TenantSwitcher";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
@@ -16,12 +12,11 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
-import { Building2, Menu, Search, Package, ArrowLeft } from "lucide-react";
+import { Building2, Package, ArrowLeft } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
 const DashboardServices = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { t } = useI18n();
@@ -53,44 +48,48 @@ const DashboardServices = () => {
 
   if (!activeTenant) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full text-center">
-          <CardContent className="py-12">
-            <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-bold text-navy mb-2">
-              No Business Selected
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Please select or create a business to manage services.
-            </p>
-            <Button variant="gold" onClick={() => navigate("/dashboard")}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card variant="elevated" className="max-w-md w-full text-center">
+            <CardContent className="py-12">
+              <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-bold text-navy mb-2">
+                No Business Selected
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Please select or create a business to manage services.
+              </p>
+              <Button variant="gold" onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
   if (!canManage) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full text-center">
-          <CardContent className="py-12">
-            <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-bold text-navy mb-2">
-              Access Restricted
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Only owners and managers can manage services.
-            </p>
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card variant="elevated" className="max-w-md w-full text-center">
+            <CardContent className="py-12">
+              <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-bold text-navy mb-2">
+                Access Restricted
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Only owners and managers can manage services.
+              </p>
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
