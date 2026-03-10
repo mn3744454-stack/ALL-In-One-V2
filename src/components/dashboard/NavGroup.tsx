@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 interface NavSubItem {
   icon: React.ElementType;
@@ -15,16 +16,19 @@ interface NavGroupProps {
   label: string;
   items: NavSubItem[];
   onNavigate?: () => void;
+  collapsed?: boolean;
+  tooltipSide?: "left" | "right";
 }
 
 /** Prefix-aware active check: exact match OR nested child route */
 const isPathActive = (pathname: string, href: string) =>
   pathname === href || pathname.startsWith(href + "/");
 
-export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps) => {
+export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tooltipSide = "right" }: NavGroupProps) => {
   const location = useLocation();
   const isAnyActive = items.some(item => isPathActive(location.pathname, item.href));
   const [isOpen, setIsOpen] = useState(isAnyActive);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const activeRef = useRef<HTMLAnchorElement>(null);
 
   // Auto-expand when a child becomes active (URL navigation, back/forward)
@@ -39,6 +43,83 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
     }
   }, [location.pathname, isAnyActive]);
 
+  // ── Collapsed mode: icon + Popover flyout ──
+  if (collapsed) {
+    return (
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className={cn(
+              "w-full flex justify-center px-0 py-2.5 rounded-xl transition-all cursor-pointer group",
+              isAnyActive
+                ? "bg-gold/10 border border-gold/20"
+                : "hover:bg-navy/5"
+            )}
+            aria-expanded={popoverOpen}
+            aria-label={label}
+          >
+            <div
+              className={cn(
+                "w-9 h-9 rounded-xl flex items-center justify-center transition-all shrink-0",
+                isAnyActive
+                  ? "bg-gold text-navy shadow-sm"
+                  : "bg-navy/5 text-navy/60 group-hover:bg-navy/10 group-hover:text-navy/80"
+              )}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          side={tooltipSide}
+          align="start"
+          className="w-52 p-2"
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <p className="text-xs font-semibold text-muted-foreground px-2 pb-1.5 mb-1 border-b border-border/50">
+            {label}
+          </p>
+          <div className="space-y-0.5">
+            {items.map((item) => {
+              const ItemIcon = item.icon;
+              const isActive = isPathActive(location.pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    onNavigate?.();
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg transition-all text-sm",
+                    isActive
+                      ? "bg-gold text-navy font-semibold shadow-sm"
+                      : "text-navy/60 hover:text-navy hover:bg-gold/10"
+                  )}
+                >
+                  <ItemIcon className="w-4 h-4" />
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 text-xs rounded-full font-medium",
+                        isActive ? "bg-navy/20 text-navy" : "bg-navy/10 text-navy/60"
+                      )}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  // ── Expanded mode: existing inline expand/collapse ──
   return (
     <div>
       <button
@@ -49,6 +130,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate }: NavGroupProps
             ? "bg-gold/10 border border-gold/20"
             : "hover:bg-navy/5"
         )}
+        aria-expanded={isOpen}
       >
         <div
           className={cn(

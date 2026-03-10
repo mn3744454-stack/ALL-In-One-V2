@@ -132,6 +132,8 @@ export const ar = {
     doctorConsultations: "الاستشارات",
     doctorServices: "الخدمات",
     pos: "نقطة البيع",
+    collapse: "طيّ الشريط الجانبي",
+    expand: "توسيع الشريط الجانبي",
   },
   pushNotifications: {
     settingsTitle: "إعدادات الإشعارات",

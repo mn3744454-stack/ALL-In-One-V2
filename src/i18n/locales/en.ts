@@ -109,6 +109,8 @@ export const en = {
     doctorConsultations: "Consultations",
     doctorServices: "Services",
     pos: "Point of Sale",
+    collapse: "Collapse sidebar",
+    expand: "Expand sidebar",
   },
   pushNotifications: {
     settingsTitle: "Notification Settings",
