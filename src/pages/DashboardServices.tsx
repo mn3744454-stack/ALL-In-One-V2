@@ -52,44 +52,48 @@ const DashboardServices = () => {
 
   if (!activeTenant) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full text-center">
-          <CardContent className="py-12">
-            <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-bold text-navy mb-2">
-              No Business Selected
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Please select or create a business to manage services.
-            </p>
-            <Button variant="gold" onClick={() => navigate("/dashboard")}>
-              Go to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card variant="elevated" className="max-w-md w-full text-center">
+            <CardContent className="py-12">
+              <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-bold text-navy mb-2">
+                No Business Selected
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Please select or create a business to manage services.
+              </p>
+              <Button variant="gold" onClick={() => navigate("/dashboard")}>
+                Go to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 
   if (!canManage) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <Card variant="elevated" className="max-w-md w-full text-center">
-          <CardContent className="py-12">
-            <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h2 className="font-display text-xl font-bold text-navy mb-2">
-              Access Restricted
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Only owners and managers can manage services.
-            </p>
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Card variant="elevated" className="max-w-md w-full text-center">
+            <CardContent className="py-12">
+              <Package className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+              <h2 className="font-display text-xl font-bold text-navy mb-2">
+                Access Restricted
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Only owners and managers can manage services.
+              </p>
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardShell>
     );
   }
 

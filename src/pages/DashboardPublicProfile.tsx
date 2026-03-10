@@ -17,9 +17,11 @@ const DashboardPublicProfile = () => {
 
   if (!activeTenant) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">No tenant selected</p>
-      </div>
+      <DashboardShell>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <p className="text-muted-foreground">No tenant selected</p>
+        </div>
+      </DashboardShell>
     );
   }
 
