@@ -231,25 +231,6 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         changed_by: user.id,
       });
 
-      // Step 5: Create initial billing link (deposit placeholder)
-      // This links the admission to billing infrastructure so financial review works
-      if (data.client_id) {
-        try {
-          await supabase.from('billing_links').insert({
-            tenant_id: tenantId,
-            source_type: 'boarding',
-            source_id: admission.id,
-            invoice_id: admission.id, // Self-reference as placeholder until invoice is generated
-            link_kind: 'deposit',
-            amount: 0,
-            created_by: user.id,
-          });
-        } catch {
-          // Non-critical — billing link can be created later
-          console.warn('Billing link creation skipped (non-critical)');
-        }
-      }
-
       return { ...admission, status: 'active', checkin_movement_id: movementId };
     },
     onSuccess: () => {
@@ -372,22 +353,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         reason: checkoutNotes || null,
       });
 
-      // Step 4: Create final billing link for checkout
-      if (admission.client_id) {
-        try {
-          await supabase.from('billing_links').insert({
-            tenant_id: tenantId,
-            source_type: 'boarding',
-            source_id: admissionId,
-            invoice_id: admissionId, // Placeholder — replaced when invoice is generated
-            link_kind: 'final',
-            amount: null,
-            created_by: user.id,
-          });
-        } catch {
-          console.warn('Final billing link creation skipped (non-critical)');
-        }
-      }
+      // Billing links are created separately when real invoices exist
     },
     onSuccess: () => {
       toast.success('Checkout completed successfully');
