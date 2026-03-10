@@ -323,8 +323,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       );
 
       if (mvError) {
-        console.error('Checkout movement failed:', mvError.message);
-        // Don't block checkout entirely — update admission status anyway
+        // Movement failed — admission stays in checkout_pending (recoverable)
+        throw new Error(`Checkout movement failed: ${mvError.message}. Admission remains in checkout_pending.`);
       }
 
       // Step 2: Update admission to checked_out with movement link
