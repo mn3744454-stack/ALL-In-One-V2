@@ -333,9 +333,31 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
           {/* Logo + Close Button */}
           <div className={cn(
             "border-b border-border/50 flex items-center bg-white/50",
-            collapsed ? "p-2 justify-center" : "p-5 justify-between gap-3"
+            collapsed ? "p-2 flex-col gap-1 justify-center" : "p-5 justify-between gap-3"
           )}>
             <Logo iconOnly={collapsed} size={collapsed ? "sm" : "default"} />
+            {/* Desktop collapse toggle — top header */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleCollapsed}
+                  className="p-1.5 rounded-xl hover:bg-navy/5 transition-colors hidden lg:flex items-center justify-center"
+                  aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+                >
+                  <ChevronsLeft
+                    className={cn(
+                      "w-4 h-4 text-navy/50 transition-transform duration-200",
+                      collapsed && "rotate-180",
+                      dir === "rtl" && "scale-x-[-1]"
+                    )}
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side={tooltipSide} className="font-medium">
+                {collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+              </TooltipContent>
+            </Tooltip>
+            {/* Mobile close button */}
             {!collapsed && (
               <button
                 className="p-2 rounded-xl hover:bg-navy/5 lg:hidden transition-colors"
@@ -643,29 +665,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             )}
           </nav>
 
-          {/* Collapse toggle — desktop only */}
-          <div className="p-2 border-t border-border/50 hidden lg:flex justify-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={toggleCollapsed}
-                  className="p-2 rounded-xl hover:bg-navy/5 transition-colors"
-                  aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-                >
-                  <ChevronsLeft
-                    className={cn(
-                      "w-5 h-5 text-navy/50 transition-transform duration-200",
-                      collapsed && "rotate-180",
-                      dir === "rtl" && "scale-x-[-1]"
-                    )}
-                  />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={tooltipSide} className="font-medium">
-                {collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-              </TooltipContent>
-            </Tooltip>
-          </div>
 
           {/* User Section — only visible on mobile overlay, hidden on desktop (header has logout) */}
           <div className="p-4 border-t border-border/50 bg-white/30 lg:hidden">

@@ -1,143 +1,88 @@
-## Desktop Sidebar Collapse — UX Refinement Plan 
+
+
+# Diagnosis: Why Changes Appear Not Applied
+
+## The Core Problem
+
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+
+**However, there are real remaining issues the user is seeing:**
+
+### 1. Realtime Sync Uses WRONG Query Keys
+
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+
+### 3. Ledger "Enrich" Button Still Visible
+
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
+
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
+
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
+
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
+
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
+
+### 6. Scope Selector / Statement Content
+
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-### A) Current State (Evidence)
+## Execution Plan
 
-#### 1) Collapse Toggle — Bottom placement (low discoverability)
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-**File:** `src/components/dashboard/DashboardSidebar.tsx`  
-**Current behavior:** The collapse toggle is rendered **below the** `<nav>`, near the bottom of the sidebar. With many nav items, users often won’t notice it unless they scroll to the end.
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-#### 2) NavItem in collapsed mode (good)
+Change the finance table mappings to use the **actual** query key prefixes:
 
-- Hovering a single icon shows a tooltip label.
-- Clicking navigates immediately.
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```
 
-#### 3) NavGroup in collapsed mode (needs improvement)
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-**File:** `src/components/dashboard/NavGroup.tsx`  
-**Current behavior:** Groups with children (e.g., Finance / HR / Settings) require **clicking the group first** to reveal children (Popover). This is less intuitive because:
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-- Users can’t tell it has children until they click.
-- It’s inconsistent with single-item hover behavior.
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
----
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
-### B) Root Causes
+### Step 3: Hide Backfill Button from Non-Admins
 
-1. **Toggle is placed at the bottom**: safe default, but not discoverable.
-2. **NavGroup uses Radix Popover default (click-open)**: no hover wiring (`onMouseEnter/onMouseLeave`) and no controlled open state for hover flyouts.
+**File:** `src/pages/DashboardFinance.tsx`
 
----
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-### C) Platform-Wide Goal (applies to all tenant types)
+### Step 4: Stabilize Invoice Table Column Widths
 
-This refinement must apply uniformly across the entire platform (stables, horse owners, clinics, labs, pharmacies, academies, independent trainers/doctors, auctions, transport, etc.).  
-Scope is limited to shared components only: `DashboardSidebar` and `NavGroup`. No tenant-type forks.
+**File:** `src/components/finance/InvoicesList.tsx`
 
----
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
 
-### D) Proposed Changes (Injected)
+### Step 5: Fix Expenses Table View Alignment
 
-#### Change 1: Move the collapse toggle to the top header/logo area
+**File:** `src/components/finance/ExpensesList.tsx`
 
-**File:** `DashboardSidebar.tsx`
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
 
-**Target UX**
+### Verification Checklist
 
-- **Expanded:** Logo on one side + toggle button on the other (RTL-aware).
-- **Collapsed:** icon-only logo + a clearly visible toggle near it (not at the bottom).
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 
-**Implementation**
-
-- Move the existing collapse toggle button (with tooltip) into the **sidebar header/logo section**.
-- Remove the old bottom toggle block entirely.
-- Keep mobile close button unchanged (`lg:hidden`).
-
----
-
-#### Change 2: NavGroup hover-to-open flyout in collapsed mode
-
-**File:** `NavGroup.tsx`
-
-**Target UX**
-
-- Hovering the group icon opens the flyout immediately.
-- Moving the cursor from trigger into flyout keeps it open.
-- Leaving both trigger + flyout closes after a short delay (≈150ms).
-- Clicking a child navigates and closes instantly.
-- Keyboard: focus on trigger opens; ESC closes.
-
-**Implementation Details**
-
-- Use **controlled** Radix Popover:
-  - `open={popoverOpen}` + `onOpenChange={setPopoverOpen}`
-- Add `closeTimerRef`:
-  - `onMouseEnter` (trigger & content): clear timer + open
-  - `onMouseLeave` (trigger & content): start 150ms timer to close
-- Keyboard:
-  - `onFocus={() => setPopoverOpen(true)}`
-  - ESC handled by Radix; keep state synced via `onOpenChange`
-- RTL/LTR:
-  - flyout `side={tooltipSide}` (LTR right, RTL left)
-
-**Expanded mode remains unchanged** (keep current inline expand/collapse).
-
----
-
-### E) Patch Plan (Files)
-
-#### File 1: `src/components/dashboard/DashboardSidebar.tsx`
-
-1. Move collapse toggle into the logo/header area (desktop only).
-2. Delete the bottom toggle block (the one rendered after `</nav>`).
-3. Do not touch:
-  - localStorage persistence
-  - collapsed state logic
-  - tenant gating logic
-  - mobile behavior
-
-#### File 2: `src/components/dashboard/NavGroup.tsx`
-
-1. In collapsed branch:
-  - controlled Popover + hover open/close + close delay + focus open
-2. Expanded branch: no changes
-
----
-
-### F) Verification Checklist
-
-**Discoverability**
-
-- Toggle is always visible at the top on desktop without scrolling.
-
-**Collapsed behavior**
-
-- NavItem hover → tooltip shows label.
-- NavGroup hover → flyout opens immediately.
-- Moving cursor into flyout keeps it open.
-- Leaving flyout closes after ~150ms.
-- Clicking a flyout child navigates and closes flyout.
-
-**RTL**
-
-- Flyout opens on the correct side (RTL left, LTR right).
-- Toggle chevron mirrors correctly.
-
-**Platform-wide**
-
-- Works across all tenant types because only shared components were modified.
-
-**Mobile/tablet**
-
-- No changes under 1024px.
-
----
-
-### What Lovable must output (Plan Mode / Investigative)
-
-- Exact file/blocks where the toggle was moved and the old bottom toggle removed.
-- Exact changes in NavGroup collapsed branch for hover-controlled popover.
-- Any risks (hover close timing, accidental close while moving) + recommended delay range (150–250ms).
-- Confirm no mobile impact and no tenant-type branching added.
