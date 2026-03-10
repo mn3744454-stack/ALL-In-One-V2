@@ -92,8 +92,11 @@ export function ServicePlansManager() {
                   </div>
                   <div className="flex items-center gap-1">
                     {!plan.is_active && <Badge variant="secondary">{t('common.inactive')}</Badge>}
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(plan)}>
-                      <Pencil className="h-3.5 w-3.5" />
+                    {canManagePlans && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(plan)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                     </Button>
                   </div>
                 </div>

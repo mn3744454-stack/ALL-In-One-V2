@@ -168,7 +168,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               )}
 
               {/* Actions */}
-              {(admission.status === 'active' || admission.status === 'checkout_pending') && (
+              {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
                 <div className="flex gap-2 pt-2">
                   <Button
                     variant="outline"
