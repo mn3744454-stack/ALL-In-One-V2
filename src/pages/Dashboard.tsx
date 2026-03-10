@@ -348,11 +348,17 @@ const Dashboard = () => {
 
           {/* Dashboard Widgets - Only show for users with a tenant in organization mode */}
           {activeTenant && workspaceMode === "organization" && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <UpcomingScheduleWidget />
-              <RecentActivityWidget />
-              <FinancialSummaryWidget />
-            </div>
+            <>
+              {/* Boarding Stats Widgets */}
+              <div className="mb-6">
+                <BoardingDashboardWidgets />
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <UpcomingScheduleWidget />
+                <RecentActivityWidget />
+                <FinancialSummaryWidget />
+              </div>
+            </>
           )}
 
           {/* Content Grid */}
