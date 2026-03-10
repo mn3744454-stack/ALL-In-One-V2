@@ -334,7 +334,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           checked_out_at: new Date().toISOString(),
           checked_out_by: user.id,
           checkout_notes: checkoutNotes || null,
-          checkout_movement_id: movementId || null,
+          checkout_movement_id: movementId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', admissionId)
