@@ -152,6 +152,15 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
+  // Auto-scroll active nav item into view on route change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const el = navRef.current?.querySelector('[data-active="true"]');
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
