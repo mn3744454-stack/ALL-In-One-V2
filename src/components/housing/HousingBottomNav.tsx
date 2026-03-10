@@ -1,19 +1,20 @@
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { Map, LayoutGrid, Settings } from "lucide-react";
+import { LayoutGrid, Map, ClipboardCheck, ArrowLeftRight } from "lucide-react";
 
 interface HousingBottomNavProps {
-  activeTab: 'areas' | 'units' | 'settings';
-  onTabChange: (tab: 'areas' | 'units' | 'settings') => void;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
 }
 
 export function HousingBottomNav({ activeTab, onTabChange }: HousingBottomNavProps) {
   const { t } = useI18n();
 
   const tabs = [
-    { id: 'areas' as const, icon: Map, label: t('housing.tabs.areas') },
-    { id: 'units' as const, icon: LayoutGrid, label: t('housing.tabs.units') },
-    { id: 'settings' as const, icon: Settings, label: t('housing.tabs.settings') },
+    { id: 'units', icon: LayoutGrid, label: t('housing.tabs.units') },
+    { id: 'areas', icon: Map, label: t('housing.tabs.areas') },
+    { id: 'admissions', icon: ClipboardCheck, label: t('housing.tabs.admissions') },
+    { id: 'movement', icon: ArrowLeftRight, label: t('housing.tabs.movement') },
   ];
 
   return (
