@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { tGlobal } from '@/i18n';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
@@ -37,7 +36,6 @@ export interface BoardingAdmission {
   is_demo: boolean;
   created_at: string;
   updated_at: string;
-  // Joined
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null };
   client?: { id: string; name: string; name_ar: string | null; phone: string | null };
   branch?: { id: string; name: string };
@@ -67,6 +65,9 @@ export interface AdmissionFilters {
   search?: string;
 }
 
+// Helper to access new tables that may not be in generated types yet
+const fromTable = (table: string) => (supabase as any).from(table);
+
 export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
@@ -78,8 +79,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     queryFn: async (): Promise<BoardingAdmission[]> => {
       if (!tenantId) return [];
 
-      let query = supabase
-        .from('boarding_admissions')
+      let query = fromTable('boarding_admissions')
         .select(`
           *,
           horse:horses!horse_id(id, name, name_ar, avatar_url),
@@ -96,19 +96,14 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         query = query.eq('status', filters.status);
       }
 
-      if (filters.search) {
-        // Search is done client-side after fetch due to join limitations
-      }
-
       const { data, error } = await query;
       if (error) throw error;
 
-      let results = (data || []) as unknown as BoardingAdmission[];
+      let results = (data || []) as BoardingAdmission[];
 
-      // Client-side search filtering
       if (filters.search) {
         const s = filters.search.toLowerCase();
-        results = results.filter(a =>
+        results = results.filter((a: BoardingAdmission) =>
           a.horse?.name?.toLowerCase().includes(s) ||
           a.horse?.name_ar?.toLowerCase().includes(s) ||
           a.client?.name?.toLowerCase().includes(s) ||
@@ -126,8 +121,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
 
       // Check for duplicate active admission
-      const { data: existing } = await supabase
-        .from('boarding_admissions')
+      const { data: existing } = await fromTable('boarding_admissions')
         .select('id')
         .eq('tenant_id', tenantId)
         .eq('horse_id', data.horse_id)
@@ -138,7 +132,6 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error('This horse already has an active admission');
       }
 
-      // Build admission checks
       const checks: Record<string, any> = {};
       checks.horse_exists = { status: 'pass', message: 'Horse verified' };
       checks.branch_selected = { status: 'pass', message: 'Branch selected' };
@@ -152,8 +145,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         ? { status: 'pass', message: 'Emergency contact provided' }
         : { status: 'warning', message: 'No emergency contact' };
 
-      const { data: admission, error } = await supabase
-        .from('boarding_admissions')
+      const { data: admission, error } = await fromTable('boarding_admissions')
         .insert({
           tenant_id: tenantId,
           horse_id: data.horse_id,
@@ -179,7 +171,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       if (error) throw error;
 
       // Create status history
-      await supabase.from('boarding_status_history').insert({
+      await fromTable('boarding_status_history').insert({
         admission_id: admission.id,
         tenant_id: tenantId,
         from_status: null,
@@ -202,8 +194,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     mutationFn: async ({ admissionId, checkoutNotes }: { admissionId: string; checkoutNotes?: string }) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
 
-      const { error } = await supabase
-        .from('boarding_admissions')
+      const { error } = await fromTable('boarding_admissions')
         .update({
           status: 'checked_out',
           checked_out_at: new Date().toISOString(),
@@ -216,8 +207,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (error) throw error;
 
-      // Create status history
-      await supabase.from('boarding_status_history').insert({
+      await fromTable('boarding_status_history').insert({
         admission_id: admissionId,
         tenant_id: tenantId,
         from_status: 'active',
@@ -238,15 +228,12 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     mutationFn: async ({ admissionId, newStatus, reason }: { admissionId: string; newStatus: AdmissionStatus; reason?: string }) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
 
-      // Get current status
-      const { data: current } = await supabase
-        .from('boarding_admissions')
+      const { data: current } = await fromTable('boarding_admissions')
         .select('status')
         .eq('id', admissionId)
         .single();
 
-      const { error } = await supabase
-        .from('boarding_admissions')
+      const { error } = await fromTable('boarding_admissions')
         .update({
           status: newStatus,
           updated_at: new Date().toISOString(),
@@ -257,7 +244,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (error) throw error;
 
-      await supabase.from('boarding_status_history').insert({
+      await fromTable('boarding_status_history').insert({
         admission_id: admissionId,
         tenant_id: tenantId,
         from_status: current?.status || null,
@@ -291,8 +278,7 @@ export function useSingleAdmission(admissionId: string | null) {
     queryFn: async (): Promise<BoardingAdmission | null> => {
       if (!tenantId || !admissionId) return null;
 
-      const { data, error } = await supabase
-        .from('boarding_admissions')
+      const { data, error } = await fromTable('boarding_admissions')
         .select(`
           *,
           horse:horses!horse_id(id, name, name_ar, avatar_url),
@@ -307,7 +293,7 @@ export function useSingleAdmission(admissionId: string | null) {
         .single();
 
       if (error) throw error;
-      return data as unknown as BoardingAdmission;
+      return data as BoardingAdmission;
     },
     enabled: !!tenantId && !!admissionId,
   });
@@ -322,8 +308,7 @@ export function useAdmissionStatusHistory(admissionId: string | null) {
     queryFn: async () => {
       if (!tenantId || !admissionId) return [];
 
-      const { data, error } = await supabase
-        .from('boarding_status_history')
+      const { data, error } = await fromTable('boarding_status_history')
         .select(`
           *,
           changed_by_profile:profiles!changed_by(id, full_name)
