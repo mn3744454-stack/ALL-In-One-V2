@@ -4,6 +4,7 @@ interface LogoProps {
   className?: string;
   variant?: "default" | "light";
   size?: "sm" | "default";
+  iconOnly?: boolean;
 }
 
 const Logo = ({ className = "", variant = "default", size = "default" }: LogoProps) => {
