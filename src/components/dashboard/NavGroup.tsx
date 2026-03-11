@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -20,13 +20,22 @@ interface NavGroupProps {
   tooltipSide?: "left" | "right";
 }
 
-/** Prefix-aware active check: exact match OR nested child route */
-const isPathActive = (pathname: string, href: string) =>
-  pathname === href || pathname.startsWith(href + "/");
+/** Supports both path-based and query-param-based active detection */
+const isHrefActive = (pathname: string, search: string, href: string) => {
+  const qIdx = href.indexOf('?');
+  if (qIdx !== -1) {
+    const hrefPath = href.substring(0, qIdx);
+    const hrefSearch = href.substring(qIdx);
+    return pathname === hrefPath && search === hrefSearch;
+  }
+  return pathname === href || pathname.startsWith(href + "/");
+};
 
 export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tooltipSide = "right" }: NavGroupProps) => {
   const location = useLocation();
-  const isAnyActive = items.some(item => isPathActive(location.pathname, item.href));
+  const [searchParams] = useSearchParams();
+  const fullSearch = location.search;
+  const isAnyActive = items.some(item => isHrefActive(location.pathname, fullSearch, item.href));
   const [isOpen, setIsOpen] = useState(isAnyActive);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const activeRef = useRef<HTMLAnchorElement>(null);
@@ -112,7 +121,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
           <div className="space-y-0.5">
             {items.map((item) => {
               const ItemIcon = item.icon;
-              const isActive = isPathActive(location.pathname, item.href);
+              const isActive = isHrefActive(location.pathname, fullSearch, item.href);
               return (
                 <Link
                   key={item.href}
@@ -192,7 +201,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
         <div className="mt-2 ms-6 ps-3 border-s-2 border-gold/30 space-y-1">
           {items.map((item) => {
             const ItemIcon = item.icon;
-            const isActive = isPathActive(location.pathname, item.href);
+            const isActive = isHrefActive(location.pathname, fullSearch, item.href);
             return (
               <Link
                 key={item.href}

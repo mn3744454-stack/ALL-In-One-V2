@@ -10,7 +10,7 @@ export interface ConnectedDestination {
   connection_id: string;
 }
 
-const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic', 'lab'];
+const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic'];
 
 /**
  * Fetches accepted B2B connections and resolves partner tenant names
@@ -69,8 +69,8 @@ export function useConnectedDestinations() {
         const info = entityMap.get(partnerId);
         const tenantType = info?.entity_subtype || null;
 
-        // Only include allowed destination types
-        if (tenantType && !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
+        // Only include explicitly typed allowed destination types
+        if (!tenantType || !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
 
         results.push({
           id: partnerId,

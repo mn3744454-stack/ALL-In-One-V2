@@ -4,6 +4,29 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
+export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage' | 'other';
+
+export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage', 'other'];
+
+export interface SubdivisionConfig {
+  label: string;
+  labelAr: string;
+  types: string[];
+  supportsChildren: boolean;
+}
+
+export const SUBDIVISION_CONFIG: Record<FacilityType, SubdivisionConfig> = {
+  barn: { label: 'Stall', labelAr: 'إسطبل', types: ['stall', 'box', 'room'], supportsChildren: true },
+  paddock: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section', 'partition'], supportsChildren: true },
+  isolation: { label: 'Bay', labelAr: 'حجرة عزل', types: ['isolation_room', 'isolation_bay'], supportsChildren: true },
+  pasture: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section'], supportsChildren: true },
+  storage: { label: 'Section', labelAr: 'قسم', types: ['section', 'shelf', 'bin'], supportsChildren: true },
+  arena: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  wash_area: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  round_pen: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  other: { label: 'Subdivision', labelAr: 'تقسيم', types: ['other'], supportsChildren: true },
+};
+
 export interface FacilityArea {
   id: string;
   tenant_id: string;
@@ -11,6 +34,7 @@ export interface FacilityArea {
   name: string;
   name_ar: string | null;
   code: string | null;
+  facility_type: FacilityType;
   is_active: boolean;
   is_demo: boolean;
   created_at: string;
@@ -26,6 +50,7 @@ export interface CreateAreaData {
   name: string;
   name_ar?: string;
   code?: string;
+  facility_type?: FacilityType;
 }
 
 export function useFacilityAreas(branchId?: string) {
@@ -76,6 +101,7 @@ export function useFacilityAreas(branchId?: string) {
           name: data.name,
           name_ar: data.name_ar || null,
           code: data.code || null,
+          facility_type: data.facility_type || 'barn',
           is_active: true,
           is_demo: false,
         })
@@ -98,13 +124,15 @@ export function useFacilityAreas(branchId?: string) {
     mutationFn: async ({ id, ...data }: { id: string } & Partial<CreateAreaData>) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
 
+      const updatePayload: Record<string, unknown> = {};
+      if (data.name !== undefined) updatePayload.name = data.name;
+      if (data.name_ar !== undefined) updatePayload.name_ar = data.name_ar;
+      if (data.code !== undefined) updatePayload.code = data.code;
+      if (data.facility_type !== undefined) updatePayload.facility_type = data.facility_type;
+
       const { data: updated, error } = await supabase
         .from('facility_areas')
-        .update({
-          name: data.name,
-          name_ar: data.name_ar,
-          code: data.code,
-        })
+        .update(updatePayload)
         .eq('id', id)
         .eq('tenant_id', tenantId)
         .select()

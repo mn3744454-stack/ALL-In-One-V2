@@ -1,6 +1,6 @@
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Map, ClipboardCheck, ArrowLeftRight } from "lucide-react";
+import { Building2, LayoutGrid, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
 
 interface HousingBottomNavProps {
   activeTab: string;
@@ -11,10 +11,10 @@ export function HousingBottomNav({ activeTab, onTabChange }: HousingBottomNavPro
   const { t } = useI18n();
 
   const tabs = [
-    { id: 'units', icon: LayoutGrid, label: t('housing.tabs.units') },
-    { id: 'areas', icon: Map, label: t('housing.tabs.areas') },
+    { id: 'facilities', icon: Building2, label: t('housing.tabs.facilities') },
     { id: 'admissions', icon: ClipboardCheck, label: t('housing.tabs.admissions') },
     { id: 'movement', icon: ArrowLeftRight, label: t('housing.tabs.movement') },
+    { id: 'incoming', icon: ArrowDownToLine, label: t('housing.tabs.incoming') },
   ];
 
   return (

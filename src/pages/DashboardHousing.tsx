@@ -4,12 +4,12 @@ import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { UnitsManager, AreasManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
+import { FacilitiesManager, UnitsManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
 import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/components/movement";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
+import { AlertCircle, Building2, LayoutGrid, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
@@ -19,14 +19,16 @@ export default function DashboardHousing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
 
-  const availableTabs = useMemo(() => ['units', 'areas', 'admissions', 'movement', 'incoming'], []);
+  const availableTabs = useMemo(() => ['facilities', 'units', 'admissions', 'movement', 'incoming'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
+    // Support legacy 'areas' tab
+    if (urlTab === 'areas') return 'facilities';
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
-    return 'units';
+    return 'facilities';
   }, [searchParams, availableTabs]);
 
   const handleTabChange = (tab: string) => {
@@ -61,13 +63,13 @@ export default function DashboardHousing() {
       <div className="flex-1 p-4 md:p-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="hidden md:flex">
+            <TabsTrigger value="facilities" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              {t('housing.tabs.facilities')}
+            </TabsTrigger>
             <TabsTrigger value="units" className="gap-2">
               <LayoutGrid className="h-4 w-4" />
               {t('housing.tabs.units')}
-            </TabsTrigger>
-            <TabsTrigger value="areas" className="gap-2">
-              <Map className="h-4 w-4" />
-              {t('housing.tabs.areas')}
             </TabsTrigger>
             <TabsTrigger value="admissions" className="gap-2">
               <ClipboardCheck className="h-4 w-4" />
@@ -79,16 +81,16 @@ export default function DashboardHousing() {
             </TabsTrigger>
             <TabsTrigger value="incoming" className="gap-2">
               <ArrowDownToLine className="h-4 w-4" />
-              {t('movement.incoming.title')}
+              {t('housing.tabs.incoming')}
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="units" className="mt-0">
-            <UnitsManager />
+          <TabsContent value="facilities" className="mt-0">
+            <FacilitiesManager />
           </TabsContent>
 
-          <TabsContent value="areas" className="mt-0">
-            <AreasManager />
+          <TabsContent value="units" className="mt-0">
+            <UnitsManager />
           </TabsContent>
 
           <TabsContent value="admissions" className="mt-0">

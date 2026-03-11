@@ -51,6 +51,9 @@ import {
   UserCircle,
   Shield,
   Link2,
+  LayoutGrid,
+  ClipboardCheck,
+  ArrowDownToLine,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -506,11 +509,16 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 
                 {/* Housing - for owners and managers AND if housing is enabled */}
                 {housingEnabled && ["owner", "manager"].includes(activeRole || "") && (
-                  <NavItem
+                  <NavGroup
                     icon={Warehouse}
                     label={t('sidebar.housing')}
-                    href="/dashboard/housing"
-                    active={isActive("/dashboard/housing")}
+                    items={[
+                      { icon: Building2, label: t('housing.tabs.facilities'), href: "/dashboard/housing?tab=facilities" },
+                      { icon: LayoutGrid, label: t('housing.tabs.units'), href: "/dashboard/housing?tab=units" },
+                      { icon: ClipboardCheck, label: t('housing.tabs.admissions'), href: "/dashboard/housing?tab=admissions" },
+                      { icon: ArrowLeftRight, label: t('housing.tabs.movement'), href: "/dashboard/housing?tab=movement" },
+                      { icon: ArrowDownToLine, label: t('housing.tabs.incoming'), href: "/dashboard/housing?tab=incoming" },
+                    ]}
                     onNavigate={onClose}
                     {...navProps}
                   />
