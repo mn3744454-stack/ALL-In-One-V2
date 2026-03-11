@@ -5,6 +5,7 @@ export * from './UnitCard';
 export * from './UnitDetailsSheet';
 export * from './AssignHorseDialog';
 export * from './AreasManager';
+export * from './FacilitiesManager';
 export * from './UnitsManager';
 export * from './HousingStats';
 export * from './AdmissionsList';
