@@ -1667,7 +1667,7 @@ export const en = {
     },
     demo: {
       title: "Demo Mode",
-      description: "Load sample areas, units, and assignments for testing. Demo data is tagged and can be safely removed.",
+      description: "Load sample sections, units, and assignments for testing. Demo data is tagged and can be safely removed.",
       load: "Load Demo Data",
       remove: "Remove Demo Data",
       loaded: "Demo data loaded successfully",

@@ -1979,7 +1979,7 @@ export const ar = {
     },
     housing: {
       title: "الإسكان",
-      description: "إدارة الوحدات والبوكسات والمناطق",
+      description: "إدارة الوحدات والبوكسات والأقسام",
     },
     movement: {
       title: "التنقل",
