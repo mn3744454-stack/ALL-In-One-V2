@@ -164,16 +164,16 @@ export function RecordMovementDialog({
   const resetForm = () => {
     setStep("type");
     setFormData({
-      movementType: null,
-      horseId: null,
-      fromLocationId: null,
-      toLocationId: null,
-      toAreaId: null,
-      toUnitId: null,
-      reason: "",
-      notes: "",
-      internalLocationNote: "",
+      movementType: null, horseId: null, destinationType: 'internal',
+      fromLocationId: null, toLocationId: null,
+      toExternalLocationId: null, fromExternalLocationId: null,
+      toAreaId: null, toUnitId: null,
+      reason: "", notes: "", internalLocationNote: "",
     });
+    setShowNewExternal(false);
+    setNewExtName('');
+    setNewExtCity('');
+    setNewExtType('other');
   };
 
   const handleOpenChange = (open: boolean) => {
