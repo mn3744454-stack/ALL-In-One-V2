@@ -1537,7 +1537,7 @@ export const en = {
     subtitle: "Manage stalls, paddocks, and horse housing assignments",
     tabs: {
       units: "Units",
-      areas: "Areas",
+      areas: "Sections",
       admissions: "Admissions",
       plans: "Plans",
       movement: "Arrivals & Departures",
