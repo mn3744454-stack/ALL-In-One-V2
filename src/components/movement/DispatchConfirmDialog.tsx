@@ -124,10 +124,10 @@ export function DispatchConfirmDialog({
                 <ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-destructive">
-                    {t('housing.checkout.financial.blocked')}
+                    {t('housing.admissions.detail.checkout.financialBlock')}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t('housing.checkout.financial.blockedDesc')}
+                    {t('housing.admissions.detail.checkout.contactManager')}
                   </p>
                   <Badge variant="destructive" className="text-xs">
                     {gate.outstandingAmount.toFixed(2)}
