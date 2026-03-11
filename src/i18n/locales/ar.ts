@@ -1686,6 +1686,7 @@ export const ar = {
       activated: "تم تفعيل المرفق",
       deactivated: "تم إلغاء تفعيل المرفق",
       active: "مرافق نشطة",
+      manageSubdivisions: "إدارة البنية الداخلية",
     },
     areas: {
       title: "أقسام المنشأة",
