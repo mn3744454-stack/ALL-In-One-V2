@@ -8,6 +8,7 @@ const fromTable = (table: string) => (supabase as any).from(table);
 export interface StableServicePlan {
   id: string;
   tenant_id: string;
+  service_id: string | null;
   name: string;
   name_ar: string | null;
   description: string | null;
