@@ -415,14 +415,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* Movement consolidated under Housing - redirect for backwards compatibility */}
       <Route
         path="/dashboard/movement"
         element={
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization">
-              <ModuleGuard module="movement">
-                <DashboardMovement />
-              </ModuleGuard>
+              <Navigate to="/dashboard/housing?tab=movement" replace />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }

@@ -240,9 +240,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       items.push({ icon: FlaskConical, label: t('sidebar.laboratory'), href: "/dashboard/laboratory" });
     }
     
-    if (movementEnabled) {
-      items.push({ icon: ArrowLeftRight, label: t('sidebar.movement'), href: "/dashboard/movement" });
-    }
+    // Movement consolidated under Housing tab — no standalone sidebar item
     
     return items;
   }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } from "@/hooks/housing/useBoardingAdmissions";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { format, differenceInDays } from "date-fns";
@@ -43,6 +44,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { updateAdmission } = useBoardingAdmissions();
   const { units } = useHousingUnits();
   const { areas } = useFacilityAreas();
+  const { plans } = useStableServicePlans();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Inline editing state
@@ -251,9 +253,11 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   )}
 
                   {/* Plan */}
-                  {admission.plan_id && (
-                    <DetailRow icon={Package} label={t('housing.plans.title')} value={admission.plan_id} />
-                  )}
+                  {admission.plan_id && (() => {
+                    const plan = plans.find(p => p.id === admission.plan_id);
+                    const planLabel = plan ? (dir === 'rtl' && plan.name_ar ? plan.name_ar : plan.name) : admission.plan_id;
+                    return <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />;
+                  })()}
 
                   <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={format(new Date(admission.admitted_at), 'PPp')} />
 
