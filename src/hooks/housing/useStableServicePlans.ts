@@ -67,6 +67,7 @@ export function useStableServicePlans() {
           name: input.name,
           name_ar: input.name_ar || null,
           description: input.description || null,
+          service_id: input.service_id || null,
           plan_type: input.plan_type || 'boarding',
           billing_cycle: input.billing_cycle || 'monthly',
           base_price: input.base_price || 0,
