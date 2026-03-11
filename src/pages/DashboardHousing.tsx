@@ -9,7 +9,7 @@ import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/compone
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight } from "lucide-react";
+import { AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
