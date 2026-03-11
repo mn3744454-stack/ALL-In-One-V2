@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UnitsManager, AreasManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
-import { MovementsList, RecordMovementDialog } from "@/components/movement";
+import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/components/movement";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
