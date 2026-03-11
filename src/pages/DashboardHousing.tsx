@@ -19,7 +19,7 @@ export default function DashboardHousing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
 
-  const availableTabs = useMemo(() => ['facilities', 'units', 'admissions', 'movement', 'incoming'], []);
+  const availableTabs = useMemo(() => ['facilities', 'admissions', 'movement', 'incoming'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
