@@ -218,6 +218,8 @@ export function RecordMovementDialog({
     setNewExtName('');
     setNewExtCity('');
     setNewExtType('other');
+    setScheduleForLater(false);
+    setScheduledAt('');
   };
 
   const handleOpenChange = (open: boolean) => {
