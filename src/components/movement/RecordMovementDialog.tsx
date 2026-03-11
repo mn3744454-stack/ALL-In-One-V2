@@ -677,7 +677,7 @@ export function RecordMovementDialog({
         </Button>
 
         {step === "review" ? (
-          <Button onClick={handleSubmit} disabled={isRecording}>
+          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected}>
             {t("common.confirm")}
           </Button>
         ) : step === "housing" ? (
