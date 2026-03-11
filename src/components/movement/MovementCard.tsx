@@ -1,18 +1,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { useI18n } from "@/i18n";
 import { format } from "date-fns";
-import { MapPin, ArrowRight, Clock, User, FileText } from "lucide-react";
+import { MapPin, ArrowRight, Clock, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 
 interface MovementCardProps {
   movement: HorseMovement;
   showHorse?: boolean;
+  onClick?: () => void;
 }
 
-export function MovementCard({ movement, showHorse = true }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick }: MovementCardProps) {
   const { t, dir } = useI18n();
 
   const ArrowIcon = dir === 'rtl' ? (
@@ -26,8 +28,23 @@ export function MovementCard({ movement, showHorse = true }: MovementCardProps) 
     return location.city ? `${location.name}` : location.name;
   };
 
+  // Detect category for visual distinction
+  const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
+  const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
+  const isTransfer = movement.movement_type === 'transfer';
+
+  const getCategoryBadge = () => {
+    if (isAdmissionCheckin) return <Badge className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">{t('housing.admissions.detail.checkin')}</Badge>;
+    if (isAdmissionCheckout) return <Badge className="text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">{t('housing.admissions.detail.checkout')}</Badge>;
+    if (isTransfer) return <Badge className="text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">{t('movement.types.transfer')}</Badge>;
+    return null;
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+      className={cn("hover:shadow-md transition-shadow", onClick && "cursor-pointer")}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {/* Horse Avatar */}
@@ -80,7 +97,10 @@ export function MovementCard({ movement, showHorse = true }: MovementCardProps) 
                   </span>
                 </div>
               </div>
-              <MovementTypeBadge type={movement.movement_type} size="sm" />
+              <div className="flex flex-col items-end gap-1">
+                <MovementTypeBadge type={movement.movement_type} size="sm" />
+                {getCategoryBadge()}
+              </div>
             </div>
 
             {/* Internal location note for same-branch transfers */}

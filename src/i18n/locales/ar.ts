@@ -81,6 +81,9 @@ export const ar = {
     export: "تصدير",
     from: "من",
     to: "إلى",
+    goToDashboard: "الذهاب للوحة التحكم",
+    backToDashboard: "العودة للوحة التحكم",
+    accessRestricted: "الوصول مقيد",
   },
   workspace: {
     personal: "شخصي",
@@ -1402,6 +1405,15 @@ export const ar = {
       in: "وصول",
       out: "مغادرة",
       transfer: "نقل",
+      manual: "يدوي",
+    },
+    detail: {
+      title: "تفاصيل الحركة",
+      internalNote: "ملاحظة داخلية",
+      reason: "السبب",
+      time: "الوقت",
+      linkedAdmission: "مرتبطة بإيواء",
+      viewAdmission: "عرض الإيواء",
     },
     filters: {
       all: "الكل",
@@ -1728,6 +1740,13 @@ export const ar = {
         emergencyContact: "جهة اتصال الطوارئ",
         statusHistory: "سجل الحالة",
         by: "بواسطة",
+        days: "يوم",
+        assignUnit: "تعيين وحدة",
+        addContact: "إضافة جهة اتصال",
+        notAssigned: "غير معين",
+        addDeparture: "تحديد المغادرة",
+        checkin: "تسجيل دخول",
+        checkout: "إخراج",
       },
       warnings: {
         noClient: "لم يتم تعيين عميل",
@@ -3912,5 +3931,17 @@ export const ar = {
     creating: "جاري الإنشاء...",
     invoiceCreated: "تم إنشاء الفاتورة وربطها بالاستشارة",
     invoiceFailed: "فشل إنشاء الفاتورة",
+  },
+  services: {
+    subtitle: "إدارة الخدمات التي يقدمها نشاطك التجاري",
+    noTenant: "لم يتم اختيار نشاط تجاري",
+    noTenantDesc: "يرجى اختيار أو إنشاء نشاط تجاري لإدارة الخدمات.",
+    accessRestrictedDesc: "يمكن للمالكين والمديرين فقط إدارة الخدمات.",
+    public: "عام",
+    private: "خاص",
+    tabs: {
+      catalog: "كتالوج الخدمات",
+      plans: "الخطط والباقات",
+    },
   },
 };

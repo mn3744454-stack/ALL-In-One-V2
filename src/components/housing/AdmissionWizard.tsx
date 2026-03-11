@@ -37,7 +37,7 @@ interface AdmissionWizardProps {
   onSuccess?: () => void;
 }
 
-const STEPS = ['horse', 'client', 'housing', 'plan', 'rates', 'details', 'review'] as const;
+const STEPS = ['horse', 'client', 'plan', 'housing', 'rates', 'details', 'review'] as const;
 type Step = typeof STEPS[number];
 
 export function AdmissionWizard({ open, onOpenChange, onSuccess }: AdmissionWizardProps) {
