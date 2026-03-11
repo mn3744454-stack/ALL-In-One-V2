@@ -63,8 +63,8 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
   const [statusFilter, setStatusFilter] = useState<string>('');
   
   const [formData, setFormData] = useState<Partial<CreateUnitData>>({
-    branch_id: '',
-    area_id: '',
+    branch_id: lockedBranchId || '',
+    area_id: lockedAreaId || '',
     code: '',
     name: '',
     name_ar: '',
@@ -74,15 +74,18 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
     notes: '',
   });
 
+  const effectiveBranchId = lockedBranchId || selectedBranchId;
+  const effectiveAreaId = lockedAreaId || selectedAreaId;
+
   const { activeLocations } = useLocations();
-  const { activeAreas } = useFacilityAreas(selectedBranchId || undefined);
+  const { activeAreas } = useFacilityAreas(effectiveBranchId || undefined);
   const { 
     units, 
     isLoading, 
     canManage, 
     createUnit,
     isCreating,
-  } = useHousingUnits(selectedBranchId || undefined, selectedAreaId || undefined);
+  } = useHousingUnits(effectiveBranchId || undefined, effectiveAreaId || undefined);
 
   const formAreas = useFacilityAreas(formData.branch_id || undefined).activeAreas;
 
