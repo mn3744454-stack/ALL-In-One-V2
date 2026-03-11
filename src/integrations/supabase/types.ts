@@ -2069,6 +2069,69 @@ export type Database = {
           },
         ]
       }
+      external_locations: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          location_type: string
+          name: string
+          name_ar: string | null
+          tenant_id: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_type?: string
+          name: string
+          name_ar?: string | null
+          tenant_id: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_type?: string
+          name?: string
+          name_ar?: string | null
+          tenant_id?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_locations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_locations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       facility_areas: {
         Row: {
           branch_id: string
@@ -2505,7 +2568,9 @@ export type Database = {
       horse_movements: {
         Row: {
           created_at: string
+          destination_type: string
           from_area_id: string | null
+          from_external_location_id: string | null
           from_location_id: string | null
           from_unit_id: string | null
           horse_id: string
@@ -2519,13 +2584,16 @@ export type Database = {
           recorded_by: string | null
           tenant_id: string
           to_area_id: string | null
+          to_external_location_id: string | null
           to_location_id: string | null
           to_unit_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          destination_type?: string
           from_area_id?: string | null
+          from_external_location_id?: string | null
           from_location_id?: string | null
           from_unit_id?: string | null
           horse_id: string
@@ -2539,13 +2607,16 @@ export type Database = {
           recorded_by?: string | null
           tenant_id: string
           to_area_id?: string | null
+          to_external_location_id?: string | null
           to_location_id?: string | null
           to_unit_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          destination_type?: string
           from_area_id?: string | null
+          from_external_location_id?: string | null
           from_location_id?: string | null
           from_unit_id?: string | null
           horse_id?: string
@@ -2559,6 +2630,7 @@ export type Database = {
           recorded_by?: string | null
           tenant_id?: string
           to_area_id?: string | null
+          to_external_location_id?: string | null
           to_location_id?: string | null
           to_unit_id?: string | null
           updated_at?: string
@@ -2569,6 +2641,13 @@ export type Database = {
             columns: ["from_area_id"]
             isOneToOne: false
             referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_from_external_location_id_fkey"
+            columns: ["from_external_location_id"]
+            isOneToOne: false
+            referencedRelation: "external_locations"
             referencedColumns: ["id"]
           },
           {
@@ -2611,6 +2690,13 @@ export type Database = {
             columns: ["to_area_id"]
             isOneToOne: false
             referencedRelation: "facility_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_to_external_location_id_fkey"
+            columns: ["to_external_location_id"]
+            isOneToOne: false
+            referencedRelation: "external_locations"
             referencedColumns: ["id"]
           },
           {
@@ -9210,26 +9296,50 @@ export type Database = {
         Returns: string
       }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
-      record_horse_movement_with_housing: {
-        Args: {
-          p_clear_housing?: boolean
-          p_from_area_id?: string
-          p_from_location_id?: string
-          p_from_unit_id?: string
-          p_horse_id: string
-          p_internal_location_note?: string
-          p_is_demo?: boolean
-          p_movement_at?: string
-          p_movement_type: string
-          p_notes?: string
-          p_reason?: string
-          p_tenant_id: string
-          p_to_area_id?: string
-          p_to_location_id?: string
-          p_to_unit_id?: string
-        }
-        Returns: Json
-      }
+      record_horse_movement_with_housing:
+        | {
+            Args: {
+              p_clear_housing?: boolean
+              p_from_area_id?: string
+              p_from_location_id?: string
+              p_from_unit_id?: string
+              p_horse_id: string
+              p_internal_location_note?: string
+              p_is_demo?: boolean
+              p_movement_at?: string
+              p_movement_type: string
+              p_notes?: string
+              p_reason?: string
+              p_tenant_id: string
+              p_to_area_id?: string
+              p_to_location_id?: string
+              p_to_unit_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_clear_housing?: boolean
+              p_destination_type?: string
+              p_from_area_id?: string
+              p_from_external_location_id?: string
+              p_from_location_id?: string
+              p_from_unit_id?: string
+              p_horse_id: string
+              p_internal_location_note?: string
+              p_is_demo?: boolean
+              p_movement_at?: string
+              p_movement_type: string
+              p_notes?: string
+              p_reason?: string
+              p_tenant_id: string
+              p_to_area_id?: string
+              p_to_external_location_id?: string
+              p_to_location_id?: string
+              p_to_unit_id?: string
+            }
+            Returns: Json
+          }
       reject_connection: { Args: { _token: string }; Returns: string }
       reject_invitation: {
         Args: { _invitation_id: string; _reason?: string }
