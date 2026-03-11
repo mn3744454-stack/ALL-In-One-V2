@@ -105,8 +105,11 @@ export function RecordMovementDialog({
       case "horse":
         return !!formData.horseId;
       case "location":
+        if (formData.destinationType === 'connected') {
+          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.connectedTenantId;
+          return false;
+        }
         if (formData.destinationType === 'external') {
-          // External: need an external location selected (or for OUT just from_location)
           if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.toExternalLocationId;
           if (formData.movementType === 'in') return !!formData.toLocationId;
           return false;
@@ -121,7 +124,6 @@ export function RecordMovementDialog({
         }
         return false;
       case "housing":
-        // Housing is optional, always can proceed
         return true;
       case "details":
         return true;
