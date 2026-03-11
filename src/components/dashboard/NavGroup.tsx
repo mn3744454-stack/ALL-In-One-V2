@@ -121,7 +121,7 @@ export const NavGroup = ({ icon: Icon, label, items, onNavigate, collapsed, tool
           <div className="space-y-0.5">
             {items.map((item) => {
               const ItemIcon = item.icon;
-              const isActive = isPathActive(location.pathname, item.href);
+              const isActive = isHrefActive(location.pathname, fullSearch, item.href);
               return (
                 <Link
                   key={item.href}
