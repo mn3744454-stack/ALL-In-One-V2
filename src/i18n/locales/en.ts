@@ -3926,4 +3926,16 @@ export const en = {
     invoiceCreated: "Invoice created and linked to consultation",
     invoiceFailed: "Failed to create invoice",
   },
+  services: {
+    subtitle: "Manage the services your business offers",
+    noTenant: "No Business Selected",
+    noTenantDesc: "Please select or create a business to manage services.",
+    accessRestrictedDesc: "Only owners and managers can manage services.",
+    public: "Public",
+    private: "Private",
+    tabs: {
+      catalog: "Service Catalog",
+      plans: "Plans & Packages",
+    },
+  },
 };

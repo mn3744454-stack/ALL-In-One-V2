@@ -81,6 +81,9 @@ export const ar = {
     export: "تصدير",
     from: "من",
     to: "إلى",
+    goToDashboard: "الذهاب للوحة التحكم",
+    backToDashboard: "العودة للوحة التحكم",
+    accessRestricted: "الوصول مقيد",
   },
   workspace: {
     personal: "شخصي",
