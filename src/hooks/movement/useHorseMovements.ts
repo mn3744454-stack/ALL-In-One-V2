@@ -230,6 +230,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         p_internal_location_note: data.internal_location_note || null,
         p_is_demo: data.is_demo || false,
         p_clear_housing: data.clear_housing || false,
+        p_destination_type: data.destination_type || 'internal',
+        p_from_external_location_id: data.from_external_location_id || null,
+        p_to_external_location_id: data.to_external_location_id || null,
       });
 
       if (error) throw error;
