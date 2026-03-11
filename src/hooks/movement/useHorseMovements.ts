@@ -97,6 +97,9 @@ export interface CreateMovementData {
   internal_location_note?: string;
   is_demo?: boolean;
   clear_housing?: boolean;
+  destination_type?: string;
+  from_external_location_id?: string | null;
+  to_external_location_id?: string | null;
 }
 
 export interface MovementFilters {
