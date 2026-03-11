@@ -144,7 +144,6 @@ export function RecordMovementDialog({
   const handleSubmit = async () => {
     if (!formData.movementType || !formData.horseId) return;
 
-    // Get horse's current housing for from_area_id and from_unit_id
     const selectedHorse = horses.find(h => h.id === formData.horseId);
     
     const data: CreateMovementData = {
@@ -160,6 +159,9 @@ export function RecordMovementDialog({
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
       clear_housing: formData.movementType === 'out',
+      destination_type: formData.destinationType,
+      from_external_location_id: formData.fromExternalLocationId,
+      to_external_location_id: formData.toExternalLocationId,
     };
 
     await recordMovement(data);
