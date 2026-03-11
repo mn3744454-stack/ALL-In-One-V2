@@ -1661,7 +1661,7 @@ export const en = {
       title: "Unit Details",
       info: "Information",
       occupants: "Occupants",
-      area: "Area",
+      area: "Section",
       capacity: "Capacity",
       status: "Status",
     },
