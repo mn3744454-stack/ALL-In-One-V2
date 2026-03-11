@@ -40,6 +40,7 @@ export function ServicePlansManager() {
     setEditing(plan);
     setForm({
       name: plan.name, name_ar: plan.name_ar || '', description: plan.description || '',
+      service_id: plan.service_id || null,
       plan_type: plan.plan_type, billing_cycle: plan.billing_cycle,
       base_price: plan.base_price, currency: plan.currency,
       is_active: plan.is_active, is_public: plan.is_public,
