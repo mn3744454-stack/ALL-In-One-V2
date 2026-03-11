@@ -97,6 +97,12 @@ export const ServiceCard = ({
                     {service.price_display}
                   </span>
                 )}
+                {linkedPlanCount > 0 && (
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <Layers className="w-3 h-3" />
+                    {linkedPlanCount} {linkedPlanCount === 1 ? 'plan' : 'plans'}
+                  </Badge>
+                )}
               </div>
             </div>
 
