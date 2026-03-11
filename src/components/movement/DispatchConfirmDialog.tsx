@@ -143,7 +143,7 @@ export function DispatchConfirmDialog({
                   <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                      {t('housing.checkout.financial.overrideRequired')}
+                      {t('housing.admissions.detail.checkout.overrideRequired')}
                     </p>
                     <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
                       {gate.outstandingAmount.toFixed(2)}
