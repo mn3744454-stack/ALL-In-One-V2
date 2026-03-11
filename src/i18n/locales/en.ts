@@ -1706,7 +1706,7 @@ export const en = {
         title: "Admission Detail",
         client: "Client",
         branch: "Branch",
-        area: "Area",
+        area: "Section",
         unit: "Unit",
         admittedAt: "Admitted",
         expectedDeparture: "Expected Departure",
