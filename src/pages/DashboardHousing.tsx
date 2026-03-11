@@ -77,6 +77,10 @@ export default function DashboardHousing() {
               <ArrowLeftRight className="h-4 w-4" />
               {t('housing.tabs.movement')}
             </TabsTrigger>
+            <TabsTrigger value="incoming" className="gap-2">
+              <ArrowDownToLine className="h-4 w-4" />
+              {t('movement.incoming.title')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="units" className="mt-0">
