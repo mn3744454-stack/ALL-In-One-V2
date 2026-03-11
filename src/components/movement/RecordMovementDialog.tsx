@@ -697,6 +697,16 @@ export function RecordMovementDialog({
                     {toExtLocation.city && <span className="text-xs text-muted-foreground ms-1">({toExtLocation.city})</span>}
                   </div>
                 </div>
+               )}
+
+              {scheduleForLater && scheduledAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5 text-amber-500" />
+                    {t("movement.lifecycle.scheduledDateTime")}
+                  </span>
+                  <span className="font-medium">{new Date(scheduledAt).toLocaleString()}</span>
+                </div>
               )}
 
               {formData.reason && (
