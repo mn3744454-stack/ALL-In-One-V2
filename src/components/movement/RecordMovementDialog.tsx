@@ -551,6 +551,16 @@ export function RecordMovementDialog({
                 </div>
               )}
 
+              {toExtLocation && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.destination.externalLocation")}</span>
+                  <div className="text-end">
+                    <span className="font-medium">{toExtLocation.name}</span>
+                    {toExtLocation.city && <span className="text-xs text-muted-foreground ms-1">({toExtLocation.city})</span>}
+                  </div>
+                </div>
+              )}
+
               {/* Housing info in review */}
               {(selectedArea || selectedUnit) && (
                 <div className="flex items-center justify-between">
