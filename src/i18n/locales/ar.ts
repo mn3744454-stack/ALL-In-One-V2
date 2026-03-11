@@ -1561,7 +1561,7 @@ export const ar = {
     subtitle: "إدارة الإسطبلات والحظائر وتعيين الخيول",
     tabs: {
       units: "الوحدات",
-      areas: "المناطق",
+      areas: "الأقسام",
       admissions: "الإيواء",
       plans: "الخطط",
       movement: "الوصول والمغادرة",
