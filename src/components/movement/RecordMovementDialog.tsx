@@ -164,6 +164,7 @@ export function RecordMovementDialog({
         horse_id: formData.horseId,
         connected_tenant_id: formData.connectedTenantId,
         from_location_id: formData.fromLocationId,
+        movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
       });
