@@ -2137,6 +2137,7 @@ export type Database = {
           branch_id: string
           code: string | null
           created_at: string | null
+          facility_type: string
           id: string
           is_active: boolean | null
           is_demo: boolean | null
@@ -2149,6 +2150,7 @@ export type Database = {
           branch_id: string
           code?: string | null
           created_at?: string | null
+          facility_type?: string
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
@@ -2161,6 +2163,7 @@ export type Database = {
           branch_id?: string
           code?: string | null
           created_at?: string | null
+          facility_type?: string
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
@@ -2567,10 +2570,12 @@ export type Database = {
       }
       horse_movements: {
         Row: {
+          completed_at: string | null
           connected_movement_id: string | null
           connected_tenant_id: string | null
           created_at: string
           destination_type: string
+          dispatched_at: string | null
           from_area_id: string | null
           from_external_location_id: string | null
           from_location_id: string | null
@@ -2580,10 +2585,12 @@ export type Database = {
           internal_location_note: string | null
           is_demo: boolean
           movement_at: string
+          movement_status: string
           movement_type: Database["public"]["Enums"]["movement_type"]
           notes: string | null
           reason: string | null
           recorded_by: string | null
+          scheduled_at: string | null
           tenant_id: string
           to_area_id: string | null
           to_external_location_id: string | null
@@ -2592,10 +2599,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          completed_at?: string | null
           connected_movement_id?: string | null
           connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
+          dispatched_at?: string | null
           from_area_id?: string | null
           from_external_location_id?: string | null
           from_location_id?: string | null
@@ -2605,10 +2614,12 @@ export type Database = {
           internal_location_note?: string | null
           is_demo?: boolean
           movement_at?: string
+          movement_status?: string
           movement_type: Database["public"]["Enums"]["movement_type"]
           notes?: string | null
           reason?: string | null
           recorded_by?: string | null
+          scheduled_at?: string | null
           tenant_id: string
           to_area_id?: string | null
           to_external_location_id?: string | null
@@ -2617,10 +2628,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          completed_at?: string | null
           connected_movement_id?: string | null
           connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
+          dispatched_at?: string | null
           from_area_id?: string | null
           from_external_location_id?: string | null
           from_location_id?: string | null
@@ -2630,10 +2643,12 @@ export type Database = {
           internal_location_note?: string | null
           is_demo?: boolean
           movement_at?: string
+          movement_status?: string
           movement_type?: Database["public"]["Enums"]["movement_type"]
           notes?: string | null
           reason?: string | null
           recorded_by?: string | null
+          scheduled_at?: string | null
           tenant_id?: string
           to_area_id?: string | null
           to_external_location_id?: string | null
@@ -8301,6 +8316,7 @@ export type Database = {
           name: string
           name_ar: string | null
           price_display: string | null
+          service_kind: string
           service_type: string | null
           tenant_id: string
           unit_price: number | null
@@ -8315,6 +8331,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           price_display?: string | null
+          service_kind?: string
           service_type?: string | null
           tenant_id: string
           unit_price?: number | null
@@ -8329,6 +8346,7 @@ export type Database = {
           name?: string
           name_ar?: string | null
           price_display?: string | null
+          service_kind?: string
           service_type?: string | null
           tenant_id?: string
           unit_price?: number | null
@@ -9222,6 +9240,10 @@ export type Database = {
         }
         Returns: Json
       }
+      dispatch_horse_movement: {
+        Args: { p_movement_id: string; p_notes?: string }
+        Returns: Json
+      }
       enforce_rate_limit: {
         Args: {
           _action: string
@@ -9449,19 +9471,34 @@ export type Database = {
         Returns: string
       }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
-      record_connected_movement: {
-        Args: {
-          p_connected_tenant_id: string
-          p_from_location_id?: string
-          p_horse_id: string
-          p_is_demo?: boolean
-          p_movement_at?: string
-          p_notes?: string
-          p_reason?: string
-          p_sender_tenant_id: string
-        }
-        Returns: Json
-      }
+      record_connected_movement:
+        | {
+            Args: {
+              p_connected_tenant_id: string
+              p_from_location_id?: string
+              p_horse_id: string
+              p_is_demo?: boolean
+              p_movement_at?: string
+              p_notes?: string
+              p_reason?: string
+              p_sender_tenant_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_connected_tenant_id: string
+              p_from_location_id?: string
+              p_horse_id: string
+              p_is_demo?: boolean
+              p_movement_at?: string
+              p_movement_status?: string
+              p_notes?: string
+              p_reason?: string
+              p_sender_tenant_id: string
+            }
+            Returns: Json
+          }
       record_horse_movement_with_housing:
         | {
             Args: {
@@ -9495,6 +9532,30 @@ export type Database = {
               p_internal_location_note?: string
               p_is_demo?: boolean
               p_movement_at?: string
+              p_movement_type: string
+              p_notes?: string
+              p_reason?: string
+              p_tenant_id: string
+              p_to_area_id?: string
+              p_to_external_location_id?: string
+              p_to_location_id?: string
+              p_to_unit_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_clear_housing?: boolean
+              p_destination_type?: string
+              p_from_area_id?: string
+              p_from_external_location_id?: string
+              p_from_location_id?: string
+              p_from_unit_id?: string
+              p_horse_id: string
+              p_internal_location_note?: string
+              p_is_demo?: boolean
+              p_movement_at?: string
+              p_movement_status?: string
               p_movement_type: string
               p_notes?: string
               p_reason?: string
