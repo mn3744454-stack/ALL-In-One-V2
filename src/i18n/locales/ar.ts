@@ -1495,8 +1495,8 @@ export const ar = {
     },
     housing: {
       selectLocationFirst: "اختر الوجهة أولاً",
-      noAreasInBranch: "لا توجد مناطق في هذا الفرع",
-      noUnitsInArea: "لا توجد وحدات في هذه المنطقة",
+      noAreasInBranch: "لا توجد أقسام في هذا الفرع",
+      noUnitsInArea: "لا توجد وحدات في هذا القسم",
       occupied: "مشغول",
       available: "متاح",
     },
