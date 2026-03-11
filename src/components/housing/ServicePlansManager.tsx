@@ -138,6 +138,18 @@ export function ServicePlansManager() {
               <Input value={form.name_ar} onChange={e => setForm(f => ({ ...f, name_ar: e.target.value }))} dir="rtl" />
             </div>
             <div>
+              <Label>{t('housing.plans.parentService')}</Label>
+              <Select value={form.service_id || '_none'} onValueChange={v => setForm(f => ({ ...f, service_id: v === '_none' ? null : v }))}>
+                <SelectTrigger><SelectValue placeholder={t('housing.plans.noParentService')} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">{t('housing.plans.noParentService')}</SelectItem>
+                  {services.filter(s => s.is_active).map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label>{t('housing.plans.description')}</Label>
               <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} />
             </div>
