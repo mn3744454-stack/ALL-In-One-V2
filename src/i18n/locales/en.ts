@@ -1381,6 +1381,15 @@ export const en = {
       in: "Entry",
       out: "Exit",
       transfer: "Transfer",
+      manual: "Manual",
+    },
+    detail: {
+      title: "Movement Detail",
+      internalNote: "Internal Note",
+      reason: "Reason",
+      time: "Time",
+      linkedAdmission: "Linked to boarding admission",
+      viewAdmission: "View Admission",
     },
     filters: {
       all: "All",
