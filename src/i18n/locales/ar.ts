@@ -1685,7 +1685,7 @@ export const ar = {
       title: "تفاصيل الوحدة",
       info: "المعلومات",
       occupants: "الساكنون",
-      area: "المنطقة",
+      area: "القسم",
       capacity: "السعة",
       status: "الحالة",
     },
