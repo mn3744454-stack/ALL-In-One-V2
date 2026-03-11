@@ -103,8 +103,8 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
 
   const resetForm = () => {
     setFormData({
-      branch_id: selectedBranchId || '',
-      area_id: '',
+      branch_id: lockedBranchId || effectiveBranchId || '',
+      area_id: lockedAreaId || '',
       code: '',
       name: '',
       name_ar: '',
