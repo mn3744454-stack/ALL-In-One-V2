@@ -1,5 +1,6 @@
 export * from './MovementTypeBadge';
 export * from './MovementCard';
+export * from './MovementDetailSheet';
 export * from './MovementFilters';
 export * from './MovementsList';
 export * from './MovementBottomNav';
