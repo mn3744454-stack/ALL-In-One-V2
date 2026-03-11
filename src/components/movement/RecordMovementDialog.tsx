@@ -330,29 +330,43 @@ export function RecordMovementDialog({
             {formData.movementType === "out" && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null })}
+                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null, connectedTenantId: null })}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
                     formData.destinationType === 'internal'
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  <Building2 className="h-4 w-4" />
+                  <Building2 className="h-3.5 w-3.5" />
                   {t("movement.destination.internal")}
                 </button>
                 <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null })}
+                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
                     formData.destinationType === 'external'
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-3.5 w-3.5" />
                   {t("movement.destination.external")}
                 </button>
+                {canSendConnected && connectedDestinations.length > 0 && (
+                  <button
+                    onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                      formData.destinationType === 'connected'
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    )}
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    {t("movement.destination.connected")}
+                  </button>
+                )}
               </div>
             )}
             
