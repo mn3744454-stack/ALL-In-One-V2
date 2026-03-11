@@ -23,8 +23,8 @@ export default function DashboardHousing() {
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
-    // Support legacy 'areas' tab
-    if (urlTab === 'areas') return 'facilities';
+    // Support legacy tabs
+    if (urlTab === 'areas' || urlTab === 'units') return 'facilities';
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
