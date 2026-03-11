@@ -15,6 +15,7 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { Building2, Package, ArrowLeft, Store, Layers } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
@@ -26,10 +27,21 @@ const DashboardServices = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: services = [], isLoading } = useServices();
+  const { plans } = useStableServicePlans();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const toggleActive = useToggleServiceActive();
+
+  const planCountByServiceId = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const plan of plans) {
+      if (plan.service_id) {
+        counts[plan.service_id] = (counts[plan.service_id] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [plans]);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
@@ -157,6 +169,7 @@ const DashboardServices = () => {
             <ServicesList
               services={services}
               isLoading={isLoading}
+              planCountByServiceId={planCountByServiceId}
               onCreate={handleCreate}
               onUpdate={handleUpdate}
               onDelete={handleDelete}

@@ -11,26 +11,28 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useStableServicePlans, type StableServicePlan, type CreatePlanData } from "@/hooks/housing/useStableServicePlans";
+import { useServices } from "@/hooks/useServices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
-import { Plus, Pencil, Package, Trash2 } from "lucide-react";
+import { Plus, Pencil, Package, Trash2, Link2 } from "lucide-react";
 
 export function ServicePlansManager() {
   const { t } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
+  const { data: services = [] } = useServices();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
   const [form, setForm] = useState<CreatePlanData>({
-    name: '', name_ar: '', description: '', plan_type: 'boarding',
+    name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding',
     billing_cycle: 'monthly', base_price: 0, currency: 'SAR',
     is_active: true, is_public: false,
   });
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: '', name_ar: '', description: '', plan_type: 'boarding', billing_cycle: 'monthly', base_price: 0, currency: 'SAR', is_active: true, is_public: false });
+    setForm({ name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding', billing_cycle: 'monthly', base_price: 0, currency: 'SAR', is_active: true, is_public: false });
     setDialogOpen(true);
   };
 
@@ -38,6 +40,7 @@ export function ServicePlansManager() {
     setEditing(plan);
     setForm({
       name: plan.name, name_ar: plan.name_ar || '', description: plan.description || '',
+      service_id: plan.service_id || null,
       plan_type: plan.plan_type, billing_cycle: plan.billing_cycle,
       base_price: plan.base_price, currency: plan.currency,
       is_active: plan.is_active, is_public: plan.is_public,
@@ -101,6 +104,15 @@ export function ServicePlansManager() {
                 </div>
                 {plan.description && <p className="text-xs text-muted-foreground mb-2">{plan.description}</p>}
                 <div className="flex items-center gap-2 flex-wrap">
+                  {plan.service_id && (() => {
+                    const parentService = services.find(s => s.id === plan.service_id);
+                    return parentService ? (
+                      <Badge variant="default" className="text-xs gap-1">
+                        <Link2 className="h-3 w-3" />
+                        {parentService.name}
+                      </Badge>
+                    ) : null;
+                  })()}
                   <Badge variant="outline">{plan.base_price} {plan.currency}</Badge>
                   <Badge variant="outline" className="capitalize">{plan.billing_cycle}</Badge>
                   <Badge variant="outline" className="capitalize">{plan.plan_type}</Badge>
@@ -124,6 +136,18 @@ export function ServicePlansManager() {
             <div>
               <Label>{t('housing.plans.nameAr')}</Label>
               <Input value={form.name_ar} onChange={e => setForm(f => ({ ...f, name_ar: e.target.value }))} dir="rtl" />
+            </div>
+            <div>
+              <Label>{t('housing.plans.parentService')}</Label>
+              <Select value={form.service_id || '_none'} onValueChange={v => setForm(f => ({ ...f, service_id: v === '_none' ? null : v }))}>
+                <SelectTrigger><SelectValue placeholder={t('housing.plans.noParentService')} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">{t('housing.plans.noParentService')}</SelectItem>
+                  {services.filter(s => s.is_active).map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label>{t('housing.plans.description')}</Label>

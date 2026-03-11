@@ -19,12 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreVertical, Pencil, Trash2, Eye, EyeOff, Tag } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, Eye, EyeOff, Tag, Layers } from "lucide-react";
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 
 interface ServiceCardProps {
   service: TenantService;
+  linkedPlanCount?: number;
   onUpdate: (data: CreateServiceInput & { id: string }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onToggleActive: (id: string, is_active: boolean) => Promise<void>;
@@ -34,6 +35,7 @@ interface ServiceCardProps {
 
 export const ServiceCard = ({
   service,
+  linkedPlanCount = 0,
   onUpdate,
   onDelete,
   onToggleActive,
@@ -94,6 +96,12 @@ export const ServiceCard = ({
                   <span className="text-sm font-medium text-gold">
                     {service.price_display}
                   </span>
+                )}
+                {linkedPlanCount > 0 && (
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <Layers className="w-3 h-3" />
+                    {linkedPlanCount} {linkedPlanCount === 1 ? 'plan' : 'plans'}
+                  </Badge>
                 )}
               </div>
             </div>

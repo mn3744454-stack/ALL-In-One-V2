@@ -7,6 +7,7 @@ import { ServiceFormDialog } from "./ServiceFormDialog";
 interface ServicesListProps {
   services: TenantService[];
   isLoading?: boolean;
+  planCountByServiceId?: Record<string, number>;
   onCreate: (data: CreateServiceInput) => Promise<void>;
   onUpdate: (data: CreateServiceInput & { id: string }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
@@ -19,6 +20,7 @@ interface ServicesListProps {
 export const ServicesList = ({
   services,
   isLoading = false,
+  planCountByServiceId = {},
   onCreate,
   onUpdate,
   onDelete,
@@ -56,6 +58,7 @@ export const ServicesList = ({
         <ServiceCard
           key={service.id}
           service={service}
+          linkedPlanCount={planCountByServiceId[service.id] || 0}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onToggleActive={onToggleActive}
