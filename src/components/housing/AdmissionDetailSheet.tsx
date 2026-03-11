@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } from "@/hooks/housing/useBoardingAdmissions";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { format, differenceInDays } from "date-fns";
