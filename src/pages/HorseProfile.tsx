@@ -433,6 +433,9 @@ const HorseProfile = () => {
           homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
         />
 
+        {/* Movement Timeline */}
+        <HorseMovementTimeline horseId={horse.id} />
+
         {/* Care Notes (Phase 6) */}
         <HorseProfileCareNotes horseId={horse.id} />
 
