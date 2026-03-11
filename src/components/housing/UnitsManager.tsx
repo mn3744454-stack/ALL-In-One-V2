@@ -167,36 +167,41 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
 
         {/* Filters row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
-            setSelectedBranchId(v === "__all__" ? "" : v);
-            setSelectedAreaId('');
-          }}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder={t('housing.areas.selectBranch')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {activeLocations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id}>
-                  {loc.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Only show branch/area filters if not locked */}
+          {!lockedBranchId && (
+            <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
+              setSelectedBranchId(v === "__all__" ? "" : v);
+              setSelectedAreaId('');
+            }}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={t('housing.areas.selectBranch')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                {activeLocations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder={t('housing.units.selectArea')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {activeAreas.map((area) => (
-                <SelectItem key={area.id} value={area.id}>
-                  {area.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!lockedAreaId && (
+            <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={t('housing.units.selectArea')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                {activeAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Select value={typeFilter || "__all__"} onValueChange={(v) => setTypeFilter(v === "__all__" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-[150px]">
