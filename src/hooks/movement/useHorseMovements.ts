@@ -18,6 +18,9 @@ export interface HorseMovement {
   to_area_id: string | null;
   from_unit_id: string | null;
   to_unit_id: string | null;
+  destination_type: string;
+  from_external_location_id: string | null;
+  to_external_location_id: string | null;
   movement_at: string;
   recorded_by: string | null;
   reason: string | null;
@@ -61,6 +64,18 @@ export interface HorseMovement {
     code: string;
     name: string | null;
   };
+  from_external_location?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    location_type: string;
+  };
+  to_external_location?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    location_type: string;
+  };
   recorded_by_profile?: {
     id: string;
     full_name: string | null;
@@ -82,6 +97,9 @@ export interface CreateMovementData {
   internal_location_note?: string;
   is_demo?: boolean;
   clear_housing?: boolean;
+  destination_type?: string;
+  from_external_location_id?: string | null;
+  to_external_location_id?: string | null;
 }
 
 export interface MovementFilters {
@@ -118,7 +136,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
           from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
           to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
           from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
+          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
+          from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
+          to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
         `)
         .eq('tenant_id', tenantId)
         .order('movement_at', { ascending: false });
@@ -176,7 +196,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
         to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
         from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-        to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
+        to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
+        from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
+        to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
       `)
       .eq('tenant_id', tenantId)
       .eq('horse_id', horseId)
@@ -208,6 +230,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         p_internal_location_note: data.internal_location_note || null,
         p_is_demo: data.is_demo || false,
         p_clear_housing: data.clear_housing || false,
+        p_destination_type: data.destination_type || 'internal',
+        p_from_external_location_id: data.from_external_location_id || null,
+        p_to_external_location_id: data.to_external_location_id || null,
       });
 
       if (error) throw error;
@@ -262,14 +287,16 @@ export function useSingleHorseMovements(horseId: string | undefined) {
 
       const { data, error } = await supabase
         .from('horse_movements')
-        .select(`
+      .select(`
           *,
           from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
           to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
           from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
           to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
           from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
+          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
+          from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
+          to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
         `)
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
