@@ -11,19 +11,21 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { useStableServicePlans, type StableServicePlan, type CreatePlanData } from "@/hooks/housing/useStableServicePlans";
+import { useServices } from "@/hooks/useServices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
-import { Plus, Pencil, Package, Trash2 } from "lucide-react";
+import { Plus, Pencil, Package, Trash2, Link2 } from "lucide-react";
 
 export function ServicePlansManager() {
   const { t } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
+  const { data: services = [] } = useServices();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
   const [form, setForm] = useState<CreatePlanData>({
-    name: '', name_ar: '', description: '', plan_type: 'boarding',
+    name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding',
     billing_cycle: 'monthly', base_price: 0, currency: 'SAR',
     is_active: true, is_public: false,
   });
