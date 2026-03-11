@@ -35,6 +35,7 @@ interface ServiceCardProps {
 
 export const ServiceCard = ({
   service,
+  linkedPlanCount = 0,
   onUpdate,
   onDelete,
   onToggleActive,
