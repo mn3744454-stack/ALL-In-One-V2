@@ -169,6 +169,7 @@ const DashboardServices = () => {
             <ServicesList
               services={services}
               isLoading={isLoading}
+              planCountByServiceId={planCountByServiceId}
               onCreate={handleCreate}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
