@@ -42,6 +42,7 @@ import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
+import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 
