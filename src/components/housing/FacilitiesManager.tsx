@@ -11,6 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,17 +24,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useFacilityAreas, FACILITY_TYPES, type FacilityType } from "@/hooks/housing/useFacilityAreas";
+import { useFacilityAreas, FACILITY_TYPES, SUBDIVISION_CONFIG, type FacilityType } from "@/hooks/housing/useFacilityAreas";
+import { UnitsManager } from "./UnitsManager";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { Plus, Building2, Edit, Power, Loader2 } from "lucide-react";
+import { Plus, Building2, Edit, Power, Loader2, LayoutGrid, ChevronRight } from "lucide-react";
 
 export function FacilitiesManager() {
   const { t, dir, lang: language } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
+  const [unitsSheetFacility, setUnitsSheetFacility] = useState<{ id: string; name: string; facilityType: FacilityType } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     name_ar: '',
@@ -151,6 +159,7 @@ export function FacilitiesManager() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {areas.map((area) => {
             const displayName = language === 'ar' && area.name_ar ? area.name_ar : area.name;
+            const config = SUBDIVISION_CONFIG[area.facility_type as FacilityType] || SUBDIVISION_CONFIG.other;
             
             return (
               <Card 
@@ -190,39 +199,80 @@ export function FacilitiesManager() {
                     </p>
                   )}
                   
-                  {canManage && (
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 gap-1"
-                        onClick={() => handleOpenDialog(area.id)}
-                      >
-                        <Edit className="w-3 h-3" />
-                        {t('common.edit')}
-                      </Button>
+                  <div className="flex flex-col gap-2">
+                    {/* Manage internal structure — only for facility types that support children */}
+                    {config.supportsChildren && canManage && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className={cn(
-                          "gap-1",
-                          area.is_active ? "text-destructive" : "text-emerald-600"
-                        )}
-                        onClick={() => toggleAreaActive({ 
-                          id: area.id, 
-                          isActive: !area.is_active 
+                        className="w-full gap-1.5"
+                        onClick={() => setUnitsSheetFacility({
+                          id: area.id,
+                          name: displayName,
+                          facilityType: area.facility_type as FacilityType,
                         })}
                       >
-                        <Power className="w-3 h-3" />
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        {t('housing.facilities.manageSubdivisions')}
+                        <ChevronRight className={cn("w-3.5 h-3.5 ms-auto", dir === 'rtl' && "rotate-180")} />
                       </Button>
-                    </div>
-                  )}
+                    )}
+
+                    {canManage && (
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 gap-1"
+                          onClick={() => handleOpenDialog(area.id)}
+                        >
+                          <Edit className="w-3 h-3" />
+                          {t('common.edit')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "gap-1",
+                            area.is_active ? "text-destructive" : "text-emerald-600"
+                          )}
+                          onClick={() => toggleAreaActive({ 
+                            id: area.id, 
+                            isActive: !area.is_active 
+                          })}
+                        >
+                          <Power className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
+
+      {/* Units Sheet — contextual unit management for a selected facility */}
+      <Sheet open={!!unitsSheetFacility} onOpenChange={(open) => { if (!open) setUnitsSheetFacility(null); }}>
+        <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg md:max-w-2xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <LayoutGrid className="w-5 h-5" />
+              {unitsSheetFacility?.name} — {t('housing.facilities.manageSubdivisions')}
+            </SheetTitle>
+          </SheetHeader>
+          {unitsSheetFacility && (
+            <div className="mt-4">
+              <UnitsManager
+                lockedBranchId={selectedBranchId || undefined}
+                lockedAreaId={unitsSheetFacility.id}
+                facilityType={unitsSheetFacility.facilityType}
+              />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
