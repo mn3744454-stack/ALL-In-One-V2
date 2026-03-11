@@ -32,6 +32,11 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
     return location.city ? `${location.name}, ${location.city}` : location.name;
   };
 
+  const formatExternalLocationName = (location: { name: string; name_ar: string | null; location_type: string } | null) => {
+    if (!location) return null;
+    return location.name;
+  };
+
   // Detect if this is an admission-related movement
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
   const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
