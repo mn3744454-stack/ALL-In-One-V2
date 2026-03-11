@@ -67,10 +67,6 @@ export default function DashboardHousing() {
               <Building2 className="h-4 w-4" />
               {t('housing.tabs.facilities')}
             </TabsTrigger>
-            <TabsTrigger value="units" className="gap-2">
-              <LayoutGrid className="h-4 w-4" />
-              {t('housing.tabs.units')}
-            </TabsTrigger>
             <TabsTrigger value="admissions" className="gap-2">
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
