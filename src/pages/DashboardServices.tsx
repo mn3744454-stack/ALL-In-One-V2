@@ -27,10 +27,21 @@ const DashboardServices = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { data: services = [], isLoading } = useServices();
+  const { plans } = useStableServicePlans();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const deleteService = useDeleteService();
   const toggleActive = useToggleServiceActive();
+
+  const planCountByServiceId = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const plan of plans) {
+      if (plan.service_id) {
+        counts[plan.service_id] = (counts[plan.service_id] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [plans]);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
