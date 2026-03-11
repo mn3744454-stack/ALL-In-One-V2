@@ -252,9 +252,12 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   )}
 
                   {/* Plan */}
-                  {admission.plan_id && (
-                    <DetailRow icon={Package} label={t('housing.plans.title')} value={admission.plan_id} />
-                  )}
+                  {admission.plan_id && (() => {
+                    const { plans } = useStableServicePlans();
+                    const plan = plans.find(p => p.id === admission.plan_id);
+                    const planLabel = plan ? (dir === 'rtl' && plan.name_ar ? plan.name_ar : plan.name) : admission.plan_id;
+                    return <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />;
+                  })()}
 
                   <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={format(new Date(admission.admitted_at), 'PPp')} />
 
