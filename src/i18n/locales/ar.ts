@@ -1740,6 +1740,13 @@ export const ar = {
         emergencyContact: "جهة اتصال الطوارئ",
         statusHistory: "سجل الحالة",
         by: "بواسطة",
+        days: "يوم",
+        assignUnit: "تعيين وحدة",
+        addContact: "إضافة جهة اتصال",
+        notAssigned: "غير معين",
+        addDeparture: "تحديد المغادرة",
+        checkin: "تسجيل دخول",
+        checkout: "إخراج",
       },
       warnings: {
         noClient: "لم يتم تعيين عميل",
