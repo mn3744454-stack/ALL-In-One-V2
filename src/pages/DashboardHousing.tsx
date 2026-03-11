@@ -85,10 +85,6 @@ export default function DashboardHousing() {
             <FacilitiesManager />
           </TabsContent>
 
-          <TabsContent value="units" className="mt-0">
-            <UnitsManager />
-          </TabsContent>
-
           <TabsContent value="admissions" className="mt-0">
             <AdmissionsList />
           </TabsContent>
