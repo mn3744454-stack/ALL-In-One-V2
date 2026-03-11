@@ -98,6 +98,10 @@ export default function DashboardHousing() {
           <TabsContent value="movement" className="mt-0">
             <MovementsList onRecordMovement={() => setRecordDialogOpen(true)} />
           </TabsContent>
+
+          <TabsContent value="incoming" className="mt-0">
+            <IncomingArrivals />
+          </TabsContent>
         </Tabs>
       </div>
 
