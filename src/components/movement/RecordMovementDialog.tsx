@@ -662,42 +662,6 @@ export function RecordMovementDialog({
             </div>
           </div>
         )}
-              {(selectedArea || selectedUnit) && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t("movement.labels.currentHousing")}</span>
-                  <div className={cn("flex items-center gap-2", dir === 'rtl' && "flex-row-reverse")}>
-                    {selectedArea && (
-                      <Badge variant="outline" className="gap-1">
-                        <Building2 className="h-3 w-3" />
-                        {dir === 'rtl' && selectedArea.name_ar ? selectedArea.name_ar : selectedArea.name}
-                      </Badge>
-                    )}
-                    {selectedUnit && (
-                      <Badge className="gap-1">
-                        <DoorOpen className="h-3 w-3" />
-                        {selectedUnit.code}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {formData.internalLocationNote && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t("movement.form.internalLocationNote")}</span>
-                  <span className="font-medium">{formData.internalLocationNote}</span>
-                </div>
-              )}
-
-              {formData.reason && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t("movement.form.reason")}</span>
-                  <span className="font-medium">{formData.reason}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Navigation buttons */}
