@@ -5,11 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UnitsManager, AreasManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
-import { MovementsList, RecordMovementDialog } from "@/components/movement";
+import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/components/movement";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight } from "lucide-react";
+import { AlertCircle, LayoutGrid, Map, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
@@ -19,7 +19,7 @@ export default function DashboardHousing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
 
-  const availableTabs = useMemo(() => ['units', 'areas', 'admissions', 'movement'], []);
+  const availableTabs = useMemo(() => ['units', 'areas', 'admissions', 'movement', 'incoming'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
@@ -77,6 +77,10 @@ export default function DashboardHousing() {
               <ArrowLeftRight className="h-4 w-4" />
               {t('housing.tabs.movement')}
             </TabsTrigger>
+            <TabsTrigger value="incoming" className="gap-2">
+              <ArrowDownToLine className="h-4 w-4" />
+              {t('movement.incoming.title')}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="units" className="mt-0">
@@ -93,6 +97,10 @@ export default function DashboardHousing() {
 
           <TabsContent value="movement" className="mt-0">
             <MovementsList onRecordMovement={() => setRecordDialogOpen(true)} />
+          </TabsContent>
+
+          <TabsContent value="incoming" className="mt-0">
+            <IncomingArrivals />
           </TabsContent>
         </Tabs>
       </div>

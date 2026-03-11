@@ -7,3 +7,4 @@ export * from './MovementBottomNav';
 export * from './LocationsManager';
 export * from './RecordMovementDialog';
 export * from './HorseLocationSection';
+export * from './IncomingArrivals';

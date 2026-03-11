@@ -2567,6 +2567,8 @@ export type Database = {
       }
       horse_movements: {
         Row: {
+          connected_movement_id: string | null
+          connected_tenant_id: string | null
           created_at: string
           destination_type: string
           from_area_id: string | null
@@ -2590,6 +2592,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          connected_movement_id?: string | null
+          connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
           from_area_id?: string | null
@@ -2613,6 +2617,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          connected_movement_id?: string | null
+          connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
           from_area_id?: string | null
@@ -2636,6 +2642,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "horse_movements_connected_tenant_id_fkey"
+            columns: ["connected_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_connected_tenant_id_fkey"
+            columns: ["connected_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "horse_movements_from_area_id_fkey"
             columns: ["from_area_id"]
@@ -4082,6 +4102,131 @@ export type Database = {
             foreignKeyName: "hr_settings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incoming_horse_movements: {
+        Row: {
+          acknowledged_at: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          horse_avatar_url: string | null
+          horse_id: string
+          horse_name: string
+          horse_name_ar: string | null
+          id: string
+          local_movement_id: string | null
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          scheduled_at: string | null
+          sender_movement_id: string
+          sender_tenant_id: string
+          sender_tenant_name: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          horse_avatar_url?: string | null
+          horse_id: string
+          horse_name: string
+          horse_name_ar?: string | null
+          id?: string
+          local_movement_id?: string | null
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          scheduled_at?: string | null
+          sender_movement_id: string
+          sender_tenant_id: string
+          sender_tenant_name?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          horse_avatar_url?: string | null
+          horse_id?: string
+          horse_name?: string
+          horse_name_ar?: string | null
+          id?: string
+          local_movement_id?: string | null
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          scheduled_at?: string | null
+          sender_movement_id?: string
+          sender_tenant_id?: string
+          sender_tenant_name?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incoming_horse_movements_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
+            columns: ["local_movement_id"]
+            isOneToOne: false
+            referencedRelation: "horse_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
+            columns: ["sender_movement_id"]
+            isOneToOne: true
+            referencedRelation: "horse_movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_tenant_id_fkey"
+            columns: ["sender_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
@@ -9023,12 +9168,20 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      cancel_incoming_movement: {
+        Args: { p_incoming_id: string; p_reason?: string }
+        Returns: Json
+      }
       check_tenant_permission: {
         Args: { _permission_key: string; _tenant_id: string; _user_id: string }
         Returns: boolean
       }
       claim_client_portal: { Args: { _token: string }; Returns: string }
       cleanup_connection_rate_limits: { Args: never; Returns: number }
+      confirm_incoming_movement: {
+        Args: { p_incoming_id: string; p_notes?: string }
+        Returns: Json
+      }
       create_connection_request: {
         Args: {
           _connection_type: string
@@ -9296,6 +9449,19 @@ export type Database = {
         Returns: string
       }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
+      record_connected_movement: {
+        Args: {
+          p_connected_tenant_id: string
+          p_from_location_id?: string
+          p_horse_id: string
+          p_is_demo?: boolean
+          p_movement_at?: string
+          p_notes?: string
+          p_reason?: string
+          p_sender_tenant_id: string
+        }
+        Returns: Json
+      }
       record_horse_movement_with_housing:
         | {
             Args: {

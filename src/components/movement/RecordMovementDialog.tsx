@@ -19,11 +19,14 @@ import { useHorses } from "@/hooks/useHorses";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
 import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
+import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
+import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
+import { usePermissions } from "@/hooks/usePermissions";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -33,7 +36,7 @@ interface RecordMovementDialogProps {
   onSuccess?: () => void;
 }
 
-type DestinationType = 'internal' | 'external';
+type DestinationType = 'internal' | 'external' | 'connected';
 
 const ALL_STEPS = ["type", "horse", "location", "housing", "details", "review"] as const;
 type Step = typeof ALL_STEPS[number];
@@ -53,6 +56,7 @@ export function RecordMovementDialog({
     toLocationId: string | null;
     toExternalLocationId: string | null;
     fromExternalLocationId: string | null;
+    connectedTenantId: string | null;
     toAreaId: string | null;
     toUnitId: string | null;
     reason: string;
@@ -62,6 +66,7 @@ export function RecordMovementDialog({
     movementType: null, horseId: null, destinationType: 'internal',
     fromLocationId: null, toLocationId: null,
     toExternalLocationId: null, fromExternalLocationId: null,
+    connectedTenantId: null,
     toAreaId: null, toUnitId: null,
     reason: "", notes: "", internalLocationNote: "",
   });
@@ -76,6 +81,11 @@ export function RecordMovementDialog({
   const { activeLocations } = useLocations();
   const { recordMovement, isRecording } = useHorseMovements();
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
+  const { destinations: connectedDestinations } = useConnectedDestinations();
+  const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
+  const { hasPermission, isOwner } = usePermissions();
+  
+  const canSendConnected = isOwner || hasPermission('movement.connected.create');
   
   // For housing step display in review
   const { activeAreas } = useFacilityAreas(formData.toLocationId || undefined);
@@ -95,8 +105,11 @@ export function RecordMovementDialog({
       case "horse":
         return !!formData.horseId;
       case "location":
+        if (formData.destinationType === 'connected') {
+          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.connectedTenantId;
+          return false;
+        }
         if (formData.destinationType === 'external') {
-          // External: need an external location selected (or for OUT just from_location)
           if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.toExternalLocationId;
           if (formData.movementType === 'in') return !!formData.toLocationId;
           return false;
@@ -111,7 +124,6 @@ export function RecordMovementDialog({
         }
         return false;
       case "housing":
-        // Housing is optional, always can proceed
         return true;
       case "details":
         return true;
@@ -143,6 +155,21 @@ export function RecordMovementDialog({
 
   const handleSubmit = async () => {
     if (!formData.movementType || !formData.horseId) return;
+
+    // Connected movement uses a separate RPC
+    if (formData.destinationType === 'connected' && formData.connectedTenantId) {
+      await recordConnectedMovement({
+        horse_id: formData.horseId,
+        connected_tenant_id: formData.connectedTenantId,
+        from_location_id: formData.fromLocationId,
+        reason: formData.reason || undefined,
+        notes: formData.notes || undefined,
+      });
+      onOpenChange(false);
+      resetForm();
+      onSuccess?.();
+      return;
+    }
 
     const selectedHorse = horses.find(h => h.id === formData.horseId);
     
@@ -176,6 +203,7 @@ export function RecordMovementDialog({
       movementType: null, horseId: null, destinationType: 'internal',
       fromLocationId: null, toLocationId: null,
       toExternalLocationId: null, fromExternalLocationId: null,
+      connectedTenantId: null,
       toAreaId: null, toUnitId: null,
       reason: "", notes: "", internalLocationNote: "",
     });
@@ -195,6 +223,7 @@ export function RecordMovementDialog({
   const toLocation = activeLocations.find(l => l.id === formData.toLocationId);
   const toExtLocation = externalLocations.find(l => l.id === formData.toExternalLocationId);
   const fromExtLocation = externalLocations.find(l => l.id === formData.fromExternalLocationId);
+  const connectedDest = connectedDestinations.find(d => d.id === formData.connectedTenantId);
   const selectedArea = activeAreas.find(a => a.id === formData.toAreaId);
   const selectedUnit = activeUnits.find(u => u.id === formData.toUnitId);
 
@@ -301,29 +330,43 @@ export function RecordMovementDialog({
             {formData.movementType === "out" && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null })}
+                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null, connectedTenantId: null })}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
                     formData.destinationType === 'internal'
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  <Building2 className="h-4 w-4" />
+                  <Building2 className="h-3.5 w-3.5" />
                   {t("movement.destination.internal")}
                 </button>
                 <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null })}
+                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
                     formData.destinationType === 'external'
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/50"
                   )}
                 >
-                  <MapPin className="h-4 w-4" />
+                  <MapPin className="h-3.5 w-3.5" />
                   {t("movement.destination.external")}
                 </button>
+                {canSendConnected && connectedDestinations.length > 0 && (
+                  <button
+                    onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                      formData.destinationType === 'connected'
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    )}
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                    {t("movement.destination.connected")}
+                  </button>
+                )}
               </div>
             )}
             
@@ -460,7 +503,41 @@ export function RecordMovementDialog({
               </div>
             )}
 
-            {/* Internal location note (required for same-branch transfer) */}
+            {/* Connected destination picker */}
+            {formData.movementType === "out" && formData.destinationType === "connected" && (
+              <div className="space-y-2">
+                <Label>{t("movement.destination.connectedEntity")}</Label>
+                <div className="max-h-[200px] overflow-y-auto space-y-2">
+                  {connectedDestinations.map((dest) => (
+                    <button
+                      key={dest.id}
+                      onClick={() => setFormData({ ...formData, connectedTenantId: dest.id })}
+                      className={cn(
+                        "flex items-center gap-3 w-full p-3 rounded-lg border-2 transition-all text-start",
+                        formData.connectedTenantId === dest.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <Link2 className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{dest.tenant_name}</p>
+                        {dest.tenant_type && (
+                          <Badge variant="outline" className="text-xs mt-0.5">
+                            {t(`movement.destination.types.${dest.tenant_type}`)}
+                          </Badge>
+                        )}
+                      </div>
+                      {formData.connectedTenantId === dest.id && (
+                        <Check className="h-5 w-5 text-primary shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {isSameBranchTransfer && (
               <div className="space-y-2">
                 <Label className="text-amber-600">
@@ -551,6 +628,21 @@ export function RecordMovementDialog({
                 </div>
               )}
 
+              {connectedDest && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.destination.connectedEntity")}</span>
+                  <div className="flex items-center gap-2">
+                    <Link2 className="h-3.5 w-3.5 text-primary" />
+                    <span className="font-medium">{connectedDest.tenant_name}</span>
+                    {connectedDest.tenant_type && (
+                      <Badge variant="outline" className="text-xs">
+                        {t(`movement.destination.types.${connectedDest.tenant_type}`)}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {toExtLocation && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("movement.destination.externalLocation")}</span>
@@ -558,34 +650,6 @@ export function RecordMovementDialog({
                     <span className="font-medium">{toExtLocation.name}</span>
                     {toExtLocation.city && <span className="text-xs text-muted-foreground ms-1">({toExtLocation.city})</span>}
                   </div>
-                </div>
-              )}
-
-              {/* Housing info in review */}
-              {(selectedArea || selectedUnit) && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t("movement.labels.currentHousing")}</span>
-                  <div className={cn("flex items-center gap-2", dir === 'rtl' && "flex-row-reverse")}>
-                    {selectedArea && (
-                      <Badge variant="outline" className="gap-1">
-                        <Building2 className="h-3 w-3" />
-                        {dir === 'rtl' && selectedArea.name_ar ? selectedArea.name_ar : selectedArea.name}
-                      </Badge>
-                    )}
-                    {selectedUnit && (
-                      <Badge className="gap-1">
-                        <DoorOpen className="h-3 w-3" />
-                        {selectedUnit.code}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {formData.internalLocationNote && (
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">{t("movement.form.internalLocationNote")}</span>
-                  <span className="font-medium">{formData.internalLocationNote}</span>
                 </div>
               )}
 
@@ -613,7 +677,7 @@ export function RecordMovementDialog({
         </Button>
 
         {step === "review" ? (
-          <Button onClick={handleSubmit} disabled={isRecording}>
+          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected}>
             {t("common.confirm")}
           </Button>
         ) : step === "housing" ? (
