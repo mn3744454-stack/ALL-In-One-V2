@@ -81,6 +81,11 @@ export function RecordMovementDialog({
   const { activeLocations } = useLocations();
   const { recordMovement, isRecording } = useHorseMovements();
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
+  const { destinations: connectedDestinations } = useConnectedDestinations();
+  const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
+  const { hasPermission, isOwner } = usePermissions();
+  
+  const canSendConnected = isOwner || hasPermission('movement.connected.create');
   
   // For housing step display in review
   const { activeAreas } = useFacilityAreas(formData.toLocationId || undefined);
