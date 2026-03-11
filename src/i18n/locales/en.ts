@@ -1716,6 +1716,13 @@ export const en = {
         emergencyContact: "Emergency Contact",
         statusHistory: "Status History",
         by: "by",
+        days: "days",
+        assignUnit: "Assign Unit",
+        addContact: "Add Contact",
+        notAssigned: "Not assigned",
+        addDeparture: "Set Departure",
+        checkin: "Check-in",
+        checkout: "Checkout",
       },
       warnings: {
         noClient: "No client assigned",
