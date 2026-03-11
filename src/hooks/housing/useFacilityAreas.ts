@@ -124,13 +124,15 @@ export function useFacilityAreas(branchId?: string) {
     mutationFn: async ({ id, ...data }: { id: string } & Partial<CreateAreaData>) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
 
+      const updatePayload: Record<string, unknown> = {};
+      if (data.name !== undefined) updatePayload.name = data.name;
+      if (data.name_ar !== undefined) updatePayload.name_ar = data.name_ar;
+      if (data.code !== undefined) updatePayload.code = data.code;
+      if (data.facility_type !== undefined) updatePayload.facility_type = data.facility_type;
+
       const { data: updated, error } = await supabase
         .from('facility_areas')
-        .update({
-          name: data.name,
-          name_ar: data.name_ar,
-          code: data.code,
-        })
+        .update(updatePayload)
         .eq('id', id)
         .eq('tenant_id', tenantId)
         .select()

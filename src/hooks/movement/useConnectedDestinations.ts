@@ -69,8 +69,8 @@ export function useConnectedDestinations() {
         const info = entityMap.get(partnerId);
         const tenantType = info?.entity_subtype || null;
 
-        // Only include allowed destination types
-        if (tenantType && !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
+        // Only include explicitly typed allowed destination types
+        if (!tenantType || !ALLOWED_DESTINATION_TYPES.includes(tenantType)) continue;
 
         results.push({
           id: partnerId,
