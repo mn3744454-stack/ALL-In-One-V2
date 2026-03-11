@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
+import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { useI18n } from "@/i18n";
 import { Plus, Package } from "lucide-react";
 import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement } from "@/hooks/movement/useHorseMovements";
@@ -17,9 +18,21 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
   const { t } = useI18n();
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
+  const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
   
-  const { movements, isLoading, canManage } = useHorseMovements(filters);
+  const { movements, isLoading, canManage, dispatchMovement, isDispatching } = useHorseMovements(filters);
   const { locations } = useLocations();
+
+  const handleDispatch = (movementId: string) => {
+    setDispatchMovementId(movementId);
+  };
+
+  const handleConfirmDispatch = async () => {
+    if (!dispatchMovementId) return;
+    await dispatchMovement({ movementId: dispatchMovementId });
+    setDispatchMovementId(null);
+    setSelectedMovement(null);
+  };
 
   if (isLoading) {
     return (
@@ -36,14 +49,12 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
       <MovementFilters
         filters={filters}
         onFiltersChange={setFilters}
         locations={locations}
       />
 
-      {/* Record button for managers */}
       {canManage && (
         <Button onClick={onRecordMovement} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 me-2" />
@@ -51,7 +62,6 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
         </Button>
       )}
 
-      {/* List or Empty State */}
       {movements.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -75,6 +85,7 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
               key={movement.id}
               movement={movement}
               onClick={() => setSelectedMovement(movement)}
+              onDispatch={handleDispatch}
             />
           ))}
         </div>
@@ -84,6 +95,14 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
         movement={selectedMovement}
         open={!!selectedMovement}
         onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
+        onDispatch={handleDispatch}
+      />
+
+      <DispatchConfirmDialog
+        open={!!dispatchMovementId}
+        onOpenChange={(open) => { if (!open) setDispatchMovementId(null); }}
+        onConfirm={handleConfirmDispatch}
+        isDispatching={isDispatching}
       />
     </div>
   );

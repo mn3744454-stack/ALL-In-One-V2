@@ -48,6 +48,8 @@ export function RecordMovementDialog({
   const isMobile = useIsMobile();
 
   const [step, setStep] = useState<Step>("type");
+  const [scheduleForLater, setScheduleForLater] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [formData, setFormData] = useState<{
     movementType: MovementType | null;
     horseId: string | null;
@@ -162,6 +164,7 @@ export function RecordMovementDialog({
         horse_id: formData.horseId,
         connected_tenant_id: formData.connectedTenantId,
         from_location_id: formData.fromLocationId,
+        movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
       });
@@ -172,6 +175,8 @@ export function RecordMovementDialog({
     }
 
     const selectedHorse = horses.find(h => h.id === formData.horseId);
+    
+    const isScheduled = scheduleForLater && scheduledAt;
     
     const data: CreateMovementData = {
       horse_id: formData.horseId,
@@ -185,10 +190,12 @@ export function RecordMovementDialog({
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
-      clear_housing: formData.movementType === 'out',
+      clear_housing: isScheduled ? false : formData.movementType === 'out',
       destination_type: formData.destinationType,
       from_external_location_id: formData.fromExternalLocationId,
       to_external_location_id: formData.toExternalLocationId,
+      movement_status: isScheduled ? 'scheduled' : undefined,
+      scheduled_at: isScheduled ? scheduledAt : undefined,
     };
 
     await recordMovement(data);
@@ -211,6 +218,8 @@ export function RecordMovementDialog({
     setNewExtName('');
     setNewExtCity('');
     setNewExtType('other');
+    setScheduleForLater(false);
+    setScheduledAt('');
   };
 
   const handleOpenChange = (open: boolean) => {

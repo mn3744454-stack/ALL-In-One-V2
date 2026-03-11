@@ -42,6 +42,7 @@ import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
+import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 
@@ -431,6 +432,9 @@ const HorseProfile = () => {
           currentUnit={horse.unit_data}
           homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
         />
+
+        {/* Movement Timeline */}
+        <HorseMovementTimeline horseId={horse.id} />
 
         {/* Care Notes (Phase 6) */}
         <HorseProfileCareNotes horseId={horse.id} />

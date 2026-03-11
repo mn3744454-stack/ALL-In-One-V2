@@ -4,12 +4,12 @@ import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { FacilitiesManager, UnitsManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
+import { FacilitiesManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
 import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/components/movement";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AlertCircle, Building2, LayoutGrid, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
+import { AlertCircle, Building2, ClipboardCheck, ArrowLeftRight, ArrowDownToLine } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
@@ -19,12 +19,12 @@ export default function DashboardHousing() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
 
-  const availableTabs = useMemo(() => ['facilities', 'units', 'admissions', 'movement', 'incoming'], []);
+  const availableTabs = useMemo(() => ['facilities', 'admissions', 'movement', 'incoming'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
-    // Support legacy 'areas' tab
-    if (urlTab === 'areas') return 'facilities';
+    // Support legacy tabs
+    if (urlTab === 'areas' || urlTab === 'units') return 'facilities';
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
@@ -67,10 +67,6 @@ export default function DashboardHousing() {
               <Building2 className="h-4 w-4" />
               {t('housing.tabs.facilities')}
             </TabsTrigger>
-            <TabsTrigger value="units" className="gap-2">
-              <LayoutGrid className="h-4 w-4" />
-              {t('housing.tabs.units')}
-            </TabsTrigger>
             <TabsTrigger value="admissions" className="gap-2">
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
@@ -87,10 +83,6 @@ export default function DashboardHousing() {
 
           <TabsContent value="facilities" className="mt-0">
             <FacilitiesManager />
-          </TabsContent>
-
-          <TabsContent value="units" className="mt-0">
-            <UnitsManager />
           </TabsContent>
 
           <TabsContent value="admissions" className="mt-0">

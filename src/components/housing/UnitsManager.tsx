@@ -40,7 +40,16 @@ function getUnitStatus(unit: HousingUnit): UnitStatus {
   return 'occupied';
 }
 
-export function UnitsManager() {
+interface UnitsManagerProps {
+  /** When provided, locks the branch filter */
+  lockedBranchId?: string;
+  /** When provided, locks the area/facility filter */
+  lockedAreaId?: string;
+  /** Parent facility type — adapts labels if provided */
+  facilityType?: string;
+}
+
+export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: UnitsManagerProps = {}) {
   const { t } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('');
@@ -54,8 +63,8 @@ export function UnitsManager() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   
   const [formData, setFormData] = useState<Partial<CreateUnitData>>({
-    branch_id: '',
-    area_id: '',
+    branch_id: lockedBranchId || '',
+    area_id: lockedAreaId || '',
     code: '',
     name: '',
     name_ar: '',
@@ -65,15 +74,18 @@ export function UnitsManager() {
     notes: '',
   });
 
+  const effectiveBranchId = lockedBranchId || selectedBranchId;
+  const effectiveAreaId = lockedAreaId || selectedAreaId;
+
   const { activeLocations } = useLocations();
-  const { activeAreas } = useFacilityAreas(selectedBranchId || undefined);
+  const { activeAreas } = useFacilityAreas(effectiveBranchId || undefined);
   const { 
     units, 
     isLoading, 
     canManage, 
     createUnit,
     isCreating,
-  } = useHousingUnits(selectedBranchId || undefined, selectedAreaId || undefined);
+  } = useHousingUnits(effectiveBranchId || undefined, effectiveAreaId || undefined);
 
   const formAreas = useFacilityAreas(formData.branch_id || undefined).activeAreas;
 
@@ -91,8 +103,8 @@ export function UnitsManager() {
 
   const resetForm = () => {
     setFormData({
-      branch_id: selectedBranchId || '',
-      area_id: '',
+      branch_id: lockedBranchId || effectiveBranchId || '',
+      area_id: lockedAreaId || '',
       code: '',
       name: '',
       name_ar: '',
@@ -155,36 +167,41 @@ export function UnitsManager() {
 
         {/* Filters row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
-            setSelectedBranchId(v === "__all__" ? "" : v);
-            setSelectedAreaId('');
-          }}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder={t('housing.areas.selectBranch')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {activeLocations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id}>
-                  {loc.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Only show branch/area filters if not locked */}
+          {!lockedBranchId && (
+            <Select value={selectedBranchId || "__all__"} onValueChange={(v) => {
+              setSelectedBranchId(v === "__all__" ? "" : v);
+              setSelectedAreaId('');
+            }}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={t('housing.areas.selectBranch')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                {activeLocations.map((loc) => (
+                  <SelectItem key={loc.id} value={loc.id}>
+                    {loc.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-          <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder={t('housing.units.selectArea')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {activeAreas.map((area) => (
-                <SelectItem key={area.id} value={area.id}>
-                  {area.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!lockedAreaId && (
+            <Select value={selectedAreaId || "__all__"} onValueChange={(v) => setSelectedAreaId(v === "__all__" ? "" : v)}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder={t('housing.units.selectArea')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{t('common.all')}</SelectItem>
+                {activeAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           <Select value={typeFilter || "__all__"} onValueChange={(v) => setTypeFilter(v === "__all__" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-[150px]">

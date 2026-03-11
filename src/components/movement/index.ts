@@ -1,4 +1,5 @@
 export * from './MovementTypeBadge';
+export * from './MovementStatusBadge';
 export * from './MovementCard';
 export * from './MovementDetailSheet';
 export * from './MovementFilters';
@@ -8,3 +9,5 @@ export * from './LocationsManager';
 export * from './RecordMovementDialog';
 export * from './HorseLocationSection';
 export * from './IncomingArrivals';
+export * from './DispatchConfirmDialog';
+export * from './HorseMovementTimeline';

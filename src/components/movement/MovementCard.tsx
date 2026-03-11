@@ -1,10 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { MovementTypeBadge } from "./MovementTypeBadge";
+import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
+import { usePermissions } from "@/hooks/usePermissions";
 import { format } from "date-fns";
-import { MapPin, ArrowRight, Clock, FileText } from "lucide-react";
+import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 
@@ -12,10 +15,13 @@ interface MovementCardProps {
   movement: HorseMovement;
   showHorse?: boolean;
   onClick?: () => void;
+  onDispatch?: (movementId: string) => void;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch }: MovementCardProps) {
   const { t, dir } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
 
   const ArrowIcon = dir === 'rtl' ? (
     <ArrowRight className="h-4 w-4 rotate-180 text-muted-foreground shrink-0" />
@@ -28,7 +34,6 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
     return location.city ? `${location.name}` : location.name;
   };
 
-  // Detect category for visual distinction
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
   const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
   const isTransfer = movement.movement_type === 'transfer';
@@ -40,14 +45,19 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
     return null;
   };
 
+  const isScheduled = movement.movement_status === 'scheduled';
+
   return (
     <Card
-      className={cn("hover:shadow-md transition-shadow", onClick && "cursor-pointer")}
+      className={cn(
+        "hover:shadow-md transition-shadow",
+        onClick && "cursor-pointer",
+        isScheduled && "border-amber-200 dark:border-amber-800"
+      )}
       onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          {/* Horse Avatar */}
           {showHorse && movement.horse && (
             <Avatar className="h-12 w-12 shrink-0">
               <AvatarImage src={movement.horse.avatar_url || undefined} />
@@ -58,7 +68,6 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
           )}
 
           <div className="flex-1 min-w-0 space-y-2">
-            {/* Header: Horse name + Badge */}
             <div className="flex items-start justify-between gap-2">
               <div>
                 {showHorse && movement.horse && (
@@ -71,7 +80,6 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
                     )}
                   </h4>
                 )}
-                {/* Movement direction */}
                 <div className="flex items-center gap-2 mt-1 text-sm">
                   <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className={cn(
@@ -99,18 +107,25 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
               </div>
               <div className="flex flex-col items-end gap-1">
                 <MovementTypeBadge type={movement.movement_type} size="sm" />
+                <MovementStatusBadge status={movement.movement_status} />
                 {getCategoryBadge()}
               </div>
             </div>
 
-            {/* Internal location note for same-branch transfers */}
+            {/* Scheduled datetime */}
+            {isScheduled && movement.scheduled_at && (
+              <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded">
+                <Calendar className="h-3.5 w-3.5 shrink-0" />
+                <span>{t('movement.lifecycle.scheduledFor')}: {format(new Date(movement.scheduled_at), "MMM d, yyyy 'at' h:mm a")}</span>
+              </div>
+            )}
+
             {movement.internal_location_note && (
               <p className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
                 📍 {movement.internal_location_note}
               </p>
             )}
 
-            {/* Reason */}
             {movement.reason && (
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <FileText className="h-3.5 w-3.5 shrink-0" />
@@ -118,7 +133,6 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
               </div>
             )}
 
-            {/* Footer: Time + Recorded by */}
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -130,6 +144,24 @@ export function MovementCard({ movement, showHorse = true, onClick }: MovementCa
                 </span>
               )}
             </div>
+
+            {/* Dispatch action for scheduled movements */}
+            {isScheduled && canDispatch && onDispatch && (
+              <div className="pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDispatch(movement.id);
+                  }}
+                >
+                  <Truck className="h-3.5 w-3.5" />
+                  {t('movement.lifecycle.confirmDispatch')}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
