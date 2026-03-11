@@ -156,6 +156,21 @@ export function RecordMovementDialog({
   const handleSubmit = async () => {
     if (!formData.movementType || !formData.horseId) return;
 
+    // Connected movement uses a separate RPC
+    if (formData.destinationType === 'connected' && formData.connectedTenantId) {
+      await recordConnectedMovement({
+        horse_id: formData.horseId,
+        connected_tenant_id: formData.connectedTenantId,
+        from_location_id: formData.fromLocationId,
+        reason: formData.reason || undefined,
+        notes: formData.notes || undefined,
+      });
+      onOpenChange(false);
+      resetForm();
+      onSuccess?.();
+      return;
+    }
+
     const selectedHorse = horses.find(h => h.id === formData.horseId);
     
     const data: CreateMovementData = {
@@ -188,6 +203,7 @@ export function RecordMovementDialog({
       movementType: null, horseId: null, destinationType: 'internal',
       fromLocationId: null, toLocationId: null,
       toExternalLocationId: null, fromExternalLocationId: null,
+      connectedTenantId: null,
       toAreaId: null, toUnitId: null,
       reason: "", notes: "", internalLocationNote: "",
     });
