@@ -223,6 +223,7 @@ export function RecordMovementDialog({
   const toLocation = activeLocations.find(l => l.id === formData.toLocationId);
   const toExtLocation = externalLocations.find(l => l.id === formData.toExternalLocationId);
   const fromExtLocation = externalLocations.find(l => l.id === formData.fromExternalLocationId);
+  const connectedDest = connectedDestinations.find(d => d.id === formData.connectedTenantId);
   const selectedArea = activeAreas.find(a => a.id === formData.toAreaId);
   const selectedUnit = activeUnits.find(u => u.id === formData.toUnitId);
 
