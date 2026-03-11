@@ -48,6 +48,8 @@ export function RecordMovementDialog({
   const isMobile = useIsMobile();
 
   const [step, setStep] = useState<Step>("type");
+  const [scheduleForLater, setScheduleForLater] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState('');
   const [formData, setFormData] = useState<{
     movementType: MovementType | null;
     horseId: string | null;
