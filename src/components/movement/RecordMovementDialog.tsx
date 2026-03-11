@@ -628,6 +628,21 @@ export function RecordMovementDialog({
                 </div>
               )}
 
+              {connectedDest && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.destination.connectedEntity")}</span>
+                  <div className="flex items-center gap-2">
+                    <Link2 className="h-3.5 w-3.5 text-primary" />
+                    <span className="font-medium">{connectedDest.tenant_name}</span>
+                    {connectedDest.tenant_type && (
+                      <Badge variant="outline" className="text-xs">
+                        {t(`movement.destination.types.${connectedDest.tenant_type}`)}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {toExtLocation && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("movement.destination.externalLocation")}</span>
@@ -638,7 +653,15 @@ export function RecordMovementDialog({
                 </div>
               )}
 
-              {/* Housing info in review */}
+              {formData.reason && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.form.reason")}</span>
+                  <span className="font-medium">{formData.reason}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
               {(selectedArea || selectedUnit) && (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("movement.labels.currentHousing")}</span>
