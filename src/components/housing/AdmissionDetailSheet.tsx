@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,13 +17,17 @@ import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } 
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useClients } from "@/hooks/useClients";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useTenant } from "@/contexts/TenantContext";
 import { format, differenceInDays } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
-  Pencil, X, Check, Package
+  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
@@ -37,6 +41,8 @@ interface AdmissionDetailSheetProps {
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const canCheckout = hasPermission('boarding.admission.checkout');
   const canUpdate = isOwner || hasPermission('boarding.admission.update');
   const { data: admission, isLoading } = useSingleAdmission(admissionId);
@@ -45,25 +51,69 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { units } = useHousingUnits();
   const { areas } = useFacilityAreas();
   const { plans } = useStableServicePlans();
+  const { clients } = useClients();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [editNumValue, setEditNumValue] = useState<number | null>(null);
 
   const checks = admission?.admission_checks || {};
   const warnings = Object.entries(checks).filter(([, v]: [string, any]) => v?.status === 'warning');
 
   const isEditable = admission && !['checked_out', 'cancelled'].includes(admission.status);
 
+  // Related movements query
+  const { data: relatedMovements = [] } = useQuery({
+    queryKey: ['admission-movements', tenantId, admissionId, admission?.horse_id],
+    queryFn: async () => {
+      if (!tenantId || !admission) return [];
+      const horseId = admission.horse_id;
+      const admittedAt = admission.admitted_at;
+      const checkedOutAt = admission.checked_out_at;
+
+      let query = supabase
+        .from('horse_movements')
+        .select(`
+          id, movement_type, movement_at, reason, notes,
+          from_location:branches!horse_movements_from_location_id_fkey(id, name),
+          to_location:branches!horse_movements_to_location_id_fkey(id, name),
+          from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
+          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
+        `)
+        .eq('tenant_id', tenantId)
+        .eq('horse_id', horseId)
+        .gte('movement_at', admittedAt)
+        .order('movement_at', { ascending: true });
+
+      if (checkedOutAt) {
+        query = query.lte('movement_at', checkedOutAt);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!tenantId && !!admission?.horse_id && open,
+  });
+
   const startEdit = (field: string, currentValue: string) => {
     setEditingField(field);
     setEditValue(currentValue);
+    setEditNumValue(null);
+  };
+
+  const startNumEdit = (field: string, currentValue: number | null) => {
+    setEditingField(field);
+    setEditNumValue(currentValue);
+    setEditValue('');
   };
 
   const cancelEdit = () => {
     setEditingField(null);
     setEditValue('');
+    setEditNumValue(null);
   };
 
   const saveEdit = async (field: string, value: string | null) => {
@@ -73,8 +123,20 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
         admissionId: admission.id,
         [field]: value || null,
       });
-      setEditingField(null);
-      setEditValue('');
+      cancelEdit();
+    } catch {
+      // error handled in mutation
+    }
+  };
+
+  const saveNumEdit = async (field: string, value: number | null) => {
+    if (!admission) return;
+    try {
+      await updateAdmission({
+        admissionId: admission.id,
+        [field]: value,
+      });
+      cancelEdit();
     } catch {
       // error handled in mutation
     }
@@ -89,6 +151,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
         unit_id: unitId || null,
         area_id: unit?.area_id || admission.area_id,
       });
+    } catch {
+      // error handled in mutation
+    }
+  };
+
+  const handleClientChange = async (clientId: string) => {
+    if (!admission) return;
+    try {
+      await updateAdmission({
+        admissionId: admission.id,
+        client_id: clientId === '_none' ? null : clientId,
+      });
+      cancelEdit();
     } catch {
       // error handled in mutation
     }
@@ -112,6 +187,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   })() : null;
 
   const branchUnits = admission ? units.filter(u => u.branch_id === admission.branch_id && u.is_active) : [];
+  const activeClients = useMemo(() => clients.filter(c => c.status === 'active'), [clients]);
 
   return (
     <>
@@ -167,7 +243,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 </CardContent>
               </Card>
 
-              {/* Warnings — now actionable */}
+              {/* Warnings — actionable */}
               {warnings.length > 0 && (
                 <Card className="border-amber-300 bg-amber-50/50 dark:bg-amber-950/20">
                   <CardContent className="p-3 space-y-2">
@@ -197,6 +273,26 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                             {t('housing.admissions.detail.addContact')}
                           </Button>
                         )}
+                        {isEditable && canUpdate && key === 'no_rate' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs shrink-0"
+                            onClick={() => startNumEdit('daily_rate', admission.daily_rate)}
+                          >
+                            {t('housing.admissions.detail.setRate')}
+                          </Button>
+                        )}
+                        {isEditable && canUpdate && key === 'no_client' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs shrink-0"
+                            onClick={() => setEditingField('client_id')}
+                          >
+                            {t('housing.admissions.detail.assignClient')}
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </CardContent>
@@ -206,9 +302,40 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               {/* Details — with inline editing */}
               <Card>
                 <CardContent className="p-4 space-y-3">
-                  {admission.client && (
-                    <DetailRow icon={User} label={t('housing.admissions.detail.client')} value={admission.client.name} />
+                  {/* Client — editable */}
+                  {editingField === 'client_id' ? (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <Select
+                        value={admission.client_id || '_none'}
+                        onValueChange={handleClientChange}
+                      >
+                        <SelectTrigger className="h-8 text-sm flex-1">
+                          <SelectValue placeholder={t('housing.admissions.detail.assignClient')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_none">{t('housing.admissions.wizard.noClient')}</SelectItem>
+                          {activeClients.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.name}{c.name_ar ? ` / ${c.name_ar}` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <EditableDetailRow
+                      icon={User}
+                      label={t('housing.admissions.detail.client')}
+                      value={admission.client?.name || t('housing.admissions.detail.notAssigned')}
+                      canEdit={isEditable && canUpdate}
+                      onEdit={() => setEditingField('client_id')}
+                    />
                   )}
+
                   {admission.branch && (
                     <DetailRow icon={Building2} label={t('housing.admissions.detail.branch')} value={admission.branch.name} />
                   )}
@@ -304,11 +431,74 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={format(new Date(admission.checked_out_at), 'PPp')} />
                   )}
 
-                  {(admission.monthly_rate || admission.daily_rate) && (
-                    <DetailRow
+                  {/* Rate — editable */}
+                  {editingField === 'daily_rate' ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CreditCard className="h-4 w-4 shrink-0" />
+                        <span>{t('housing.admissions.detail.rate')}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.dailyRate')}</label>
+                          <Input
+                            type="number"
+                            value={editNumValue ?? ''}
+                            onChange={e => setEditNumValue(e.target.value ? parseFloat(e.target.value) : null)}
+                            className="h-8 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.monthlyRate')}</label>
+                          <Input
+                            type="number"
+                            value={editValue}
+                            onChange={e => setEditValue(e.target.value)}
+                            className="h-8 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-1 justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7"
+                          onClick={async () => {
+                            if (!admission) return;
+                            try {
+                              await updateAdmission({
+                                admissionId: admission.id,
+                                daily_rate: editNumValue || null,
+                                monthly_rate: editValue ? parseFloat(editValue) : null,
+                              });
+                              cancelEdit();
+                            } catch { /* handled */ }
+                          }}
+                        >
+                          <Check className="h-3.5 w-3.5 me-1" />{t('common.save')}
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7" onClick={cancelEdit}>
+                          {t('common.cancel')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <EditableDetailRow
                       icon={CreditCard}
                       label={t('housing.admissions.detail.rate')}
-                      value={`${admission.monthly_rate ? `${admission.monthly_rate}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}` : ''}${admission.daily_rate ? ` ${admission.daily_rate}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}` : ''} ${admission.rate_currency}`}
+                      value={
+                        (admission.monthly_rate || admission.daily_rate)
+                          ? `${admission.daily_rate ? `${admission.daily_rate}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}` : ''}${admission.daily_rate && admission.monthly_rate ? ' · ' : ''}${admission.monthly_rate ? `${admission.monthly_rate}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}` : ''} ${admission.rate_currency}`
+                          : t('housing.admissions.detail.notAssigned')
+                      }
+                      canEdit={isEditable && canUpdate}
+                      onEdit={() => {
+                        setEditingField('daily_rate');
+                        setEditNumValue(admission.daily_rate);
+                        setEditValue(admission.monthly_rate?.toString() || '');
+                      }}
                     />
                   )}
 
@@ -372,6 +562,47 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   )}
                 </CardContent>
               </Card>
+
+              {/* Related Movements */}
+              {relatedMovements.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <ArrowLeftRight className="h-4 w-4" />
+                      {t('housing.admissions.detail.movements')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-2">
+                      {relatedMovements.map((m: any) => (
+                        <div key={m.id} className="flex items-center gap-2 text-sm">
+                          <MovementTypeIcon type={m.movement_type} />
+                          <span className="text-muted-foreground">
+                            {format(new Date(m.movement_at), 'MMM d, HH:mm')}
+                          </span>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {m.movement_type === 'in'
+                              ? t('housing.admissions.detail.checkin')
+                              : m.movement_type === 'out'
+                              ? t('housing.admissions.detail.checkout')
+                              : t('housing.tabs.movement')}
+                          </Badge>
+                          {m.from_unit && m.to_unit && (
+                            <span className="text-xs text-muted-foreground">
+                              {m.from_unit.code} → {m.to_unit.code}
+                            </span>
+                          )}
+                          {m.reason && (
+                            <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                              {m.reason}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Status History */}
               {history.length > 0 && (
@@ -443,6 +674,15 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
       )}
     </>
   );
+}
+
+function MovementTypeIcon({ type }: { type: string }) {
+  switch (type) {
+    case 'in': return <ArrowRight className="h-3.5 w-3.5 text-green-600 shrink-0" />;
+    case 'out': return <ArrowLeft className="h-3.5 w-3.5 text-red-500 shrink-0" />;
+    case 'transfer': return <ArrowLeftRight className="h-3.5 w-3.5 text-blue-500 shrink-0" />;
+    default: return <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />;
+  }
 }
 
 function StatusBadge({ status, t }: { status: string; t: (key: string) => string }) {
