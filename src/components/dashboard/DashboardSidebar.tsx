@@ -51,6 +51,9 @@ import {
   UserCircle,
   Shield,
   Link2,
+  LayoutGrid,
+  ClipboardCheck,
+  ArrowDownToLine,
 } from "lucide-react";
 
 interface NavItemProps {
