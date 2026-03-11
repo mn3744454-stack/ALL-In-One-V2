@@ -193,10 +193,12 @@ export function RecordMovementDialog({
   const selectedHorse = horses.find(h => h.id === formData.horseId);
   const fromLocation = activeLocations.find(l => l.id === formData.fromLocationId);
   const toLocation = activeLocations.find(l => l.id === formData.toLocationId);
+  const toExtLocation = externalLocations.find(l => l.id === formData.toExternalLocationId);
+  const fromExtLocation = externalLocations.find(l => l.id === formData.fromExternalLocationId);
   const selectedArea = activeAreas.find(a => a.id === formData.toAreaId);
   const selectedUnit = activeUnits.find(u => u.id === formData.toUnitId);
 
-  const isSameBranchTransfer = formData.movementType === 'transfer' && 
+  const isSameBranchTransfer = formData.destinationType === 'internal' && formData.movementType === 'transfer' && 
     formData.fromLocationId && formData.toLocationId && 
     formData.fromLocationId === formData.toLocationId;
 
