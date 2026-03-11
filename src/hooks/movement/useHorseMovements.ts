@@ -18,6 +18,9 @@ export interface HorseMovement {
   to_area_id: string | null;
   from_unit_id: string | null;
   to_unit_id: string | null;
+  destination_type: string;
+  from_external_location_id: string | null;
+  to_external_location_id: string | null;
   movement_at: string;
   recorded_by: string | null;
   reason: string | null;
@@ -60,6 +63,18 @@ export interface HorseMovement {
     id: string;
     code: string;
     name: string | null;
+  };
+  from_external_location?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    location_type: string;
+  };
+  to_external_location?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    location_type: string;
   };
   recorded_by_profile?: {
     id: string;
