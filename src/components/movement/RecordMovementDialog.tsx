@@ -1,15 +1,9 @@
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
+  Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,22 +11,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/i18n";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
+import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -42,13 +33,13 @@ interface RecordMovementDialogProps {
   onSuccess?: () => void;
 }
 
+type DestinationType = 'internal' | 'external';
+
 const ALL_STEPS = ["type", "horse", "location", "housing", "details", "review"] as const;
 type Step = typeof ALL_STEPS[number];
 
 export function RecordMovementDialog({
-  open,
-  onOpenChange,
-  onSuccess,
+  open, onOpenChange, onSuccess,
 }: RecordMovementDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
@@ -57,28 +48,34 @@ export function RecordMovementDialog({
   const [formData, setFormData] = useState<{
     movementType: MovementType | null;
     horseId: string | null;
+    destinationType: DestinationType;
     fromLocationId: string | null;
     toLocationId: string | null;
+    toExternalLocationId: string | null;
+    fromExternalLocationId: string | null;
     toAreaId: string | null;
     toUnitId: string | null;
     reason: string;
     notes: string;
     internalLocationNote: string;
   }>({
-    movementType: null,
-    horseId: null,
-    fromLocationId: null,
-    toLocationId: null,
-    toAreaId: null,
-    toUnitId: null,
-    reason: "",
-    notes: "",
-    internalLocationNote: "",
+    movementType: null, horseId: null, destinationType: 'internal',
+    fromLocationId: null, toLocationId: null,
+    toExternalLocationId: null, fromExternalLocationId: null,
+    toAreaId: null, toUnitId: null,
+    reason: "", notes: "", internalLocationNote: "",
   });
+
+  // Inline new external location form
+  const [showNewExternal, setShowNewExternal] = useState(false);
+  const [newExtName, setNewExtName] = useState('');
+  const [newExtCity, setNewExtCity] = useState('');
+  const [newExtType, setNewExtType] = useState('other');
 
   const { horses } = useHorses();
   const { activeLocations } = useLocations();
   const { recordMovement, isRecording } = useHorseMovements();
+  const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
   
   // For housing step display in review
   const { activeAreas } = useFacilityAreas(formData.toLocationId || undefined);
