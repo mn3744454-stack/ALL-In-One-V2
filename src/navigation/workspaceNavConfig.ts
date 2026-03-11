@@ -145,13 +145,7 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
         route: "/dashboard/laboratory",
         moduleKey: "lab",
       },
-      {
-        key: "movement",
-        icon: ArrowLeftRight,
-        labelKey: "sidebar.movement",
-        route: "/dashboard/movement",
-        moduleKey: "movement",
-      },
+      // Movement consolidated under Housing tab
     ],
   },
   {
