@@ -4,6 +4,29 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
+export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage' | 'other';
+
+export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage', 'other'];
+
+export interface SubdivisionConfig {
+  label: string;
+  labelAr: string;
+  types: string[];
+  supportsChildren: boolean;
+}
+
+export const SUBDIVISION_CONFIG: Record<FacilityType, SubdivisionConfig> = {
+  barn: { label: 'Stall', labelAr: 'إسطبل', types: ['stall', 'box', 'room'], supportsChildren: true },
+  paddock: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section', 'partition'], supportsChildren: true },
+  isolation: { label: 'Bay', labelAr: 'حجرة عزل', types: ['isolation_room', 'isolation_bay'], supportsChildren: true },
+  pasture: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section'], supportsChildren: true },
+  storage: { label: 'Section', labelAr: 'قسم', types: ['section', 'shelf', 'bin'], supportsChildren: true },
+  arena: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  wash_area: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  round_pen: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
+  other: { label: 'Subdivision', labelAr: 'تقسيم', types: ['other'], supportsChildren: true },
+};
+
 export interface FacilityArea {
   id: string;
   tenant_id: string;
@@ -11,6 +34,7 @@ export interface FacilityArea {
   name: string;
   name_ar: string | null;
   code: string | null;
+  facility_type: FacilityType;
   is_active: boolean;
   is_demo: boolean;
   created_at: string;
