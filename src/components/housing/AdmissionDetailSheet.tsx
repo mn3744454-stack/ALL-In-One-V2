@@ -44,6 +44,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { updateAdmission } = useBoardingAdmissions();
   const { units } = useHousingUnits();
   const { areas } = useFacilityAreas();
+  const { plans } = useStableServicePlans();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   // Inline editing state
