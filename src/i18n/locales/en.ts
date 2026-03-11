@@ -1874,6 +1874,12 @@ export const en = {
         notes: "Checkout Notes",
         notesPlaceholder: "Any notes about the checkout...",
         financialReviewPlaceholder: "Financial review will be enhanced in a future update",
+        financialBlock: "Checkout blocked due to outstanding balance",
+        contactManager: "Please contact a manager or owner to override this block.",
+        overrideRequired: "Outstanding balance requires manager override",
+        outstandingAmount: "Outstanding amount",
+        confirmOverride: "Override and Proceed",
+        overrideAccepted: "Financial override confirmed",
       },
     },
     careNotes: {

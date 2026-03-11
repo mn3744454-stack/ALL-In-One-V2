@@ -1898,6 +1898,12 @@ export const ar = {
         notes: "ملاحظات الإخراج",
         notesPlaceholder: "أي ملاحظات حول الإخراج...",
         financialReviewPlaceholder: "سيتم تحسين المراجعة المالية في تحديث مستقبلي",
+        financialBlock: "تم حظر الإخراج بسبب رصيد مستحق",
+        contactManager: "يرجى التواصل مع مدير أو مالك لتجاوز هذا الحظر.",
+        overrideRequired: "الرصيد المستحق يتطلب تجاوز من مدير",
+        outstandingAmount: "المبلغ المستحق",
+        confirmOverride: "تجاوز والمتابعة",
+        overrideAccepted: "تم تأكيد تجاوز المالية",
       },
     },
     careNotes: {
