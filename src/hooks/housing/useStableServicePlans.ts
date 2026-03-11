@@ -28,6 +28,7 @@ export interface CreatePlanData {
   name: string;
   name_ar?: string;
   description?: string;
+  service_id?: string | null;
   plan_type?: string;
   billing_cycle?: string;
   base_price?: number;
