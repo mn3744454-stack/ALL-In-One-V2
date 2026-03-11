@@ -1830,6 +1830,9 @@ export const en = {
       },
       selectPlan: "Select a Plan (optional)",
       noPlan: "No plan (manual rates)",
+      parentService: "Parent Service",
+      noParentService: "No parent service",
+      linkedPlans: "plans",
     },
     checkout: {
       financial: {

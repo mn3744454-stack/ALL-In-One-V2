@@ -1854,6 +1854,9 @@ export const ar = {
       },
       selectPlan: "اختر خطة (اختياري)",
       noPlan: "بدون خطة (أسعار يدوية)",
+      parentService: "الخدمة الأم",
+      noParentService: "بدون خدمة أم",
+      linkedPlans: "خطط",
     },
     checkout: {
       financial: {
