@@ -58,6 +58,11 @@ export const en = {
     from: "From",
     to: "To",
     unknown: "Unknown",
+    active: "Active",
+    inactive: "Inactive",
+    goToDashboard: "Go to Dashboard",
+    backToDashboard: "Back to Dashboard",
+    accessRestricted: "Access Restricted",
   },
   workspace: {
     personal: "Personal",
