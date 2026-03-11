@@ -15,6 +15,7 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { Building2, Package, ArrowLeft, Store, Layers } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
