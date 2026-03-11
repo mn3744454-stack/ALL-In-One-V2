@@ -1955,7 +1955,7 @@ export const en = {
     },
     housing: {
       title: "Housing",
-      description: "Manage units, stalls, and areas",
+      description: "Manage units, stalls, and sections",
     },
     movement: {
       title: "Movement",
