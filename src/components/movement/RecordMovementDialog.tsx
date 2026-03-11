@@ -26,7 +26,8 @@ import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
