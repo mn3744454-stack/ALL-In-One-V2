@@ -8,6 +8,7 @@ import { useI18n } from "@/i18n";
 import { Plus, Package } from "lucide-react";
 import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { useLocations } from "@/hooks/movement/useLocations";
+import { useHorseActiveAdmission } from "@/hooks/housing/useHorseActiveAdmission";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MovementsListProps {
@@ -22,6 +23,15 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
   
   const { movements, isLoading, canManage, dispatchMovement, isDispatching } = useHorseMovements(filters);
   const { locations } = useLocations();
+
+  // Find the horse for the movement being dispatched
+  const dispatchMovement_ = dispatchMovementId
+    ? movements.find(m => m.id === dispatchMovementId)
+    : null;
+  const dispatchHorseId = dispatchMovement_?.horse_id || null;
+
+  // Fetch active admission for the horse being dispatched (for financial gate)
+  const { data: activeAdmission } = useHorseActiveAdmission(dispatchHorseId);
 
   const handleDispatch = (movementId: string) => {
     setDispatchMovementId(movementId);
@@ -103,6 +113,8 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
         onOpenChange={(open) => { if (!open) setDispatchMovementId(null); }}
         onConfirm={handleConfirmDispatch}
         isDispatching={isDispatching}
+        admissionId={activeAdmission?.id || null}
+        clientId={activeAdmission?.client_id || null}
       />
     </div>
   );
