@@ -31,6 +31,7 @@ const TABLE_TO_PREFIXES: Record<string, (tid: string) => string[][]> = {
   horse_orders:           (t) => [['horse-orders', t]],
   horse_order_events:     (t) => [['order-events', t], ['horse-orders', t]],
   horse_movements:        (t) => [['horse-movements', t]],
+  incoming_horse_movements: (t) => [['incoming-movements', t]],
   housing_units:          (t) => [['housing-units', t], ['facility-areas', t]],
   housing_unit_occupants: (t) => [['unit-occupants', t], ['housing-units', t]],
   boarding_admissions:    (t) => [['boarding-admissions', t], ['boarding-admission', t]],
