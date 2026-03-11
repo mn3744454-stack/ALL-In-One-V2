@@ -95,6 +95,13 @@ export function RecordMovementDialog({
       case "horse":
         return !!formData.horseId;
       case "location":
+        if (formData.destinationType === 'external') {
+          // External: need an external location selected (or for OUT just from_location)
+          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.toExternalLocationId;
+          if (formData.movementType === 'in') return !!formData.toLocationId;
+          return false;
+        }
+        // Internal (original logic)
         if (formData.movementType === "in") return !!formData.toLocationId;
         if (formData.movementType === "out") return !!formData.fromLocationId;
         if (formData.movementType === "transfer") {
