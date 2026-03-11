@@ -583,6 +583,42 @@ export function RecordMovementDialog({
             <h3 className="font-medium text-center">{t("movement.wizard.step4Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step4Desc")}</p>
             
+            {/* Schedule for later toggle — only for OUT movements */}
+            {formData.movementType === "out" && (
+              <div className="rounded-lg border p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="schedule-toggle" className="font-medium flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4 text-amber-500" />
+                      {t("movement.lifecycle.scheduleForLater")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("movement.lifecycle.scheduleForLaterDesc")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="schedule-toggle"
+                    checked={scheduleForLater}
+                    onCheckedChange={(checked) => {
+                      setScheduleForLater(checked);
+                      if (!checked) setScheduledAt('');
+                    }}
+                  />
+                </div>
+                {scheduleForLater && (
+                  <div className="space-y-1.5">
+                    <Label>{t("movement.lifecycle.scheduledDateTime")}</Label>
+                    <Input
+                      type="datetime-local"
+                      value={scheduledAt}
+                      onChange={(e) => setScheduledAt(e.target.value)}
+                      min={new Date().toISOString().slice(0, 16)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>{t("movement.form.reason")}</Label>
               <Input
