@@ -40,7 +40,16 @@ function getUnitStatus(unit: HousingUnit): UnitStatus {
   return 'occupied';
 }
 
-export function UnitsManager() {
+interface UnitsManagerProps {
+  /** When provided, locks the branch filter */
+  lockedBranchId?: string;
+  /** When provided, locks the area/facility filter */
+  lockedAreaId?: string;
+  /** Parent facility type — adapts labels if provided */
+  facilityType?: string;
+}
+
+export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: UnitsManagerProps = {}) {
   const { t } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [selectedAreaId, setSelectedAreaId] = useState<string>('');
