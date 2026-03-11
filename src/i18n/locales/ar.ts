@@ -1730,7 +1730,7 @@ export const ar = {
         title: "تفاصيل الإيواء",
         client: "العميل",
         branch: "الفرع",
-        area: "المنطقة",
+        area: "القسم",
         unit: "الوحدة",
         admittedAt: "تاريخ الدخول",
         expectedDeparture: "المغادرة المتوقعة",
