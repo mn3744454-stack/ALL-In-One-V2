@@ -10,7 +10,7 @@ export interface ConnectedDestination {
   connection_id: string;
 }
 
-const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic', 'lab'];
+const ALLOWED_DESTINATION_TYPES = ['stable', 'clinic'];
 
 /**
  * Fetches accepted B2B connections and resolves partner tenant names
