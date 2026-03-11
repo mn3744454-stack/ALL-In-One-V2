@@ -19,11 +19,14 @@ import { useHorses } from "@/hooks/useHorses";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
 import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
+import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
+import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
+import { usePermissions } from "@/hooks/usePermissions";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -33,7 +36,7 @@ interface RecordMovementDialogProps {
   onSuccess?: () => void;
 }
 
-type DestinationType = 'internal' | 'external';
+type DestinationType = 'internal' | 'external' | 'connected';
 
 const ALL_STEPS = ["type", "horse", "location", "housing", "details", "review"] as const;
 type Step = typeof ALL_STEPS[number];
