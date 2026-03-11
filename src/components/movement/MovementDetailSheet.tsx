@@ -9,9 +9,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MovementTypeBadge } from "./MovementTypeBadge";
+import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
+import { usePermissions } from "@/hooks/usePermissions";
 import { format } from "date-fns";
-import { MapPin, ArrowRight, Clock, FileText, ExternalLink } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 
@@ -20,10 +22,13 @@ interface MovementDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onViewAdmission?: (admissionId: string) => void;
+  onDispatch?: (movementId: string) => void;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
+  const { hasPermission, isOwner } = usePermissions();
+  const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
 
   if (!movement) return null;
 
@@ -37,16 +42,16 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
     return location.name;
   };
 
-  // Detect if this is an admission-related movement
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
   const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
   const isTransfer = movement.movement_type === 'transfer';
+  const isScheduled = movement.movement_status === 'scheduled';
 
   const getMovementCategory = () => {
-    if (isAdmissionCheckin) return { label: t('housing.admissions.detail.checkin'), variant: 'default' as const, className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' };
-    if (isAdmissionCheckout) return { label: t('housing.admissions.detail.checkout'), variant: 'default' as const, className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
-    if (isTransfer) return { label: t('movement.types.transfer'), variant: 'default' as const, className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
-    return { label: t('movement.types.manual'), variant: 'outline' as const, className: '' };
+    if (isAdmissionCheckin) return { label: t('housing.admissions.detail.checkin'), className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' };
+    if (isAdmissionCheckout) return { label: t('housing.admissions.detail.checkout'), className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
+    if (isTransfer) return { label: t('movement.types.transfer'), className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
+    return { label: t('movement.types.manual'), className: '' };
   };
 
   const category = getMovementCategory();
@@ -79,6 +84,7 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <MovementTypeBadge type={movement.movement_type} size="sm" />
+                  <MovementStatusBadge status={movement.movement_status} />
                   <Badge className={cn("text-xs", category.className)}>
                     {category.label}
                   </Badge>
@@ -146,11 +152,34 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 </div>
               )}
 
-              {/* Timestamp */}
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-muted-foreground">{t('movement.detail.time')}:</span>
-                <span className="font-medium">{format(new Date(movement.movement_at), "PPp")}</span>
+              {/* Lifecycle timestamps */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">{t('movement.detail.time')}:</span>
+                  <span className="font-medium">{format(new Date(movement.movement_at), "PPp")}</span>
+                </div>
+                {movement.scheduled_at && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4 text-amber-500 shrink-0" />
+                    <span className="text-muted-foreground">{t('movement.lifecycle.scheduledFor')}:</span>
+                    <span className="font-medium">{format(new Date(movement.scheduled_at), "PPp")}</span>
+                  </div>
+                )}
+                {movement.dispatched_at && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Truck className="h-4 w-4 text-blue-500 shrink-0" />
+                    <span className="text-muted-foreground">{t('movement.lifecycle.dispatchedAt')}:</span>
+                    <span className="font-medium">{format(new Date(movement.dispatched_at), "PPp")}</span>
+                  </div>
+                )}
+                {movement.completed_at && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-emerald-500 shrink-0" />
+                    <span className="text-muted-foreground">{t('movement.lifecycle.completedAt')}:</span>
+                    <span className="font-medium">{format(new Date(movement.completed_at), "PPp")}</span>
+                  </div>
+                )}
               </div>
 
               {/* Demo badge */}
@@ -160,7 +189,22 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </CardContent>
           </Card>
 
-          {/* Link to admission (placeholder — needs admission back-reference) */}
+          {/* Dispatch action */}
+          {isScheduled && canDispatch && onDispatch && (
+            <Card className="border-amber-200 dark:border-amber-800">
+              <CardContent className="p-3">
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => onDispatch(movement.id)}
+                >
+                  <Truck className="h-4 w-4" />
+                  {t('movement.lifecycle.confirmDispatch')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Link to admission */}
           {(isAdmissionCheckin || isAdmissionCheckout) && (
             <Card className="border-primary/20">
               <CardContent className="p-3">

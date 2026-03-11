@@ -6,12 +6,14 @@ import { toast } from 'sonner';
 import { startOfDay, startOfWeek, endOfDay } from 'date-fns';
 
 export type MovementType = 'in' | 'out' | 'transfer';
+export type MovementStatus = 'scheduled' | 'dispatched' | 'completed' | 'cancelled';
 
 export interface HorseMovement {
   id: string;
   tenant_id: string;
   horse_id: string;
   movement_type: MovementType;
+  movement_status: MovementStatus;
   from_location_id: string | null;
   to_location_id: string | null;
   from_area_id: string | null;
@@ -22,6 +24,9 @@ export interface HorseMovement {
   from_external_location_id: string | null;
   to_external_location_id: string | null;
   movement_at: string;
+  scheduled_at: string | null;
+  dispatched_at: string | null;
+  completed_at: string | null;
   recorded_by: string | null;
   reason: string | null;
   notes: string | null;
@@ -100,14 +105,30 @@ export interface CreateMovementData {
   destination_type?: string;
   from_external_location_id?: string | null;
   to_external_location_id?: string | null;
+  movement_status?: MovementStatus;
+  scheduled_at?: string;
 }
 
 export interface MovementFilters {
   dateRange?: 'today' | 'week' | 'all';
   locationId?: string;
   movementType?: MovementType;
+  movementStatus?: MovementStatus;
   search?: string;
 }
+
+const MOVEMENT_SELECT = `
+  *,
+  horse:horses!horse_movements_horse_id_fkey(id, name, name_ar, avatar_url),
+  from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
+  to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
+  from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
+  to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
+  from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
+  to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
+  from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
+  to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
+`;
 
 export function useHorseMovements(filters: MovementFilters = {}) {
   const { activeTenant, activeRole } = useTenant();
@@ -116,7 +137,6 @@ export function useHorseMovements(filters: MovementFilters = {}) {
 
   const canManage = activeRole === 'owner' || activeRole === 'manager';
 
-  // Fetch movements with filters
   const {
     data: movements = [],
     isLoading,
@@ -128,22 +148,10 @@ export function useHorseMovements(filters: MovementFilters = {}) {
 
       let query = supabase
         .from('horse_movements')
-        .select(`
-          *,
-          horse:horses!horse_movements_horse_id_fkey(id, name, name_ar, avatar_url),
-          from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
-          to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
-          from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
-          to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
-          from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
-          from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
-          to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
-        `)
+        .select(MOVEMENT_SELECT)
         .eq('tenant_id', tenantId)
         .order('movement_at', { ascending: false });
 
-      // Apply date filter
       if (filters.dateRange === 'today') {
         const todayStart = startOfDay(new Date()).toISOString();
         const todayEnd = endOfDay(new Date()).toISOString();
@@ -153,21 +161,21 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         query = query.gte('movement_at', weekStart);
       }
 
-      // Apply location filter
       if (filters.locationId) {
         query = query.or(`from_location_id.eq.${filters.locationId},to_location_id.eq.${filters.locationId}`);
       }
 
-      // Apply type filter
       if (filters.movementType) {
         query = query.eq('movement_type', filters.movementType);
       }
 
-      const { data, error } = await query.limit(100);
+      if (filters.movementStatus) {
+        query = query.eq('movement_status', filters.movementStatus);
+      }
 
+      const { data, error } = await query.limit(100);
       if (error) throw error;
 
-      // Client-side search filter
       let result = (data || []) as HorseMovement[];
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
@@ -183,23 +191,12 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     enabled: !!tenantId,
   });
 
-  // Fetch movements for a specific horse
   const fetchHorseMovements = async (horseId: string): Promise<HorseMovement[]> => {
     if (!tenantId) return [];
 
     const { data, error } = await supabase
       .from('horse_movements')
-      .select(`
-        *,
-        from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
-        to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
-        from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
-        to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
-        from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-        to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
-        from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
-        to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
-      `)
+      .select(MOVEMENT_SELECT)
       .eq('tenant_id', tenantId)
       .eq('horse_id', horseId)
       .order('movement_at', { ascending: false })
@@ -209,12 +206,11 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     return (data || []) as HorseMovement[];
   };
 
-  // Record new movement using RPC
   const recordMutation = useMutation({
     mutationFn: async (data: CreateMovementData) => {
       if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
 
-      const { data: result, error } = await supabase.rpc('record_horse_movement_with_housing', {
+      const rpcParams: Record<string, unknown> = {
         p_tenant_id: tenantId,
         p_horse_id: data.horse_id,
         p_movement_type: data.movement_type,
@@ -229,24 +225,33 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         p_notes: data.notes || null,
         p_internal_location_note: data.internal_location_note || null,
         p_is_demo: data.is_demo || false,
-        p_clear_housing: data.clear_housing || false,
+        p_clear_housing: data.movement_status === 'scheduled' ? false : (data.clear_housing || false),
         p_destination_type: data.destination_type || 'internal',
         p_from_external_location_id: data.from_external_location_id || null,
         p_to_external_location_id: data.to_external_location_id || null,
-      });
+      };
+
+      // Pass movement_status if RPC supports it
+      if (data.movement_status) {
+        rpcParams.p_movement_status = data.movement_status;
+      }
+
+      const { data: result, error } = await supabase.rpc('record_horse_movement_with_housing', rpcParams as any);
 
       if (error) throw error;
       return result;
     },
-    onSuccess: () => {
-      toast.success(tGlobal('movement.toasts.movementRecorded'));
+    onSuccess: (_, vars) => {
+      const msg = vars.movement_status === 'scheduled' 
+        ? tGlobal('movement.lifecycle.scheduled')
+        : tGlobal('movement.toasts.movementRecorded');
+      toast.success(msg);
       queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['horses'] });
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
     },
     onError: (error: Error) => {
-      // Handle specific error messages from RPC
       const msg = error.message;
       if (msg.includes('single-occupancy')) {
         toast.error(tGlobal('movement.validation.singleOccupied'));
@@ -264,6 +269,30 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     },
   });
 
+  // Dispatch mutation — transitions scheduled → dispatched
+  const dispatchMutation = useMutation({
+    mutationFn: async ({ movementId }: { movementId: string }) => {
+      if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
+      
+      const { data, error } = await supabase.rpc('dispatch_horse_movement' as any, {
+        p_movement_id: movementId,
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success(tGlobal('movement.lifecycle.dispatched'));
+      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['horses'] });
+      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || tGlobal('movement.lifecycle.dispatchFailed'));
+    },
+  });
+
   return {
     movements,
     isLoading,
@@ -272,6 +301,8 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     fetchHorseMovements,
     recordMovement: recordMutation.mutateAsync,
     isRecording: recordMutation.isPending,
+    dispatchMovement: dispatchMutation.mutateAsync,
+    isDispatching: dispatchMutation.isPending,
   };
 }
 
@@ -287,17 +318,7 @@ export function useSingleHorseMovements(horseId: string | undefined) {
 
       const { data, error } = await supabase
         .from('horse_movements')
-      .select(`
-          *,
-          from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
-          to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
-          from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
-          to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
-          from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-          to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
-          from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
-          to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
-        `)
+        .select(MOVEMENT_SELECT)
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
         .order('movement_at', { ascending: false })
