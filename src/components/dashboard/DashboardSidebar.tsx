@@ -514,7 +514,6 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('sidebar.housing')}
                     items={[
                       { icon: Building2, label: t('housing.tabs.facilities'), href: "/dashboard/housing?tab=facilities" },
-                      { icon: LayoutGrid, label: t('housing.tabs.units'), href: "/dashboard/housing?tab=units" },
                       { icon: ClipboardCheck, label: t('housing.tabs.admissions'), href: "/dashboard/housing?tab=admissions" },
                       { icon: ArrowLeftRight, label: t('housing.tabs.movement'), href: "/dashboard/housing?tab=movement" },
                       { icon: ArrowDownToLine, label: t('housing.tabs.incoming'), href: "/dashboard/housing?tab=incoming" },
