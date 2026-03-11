@@ -296,8 +296,38 @@ export function RecordMovementDialog({
           <div className="space-y-4">
             <h3 className="font-medium text-center">{t("movement.wizard.step3Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step3Desc")}</p>
+
+            {/* Destination type toggle — show for OUT movements */}
+            {formData.movementType === "out" && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null })}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    formData.destinationType === 'internal'
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <Building2 className="h-4 w-4" />
+                  {t("movement.destination.internal")}
+                </button>
+                <button
+                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null })}
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                    formData.destinationType === 'external'
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <MapPin className="h-4 w-4" />
+                  {t("movement.destination.external")}
+                </button>
+              </div>
+            )}
             
-            {/* From Location (for OUT and TRANSFER) */}
+            {/* From Location (for OUT and TRANSFER) — always internal */}
             {(formData.movementType === "out" || formData.movementType === "transfer") && (
               <div className="space-y-2">
                 <Label>{t("movement.form.fromLocation")}</Label>
@@ -319,8 +349,8 @@ export function RecordMovementDialog({
               </div>
             )}
 
-            {/* To Location (for IN and TRANSFER) */}
-            {(formData.movementType === "in" || formData.movementType === "transfer") && (
+            {/* To Location — Internal */}
+            {(formData.movementType === "in" || formData.movementType === "transfer" || (formData.movementType === "out" && formData.destinationType === "internal")) && (
               <div className="space-y-2">
                 <Label>{t("movement.form.toLocation")}</Label>
                 <Select
@@ -328,7 +358,6 @@ export function RecordMovementDialog({
                   onValueChange={(value) => setFormData({ 
                     ...formData, 
                     toLocationId: value,
-                    // Reset housing when location changes
                     toAreaId: null,
                     toUnitId: null,
                   })}
@@ -344,6 +373,90 @@ export function RecordMovementDialog({
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* To Location — External */}
+            {formData.movementType === "out" && formData.destinationType === "external" && (
+              <div className="space-y-3">
+                <Label>{t("movement.destination.externalLocation")}</Label>
+                {!showNewExternal ? (
+                  <>
+                    <Select
+                      value={formData.toExternalLocationId || ""}
+                      onValueChange={(value) => setFormData({ ...formData, toExternalLocationId: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("movement.destination.selectExternal")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {externalLocations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.name} {loc.city && `(${loc.city})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 w-full"
+                      onClick={() => setShowNewExternal(true)}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t("movement.destination.addNew")}
+                    </Button>
+                  </>
+                ) : (
+                  <div className="space-y-2 p-3 rounded-lg border border-border bg-muted/30">
+                    <Input
+                      value={newExtName}
+                      onChange={(e) => setNewExtName(e.target.value)}
+                      placeholder={t("movement.destination.locationName")}
+                    />
+                    <Input
+                      value={newExtCity}
+                      onChange={(e) => setNewExtCity(e.target.value)}
+                      placeholder={t("movement.destination.city")}
+                    />
+                    <Select value={newExtType} onValueChange={setNewExtType}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['stable', 'clinic', 'venue', 'farm', 'other'].map(lt => (
+                          <SelectItem key={lt} value={lt}>{t(`movement.destination.types.${lt}`)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => { setShowNewExternal(false); setNewExtName(''); setNewExtCity(''); setNewExtType('other'); }}
+                      >
+                        {t("common.cancel")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="flex-1"
+                        disabled={!newExtName.trim() || isCreatingExternal}
+                        onClick={async () => {
+                          const created = await createExternalLocation({ name: newExtName.trim(), city: newExtCity.trim() || undefined, location_type: newExtType });
+                          setFormData({ ...formData, toExternalLocationId: created.id });
+                          setShowNewExternal(false);
+                          setNewExtName(''); setNewExtCity(''); setNewExtType('other');
+                        }}
+                      >
+                        {t("common.save")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -435,6 +548,16 @@ export function RecordMovementDialog({
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">{t("movement.form.toLocation")}</span>
                   <span className="font-medium">{toLocation.name}</span>
+                </div>
+              )}
+
+              {toExtLocation && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("movement.destination.externalLocation")}</span>
+                  <div className="text-end">
+                    <span className="font-medium">{toExtLocation.name}</span>
+                    {toExtLocation.city && <span className="text-xs text-muted-foreground ms-1">({toExtLocation.city})</span>}
+                  </div>
                 </div>
               )}
 
