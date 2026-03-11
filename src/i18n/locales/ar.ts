@@ -1405,6 +1405,15 @@ export const ar = {
       in: "وصول",
       out: "مغادرة",
       transfer: "نقل",
+      manual: "يدوي",
+    },
+    detail: {
+      title: "تفاصيل الحركة",
+      internalNote: "ملاحظة داخلية",
+      reason: "السبب",
+      time: "الوقت",
+      linkedAdmission: "مرتبطة بإيواء",
+      viewAdmission: "عرض الإيواء",
     },
     filters: {
       all: "الكل",
