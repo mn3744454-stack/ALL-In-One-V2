@@ -7553,6 +7553,7 @@ export type Database = {
           name: string
           name_ar: string | null
           plan_type: string
+          service_id: string | null
           sort_order: number | null
           tenant_id: string
           updated_at: string
@@ -7570,6 +7571,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           plan_type?: string
+          service_id?: string | null
           sort_order?: number | null
           tenant_id: string
           updated_at?: string
@@ -7587,11 +7589,19 @@ export type Database = {
           name?: string
           name_ar?: string | null
           plan_type?: string
+          service_id?: string | null
           sort_order?: number | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "stable_service_plans_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_services"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stable_service_plans_tenant_id_fkey"
             columns: ["tenant_id"]

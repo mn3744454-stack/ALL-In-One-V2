@@ -1,0 +1,1 @@
+ALTER TABLE public.stable_service_plans ADD COLUMN IF NOT EXISTS service_id uuid REFERENCES public.tenant_services(id) ON DELETE SET NULL;
