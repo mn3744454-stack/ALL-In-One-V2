@@ -176,6 +176,8 @@ export function RecordMovementDialog({
 
     const selectedHorse = horses.find(h => h.id === formData.horseId);
     
+    const isScheduled = scheduleForLater && scheduledAt;
+    
     const data: CreateMovementData = {
       horse_id: formData.horseId,
       movement_type: formData.movementType,
@@ -188,10 +190,12 @@ export function RecordMovementDialog({
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
-      clear_housing: formData.movementType === 'out',
+      clear_housing: isScheduled ? false : formData.movementType === 'out',
       destination_type: formData.destinationType,
       from_external_location_id: formData.fromExternalLocationId,
       to_external_location_id: formData.toExternalLocationId,
+      movement_status: isScheduled ? 'scheduled' : undefined,
+      scheduled_at: isScheduled ? scheduledAt : undefined,
     };
 
     await recordMovement(data);
