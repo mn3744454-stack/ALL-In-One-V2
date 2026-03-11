@@ -58,6 +58,7 @@ export const ServicesList = ({
         <ServiceCard
           key={service.id}
           service={service}
+          linkedPlanCount={planCountByServiceId[service.id] || 0}
           onUpdate={onUpdate}
           onDelete={onDelete}
           onToggleActive={onToggleActive}
