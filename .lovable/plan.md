@@ -1,88 +1,309 @@
+Stable Housing / Admissions / Services Forensic Audit
 
+## 1. Executive Diagnosis
 
-# Diagnosis: Why Changes Appear Not Applied
+The system currently has **two disconnected commercial layers** that do not function as one coherent business model:
 
-## The Core Problem
+1. *`tenant_services`** — a flat, generic service catalog `/dashboard/services`) with `name`, `price_display` (string), `service_type`. This behaves like a public-facing or display-oriented catalog, not a structured commercial engine.
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+2. *`stable_service_plans`** — a structured plan system currently exposed through Housing `/housing?tab=plans`) with `base_price`, `billing_cycle`, `currency`, `plan_type`, `includes` JSONB. This is closer to a commercial engine, but it is currently isolated from the main Services philosophy and incorrectly positioned under Housing.
 
-**However, there are real remaining issues the user is seeing:**
+The core structural problem is:
 
-### 1. Realtime Sync Uses WRONG Query Keys
+**There is no single authoritative commercial source of truth for what the stable offers, how it is packaged, how it is priced, what it includes, and how that offering is later consumed by Admissions.**
 
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+Current fragmentation:
 
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+- Services behaves like a generic catalog
 
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+- Plans behaves like a partial pricing engine
 
-### 3. Ledger "Enrich" Button Still Visible
+- Admissions can consume plans, but can also bypass them entirely
 
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
+- Housing contains operational workflows, but also currently contains commercial definitions
 
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
+- Admission Detail is mostly passive
 
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
+- Arrivals & Departures is still a passive log
 
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
+**Final diagnosis:**
 
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
+The system needs a **clear separation between commercial modeling and operational execution**:
 
-### 6. Scope Selector / Statement Content
+- **Services** must become the commercial umbrella
 
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+- **Plans / Packages / Programs** must become structured child definitions under Services
+
+- **Admissions** must consume those structured offerings
+
+- **Housing** must remain an operational layer only
 
 ---
 
-## Execution Plan
+## 2. What the Current System Actually Does
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+### Admission Creation Flow (current)
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+1. Horse — select from active horses
 
-Change the finance table mappings to use the **actual** query key prefixes:
+2. Client — optional
 
-```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
-```
+3. Housing — branch required, area/unit optional
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+4. Plan — optional
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+5. Rates — manual or prefilled
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+6. Details — reason, instructions, emergency contact
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+7. Review — confirm
 
-### Step 3: Hide Backfill Button from Non-Admins
+### Post-Admission Reality
 
-**File:** `src/pages/DashboardFinance.tsx`
+- Admission card appears in list with horse, status, warning count, client, date, unit, rate
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+- Clicking opens `AdmissionDetailSheet` with:
 
-### Step 4: Stabilize Invoice Table Column Widths
+  - horse info
 
-**File:** `src/components/finance/InvoicesList.tsx`
+  - warnings
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+  - client / branch / area / unit / dates / rate / instructions / emergency contact
 
-### Step 5: Fix Expenses Table View Alignment
+  - status history
 
-**File:** `src/components/finance/ExpensesList.tsx`
+  - care notes
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+  - checkout button
 
-### Verification Checklist
+- The panel is mostly read-only and not operational enough
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+### Arrivals & Departures
 
+- Admission check-in generates the movement event
+
+- The list displays movement cards
+
+- The cards are currently passive and non-interactive
+
+### Services Page
+
+- Separate page under `/dashboard/services`
+
+- Uses generic `tenant_services`
+
+- Not truly connected to admissions as a strong source of truth
+
+- Feels more like generic business showcase/catalog than structured commercial modeling
+
+---
+
+## 3. Where the UX and Business Model Are Misaligned
+
+| Problem | Evidence |
+
+|---------|----------|
+
+| Services is too flat and generic | `tenant_services` does not contain enough structure for stable commercial modeling |
+
+| Plans exist but in the wrong place | `stable_service_plans` lives under Housing, even though it is commercial, not operational |
+
+| Admissions are still too manual | plan selection is optional and pricing can still be freely composed |
+
+| Admission Detail is too passive | warnings are displayed but not actionable; key stay data is not editable |
+
+| Arrivals & Departures is a dead-end log | non-clickable cards, no drill-down, no back-link to admission |
+
+| Care Notes are useful but isolated | they are not yet meaningfully tied to reusable service definitions |
+
+The diagnosis is confirmed:
+
+1. Admissions are still too manually assembled  
+
+2. Services is not yet the real source of truth  
+
+3. Admission Detail is too passive  
+
+4. Arrivals & Departures is too passive  
+
+5. Care Notes are present but not yet integrated into a broader reusable service model  
+
+---
+
+## 4. Services vs Admissions vs Housing
+
+### Correct responsibilities
+
+| Layer | Correct Responsibility |
+
+|-------|----------------------|
+
+| **Services** | Commercial definition layer. What the stable offers, how it is grouped, packaged, priced, and what it includes. |
+
+| **Plans / Packages / Programs** | Structured child offerings inside Services. They are not separate from Services philosophically; they are sub-structures within the Services domain. |
+
+| **Housing** | Operational facility layer. Units, areas, occupancy, physical assignment. |
+
+| **Admissions** | Transactional stay layer. A concrete horse stay that consumes a service/package/plan and executes it inside Housing. |
+
+| **Arrivals & Departures** | Event/timeline layer. Logs operational movement and links back to admission context. |
+
+| **Care Notes** | Operational artifact layer. Instructions and records attached to the horse or admission; some may later be generated from selected services/plans. |
+
+### Final structural principle
+
+**Services should be the umbrella.  
+
+Plans should not compete with Services.  
+
+Plans should live under Services.  
+
+Housing should not own commercial definitions.**
+
+---
+
+## 5. Recommended Service Modeling for the Stable Domain
+
+### Current problem
+
+There are currently two disconnected models:
+
+- `tenant_services`
+
+- `stable_service_plans`
+
+Neither is sufficient alone.
+
+### Final recommendation
+
+Use **Services as the top-level commercial model**, and place **Plans / Packages / Programs** under it.
+
+### Recommended future structure
+
+#### Service
+
+Represents the broad offering family, such as:
+
+- Boarding
+
+- Training
+
+- Riding
+
+- Medical Boarding
+
+- Rehabilitation
+
+- Premium Care
+
+- Temporary Stay
+
+- Breeding Support
+
+#### Under each Service
+
+Allow structured child definitions such as:
+
+- plans
+
+- packages
+
+- programs
+
+- included items
+
+- defaults
+
+- pricing models
+
+- billing cycle rules
+
+### Implication
+
+`stable_service_plans` should not remain conceptually isolated.
+
+It should evolve into one of the structured child layers under the broader Services domain.
+
+### What to do with current tables
+
+- Either evolve `tenant_services` into a richer stable-capable commercial model
+
+- Or keep `tenant_services` as the parent service layer and let `stable_service_plans` become the child structured offering layer
+
+- But do **not** leave them conceptually separate and parallel forever
+
+### Best direction
+
+For stable accounts:
+
+- `tenant_services` becomes the umbrella commercial object
+
+- `stable_service_plans` becomes the structured child offering object
+
+- Admissions consume the child offering
+
+- Services page becomes the place where the user defines both the service and its plans/packages/programs
+
+---
+
+## 6. Services vs Packages vs Plans vs Programs
+
+### Recommended meaning in the Stable domain
+
+| Term | Meaning |
+
+|------|---------|
+
+| **Service** | Broad commercial offering family (e.g. Boarding, Training, Rehab) |
+
+| **Plan** | A pricing/timing structure for a service (e.g. Monthly Boarding Plan, Daily Rehab Plan) |
+
+| **Package** | A bundled included-content offering under a service/plan (e.g. boarding + feed + grooming + weekly vet check) |
+
+| **Program** | A more structured or time-based offering (e.g. 8-week conditioning program, 30-day rehabilitation program) |
+
+### Important rule
+
+Do not make these four terms four unrelated systems.
+
+They should be modeled as related commercial constructs inside the broader Services architecture.
+
+---
+
+## 7. Recommended Admission Wizard Structure
+
+Current:
+
+1. Horse
+
+2. Client
+
+3. Housing
+
+4. Plan
+
+5. Rates
+
+6. Details
+
+7. Review
+
+### Recommended future order
+
+```text
+
+1. Horse
+
+2. Client
+
+3. Service
+
+4. Plan / Package / Program
+
+5. Housing
+
+6. Rates & Terms
+
+7. Care & Details
+
+8. Review
