@@ -1471,8 +1471,8 @@ export const en = {
     },
     housing: {
       selectLocationFirst: "Select a destination first",
-      noAreasInBranch: "No areas in this branch",
-      noUnitsInArea: "No units in this area",
+      noAreasInBranch: "No sections in this branch",
+      noUnitsInArea: "No units in this section",
       occupied: "Occupied",
       available: "Available",
     },
