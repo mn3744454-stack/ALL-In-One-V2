@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
+import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
 import { useI18n } from "@/i18n";
 import { Plus, Package } from "lucide-react";
-import { useHorseMovements, type MovementFilters as FiltersType } from "@/hooks/movement/useHorseMovements";
+import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -15,6 +16,7 @@ interface MovementsListProps {
 export function MovementsList({ onRecordMovement }: MovementsListProps) {
   const { t } = useI18n();
   const [filters, setFilters] = useState<FiltersType>({});
+  const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   
   const { movements, isLoading, canManage } = useHorseMovements(filters);
   const { locations } = useLocations();
@@ -69,10 +71,20 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
       ) : (
         <div className="space-y-3">
           {movements.map((movement) => (
-            <MovementCard key={movement.id} movement={movement} />
+            <MovementCard
+              key={movement.id}
+              movement={movement}
+              onClick={() => setSelectedMovement(movement)}
+            />
           ))}
         </div>
       )}
+
+      <MovementDetailSheet
+        movement={selectedMovement}
+        open={!!selectedMovement}
+        onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
+      />
     </div>
   );
 }
