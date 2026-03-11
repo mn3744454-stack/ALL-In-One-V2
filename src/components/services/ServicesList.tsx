@@ -20,6 +20,7 @@ interface ServicesListProps {
 export const ServicesList = ({
   services,
   isLoading = false,
+  planCountByServiceId = {},
   onCreate,
   onUpdate,
   onDelete,
