@@ -1662,6 +1662,7 @@ export const en = {
       activated: "Facility activated",
       deactivated: "Facility deactivated",
       active: "active facilities",
+      manageSubdivisions: "Manage Internal Structure",
     },
     areas: {
       title: "Facility Sections",
