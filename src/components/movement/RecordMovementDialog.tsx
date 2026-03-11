@@ -56,6 +56,7 @@ export function RecordMovementDialog({
     toLocationId: string | null;
     toExternalLocationId: string | null;
     fromExternalLocationId: string | null;
+    connectedTenantId: string | null;
     toAreaId: string | null;
     toUnitId: string | null;
     reason: string;
@@ -65,6 +66,7 @@ export function RecordMovementDialog({
     movementType: null, horseId: null, destinationType: 'internal',
     fromLocationId: null, toLocationId: null,
     toExternalLocationId: null, fromExternalLocationId: null,
+    connectedTenantId: null,
     toAreaId: null, toUnitId: null,
     reason: "", notes: "", internalLocationNote: "",
   });
