@@ -7,6 +7,7 @@ import { ServiceFormDialog } from "./ServiceFormDialog";
 interface ServicesListProps {
   services: TenantService[];
   isLoading?: boolean;
+  planCountByServiceId?: Record<string, number>;
   onCreate: (data: CreateServiceInput) => Promise<void>;
   onUpdate: (data: CreateServiceInput & { id: string }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
