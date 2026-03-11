@@ -196,7 +196,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
         to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
         from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
-        to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
+        to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name),
+        from_external_location:external_locations!horse_movements_from_external_location_id_fkey(id, name, name_ar, location_type),
+        to_external_location:external_locations!horse_movements_to_external_location_id_fkey(id, name, name_ar, location_type)
       `)
       .eq('tenant_id', tenantId)
       .eq('horse_id', horseId)
