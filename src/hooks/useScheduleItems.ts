@@ -152,7 +152,7 @@ export function useScheduleItems({ tenantId, dateRange, modules }: UseScheduleIt
             startAt: m.movement_at,
             entityType: "horse_movement",
             entityId: m.id,
-            routeToOpen: "/dashboard/movement",
+            routeToOpen: "/dashboard/housing?tab=movement",
             horseName: m.horse?.name,
             color: "orange",
           });
