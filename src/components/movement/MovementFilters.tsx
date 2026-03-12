@@ -39,6 +39,14 @@ export function MovementFilters({
     { value: "transfer", label: t("movement.types.transfer") },
   ];
 
+  const statusOptions = [
+    { value: "all", label: t("movement.filters.allStatuses") },
+    { value: "scheduled", label: t("movement.lifecycle.statusScheduled") },
+    { value: "dispatched", label: t("movement.lifecycle.statusDispatched") },
+    { value: "completed", label: t("movement.lifecycle.statusCompleted") },
+    { value: "cancelled", label: t("movement.lifecycle.statusCancelled") },
+  ];
+
   return (
     <div className="space-y-3">
       {/* Search */}
