@@ -522,35 +522,43 @@ export function RecordMovementDialog({
             {formData.movementType === "out" && formData.destinationType === "connected" && (
               <div className="space-y-2">
                 <Label>{t("movement.destination.connectedEntity")}</Label>
-                <div className="max-h-[200px] overflow-y-auto space-y-2">
-                  {connectedDestinations.map((dest) => (
-                    <button
-                      key={dest.id}
-                      onClick={() => setFormData({ ...formData, connectedTenantId: dest.id })}
-                      className={cn(
-                        "flex items-center gap-3 w-full p-3 rounded-lg border-2 transition-all text-start",
-                        formData.connectedTenantId === dest.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Link2 className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{dest.tenant_name}</p>
-                        {dest.tenant_type && (
-                          <Badge variant="outline" className="text-xs mt-0.5">
-                            {t(`movement.destination.types.${dest.tenant_type}`)}
-                          </Badge>
+                {connectedDestinations.length === 0 ? (
+                  <div className="p-4 rounded-lg border border-dashed border-border text-center space-y-1">
+                    <Link2 className="h-5 w-5 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">{t("movement.destination.noConnectedDestinations")}</p>
+                    <p className="text-xs text-muted-foreground">{t("movement.destination.noConnectedDestinationsHint")}</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[200px] overflow-y-auto space-y-2">
+                    {connectedDestinations.map((dest) => (
+                      <button
+                        key={dest.id}
+                        onClick={() => setFormData({ ...formData, connectedTenantId: dest.id })}
+                        className={cn(
+                          "flex items-center gap-3 w-full p-3 rounded-lg border-2 transition-all text-start",
+                          formData.connectedTenantId === dest.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
                         )}
-                      </div>
-                      {formData.connectedTenantId === dest.id && (
-                        <Check className="h-5 w-5 text-primary shrink-0" />
-                      )}
-                    </button>
-                  ))}
-                </div>
+                      >
+                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                          <Link2 className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{dest.tenant_name}</p>
+                          {dest.tenant_type && (
+                            <Badge variant="outline" className="text-xs mt-0.5">
+                              {t(`movement.destination.types.${dest.tenant_type}`)}
+                            </Badge>
+                          )}
+                        </div>
+                        {formData.connectedTenantId === dest.id && (
+                          <Check className="h-5 w-5 text-primary shrink-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {isSameBranchTransfer && (
