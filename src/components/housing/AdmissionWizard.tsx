@@ -424,6 +424,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         return (
           <div className="space-y-4">
             <div>
+              <Label>{t('housing.admissions.wizard.arrivalDate')}</Label>
+              <Input
+                type="datetime-local"
+                value={form.arrivalDate}
+                onChange={e => setForm(f => ({ ...f, arrivalDate: e.target.value }))}
+                max={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">{t('housing.admissions.wizard.arrivalDateHint')}</p>
+            </div>
+            <div>
               <Label>{t('housing.admissions.wizard.reason')}</Label>
               <Select value={form.reason} onValueChange={v => setForm(f => ({ ...f, reason: v }))}>
                 <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectReason')} /></SelectTrigger>

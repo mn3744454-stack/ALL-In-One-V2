@@ -24,12 +24,15 @@ import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useConnections } from "@/hooks/connections/useConnections";
+import { AddPartnerDialog } from "@/components/connections/AddPartnerDialog";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
 import { Switch } from "@/components/ui/switch";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface RecordMovementDialogProps {
   open: boolean;
