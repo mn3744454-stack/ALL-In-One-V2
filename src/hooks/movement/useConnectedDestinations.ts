@@ -58,6 +58,28 @@ export function useConnectedDestinations() {
         }
       }
 
+      // For partners with null subtype, try direct tenant lookup as fallback
+      const missingSubtypeIds = partnerIds.filter(id => {
+        const info = entityMap.get(id);
+        return !info || !info.entity_subtype;
+      });
+
+      if (missingSubtypeIds.length > 0) {
+        const { data: tenantRows } = await supabase
+          .from('tenants')
+          .select('id, name, type')
+          .in('id', missingSubtypeIds);
+        if (tenantRows) {
+          for (const t of tenantRows) {
+            const existing = entityMap.get(t.id);
+            entityMap.set(t.id, {
+              display_name: existing?.display_name || t.name || 'Unknown',
+              entity_subtype: existing?.entity_subtype || t.type,
+            });
+          }
+        }
+      }
+
       // Build destinations, filter by allowed types
       const results: ConnectedDestination[] = [];
       for (const conn of connections) {
