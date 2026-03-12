@@ -23,6 +23,7 @@ interface HorseLocationSectionProps {
     id: string;
     name: string;
     name_ar?: string | null;
+    facility_type?: string | null;
   } | null;
   currentUnit?: {
     id: string;
