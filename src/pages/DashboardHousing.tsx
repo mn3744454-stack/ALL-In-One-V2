@@ -28,7 +28,7 @@ export default function DashboardHousing() {
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
-    return 'facilities';
+    return 'admissions';
   }, [searchParams, availableTabs]);
 
   const handleTabChange = (tab: string) => {

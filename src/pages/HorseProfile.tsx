@@ -304,6 +304,12 @@ const HorseProfile = () => {
           </CardContent>
         </Card>
 
+        {/* Active Admission Card — primary operational info */}
+        <HorseAdmissionCard horseId={horse.id} />
+
+        {/* Profile Completeness Warning */}
+        <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
+
         {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Physical Specs */}
