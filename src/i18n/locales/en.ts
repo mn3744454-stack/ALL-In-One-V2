@@ -1832,6 +1832,11 @@ export const en = {
       },
       list: {
         since: "Since",
+        facility: "Facility",
+        stayDuration: "Stay",
+        daysUnit: "d",
+        billingStatus: "Billing",
+        noBilling: "No rate set",
       },
       detail: {
         title: "Admission Detail",
