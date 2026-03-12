@@ -26,7 +26,21 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
     );
   }
 
-  if (movements.length === 0) return null;
+  if (movements.length === 0) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <History className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            {t('movement.timeline.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">{t('movement.timeline.noMovements')}</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const formatLocation = (loc: { name: string; city: string | null } | null | undefined) => {
     if (!loc) return null;

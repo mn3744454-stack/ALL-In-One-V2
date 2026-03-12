@@ -107,7 +107,9 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
               </div>
               <div className="flex flex-col items-end gap-1">
                 <MovementTypeBadge type={movement.movement_type} size="sm" />
-                <MovementStatusBadge status={movement.movement_status} />
+                {movement.movement_status !== 'completed' && (
+                  <MovementStatusBadge status={movement.movement_status} />
+                )}
                 {getCategoryBadge()}
               </div>
             </div>

@@ -1689,6 +1689,11 @@ export const ar = {
       deactivated: "تم إلغاء تفعيل المرفق",
       active: "مرافق نشطة",
       manageSubdivisions: "إدارة البنية الداخلية",
+      manageStalls: "إدارة البوكسات",
+      manageZones: "إدارة المناطق",
+      manageBays: "إدارة الحجرات",
+      manageSections: "إدارة الأقسام",
+      manageSubunits: "إدارة التقسيمات",
     },
     areas: {
       title: "أقسام المنشأة",

@@ -58,11 +58,14 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
       if (gate.needsOverride && overrideConfirmed && user?.id) {
         const overrideData = {
           ...((admission.admission_checks as Record<string, any>) || {}),
-          balance_override: {
+          checkout_balance_override: {
             status: 'overridden',
             overridden_by: user.id,
             overridden_at: new Date().toISOString(),
             outstanding_amount: gate.outstandingAmount,
+            admission_balance: gate.admissionBalance,
+            client_balance: gate.clientBalance,
+            context: 'checkout',
           },
         };
         await (supabase as any)

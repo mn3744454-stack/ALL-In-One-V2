@@ -4,7 +4,7 @@ export * from './HousingBottomNav';
 export * from './UnitCard';
 export * from './UnitDetailsSheet';
 export * from './AssignHorseDialog';
-export * from './AreasManager';
+// AreasManager is legacy — use FacilitiesManager instead
 export * from './FacilitiesManager';
 export * from './UnitsManager';
 export * from './HousingStats';

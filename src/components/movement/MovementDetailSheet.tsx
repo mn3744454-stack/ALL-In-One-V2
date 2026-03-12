@@ -84,7 +84,9 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <MovementTypeBadge type={movement.movement_type} size="sm" />
-                  <MovementStatusBadge status={movement.movement_status} />
+                  {movement.movement_status !== 'completed' && (
+                    <MovementStatusBadge status={movement.movement_status} />
+                  )}
                   <Badge className={cn("text-xs", category.className)}>
                     {category.label}
                   </Badge>

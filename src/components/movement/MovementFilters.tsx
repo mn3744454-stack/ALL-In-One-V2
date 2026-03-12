@@ -125,6 +125,28 @@ export function MovementFilters({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Status filter */}
+        <Select
+          value={filters.movementStatus || "all"}
+          onValueChange={(value) =>
+            onFiltersChange({
+              ...filters,
+              movementStatus: value === "all" ? undefined : value as "scheduled" | "dispatched" | "completed" | "cancelled",
+            })
+          }
+        >
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder={t("movement.filters.allStatuses")} />
+          </SelectTrigger>
+          <SelectContent>
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

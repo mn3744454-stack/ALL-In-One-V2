@@ -1665,6 +1665,11 @@ export const en = {
       deactivated: "Facility deactivated",
       active: "active facilities",
       manageSubdivisions: "Manage Internal Structure",
+      manageStalls: "Manage Stalls",
+      manageZones: "Manage Zones",
+      manageBays: "Manage Bays",
+      manageSections: "Manage Sections",
+      manageSubunits: "Manage Subdivisions",
     },
     areas: {
       title: "Facility Sections",
