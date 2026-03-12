@@ -1884,6 +1884,8 @@ export const en = {
         stepReview: "Review",
         overrideHint: "You can override below",
         selectHorse: "Select Horse",
+        arrivalDate: "Arrival Date",
+        arrivalDateHint: "Leave empty for today. Set a past date for historical admissions.",
         selectClient: "Client / Payer (optional)",
         noClient: "No client (assign later)",
         branch: "Branch",
