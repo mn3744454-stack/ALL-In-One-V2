@@ -1406,6 +1406,8 @@ export const en = {
       requestPartnership: "Request Partnership",
       partnershipRequested: "Partnership request sent",
       orUseExternal: "Or use External destination for non-partner locations",
+      pendingRequests: "Pending Requests",
+      awaitingResponse: "Awaiting response",
       types: {
         stable: "Stable",
         clinic: "Clinic",

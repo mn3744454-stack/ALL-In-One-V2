@@ -1430,6 +1430,8 @@ export const ar = {
       requestPartnership: "طلب شراكة",
       partnershipRequested: "تم إرسال طلب الشراكة",
       orUseExternal: "أو استخدم الوجهة الخارجية للمواقع غير الشريكة",
+      pendingRequests: "طلبات معلقة",
+      awaitingResponse: "بانتظار الرد",
       types: {
         stable: "إسطبل",
         clinic: "عيادة",
