@@ -55,6 +55,10 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { plans } = useStableServicePlans();
   const { clients } = useClients();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+
+  // Billing links for this admission
+  const { links: billingLinks, isLoading: billingLinksLoading } = useBillingLinks("boarding", admissionId || undefined);
 
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
