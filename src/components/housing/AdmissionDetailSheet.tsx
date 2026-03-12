@@ -579,7 +579,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   <CardContent className="p-4 pt-0">
                     <div className="space-y-2">
                       {relatedMovements.map((m: any) => (
-                        <div key={m.id} className="flex items-center gap-2 text-sm">
+                        <div key={m.id} className="flex items-center gap-2 text-sm flex-wrap">
                           <MovementTypeIcon type={m.movement_type} />
                           <span className="text-muted-foreground">
                             {format(new Date(m.movement_at), 'MMM d, HH:mm')}
@@ -591,6 +591,9 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               ? t('housing.admissions.detail.checkout')
                               : t('housing.tabs.movement')}
                           </Badge>
+                          {m.movement_status && m.movement_status !== 'completed' && (
+                            <Badge variant="secondary" className="text-[10px]">{m.movement_status}</Badge>
+                          )}
                           {m.from_unit && m.to_unit && (
                             <span className="text-xs text-muted-foreground">
                               {m.from_unit.code} → {m.to_unit.code}
