@@ -528,10 +528,21 @@ export function RecordMovementDialog({
               <div className="space-y-2">
                 <Label>{t("movement.destination.connectedEntity")}</Label>
                 {connectedDestinations.length === 0 ? (
-                  <div className="p-4 rounded-lg border border-dashed border-border text-center space-y-1">
+                  <div className="p-4 rounded-lg border border-dashed border-border text-center space-y-2">
                     <Link2 className="h-5 w-5 mx-auto text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">{t("movement.destination.noConnectedDestinations")}</p>
                     <p className="text-xs text-muted-foreground">{t("movement.destination.noConnectedDestinationsHint")}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 mt-1"
+                      onClick={() => setShowPartnerRequest(true)}
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      {t("movement.destination.requestPartnership")}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground pt-1">{t("movement.destination.orUseExternal")}</p>
                   </div>
                 ) : (
                   <div className="max-h-[200px] overflow-y-auto space-y-2">
