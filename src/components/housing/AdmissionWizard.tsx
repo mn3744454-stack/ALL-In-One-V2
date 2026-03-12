@@ -164,6 +164,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         special_instructions: form.specialInstructions || undefined,
         emergency_contact: form.emergencyContact || undefined,
         expected_departure: form.expectedDeparture || null,
+        admitted_at: form.arrivalDate || undefined,
       };
 
       await createAdmission(data);
