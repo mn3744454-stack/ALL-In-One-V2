@@ -38,10 +38,27 @@ export function AdmissionsList() {
   const { t } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<AdmissionStatus | 'all'>('active');
   const [search, setSearch] = useState('');
   const [wizardOpen, setWizardOpen] = useState(false);
   const [selectedAdmissionId, setSelectedAdmissionId] = useState<string | null>(null);
+  const [preselectedHorseId, setPreselectedHorseId] = useState<string | undefined>(undefined);
+
+  // Handle startAdmission query param from IncomingArrivals
+  useEffect(() => {
+    const shouldStart = searchParams.get('startAdmission');
+    const horseId = searchParams.get('horseId');
+    if (shouldStart === 'true' && canCreate) {
+      setPreselectedHorseId(horseId || undefined);
+      setWizardOpen(true);
+      // Clear the query params to prevent re-triggering on refresh
+      const next = new URLSearchParams(searchParams);
+      next.delete('startAdmission');
+      next.delete('horseId');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, canCreate, setSearchParams]);
 
   const { admissions, isLoading } = useBoardingAdmissions({
     status: statusFilter,
