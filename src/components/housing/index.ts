@@ -18,3 +18,4 @@ export * from './ServicePlansManager';
 export * from './BoardingDashboardWidgets';
 export * from './HorseAdmissionCard';
 export * from './HorseProfileCareNotes';
+export * from './CreateInvoiceFromAdmission';
