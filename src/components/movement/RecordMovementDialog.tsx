@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -25,11 +26,13 @@ import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useConnections } from "@/hooks/connections/useConnections";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
 import { AddPartnerDialog } from "@/components/connections/AddPartnerDialog";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
 import { Switch } from "@/components/ui/switch";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -50,6 +53,7 @@ export function RecordMovementDialog({
 }: RecordMovementDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
+  const { activeTenant } = useTenant();
 
   const [step, setStep] = useState<Step>("type");
   const [scheduleForLater, setScheduleForLater] = useState(false);
@@ -91,6 +95,30 @@ export function RecordMovementDialog({
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
   const { destinations: connectedDestinations } = useConnectedDestinations();
   const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
+  
+  // Fetch pending outbound B2B connection requests for inline display
+  const { data: pendingOutboundRequests = [] } = useQuery({
+    queryKey: ['pending-outbound-b2b', activeTenant?.tenant?.id],
+    queryFn: async () => {
+      const tenantId = activeTenant?.tenant?.id;
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('connections')
+        .select('id, recipient_tenant_id, created_at')
+        .eq('initiator_tenant_id', tenantId)
+        .eq('connection_type', 'b2b')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      if (error || !data?.length) return [];
+      // Resolve names
+      const ids = data.map(c => c.recipient_tenant_id).filter(Boolean) as string[];
+      if (!ids.length) return [];
+      const { data: tenants } = await supabase.from('tenants').select('id, name').in('id', ids);
+      const nameMap = new Map((tenants || []).map(t => [t.id, t.name]));
+      return data.map(c => ({ id: c.id, name: nameMap.get(c.recipient_tenant_id!) || 'Unknown', created_at: c.created_at }));
+    },
+    enabled: !!activeTenant?.tenant?.id,
+  });
   const { hasPermission, isOwner } = usePermissions();
   const { createConnection } = useConnections();
   
@@ -546,6 +574,18 @@ export function RecordMovementDialog({
                       {t("movement.destination.requestPartnership")}
                     </Button>
                     <p className="text-[10px] text-muted-foreground pt-1">{t("movement.destination.orUseExternal")}</p>
+                    {pendingOutboundRequests.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Pending Requests</p>
+                        {pendingOutboundRequests.map((req: any) => (
+                          <div key={req.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3 text-amber-500 shrink-0" />
+                            <span className="truncate">{req.name}</span>
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-600 border-amber-300">Awaiting response</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="max-h-[200px] overflow-y-auto space-y-2">

@@ -80,7 +80,7 @@ interface Horse {
   color_data?: { name: string } | null;
   branch_data?: { name: string; id: string } | null;
   stable_data?: { name: string } | null;
-  area_data?: { id: string; name: string; name_ar: string | null } | null;
+  area_data?: { id: string; name: string; name_ar: string | null; facility_type?: string | null } | null;
   unit_data?: { id: string; code: string; name: string | null; name_ar: string | null } | null;
 }
 
@@ -113,7 +113,7 @@ const HorseProfile = () => {
           color_data:horse_colors(name),
           branch_data:branches!branch_id(id, name),
           stable_data:stables(name),
-          area_data:facility_areas!current_area_id(id, name, name_ar),
+          area_data:facility_areas!current_area_id(id, name, name_ar, facility_type),
           unit_data:housing_units!housing_unit_id(id, code, name, name_ar)
         `)
         .eq("id", id)
@@ -401,20 +401,31 @@ const HorseProfile = () => {
                 {t('horses.profile.location')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3">
+             <CardContent className="space-y-2 sm:space-y-3">
               {horse.branch_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-muted-foreground">{t('horses.profile.branch')}</span>
                   <span className="font-medium">{horse.branch_data.name}</span>
                 </div>
               )}
-              {horse.stable_data?.name && (
+              {horse.area_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-muted-foreground">{t('horses.profile.stable')}</span>
-                  <span className="font-medium">{horse.stable_data.name}</span>
+                  <span className="text-muted-foreground">{t('housing.admissions.detail.facility')}</span>
+                  <span className="font-medium">
+                    {horse.area_data.name}
+                    {horse.area_data.facility_type && (
+                      <span className="text-muted-foreground text-sm ms-1">({t(`housing.facilityTypes.${horse.area_data.facility_type}`)})</span>
+                    )}
+                  </span>
                 </div>
               )}
-              {!horse.branch_data?.name && !horse.stable_data?.name && (
+              {horse.unit_data && (
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('housing.admissions.detail.unit')}</span>
+                  <span className="font-medium">{horse.unit_data.code}{horse.unit_data.name ? ` - ${horse.unit_data.name}` : ''}</span>
+                </div>
+              )}
+              {!horse.branch_data?.name && !horse.area_data?.name && (
                 <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noLocation')}</p>
               )}
             </CardContent>

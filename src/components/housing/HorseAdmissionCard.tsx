@@ -31,6 +31,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           id, status, admitted_at, expected_departure, billing_cycle, rate_currency, monthly_rate, daily_rate,
           client:clients!client_id(id, name, name_ar),
           branch:branches!branch_id(id, name),
+          area:facility_areas!area_id(id, name, name_ar, facility_type),
           unit:housing_units!unit_id(id, code, name)
         `)
         .eq('tenant_id', tenantId)
@@ -79,6 +80,15 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           <Badge className={statusColors[admission.status] || ''}>
             {t(`housing.admissions.status.${admission.status === 'checkout_pending' ? 'checkoutPending' : admission.status}`)}
           </Badge>
+          {admission.area && (
+            <Badge variant="outline" className="gap-1 text-xs">
+              <Building2 className="h-3 w-3" />
+              {admission.area.name}
+              {admission.area.facility_type && (
+                <span className="opacity-60">({t(`housing.facilityTypes.${admission.area.facility_type}`)})</span>
+              )}
+            </Badge>
+          )}
           {admission.unit && (
             <Badge variant="secondary" className="gap-1">
               <DoorOpen className="h-3 w-3" />
