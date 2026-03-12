@@ -721,6 +721,14 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           }}
         />
       )}
+
+      {admission && (
+        <CreateInvoiceFromAdmission
+          admission={admission}
+          open={invoiceDialogOpen}
+          onOpenChange={setInvoiceDialogOpen}
+        />
+      )}
     </>
   );
 }
