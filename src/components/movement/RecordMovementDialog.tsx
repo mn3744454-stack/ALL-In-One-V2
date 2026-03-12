@@ -82,6 +82,7 @@ export function RecordMovementDialog({
   const [newExtName, setNewExtName] = useState('');
   const [newExtCity, setNewExtCity] = useState('');
   const [newExtType, setNewExtType] = useState('other');
+  const [showPartnerRequest, setShowPartnerRequest] = useState(false);
 
   const { horses } = useHorses();
   const { activeLocations } = useLocations();
@@ -90,6 +91,7 @@ export function RecordMovementDialog({
   const { destinations: connectedDestinations } = useConnectedDestinations();
   const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
   const { hasPermission, isOwner } = usePermissions();
+  const { createConnection, isCreating: isCreatingConnection } = useConnections();
   
   const canSendConnected = isOwner || hasPermission('movement.connected.create');
   
