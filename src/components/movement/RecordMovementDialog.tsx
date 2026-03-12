@@ -54,6 +54,7 @@ export function RecordMovementDialog({
   const [step, setStep] = useState<Step>("type");
   const [scheduleForLater, setScheduleForLater] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
+  const [movementDate, setMovementDate] = useState('');
   const [formData, setFormData] = useState<{
     movementType: MovementType | null;
     horseId: string | null;
