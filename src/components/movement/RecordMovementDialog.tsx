@@ -228,6 +228,7 @@ export function RecordMovementDialog({
     setNewExtType('other');
     setScheduleForLater(false);
     setScheduledAt('');
+    setMovementDate('');
   };
 
   const handleOpenChange = (open: boolean) => {
