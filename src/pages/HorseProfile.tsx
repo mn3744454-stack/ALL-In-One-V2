@@ -432,8 +432,11 @@ const HorseProfile = () => {
           </Card>
         </div>
 
-        {/* Active Admission Card (Phase 4) */}
+        {/* Active Admission Card — promoted above physical details for operational emphasis */}
         <HorseAdmissionCard horseId={horse.id} />
+
+        {/* Profile Completeness Warning */}
+        <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
 
         {/* Housing & Movement Section */}
         <HorseLocationSection
