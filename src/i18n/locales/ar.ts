@@ -1478,6 +1478,7 @@ export const ar = {
     timeline: {
       title: "سجل الحركات",
       admissionLinked: "إيواء",
+      noMovements: "لا يوجد سجل حركات بعد",
     },
     nextStep: {
       title: "تم تأكيد الوصول",
@@ -1493,6 +1494,7 @@ export const ar = {
       thisWeek: "هذا الأسبوع",
       allLocations: "جميع المواقع",
       allTypes: "جميع الأنواع",
+      allStatuses: "جميع الحالات",
       searchPlaceholder: "البحث في الخيول...",
     },
     list: {
@@ -1687,6 +1689,11 @@ export const ar = {
       deactivated: "تم إلغاء تفعيل المرفق",
       active: "مرافق نشطة",
       manageSubdivisions: "إدارة البنية الداخلية",
+      manageStalls: "إدارة البوكسات",
+      manageZones: "إدارة المناطق",
+      manageBays: "إدارة الحجرات",
+      manageSections: "إدارة الأقسام",
+      manageSubunits: "إدارة التقسيمات",
     },
     areas: {
       title: "أقسام المنشأة",

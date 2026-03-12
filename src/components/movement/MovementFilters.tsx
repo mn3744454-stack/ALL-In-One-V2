@@ -39,6 +39,14 @@ export function MovementFilters({
     { value: "transfer", label: t("movement.types.transfer") },
   ];
 
+  const statusOptions = [
+    { value: "all", label: t("movement.filters.allStatuses") },
+    { value: "scheduled", label: t("movement.lifecycle.statusScheduled") },
+    { value: "dispatched", label: t("movement.lifecycle.statusDispatched") },
+    { value: "completed", label: t("movement.lifecycle.statusCompleted") },
+    { value: "cancelled", label: t("movement.lifecycle.statusCancelled") },
+  ];
+
   return (
     <div className="space-y-3">
       {/* Search */}
@@ -111,6 +119,28 @@ export function MovementFilters({
           </SelectTrigger>
           <SelectContent>
             {typeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Status filter */}
+        <Select
+          value={filters.movementStatus || "all"}
+          onValueChange={(value) =>
+            onFiltersChange({
+              ...filters,
+              movementStatus: value === "all" ? undefined : value as "scheduled" | "dispatched" | "completed" | "cancelled",
+            })
+          }
+        >
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder={t("movement.filters.allStatuses")} />
+          </SelectTrigger>
+          <SelectContent>
+            {statusOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>

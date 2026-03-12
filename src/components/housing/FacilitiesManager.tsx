@@ -31,6 +31,17 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Plus, Building2, Edit, Power, Loader2, LayoutGrid, ChevronRight } from "lucide-react";
 
+function getManageKey(type: FacilityType): string {
+  switch (type) {
+    case 'barn': return 'manageStalls';
+    case 'paddock':
+    case 'pasture': return 'manageZones';
+    case 'isolation': return 'manageBays';
+    case 'storage': return 'manageSections';
+    default: return 'manageSubunits';
+  }
+}
+
 export function FacilitiesManager() {
   const { t, dir, lang: language } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
@@ -213,7 +224,7 @@ export function FacilitiesManager() {
                         })}
                       >
                         <LayoutGrid className="w-3.5 h-3.5" />
-                        {t('housing.facilities.manageSubdivisions')}
+                        {t(`housing.facilities.${getManageKey(area.facility_type as FacilityType)}`)}
                         <ChevronRight className={cn("w-3.5 h-3.5 ms-auto", dir === 'rtl' && "rotate-180")} />
                       </Button>
                     )}

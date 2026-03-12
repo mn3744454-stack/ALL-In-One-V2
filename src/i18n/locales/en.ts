@@ -1454,6 +1454,7 @@ export const en = {
     timeline: {
       title: "Movement History",
       admissionLinked: "Admission",
+      noMovements: "No movement history yet",
     },
     nextStep: {
       title: "Arrival Confirmed",
@@ -1469,6 +1470,7 @@ export const en = {
       thisWeek: "This Week",
       allLocations: "All Locations",
       allTypes: "All Types",
+      allStatuses: "All Statuses",
       searchPlaceholder: "Search horses...",
     },
     list: {
@@ -1663,6 +1665,11 @@ export const en = {
       deactivated: "Facility deactivated",
       active: "active facilities",
       manageSubdivisions: "Manage Internal Structure",
+      manageStalls: "Manage Stalls",
+      manageZones: "Manage Zones",
+      manageBays: "Manage Bays",
+      manageSections: "Manage Sections",
+      manageSubunits: "Manage Subdivisions",
     },
     areas: {
       title: "Facility Sections",
