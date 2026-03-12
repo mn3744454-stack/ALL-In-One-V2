@@ -1470,6 +1470,7 @@ export const en = {
       thisWeek: "This Week",
       allLocations: "All Locations",
       allTypes: "All Types",
+      allStatuses: "All Statuses",
       searchPlaceholder: "Search horses...",
     },
     list: {
