@@ -31,6 +31,17 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Plus, Building2, Edit, Power, Loader2, LayoutGrid, ChevronRight } from "lucide-react";
 
+function getManageKey(type: FacilityType): string {
+  switch (type) {
+    case 'barn': return 'manageStalls';
+    case 'paddock':
+    case 'pasture': return 'manageZones';
+    case 'isolation': return 'manageBays';
+    case 'storage': return 'manageSections';
+    default: return 'manageSubunits';
+  }
+}
+
 export function FacilitiesManager() {
   const { t, dir, lang: language } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
