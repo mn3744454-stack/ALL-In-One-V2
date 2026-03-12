@@ -1425,6 +1425,8 @@ export const ar = {
       locationName: "اسم الموقع",
       city: "المدينة",
       connectedEntity: "الجهة المتصلة",
+      noConnectedDestinations: "لا توجد إسطبلات أو عيادات متصلة",
+      noConnectedDestinationsHint: "أنشئ شراكة مع إسطبل أو عيادة أخرى لتفعيل النقل المتصل",
       types: {
         stable: "إسطبل",
         clinic: "عيادة",
