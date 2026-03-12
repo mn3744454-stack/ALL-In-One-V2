@@ -1856,6 +1856,11 @@ export const ar = {
       },
       list: {
         since: "منذ",
+        facility: "المرفق",
+        stayDuration: "مدة الإقامة",
+        daysUnit: "ي",
+        billingStatus: "الفوترة",
+        noBilling: "لم يتم تحديد سعر",
       },
       detail: {
         title: "تفاصيل الإيواء",
