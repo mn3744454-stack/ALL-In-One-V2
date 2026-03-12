@@ -80,6 +80,15 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           <Badge className={statusColors[admission.status] || ''}>
             {t(`housing.admissions.status.${admission.status === 'checkout_pending' ? 'checkoutPending' : admission.status}`)}
           </Badge>
+          {admission.area && (
+            <Badge variant="outline" className="gap-1 text-xs">
+              <Building2 className="h-3 w-3" />
+              {admission.area.name}
+              {admission.area.facility_type && (
+                <span className="opacity-60">({t(`housing.facilityTypes.${admission.area.facility_type}`)})</span>
+              )}
+            </Badge>
+          )}
           {admission.unit && (
             <Badge variant="secondary" className="gap-1">
               <DoorOpen className="h-3 w-3" />

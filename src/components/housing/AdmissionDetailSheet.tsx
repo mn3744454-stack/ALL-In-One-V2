@@ -76,7 +76,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
       let query = supabase
         .from('horse_movements')
         .select(`
-          id, movement_type, movement_at, reason, notes,
+          id, movement_type, movement_status, movement_at, reason, notes,
           from_location:branches!horse_movements_from_location_id_fkey(id, name),
           to_location:branches!horse_movements_to_location_id_fkey(id, name),
           from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),

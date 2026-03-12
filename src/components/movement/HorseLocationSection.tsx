@@ -107,6 +107,9 @@ export function HorseLocationSection({
                 <Badge variant="outline" className="gap-1">
                   <Building2 className="h-3 w-3" />
                   {dir === 'rtl' && currentArea.name_ar ? currentArea.name_ar : currentArea.name}
+                  {currentArea.facility_type && (
+                    <span className="opacity-60 text-[10px]">({t(`housing.facilityTypes.${currentArea.facility_type}`)})</span>
+                  )}
                 </Badge>
               )}
               {currentUnit && (

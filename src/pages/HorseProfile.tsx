@@ -401,20 +401,31 @@ const HorseProfile = () => {
                 {t('horses.profile.location')}
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3">
+             <CardContent className="space-y-2 sm:space-y-3">
               {horse.branch_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-muted-foreground">{t('horses.profile.branch')}</span>
                   <span className="font-medium">{horse.branch_data.name}</span>
                 </div>
               )}
-              {horse.stable_data?.name && (
+              {horse.area_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-muted-foreground">{t('horses.profile.stable')}</span>
-                  <span className="font-medium">{horse.stable_data.name}</span>
+                  <span className="text-muted-foreground">{t('housing.admissions.detail.facility')}</span>
+                  <span className="font-medium">
+                    {horse.area_data.name}
+                    {horse.area_data.facility_type && (
+                      <span className="text-muted-foreground text-sm ms-1">({t(`housing.facilityTypes.${horse.area_data.facility_type}`)})</span>
+                    )}
+                  </span>
                 </div>
               )}
-              {!horse.branch_data?.name && !horse.stable_data?.name && (
+              {horse.unit_data && (
+                <div className="flex justify-between text-sm sm:text-base">
+                  <span className="text-muted-foreground">{t('housing.admissions.detail.unit')}</span>
+                  <span className="font-medium">{horse.unit_data.code}{horse.unit_data.name ? ` - ${horse.unit_data.name}` : ''}</span>
+                </div>
+              )}
+              {!horse.branch_data?.name && !horse.area_data?.name && (
                 <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noLocation')}</p>
               )}
             </CardContent>
