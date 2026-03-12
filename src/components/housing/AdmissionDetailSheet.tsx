@@ -17,6 +17,7 @@ import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } 
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
@@ -27,10 +28,11 @@ import { format, differenceInDays } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
-  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft
+  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft, Receipt
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
+import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
 
 interface AdmissionDetailSheetProps {
   admissionId: string | null;
@@ -53,6 +55,10 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { plans } = useStableServicePlans();
   const { clients } = useClients();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+
+  // Billing links for this admission
+  const { links: billingLinks, isLoading: billingLinksLoading } = useBillingLinks("boarding", admissionId || undefined);
 
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -647,12 +653,48 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 />
               )}
 
+              {/* Linked Invoices */}
+              {billingLinks.length > 0 && (
+                <Card>
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Receipt className="h-4 w-4" />
+                      {t('housing.admissions.billing.linkedInvoices')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="space-y-2">
+                      {billingLinks.map((link) => (
+                        <div key={link.id} className="flex items-center justify-between text-sm border rounded-md p-2">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="capitalize">{link.link_kind}</span>
+                          </div>
+                          <span className="font-medium">{link.amount?.toFixed(2) || '—'} {admission.rate_currency || 'SAR'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Actions */}
-              {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
-                <div className="flex gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
+                {admission.status === 'active' && (admission.daily_rate || admission.monthly_rate) && (
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    className="w-full"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4 me-1" />
+                    {t('housing.admissions.billing.generateInvoice')}
+                  </Button>
+                )}
+
+                {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
                     onClick={() => setCheckoutOpen(true)}
                   >
                     <LogOut className="h-4 w-4 me-1" />
@@ -661,8 +703,8 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       : t('housing.admissions.checkout.initiateCheckout')
                     }
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </SheetContent>
@@ -677,6 +719,14 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
             setCheckoutOpen(false);
             onOpenChange(false);
           }}
+        />
+      )}
+
+      {admission && (
+        <CreateInvoiceFromAdmission
+          admission={admission}
+          open={invoiceDialogOpen}
+          onOpenChange={setInvoiceDialogOpen}
         />
       )}
     </>

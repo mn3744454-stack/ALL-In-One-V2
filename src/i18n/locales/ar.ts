@@ -2950,6 +2950,8 @@ export const ar = {
       noLocation: "لا يوجد موقع محدد",
       mediaGallery: "معرض الوسائط",
       notes: "الملاحظات",
+      incompleteTitle: "ملف غير مكتمل",
+      completeProfile: "إكمال الملف",
     },
     mediaGallery: {
       zoomIn: "تكبير",
