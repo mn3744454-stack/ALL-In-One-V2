@@ -24,12 +24,15 @@ import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useConnections } from "@/hooks/connections/useConnections";
+import { AddPartnerDialog } from "@/components/connections/AddPartnerDialog";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { HousingSelector } from "./HousingSelector";
 import { Switch } from "@/components/ui/switch";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar } from "lucide-react";
+import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Check, ChevronLeft, ChevronRight, Building2, DoorOpen, MapPin, Plus, Link2, Calendar, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface RecordMovementDialogProps {
   open: boolean;
@@ -79,6 +82,7 @@ export function RecordMovementDialog({
   const [newExtName, setNewExtName] = useState('');
   const [newExtCity, setNewExtCity] = useState('');
   const [newExtType, setNewExtType] = useState('other');
+  const [showPartnerRequest, setShowPartnerRequest] = useState(false);
 
   const { horses } = useHorses();
   const { activeLocations } = useLocations();
@@ -87,6 +91,7 @@ export function RecordMovementDialog({
   const { destinations: connectedDestinations } = useConnectedDestinations();
   const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
   const { hasPermission, isOwner } = usePermissions();
+  const { createConnection } = useConnections();
   
   const canSendConnected = isOwner || hasPermission('movement.connected.create');
   
@@ -523,10 +528,21 @@ export function RecordMovementDialog({
               <div className="space-y-2">
                 <Label>{t("movement.destination.connectedEntity")}</Label>
                 {connectedDestinations.length === 0 ? (
-                  <div className="p-4 rounded-lg border border-dashed border-border text-center space-y-1">
+                  <div className="p-4 rounded-lg border border-dashed border-border text-center space-y-2">
                     <Link2 className="h-5 w-5 mx-auto text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">{t("movement.destination.noConnectedDestinations")}</p>
                     <p className="text-xs text-muted-foreground">{t("movement.destination.noConnectedDestinationsHint")}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 mt-1"
+                      onClick={() => setShowPartnerRequest(true)}
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      {t("movement.destination.requestPartnership")}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground pt-1">{t("movement.destination.orUseExternal")}</p>
                   </div>
                 ) : (
                   <div className="max-h-[200px] overflow-y-auto space-y-2">
@@ -764,29 +780,60 @@ export function RecordMovementDialog({
     </div>
   );
 
+  const handlePartnerRequest = async (recipientTenantId: string) => {
+    try {
+      await createConnection.mutateAsync({
+        connectionType: 'b2b',
+        recipientTenantId,
+      });
+      setShowPartnerRequest(false);
+      toast.success(t("movement.destination.partnershipRequested"));
+    } catch {
+      // Error handled in mutation
+    }
+  };
+
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-8 overflow-y-auto">
-            {content}
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={open} onOpenChange={handleOpenChange}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader>
+              <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-8 overflow-y-auto">
+              {content}
+            </div>
+          </DrawerContent>
+        </Drawer>
+        <AddPartnerDialog
+          open={showPartnerRequest}
+          onOpenChange={setShowPartnerRequest}
+          onSubmit={handlePartnerRequest}
+          isLoading={createConnection.isPending}
+          typeFilter={['stable', 'clinic']}
+        />
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
+          </DialogHeader>
+          {content}
+        </DialogContent>
+      </Dialog>
+      <AddPartnerDialog
+        open={showPartnerRequest}
+        onOpenChange={setShowPartnerRequest}
+        onSubmit={handlePartnerRequest}
+        isLoading={createConnection.isPending}
+        typeFilter={['stable', 'clinic']}
+      />
+    </>
   );
 }

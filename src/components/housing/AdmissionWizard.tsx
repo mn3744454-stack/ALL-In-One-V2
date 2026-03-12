@@ -64,6 +64,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     specialInstructions: '',
     emergencyContact: '',
     expectedDeparture: '',
+    arrivalDate: '' as string,
   });
 
   const { horses } = useHorses();
@@ -163,6 +164,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         special_instructions: form.specialInstructions || undefined,
         emergency_contact: form.emergencyContact || undefined,
         expected_departure: form.expectedDeparture || null,
+        admitted_at: form.arrivalDate || undefined,
       };
 
       await createAdmission(data);
@@ -181,6 +183,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       horseId: '', clientId: '', branchId: '', areaId: '', unitId: '', planId: '',
       dailyRate: '', monthlyRate: '', billingCycle: 'monthly', rateCurrency: 'SAR',
       reason: '', specialInstructions: '', emergencyContact: '', expectedDeparture: '',
+      arrivalDate: '',
     });
   };
 
@@ -420,6 +423,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       case 'details':
         return (
           <div className="space-y-4">
+            <div>
+              <Label>{t('housing.admissions.wizard.arrivalDate')}</Label>
+              <Input
+                type="datetime-local"
+                value={form.arrivalDate}
+                onChange={e => setForm(f => ({ ...f, arrivalDate: e.target.value }))}
+                max={new Date().toISOString().slice(0, 16)}
+              />
+              <p className="text-xs text-muted-foreground mt-1">{t('housing.admissions.wizard.arrivalDateHint')}</p>
+            </div>
             <div>
               <Label>{t('housing.admissions.wizard.reason')}</Label>
               <Select value={form.reason} onValueChange={v => setForm(f => ({ ...f, reason: v }))}>

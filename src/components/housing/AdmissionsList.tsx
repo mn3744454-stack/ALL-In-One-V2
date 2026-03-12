@@ -11,8 +11,8 @@ import { useBoardingAdmissions, type AdmissionStatus, type BoardingAdmission } f
 import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
-import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
@@ -20,17 +20,17 @@ import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
     case 'active':
-      return <Badge className="bg-success/10 text-success border-success/20"><CheckCircle2 className="h-3 w-3 me-1" />{t('housing.admissions.status.active')}</Badge>;
+      return <Badge className="bg-success/10 text-success border-success/20 text-[10px] px-1.5 py-0"><CheckCircle2 className="h-2.5 w-2.5 me-0.5" />{t('housing.admissions.status.active')}</Badge>;
     case 'checkout_pending':
-      return <Badge variant="outline" className="text-amber-600 border-amber-300"><Clock className="h-3 w-3 me-1" />{t('housing.admissions.status.checkoutPending')}</Badge>;
+      return <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px] px-1.5 py-0"><Clock className="h-2.5 w-2.5 me-0.5" />{t('housing.admissions.status.checkoutPending')}</Badge>;
     case 'checked_out':
-      return <Badge variant="secondary"><LogOut className="h-3 w-3 me-1" />{t('housing.admissions.status.checkedOut')}</Badge>;
+      return <Badge variant="secondary" className="text-[10px] px-1.5 py-0"><LogOut className="h-2.5 w-2.5 me-0.5" />{t('housing.admissions.status.checkedOut')}</Badge>;
     case 'cancelled':
-      return <Badge variant="destructive">{t('housing.admissions.status.cancelled')}</Badge>;
+      return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">{t('housing.admissions.status.cancelled')}</Badge>;
     case 'draft':
-      return <Badge variant="outline">{t('housing.admissions.status.draft')}</Badge>;
+      return <Badge variant="outline" className="text-[10px] px-1.5 py-0">{t('housing.admissions.status.draft')}</Badge>;
     default:
-      return <Badge variant="outline">{status}</Badge>;
+      return <Badge variant="outline" className="text-[10px] px-1.5 py-0">{status}</Badge>;
   }
 }
 
@@ -52,7 +52,6 @@ export function AdmissionsList() {
     if (shouldStart === 'true' && canCreate) {
       setPreselectedHorseId(horseId || undefined);
       setWizardOpen(true);
-      // Clear the query params to prevent re-triggering on refresh
       const next = new URLSearchParams(searchParams);
       next.delete('startAdmission');
       next.delete('horseId');
@@ -102,7 +101,7 @@ export function AdmissionsList() {
       {/* List */}
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full" />)}
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
         </div>
       ) : admissions.length === 0 ? (
         <Card>
@@ -119,6 +118,11 @@ export function AdmissionsList() {
         <div className="space-y-2">
           {admissions.map((admission) => {
             const warnCount = getWarningCount(admission.admission_checks || {});
+            const stayDays = differenceInDays(
+              admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
+              new Date(admission.admitted_at)
+            );
+            const hasRate = !!(admission.monthly_rate || admission.daily_rate);
             return (
               <Card
                 key={admission.id}
@@ -126,46 +130,79 @@ export function AdmissionsList() {
                 onClick={() => setSelectedAdmissionId(admission.id)}
               >
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 shrink-0">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10 shrink-0 mt-0.5">
                       <AvatarImage src={admission.horse?.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {admission.horse?.name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      {/* Row 1: Horse name + status + warnings */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium truncate">
+                        <span className="font-semibold truncate">
                           {admission.horse?.name || t('common.unknown')}
                         </span>
                         {getStatusBadge(admission.status, t)}
+                        {admission.reason && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                            {t(`housing.admissions.reasons.${admission.reason}`)}
+                          </Badge>
+                        )}
                         {warnCount > 0 && (
-                          <Badge variant="outline" className="text-amber-600 border-amber-300 gap-1">
-                            <AlertTriangle className="h-3 w-3" />
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[10px] px-1.5 py-0 gap-0.5">
+                            <AlertTriangle className="h-2.5 w-2.5" />
                             {warnCount}
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1 flex-wrap">
+                      {/* Row 2: Operational details */}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                         {admission.client?.name && (
-                          <span>{t('housing.admissions.detail.client')}: {admission.client.name}</span>
+                          <span className="flex items-center gap-1">
+                            <span className="font-medium text-foreground/70">{admission.client.name}</span>
+                          </span>
                         )}
-                        <span>{t('housing.admissions.list.since')} {format(new Date(admission.admitted_at), 'MMM d, yyyy')}</span>
+                        {admission.branch && (
+                          <span className="flex items-center gap-1">
+                            <Building2 className="h-3 w-3" />
+                            {admission.branch.name}
+                          </span>
+                        )}
+                        {admission.area && (
+                          <span className="flex items-center gap-1">
+                            <span>›</span>
+                            {admission.area.name}
+                          </span>
+                        )}
                         {admission.unit && (
-                          <Badge variant="secondary" className="text-xs">
+                          <span className="flex items-center gap-1">
+                            <DoorOpen className="h-3 w-3" />
                             {admission.unit.code}
-                          </Badge>
+                          </span>
+                        )}
+                      </div>
+                      {/* Row 3: Duration + financial indicator */}
+                      <div className="flex items-center gap-3 text-xs flex-wrap">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(admission.admitted_at), 'MMM d, yyyy')}
+                          <span className="text-foreground/60">·</span>
+                          <span className="font-medium text-foreground/70">{stayDays}{t('housing.admissions.list.daysUnit')}</span>
+                        </span>
+                        {hasRate ? (
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <CreditCard className="h-3 w-3" />
+                            {admission.monthly_rate
+                              ? `${admission.monthly_rate} ${admission.rate_currency}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}`
+                              : `${admission.daily_rate} ${admission.rate_currency}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}`
+                            }
+                          </span>
+                        ) : (
+                          <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.list.noBilling')}</span>
                         )}
                       </div>
                     </div>
-                    {admission.monthly_rate && (
-                      <div className="text-end shrink-0">
-                        <span className="text-sm font-medium">
-                          {admission.monthly_rate} {admission.rate_currency}
-                        </span>
-                        <span className="text-xs text-muted-foreground block">/{t('housing.admissions.wizard.cycleMonthly').toLowerCase()}</span>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
