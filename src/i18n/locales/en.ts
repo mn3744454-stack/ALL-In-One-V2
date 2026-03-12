@@ -1938,6 +1938,17 @@ export const en = {
         specialInstructionsPlaceholder: "Any special care requirements...",
         confirmAdmission: "Confirm Admission",
       },
+      billing: {
+        createInvoiceTitle: "Generate Boarding Invoice",
+        createInvoice: "Generate Invoice",
+        boardingInvoice: "Boarding",
+        invoiceCreated: "Invoice created successfully",
+        invoiceFailed: "Failed to create invoice",
+        estimatedHint: "Estimated: {{days}} days at {{rate}}",
+        linkedInvoices: "Linked Invoices",
+        noLinkedInvoices: "No invoices linked yet",
+        generateInvoice: "Generate Invoice",
+      },
       checkout: {
         initiateTitle: "Initiate Checkout",
         initiateDesc: "This will move the admission to pending checkout for review.",
