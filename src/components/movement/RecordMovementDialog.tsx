@@ -194,6 +194,7 @@ export function RecordMovementDialog({
       from_unit_id: selectedHorse?.housing_unit_id || null,
       to_area_id: formData.toAreaId,
       to_unit_id: formData.toUnitId,
+      movement_at: movementDate || undefined,
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
