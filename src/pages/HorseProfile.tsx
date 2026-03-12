@@ -45,6 +45,7 @@ import { HorseLocationSection } from "@/components/movement/HorseLocationSection
 import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
+import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
 
 interface Horse {
   id: string;
