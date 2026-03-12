@@ -1962,6 +1962,17 @@ export const ar = {
         specialInstructionsPlaceholder: "أي متطلبات رعاية خاصة...",
         confirmAdmission: "تأكيد الإيواء",
       },
+      billing: {
+        createInvoiceTitle: "إنشاء فاتورة إيواء",
+        createInvoice: "إنشاء فاتورة",
+        boardingInvoice: "إيواء",
+        invoiceCreated: "تم إنشاء الفاتورة بنجاح",
+        invoiceFailed: "فشل إنشاء الفاتورة",
+        estimatedHint: "تقدير: {{days}} يوم بسعر {{rate}}",
+        linkedInvoices: "الفواتير المرتبطة",
+        noLinkedInvoices: "لا توجد فواتير مرتبطة بعد",
+        generateInvoice: "إنشاء فاتورة",
+      },
       checkout: {
         initiateTitle: "بدء الإخراج",
         initiateDesc: "سيتم نقل الإيواء إلى حالة انتظار الإخراج للمراجعة.",
