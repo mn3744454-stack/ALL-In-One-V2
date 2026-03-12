@@ -17,6 +17,7 @@ import { useSingleAdmission, useAdmissionStatusHistory, useBoardingAdmissions } 
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
@@ -27,10 +28,11 @@ import { format, differenceInDays } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
-  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft
+  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft, Receipt
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
+import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
 
 interface AdmissionDetailSheetProps {
   admissionId: string | null;
