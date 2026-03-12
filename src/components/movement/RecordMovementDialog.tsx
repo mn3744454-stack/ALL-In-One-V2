@@ -780,29 +780,60 @@ export function RecordMovementDialog({
     </div>
   );
 
+  const handlePartnerRequest = async (recipientTenantId: string) => {
+    try {
+      await createConnection.mutateAsync({
+        connectionType: 'b2b',
+        recipientTenantId,
+      });
+      setShowPartnerRequest(false);
+      toast.success(t("movement.destination.partnershipRequested"));
+    } catch {
+      // Error handled in mutation
+    }
+  };
+
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
-        <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader>
-            <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
-          </DrawerHeader>
-          <div className="px-4 pb-8 overflow-y-auto">
-            {content}
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={open} onOpenChange={handleOpenChange}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader>
+              <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 pb-8 overflow-y-auto">
+              {content}
+            </div>
+          </DrawerContent>
+        </Drawer>
+        <AddPartnerDialog
+          open={showPartnerRequest}
+          onOpenChange={setShowPartnerRequest}
+          onSubmit={handlePartnerRequest}
+          isLoading={createConnection.isPending}
+          typeFilter={['stable', 'clinic']}
+        />
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
+          </DialogHeader>
+          {content}
+        </DialogContent>
+      </Dialog>
+      <AddPartnerDialog
+        open={showPartnerRequest}
+        onOpenChange={setShowPartnerRequest}
+        onSubmit={handlePartnerRequest}
+        isLoading={createConnection.isPending}
+        typeFilter={['stable', 'clinic']}
+      />
+    </>
   );
 }
