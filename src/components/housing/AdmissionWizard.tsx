@@ -183,6 +183,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       horseId: '', clientId: '', branchId: '', areaId: '', unitId: '', planId: '',
       dailyRate: '', monthlyRate: '', billingCycle: 'monthly', rateCurrency: 'SAR',
       reason: '', specialInstructions: '', emergencyContact: '', expectedDeparture: '',
+      arrivalDate: '',
     });
   };
 
