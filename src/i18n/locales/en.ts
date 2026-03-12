@@ -1454,6 +1454,7 @@ export const en = {
     timeline: {
       title: "Movement History",
       admissionLinked: "Admission",
+      noMovements: "No movement history yet",
     },
     nextStep: {
       title: "Arrival Confirmed",
