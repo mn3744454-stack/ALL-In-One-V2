@@ -53,6 +53,7 @@ export function RecordMovementDialog({
 }: RecordMovementDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
+  const { activeTenant } = useTenant();
 
   const [step, setStep] = useState<Step>("type");
   const [scheduleForLater, setScheduleForLater] = useState(false);
