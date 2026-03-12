@@ -1401,8 +1401,11 @@ export const en = {
       locationName: "Location Name",
       city: "City",
       connectedEntity: "Connected Entity",
-      noConnectedDestinations: "No connected stables or clinics",
-      noConnectedDestinationsHint: "Create a partnership with another stable or clinic to enable connected movements",
+      noConnectedDestinations: "No connected stables or clinics yet",
+      noConnectedDestinationsHint: "Search for and request a partnership with another stable or clinic to enable connected movements.",
+      requestPartnership: "Request Partnership",
+      partnershipRequested: "Partnership request sent",
+      orUseExternal: "Or use External destination for non-partner locations",
       types: {
         stable: "Stable",
         clinic: "Clinic",

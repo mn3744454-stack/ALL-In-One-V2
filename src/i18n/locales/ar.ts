@@ -1908,6 +1908,8 @@ export const ar = {
         stepReview: "المراجعة",
         overrideHint: "يمكنك التعديل أدناه",
         selectHorse: "اختر الخيل",
+        arrivalDate: "تاريخ الوصول",
+        arrivalDateHint: "اتركه فارغاً لتاريخ اليوم. حدد تاريخاً سابقاً للإيواء التاريخي.",
         selectClient: "العميل / الدافع (اختياري)",
         noClient: "بدون عميل (تعيين لاحقاً)",
         branch: "الفرع",
