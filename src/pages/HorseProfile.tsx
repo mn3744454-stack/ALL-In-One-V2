@@ -45,6 +45,7 @@ import { HorseLocationSection } from "@/components/movement/HorseLocationSection
 import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
+import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
 
 interface Horse {
   id: string;
@@ -304,6 +305,12 @@ const HorseProfile = () => {
           </CardContent>
         </Card>
 
+        {/* Active Admission Card — primary operational info */}
+        <HorseAdmissionCard horseId={horse.id} />
+
+        {/* Profile Completeness Warning */}
+        <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
+
         {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {/* Physical Specs */}
@@ -432,8 +439,11 @@ const HorseProfile = () => {
           </Card>
         </div>
 
-        {/* Active Admission Card (Phase 4) */}
+        {/* Active Admission Card — promoted above physical details for operational emphasis */}
         <HorseAdmissionCard horseId={horse.id} />
+
+        {/* Profile Completeness Warning */}
+        <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
 
         {/* Housing & Movement Section */}
         <HorseLocationSection
