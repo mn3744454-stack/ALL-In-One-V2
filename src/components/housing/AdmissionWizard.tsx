@@ -85,6 +85,13 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     });
   }, [open, tenantId]);
 
+  // Pre-select horse from incoming arrival flow
+  useEffect(() => {
+    if (open && preselectedHorseId) {
+      setForm(f => ({ ...f, horseId: preselectedHorseId }));
+    }
+  }, [open, preselectedHorseId]);
+
   const selectedHorse = horses.find(h => h.id === form.horseId);
   const selectedClient = clients.find((c: any) => c.id === form.clientId);
   const selectedPlan = activePlans.find(p => p.id === form.planId);
