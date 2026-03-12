@@ -363,7 +363,7 @@ export function RecordMovementDialog({
                   <MapPin className="h-3.5 w-3.5" />
                   {t("movement.destination.external")}
                 </button>
-                {canSendConnected && connectedDestinations.length > 0 && (
+                {canSendConnected && (
                   <button
                     onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
                     className={cn(
@@ -375,6 +375,11 @@ export function RecordMovementDialog({
                   >
                     <Link2 className="h-3.5 w-3.5" />
                     {t("movement.destination.connected")}
+                    {connectedDestinations.length > 0 && (
+                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
+                        {connectedDestinations.length}
+                      </Badge>
+                    )}
                   </button>
                 )}
               </div>
