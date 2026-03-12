@@ -80,7 +80,7 @@ interface Horse {
   color_data?: { name: string } | null;
   branch_data?: { name: string; id: string } | null;
   stable_data?: { name: string } | null;
-  area_data?: { id: string; name: string; name_ar: string | null } | null;
+  area_data?: { id: string; name: string; name_ar: string | null; facility_type?: string | null } | null;
   unit_data?: { id: string; code: string; name: string | null; name_ar: string | null } | null;
 }
 
