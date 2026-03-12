@@ -1494,6 +1494,7 @@ export const ar = {
       thisWeek: "هذا الأسبوع",
       allLocations: "جميع المواقع",
       allTypes: "جميع الأنواع",
+      allStatuses: "جميع الحالات",
       searchPlaceholder: "البحث في الخيول...",
     },
     list: {
