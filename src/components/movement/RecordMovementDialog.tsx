@@ -91,6 +91,30 @@ export function RecordMovementDialog({
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
   const { destinations: connectedDestinations } = useConnectedDestinations();
   const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
+  
+  // Fetch pending outbound B2B connection requests for inline display
+  const { data: pendingOutboundRequests = [] } = useQuery({
+    queryKey: ['pending-outbound-b2b', activeTenant?.tenant?.id],
+    queryFn: async () => {
+      const tenantId = activeTenant?.tenant?.id;
+      if (!tenantId) return [];
+      const { data, error } = await supabase
+        .from('connections')
+        .select('id, recipient_tenant_id, created_at')
+        .eq('initiator_tenant_id', tenantId)
+        .eq('connection_type', 'b2b')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+      if (error || !data?.length) return [];
+      // Resolve names
+      const ids = data.map(c => c.recipient_tenant_id).filter(Boolean) as string[];
+      if (!ids.length) return [];
+      const { data: tenants } = await supabase.from('tenants').select('id, name').in('id', ids);
+      const nameMap = new Map((tenants || []).map(t => [t.id, t.name]));
+      return data.map(c => ({ id: c.id, name: nameMap.get(c.recipient_tenant_id!) || 'Unknown', created_at: c.created_at }));
+    },
+    enabled: !!activeTenant?.tenant?.id,
+  });
   const { hasPermission, isOwner } = usePermissions();
   const { createConnection } = useConnections();
   
