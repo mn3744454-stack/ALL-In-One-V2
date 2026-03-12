@@ -174,7 +174,14 @@ export function AdmissionsList() {
         </div>
       )}
 
-      <AdmissionWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      <AdmissionWizard
+        open={wizardOpen}
+        onOpenChange={(open) => {
+          setWizardOpen(open);
+          if (!open) setPreselectedHorseId(undefined);
+        }}
+        preselectedHorseId={preselectedHorseId}
+      />
       <AdmissionDetailSheet
         admissionId={selectedAdmissionId}
         open={!!selectedAdmissionId}
