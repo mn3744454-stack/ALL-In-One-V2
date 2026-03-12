@@ -64,6 +64,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     specialInstructions: '',
     emergencyContact: '',
     expectedDeparture: '',
+    arrivalDate: '' as string,
   });
 
   const { horses } = useHorses();
