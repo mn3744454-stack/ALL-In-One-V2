@@ -1870,6 +1870,7 @@ export const ar = {
         client: "العميل",
         branch: "الفرع",
         area: "القسم",
+        facility: "المرفق",
         unit: "الوحدة",
         admittedAt: "تاريخ الدخول",
         expectedDeparture: "المغادرة المتوقعة",
