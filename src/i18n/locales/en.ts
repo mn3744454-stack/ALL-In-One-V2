@@ -1846,6 +1846,7 @@ export const en = {
         client: "Client",
         branch: "Branch",
         area: "Section",
+        facility: "Facility",
         unit: "Unit",
         admittedAt: "Admitted",
         expectedDeparture: "Expected Departure",

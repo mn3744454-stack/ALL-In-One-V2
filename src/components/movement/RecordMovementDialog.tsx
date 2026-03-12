@@ -54,6 +54,7 @@ export function RecordMovementDialog({
   const [step, setStep] = useState<Step>("type");
   const [scheduleForLater, setScheduleForLater] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
+  const [movementDate, setMovementDate] = useState('');
   const [formData, setFormData] = useState<{
     movementType: MovementType | null;
     horseId: string | null;
@@ -193,6 +194,7 @@ export function RecordMovementDialog({
       from_unit_id: selectedHorse?.housing_unit_id || null,
       to_area_id: formData.toAreaId,
       to_unit_id: formData.toUnitId,
+      movement_at: movementDate || undefined,
       reason: formData.reason || undefined,
       notes: formData.notes || undefined,
       internal_location_note: formData.internalLocationNote || undefined,
@@ -226,6 +228,7 @@ export function RecordMovementDialog({
     setNewExtType('other');
     setScheduleForLater(false);
     setScheduledAt('');
+    setMovementDate('');
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -645,6 +648,24 @@ export function RecordMovementDialog({
                     />
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Historical / backdate movement — for IN and TRANSFER when not scheduling */}
+            {formData.movementType !== "out" && (
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  {t("movement.form.movementDate")}
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={movementDate}
+                  onChange={(e) => setMovementDate(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  {t("housing.admissions.wizard.arrivalDateHint")}
+                </p>
               </div>
             )}
 
