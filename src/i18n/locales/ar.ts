@@ -1478,6 +1478,7 @@ export const ar = {
     timeline: {
       title: "سجل الحركات",
       admissionLinked: "إيواء",
+      noMovements: "لا يوجد سجل حركات بعد",
     },
     nextStep: {
       title: "تم تأكيد الوصول",
