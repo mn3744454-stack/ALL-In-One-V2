@@ -340,7 +340,11 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <DetailRow icon={Building2} label={t('housing.admissions.detail.branch')} value={admission.branch.name} />
                   )}
                   {admission.area && (
-                    <DetailRow icon={Building2} label={t('housing.admissions.detail.area')} value={admission.area.name} />
+                    <DetailRow 
+                      icon={Building2} 
+                      label={t('housing.admissions.detail.facility')} 
+                      value={`${admission.area.name}${admission.area.facility_type ? ` (${t(`housing.facilityTypes.${admission.area.facility_type}`)})` : ''}`} 
+                    />
                   )}
 
                   {/* Unit — editable */}

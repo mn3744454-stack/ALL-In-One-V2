@@ -173,6 +173,11 @@ export function AdmissionsList() {
                           <span className="flex items-center gap-1">
                             <span>›</span>
                             {admission.area.name}
+                            {admission.area.facility_type && (
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight">
+                                {t(`housing.facilityTypes.${admission.area.facility_type}`)}
+                              </Badge>
+                            )}
                           </span>
                         )}
                         {admission.unit && (
