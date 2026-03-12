@@ -153,6 +153,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       });
 
       // Step 1: Create admission in draft state first (safe fallback)
+      const admittedAt = data.admitted_at || new Date().toISOString();
       const { data: admission, error } = await fromTable('boarding_admissions')
         .insert({
           tenant_id: tenantId,
@@ -170,6 +171,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           special_instructions: data.special_instructions || null,
           emergency_contact: data.emergency_contact || null,
           expected_departure: data.expected_departure || null,
+          admitted_at: admittedAt,
           admitted_by: user.id,
           status: 'draft',
           admission_checks: checks,
@@ -192,7 +194,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           p_from_unit_id: null,
           p_to_area_id: data.area_id || null,
           p_to_unit_id: data.unit_id || null,
-          p_movement_at: new Date().toISOString(),
+          p_movement_at: admittedAt,
           p_reason: 'Boarding admission check-in',
           p_notes: data.special_instructions || null,
           p_internal_location_note: null,
