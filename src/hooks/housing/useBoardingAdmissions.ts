@@ -77,8 +77,8 @@ const ADMISSION_SELECT = `
   horse:horses!horse_id(id, name, name_ar, avatar_url),
   client:clients!client_id(id, name, name_ar, phone),
   branch:branches!branch_id(id, name),
-  area:facility_areas!area_id(id, name, name_ar),
-  unit:housing_units!unit_id(id, code, name),
+  area:facility_areas!area_id(id, name, name_ar, facility_type),
+  unit:housing_units!unit_id(id, code, name, unit_type),
   admitted_by_profile:profiles!admitted_by(id, full_name)
 `;
 
