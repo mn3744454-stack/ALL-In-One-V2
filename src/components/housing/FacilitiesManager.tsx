@@ -213,7 +213,7 @@ export function FacilitiesManager() {
                         })}
                       >
                         <LayoutGrid className="w-3.5 h-3.5" />
-                        {t('housing.facilities.manageSubdivisions')}
+                        {t(`housing.facilities.${getManageKey(area.facility_type as FacilityType)}`)}
                         <ChevronRight className={cn("w-3.5 h-3.5 ms-auto", dir === 'rtl' && "rotate-180")} />
                       </Button>
                     )}
