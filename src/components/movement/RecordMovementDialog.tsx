@@ -91,7 +91,7 @@ export function RecordMovementDialog({
   const { destinations: connectedDestinations } = useConnectedDestinations();
   const { recordConnectedMovement, isRecording: isRecordingConnected } = useConnectedMovement();
   const { hasPermission, isOwner } = usePermissions();
-  const { createConnection, isCreating: isCreatingConnection } = useConnections();
+  const { createConnection } = useConnections();
   
   const canSendConnected = isOwner || hasPermission('movement.connected.create');
   
