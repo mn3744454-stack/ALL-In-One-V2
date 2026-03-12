@@ -60,6 +60,8 @@ export interface CreateAdmissionData {
   special_instructions?: string;
   emergency_contact?: string;
   expected_departure?: string | null;
+  /** ISO string for historical admissions. Defaults to now() if omitted. */
+  admitted_at?: string;
 }
 
 export interface AdmissionFilters {
