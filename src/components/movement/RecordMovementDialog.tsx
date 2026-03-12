@@ -649,6 +649,24 @@ export function RecordMovementDialog({
               </div>
             )}
 
+            {/* Historical / backdate movement — for IN and TRANSFER when not scheduling */}
+            {formData.movementType !== "out" && (
+              <div className="space-y-1.5">
+                <Label className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  {t("movement.form.movementDate")}
+                </Label>
+                <Input
+                  type="datetime-local"
+                  value={movementDate}
+                  onChange={(e) => setMovementDate(e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  {t("housing.admissions.wizard.arrivalDateHint")}
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>{t("movement.form.reason")}</Label>
               <Input
