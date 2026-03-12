@@ -576,12 +576,12 @@ export function RecordMovementDialog({
                     <p className="text-[10px] text-muted-foreground pt-1">{t("movement.destination.orUseExternal")}</p>
                     {pendingOutboundRequests.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Pending Requests</p>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">{t('movement.destination.pendingRequests')}</p>
                         {pendingOutboundRequests.map((req: any) => (
                           <div key={req.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3 text-amber-500 shrink-0" />
                             <span className="truncate">{req.name}</span>
-                            <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-600 border-amber-300">Awaiting response</Badge>
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 text-amber-600 border-amber-300">{t('movement.destination.awaitingResponse')}</Badge>
                           </div>
                         ))}
                       </div>
