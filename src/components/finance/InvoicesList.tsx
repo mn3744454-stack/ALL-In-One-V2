@@ -275,7 +275,9 @@ export function InvoicesList({
           <SelectContent>
             <SelectItem value="all">{t("common.all")}</SelectItem>
             <SelectItem value="draft">{t("finance.invoices.statuses.draft")}</SelectItem>
-            <SelectItem value="sent">{t("finance.invoices.statuses.sent")}</SelectItem>
+            <SelectItem value="reviewed">{t("finance.invoices.statuses.reviewed")}</SelectItem>
+            <SelectItem value="approved">{t("finance.invoices.statuses.approved")}</SelectItem>
+            <SelectItem value="shared">{t("finance.invoices.statuses.shared")}</SelectItem>
             <SelectItem value="paid">{t("finance.invoices.statuses.paid")}</SelectItem>
             <SelectItem value="overdue">{t("finance.invoices.statuses.overdue")}</SelectItem>
             <SelectItem value="cancelled">{t("finance.invoices.statuses.cancelled")}</SelectItem>
