@@ -277,10 +277,8 @@ export function useLabInvoiceDraft() {
 
       toast.success(t("laboratory.billing.invoiceCreated") || "Invoice created successfully");
 
-      // Post ledger entry for the invoice
-      if (input.clientId && tenantId) {
-        await postLedgerForInvoice(invoice.id, tenantId);
-      }
+      // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
+      // NOT at creation time. Draft invoices have zero financial impact.
 
       // Navigate to finance invoices page
       navigate("/dashboard/finance/invoices");

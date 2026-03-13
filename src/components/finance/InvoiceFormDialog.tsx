@@ -216,10 +216,8 @@ export function InvoiceFormDialog({
               entity_id: item.entity_id,
             });
           }
-
-          if (formData.client_id && activeTenant?.tenant.id) {
-            await postLedgerForInvoice(newInvoice.id, activeTenant.tenant.id);
-          }
+          // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
+          // NOT at creation time. Draft invoices have zero financial impact.
         }
       }
 
