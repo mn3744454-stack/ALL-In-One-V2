@@ -60,6 +60,25 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   // Billing links for this admission
   const { links: billingLinks, isLoading: billingLinksLoading } = useBillingLinks("boarding", admissionId || undefined);
 
+  // Fetch actual invoice data for linked invoices
+  const linkedInvoiceIds = useMemo(() => billingLinks.map(l => l.invoice_id).filter(Boolean), [billingLinks]);
+  const { data: linkedInvoices = [] } = useQuery({
+    queryKey: ["linked-invoices", linkedInvoiceIds.join(",")],
+    queryFn: async () => {
+      if (linkedInvoiceIds.length === 0) return [];
+      const { data } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, status, total_amount, currency")
+        .in("id", linkedInvoiceIds);
+      return (data || []) as Array<{ id: string; invoice_number: string; status: string; total_amount: number; currency: string | null }>;
+    },
+    enabled: linkedInvoiceIds.length > 0,
+  });
+
+  const hasBilledInvoice = linkedInvoices.length > 0;
+  const totalBilled = linkedInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
+  const allPaid = hasBilledInvoice && linkedInvoices.every(inv => inv.status === "paid");
+
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
