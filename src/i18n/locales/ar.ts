@@ -1904,6 +1904,7 @@ export const ar = {
       subFilters: {
         noInvoice: "بدون فاتورة",
         outstanding: "مستحق",
+      },
       list: {
         since: "منذ",
         facility: "المرفق",
