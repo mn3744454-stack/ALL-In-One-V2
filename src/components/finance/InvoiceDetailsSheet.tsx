@@ -29,6 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+import { approveInvoice } from "@/lib/finance/approveInvoice";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
@@ -257,18 +258,7 @@ export function InvoiceDetailsSheet({
     if (!invoice || !activeTenant?.tenant?.id) return;
     setActionLoading(true);
     try {
-      // First update status
-      const { error } = await supabase
-        .from("invoices" as any)
-        .update({ status: 'approved' })
-        .eq("id", invoice.id);
-      if (error) throw error;
-
-      // Post to ledger (idempotent — postLedgerForInvoice checks for existing entries)
-      if (invoice.client_id) {
-        await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
-      }
-
+      await approveInvoice(invoice.id, activeTenant.tenant.id);
       toast.success(t("finance.invoices.approvedSuccess"));
       invalidateQueries();
       fetchInvoiceDetails();

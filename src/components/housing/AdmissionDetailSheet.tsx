@@ -77,7 +77,8 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   });
 
   const hasBilledInvoice = linkedInvoices.length > 0;
-  const totalBilled = linkedInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
+  const financiallyActiveInvoices = linkedInvoices.filter(inv => !["draft", "reviewed", "cancelled"].includes(inv.status));
+  const totalBilled = financiallyActiveInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
   const allPaid = hasBilledInvoice && linkedInvoices.every(inv => inv.status === "paid");
 
   // Inline editing state
@@ -695,13 +696,22 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   {linkedInvoices.length > 0 ? (
                     <div className="space-y-2">
                       {linkedInvoices.map((inv) => (
-                        <div key={inv.id} className="flex items-center justify-between text-sm border rounded-md p-2">
+                        <div key={inv.id} className={cn(
+                          "flex items-center justify-between text-sm border rounded-md p-2",
+                          ["draft", "reviewed"].includes(inv.status) && "border-dashed bg-muted/30"
+                        )}>
                           <div className="flex items-center gap-2">
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="font-medium">{inv.invoice_number}</span>
-                            <Badge variant="outline" className="text-[10px] capitalize">{inv.status}</Badge>
+                            <Badge variant="outline" className={cn(
+                              "text-[10px] capitalize",
+                              ["draft", "reviewed"].includes(inv.status) && "text-muted-foreground"
+                            )}>{inv.status}</Badge>
                           </div>
-                          <span className="font-medium">{inv.total_amount?.toFixed(2)} {inv.currency || admission.rate_currency || 'SAR'}</span>
+                          <span className={cn(
+                            "font-medium",
+                            ["draft", "reviewed"].includes(inv.status) && "text-muted-foreground"
+                          )}>{inv.total_amount?.toFixed(2)} {inv.currency || admission.rate_currency || 'SAR'}</span>
                         </div>
                       ))}
                       {hasBilledInvoice && (

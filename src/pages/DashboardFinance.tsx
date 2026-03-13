@@ -9,6 +9,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { useInvoices, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useExpenses } from "@/hooks/finance/useExpenses";
 import { useLedgerEntries } from "@/hooks/finance/useLedger";
@@ -31,6 +32,7 @@ import { enrichLedgerDescriptions, type EnrichedDescription } from "@/lib/financ
 import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/StatementPrintUtils";
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
 import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
+import { approveInvoice } from "@/lib/finance/approveInvoice";
 import {
   Menu,
   FileText,
@@ -60,6 +62,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   const { invoices, isLoading, updateInvoice, deleteInvoice } = useInvoices(
     activeTenant?.tenant.id
   );
+  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const canCreate = hasPermission("finance.invoice.create");
@@ -149,7 +152,12 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         loading={isLoading}
         onDelete={deleteInvoice}
         onUpdateStatus={async (id, status) => {
-          await updateInvoice({ id, status: status as any });
+          if (status === "approved" && activeTenant?.tenant?.id) {
+            await approveInvoice(id, activeTenant.tenant.id);
+            queryClient.invalidateQueries({ queryKey: ["invoices"] });
+          } else {
+            await updateInvoice({ id, status: status as any });
+          }
         }}
         onInvoiceClick={onInvoiceClick}
         selectedInvoiceId={selectedInvoiceId}

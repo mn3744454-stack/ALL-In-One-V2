@@ -55,13 +55,15 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
             }
           }
 
-          // Fetch invoice totals for linked invoices
+          // Fetch invoice totals for linked invoices — only financially active statuses
+          const FINANCIALLY_ACTIVE = ['approved', 'shared', 'paid', 'overdue', 'partial', 'issued'];
           const invoiceIds = links.map(l => l.invoice_id).filter(Boolean);
           if (invoiceIds.length > 0) {
             const { data: invoices } = await supabase
               .from('invoices')
               .select('id, total_amount, status')
-              .in('id', invoiceIds);
+              .in('id', invoiceIds)
+              .in('status', FINANCIALLY_ACTIVE);
 
             if (invoices) {
               for (const inv of invoices) {
