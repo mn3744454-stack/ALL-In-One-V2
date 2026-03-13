@@ -719,26 +719,29 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
 
               {/* Actions */}
               <div className="flex flex-col gap-2 pt-2">
-                {admission.status === 'active' && (admission.daily_rate || admission.monthly_rate) && (
-                  billingLinks.length > 0 ? (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setInvoiceDialogOpen(true)}
-                    >
-                      <Receipt className="h-4 w-4 me-1" />
-                      {t('housing.admissions.billing.viewInvoices')} ({billingLinks.length})
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setInvoiceDialogOpen(true)}
-                    >
-                      <Receipt className="h-4 w-4 me-1" />
-                      {t('housing.admissions.billing.generateInvoice')}
-                    </Button>
-                  )
+                {/* Generate Invoice — only if no linked invoices yet and has rate */}
+                {!hasBilledInvoice && (admission.status === 'active' || admission.status === 'checkout_pending') && (admission.daily_rate || admission.monthly_rate) && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4 me-1" />
+                    {t('housing.admissions.billing.generateInvoice')}
+                  </Button>
+                )}
+
+                {/* Add Another Invoice — if already billed but needs more */}
+                {hasBilledInvoice && (admission.status === 'active') && (admission.daily_rate || admission.monthly_rate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-muted-foreground"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4 me-1" />
+                    {t('housing.admissions.billing.generateInvoice')}
+                  </Button>
                 )}
 
                 {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
