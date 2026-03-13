@@ -1662,6 +1662,16 @@ export const en = {
       plans: "Plans",
       movement: "Arrivals & Departures",
       incoming: "Incoming",
+      overview: "Overview",
+    },
+    branchScope: {
+      selectBranch: "Select Branch",
+      allBranches: "All Branches",
+      noBranches: "No branches configured yet",
+      overviewDesc: "Select a branch to manage its facilities, admissions, and operations.",
+      facilities: "Facilities",
+      horses: "Horses",
+      admissions: "Admissions",
     },
     facilityTypes: {
       barn: "Barn",
