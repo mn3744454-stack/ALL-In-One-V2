@@ -2467,8 +2467,12 @@ export const en = {
       overdue: "Overdue",
       statuses: {
         draft: "Draft",
-        sent: "Sent",
+        reviewed: "Reviewed",
+        approved: "Approved",
+        shared: "Shared",
+        issued: "Issued",
         paid: "Paid",
+        partial: "Partially Paid",
         overdue: "Overdue",
         cancelled: "Cancelled",
       },
