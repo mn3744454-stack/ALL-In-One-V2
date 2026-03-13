@@ -1682,7 +1682,7 @@ export const ar = {
       facilities: "المرافق",
       units: "الوحدات",
       areas: "الأقسام",
-      admissions: "الإقامات",
+      admissions: "الإيواء",
       plans: "الخطط",
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
@@ -1705,7 +1705,7 @@ export const ar = {
       overviewDesc: "اختر فرعاً لإدارة مرافقه وإيوائه وعملياته.",
       facilities: "المرافق",
       horses: "الخيول",
-      admissions: "الإقامات",
+      admissions: "الإيواء",
     },
     facilityTypes: {
       barn: "حظيرة",
