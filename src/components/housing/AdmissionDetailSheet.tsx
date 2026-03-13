@@ -672,26 +672,43 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 />
               )}
 
-              {/* Linked Invoices */}
+              {/* Linked Invoices & Billing Status */}
               <Card>
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Receipt className="h-4 w-4" />
                     {t('housing.admissions.billing.linkedInvoices')}
+                    {hasBilledInvoice && (
+                      <Badge variant={allPaid ? "default" : "outline"} className={cn("text-[10px] ms-auto", allPaid ? "bg-success/10 text-success border-success/20" : "")}>
+                        {allPaid ? t('housing.admissions.billing.paid') : t('housing.admissions.billing.billed')}
+                      </Badge>
+                    )}
+                    {!hasBilledInvoice && !billingLinksLoading && (
+                      <Badge variant="outline" className="text-[10px] ms-auto text-amber-600 border-amber-300">
+                        {t('housing.admissions.billing.notBilled')}
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
-                  {billingLinks.length > 0 ? (
+                  {linkedInvoices.length > 0 ? (
                     <div className="space-y-2">
-                      {billingLinks.map((link) => (
-                        <div key={link.id} className="flex items-center justify-between text-sm border rounded-md p-2">
+                      {linkedInvoices.map((inv) => (
+                        <div key={inv.id} className="flex items-center justify-between text-sm border rounded-md p-2">
                           <div className="flex items-center gap-2">
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="capitalize">{link.link_kind}</span>
+                            <span className="font-medium">{inv.invoice_number}</span>
+                            <Badge variant="outline" className="text-[10px] capitalize">{inv.status}</Badge>
                           </div>
-                          <span className="font-medium">{link.amount?.toFixed(2) || '—'} {admission.rate_currency || 'SAR'}</span>
+                          <span className="font-medium">{inv.total_amount?.toFixed(2)} {inv.currency || admission.rate_currency || 'SAR'}</span>
                         </div>
                       ))}
+                      {hasBilledInvoice && (
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
+                          <span>{t('housing.admissions.billing.totalBilled')}</span>
+                          <span className="font-medium text-foreground">{totalBilled.toFixed(2)} {admission.rate_currency || 'SAR'}</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">{t('housing.admissions.billing.noLinkedInvoices')}</p>
