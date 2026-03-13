@@ -654,15 +654,15 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               )}
 
               {/* Linked Invoices */}
-              {billingLinks.length > 0 && (
-                <Card>
-                  <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Receipt className="h-4 w-4" />
-                      {t('housing.admissions.billing.linkedInvoices')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0">
+              <Card>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Receipt className="h-4 w-4" />
+                    {t('housing.admissions.billing.linkedInvoices')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  {billingLinks.length > 0 ? (
                     <div className="space-y-2">
                       {billingLinks.map((link) => (
                         <div key={link.id} className="flex items-center justify-between text-sm border rounded-md p-2">
@@ -674,21 +674,34 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t('housing.admissions.billing.noLinkedInvoices')}</p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Actions */}
               <div className="flex flex-col gap-2 pt-2">
                 {admission.status === 'active' && (admission.daily_rate || admission.monthly_rate) && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setInvoiceDialogOpen(true)}
-                  >
-                    <Receipt className="h-4 w-4 me-1" />
-                    {t('housing.admissions.billing.generateInvoice')}
-                  </Button>
+                  billingLinks.length > 0 ? (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setInvoiceDialogOpen(true)}
+                    >
+                      <Receipt className="h-4 w-4 me-1" />
+                      {t('housing.admissions.billing.viewInvoices')} ({billingLinks.length})
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => setInvoiceDialogOpen(true)}
+                    >
+                      <Receipt className="h-4 w-4 me-1" />
+                      {t('housing.admissions.billing.generateInvoice')}
+                    </Button>
+                  )
                 )}
 
                 {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
