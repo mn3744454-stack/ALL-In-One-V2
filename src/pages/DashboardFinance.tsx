@@ -46,6 +46,7 @@ import {
   Download,
   CreditCard,
 } from "lucide-react";
+import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
 
 interface InvoicesTabProps {
   selectedInvoiceId: string | null;
