@@ -31,6 +31,7 @@ import { enrichLedgerDescriptions, type EnrichedDescription } from "@/lib/financ
 import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/StatementPrintUtils";
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
 import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
+import { approveInvoice } from "@/lib/finance/approveInvoice";
 import {
   Menu,
   FileText,
