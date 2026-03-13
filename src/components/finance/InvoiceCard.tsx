@@ -33,7 +33,7 @@ interface InvoiceCardProps {
   onView?: () => void;
   onDownloadPDF?: () => void;
   onPrint?: () => void;
-  onSend?: () => void;
+  onApprove?: () => void;
   onMarkPaid?: () => void;
 }
 
