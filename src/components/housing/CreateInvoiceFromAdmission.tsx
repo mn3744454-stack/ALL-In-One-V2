@@ -14,9 +14,13 @@ import { useClients } from "@/hooks/useClients";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+import { useQueryClient } from "@tanstack/react-query";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { toast } from "sonner";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, format } from "date-fns";
 
 interface Props {
   open: boolean;
@@ -29,6 +33,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const { user } = useAuth();
   const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
+  const queryClient = useQueryClient();
 
   const { createInvoice, isCreating } = useInvoices(tenantId);
   const { createLinkAsync } = useBillingLinks("boarding", admission.id);
@@ -61,6 +66,40 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
+  /**
+   * Build a human-readable line item description for the boarding charge.
+   */
+  const buildLineItemDescription = (): string => {
+    const parts: string[] = [];
+    
+    // Horse name
+    if (admission.horse?.name) {
+      parts.push(admission.horse.name);
+    }
+    
+    // Branch
+    if (admission.branch?.name) {
+      parts.push(admission.branch.name);
+    }
+    
+    // Period
+    const fromDate = format(new Date(admission.admitted_at), "yyyy-MM-dd");
+    const toDate = admission.checked_out_at
+      ? format(new Date(admission.checked_out_at), "yyyy-MM-dd")
+      : format(new Date(), "yyyy-MM-dd");
+    parts.push(`${fromDate} → ${toDate}`);
+    
+    // Rate context
+    if (admission.billing_cycle === "daily" && admission.daily_rate) {
+      parts.push(`${days}d × ${admission.daily_rate}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
+    } else if (admission.monthly_rate) {
+      const months = Math.max(Math.ceil(days / 30), 1);
+      parts.push(`${months}mo × ${admission.monthly_rate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
+    }
+    
+    return parts.join(" | ");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tenantId || !user?.id) return;
@@ -70,6 +109,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
 
+      // Step 1: Create invoice header
       const invoice = await createInvoice({
         tenant_id: tenantId,
         invoice_number: generateInvoiceNumber(),
@@ -85,17 +125,56 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         notes: notes || undefined,
       });
 
-      if (invoice?.id) {
-        await createLinkAsync({
-          source_type: "boarding",
-          source_id: admission.id,
-          invoice_id: invoice.id,
-          link_kind: "final",
-          amount,
-        });
-        toast.success(t("housing.admissions.billing.invoiceCreated"));
+      if (!invoice?.id) {
+        toast.error(t("housing.admissions.billing.invoiceFailed"));
+        return;
       }
 
+      // Step 2: Create invoice_items with entity_type='boarding'
+      const lineDescription = buildLineItemDescription();
+      const { error: itemError } = await supabase
+        .from("invoice_items" as any)
+        .insert({
+          invoice_id: invoice.id,
+          description: lineDescription,
+          entity_type: "boarding",
+          entity_id: admission.id,
+          quantity: days,
+          unit_price: admission.billing_cycle === "daily"
+            ? (admission.daily_rate || amount)
+            : (admission.monthly_rate || amount),
+          total_price: amount,
+        });
+
+      if (itemError) {
+        console.error("Error creating invoice item:", itemError);
+        toast.error(t("housing.admissions.billing.invoiceItemFailed") || "Failed to create invoice line item");
+        // Don't return — invoice header exists, continue to link it
+      }
+
+      // Step 3: Create billing link
+      await createLinkAsync({
+        source_type: "boarding",
+        source_id: admission.id,
+        invoice_id: invoice.id,
+        link_kind: "final",
+        amount,
+      });
+
+      // Step 4: Post to ledger (only if client exists)
+      if (selectedClientId || admission.client_id) {
+        const ledgerOk = await postLedgerForInvoice(invoice.id, tenantId);
+        if (!ledgerOk) {
+          console.warn("Ledger posting failed for boarding invoice", invoice.id);
+          // Non-blocking: invoice + items exist, ledger will be reconciled
+        }
+      }
+
+      // Step 5: Invalidate all finance queries for consistency
+      invalidateFinanceQueries(queryClient, tenantId);
+      queryClient.invalidateQueries({ queryKey: ["billing-links"] });
+
+      toast.success(t("housing.admissions.billing.invoiceCreated"));
       onOpenChange(false);
     } catch (err) {
       console.error("Error creating invoice:", err);
