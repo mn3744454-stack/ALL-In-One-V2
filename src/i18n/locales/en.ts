@@ -3467,6 +3467,13 @@ export const en = {
       moreItems: "+{count} more",
       showDetails: "Show details",
       hideDetails: "Hide details",
+      domain: {
+        lab: "Laboratory",
+        boarding: "Boarding",
+        registration: "Registration",
+        admin: "Administrative",
+        transport: "Transport",
+      },
       dateRange: "Date Range",
       print: "Print",
       exportCSV: "Export CSV",
