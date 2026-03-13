@@ -1705,7 +1705,7 @@ export const ar = {
       overviewDesc: "اختر فرعاً لإدارة مرافقه وإيوائه وعملياته.",
       facilities: "المرافق",
       horses: "الخيول",
-      admissions: "الإيواء",
+      admissions: "الإقامات",
     },
     facilityTypes: {
       barn: "حظيرة",
