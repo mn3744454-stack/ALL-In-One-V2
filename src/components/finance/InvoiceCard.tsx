@@ -93,13 +93,13 @@ export function InvoiceCard({
               </>
             )}
             <DropdownMenuSeparator />
-            {canSend && invoice.status === "draft" && (
-              <DropdownMenuItem onClick={onSend} title={t("finance.invoices.markAsSentDesc")}>
-                <Send className="w-4 h-4 me-2" />
-                {t("finance.invoices.markAsSent")}
+            {canSend && (invoice.status === "draft" || invoice.status === "reviewed") && (
+              <DropdownMenuItem onClick={onApprove}>
+                <CheckCircle className="w-4 h-4 me-2" />
+                {t("finance.invoices.approve")}
               </DropdownMenuItem>
             )}
-            {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+            {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
               <DropdownMenuItem onClick={onMarkPaid}>
                 <CheckCircle className="w-4 h-4 me-2 text-success" />
                 {t("finance.invoices.markPaid")}
