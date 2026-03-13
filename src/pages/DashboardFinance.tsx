@@ -150,7 +150,12 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         loading={isLoading}
         onDelete={deleteInvoice}
         onUpdateStatus={async (id, status) => {
-          await updateInvoice({ id, status: status as any });
+          if (status === "approved" && activeTenant?.tenant?.id) {
+            await approveInvoice(id, activeTenant.tenant.id);
+            queryClient.invalidateQueries({ queryKey: ["invoices"] });
+          } else {
+            await updateInvoice({ id, status: status as any });
+          }
         }}
         onInvoiceClick={onInvoiceClick}
         selectedInvoiceId={selectedInvoiceId}
