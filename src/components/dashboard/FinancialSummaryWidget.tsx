@@ -35,7 +35,7 @@ export function FinancialSummaryWidget() {
 
     // Outstanding invoices
     const outstanding = invoices
-      .filter((i) => i.status === "sent" || i.status === "overdue")
+      .filter((i) => i.status === "approved" || i.status === "shared" || i.status === "overdue")
       .reduce((sum, i) => sum + i.total_amount, 0);
 
     return { revenue, expenses: expenseTotal, outstanding };
