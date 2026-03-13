@@ -33,6 +33,29 @@ interface ClientStatementTabProps {
 }
 
 /** Renders the multi-line "story" description for a statement entry */
+/** Domain source badge for statement rows */
+function DomainBadge({ source, t }: { source?: "lab" | "boarding"; t: (k: string) => string }) {
+  if (!source) return null;
+  const label = source === "boarding"
+    ? t("clients.statement.domain.boarding")
+    : t("clients.statement.domain.lab");
+  const cls = source === "boarding"
+    ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+    : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+  return <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border-0", cls)}>{label}</Badge>;
+}
+
+/** Determine the primary domain source from enriched data */
+function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | undefined {
+  if (!enriched || enriched.horses.length === 0) return undefined;
+  // If any horse is boarding, show boarding; otherwise lab
+  const sources = enriched.horses.map(h => h.source).filter(Boolean);
+  if (sources.includes("boarding")) return "boarding";
+  if (sources.includes("lab")) return "lab";
+  return undefined;
+}
+
+/** Renders the multi-line "story" description for a statement entry */
 function EntryDescription({
   entry,
   enriched,
@@ -52,6 +75,8 @@ function EntryDescription({
     </Badge>
   );
 
+  const domainBadge = <DomainBadge source={getPrimarySource(enriched)} t={t} />;
+
   // No enrichment available — fallback to raw description
   if (!enriched) {
     return (
@@ -68,6 +93,7 @@ function EntryDescription({
       <div className="space-y-0.5">
         <div className="flex items-center gap-2 flex-wrap">
           {typeBadge}
+          {domainBadge}
           {enriched.paymentMethod && (
             <Badge variant="secondary" className="text-xs">
               {enriched.paymentMethod}
@@ -106,9 +132,10 @@ function EntryDescription({
 
     return (
       <div className="space-y-0.5">
-        {/* Line 1: badge + invoice number */}
+        {/* Line 1: badge + domain + invoice number */}
         <div className="flex items-center gap-2 flex-wrap">
           {typeBadge}
+          {domainBadge}
           {enriched.invoiceNumber && (
             <span className="text-sm font-semibold font-mono" dir="ltr">
               {enriched.invoiceNumber}
@@ -180,6 +207,7 @@ function EntryDescription({
   return (
     <div className="flex items-center gap-2">
       {typeBadge}
+      {domainBadge}
       <span className="text-sm text-muted-foreground">{entry.description || "-"}</span>
     </div>
   );
@@ -247,45 +275,78 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     async function fetchHorses() {
       if (!activeTenant?.tenant?.id || !clientId) return;
 
+      const allHorses: ScopeHorse[] = [];
+      const seenIds = new Set<string>();
+
+      // === 1. Lab horses: via invoices → invoice_items(lab_sample) → lab_samples → lab_horses ===
       const { data: invoices } = await supabase
         .from("invoices")
         .select("id")
         .eq("tenant_id", activeTenant.tenant.id)
         .eq("client_id", clientId);
 
-      if (!invoices || invoices.length === 0) return;
+      if (invoices && invoices.length > 0) {
+        const invoiceIds = invoices.map((inv: any) => inv.id);
 
-      const invoiceIds = invoices.map((inv: any) => inv.id);
+        const { data: items } = await supabase
+          .from("invoice_items" as any)
+          .select("entity_id")
+          .in("invoice_id", invoiceIds)
+          .eq("entity_type", "lab_sample");
 
-      const { data: items } = await supabase
-        .from("invoice_items" as any)
-        .select("entity_id")
-        .in("invoice_id", invoiceIds)
-        .eq("entity_type", "lab_sample");
+        if (items && items.length > 0) {
+          const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
+          if (sampleIds.length > 0) {
+            const { data: samples } = await supabase
+              .from("lab_samples")
+              .select("lab_horse_id")
+              .in("id", sampleIds);
 
-      if (!items || items.length === 0) return;
+            if (samples) {
+              const horseIds = [...new Set((samples as any[]).map((s) => s.lab_horse_id).filter(Boolean))];
+              if (horseIds.length > 0) {
+                const { data: horses } = await supabase
+                  .from("lab_horses")
+                  .select("id, name, name_ar")
+                  .in("id", horseIds);
 
-      const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
-      if (sampleIds.length === 0) return;
-
-      const { data: samples } = await supabase
-        .from("lab_samples")
-        .select("lab_horse_id")
-        .in("id", sampleIds);
-
-      if (!samples) return;
-
-      const horseIds = [...new Set((samples as any[]).map((s) => s.lab_horse_id).filter(Boolean))];
-      if (horseIds.length === 0) return;
-
-      const { data: horses } = await supabase
-        .from("lab_horses")
-        .select("id, name, name_ar")
-        .in("id", horseIds);
-
-      if (horses) {
-        setClientHorses(horses as ScopeHorse[]);
+                horses?.forEach((h: any) => {
+                  if (!seenIds.has(h.id)) {
+                    seenIds.add(h.id);
+                    allHorses.push(h as ScopeHorse);
+                  }
+                });
+              }
+            }
+          }
+        }
       }
+
+      // === 2. Boarding horses: via boarding_admissions → horses ===
+      const { data: admissions } = await supabase
+        .from("boarding_admissions")
+        .select("horse_id")
+        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("client_id", clientId);
+
+      if (admissions && admissions.length > 0) {
+        const stableHorseIds = [...new Set((admissions as any[]).map((a) => a.horse_id).filter(Boolean))];
+        if (stableHorseIds.length > 0) {
+          const { data: horses } = await supabase
+            .from("horses")
+            .select("id, name, name_ar")
+            .in("id", stableHorseIds);
+
+          horses?.forEach((h: any) => {
+            if (!seenIds.has(h.id)) {
+              seenIds.add(h.id);
+              allHorses.push(h as ScopeHorse);
+            }
+          });
+        }
+      }
+
+      setClientHorses(allHorses);
     }
 
     fetchHorses();
@@ -316,39 +377,71 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         return;
       }
 
-      const { data: items } = await supabase
+      const selectedSet = new Set(scopeConfig.selectedHorseIds);
+      const matchingInvoiceIds = new Set<string>();
+
+      // === 1. Lab path: invoice_items(lab_sample) → lab_samples → lab_horse_id ===
+      const { data: labItems } = await supabase
         .from("invoice_items" as any)
         .select("invoice_id, entity_id")
         .in("invoice_id", invoiceRefs)
         .eq("entity_type", "lab_sample");
 
-      if (!items || items.length === 0) {
-        setHorseFilteredEntryIds(new Set());
-        return;
+      if (labItems && labItems.length > 0) {
+        const sampleIds = (labItems as any[]).map((i) => i.entity_id).filter(Boolean);
+        if (sampleIds.length > 0) {
+          const { data: samples } = await supabase
+            .from("lab_samples")
+            .select("id, lab_horse_id")
+            .in("id", sampleIds);
+
+          if (samples) {
+            const sampleToInvoice = new Map<string, string[]>();
+            (labItems as any[]).forEach((item) => {
+              if (!sampleToInvoice.has(item.entity_id)) sampleToInvoice.set(item.entity_id, []);
+              sampleToInvoice.get(item.entity_id)!.push(item.invoice_id);
+            });
+
+            (samples as any[]).forEach((s) => {
+              if (selectedSet.has(s.lab_horse_id)) {
+                const invIds = sampleToInvoice.get(s.id) || [];
+                invIds.forEach((id) => matchingInvoiceIds.add(id));
+              }
+            });
+          }
+        }
       }
 
-      const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
+      // === 2. Boarding path: invoice_items(boarding) → boarding_admissions → horse_id ===
+      const { data: boardingItems } = await supabase
+        .from("invoice_items" as any)
+        .select("invoice_id, entity_id")
+        .in("invoice_id", invoiceRefs)
+        .eq("entity_type", "boarding");
 
-      const { data: samples } = await supabase
-        .from("lab_samples")
-        .select("id, lab_horse_id")
-        .in("id", sampleIds);
+      if (boardingItems && boardingItems.length > 0) {
+        const admissionIds = (boardingItems as any[]).map((i) => i.entity_id).filter(Boolean);
+        if (admissionIds.length > 0) {
+          const { data: admissions } = await supabase
+            .from("boarding_admissions")
+            .select("id, horse_id")
+            .in("id", admissionIds);
 
-      const matchingInvoiceIds = new Set<string>();
-      if (samples) {
-        const selectedSet = new Set(scopeConfig.selectedHorseIds);
-        const sampleToInvoice = new Map<string, string[]>();
-        (items as any[]).forEach((item) => {
-          if (!sampleToInvoice.has(item.entity_id)) sampleToInvoice.set(item.entity_id, []);
-          sampleToInvoice.get(item.entity_id)!.push(item.invoice_id);
-        });
+          if (admissions) {
+            const admToInvoice = new Map<string, string[]>();
+            (boardingItems as any[]).forEach((item) => {
+              if (!admToInvoice.has(item.entity_id)) admToInvoice.set(item.entity_id, []);
+              admToInvoice.get(item.entity_id)!.push(item.invoice_id);
+            });
 
-        (samples as any[]).forEach((s) => {
-          if (selectedSet.has(s.lab_horse_id)) {
-            const invIds = sampleToInvoice.get(s.id) || [];
-            invIds.forEach((id) => matchingInvoiceIds.add(id));
+            (admissions as any[]).forEach((a) => {
+              if (selectedSet.has(a.horse_id)) {
+                const invIds = admToInvoice.get(a.id) || [];
+                invIds.forEach((id) => matchingInvoiceIds.add(id));
+              }
+            });
           }
-        });
+        }
       }
 
       const allowedEntryIds = new Set<string>();

@@ -46,6 +46,7 @@ import {
   Download,
   CreditCard,
 } from "lucide-react";
+import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
 
 interface InvoicesTabProps {
   selectedInvoiceId: string | null;
@@ -835,7 +836,7 @@ function PaymentsTab() {
   );
 }
 
-type FinanceTab = "invoices" | "expenses" | "ledger" | "payments";
+type FinanceTab = "invoices" | "expenses" | "payables" | "payments" | "ledger";
 
 interface DashboardFinanceProps {
   initialTab?: FinanceTab;
@@ -906,7 +907,7 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FinanceTab)}>
-          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-4 h-auto p-1">
+          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-5 h-auto p-1">
             <TabsTrigger value="invoices" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
               <FileText className="w-5 h-5" />
               <span>{t("finance.tabs.invoices")}</span>
@@ -914,6 +915,10 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
             <TabsTrigger value="expenses" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
               <Receipt className="w-5 h-5" />
               <span>{t("finance.tabs.expenses")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="payables" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
+              <TrendingDown className="w-5 h-5" />
+              <span>{t("finance.tabs.payables")}</span>
             </TabsTrigger>
             <TabsTrigger value="payments" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
               <CreditCard className="w-5 h-5" />
@@ -934,6 +939,10 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
 
           <TabsContent value="expenses">
             <ExpensesTab />
+          </TabsContent>
+
+          <TabsContent value="payables">
+            <SupplierPayablesTab />
           </TabsContent>
 
           <TabsContent value="payments">
