@@ -195,19 +195,19 @@ export function InvoicesList({
           </>
         )}
         <DropdownMenuSeparator />
-        {canSend && invoice.status === "draft" && (
-          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "sent")}>
-            <Send className="w-4 h-4 me-2" />
-            {t("finance.invoices.markAsSent")}
+        {canSend && (invoice.status === "draft" || invoice.status === "reviewed") && (
+          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "approved")}>
+            <CheckCircle className="w-4 h-4 me-2" />
+            {t("finance.invoices.approve")}
           </DropdownMenuItem>
         )}
-        {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+        {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
           <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "paid")}>
             <CheckCircle className="w-4 h-4 me-2 text-success" />
             {t("finance.invoices.markPaid")}
           </DropdownMenuItem>
         )}
-        {canEdit && invoice.status === "draft" && (
+        {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
           <DropdownMenuItem onClick={() => onEdit?.(invoice)}>
             <Pencil className="w-4 h-4 me-2" />
             {t("common.edit")}
