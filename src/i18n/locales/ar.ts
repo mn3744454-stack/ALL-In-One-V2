@@ -1687,6 +1687,16 @@ export const ar = {
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
       overview: "نظرة عامة",
+      arrivalsAndDepartures: "الوصول والمغادرة",
+    },
+    arrivalsAndDepartures: {
+      arrivals: "الوصول",
+      departures: "المغادرة",
+      incoming: "الوارد",
+      pending: "قيد الانتظار",
+      completed: "مكتمل",
+      arrivalsToday: "وصول اليوم",
+      departuresToday: "مغادرة اليوم",
     },
     branchScope: {
       selectBranch: "اختر الفرع",

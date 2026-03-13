@@ -1877,6 +1877,10 @@ export const en = {
         draft: "Draft",
         cancelled: "Cancelled",
       },
+      subFilters: {
+        noInvoice: "No Invoice",
+        outstanding: "Outstanding",
+      },
       list: {
         since: "Since",
         facility: "Facility",
