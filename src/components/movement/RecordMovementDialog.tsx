@@ -293,50 +293,53 @@ export function RecordMovementDialog({
 
       if (!horseId) return;
 
-    // Connected movement uses a separate RPC
-    if (formData.destinationType === 'connected' && formData.connectedTenantId) {
-      await recordConnectedMovement({
+      // Connected movement uses a separate RPC
+      if (formData.destinationType === 'connected' && formData.connectedTenantId) {
+        await recordConnectedMovement({
+          horse_id: horseId,
+          connected_tenant_id: formData.connectedTenantId,
+          from_location_id: formData.fromLocationId,
+          movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
+          reason: formData.reason || undefined,
+          notes: formData.notes || undefined,
+        });
+        onOpenChange(false);
+        resetForm();
+        onSuccess?.();
+        return;
+      }
+
+      const currentHorse = allHorses.find(h => h.id === horseId);
+      const isScheduled = scheduleForLater && scheduledAt;
+      
+      const data: CreateMovementData = {
         horse_id: horseId,
-        connected_tenant_id: formData.connectedTenantId,
+        movement_type: formData.movementType,
         from_location_id: formData.fromLocationId,
-        movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
+        to_location_id: formData.toLocationId,
+        from_area_id: currentHorse?.current_area_id || null,
+        from_unit_id: currentHorse?.housing_unit_id || null,
+        to_area_id: formData.toAreaId,
+        to_unit_id: formData.toUnitId,
+        movement_at: movementDate || undefined,
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
-      });
+        internal_location_note: formData.internalLocationNote || undefined,
+        clear_housing: isScheduled ? false : formData.movementType === 'out',
+        destination_type: formData.destinationType,
+        from_external_location_id: formData.fromExternalLocationId,
+        to_external_location_id: formData.toExternalLocationId,
+        movement_status: isScheduled ? 'scheduled' : undefined,
+        scheduled_at: isScheduled ? scheduledAt : undefined,
+      };
+
+      await recordMovement(data);
       onOpenChange(false);
       resetForm();
       onSuccess?.();
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const currentHorse = allHorses.find(h => h.id === horseId);
-    const isScheduled = scheduleForLater && scheduledAt;
-    
-    const data: CreateMovementData = {
-      horse_id: horseId,
-      movement_type: formData.movementType,
-      from_location_id: formData.fromLocationId,
-      to_location_id: formData.toLocationId,
-      from_area_id: currentHorse?.current_area_id || null,
-      from_unit_id: currentHorse?.housing_unit_id || null,
-      to_area_id: formData.toAreaId,
-      to_unit_id: formData.toUnitId,
-      movement_at: movementDate || undefined,
-      reason: formData.reason || undefined,
-      notes: formData.notes || undefined,
-      internal_location_note: formData.internalLocationNote || undefined,
-      clear_housing: isScheduled ? false : formData.movementType === 'out',
-      destination_type: formData.destinationType,
-      from_external_location_id: formData.fromExternalLocationId,
-      to_external_location_id: formData.toExternalLocationId,
-      movement_status: isScheduled ? 'scheduled' : undefined,
-      scheduled_at: isScheduled ? scheduledAt : undefined,
-    };
-
-    await recordMovement(data);
-    onOpenChange(false);
-    resetForm();
-    onSuccess?.();
   };
 
   const resetForm = () => {
