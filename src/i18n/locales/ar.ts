@@ -1901,6 +1901,9 @@ export const ar = {
         draft: "مسودة",
         cancelled: "ملغي",
       },
+      subFilters: {
+        noInvoice: "بدون فاتورة",
+        outstanding: "مستحق",
       list: {
         since: "منذ",
         facility: "المرفق",
