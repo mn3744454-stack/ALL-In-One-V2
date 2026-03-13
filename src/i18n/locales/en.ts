@@ -2686,6 +2686,19 @@ export const en = {
     addHorse: "Add Horse",
     noHorses: "No horses found",
     addFirstHorse: "Add your first horse to get started",
+    tabs: {
+      all: "All",
+      inside: "Inside Stable",
+      intakeDraft: "Pending Arrival",
+      incomplete: "Incomplete",
+      outside: "Outside",
+    },
+    status: {
+      active: "Active",
+      inactive: "Inactive",
+      draft: "Draft",
+      intake_draft: "Pending Arrival",
+    },
     wizard: {
       addTitle: "Add New Horse",
       editTitle: "Edit Horse",
