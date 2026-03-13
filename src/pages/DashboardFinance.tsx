@@ -9,6 +9,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { useInvoices, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useExpenses } from "@/hooks/finance/useExpenses";
 import { useLedgerEntries } from "@/hooks/finance/useLedger";
