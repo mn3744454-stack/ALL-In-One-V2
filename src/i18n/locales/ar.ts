@@ -1682,7 +1682,7 @@ export const ar = {
       facilities: "المرافق",
       units: "الوحدات",
       areas: "الأقسام",
-      admissions: "الإقامات",
+      admissions: "الإيواء",
       plans: "الخطط",
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
