@@ -33,6 +33,29 @@ interface ClientStatementTabProps {
 }
 
 /** Renders the multi-line "story" description for a statement entry */
+/** Domain source badge for statement rows */
+function DomainBadge({ source, t }: { source?: "lab" | "boarding"; t: (k: string) => string }) {
+  if (!source) return null;
+  const label = source === "boarding"
+    ? t("clients.statement.domain.boarding")
+    : t("clients.statement.domain.lab");
+  const cls = source === "boarding"
+    ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+    : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+  return <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border-0", cls)}>{label}</Badge>;
+}
+
+/** Determine the primary domain source from enriched data */
+function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | undefined {
+  if (!enriched || enriched.horses.length === 0) return undefined;
+  // If any horse is boarding, show boarding; otherwise lab
+  const sources = enriched.horses.map(h => h.source).filter(Boolean);
+  if (sources.includes("boarding")) return "boarding";
+  if (sources.includes("lab")) return "lab";
+  return undefined;
+}
+
+/** Renders the multi-line "story" description for a statement entry */
 function EntryDescription({
   entry,
   enriched,
@@ -52,6 +75,8 @@ function EntryDescription({
     </Badge>
   );
 
+  const domainBadge = <DomainBadge source={getPrimarySource(enriched)} t={t} />;
+
   // No enrichment available — fallback to raw description
   if (!enriched) {
     return (
@@ -68,6 +93,7 @@ function EntryDescription({
       <div className="space-y-0.5">
         <div className="flex items-center gap-2 flex-wrap">
           {typeBadge}
+          {domainBadge}
           {enriched.paymentMethod && (
             <Badge variant="secondary" className="text-xs">
               {enriched.paymentMethod}
@@ -106,9 +132,10 @@ function EntryDescription({
 
     return (
       <div className="space-y-0.5">
-        {/* Line 1: badge + invoice number */}
+        {/* Line 1: badge + domain + invoice number */}
         <div className="flex items-center gap-2 flex-wrap">
           {typeBadge}
+          {domainBadge}
           {enriched.invoiceNumber && (
             <span className="text-sm font-semibold font-mono" dir="ltr">
               {enriched.invoiceNumber}
@@ -180,6 +207,7 @@ function EntryDescription({
   return (
     <div className="flex items-center gap-2">
       {typeBadge}
+      {domainBadge}
       <span className="text-sm text-muted-foreground">{entry.description || "-"}</span>
     </div>
   );
