@@ -1995,6 +1995,7 @@ export const ar = {
         linkedInvoices: "الفواتير المرتبطة",
         noLinkedInvoices: "لا توجد فواتير مرتبطة بعد",
         generateInvoice: "إنشاء فاتورة",
+        viewInvoices: "عرض الفواتير",
       },
       checkout: {
         initiateTitle: "بدء الإخراج",
