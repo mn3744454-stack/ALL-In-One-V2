@@ -2491,8 +2491,12 @@ export const ar = {
       overdue: "متأخرة",
       statuses: {
         draft: "مسودة",
-        sent: "مرسلة",
+        reviewed: "تمت المراجعة",
+        approved: "معتمدة",
+        shared: "تمت المشاركة",
+        issued: "صدرت",
         paid: "مدفوعة",
+        partial: "مدفوعة جزئياً",
         overdue: "متأخرة",
         cancelled: "ملغاة",
       },
