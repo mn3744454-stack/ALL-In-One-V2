@@ -45,7 +45,7 @@ export function InvoiceCard({
   onView,
   onDownloadPDF,
   onPrint,
-  onSend,
+  onApprove,
   onMarkPaid,
 }: InvoiceCardProps) {
   const { t, dir } = useI18n();
