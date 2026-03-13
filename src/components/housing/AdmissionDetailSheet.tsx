@@ -24,6 +24,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
