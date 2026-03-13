@@ -1663,6 +1663,16 @@ export const en = {
       movement: "Arrivals & Departures",
       incoming: "Incoming",
       overview: "Overview",
+      arrivalsAndDepartures: "Arrivals & Departures",
+    },
+    arrivalsAndDepartures: {
+      arrivals: "Arrivals",
+      departures: "Departures",
+      incoming: "Incoming",
+      pending: "Pending",
+      completed: "Completed",
+      arrivalsToday: "arrivals today",
+      departuresToday: "departures today",
     },
     branchScope: {
       selectBranch: "Select Branch",
