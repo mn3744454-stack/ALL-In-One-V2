@@ -1686,6 +1686,16 @@ export const ar = {
       plans: "الخطط",
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
+      overview: "نظرة عامة",
+    },
+    branchScope: {
+      selectBranch: "اختر الفرع",
+      allBranches: "جميع الفروع",
+      noBranches: "لم يتم إعداد فروع بعد",
+      overviewDesc: "اختر فرعاً لإدارة مرافقه وإيوائه وعملياته.",
+      facilities: "المرافق",
+      horses: "الخيول",
+      admissions: "الإيواء",
     },
     facilityTypes: {
       barn: "حظيرة",
