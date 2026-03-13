@@ -61,6 +61,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
   const { invoices, isLoading, updateInvoice, deleteInvoice } = useInvoices(
     activeTenant?.tenant.id
   );
+  const queryClient = useQueryClient();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const canCreate = hasPermission("finance.invoice.create");
