@@ -4,24 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+  Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useFacilityAreas, FACILITY_TYPES, SUBDIVISION_CONFIG, type FacilityType } from "@/hooks/housing/useFacilityAreas";
@@ -42,9 +31,13 @@ function getManageKey(type: FacilityType): string {
   }
 }
 
-export function FacilitiesManager() {
+interface FacilitiesManagerProps {
+  lockedBranchId?: string;
+}
+
+export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const { t, dir, lang: language } = useI18n();
-  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>(lockedBranchId || '');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
   const [unitsSheetFacility, setUnitsSheetFacility] = useState<{ id: string; name: string; facilityType: FacilityType } | null>(null);
@@ -52,9 +45,11 @@ export function FacilitiesManager() {
     name: '',
     name_ar: '',
     code: '',
-    branch_id: '',
+    branch_id: lockedBranchId || '',
     facility_type: 'barn' as FacilityType,
   });
+
+  const effectiveBranchId = lockedBranchId || selectedBranchId;
 
   const { activeLocations } = useLocations();
   const { 
@@ -66,10 +61,10 @@ export function FacilitiesManager() {
     toggleAreaActive,
     isCreating, 
     isUpdating 
-  } = useFacilityAreas(selectedBranchId || undefined);
+  } = useFacilityAreas(effectiveBranchId || undefined);
 
   const resetForm = () => {
-    setFormData({ name: '', name_ar: '', code: '', branch_id: '', facility_type: 'barn' });
+    setFormData({ name: '', name_ar: '', code: '', branch_id: lockedBranchId || '', facility_type: 'barn' });
     setEditingArea(null);
   };
 
@@ -88,8 +83,8 @@ export function FacilitiesManager() {
       }
     } else {
       resetForm();
-      if (selectedBranchId) {
-        setFormData(prev => ({ ...prev, branch_id: selectedBranchId }));
+      if (effectiveBranchId) {
+        setFormData(prev => ({ ...prev, branch_id: effectiveBranchId }));
       }
     }
     setDialogOpen(true);
@@ -125,21 +120,23 @@ export function FacilitiesManager() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Filters — only show branch picker when not locked */}
       <div className="flex flex-col sm:flex-row gap-4">
-        <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder={t('housing.facilities.selectBranch')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t('common.all')}</SelectItem>
-            {activeLocations.map((loc) => (
-              <SelectItem key={loc.id} value={loc.id}>
-                {loc.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!lockedBranchId && (
+          <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder={t('housing.facilities.selectBranch')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t('common.all')}</SelectItem>
+              {activeLocations.map((loc) => (
+                <SelectItem key={loc.id} value={loc.id}>
+                  {loc.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {canManage && (
           <Button className="gap-2" onClick={() => handleOpenDialog()}>
@@ -211,7 +208,6 @@ export function FacilitiesManager() {
                   )}
                   
                   <div className="flex flex-col gap-2">
-                    {/* Manage internal structure — only for facility types that support children */}
                     {config.supportsChildren && canManage && (
                       <Button
                         variant="outline"
@@ -264,7 +260,7 @@ export function FacilitiesManager() {
         </div>
       )}
 
-      {/* Units Sheet — contextual unit management for a selected facility */}
+      {/* Units Sheet */}
       <Sheet open={!!unitsSheetFacility} onOpenChange={(open) => { if (!open) setUnitsSheetFacility(null); }}>
         <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg md:max-w-2xl overflow-y-auto">
           <SheetHeader>
@@ -276,7 +272,7 @@ export function FacilitiesManager() {
           {unitsSheetFacility && (
             <div className="mt-4">
               <UnitsManager
-                lockedBranchId={selectedBranchId || undefined}
+                lockedBranchId={effectiveBranchId || undefined}
                 lockedAreaId={unitsSheetFacility.id}
                 facilityType={unitsSheetFacility.facilityType}
               />
@@ -300,7 +296,7 @@ export function FacilitiesManager() {
               <Select 
                 value={formData.branch_id} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v }))}
-                disabled={!!editingArea}
+                disabled={!!editingArea || !!lockedBranchId}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('housing.facilities.selectBranch')} />
