@@ -77,7 +77,8 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   });
 
   const hasBilledInvoice = linkedInvoices.length > 0;
-  const totalBilled = linkedInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
+  const financiallyActiveInvoices = linkedInvoices.filter(inv => !["draft", "reviewed", "cancelled"].includes(inv.status));
+  const totalBilled = financiallyActiveInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
   const allPaid = hasBilledInvoice && linkedInvoices.every(inv => inv.status === "paid");
 
   // Inline editing state
