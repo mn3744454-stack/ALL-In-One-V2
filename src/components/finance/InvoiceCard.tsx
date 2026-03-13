@@ -105,13 +105,13 @@ export function InvoiceCard({
                 {t("finance.invoices.markPaid")}
               </DropdownMenuItem>
             )}
-            {canEdit && invoice.status === "draft" && (
+            {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil className="w-4 h-4 me-2" />
                 {t("common.edit")}
               </DropdownMenuItem>
             )}
-            {canDelete && invoice.status === "draft" && (
+            {canDelete && (invoice.status === "draft" || invoice.status === "reviewed") && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
