@@ -13,24 +13,31 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface MovementsListProps {
   onRecordMovement: () => void;
+  typeFilter?: 'in' | 'out' | 'transfer';
+  statusFilter?: 'scheduled' | 'dispatched' | 'completed' | 'cancelled';
 }
 
-export function MovementsList({ onRecordMovement }: MovementsListProps) {
+export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: MovementsListProps) {
   const { t } = useI18n();
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
+
+  // Merge external filters with user filters
+  const mergedFilters: FiltersType = {
+    ...filters,
+    ...(typeFilter ? { movementType: typeFilter } : {}),
+    ...(statusFilter ? { movementStatus: statusFilter } : {}),
+  };
   
-  const { movements, isLoading, canManage, dispatchMovement, isDispatching } = useHorseMovements(filters);
+  const { movements, isLoading, canManage, dispatchMovement, isDispatching } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
 
-  // Find the horse for the movement being dispatched
   const dispatchMovement_ = dispatchMovementId
     ? movements.find(m => m.id === dispatchMovementId)
     : null;
   const dispatchHorseId = dispatchMovement_?.horse_id || null;
 
-  // Fetch active admission for the horse being dispatched (for financial gate)
   const { data: activeAdmission } = useHorseActiveAdmission(dispatchHorseId);
 
   const handleDispatch = (movementId: string) => {
@@ -59,11 +66,14 @@ export function MovementsList({ onRecordMovement }: MovementsListProps) {
 
   return (
     <div className="space-y-4">
-      <MovementFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        locations={locations}
-      />
+      {/* Only show full filters if no external filter is applied */}
+      {!typeFilter && !statusFilter && (
+        <MovementFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          locations={locations}
+        />
+      )}
 
       {canManage && (
         <Button onClick={onRecordMovement} className="w-full sm:w-auto">
