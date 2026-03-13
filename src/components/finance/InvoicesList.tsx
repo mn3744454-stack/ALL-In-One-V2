@@ -243,7 +243,7 @@ export function InvoicesList({
         onView={() => onInvoiceClick?.(invoice.id)}
         onDownloadPDF={() => handleDownloadPDF(invoice)}
         onPrint={() => handlePrint(invoice)}
-        onSend={() => onUpdateStatus?.(invoice.id, "sent")}
+        onApprove={() => onUpdateStatus?.(invoice.id, "approved")}
         onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
       />
     </div>
