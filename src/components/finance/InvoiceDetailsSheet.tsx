@@ -29,6 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
 import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+import { approveInvoice } from "@/lib/finance/approveInvoice";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
