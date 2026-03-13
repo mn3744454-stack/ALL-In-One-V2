@@ -1968,6 +1968,7 @@ export const en = {
         linkedInvoices: "Linked Invoices",
         noLinkedInvoices: "No invoices linked yet",
         generateInvoice: "Generate Invoice",
+        viewInvoices: "View Invoices",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",
