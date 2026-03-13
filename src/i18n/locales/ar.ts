@@ -3491,6 +3491,13 @@ export const ar = {
       moreItems: "+{count} إضافي",
       showDetails: "عرض التفاصيل",
       hideDetails: "إخفاء التفاصيل",
+      domain: {
+        lab: "مختبر",
+        boarding: "إيواء",
+        registration: "تسجيل",
+        admin: "إدارية",
+        transport: "نقل",
+      },
       dateRange: "نطاق التاريخ",
       print: "طباعة",
       exportCSV: "تصدير CSV",
