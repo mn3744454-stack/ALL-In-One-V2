@@ -67,7 +67,7 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
     const paid = invoices
       .filter((i) => i.status === "paid")
       .reduce((sum, i) => sum + i.total_amount, 0);
-    const pending = invoices.filter((i) => i.status === "sent").length;
+    const pending = invoices.filter((i) => i.status === "approved" || i.status === "shared").length;
     const overdue = invoices
       .filter((i) => i.status === "overdue")
       .reduce((sum, i) => sum + i.total_amount, 0);

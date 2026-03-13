@@ -9,7 +9,7 @@ export interface Invoice {
   invoice_number: string;
   client_id?: string;
   client_name?: string;
-  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
+  status: "draft" | "reviewed" | "approved" | "shared" | "paid" | "overdue" | "cancelled" | "issued";
   issue_date: string;
   due_date?: string;
   subtotal: number;

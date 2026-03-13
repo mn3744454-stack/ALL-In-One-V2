@@ -28,6 +28,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useQueryClient } from "@tanstack/react-query";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useInvoicePayments } from "@/hooks/finance/useInvoicePayments";
+import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
@@ -43,12 +44,16 @@ import {
   DollarSign,
   Download,
   Printer,
-  Send,
   Pencil,
   Trash2,
   Loader2,
   CreditCard,
   History,
+  CheckCircle,
+  Eye,
+  XCircle,
+  ClipboardCheck,
+  Share2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -58,6 +63,13 @@ interface InvoiceDetailsSheetProps {
   invoiceId: string | null;
   onEdit?: (invoice: Invoice) => void;
 }
+
+/** Statuses that are pre-financial (no ledger impact) */
+const PRE_FINANCIAL_STATUSES = ["draft", "reviewed"];
+/** Statuses that have been financially activated */
+const FINANCIALLY_ACTIVE_STATUSES = ["approved", "shared", "paid", "overdue", "partial", "issued"];
+/** Statuses that allow recording payments */
+const PAYABLE_STATUSES = ["approved", "shared", "overdue", "partial"];
 
 export function InvoiceDetailsSheet({
   open,
@@ -74,7 +86,8 @@ export function InvoiceDetailsSheet({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [sendConfirmOpen, setSendConfirmOpen] = useState(false);
+  const [approveConfirmOpen, setApproveConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [invoiceContext, setInvoiceContext] = useState<{ horseName?: string; sampleLabel?: string } | null>(null);
 
@@ -85,7 +98,7 @@ export function InvoiceDetailsSheet({
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");
   const canRecordPayment = hasPermission("finance.payment.create");
-  const canSend = hasPermission("finance.invoice.send");
+  const canApprove = hasPermission("finance.invoice.send"); // Reuse existing permission key
   const canPrint = hasPermission("finance.invoice.print");
 
   useEffect(() => {
@@ -213,29 +226,159 @@ export function InvoiceDetailsSheet({
     fetchInvoiceDetails();
   };
 
-  const handleSend = async () => {
+  /**
+   * Transition: draft → reviewed
+   */
+  const handleReview = async () => {
     if (!invoice) return;
     setActionLoading(true);
     try {
       const { error } = await supabase
         .from("invoices" as any)
-        .update({ status: 'sent' })
+        .update({ status: 'reviewed' })
         .eq("id", invoice.id);
-      
       if (error) throw error;
-      toast.success(t("finance.invoices.sentSuccess"));
+      toast.success(t("finance.invoices.reviewedSuccess"));
       invalidateQueries();
       fetchInvoiceDetails();
     } catch (error) {
-      console.error("Error sending invoice:", error);
+      console.error("Error reviewing invoice:", error);
       toast.error(t("common.error"));
     } finally {
       setActionLoading(false);
     }
   };
 
+  /**
+   * Transition: draft|reviewed → approved
+   * THIS is the financial activation point — posts to ledger.
+   */
+  const handleApprove = async () => {
+    if (!invoice || !activeTenant?.tenant?.id) return;
+    setActionLoading(true);
+    try {
+      // First update status
+      const { error } = await supabase
+        .from("invoices" as any)
+        .update({ status: 'approved' })
+        .eq("id", invoice.id);
+      if (error) throw error;
+
+      // Post to ledger (idempotent — postLedgerForInvoice checks for existing entries)
+      if (invoice.client_id) {
+        await postLedgerForInvoice(invoice.id, activeTenant.tenant.id);
+      }
+
+      toast.success(t("finance.invoices.approvedSuccess"));
+      invalidateQueries();
+      fetchInvoiceDetails();
+    } catch (error) {
+      console.error("Error approving invoice:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /**
+   * Transition: approved → shared
+   */
+  const handleShare = async () => {
+    if (!invoice) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from("invoices" as any)
+        .update({ status: 'shared' })
+        .eq("id", invoice.id);
+      if (error) throw error;
+      toast.success(t("finance.invoices.sharedSuccess"));
+      invalidateQueries();
+      fetchInvoiceDetails();
+    } catch (error) {
+      console.error("Error sharing invoice:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /**
+   * Cancel an approved/shared invoice — creates reversal ledger entry
+   */
+  const handleCancel = async () => {
+    if (!invoice || !activeTenant?.tenant?.id) return;
+    setActionLoading(true);
+    try {
+      const isFinanciallyActive = FINANCIALLY_ACTIVE_STATUSES.includes(invoice.status);
+
+      // If financially active, create reversal ledger entry
+      if (isFinanciallyActive && invoice.client_id) {
+        const { data: userData } = await supabase.auth.getUser();
+        
+        // Get current balance
+        const { data: balanceRecord } = await supabase
+          .from("customer_balances")
+          .select("balance")
+          .eq("tenant_id", activeTenant.tenant.id)
+          .eq("client_id", invoice.client_id)
+          .maybeSingle();
+
+        const currentBalance = Number((balanceRecord as any)?.balance) || 0;
+        const reversalAmount = -Number(invoice.total_amount);
+        const newBalance = currentBalance + reversalAmount;
+
+        // Create reversal ledger entry
+        await supabase.from("ledger_entries").insert({
+          tenant_id: activeTenant.tenant.id,
+          client_id: invoice.client_id,
+          entry_type: "adjustment",
+          reference_type: "invoice_cancellation",
+          reference_id: invoice.id,
+          amount: reversalAmount,
+          balance_after: newBalance,
+          description: `Void | Invoice ${invoice.invoice_number}`,
+          created_by: userData?.user?.id,
+        });
+
+        // Update customer balance
+        await supabase.from("customer_balances").upsert({
+          tenant_id: activeTenant.tenant.id,
+          client_id: invoice.client_id,
+          balance: newBalance,
+          last_updated: new Date().toISOString(),
+        }, { onConflict: "tenant_id,client_id" });
+      }
+
+      // Update invoice status
+      const { error } = await supabase
+        .from("invoices" as any)
+        .update({ status: 'cancelled' })
+        .eq("id", invoice.id);
+      if (error) throw error;
+
+      toast.success(t("finance.invoices.cancelledSuccess"));
+      setCancelConfirmOpen(false);
+      invalidateQueries();
+      fetchInvoiceDetails();
+    } catch (error) {
+      console.error("Error cancelling invoice:", error);
+      toast.error(t("common.error"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  /**
+   * Delete a draft/reviewed invoice (safe — no financial impact)
+   */
   const handleDelete = async () => {
     if (!invoice) return;
+    // Safety: only allow deletion of pre-financial invoices
+    if (!PRE_FINANCIAL_STATUSES.includes(invoice.status)) {
+      toast.error(t("finance.invoices.cannotDeleteApproved"));
+      return;
+    }
     setActionLoading(true);
     try {
       const { error } = await supabase
@@ -291,6 +434,8 @@ export function InvoiceDetailsSheet({
     }
   };
 
+  const isPreFinancial = invoice ? PRE_FINANCIAL_STATUSES.includes(invoice.status) : false;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -322,8 +467,8 @@ export function InvoiceDetailsSheet({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <InvoiceStatusBadge status={invoice.status} />
               <div className="flex flex-wrap gap-2">
-                {/* Record Payment - for sent/overdue/partial invoices */}
-                {canRecordPayment && ['sent', 'overdue', 'partial'].includes(invoice.status) && (
+                {/* Record Payment - for financially active invoices */}
+                {canRecordPayment && PAYABLE_STATUSES.includes(invoice.status) && (
                   <Button
                     size="sm"
                     onClick={() => setRecordPaymentOpen(true)}
@@ -333,25 +478,77 @@ export function InvoiceDetailsSheet({
                     {t("finance.payments.recordPayment")}
                   </Button>
                 )}
-                {/* Mark as Sent - for draft invoices */}
-                {canSend && invoice.status === 'draft' && (
+
+                {/* Review — draft → reviewed */}
+                {canApprove && invoice.status === 'draft' && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSendConfirmOpen(true)}
+                    onClick={handleReview}
                     disabled={actionLoading}
-                    title={t("finance.invoices.markAsSentDesc")}
+                    title={t("finance.invoices.reviewDesc")}
                   >
                     {actionLoading ? (
                       <Loader2 className="h-4 w-4 me-2 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4 me-2" />
+                      <ClipboardCheck className="h-4 w-4 me-2" />
                     )}
-                    {t("finance.invoices.markAsSent")}
+                    {t("finance.invoices.review")}
                   </Button>
                 )}
-                {/* Edit - for draft invoices */}
-                {canEdit && invoice.status === 'draft' && onEdit && (
+
+                {/* Approve — draft|reviewed → approved (FINANCIAL ACTIVATION) */}
+                {canApprove && (invoice.status === 'draft' || invoice.status === 'reviewed') && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => setApproveConfirmOpen(true)}
+                    disabled={actionLoading}
+                    title={t("finance.invoices.approveDesc")}
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 me-2" />
+                    )}
+                    {t("finance.invoices.approve")}
+                  </Button>
+                )}
+
+                {/* Share — approved → shared */}
+                {canApprove && invoice.status === 'approved' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShare}
+                    disabled={actionLoading}
+                    title={t("finance.invoices.shareDesc")}
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    ) : (
+                      <Share2 className="h-4 w-4 me-2" />
+                    )}
+                    {t("finance.invoices.share")}
+                  </Button>
+                )}
+
+                {/* Cancel — for approved/shared invoices (with reversal) */}
+                {canApprove && FINANCIALLY_ACTIVE_STATUSES.includes(invoice.status) && invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCancelConfirmOpen(true)}
+                    disabled={actionLoading}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <XCircle className="h-4 w-4 me-2" />
+                    {t("finance.invoices.cancelInvoice")}
+                  </Button>
+                )}
+
+                {/* Edit - for pre-financial invoices only */}
+                {canEdit && isPreFinancial && onEdit && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -381,7 +578,8 @@ export function InvoiceDetailsSheet({
                     </Button>
                   </>
                 )}
-                {canDelete && invoice.status === 'draft' && (
+                {/* Delete - only for pre-financial (draft/reviewed) */}
+                {canDelete && isPreFinancial && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -394,8 +592,6 @@ export function InvoiceDetailsSheet({
                 )}
               </div>
             </div>
-
-            {/* Horse/Sample context removed from here - integrated into Invoice Info card below */}
 
             {/* Notes (positioned near header for context) */}
             {invoice.notes && (
@@ -625,13 +821,13 @@ export function InvoiceDetailsSheet({
         onSuccess={handlePaymentSuccess}
       />
 
-      {/* Mark as Sent Confirmation Dialog */}
-      <AlertDialog open={sendConfirmOpen} onOpenChange={setSendConfirmOpen}>
+      {/* Approve Confirmation Dialog */}
+      <AlertDialog open={approveConfirmOpen} onOpenChange={setApproveConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("finance.invoices.markAsSent")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("finance.invoices.approve")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("finance.invoices.markAsSentDesc")}
+              {t("finance.invoices.approveDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -640,13 +836,38 @@ export function InvoiceDetailsSheet({
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={() => {
-                setSendConfirmOpen(false);
-                handleSend();
+                setApproveConfirmOpen(false);
+                handleApprove();
               }} 
               disabled={actionLoading}
             >
               {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-              {t("finance.invoices.markAsSent")}
+              {t("finance.invoices.approve")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("finance.invoices.cancelInvoice")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("finance.invoices.cancelInvoiceDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={actionLoading}>
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCancel}
+              disabled={actionLoading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {t("finance.invoices.cancelInvoice")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

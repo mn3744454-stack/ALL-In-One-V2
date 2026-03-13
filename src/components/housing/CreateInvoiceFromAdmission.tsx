@@ -161,14 +161,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         amount,
       });
 
-      // Step 4: Post to ledger (only if client exists)
-      if (selectedClientId || admission.client_id) {
-        const ledgerOk = await postLedgerForInvoice(invoice.id, tenantId);
-        if (!ledgerOk) {
-          console.warn("Ledger posting failed for boarding invoice", invoice.id);
-          // Non-blocking: invoice + items exist, ledger will be reconciled
-        }
-      }
+      // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
+      // NOT at creation time. Draft invoices have zero financial impact.
 
       // Step 5: Invalidate all finance queries for consistency
       invalidateFinanceQueries(queryClient, tenantId);

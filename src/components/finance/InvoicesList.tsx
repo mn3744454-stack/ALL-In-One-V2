@@ -195,25 +195,25 @@ export function InvoicesList({
           </>
         )}
         <DropdownMenuSeparator />
-        {canSend && invoice.status === "draft" && (
-          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "sent")}>
-            <Send className="w-4 h-4 me-2" />
-            {t("finance.invoices.markAsSent")}
+        {canSend && (invoice.status === "draft" || invoice.status === "reviewed") && (
+          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "approved")}>
+            <CheckCircle className="w-4 h-4 me-2" />
+            {t("finance.invoices.approve")}
           </DropdownMenuItem>
         )}
-        {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+        {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
           <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "paid")}>
             <CheckCircle className="w-4 h-4 me-2 text-success" />
             {t("finance.invoices.markPaid")}
           </DropdownMenuItem>
         )}
-        {canEdit && invoice.status === "draft" && (
+        {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
           <DropdownMenuItem onClick={() => onEdit?.(invoice)}>
             <Pencil className="w-4 h-4 me-2" />
             {t("common.edit")}
           </DropdownMenuItem>
         )}
-        {canDelete && invoice.status === "draft" && (
+        {canDelete && (invoice.status === "draft" || invoice.status === "reviewed") && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setDeleteId(invoice.id)} className="text-destructive">
@@ -243,7 +243,7 @@ export function InvoicesList({
         onView={() => onInvoiceClick?.(invoice.id)}
         onDownloadPDF={() => handleDownloadPDF(invoice)}
         onPrint={() => handlePrint(invoice)}
-        onSend={() => onUpdateStatus?.(invoice.id, "sent")}
+        onApprove={() => onUpdateStatus?.(invoice.id, "approved")}
         onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
       />
     </div>
@@ -275,7 +275,9 @@ export function InvoicesList({
           <SelectContent>
             <SelectItem value="all">{t("common.all")}</SelectItem>
             <SelectItem value="draft">{t("finance.invoices.statuses.draft")}</SelectItem>
-            <SelectItem value="sent">{t("finance.invoices.statuses.sent")}</SelectItem>
+            <SelectItem value="reviewed">{t("finance.invoices.statuses.reviewed")}</SelectItem>
+            <SelectItem value="approved">{t("finance.invoices.statuses.approved")}</SelectItem>
+            <SelectItem value="shared">{t("finance.invoices.statuses.shared")}</SelectItem>
             <SelectItem value="paid">{t("finance.invoices.statuses.paid")}</SelectItem>
             <SelectItem value="overdue">{t("finance.invoices.statuses.overdue")}</SelectItem>
             <SelectItem value="cancelled">{t("finance.invoices.statuses.cancelled")}</SelectItem>

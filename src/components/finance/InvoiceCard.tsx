@@ -33,7 +33,7 @@ interface InvoiceCardProps {
   onView?: () => void;
   onDownloadPDF?: () => void;
   onPrint?: () => void;
-  onSend?: () => void;
+  onApprove?: () => void;
   onMarkPaid?: () => void;
 }
 
@@ -45,7 +45,7 @@ export function InvoiceCard({
   onView,
   onDownloadPDF,
   onPrint,
-  onSend,
+  onApprove,
   onMarkPaid,
 }: InvoiceCardProps) {
   const { t, dir } = useI18n();
@@ -93,25 +93,25 @@ export function InvoiceCard({
               </>
             )}
             <DropdownMenuSeparator />
-            {canSend && invoice.status === "draft" && (
-              <DropdownMenuItem onClick={onSend} title={t("finance.invoices.markAsSentDesc")}>
-                <Send className="w-4 h-4 me-2" />
-                {t("finance.invoices.markAsSent")}
+            {canSend && (invoice.status === "draft" || invoice.status === "reviewed") && (
+              <DropdownMenuItem onClick={onApprove}>
+                <CheckCircle className="w-4 h-4 me-2" />
+                {t("finance.invoices.approve")}
               </DropdownMenuItem>
             )}
-            {canMarkPaid && (invoice.status === "sent" || invoice.status === "overdue") && (
+            {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
               <DropdownMenuItem onClick={onMarkPaid}>
                 <CheckCircle className="w-4 h-4 me-2 text-success" />
                 {t("finance.invoices.markPaid")}
               </DropdownMenuItem>
             )}
-            {canEdit && invoice.status === "draft" && (
+            {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil className="w-4 h-4 me-2" />
                 {t("common.edit")}
               </DropdownMenuItem>
             )}
-            {canDelete && invoice.status === "draft" && (
+            {canDelete && (invoice.status === "draft" || invoice.status === "reviewed") && (
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
