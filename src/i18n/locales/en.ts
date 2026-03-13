@@ -1663,6 +1663,16 @@ export const en = {
       movement: "Arrivals & Departures",
       incoming: "Incoming",
       overview: "Overview",
+      arrivalsAndDepartures: "Arrivals & Departures",
+    },
+    arrivalsAndDepartures: {
+      arrivals: "Arrivals",
+      departures: "Departures",
+      incoming: "Incoming",
+      pending: "Pending",
+      completed: "Completed",
+      arrivalsToday: "arrivals today",
+      departuresToday: "departures today",
     },
     branchScope: {
       selectBranch: "Select Branch",
@@ -1867,6 +1877,10 @@ export const en = {
         draft: "Draft",
         cancelled: "Cancelled",
       },
+      subFilters: {
+        noInvoice: "No Invoice",
+        outstanding: "Outstanding",
+      },
       list: {
         since: "Since",
         facility: "Facility",
@@ -1958,6 +1972,7 @@ export const en = {
         linkedInvoices: "Linked Invoices",
         noLinkedInvoices: "No invoices linked yet",
         generateInvoice: "Generate Invoice",
+        viewInvoices: "View Invoices",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",

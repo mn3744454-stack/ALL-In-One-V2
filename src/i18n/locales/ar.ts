@@ -1687,6 +1687,16 @@ export const ar = {
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
       overview: "نظرة عامة",
+      arrivalsAndDepartures: "الوصول والمغادرة",
+    },
+    arrivalsAndDepartures: {
+      arrivals: "الوصول",
+      departures: "المغادرة",
+      incoming: "الوارد",
+      pending: "قيد الانتظار",
+      completed: "مكتمل",
+      arrivalsToday: "وصول اليوم",
+      departuresToday: "مغادرة اليوم",
     },
     branchScope: {
       selectBranch: "اختر الفرع",
@@ -1891,6 +1901,10 @@ export const ar = {
         draft: "مسودة",
         cancelled: "ملغي",
       },
+      subFilters: {
+        noInvoice: "بدون فاتورة",
+        outstanding: "مستحق",
+      },
       list: {
         since: "منذ",
         facility: "المرفق",
@@ -1982,6 +1996,7 @@ export const ar = {
         linkedInvoices: "الفواتير المرتبطة",
         noLinkedInvoices: "لا توجد فواتير مرتبطة بعد",
         generateInvoice: "إنشاء فاتورة",
+        viewInvoices: "عرض الفواتير",
       },
       checkout: {
         initiateTitle: "بدء الإخراج",
