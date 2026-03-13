@@ -253,41 +253,45 @@ export function RecordMovementDialog({
 
   const handleHousingSkip = () => handleNext();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async () => {
-    if (!formData.movementType) return;
+    if (!formData.movementType || isSubmitting) return;
+    setIsSubmitting(true);
 
-    let horseId = formData.horseId;
+    try {
+      let horseId = formData.horseId;
 
-    // If new horse, create it first
-    if (arrivalSource === 'new_horse' && !horseId) {
-      if (!activeTenant?.tenant_id) return;
-      const { data: createdHorse, error: createError } = await supabase
-        .from("horses")
-        .insert({
-          name: newHorse.name.trim(),
-          name_ar: newHorse.name_ar.trim() || null,
-          gender: newHorse.gender,
-          birth_date: newHorse.birth_date || null,
-          microchip_number: newHorse.microchip_number.trim() || null,
-          passport_number: newHorse.passport_number.trim() || null,
-          breed: newHorse.breed.trim() || null,
-          color: newHorse.color.trim() || null,
-          notes: newHorse.notes.trim() || null,
-          tenant_id: activeTenant.tenant_id,
-          status: 'active',
-        })
-        .select('id')
-        .single();
+      // If new horse, create it first with intake_draft status
+      if (arrivalSource === 'new_horse' && !horseId) {
+        if (!activeTenant?.tenant_id) return;
+        const { data: createdHorse, error: createError } = await supabase
+          .from("horses")
+          .insert({
+            name: newHorse.name.trim(),
+            name_ar: newHorse.name_ar.trim() || null,
+            gender: newHorse.gender,
+            birth_date: newHorse.birth_date || null,
+            microchip_number: newHorse.microchip_number.trim() || null,
+            passport_number: newHorse.passport_number.trim() || null,
+            breed: newHorse.breed.trim() || null,
+            color: newHorse.color.trim() || null,
+            notes: newHorse.notes.trim() || null,
+            tenant_id: activeTenant.tenant_id,
+            status: 'intake_draft',
+          })
+          .select('id')
+          .single();
 
-      if (createError || !createdHorse) {
-        toast.error(createError?.message || "Failed to create horse");
-        return;
+        if (createError || !createdHorse) {
+          toast.error(createError?.message || "Failed to create horse");
+          return;
+        }
+        horseId = createdHorse.id;
+        toast.success(t("movement.arrival.horseCreated").replace("{{name}}", newHorse.name));
       }
-      horseId = createdHorse.id;
-      toast.success(t("movement.arrival.horseCreated").replace("{{name}}", newHorse.name));
-    }
 
-    if (!horseId) return;
+      if (!horseId) return;
 
     // Connected movement uses a separate RPC
     if (formData.destinationType === 'connected' && formData.connectedTenantId) {
