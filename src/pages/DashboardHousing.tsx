@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { FacilitiesManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
-import { MovementsList, RecordMovementDialog, IncomingArrivals } from "@/components/movement";
+import { ArrivalsAndDepartures } from "@/components/housing/ArrivalsAndDepartures";
+import { RecordMovementDialog } from "@/components/movement";
 import { BranchOverview } from "@/components/housing/BranchOverview";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AlertCircle, Building2, ClipboardCheck, ArrowLeftRight, ArrowDownToLine, LayoutDashboard } from "lucide-react";
+import { AlertCircle, Building2, ClipboardCheck, ArrowLeftRight, LayoutDashboard, Warehouse } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 
 export default function DashboardHousing() {
@@ -34,28 +35,27 @@ export default function DashboardHousing() {
     } else {
       next.set('branch', branchId);
     }
-    // When switching branches, default to admissions tab
-    if (!next.get('tab')) {
-      next.set('tab', 'admissions');
-    }
+    // When switching branches, default to admissions tab for specific branch, overview for all
+    next.set('tab', branchId === '__all__' ? 'overview' : 'admissions');
     setSearchParams(next, { replace: true });
   };
 
+  // Tabs: for all-branches, show overview first. For specific branch, show branch-scoped tabs.
   const availableTabs = useMemo(() => {
     if (selectedBranchId === '__all__') {
-      return ['overview', 'admissions', 'facilities', 'movement', 'incoming'];
+      return ['overview', 'admissions', 'facilities', 'arrivalsAndDepartures'];
     }
-    return ['admissions', 'facilities', 'movement', 'incoming'];
+    return ['overview', 'admissions', 'facilities', 'arrivalsAndDepartures'];
   }, [selectedBranchId]);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
     // Support legacy tabs
     if (urlTab === 'areas' || urlTab === 'units') return 'facilities';
+    if (urlTab === 'movement' || urlTab === 'incoming') return 'arrivalsAndDepartures';
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
-    // Default: overview for all branches, admissions for specific branch
     return selectedBranchId === '__all__' ? 'overview' : 'admissions';
   }, [searchParams, availableTabs, selectedBranchId]);
 
@@ -128,38 +128,37 @@ export default function DashboardHousing() {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="hidden md:flex">
-            {selectedBranchId === '__all__' && (
-              <TabsTrigger value="overview" className="gap-2">
-                <LayoutDashboard className="h-4 w-4" />
-                {t('housing.tabs.overview')}
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="overview" className="gap-2">
+              <LayoutDashboard className="h-4 w-4" />
+              {t('housing.tabs.overview')}
+            </TabsTrigger>
             <TabsTrigger value="admissions" className="gap-2">
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
             </TabsTrigger>
             <TabsTrigger value="facilities" className="gap-2">
-              <Building2 className="h-4 w-4" />
+              <Warehouse className="h-4 w-4" />
               {t('housing.tabs.facilities')}
             </TabsTrigger>
-            <TabsTrigger value="movement" className="gap-2">
+            <TabsTrigger value="arrivalsAndDepartures" className="gap-2">
               <ArrowLeftRight className="h-4 w-4" />
-              {t('housing.tabs.movement')}
-            </TabsTrigger>
-            <TabsTrigger value="incoming" className="gap-2">
-              <ArrowDownToLine className="h-4 w-4" />
-              {t('housing.tabs.incoming')}
+              {t('housing.tabs.arrivalsAndDepartures')}
             </TabsTrigger>
           </TabsList>
 
-          {selectedBranchId === '__all__' && (
-            <TabsContent value="overview" className="mt-0">
+          <TabsContent value="overview" className="mt-0">
+            {selectedBranchId === '__all__' ? (
               <BranchOverview
                 branches={activeLocations}
                 onSelectBranch={(branchId) => handleBranchChange(branchId)}
               />
-            </TabsContent>
-          )}
+            ) : (
+              <BranchOverview
+                branches={activeLocations.filter(l => l.id === selectedBranchId)}
+                onSelectBranch={() => {}}
+              />
+            )}
+          </TabsContent>
 
           <TabsContent value="admissions" className="mt-0">
             <AdmissionsList branchId={selectedBranchId === '__all__' ? undefined : selectedBranchId} />
@@ -169,12 +168,8 @@ export default function DashboardHousing() {
             <FacilitiesManager lockedBranchId={selectedBranchId === '__all__' ? undefined : selectedBranchId} />
           </TabsContent>
 
-          <TabsContent value="movement" className="mt-0">
-            <MovementsList onRecordMovement={() => setRecordDialogOpen(true)} />
-          </TabsContent>
-
-          <TabsContent value="incoming" className="mt-0">
-            <IncomingArrivals />
+          <TabsContent value="arrivalsAndDepartures" className="mt-0">
+            <ArrivalsAndDepartures onRecordMovement={() => setRecordDialogOpen(true)} />
           </TabsContent>
         </Tabs>
       </div>
@@ -183,7 +178,6 @@ export default function DashboardHousing() {
         <HousingBottomNav
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          showOverview={selectedBranchId === '__all__'}
         />
       )}
 
