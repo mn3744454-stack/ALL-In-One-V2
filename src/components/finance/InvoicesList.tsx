@@ -213,7 +213,7 @@ export function InvoicesList({
             {t("common.edit")}
           </DropdownMenuItem>
         )}
-        {canDelete && invoice.status === "draft" && (
+        {canDelete && (invoice.status === "draft" || invoice.status === "reviewed") && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setDeleteId(invoice.id)} className="text-destructive">
