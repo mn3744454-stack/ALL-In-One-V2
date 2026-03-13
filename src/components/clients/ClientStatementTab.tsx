@@ -275,45 +275,78 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     async function fetchHorses() {
       if (!activeTenant?.tenant?.id || !clientId) return;
 
+      const allHorses: ScopeHorse[] = [];
+      const seenIds = new Set<string>();
+
+      // === 1. Lab horses: via invoices → invoice_items(lab_sample) → lab_samples → lab_horses ===
       const { data: invoices } = await supabase
         .from("invoices")
         .select("id")
         .eq("tenant_id", activeTenant.tenant.id)
         .eq("client_id", clientId);
 
-      if (!invoices || invoices.length === 0) return;
+      if (invoices && invoices.length > 0) {
+        const invoiceIds = invoices.map((inv: any) => inv.id);
 
-      const invoiceIds = invoices.map((inv: any) => inv.id);
+        const { data: items } = await supabase
+          .from("invoice_items" as any)
+          .select("entity_id")
+          .in("invoice_id", invoiceIds)
+          .eq("entity_type", "lab_sample");
 
-      const { data: items } = await supabase
-        .from("invoice_items" as any)
-        .select("entity_id")
-        .in("invoice_id", invoiceIds)
-        .eq("entity_type", "lab_sample");
+        if (items && items.length > 0) {
+          const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
+          if (sampleIds.length > 0) {
+            const { data: samples } = await supabase
+              .from("lab_samples")
+              .select("lab_horse_id")
+              .in("id", sampleIds);
 
-      if (!items || items.length === 0) return;
+            if (samples) {
+              const horseIds = [...new Set((samples as any[]).map((s) => s.lab_horse_id).filter(Boolean))];
+              if (horseIds.length > 0) {
+                const { data: horses } = await supabase
+                  .from("lab_horses")
+                  .select("id, name, name_ar")
+                  .in("id", horseIds);
 
-      const sampleIds = (items as any[]).map((i) => i.entity_id).filter(Boolean);
-      if (sampleIds.length === 0) return;
-
-      const { data: samples } = await supabase
-        .from("lab_samples")
-        .select("lab_horse_id")
-        .in("id", sampleIds);
-
-      if (!samples) return;
-
-      const horseIds = [...new Set((samples as any[]).map((s) => s.lab_horse_id).filter(Boolean))];
-      if (horseIds.length === 0) return;
-
-      const { data: horses } = await supabase
-        .from("lab_horses")
-        .select("id, name, name_ar")
-        .in("id", horseIds);
-
-      if (horses) {
-        setClientHorses(horses as ScopeHorse[]);
+                horses?.forEach((h: any) => {
+                  if (!seenIds.has(h.id)) {
+                    seenIds.add(h.id);
+                    allHorses.push(h as ScopeHorse);
+                  }
+                });
+              }
+            }
+          }
+        }
       }
+
+      // === 2. Boarding horses: via boarding_admissions → horses ===
+      const { data: admissions } = await supabase
+        .from("boarding_admissions")
+        .select("horse_id")
+        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("client_id", clientId);
+
+      if (admissions && admissions.length > 0) {
+        const stableHorseIds = [...new Set((admissions as any[]).map((a) => a.horse_id).filter(Boolean))];
+        if (stableHorseIds.length > 0) {
+          const { data: horses } = await supabase
+            .from("horses")
+            .select("id, name, name_ar")
+            .in("id", stableHorseIds);
+
+          horses?.forEach((h: any) => {
+            if (!seenIds.has(h.id)) {
+              seenIds.add(h.id);
+              allHorses.push(h as ScopeHorse);
+            }
+          });
+        }
+      }
+
+      setClientHorses(allHorses);
     }
 
     fetchHorses();
