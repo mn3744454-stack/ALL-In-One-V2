@@ -12,8 +12,8 @@ export function HousingBottomNav({ activeTab, onTabChange }: HousingBottomNavPro
 
   const tabs = [
     { id: 'overview', icon: LayoutDashboard, label: t('housing.tabs.overview') },
-    { id: 'admissions', icon: ClipboardCheck, label: t('housing.tabs.admissions') },
     { id: 'facilities', icon: Warehouse, label: t('housing.tabs.facilities') },
+    { id: 'admissions', icon: ClipboardCheck, label: t('housing.tabs.admissions') },
     { id: 'arrivalsAndDepartures', icon: ArrowLeftRight, label: t('housing.tabs.arrivalsAndDepartures') },
   ];
 
