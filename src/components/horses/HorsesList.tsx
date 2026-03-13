@@ -5,6 +5,8 @@ import { HorseFilters, HorseFiltersState } from "./HorseFilters";
 import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Plus } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
@@ -25,7 +27,11 @@ interface Horse {
   color_id?: string | null;
   microchip_number?: string | null;
   passport_number?: string | null;
+  housing_unit_id?: string | null;
+  current_location_id?: string | null;
 }
+
+type OperationalTab = 'all' | 'inside' | 'intake_draft' | 'incomplete' | 'outside';
 
 interface HorsesListProps {
   horses: Horse[];
@@ -45,10 +51,32 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
     color_id: "",
   });
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [operationalTab, setOperationalTab] = useState<OperationalTab>('all');
+
+  // Operational buckets
+  const horseBuckets = useMemo(() => {
+    const inside = horses.filter(h => h.status === 'active' && h.current_location_id);
+    const intakeDraft = horses.filter(h => h.status === 'intake_draft');
+    const incomplete = horses.filter(h => 
+      h.status === 'active' && (!h.birth_date || !h.microchip_number || !h.passport_number)
+    );
+    const outside = horses.filter(h => h.status === 'active' && !h.current_location_id);
+    return { all: horses, inside, intakeDraft, incomplete, outside };
+  }, [horses]);
+
+  // Get base list from operational tab
+  const baseHorses = useMemo(() => {
+    switch (operationalTab) {
+      case 'inside': return horseBuckets.inside;
+      case 'intake_draft': return horseBuckets.intakeDraft;
+      case 'incomplete': return horseBuckets.incomplete;
+      case 'outside': return horseBuckets.outside;
+      default: return horseBuckets.all;
+    }
+  }, [operationalTab, horseBuckets]);
 
   const filteredHorses = useMemo(() => {
-    return horses.filter((horse) => {
-      // Search filter
+    return baseHorses.filter((horse) => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -59,30 +87,21 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           horse.passport_number?.toLowerCase().includes(searchLower);
         if (!matchesSearch) return false;
       }
-
-      // Gender filter
       if (filters.gender && filters.gender !== "all") {
         if (horse.gender !== filters.gender) return false;
       }
-
-      // Status filter
       if (filters.status && filters.status !== "all") {
         if (horse.status !== filters.status) return false;
       }
-
-      // Breed filter
       if (filters.breed_id && filters.breed_id !== "all") {
         if (horse.breed_id !== filters.breed_id) return false;
       }
-
-      // Color filter
       if (filters.color_id && filters.color_id !== "all") {
         if (horse.color_id !== filters.color_id) return false;
       }
-
       return true;
     });
-  }, [horses, filters]);
+  }, [baseHorses, filters]);
 
   const handleWizardSuccess = () => {
     setWizardOpen(false);
@@ -110,7 +129,6 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Hide ViewSwitcher on mobile */}
           <div className="hidden md:block">
             <ViewSwitcher
               viewMode={viewMode}
@@ -127,6 +145,34 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           </Button>
         </div>
       </div>
+
+      {/* Operational Status Tabs */}
+      <Tabs value={operationalTab} onValueChange={(v) => setOperationalTab(v as OperationalTab)}>
+        <TabsList className="flex-wrap h-auto gap-1">
+          <TabsTrigger value="all" className="gap-1.5">
+            {t('horses.tabs.all')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.all.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="inside" className="gap-1.5">
+            {t('horses.tabs.inside')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.inside.length}</Badge>
+          </TabsTrigger>
+          {horseBuckets.intakeDraft.length > 0 && (
+            <TabsTrigger value="intake_draft" className="gap-1.5">
+              {t('horses.tabs.intakeDraft')}
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{horseBuckets.intakeDraft.length}</Badge>
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="incomplete" className="gap-1.5">
+            {t('horses.tabs.incomplete')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.incomplete.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="outside" className="gap-1.5">
+            {t('horses.tabs.outside')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.outside.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* Filters */}
       <HorseFilters filters={filters} onChange={setFilters} />

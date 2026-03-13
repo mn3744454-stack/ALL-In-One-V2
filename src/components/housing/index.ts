@@ -19,3 +19,4 @@ export * from './BoardingDashboardWidgets';
 export * from './HorseAdmissionCard';
 export * from './HorseProfileCareNotes';
 export * from './CreateInvoiceFromAdmission';
+export * from './BranchOverview';

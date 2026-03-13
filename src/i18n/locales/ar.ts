@@ -1686,6 +1686,16 @@ export const ar = {
       plans: "الخطط",
       movement: "الوصول والمغادرة",
       incoming: "الوارد",
+      overview: "نظرة عامة",
+    },
+    branchScope: {
+      selectBranch: "اختر الفرع",
+      allBranches: "جميع الفروع",
+      noBranches: "لم يتم إعداد فروع بعد",
+      overviewDesc: "اختر فرعاً لإدارة مرافقه وإيوائه وعملياته.",
+      facilities: "المرافق",
+      horses: "الخيول",
+      admissions: "الإيواء",
     },
     facilityTypes: {
       barn: "حظيرة",
@@ -2700,6 +2710,19 @@ export const ar = {
     addHorse: "إضافة خيل",
     noHorses: "لا توجد خيول",
     addFirstHorse: "أضف أول خيل للبدء",
+    tabs: {
+      all: "الكل",
+      inside: "داخل الإسطبل",
+      intakeDraft: "في انتظار الوصول",
+      incomplete: "غير مكتمل",
+      outside: "خارج",
+    },
+    status: {
+      active: "نشط",
+      inactive: "غير نشط",
+      draft: "مسودة",
+      intake_draft: "في انتظار الوصول",
+    },
     wizard: {
       addTitle: "إضافة خيل جديد",
       editTitle: "تعديل الخيل",

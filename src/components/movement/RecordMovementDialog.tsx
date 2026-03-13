@@ -253,86 +253,93 @@ export function RecordMovementDialog({
 
   const handleHousingSkip = () => handleNext();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async () => {
-    if (!formData.movementType) return;
+    if (!formData.movementType || isSubmitting) return;
+    setIsSubmitting(true);
 
-    let horseId = formData.horseId;
+    try {
+      let horseId = formData.horseId;
 
-    // If new horse, create it first
-    if (arrivalSource === 'new_horse' && !horseId) {
-      if (!activeTenant?.tenant_id) return;
-      const { data: createdHorse, error: createError } = await supabase
-        .from("horses")
-        .insert({
-          name: newHorse.name.trim(),
-          name_ar: newHorse.name_ar.trim() || null,
-          gender: newHorse.gender,
-          birth_date: newHorse.birth_date || null,
-          microchip_number: newHorse.microchip_number.trim() || null,
-          passport_number: newHorse.passport_number.trim() || null,
-          breed: newHorse.breed.trim() || null,
-          color: newHorse.color.trim() || null,
-          notes: newHorse.notes.trim() || null,
-          tenant_id: activeTenant.tenant_id,
-          status: 'active',
-        })
-        .select('id')
-        .single();
+      // If new horse, create it first with intake_draft status
+      if (arrivalSource === 'new_horse' && !horseId) {
+        if (!activeTenant?.tenant_id) return;
+        const { data: createdHorse, error: createError } = await supabase
+          .from("horses")
+          .insert({
+            name: newHorse.name.trim(),
+            name_ar: newHorse.name_ar.trim() || null,
+            gender: newHorse.gender,
+            birth_date: newHorse.birth_date || null,
+            microchip_number: newHorse.microchip_number.trim() || null,
+            passport_number: newHorse.passport_number.trim() || null,
+            breed: newHorse.breed.trim() || null,
+            color: newHorse.color.trim() || null,
+            notes: newHorse.notes.trim() || null,
+            tenant_id: activeTenant.tenant_id,
+            status: 'intake_draft',
+          })
+          .select('id')
+          .single();
 
-      if (createError || !createdHorse) {
-        toast.error(createError?.message || "Failed to create horse");
+        if (createError || !createdHorse) {
+          toast.error(createError?.message || "Failed to create horse");
+          return;
+        }
+        horseId = createdHorse.id;
+        toast.success(t("movement.arrival.horseCreated").replace("{{name}}", newHorse.name));
+      }
+
+      if (!horseId) return;
+
+      // Connected movement uses a separate RPC
+      if (formData.destinationType === 'connected' && formData.connectedTenantId) {
+        await recordConnectedMovement({
+          horse_id: horseId,
+          connected_tenant_id: formData.connectedTenantId,
+          from_location_id: formData.fromLocationId,
+          movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
+          reason: formData.reason || undefined,
+          notes: formData.notes || undefined,
+        });
+        onOpenChange(false);
+        resetForm();
+        onSuccess?.();
         return;
       }
-      horseId = createdHorse.id;
-      toast.success(t("movement.arrival.horseCreated").replace("{{name}}", newHorse.name));
-    }
 
-    if (!horseId) return;
-
-    // Connected movement uses a separate RPC
-    if (formData.destinationType === 'connected' && formData.connectedTenantId) {
-      await recordConnectedMovement({
+      const currentHorse = allHorses.find(h => h.id === horseId);
+      const isScheduled = scheduleForLater && scheduledAt;
+      
+      const data: CreateMovementData = {
         horse_id: horseId,
-        connected_tenant_id: formData.connectedTenantId,
+        movement_type: formData.movementType,
         from_location_id: formData.fromLocationId,
-        movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
+        to_location_id: formData.toLocationId,
+        from_area_id: currentHorse?.current_area_id || null,
+        from_unit_id: currentHorse?.housing_unit_id || null,
+        to_area_id: formData.toAreaId,
+        to_unit_id: formData.toUnitId,
+        movement_at: movementDate || undefined,
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
-      });
+        internal_location_note: formData.internalLocationNote || undefined,
+        clear_housing: isScheduled ? false : formData.movementType === 'out',
+        destination_type: formData.destinationType,
+        from_external_location_id: formData.fromExternalLocationId,
+        to_external_location_id: formData.toExternalLocationId,
+        movement_status: isScheduled ? 'scheduled' : undefined,
+        scheduled_at: isScheduled ? scheduledAt : undefined,
+      };
+
+      await recordMovement(data);
       onOpenChange(false);
       resetForm();
       onSuccess?.();
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const currentHorse = allHorses.find(h => h.id === horseId);
-    const isScheduled = scheduleForLater && scheduledAt;
-    
-    const data: CreateMovementData = {
-      horse_id: horseId,
-      movement_type: formData.movementType,
-      from_location_id: formData.fromLocationId,
-      to_location_id: formData.toLocationId,
-      from_area_id: currentHorse?.current_area_id || null,
-      from_unit_id: currentHorse?.housing_unit_id || null,
-      to_area_id: formData.toAreaId,
-      to_unit_id: formData.toUnitId,
-      movement_at: movementDate || undefined,
-      reason: formData.reason || undefined,
-      notes: formData.notes || undefined,
-      internal_location_note: formData.internalLocationNote || undefined,
-      clear_housing: isScheduled ? false : formData.movementType === 'out',
-      destination_type: formData.destinationType,
-      from_external_location_id: formData.fromExternalLocationId,
-      to_external_location_id: formData.toExternalLocationId,
-      movement_status: isScheduled ? 'scheduled' : undefined,
-      scheduled_at: isScheduled ? scheduledAt : undefined,
-    };
-
-    await recordMovement(data);
-    onOpenChange(false);
-    resetForm();
-    onSuccess?.();
   };
 
   const resetForm = () => {
@@ -1092,7 +1099,7 @@ export function RecordMovementDialog({
         </Button>
 
         {step === "review" ? (
-          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected}>
+          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected || isSubmitting}>
             {t("common.confirm")}
           </Button>
         ) : step === "housing" ? (

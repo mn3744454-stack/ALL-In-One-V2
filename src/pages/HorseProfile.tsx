@@ -205,6 +205,8 @@ const HorseProfile = () => {
   const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
 
+  const isIntakeDraft = horse.status === 'intake_draft';
+
   return (
     <div className="min-h-screen bg-background" dir={dir}>
       {/* Header */}
@@ -267,9 +269,15 @@ const HorseProfile = () => {
                   <Badge className={typeBadgeProps.className}>
                     {typeBadgeProps.label}
                   </Badge>
-                  <Badge variant="secondary" className={horse.status === 'active' ? 'bg-success/10 text-success' : ''}>
-                    {horse.status || 'draft'}
-                  </Badge>
+                  {isIntakeDraft ? (
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">
+                      {t('horses.status.intake_draft')}
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className={horse.status === 'active' ? 'bg-success/10 text-success' : ''}>
+                      {t(`horses.status.${horse.status || 'draft'}`)}
+                    </Badge>
+                  )}
                 </div>
                 
                 <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">
@@ -305,11 +313,11 @@ const HorseProfile = () => {
           </CardContent>
         </Card>
 
-        {/* Active Admission Card — primary operational info */}
-        <HorseAdmissionCard horseId={horse.id} />
-
-        {/* Profile Completeness Warning */}
+        {/* Profile Completeness Warning — rendered ONCE */}
         <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
+
+        {/* Active Admission Card — rendered ONCE */}
+        <HorseAdmissionCard horseId={horse.id} />
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -439,12 +447,6 @@ const HorseProfile = () => {
           </Card>
         </div>
 
-        {/* Active Admission Card — promoted above physical details for operational emphasis */}
-        <HorseAdmissionCard horseId={horse.id} />
-
-        {/* Profile Completeness Warning */}
-        <HorseProfileCompleteness horse={horse} onEdit={() => setShowEditWizard(true)} />
-
         {/* Housing & Movement Section */}
         <HorseLocationSection
           horseId={horse.id}
@@ -457,7 +459,7 @@ const HorseProfile = () => {
         {/* Movement Timeline */}
         <HorseMovementTimeline horseId={horse.id} />
 
-        {/* Care Notes (Phase 6) */}
+        {/* Care Notes */}
         <HorseProfileCareNotes horseId={horse.id} />
 
         {/* Media Gallery */}

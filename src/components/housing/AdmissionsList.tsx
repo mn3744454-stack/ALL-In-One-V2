@@ -34,7 +34,11 @@ function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   }
 }
 
-export function AdmissionsList() {
+interface AdmissionsListProps {
+  branchId?: string;
+}
+
+export function AdmissionsList({ branchId }: AdmissionsListProps) {
   const { t } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
@@ -63,6 +67,11 @@ export function AdmissionsList() {
     status: statusFilter,
     search: search || undefined,
   });
+
+  // Filter by branch if provided
+  const filteredAdmissions = branchId
+    ? admissions.filter(a => a.branch_id === branchId)
+    : admissions;
 
   return (
     <div className="space-y-4">
@@ -103,7 +112,7 @@ export function AdmissionsList() {
         <div className="space-y-3">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-24 w-full" />)}
         </div>
-      ) : admissions.length === 0 ? (
+      ) : filteredAdmissions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -116,7 +125,7 @@ export function AdmissionsList() {
         </Card>
       ) : (
         <div className="space-y-2">
-          {admissions.map((admission) => {
+          {filteredAdmissions.map((admission) => {
             const warnCount = getWarningCount(admission.admission_checks || {});
             const stayDays = differenceInDays(
               admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
