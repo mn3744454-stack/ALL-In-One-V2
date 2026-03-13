@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Builds an enriched description for a ledger entry by resolving
- * invoice context: horse name, sample info, and line item names.
+ * invoice context: horse name, sample info, boarding info, and line item names.
  */
 async function buildEnrichedDescription(
   invoiceId: string,
@@ -30,9 +30,15 @@ async function buildEnrichedDescription(
       .filter(i => i.entity_type === "lab_sample" && i.entity_id)
       .map(i => i.entity_id!);
 
+    // Try to resolve horse name from boarding items
+    const boardingIds = typedItems
+      .filter(i => i.entity_type === "boarding" && i.entity_id)
+      .map(i => i.entity_id!);
+
     let horseName: string | null = null;
     let sampleLabel: string | null = null;
 
+    // Resolve lab samples
     if (labSampleIds.length > 0) {
       const { data: samples } = await supabase
         .from("lab_samples")
@@ -55,6 +61,30 @@ async function buildEnrichedDescription(
 
           if (horse) {
             horseName = (horse as any).name || (horse as any).name_ar || null;
+          }
+        }
+      }
+    }
+
+    // Resolve boarding admissions
+    if (!horseName && boardingIds.length > 0) {
+      const { data: admissions } = await supabase
+        .from("boarding_admissions")
+        .select("id, horse_id")
+        .in("id", boardingIds);
+
+      if (admissions && admissions.length > 0) {
+        const admission = admissions[0] as any;
+        if (admission.horse_id) {
+          const { data: horse } = await supabase
+            .from("horses")
+            .select("name, name_ar")
+            .eq("id", admission.horse_id)
+            .maybeSingle();
+
+          if (horse) {
+            horseName = (horse as any).name || (horse as any).name_ar || null;
+            parts.push("Boarding");
           }
         }
       }

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
   SheetContent,
@@ -22,8 +23,8 @@ import { useClients } from "@/hooks/useClients";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { useTenant } from "@/contexts/TenantContext";
+import { cn } from "@/lib/utils";
 import { format, differenceInDays } from "date-fns";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
@@ -59,6 +60,25 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
 
   // Billing links for this admission
   const { links: billingLinks, isLoading: billingLinksLoading } = useBillingLinks("boarding", admissionId || undefined);
+
+  // Fetch actual invoice data for linked invoices
+  const linkedInvoiceIds = useMemo(() => billingLinks.map(l => l.invoice_id).filter(Boolean), [billingLinks]);
+  const { data: linkedInvoices = [] } = useQuery({
+    queryKey: ["linked-invoices", linkedInvoiceIds.join(",")],
+    queryFn: async () => {
+      if (linkedInvoiceIds.length === 0) return [];
+      const { data } = await supabase
+        .from("invoices")
+        .select("id, invoice_number, status, total_amount, currency")
+        .in("id", linkedInvoiceIds);
+      return (data || []) as Array<{ id: string; invoice_number: string; status: string; total_amount: number; currency: string | null }>;
+    },
+    enabled: linkedInvoiceIds.length > 0,
+  });
+
+  const hasBilledInvoice = linkedInvoices.length > 0;
+  const totalBilled = linkedInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
+  const allPaid = hasBilledInvoice && linkedInvoices.every(inv => inv.status === "paid");
 
   // Inline editing state
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -653,26 +673,43 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 />
               )}
 
-              {/* Linked Invoices */}
+              {/* Linked Invoices & Billing Status */}
               <Card>
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="text-sm flex items-center gap-2">
                     <Receipt className="h-4 w-4" />
                     {t('housing.admissions.billing.linkedInvoices')}
+                    {hasBilledInvoice && (
+                      <Badge variant={allPaid ? "default" : "outline"} className={cn("text-[10px] ms-auto", allPaid ? "bg-success/10 text-success border-success/20" : "")}>
+                        {allPaid ? t('housing.admissions.billing.paid') : t('housing.admissions.billing.billed')}
+                      </Badge>
+                    )}
+                    {!hasBilledInvoice && !billingLinksLoading && (
+                      <Badge variant="outline" className="text-[10px] ms-auto text-amber-600 border-amber-300">
+                        {t('housing.admissions.billing.notBilled')}
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
-                  {billingLinks.length > 0 ? (
+                  {linkedInvoices.length > 0 ? (
                     <div className="space-y-2">
-                      {billingLinks.map((link) => (
-                        <div key={link.id} className="flex items-center justify-between text-sm border rounded-md p-2">
+                      {linkedInvoices.map((inv) => (
+                        <div key={inv.id} className="flex items-center justify-between text-sm border rounded-md p-2">
                           <div className="flex items-center gap-2">
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="capitalize">{link.link_kind}</span>
+                            <span className="font-medium">{inv.invoice_number}</span>
+                            <Badge variant="outline" className="text-[10px] capitalize">{inv.status}</Badge>
                           </div>
-                          <span className="font-medium">{link.amount?.toFixed(2) || '—'} {admission.rate_currency || 'SAR'}</span>
+                          <span className="font-medium">{inv.total_amount?.toFixed(2)} {inv.currency || admission.rate_currency || 'SAR'}</span>
                         </div>
                       ))}
+                      {hasBilledInvoice && (
+                        <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
+                          <span>{t('housing.admissions.billing.totalBilled')}</span>
+                          <span className="font-medium text-foreground">{totalBilled.toFixed(2)} {admission.rate_currency || 'SAR'}</span>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground">{t('housing.admissions.billing.noLinkedInvoices')}</p>
@@ -682,26 +719,29 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
 
               {/* Actions */}
               <div className="flex flex-col gap-2 pt-2">
-                {admission.status === 'active' && (admission.daily_rate || admission.monthly_rate) && (
-                  billingLinks.length > 0 ? (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setInvoiceDialogOpen(true)}
-                    >
-                      <Receipt className="h-4 w-4 me-1" />
-                      {t('housing.admissions.billing.viewInvoices')} ({billingLinks.length})
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => setInvoiceDialogOpen(true)}
-                    >
-                      <Receipt className="h-4 w-4 me-1" />
-                      {t('housing.admissions.billing.generateInvoice')}
-                    </Button>
-                  )
+                {/* Generate Invoice — only if no linked invoices yet and has rate */}
+                {!hasBilledInvoice && (admission.status === 'active' || admission.status === 'checkout_pending') && (admission.daily_rate || admission.monthly_rate) && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4 me-1" />
+                    {t('housing.admissions.billing.generateInvoice')}
+                  </Button>
+                )}
+
+                {/* Add Another Invoice — if already billed but needs more */}
+                {hasBilledInvoice && (admission.status === 'active') && (admission.daily_rate || admission.monthly_rate) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-muted-foreground"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4 me-1" />
+                    {t('housing.admissions.billing.generateInvoice')}
+                  </Button>
                 )}
 
                 {canCheckout && (admission.status === 'active' || admission.status === 'checkout_pending') && (
