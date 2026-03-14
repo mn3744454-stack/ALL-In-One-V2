@@ -154,10 +154,9 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         onUpdateStatus={async (id, status) => {
           if (status === "approved" && activeTenant?.tenant?.id) {
             await approveInvoice(id, activeTenant.tenant.id);
-            queryClient.invalidateQueries({ queryKey: ["invoices"] });
-          } else {
-            await updateInvoice({ id, status: status as any });
+            invalidateFinanceQueries(queryClient, activeTenant.tenant.id);
           }
+          // Other status changes (paid, shared, etc.) must go through the detail sheet
         }}
         onInvoiceClick={onInvoiceClick}
         selectedInvoiceId={selectedInvoiceId}
