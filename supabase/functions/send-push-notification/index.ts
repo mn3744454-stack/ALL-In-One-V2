@@ -217,7 +217,7 @@ Deno.serve(async (req) => {
     // 4. Build push payload
     const url = getNotificationRoute(event_type, entity_id);
     const pushPayload = JSON.stringify({
-      title: title || "Khail",
+      title: title || "Dayli Horse",
       body: body || "",
       icon: "/icons/icon-192x192.png",
       badge: "/icons/badge-72x72.png",
