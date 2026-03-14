@@ -99,12 +99,6 @@ export function InvoiceCard({
                 {t("finance.invoices.approve")}
               </DropdownMenuItem>
             )}
-            {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
-              <DropdownMenuItem onClick={onMarkPaid}>
-                <CheckCircle className="w-4 h-4 me-2 text-success" />
-                {t("finance.invoices.markPaid")}
-              </DropdownMenuItem>
-            )}
             {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
               <DropdownMenuItem onClick={onEdit}>
                 <Pencil className="w-4 h-4 me-2" />
