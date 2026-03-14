@@ -3995,7 +3995,7 @@ export const en = {
     cta: {
       titlePart1: "Ready to Transform Your",
       titleHighlight: "Equestrian Business",
-      subtitle: "Join thousands of horse owners, stables, and veterinarians who trust Khail to manage their operations. Start your free trial today.",
+      subtitle: "Join thousands of horse owners, stables, and veterinarians who trust Dayli Horse to manage their operations. Start your free trial today.",
       startTrial: "Start Free Trial",
       scheduleDemo: "Schedule Demo",
     },
