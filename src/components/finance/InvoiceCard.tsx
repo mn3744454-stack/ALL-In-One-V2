@@ -19,7 +19,7 @@ import {
   FileText,
   Download,
   Printer,
-  Send,
+  
   Eye,
   CheckCircle,
 } from "lucide-react";
@@ -97,12 +97,6 @@ export function InvoiceCard({
               <DropdownMenuItem onClick={onApprove}>
                 <CheckCircle className="w-4 h-4 me-2" />
                 {t("finance.invoices.approve")}
-              </DropdownMenuItem>
-            )}
-            {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
-              <DropdownMenuItem onClick={onMarkPaid}>
-                <CheckCircle className="w-4 h-4 me-2 text-success" />
-                {t("finance.invoices.markPaid")}
               </DropdownMenuItem>
             )}
             {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (

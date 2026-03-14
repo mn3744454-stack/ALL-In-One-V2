@@ -55,7 +55,7 @@ import {
   Eye,
   Download,
   Printer,
-  Send,
+  
   CheckCircle,
   Pencil,
   Trash2,
@@ -201,12 +201,6 @@ export function InvoicesList({
             {t("finance.invoices.approve")}
           </DropdownMenuItem>
         )}
-        {canMarkPaid && ["approved", "shared", "overdue"].includes(invoice.status) && (
-          <DropdownMenuItem onClick={() => onUpdateStatus?.(invoice.id, "paid")}>
-            <CheckCircle className="w-4 h-4 me-2 text-success" />
-            {t("finance.invoices.markPaid")}
-          </DropdownMenuItem>
-        )}
         {canEdit && (invoice.status === "draft" || invoice.status === "reviewed") && (
           <DropdownMenuItem onClick={() => onEdit?.(invoice)}>
             <Pencil className="w-4 h-4 me-2" />
@@ -244,7 +238,7 @@ export function InvoicesList({
         onDownloadPDF={() => handleDownloadPDF(invoice)}
         onPrint={() => handlePrint(invoice)}
         onApprove={() => onUpdateStatus?.(invoice.id, "approved")}
-        onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
+        onMarkPaid={undefined}
       />
     </div>
   );

@@ -33,6 +33,7 @@ import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/Statem
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
 import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
 import { approveInvoice } from "@/lib/finance/approveInvoice";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import {
   Menu,
   FileText,
@@ -154,10 +155,9 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
         onUpdateStatus={async (id, status) => {
           if (status === "approved" && activeTenant?.tenant?.id) {
             await approveInvoice(id, activeTenant.tenant.id);
-            queryClient.invalidateQueries({ queryKey: ["invoices"] });
-          } else {
-            await updateInvoice({ id, status: status as any });
+            invalidateFinanceQueries(queryClient, activeTenant.tenant.id);
           }
+          // Other status changes (paid, shared, etc.) must go through the detail sheet
         }}
         onInvoiceClick={onInvoiceClick}
         selectedInvoiceId={selectedInvoiceId}
