@@ -21,3 +21,6 @@ verify_jwt = false
 [functions.get-vapid-key]
 verify_jwt = false
 
+[functions.mark-overdue-invoices]
+verify_jwt = false
+
