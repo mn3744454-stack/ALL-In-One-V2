@@ -16,7 +16,7 @@ const Directory = () => {
   return (
     <>
       <Helmet>
-        <title>Business Directory | Khail</title>
+        <title>Business Directory | Dayli Horse</title>
         <meta
           name="description"
           content="Discover stables, veterinary clinics, laboratories, and equestrian services across Saudi Arabia."
