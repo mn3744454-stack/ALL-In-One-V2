@@ -238,7 +238,7 @@ export function InvoicesList({
         onDownloadPDF={() => handleDownloadPDF(invoice)}
         onPrint={() => handlePrint(invoice)}
         onApprove={() => onUpdateStatus?.(invoice.id, "approved")}
-        onMarkPaid={() => onUpdateStatus?.(invoice.id, "paid")}
+        onMarkPaid={undefined}
       />
     </div>
   );
