@@ -32,10 +32,10 @@ const Logo = ({ className = "", variant = "default", size = "default", iconOnly 
       {!iconOnly && (
         <div className="flex flex-col">
           <span className={`font-display ${isSmall ? "text-lg" : "text-xl"} font-bold tracking-tight ${textColor}`}>
-            Dayli Horse
+            {brandName}
           </span>
           <span className={`${isSmall ? "text-[9px]" : "text-[10px]"} uppercase tracking-widest ${variant === "light" ? "text-cream/70" : "text-muted-foreground"}`}>
-            Horse Management
+            {subtitle}
           </span>
         </div>
       )}
