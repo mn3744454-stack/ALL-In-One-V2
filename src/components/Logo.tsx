@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useI18n } from "@/i18n";
 
 interface LogoProps {
   className?: string;
@@ -8,8 +9,11 @@ interface LogoProps {
 }
 
 const Logo = ({ className = "", variant = "default", size = "default", iconOnly = false }: LogoProps) => {
+  const { lang } = useI18n();
   const textColor = variant === "light" ? "text-cream" : "text-navy";
   const isSmall = size === "sm";
+  const brandName = lang === "ar" ? "ديلي هورس" : "Dayli Horse";
+  const subtitle = lang === "ar" ? "إدارة الخيول" : "Horse Management";
   
   return (
     <Link to="/" className={`flex items-center gap-2 ${className}`}>
