@@ -226,7 +226,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Helmet>
-          <title>Invitation Accepted | Khail</title>
+          <title>Invitation Accepted | Dayli Horse</title>
         </Helmet>
         <div className="text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
