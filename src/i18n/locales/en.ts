@@ -4249,5 +4249,8 @@ export const en = {
     iosTitle: "Install Khail",
     iosStep1: "Tap the Share button",
     iosStep2: "Then tap \"Add to Home Screen\"",
+    fallbackTitle: "Install App",
+    fallbackSubtitle: "Get faster access by installing this app on your device",
+    fallbackHint: "Use your browser's install option or menu to add this app to your device.",
   },
 };

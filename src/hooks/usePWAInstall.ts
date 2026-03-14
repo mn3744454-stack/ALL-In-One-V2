@@ -5,113 +5,155 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const STORAGE_KEYS = {
-  dismissed: "khail:pwa-install-dismissed-at",
-  installed: "khail:pwa-installed",
-} as const;
+const STORAGE_KEY_INSTALLED = "khail:pwa-installed";
 
-const DISMISS_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const isDev = import.meta.env.DEV;
+const log = (...args: unknown[]) => {
+  if (isDev) console.log("[PWA Install]", ...args);
+};
 
 function isStandalone(): boolean {
+  if (typeof window === "undefined") return false;
   if (window.matchMedia("(display-mode: standalone)").matches) return true;
-  if ((navigator as any).standalone === true) return true; // iOS
+  if ((navigator as any).standalone === true) return true;
   return false;
 }
 
 function isIOSSafari(): boolean {
   const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|Chrome/.test(ua);
   return isIOS && isSafari;
 }
 
-function isDismissedRecently(): boolean {
-  const raw = localStorage.getItem(STORAGE_KEYS.dismissed);
-  if (!raw) return false;
-  const ts = Number(raw);
-  if (Number.isNaN(ts)) return false;
-  return Date.now() - ts < DISMISS_DURATION_MS;
+function isChromiumBrowser(): boolean {
+  return /Chrome|Chromium|Edg|Opera|Brave/.test(navigator.userAgent);
 }
 
 function isMarkedInstalled(): boolean {
-  return localStorage.getItem(STORAGE_KEYS.installed) === "true";
+  return localStorage.getItem(STORAGE_KEY_INSTALLED) === "true";
+}
+
+export type InstallHelpMode = "none" | "ios" | "fallback";
+
+export interface PWADebug {
+  isStandalone: boolean;
+  isInstalled: boolean;
+  isIOS: boolean;
+  isChromiumLike: boolean;
+  hasDeferredPrompt: boolean;
+  canPromptInstall: boolean;
+  bannerVisibleReason: string;
+  serviceWorkerSupported: boolean;
+  serviceWorkerControllerPresent: boolean;
 }
 
 export function usePWAInstall() {
   const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(true); // assume installed until proven otherwise
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return isStandalone() || isMarkedInstalled();
+  });
+  const [dismissed, setDismissed] = useState(false);
+  const [hasDeferredPrompt, setHasDeferredPrompt] = useState(false);
+
+  const standalone = typeof window !== "undefined" ? isStandalone() : false;
+  const ios = typeof window !== "undefined" ? isIOSSafari() : false;
+  const chromiumLike = typeof window !== "undefined" ? isChromiumBrowser() : false;
+
+  // Determine install help mode
+  const installHelpMode: InstallHelpMode = ios
+    ? "ios"
+    : hasDeferredPrompt
+      ? "none"
+      : "fallback";
+
+  const showPrompt = !isInstalled && !dismissed;
 
   useEffect(() => {
-    // Immediately check installed state
-    const installed = isStandalone() || isMarkedInstalled();
-    setIsInstalled(installed);
-    if (installed) return;
+    log("init", {
+      standalone,
+      markedInstalled: isMarkedInstalled(),
+      ios,
+      chromiumLike,
+      swSupported: "serviceWorker" in navigator,
+      swController: !!navigator.serviceWorker?.controller,
+    });
 
-    const ios = isIOSSafari();
-    setIsIOS(ios);
+    if (isInstalled) return;
 
-    // For iOS Safari: show prompt if not dismissed recently
-    if (ios) {
-      if (!isDismissedRecently()) {
-        // Small delay so app shell settles first
-        const timer = setTimeout(() => setShowPrompt(true), 2500);
-        return () => clearTimeout(timer);
-      }
-      return;
-    }
-
-    // For Chromium: listen for beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
       deferredPrompt.current = e as BeforeInstallPromptEvent;
-      setIsInstallable(true);
-      if (!isDismissedRecently()) {
-        setTimeout(() => setShowPrompt(true), 2500);
-      }
+      setHasDeferredPrompt(true);
+      log("beforeinstallprompt fired");
     };
 
     const installedHandler = () => {
-      localStorage.setItem(STORAGE_KEYS.installed, "true");
+      log("appinstalled");
+      localStorage.setItem(STORAGE_KEY_INSTALLED, "true");
       setIsInstalled(true);
-      setShowPrompt(false);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", installedHandler);
 
+    if (!ios && !chromiumLike) {
+      log("fallback path used — non-iOS, non-Chromium browser");
+    }
+
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
       window.removeEventListener("appinstalled", installedHandler);
     };
-  }, []);
+  }, [isInstalled, ios, chromiumLike, standalone]);
 
   const dismiss = useCallback(() => {
-    localStorage.setItem(STORAGE_KEYS.dismissed, String(Date.now()));
-    setShowPrompt(false);
+    log("dismissed (session only)");
+    setDismissed(true);
   }, []);
 
   const triggerInstall = useCallback(async () => {
+    log("triggerInstall called", { hasDeferredPrompt: !!deferredPrompt.current });
     const prompt = deferredPrompt.current;
     if (!prompt) return;
     await prompt.prompt();
     const choice = await prompt.userChoice;
     if (choice.outcome === "accepted") {
-      localStorage.setItem(STORAGE_KEYS.installed, "true");
+      localStorage.setItem(STORAGE_KEY_INSTALLED, "true");
       setIsInstalled(true);
-      setShowPrompt(false);
     }
     deferredPrompt.current = null;
+    setHasDeferredPrompt(false);
   }, []);
 
+  const debug: PWADebug = {
+    isStandalone: standalone,
+    isInstalled,
+    isIOS: ios,
+    isChromiumLike: chromiumLike,
+    hasDeferredPrompt,
+    canPromptInstall: hasDeferredPrompt,
+    bannerVisibleReason: isInstalled
+      ? "hidden:installed"
+      : dismissed
+        ? "hidden:dismissed-session"
+        : "visible",
+    serviceWorkerSupported: typeof navigator !== "undefined" && "serviceWorker" in navigator,
+    serviceWorkerControllerPresent:
+      typeof navigator !== "undefined" && !!navigator.serviceWorker?.controller,
+  };
+
   return {
-    isInstallable,
-    isIOS,
+    isInstallable: hasDeferredPrompt,
+    isIOS: ios,
     isInstalled,
     showPrompt,
+    installHelpMode,
     dismiss,
     triggerInstall,
+    debug,
   };
 }

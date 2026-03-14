@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // reuse existing public/manifest.json
       includeAssets: ["favicon.ico", "icons/icon-192x192.png", "icons/icon-512x512.png"],
       workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/supabase/],
