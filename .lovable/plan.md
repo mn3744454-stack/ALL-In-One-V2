@@ -1,281 +1,88 @@
-# PWA Install Prompt Implementation Plan
 
-## Current State
 
-- PWA plugin `vite-plugin-pwa`) is **disabled** in `vite.config.ts` (commented out)
+# Diagnosis: Why Changes Appear Not Applied
 
-- A static `manifest.json` exists with correct icons (192x192, 512x512), theme color `#1a2744`, and `display: standalone`
+## The Core Problem
 
-- A `sw.js` exists for push notifications only (no caching/install logic)
+The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
 
-- `index.html` has all required PWA meta tags (apple-touch-icon, apple-mobile-web-app-capable, manifest link)
+**However, there are real remaining issues the user is seeing:**
 
-- No existing PWA install detection or prompt code exists anywhere
+### 1. Realtime Sync Uses WRONG Query Keys
 
-- i18n uses `useI18n()` with `t()`, `lang`, `dir` from `src/i18n/I18nContext.tsx`
+**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
 
-- Locale files are `src/i18n/locales/en.ts` and `ar.ts`
+### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
 
-- App shell renders global toasters at `App.tsx:680-681` level (inside I18nProvider, outside Router)
+**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
 
-- Mobile bottom nav is fixed at bottom, `z-50`, hidden on `lg:` breakpoints
+### 3. Ledger "Enrich" Button Still Visible
 
-- Desktop sidebar is on the start side (right in RTL, left in LTR)
+**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
 
----
+### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
 
-## Critical Correction Before Execution
+**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
 
-This is not just a visual widget. It must be implemented as a **real installability layer** with correct lifecycle behavior.
+### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
 
-### Required behavioral rules
+**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
 
-1. The prompt must only appear when it is actually meaningful.
+### 6. Scope Selector / Statement Content
 
-2. It must disappear permanently after successful install.
-
-3. It must not reappear repeatedly after dismissal.
-
-4. It must support:
-
-   - desktop
-
-   - tablet
-
-   - mobile
-
-   - RTL
-
-   - LTR
-
-5. It must not collide with:
-
-   - sidebar
-
-   - bottom nav
-
-   - toast layer
-
-   - fixed action buttons
-
-6. It must not introduce aggressive caching or stale PWA issues.
-
-7. It must be globally mounted once, not duplicated per page.
-
-8. It must be implemented with a clean internal state model, not ad hoc component state.
+The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
+- The preview may need a hard refresh after code deployment
+- Or specific UI flows weren't tested end-to-end
 
 ---
 
-## What Needs to Happen
+## Execution Plan
 
-### 1. Re-enable PWA plugin (minimal, for installability)
+### Step 1: Fix Realtime Sync Query Keys (Critical)
 
-Re-enable `VitePWA` in `vite.config.ts` with `registerType: "prompt"`.
+**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
 
-### 1.1 Execution rules for this step
+Change the finance table mappings to use the **actual** query key prefixes:
 
-- Use minimal safe config only
+```
+invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
+invoice_items: (t) => [['invoice-items'], ['invoices', t]]
+expenses:      (t) => [['expenses', t], ['finance-summary']]
+ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
+```
 
-- Do **not** enable aggressive `autoUpdate`
+This is the single biggest fix -- it's why "no refresh" doesn't work.
 
-- Do **not** introduce heavy caching
+### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
 
-- Reuse existing `manifest.json`
+**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
 
-- Do not create a second manifest source of truth
+Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
 
-- Keep installability behavior safe and predictable
+### Step 3: Hide Backfill Button from Non-Admins
 
-### 1.2 Required output for this step
+**File:** `src/pages/DashboardFinance.tsx`
 
-Confirm exactly:
+Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
 
-- whether `beforeinstallprompt` will be enabled after this step
+### Step 4: Stabilize Invoice Table Column Widths
 
-- whether existing manifest is reused
+**File:** `src/components/finance/InvoicesList.tsx`
 
-- whether any runtime caching was added, and why
+Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
 
----
+### Step 5: Fix Expenses Table View Alignment
 
-### 2. Create `usePWAInstall` hook
+**File:** `src/components/finance/ExpensesList.tsx`
 
-**File:** `src/hooks/usePWAInstall.ts`
+Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
 
-Responsibilities:
+### Verification Checklist
 
-- Listen for `beforeinstallprompt`, store deferred prompt
+1. Create invoice -> Ledger updates immediately (realtime keys now match)
+2. Record payment -> Paid/Remaining updates immediately
+3. Payment timeline shows 12h AM/PM format
+4. No "Enrich" button visible to normal users
+5. Invoice table columns don't wrap/crowd
+6. Expenses table aligned correctly
 
-- Detect if already installed via `display-mode: standalone` + `navigator.standalone` (iOS)
-
-- Detect iOS Safari (no `beforeinstallprompt`, show manual instructions)
-
-- Track dismiss state in `localStorage`
-
-- Track installed state in `localStorage`
-
-### 2.1 Correction to implementation requirements
-
-Use app-specific storage keys, not generic keys.
-
-Use:
-
-- `khail:pwa-install-dismissed-at`
-
-- `khail:pwa-installed`
-
-### 2.2 Suppression behavior
-
-- Dismissal suppresses the prompt for **7 days**
-
-- Install hides it permanently
-
-- Prompt must not flicker on every route change
-
-- Prompt must not show if already in standalone mode
-
-### 2.3 Hook API
-
-Expose:
-
-- `isInstallable`
-
-- `isIOS`
-
-- `isInstalled`
-
-- `showPrompt`
-
-- `dismiss`
-
-- `triggerInstall`
-
-### 2.4 Required output for this step
-
-Explain exactly:
-
-- how install detection works
-
-- how iOS detection works
-
-- how dismissal persistence works
-
-- how installed persistence works
-
----
-
-### 3. Create `PWAInstallPrompt` component
-
-**File:** `src/components/pwa/PWAInstallPrompt.tsx`
-
-A single responsive component that adapts layout by breakpoint.
-
-### 3.1 Desktop/Tablet behavior
-
-- Floating card
-
-- Positioned bottom-end opposite the sidebar
-
-- In RTL: bottom-left
-
-- In LTR: bottom-right
-
-- Must not overlap the sidebar
-
-- Must not hide important controls
-
-- Must use safe z-index above app content
-
-### 3.2 Mobile behavior
-
-- Bottom sheet-style card
-
-- Positioned above the mobile bottom nav
-
-- Must respect nav height and safe spacing
-
-- Must not cover important fixed actions
-
-### 3.3 Visual requirements
-
-- App icon from `/icons/icon-192x192.png`
-
-- Title + subtitle from i18n
-
-- Install CTA
-
-- Dismiss CTA
-
-- Rounded card
-
-- Elegant shadow
-
-- Clean spacing
-
-- Native-feeling transitions
-
-- Styling must feel consistent with Khail, not generic browser UI
-
-### 3.4 iOS mode
-
-On iOS Safari:
-
-- Do not fake a native install prompt
-
-- Show manual install guidance instead
-
-- Include:
-
-  - share button hint
-
-  - Add to Home Screen instruction
-
-### 3.5 UX timing
-
-- Do not show immediately in a jarring way before the app shell settles
-
-- Use a small intentional delay if needed
-
-- Make it feel calm and deliberate
-
-### 3.6 Required output for this step
-
-Report separately:
-
-- desktop behavior
-
-- tablet behavior
-
-- mobile behavior
-
-- RTL placement
-
-- LTR placement
-
-- iOS mode behavior
-
----
-
-### 4. Add i18n keys
-
-Add to both `en.ts` and `ar.ts` under a new `pwa` section:
-
-```ts
-
-pwa: {
-
-  installTitle: "Install App",
-
-  installSubtitle: "Install the app for faster access and a better experience",
-
-  installNow: "Install Now",
-
-  notNow: "Not now",
-
-  iosTitle: "Install Khail",
-
-  iosStep1: "Tap the Share button",
-
-  iosStep2: "Then tap \"Add to Home Screen\"",
-
-}

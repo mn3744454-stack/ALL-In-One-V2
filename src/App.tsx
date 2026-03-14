@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { I18nProvider } from "@/i18n";
 import I18nRecoveryBoundary from "@/components/guards/I18nRecoveryBoundary";
+import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 import { ModuleGuard } from "@/components/guards/ModuleGuard";
 import { WorkspaceRouteGuard } from "@/components/guards/WorkspaceRouteGuard";
 import { CommunityRouteGuard } from "@/components/guards/CommunityRouteGuard";
@@ -679,6 +680,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <PWAInstallPrompt />
             <BrowserRouter>
               <AuthProvider>
                 <TenantProvider>
