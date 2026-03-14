@@ -22,7 +22,7 @@ import { Loader2 } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 
 interface InvoiceFormDialogProps {

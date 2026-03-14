@@ -7,7 +7,7 @@ import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+
 import type { LabSample } from "./useLabSamples";
 import type { LabRequest, LabRequestService } from "./useLabRequests";
 import type { LabTemplate } from "./useLabTemplates";

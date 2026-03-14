@@ -15,7 +15,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { postLedgerForInvoice } from "@/lib/finance/postLedgerForInvoice";
+
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
