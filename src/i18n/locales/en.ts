@@ -122,7 +122,7 @@ export const en = {
     settingsDesc: "Manage push notifications, categories, and quiet hours",
     bannerTitle: "Stay Updated",
     bannerBody: "Enable push notifications to get instant updates on messages, results, and requests.",
-    iosGuideTitle: "Install Khail for Notifications",
+    iosGuideTitle: "Install Dayli Horse for Notifications",
     iosGuideBody: "To receive notifications, tap Share → Add to Home Screen, then open the app from your home screen.",
     enable: "Enable Notifications",
     disable: "Disable Notifications",
