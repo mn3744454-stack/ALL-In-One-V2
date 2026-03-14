@@ -3716,7 +3716,7 @@ export const en = {
     and: "and",
     welcomeBack: "Welcome back!",
     accountCreated: "Account created successfully!",
-    testimonial: "Khail has transformed how we manage our stable. The efficiency gains are incredible.",
+    testimonial: "Dayli Horse has transformed how we manage our stable. The efficiency gains are incredible.",
     testimonialAuthor: "Mohammed Al-Faisal, Al-Faisal Stables, Riyadh",
     errors: {
       emailExists: "This email is already registered. Please sign in.",
