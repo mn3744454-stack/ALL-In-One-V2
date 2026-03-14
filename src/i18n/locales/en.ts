@@ -4241,4 +4241,13 @@ export const en = {
       plans: "Plans & Packages",
     },
   },
+  pwa: {
+    installTitle: "Install App",
+    installSubtitle: "Install the app for faster access and a better experience",
+    installNow: "Install Now",
+    notNow: "Not now",
+    iosTitle: "Install Khail",
+    iosStep1: "Tap the Share button",
+    iosStep2: "Then tap \"Add to Home Screen\"",
+  },
 };
