@@ -1,88 +1,231 @@
+# PWA Install Prompt — Corrective Pass
 
+## Problems Identified
 
-# Diagnosis: Why Changes Appear Not Applied
+1. **Build failure**: `maximumFileSizeToCacheInBytes` not set in workbox config — the 4 MB main bundle exceeds the default 2 MiB limit, blocking the entire build.
 
-## The Core Problem
+2. **Banner never appears on desktop**: `showPrompt` depends on `beforeinstallprompt` firing. If the event doesn't fire (common in preview environments, non-Chromium browsers), the banner is permanently invisible.
 
-The changes **were applied to the code files** -- I can confirm by reading them. The `invalidateFinanceQueries` helper exists and is imported in `useInvoices.ts`, `useExpenses.ts`, `useLedger.ts`, `useInvoicePayments.ts`, and `InvoiceDetailsSheet.tsx`. The `formatDateTime12h` function exists. The i18n keys were added. The statement date filter was fixed. The ViewSwitcher was added to ExpensesList.
+3. **7-day dismissal suppression**: Dismiss writes a timestamp to `localStorage` and suppresses the banner for 7 days. This is rejected — banner must return on every reload/reopen.
 
-**However, there are real remaining issues the user is seeing:**
+4. **Behavior requirement updated**: The install banner must appear every time the user opens the app on desktop/tablet/mobile as long as the app is not installed yet. It must disappear only after actual installation.
 
-### 1. Realtime Sync Uses WRONG Query Keys
+5. **Fallback path required**: If native install prompt is unavailable, the banner must still appear with graceful fallback guidance instead of disappearing silently.
 
-**Root cause:** `useTenantRealtimeSync.ts` (lines 25-28) invalidates keys like `['financial-entries', t]` and `['ledger-balances', t]` for invoices/expenses/ledger changes. But the actual hooks use keys like `['invoices', tenantId]`, `['ledger-entries', tenantId]`, `['expenses', tenantId]`. **These don't match.** So realtime DB changes via Supabase never trigger the correct React Query refetches. The realtime subscription is effectively a no-op for finance data.
+## Fixes (4 files modified, 0 files created)
 
-### 2. Payment Timeline Uses 24-hour Format (Not AM/PM)
+### 1. `vite.config.ts`
 
-**Root cause:** `InvoiceDetailsSheet.tsx` line 583 still uses `"dd-MM-yyyy HH:mm"` (24h) instead of `"dd-MM-yyyy hh:mm a"` (12h AM/PM).
+- Add `maximumFileSizeToCacheInBytes: 5 * 1024 * 1024` inside `workbox` config to fix the build error.
 
-### 3. Ledger "Enrich" Button Still Visible
+- Keep `registerType: "prompt"`.
 
-**Root cause:** The auto-backfill code exists (lines 260-299 in DashboardFinance.tsx) but the manual button `handleManualBackfill` is still rendered somewhere in the LedgerTab. The user explicitly asked to hide it from normal users.
+- Reuse existing public manifest.
 
-### 4. Invoices/Expenses Table Alignment Issues (Screenshots 43-44)
+- Keep runtime caching minimal and safe.
 
-**Root cause:** The code has the correct `text-center` and `tabular-nums` classes on cells, but the `<TableHead>` elements for Invoice Number and Client don't have explicit widths, causing them to compress when Paid/Remaining columns take fixed space. The expenses table view likely has similar column width issues.
+- Do not introduce aggressive auto-update behavior.
 
-### 5. Statement Date Filter Works in DB Query But Client-Side Ledger Filter Also Has the Bug
+### 2. `src/hooks/usePWAInstall.ts` — Full rewrite
 
-**Root cause:** In `DashboardFinance.tsx` line 324, the ledger tab's client-side filter uses `e.created_at > dateTo + "T23:59:59"` -- this was fixed. But `useClientStatement.ts` was also fixed. Both fixes are present.
+- **Remove**:
 
-### 6. Scope Selector / Statement Content
+  - `DISMISS_DURATION_MS`
 
-The scope selector and statement were implemented but the user reports they don't see changes. This is likely because:
-- The preview may need a hard refresh after code deployment
-- Or specific UI flows weren't tested end-to-end
+  - `isDismissedRecently()`
 
----
+  - any timestamp-based localStorage suppression
 
-## Execution Plan
+  - `khail:pwa-install-dismissed-at`
 
-### Step 1: Fix Realtime Sync Query Keys (Critical)
+- **Keep installed persistence only**:
 
-**File:** `src/hooks/useTenantRealtimeSync.ts` (lines 25-28)
+  - `khail:pwa-installed`
 
-Change the finance table mappings to use the **actual** query key prefixes:
+- **Dismiss becomes session-only**:
 
-```
-invoices:      (t) => [['invoices', t], ['invoice-payments'], ['invoice-payments-batch'], ['finance-summary']]
-invoice_items: (t) => [['invoice-items'], ['invoices', t]]
-expenses:      (t) => [['expenses', t], ['finance-summary']]
-ledger_entries:(t) => [['ledger-entries', t], ['customer-balances', t], ['client-statement', t], ['invoice-payments'], ['invoice-payments-batch']]
-```
+  - `dismiss()` only sets in-memory React state
 
-This is the single biggest fix -- it's why "no refresh" doesn't work.
+  - no localStorage write for dismissal
 
-### Step 2: Fix Payment Timeline 24h -> 12h AM/PM
+  - after reload/reopen, the banner appears again if not installed
 
-**File:** `src/components/finance/InvoiceDetailsSheet.tsx` (line 583)
+- **Banner visibility must no longer depend on `beforeinstallprompt`**
 
-Change `"dd-MM-yyyy HH:mm"` to `"dd-MM-yyyy hh:mm a"`.
+- **New visibility rule**:
 
-### Step 3: Hide Backfill Button from Non-Admins
+  - `showPrompt = !isInstalled && !dismissed`
 
-**File:** `src/pages/DashboardFinance.tsx`
+- **Add install mode classification**:
 
-Ensure the manual backfill button is wrapped in an `isOwner` check and visually hidden (collapsible "Dev Tools" section or removed entirely from main UI).
+  - `installHelpMode: "none" | "ios" | "fallback"`
 
-### Step 4: Stabilize Invoice Table Column Widths
+  - `ios` for iOS Safari
 
-**File:** `src/components/finance/InvoicesList.tsx`
+  - `none` when native deferred prompt exists
 
-Add `min-w-[120px]` to client column, ensure no column wraps text to multiple lines by adding `whitespace-nowrap` where appropriate.
+  - `fallback` for non-iOS without deferred prompt
 
-### Step 5: Fix Expenses Table View Alignment
+- **Keep native prompt support**:
 
-**File:** `src/components/finance/ExpensesList.tsx`
+  - still listen for `beforeinstallprompt`
 
-Ensure the table view (if it exists) has the same alignment standard as invoices: numeric columns centered, fixed widths, `tabular-nums`, `dir="ltr"`.
+  - store deferred prompt when available
 
-### Verification Checklist
+  - use it for the real install CTA
 
-1. Create invoice -> Ledger updates immediately (realtime keys now match)
-2. Record payment -> Paid/Remaining updates immediately
-3. Payment timeline shows 12h AM/PM format
-4. No "Enrich" button visible to normal users
-5. Invoice table columns don't wrap/crowd
-6. Expenses table aligned correctly
+  - but do not make banner visibility depend on it
 
+- **Keep install detection**:
+
+  - `(display-mode: standalone)`
+
+  - `navigator.standalone === true`
+
+  - `khail:pwa-installed === "true"`
+
+- **Keep `appinstalled` listener**:
+
+  - mark installed in localStorage
+
+  - hide banner permanently
+
+- **Expose debug object**:
+
+  - `isStandalone`
+
+  - `isInstalled`
+
+  - `isIOS`
+
+  - `isChromiumLike`
+
+  - `hasDeferredPrompt`
+
+  - `canPromptInstall`
+
+  - `bannerVisibleReason`
+
+  - `serviceWorkerSupported`
+
+  - `serviceWorkerControllerPresent`
+
+- **Add dev-only logs** with prefix `[PWA Install]`:
+
+  - init
+
+  - beforeinstallprompt fired
+
+  - appinstalled
+
+  - fallback path used
+
+  - dismissed (session only)
+
+  - triggerInstall called
+
+### 3. `src/components/pwa/PWAInstallPrompt.tsx` — Three UI states
+
+Keep the existing responsive component, but explicitly support 3 states:
+
+#### State A — Native install available
+
+- Standard install card
+
+- Title
+
+- Subtitle
+
+- Install button
+
+- Dismiss button
+
+- Install button triggers deferred prompt
+
+#### State B — iOS manual install
+
+- iOS-specific title
+
+- Step 1: Share button
+
+- Step 2: Add to Home Screen
+
+- Dismiss button
+
+- Use relevant icons
+
+#### State C — Fallback help mode
+
+- Show banner even when no native prompt exists
+
+- Title
+
+- Subtitle
+
+- Hint text telling user to use browser install option/menu
+
+- Dismiss button
+
+- Use appropriate browser/desktop icon
+
+- Do NOT hide the banner in this case
+
+#### Shared behavior
+
+- Keep app icon visible
+
+- Preserve current elegant floating-card style
+
+- Desktop/Tablet:
+
+  - fixed floating card
+
+  - bottom-right in LTR
+
+  - bottom-left in RTL
+
+  - opposite the sidebar
+
+- Mobile:
+
+  - bottom-sheet style
+
+  - positioned above mobile bottom navigation
+
+- Keep smooth transitions
+
+- Reduce appearance delay from `2500ms` to about `800ms`
+
+- If installed, component returns `null`
+
+### 4. `src/i18n/locales/en.ts` + `src/i18n/locales/ar.ts`
+
+Extend the existing `pwa` section with fallback keys.
+
+#### English
+
+```ts
+
+pwa: {
+
+  installTitle: "Install App",
+
+  installSubtitle: "Install the app for faster access and a better experience",
+
+  installNow: "Install Now",
+
+  notNow: "Not now",
+
+  iosTitle: "Install Khail",
+
+  iosStep1: "Tap the Share button",
+
+  iosStep2: "Then tap \"Add to Home Screen\"",
+
+  fallbackTitle: "Install App",
+
+  fallbackSubtitle: "Get faster access by installing this app on your device",
+
+  fallbackHint: "Use your browser's install option or menu to add this app to your device."
+
+}
