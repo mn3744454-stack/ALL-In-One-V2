@@ -11,13 +11,33 @@ const DEFAULT_PREFERENCE: ViewPreference = {
   gridColumns: 3,
 };
 
+const NEW_PREFIX = 'daylihorse_view_pref_';
+const OLD_PREFIX = 'khail_view_pref_';
+
 function getStorageKey(pageKey: string): string {
-  return `khail_view_pref_${pageKey}`;
+  return `${NEW_PREFIX}${pageKey}`;
+}
+
+function getOldStorageKey(pageKey: string): string {
+  return `${OLD_PREFIX}${pageKey}`;
 }
 
 function loadPreference(pageKey: string): ViewPreference {
   try {
-    const stored = localStorage.getItem(getStorageKey(pageKey));
+    const newKey = getStorageKey(pageKey);
+    let stored = localStorage.getItem(newKey);
+
+    // Backward compatibility: migrate from old key
+    if (!stored) {
+      const oldKey = getOldStorageKey(pageKey);
+      const oldStored = localStorage.getItem(oldKey);
+      if (oldStored) {
+        localStorage.setItem(newKey, oldStored);
+        localStorage.removeItem(oldKey);
+        stored = oldStored;
+      }
+    }
+
     if (stored) {
       const parsed = JSON.parse(stored);
       return {

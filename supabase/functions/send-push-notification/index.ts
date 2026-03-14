@@ -230,7 +230,7 @@ Deno.serve(async (req) => {
     // 5. Send to all active subscriptions
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
-    const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:support@khail.app";
+    const vapidSubject = Deno.env.get("VAPID_SUBJECT") || "mailto:support@daylihorse.app";
 
     let sent = 0;
     let failed = 0;

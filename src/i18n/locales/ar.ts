@@ -4252,7 +4252,7 @@ export const ar = {
     installSubtitle: "ثبّت التطبيق للوصول السريع وتجربة أفضل",
     installNow: "تثبيت الآن",
     notNow: "ليس الآن",
-    iosTitle: "تثبيت خيل",
+    iosTitle: "تثبيت ديلي هورس",
     iosStep1: "اضغط على زر المشاركة",
     iosStep2: "ثم اضغط على \"إضافة إلى الشاشة الرئيسية\"",
     fallbackTitle: "تثبيت التطبيق",

@@ -9,13 +9,13 @@ self.addEventListener('push', function (event) {
     payload = event.data.json();
   } catch (e) {
     payload = {
-      title: 'Khail',
+      title: 'Dayli Horse',
       body: event.data.text(),
       data: {},
     };
   }
 
-  const title = payload.title || 'Khail';
+  const title = payload.title || 'Dayli Horse';
   const options = {
     body: payload.body || '',
     icon: payload.icon || '/icons/icon-192x192.png',

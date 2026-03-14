@@ -4246,7 +4246,7 @@ export const en = {
     installSubtitle: "Install the app for faster access and a better experience",
     installNow: "Install Now",
     notNow: "Not now",
-    iosTitle: "Install Khail",
+    iosTitle: "Install Dayli Horse",
     iosStep1: "Tap the Share button",
     iosStep2: "Then tap \"Add to Home Screen\"",
     fallbackTitle: "Install App",

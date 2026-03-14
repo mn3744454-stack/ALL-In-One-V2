@@ -281,7 +281,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Helmet>
-          <title>Join {invitationData.tenant_name} | Khail</title>
+          <title>Join {invitationData.tenant_name} | Dayli Horse</title>
         </Helmet>
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">

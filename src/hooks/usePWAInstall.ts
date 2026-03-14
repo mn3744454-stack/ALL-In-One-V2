@@ -5,12 +5,27 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-const STORAGE_KEY_INSTALLED = "khail:pwa-installed";
+const NEW_STORAGE_KEY = "daylihorse:pwa-installed";
+const OLD_STORAGE_KEY = "khail:pwa-installed";
 
 const isDev = import.meta.env.DEV;
 const log = (...args: unknown[]) => {
   if (isDev) console.log("[PWA Install]", ...args);
 };
+
+/** Migrate old localStorage key to new key (backward compat) */
+function migrateInstalledKey(): void {
+  try {
+    const oldVal = localStorage.getItem(OLD_STORAGE_KEY);
+    if (oldVal !== null) {
+      localStorage.setItem(NEW_STORAGE_KEY, oldVal);
+      localStorage.removeItem(OLD_STORAGE_KEY);
+      if (isDev) log("Migrated installed key from old brand namespace");
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
@@ -33,7 +48,7 @@ function isChromiumBrowser(): boolean {
 }
 
 function isMarkedInstalled(): boolean {
-  return localStorage.getItem(STORAGE_KEY_INSTALLED) === "true";
+  return localStorage.getItem(NEW_STORAGE_KEY) === "true";
 }
 
 export type InstallHelpMode = "none" | "ios" | "fallback";
@@ -52,8 +67,15 @@ export interface PWADebug {
 
 export function usePWAInstall() {
   const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
+
+  // Run migration once on module load
+  useEffect(() => {
+    migrateInstalledKey();
+  }, []);
+
   const [isInstalled, setIsInstalled] = useState(() => {
     if (typeof window === "undefined") return true;
+    migrateInstalledKey(); // Also run synchronously for initial state
     return isStandalone() || isMarkedInstalled();
   });
   const [dismissed, setDismissed] = useState(false);
@@ -93,7 +115,7 @@ export function usePWAInstall() {
 
     const installedHandler = () => {
       log("appinstalled");
-      localStorage.setItem(STORAGE_KEY_INSTALLED, "true");
+      localStorage.setItem(NEW_STORAGE_KEY, "true");
       setIsInstalled(true);
     };
 
@@ -122,7 +144,7 @@ export function usePWAInstall() {
     await prompt.prompt();
     const choice = await prompt.userChoice;
     if (choice.outcome === "accepted") {
-      localStorage.setItem(STORAGE_KEY_INSTALLED, "true");
+      localStorage.setItem(NEW_STORAGE_KEY, "true");
       setIsInstalled(true);
     }
     deferredPrompt.current = null;
