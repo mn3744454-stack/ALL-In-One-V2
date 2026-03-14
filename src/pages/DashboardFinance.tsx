@@ -33,6 +33,7 @@ import { printLedgerEntries, exportLedgerCSV } from "@/components/clients/Statem
 import { LedgerRowPreview } from "@/components/finance/LedgerRowPreview";
 import { postLedgerForExpense } from "@/lib/finance/postLedgerForExpense";
 import { approveInvoice } from "@/lib/finance/approveInvoice";
+import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import {
   Menu,
   FileText,
