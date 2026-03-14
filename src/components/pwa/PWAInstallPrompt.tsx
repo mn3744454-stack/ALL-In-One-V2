@@ -110,7 +110,7 @@ export default function PWAInstallPrompt() {
         </button>
 
         <div className="flex items-start gap-3 pe-6">
-          <img src="/icons/icon-192x192.png" alt="Dayli Horse" className="h-12 w-12 rounded-xl shrink-0" />
+          <img src="/icons/icon-192x192.png" alt={t("pwa.installTitle")} className="h-12 w-12 rounded-xl shrink-0" />
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold text-foreground leading-tight">
               {t(titleKey)}
