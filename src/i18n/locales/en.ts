@@ -3925,7 +3925,7 @@ export const en = {
       badge: "Built For Everyone",
       titlePart1: "Solutions for",
       titleHighlight: "Every Role",
-      subtitle: "Whether you own a single horse or manage a large operation, Khail adapts to your needs.",
+      subtitle: "Whether you own a single horse or manage a large operation, Dayli Horse adapts to your needs.",
       owners: {
         title: "Horse Owners",
         desc: "Track your horse's health, schedule vet visits, and connect with local services.",
