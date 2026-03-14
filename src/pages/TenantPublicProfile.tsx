@@ -58,12 +58,12 @@ const TenantPublicProfile = () => {
   return (
     <>
       <Helmet>
-        <title>{tenant.display_name} | Khail</title>
+        <title>{tenant.display_name} | Dayli Horse</title>
         <meta
           name="description"
           content={
             tenant.public_description ||
-            `${tenant.display_name} - ${tenant.type} on Khail`
+            `${tenant.display_name} - ${tenant.type} on Dayli Horse`
           }
         />
       </Helmet>

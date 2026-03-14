@@ -154,7 +154,7 @@ export default function DashboardHRPayroll() {
   return (
     <>
       <Helmet>
-        <title>{t('hr.payroll.title')} | Khail</title>
+        <title>{t('hr.payroll.title')} | Dayli Horse</title>
       </Helmet>
 
       <DashboardShell headerRight={addPaymentCTA}>

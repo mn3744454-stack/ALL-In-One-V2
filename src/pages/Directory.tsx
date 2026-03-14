@@ -16,7 +16,7 @@ const Directory = () => {
   return (
     <>
       <Helmet>
-        <title>Business Directory | Khail</title>
+        <title>Business Directory | Dayli Horse</title>
         <meta
           name="description"
           content="Discover stables, veterinary clinics, laboratories, and equestrian services across Saudi Arabia."
@@ -106,7 +106,7 @@ const Directory = () => {
               List Your Business
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Join hundreds of equestrian businesses on Khail and reach
+              Join hundreds of equestrian businesses on Dayli Horse and reach
               horse owners across Saudi Arabia.
             </p>
             <Button variant="gold" size="lg" asChild>

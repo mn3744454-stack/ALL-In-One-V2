@@ -196,7 +196,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Helmet>
-          <title>Loading Invitation | Khail</title>
+          <title>Loading Invitation | Dayli Horse</title>
         </Helmet>
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
@@ -211,7 +211,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Helmet>
-          <title>Accepting Invitation | Khail</title>
+          <title>Accepting Invitation | Dayli Horse</title>
         </Helmet>
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
@@ -226,7 +226,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Helmet>
-          <title>Invitation Accepted | Khail</title>
+          <title>Invitation Accepted | Dayli Horse</title>
         </Helmet>
         <div className="text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
@@ -242,7 +242,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Helmet>
-          <title>Invitation Error | Khail</title>
+          <title>Invitation Error | Dayli Horse</title>
         </Helmet>
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
@@ -281,7 +281,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Helmet>
-          <title>Join {invitationData.tenant_name} | Khail</title>
+          <title>Join {invitationData.tenant_name} | Dayli Horse</title>
         </Helmet>
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">

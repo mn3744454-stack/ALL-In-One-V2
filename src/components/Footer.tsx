@@ -56,7 +56,7 @@ const Footer = () => {
         {/* Bottom */}
         <div className="pt-8 border-t border-cream/10 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-cream/50 text-sm">
-            © {new Date().getFullYear()} Khail. {t('landing.footer.rights')}
+            © {new Date().getFullYear()} Dayli Horse. {t('landing.footer.rights')}
           </p>
           <div className="flex items-center gap-6">
             <Link to="#" className="text-cream/50 hover:text-cream text-sm transition-colors">

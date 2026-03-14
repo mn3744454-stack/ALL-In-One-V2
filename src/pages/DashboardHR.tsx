@@ -32,7 +32,7 @@ export default function DashboardHR() {
   return (
     <>
       <Helmet>
-        <title>{t('hr.title')} | Khail</title>
+        <title>{t('hr.title')} | Dayli Horse</title>
       </Helmet>
 
       <DashboardShell

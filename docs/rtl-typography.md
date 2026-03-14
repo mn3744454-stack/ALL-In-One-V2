@@ -1,6 +1,6 @@
 # RTL & Arabic Typography Guidelines
 
-This document describes the global RTL and Arabic typography system used in Khail.
+This document describes the global RTL and Arabic typography system used in Dayli Horse.
 
 ## Font System
 

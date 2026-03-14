@@ -1,6 +1,6 @@
 {
-  "name": "Khail - Horse Management",
-  "short_name": "Khail",
+  "name": "Dayli Horse - Horse Management",
+  "short_name": "Dayli Horse",
   "description": "The complete Multi-Tenant Horse Management Ecosystem",
   "start_url": "/dashboard",
   "display": "standalone",
