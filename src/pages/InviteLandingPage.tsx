@@ -211,7 +211,7 @@ export default function InviteLandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Helmet>
-          <title>Accepting Invitation | Khail</title>
+          <title>Accepting Invitation | Dayli Horse</title>
         </Helmet>
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
