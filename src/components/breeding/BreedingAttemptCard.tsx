@@ -70,7 +70,7 @@ export function BreedingAttemptCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {attempt.result === "unknown" && (
+                  {attempt.result === "pending" && (
                     <>
                       <DropdownMenuItem onClick={() => onUpdateResult?.(attempt.id, "successful")}>
                         {t("breeding.markSuccessful")}
