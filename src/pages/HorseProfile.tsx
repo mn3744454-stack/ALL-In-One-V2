@@ -20,7 +20,6 @@ import {
   Trash2, 
   MapPin, 
   Clock, 
-  User,
   Ruler,
   FileText
 } from "lucide-react";
@@ -47,6 +46,8 @@ import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeli
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
+import { PedigreeSection } from "@/components/horses/PedigreeSection";
+import { OffspringSection } from "@/components/horses/OffspringSection";
 
 interface Horse {
   id: string;
