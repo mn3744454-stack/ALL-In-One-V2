@@ -463,8 +463,19 @@ const HorseProfile = () => {
           </Card>
         )}
 
+        {/* Offspring */}
+        <OffspringSection horseId={horse.id} gender={horse.gender} />
+
         {/* Breeding Section */}
-        <HorseBreedingSection horseId={horse.id} horseName={horse.name} gender={horse.gender} />
+        <HorseBreedingSection
+          horseId={horse.id}
+          horseName={horse.name}
+          gender={horse.gender}
+          birthDate={horse.birth_date}
+          birthAt={horse.birth_at}
+          isGelded={horse.is_gelded}
+          breedingRole={horse.breeding_role}
+        />
 
         {/* Vet & Health Section */}
         <HorseVetSection horseId={horse.id} horseName={horse.name} />
