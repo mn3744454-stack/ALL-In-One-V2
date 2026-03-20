@@ -31,23 +31,26 @@ export type BreedingRole = 'breeding_stallion' | 'breeding_mare' | 'ineligible';
 export function getBreedingRole(horse: BreedingEligibilityInput): BreedingRole {
   const type = getHorseTypeLabel(horse);
 
+  // 1. Geldings — always ineligible regardless of any designation
+  if (type === 'gelding') return 'ineligible';
+
+  // 2. Explicit breeding designation takes priority over age/sex inference
+  if (horse.breeding_role === 'broodmare') return 'breeding_mare';
+  if (horse.breeding_role === 'breeding_stallion') return 'breeding_stallion';
+
+  // 3. Classification-based defaults (age + sex as supporting signal)
   if (!type) return 'ineligible';
 
   switch (type) {
-    case 'gelding':
-      return 'ineligible';
-    case 'colt':
-      // Young male — not breeding ready
-      return 'ineligible';
-    case 'filly':
-      // Young female — only eligible if explicitly designated as broodmare
-      if (horse.breeding_role === 'broodmare') return 'breeding_mare';
-      return 'ineligible';
     case 'stallion':
       return 'breeding_stallion';
     case 'mare':
     case 'broodmare':
       return 'breeding_mare';
+    case 'colt':
+    case 'filly':
+      // Immature without explicit designation — conservative default
+      return 'ineligible';
     default:
       return 'ineligible';
   }
