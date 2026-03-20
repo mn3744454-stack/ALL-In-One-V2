@@ -5,3 +5,6 @@ export * from "./PregnancyCard";
 export * from "./EmbryoTransferCard";
 export * from "./SemenBatchCard";
 export * from "./BreedingBottomNavigation";
+export * from "./PregnancyExamsPanel";
+export * from "./BreedingDetailSheets";
+export * from "./HorseBreedingSection";
