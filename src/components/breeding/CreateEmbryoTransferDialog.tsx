@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useEmbryoTransfers, CreateEmbryoTransferData } from "@/hooks/breeding/useEmbryoTransfers";
 import { useI18n } from "@/i18n";
-import { getHorseTypeLabel } from "@/lib/horseClassification";
+import { filterEligibleMares } from "@/lib/breedingEligibility";
 import type { SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 
 interface CreateEmbryoTransferDialogProps {
@@ -55,15 +55,7 @@ export function CreateEmbryoTransferDialog({
   const [sourceMode, setSourceMode] = useState<SourceMode>("internal");
   const [externalProviderName, setExternalProviderName] = useState("");
 
-  const mares = useMemo(() => {
-    return horses.filter(h => {
-      const type = getHorseTypeLabel({
-        gender: h.gender, birth_date: h.birth_date, birth_at: h.birth_at,
-        is_gelded: h.is_gelded, breeding_role: h.breeding_role,
-      });
-      return type === 'mare' || type === 'broodmare' || type === 'filly';
-    });
-  }, [horses]);
+  const mares = useMemo(() => filterEligibleMares(horses), [horses]);
 
   const resetForm = () => {
     setDonorMareId(""); setRecipientMareId("");

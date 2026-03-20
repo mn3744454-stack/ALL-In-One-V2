@@ -30,6 +30,7 @@ import { useHorses } from "@/hooks/useHorses";
 import { useSemenInventory, CreateSemenBatchData } from "@/hooks/breeding/useSemenInventory";
 import { useI18n } from "@/i18n";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
+import { filterEligibleStallions } from "@/lib/breedingEligibility";
 import type { SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 
 interface CreateSemenBatchDialogProps {
@@ -59,16 +60,8 @@ export function CreateSemenBatchDialog({
   const [motilityPercent, setMotilityPercent] = useState("");
   const [concentration, setConcentration] = useState("");
 
-  // Exclude geldings from stallion picker
-  const stallions = useMemo(() => {
-    return horses.filter(h => {
-      const horseType = getHorseTypeLabel({
-        gender: h.gender, birth_date: h.birth_date, birth_at: h.birth_at,
-        is_gelded: h.is_gelded, breeding_role: h.breeding_role,
-      });
-      return horseType === 'stallion' || horseType === 'colt';
-    });
-  }, [horses]);
+  // Use breeding eligibility — excludes geldings and immature horses
+  const stallions = useMemo(() => filterEligibleStallions(horses), [horses]);
 
   const resetForm = () => {
     setStallionId(""); setTankId(""); setCollectionDate(new Date());
