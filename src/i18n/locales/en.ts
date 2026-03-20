@@ -3445,7 +3445,7 @@ export const en = {
     unknown: "Pending",
     successful: "Successful",
     unsuccessful: "Unsuccessful",
-    open: "Open",
+    open: "Suspected",
     pregnant: "Pregnant",
     open_by_abortion: "Open (Abortion)",
     closed: "Closed",
