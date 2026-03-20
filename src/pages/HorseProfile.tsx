@@ -383,32 +383,12 @@ const HorseProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Pedigree */}
-          <Card>
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <User className="w-4 h-4 sm:w-5 sm:h-5 text-gold" />
-                {t('horses.profile.pedigree')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3">
-              {horse.father_name && (
-                <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-muted-foreground">{t('horses.profile.sire')}</span>
-                  <span className="font-medium">{horse.father_name}</span>
-                </div>
-              )}
-              {horse.mother_name && (
-                <div className="flex justify-between text-sm sm:text-base">
-                  <span className="text-muted-foreground">{t('horses.profile.dam')}</span>
-                  <span className="font-medium">{horse.mother_name}</span>
-                </div>
-              )}
-              {!horse.father_name && !horse.mother_name && (
-                <p className="text-muted-foreground text-xs sm:text-sm">{t('horses.profile.noPedigree')}</p>
-              )}
-            </CardContent>
-          </Card>
+          {/* Pedigree — enriched component */}
+          <PedigreeSection
+            horseId={horse.id}
+            fatherName={horse.father_name}
+            motherName={horse.mother_name}
+          />
 
           {/* Location */}
           <Card>
