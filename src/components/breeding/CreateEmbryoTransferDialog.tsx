@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import {
@@ -27,6 +27,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useEmbryoTransfers, CreateEmbryoTransferData } from "@/hooks/breeding/useEmbryoTransfers";
+import { useI18n } from "@/i18n";
+import { getHorseTypeLabel } from "@/lib/horseClassification";
+import type { SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 
 interface CreateEmbryoTransferDialogProps {
   open: boolean;
@@ -39,6 +42,7 @@ export function CreateEmbryoTransferDialog({
 }: CreateEmbryoTransferDialogProps) {
   const { horses } = useHorses();
   const { createTransfer } = useEmbryoTransfers();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   const [donorMareId, setDonorMareId] = useState("");
@@ -48,17 +52,24 @@ export function CreateEmbryoTransferDialog({
   const [embryoGrade, setEmbryoGrade] = useState("");
   const [embryoCount, setEmbryoCount] = useState("1");
   const [notes, setNotes] = useState("");
+  const [sourceMode, setSourceMode] = useState<SourceMode>("internal");
+  const [externalProviderName, setExternalProviderName] = useState("");
 
-  const mares = horses.filter(h => h.gender === "mare" || h.gender === "female");
+  const mares = useMemo(() => {
+    return horses.filter(h => {
+      const type = getHorseTypeLabel({
+        gender: h.gender, birth_date: h.birth_date, birth_at: h.birth_at,
+        is_gelded: h.is_gelded, breeding_role: h.breeding_role,
+      });
+      return type === 'mare' || type === 'broodmare' || type === 'filly';
+    });
+  }, [horses]);
 
   const resetForm = () => {
-    setDonorMareId("");
-    setRecipientMareId("");
-    setFlushDate(undefined);
-    setTransferDate(undefined);
-    setEmbryoGrade("");
-    setEmbryoCount("1");
-    setNotes("");
+    setDonorMareId(""); setRecipientMareId("");
+    setFlushDate(undefined); setTransferDate(undefined);
+    setEmbryoGrade(""); setEmbryoCount("1"); setNotes("");
+    setSourceMode("internal"); setExternalProviderName("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,6 +86,8 @@ export function CreateEmbryoTransferDialog({
         embryo_grade: embryoGrade || null,
         embryo_count: parseInt(embryoCount) || 1,
         notes: notes || null,
+        source_mode: sourceMode,
+        external_provider_name: sourceMode === "external" ? externalProviderName || null : null,
       });
       resetForm();
       onOpenChange(false);
@@ -87,149 +100,116 @@ export function CreateEmbryoTransferDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-display">Add Embryo Transfer</DialogTitle>
+          <DialogTitle className="text-xl font-display">{t("breeding.addEmbryoTransfer")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Source Mode */}
+          <div className="space-y-2">
+            <Label>{t("breeding.source")}</Label>
+            <Select value={sourceMode} onValueChange={(v) => setSourceMode(v as SourceMode)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent className="z-[200]">
+                <SelectItem value="internal">{t("breeding.sourceMode.internal")}</SelectItem>
+                <SelectItem value="connected">{t("breeding.sourceMode.connected")}</SelectItem>
+                <SelectItem value="external">{t("breeding.sourceMode.external")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {sourceMode === "external" && (
+            <div className="space-y-2">
+              <Label>{t("breeding.externalProvider")}</Label>
+              <Input value={externalProviderName} onChange={(e) => setExternalProviderName(e.target.value)} placeholder={t("breeding.providerName")} />
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column - Mare Selection */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Donor Mare *</Label>
+                <Label>{t("breeding.embryoTransfer.donorMare")} *</Label>
                 <Select value={donorMareId} onValueChange={setDonorMareId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select donor mare" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
                     {mares.map((mare) => (
-                      <SelectItem key={mare.id} value={mare.id}>
-                        {mare.name}
-                      </SelectItem>
+                      <SelectItem key={mare.id} value={mare.id}>{mare.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
-                <Label>Recipient Mare *</Label>
+                <Label>{t("breeding.embryoTransfer.recipientMare")} *</Label>
                 <Select value={recipientMareId} onValueChange={setRecipientMareId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select recipient mare" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
                     {mares.filter(m => m.id !== donorMareId).map((mare) => (
-                      <SelectItem key={mare.id} value={mare.id}>
-                        {mare.name}
-                      </SelectItem>
+                      <SelectItem key={mare.id} value={mare.id}>{mare.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* Right Column - Dates */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Flush Date</Label>
+                <Label>{t("breeding.embryoTransfer.flushDate")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !flushDate && "text-muted-foreground"
-                      )}
-                    >
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !flushDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {flushDate ? format(flushDate, "PPP") : <span>Select flush date</span>}
+                      {flushDate ? format(flushDate, "PPP") : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={flushDate}
-                      onSelect={setFlushDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
+                    <Calendar mode="single" selected={flushDate} onSelect={setFlushDate} initialFocus className="p-3 pointer-events-auto" />
                   </PopoverContent>
                 </Popover>
               </div>
-
               <div className="space-y-2">
-                <Label>Transfer Date</Label>
+                <Label>{t("breeding.embryoTransfer.transferDate")}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !transferDate && "text-muted-foreground"
-                      )}
-                    >
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !transferDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {transferDate ? format(transferDate, "PPP") : <span>Select transfer date</span>}
+                      {transferDate ? format(transferDate, "PPP") : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={transferDate}
-                      onSelect={setTransferDate}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
+                    <Calendar mode="single" selected={transferDate} onSelect={setTransferDate} initialFocus className="p-3 pointer-events-auto" />
                   </PopoverContent>
                 </Popover>
               </div>
             </div>
           </div>
 
-          {/* Embryo Details Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Embryo Grade</Label>
+              <Label>{t("breeding.embryoTransfer.embryoGrade")}</Label>
               <Select value={embryoGrade} onValueChange={setEmbryoGrade}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select grade" />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
                 <SelectContent className="z-[200]">
-                  <SelectItem value="excellent">Excellent</SelectItem>
-                  <SelectItem value="good">Good</SelectItem>
-                  <SelectItem value="fair">Fair</SelectItem>
-                  <SelectItem value="poor">Poor</SelectItem>
+                  <SelectItem value="excellent">{t("breeding.embryoTransfer.grades.excellent")}</SelectItem>
+                  <SelectItem value="good">{t("breeding.embryoTransfer.grades.good")}</SelectItem>
+                  <SelectItem value="fair">{t("breeding.embryoTransfer.grades.fair")}</SelectItem>
+                  <SelectItem value="poor">{t("breeding.embryoTransfer.grades.poor")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
-              <Label>Embryo Count</Label>
-              <Input
-                type="number"
-                min="1"
-                value={embryoCount}
-                onChange={(e) => setEmbryoCount(e.target.value)}
-              />
+              <Label>{t("breeding.embryoTransfer.embryoCount")}</Label>
+              <Input type="number" min="1" value={embryoCount} onChange={(e) => setEmbryoCount(e.target.value)} />
             </div>
           </div>
 
-          {/* Full Width Notes */}
           <div className="space-y-2">
-            <Label>Notes</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional notes about this embryo transfer..."
-              rows={4}
-            />
+            <Label>{t("common.notes")}</Label>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
 
           <div className="flex gap-3 pt-4 border-t">
-            <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
             <Button type="submit" className="flex-1" disabled={loading || !donorMareId || !recipientMareId}>
-              {loading ? "Creating..." : "Create Transfer"}
+              {loading ? t("common.loading") : t("common.create")}
             </Button>
           </div>
         </form>

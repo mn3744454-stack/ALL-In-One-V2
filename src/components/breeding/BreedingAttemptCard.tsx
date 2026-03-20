@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Calendar, MapPin, User } from "lucide-react";
+import { MoreHorizontal, Calendar, MapPin, User, Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,34 +13,33 @@ import {
 import { useI18n } from "@/i18n";
 import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
-import { cn } from "@/lib/utils";
 
 interface BreedingAttemptCardProps {
   attempt: BreedingAttempt;
   onEdit?: (attempt: BreedingAttempt) => void;
   onDelete?: (id: string) => void;
   onUpdateResult?: (id: string, result: "successful" | "unsuccessful") => void;
+  onClick?: (attempt: BreedingAttempt) => void;
   canManage?: boolean;
 }
-
-const attemptTypeKeys: Record<string, string> = {
-  natural: "breeding.attemptTypes.natural",
-  ai_fresh: "breeding.attemptTypes.aiFresh",
-  ai_frozen: "breeding.attemptTypes.aiFrozen",
-  embryo_transfer: "breeding.attemptTypes.embryoTransfer",
-};
 
 export function BreedingAttemptCard({
   attempt,
   onEdit,
   onDelete,
   onUpdateResult,
+  onClick,
   canManage = false,
 }: BreedingAttemptCardProps) {
   const { t } = useI18n();
+
+  const methodKey = `breeding.methods.${attempt.attempt_type}` as const;
   
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card 
+      className="hover:shadow-md transition-shadow cursor-pointer" 
+      onClick={() => onClick?.(attempt)}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -54,13 +53,15 @@ export function BreedingAttemptCard({
                 <span>×</span>
                 {attempt.stallion ? (
                   <span>{attempt.stallion.name}</span>
+                ) : attempt.external_stallion_name ? (
+                  <span className="italic">{attempt.external_stallion_name}</span>
                 ) : (
-                  <span className="italic">{attempt.external_stallion_name || t("scope.external")}</span>
+                  <span className="italic">{t("breeding.unknownStallion")}</span>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <BreedingStatusBadge status={attempt.result} type="attempt" />
             {canManage && (
               <DropdownMenu>
@@ -92,7 +93,13 @@ export function BreedingAttemptCard({
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-2 mb-3">
-          <Badge variant="secondary">{t(attemptTypeKeys[attempt.attempt_type]) || attempt.attempt_type}</Badge>
+          <Badge variant="secondary">{t(methodKey)}</Badge>
+          {attempt.source_mode && attempt.source_mode !== "internal" && (
+            <Badge variant="outline" className="gap-1">
+              <Globe className="h-3 w-3" />
+              {t(`breeding.sourceMode.${attempt.source_mode}`)}
+            </Badge>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
@@ -105,10 +112,10 @@ export function BreedingAttemptCard({
               <span className="truncate">{attempt.location_ref}</span>
             </div>
           )}
-          {attempt.assignee && (
+          {(attempt.performer || attempt.assignee) && (
             <div className="flex items-center gap-1 col-span-2">
               <User className="h-3.5 w-3.5" />
-              <span>{attempt.assignee.full_name || t("breeding.assigned")}</span>
+              <span>{attempt.performer?.full_name || attempt.assignee?.full_name || t("breeding.assigned")}</span>
             </div>
           )}
         </div>
