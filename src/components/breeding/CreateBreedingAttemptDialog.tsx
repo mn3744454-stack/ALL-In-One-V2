@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useBreedingAttempts, CreateBreedingAttemptData, SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
+import { filterEligibleMares, filterEligibleStallions } from "@/lib/breedingEligibility";
 import { useI18n } from "@/i18n";
 
 interface CreateBreedingAttemptDialogProps {
