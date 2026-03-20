@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { SourceMode } from "./useBreedingAttempts";
 
 export interface SemenTank {
   id: string;
@@ -24,6 +25,11 @@ export interface SemenBatch {
   doses_available: number;
   unit: string;
   quality_notes: string | null;
+  source_mode: SourceMode;
+  source_tenant_id: string | null;
+  source_external_name: string | null;
+  motility_percent: number | null;
+  concentration_million_per_ml: number | null;
   created_at: string;
   updated_at: string;
   // Joined
@@ -54,6 +60,11 @@ export interface CreateSemenBatchData {
   doses_total: number;
   doses_available: number;
   quality_notes?: string | null;
+  source_mode?: SourceMode;
+  source_tenant_id?: string | null;
+  source_external_name?: string | null;
+  motility_percent?: number | null;
+  concentration_million_per_ml?: number | null;
 }
 
 export function useSemenInventory() {
@@ -66,47 +77,25 @@ export function useSemenInventory() {
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const fetchTanks = useCallback(async () => {
-    if (!activeTenant?.tenant?.id) {
-      setTanks([]);
-      return;
-    }
-
+    if (!activeTenant?.tenant?.id) { setTanks([]); return; }
     try {
-      const { data, error } = await supabase
-        .from("semen_tanks")
-        .select("*")
-        .eq("tenant_id", activeTenant.tenant.id)
-        .order("name");
-
+      const { data, error } = await supabase.from("semen_tanks").select("*").eq("tenant_id", activeTenant.tenant.id).order("name");
       if (error) throw error;
       setTanks(data || []);
-    } catch (error) {
-      console.error("Error fetching semen tanks:", error);
-    }
+    } catch (error) { console.error("Error fetching semen tanks:", error); }
   }, [activeTenant?.tenant?.id]);
 
   const fetchBatches = useCallback(async () => {
-    if (!activeTenant?.tenant?.id) {
-      setBatches([]);
-      return;
-    }
-
+    if (!activeTenant?.tenant?.id) { setBatches([]); return; }
     try {
       const { data, error } = await supabase
         .from("semen_batches")
-        .select(`
-          *,
-          stallion:horses!semen_batches_stallion_id_fkey(id, name, name_ar, avatar_url),
-          tank:semen_tanks!semen_batches_tank_id_fkey(id, name, location)
-        `)
+        .select(`*, stallion:horses!semen_batches_stallion_id_fkey(id, name, name_ar, avatar_url), tank:semen_tanks!semen_batches_tank_id_fkey(id, name, location)`)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("collection_date", { ascending: false });
-
       if (error) throw error;
       setBatches((data as unknown as SemenBatch[]) || []);
-    } catch (error) {
-      console.error("Error fetching semen batches:", error);
-    }
+    } catch (error) { console.error("Error fetching semen batches:", error); }
   }, [activeTenant?.tenant?.id]);
 
   const fetchAll = useCallback(async () => {
@@ -115,173 +104,86 @@ export function useSemenInventory() {
     setLoading(false);
   }, [fetchTanks, fetchBatches]);
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  // Tank CRUD
   const createTank = async (data: CreateSemenTankData) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return null;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return null; }
     try {
-      const { data: newTank, error } = await supabase
-        .from("semen_tanks")
-        .insert({
-          tenant_id: activeTenant.tenant.id,
-          ...data,
-        })
-        .select()
-        .single();
-
+      const { data: newTank, error } = await supabase.from("semen_tanks").insert({ tenant_id: activeTenant.tenant.id, ...data }).select().single();
       if (error) throw error;
       toast.success("Semen tank created");
       fetchTanks();
       return newTank;
-    } catch (error: any) {
-      console.error("Error creating semen tank:", error);
-      toast.error(error.message || "Failed to create semen tank");
-      return null;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to create semen tank"); return null; }
   };
 
   const updateTank = async (id: string, updates: Partial<CreateSemenTankData>) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return false;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return false; }
     try {
-      const { error } = await supabase
-        .from("semen_tanks")
-        .update(updates)
-        .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id);
-
+      const { error } = await supabase.from("semen_tanks").update(updates).eq("id", id).eq("tenant_id", activeTenant.tenant.id);
       if (error) throw error;
       toast.success("Semen tank updated");
       fetchTanks();
       return true;
-    } catch (error: any) {
-      console.error("Error updating semen tank:", error);
-      toast.error(error.message || "Failed to update semen tank");
-      return false;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to update semen tank"); return false; }
   };
 
   const deleteTank = async (id: string) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return false;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return false; }
     try {
-      const { error } = await supabase
-        .from("semen_tanks")
-        .delete()
-        .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id);
-
+      const { error } = await supabase.from("semen_tanks").delete().eq("id", id).eq("tenant_id", activeTenant.tenant.id);
       if (error) throw error;
       toast.success("Semen tank deleted");
       fetchTanks();
       return true;
-    } catch (error: any) {
-      console.error("Error deleting semen tank:", error);
-      toast.error(error.message || "Failed to delete semen tank");
-      return false;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to delete semen tank"); return false; }
   };
 
-  // Batch CRUD
   const createBatch = async (data: CreateSemenBatchData) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return null;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return null; }
     try {
       const { data: newBatch, error } = await supabase
         .from("semen_batches")
         .insert({
           tenant_id: activeTenant.tenant.id,
+          source_mode: data.source_mode || "internal",
           ...data,
         })
         .select()
         .single();
-
       if (error) throw error;
       toast.success("Semen batch created");
       fetchBatches();
       return newBatch;
-    } catch (error: any) {
-      console.error("Error creating semen batch:", error);
-      toast.error(error.message || "Failed to create semen batch");
-      return null;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to create semen batch"); return null; }
   };
 
   const updateBatch = async (id: string, updates: Partial<CreateSemenBatchData>) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return false;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return false; }
     try {
-      const { error } = await supabase
-        .from("semen_batches")
-        .update(updates)
-        .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id);
-
+      const { error } = await supabase.from("semen_batches").update(updates).eq("id", id).eq("tenant_id", activeTenant.tenant.id);
       if (error) throw error;
       toast.success("Semen batch updated");
       fetchBatches();
       return true;
-    } catch (error: any) {
-      console.error("Error updating semen batch:", error);
-      toast.error(error.message || "Failed to update semen batch");
-      return false;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to update semen batch"); return false; }
   };
 
   const deleteBatch = async (id: string) => {
-    if (!activeTenant?.tenant?.id) {
-      toast.error("No active tenant");
-      return false;
-    }
-
+    if (!activeTenant?.tenant?.id) { toast.error("No active tenant"); return false; }
     try {
-      const { error } = await supabase
-        .from("semen_batches")
-        .delete()
-        .eq("id", id)
-        .eq("tenant_id", activeTenant.tenant.id);
-
+      const { error } = await supabase.from("semen_batches").delete().eq("id", id).eq("tenant_id", activeTenant.tenant.id);
       if (error) throw error;
       toast.success("Semen batch deleted");
       fetchBatches();
       return true;
-    } catch (error: any) {
-      console.error("Error deleting semen batch:", error);
-      toast.error(error.message || "Failed to delete semen batch");
-      return false;
-    }
+    } catch (error: any) { toast.error(error.message || "Failed to delete semen batch"); return false; }
   };
 
   return {
-    tanks,
-    batches,
-    loading,
-    canManage,
-    createTank,
-    updateTank,
-    deleteTank,
-    createBatch,
-    updateBatch,
-    deleteBatch,
+    tanks, batches, loading, canManage,
+    createTank, updateTank, deleteTank,
+    createBatch, updateBatch, deleteBatch,
     refresh: fetchAll,
   };
 }
