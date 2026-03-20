@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Calendar, Droplets, MapPin } from "lucide-react";
+import { MoreHorizontal, MapPin, Globe, Droplets } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SemenBatch } from "@/hooks/breeding/useSemenInventory";
 import { Progress } from "@/components/ui/progress";
+import { useI18n } from "@/i18n";
 
 interface SemenBatchCardProps {
   batch: SemenBatch;
@@ -26,6 +27,7 @@ export function SemenBatchCard({
   onDelete,
   canManage = false,
 }: SemenBatchCardProps) {
+  const { t } = useI18n();
   const usagePercent = ((batch.doses_total - batch.doses_available) / batch.doses_total) * 100;
   const isLowStock = batch.doses_available <= 2;
 
@@ -39,16 +41,22 @@ export function SemenBatchCard({
               <AvatarFallback>{(batch.stallion?.name || "S")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{batch.stallion?.name || "Unknown Stallion"}</h3>
+              <h3 className="font-semibold">{batch.stallion?.name || t("breeding.unknownStallion")}</h3>
               <p className="text-xs text-muted-foreground">
-                Collected {format(new Date(batch.collection_date), "PP")}
+                {t("breeding.semen.collected")} {format(new Date(batch.collection_date), "PP")}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={batch.type === "frozen" ? "secondary" : "outline"}>
-              {batch.type === "frozen" ? "Frozen" : "Fresh"}
+              {batch.type === "frozen" ? t("breeding.semen.frozen") : t("breeding.semen.fresh")}
             </Badge>
+            {batch.source_mode && batch.source_mode !== "internal" && (
+              <Badge variant="outline" className="gap-1">
+                <Globe className="h-3 w-3" />
+                {t(`breeding.sourceMode.${batch.source_mode}`)}
+              </Badge>
+            )}
             {canManage && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -57,9 +65,9 @@ export function SemenBatchCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit?.(batch)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit?.(batch)}>{t("common.edit")}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onDelete?.(batch.id)} className="text-destructive">
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -71,13 +79,30 @@ export function SemenBatchCard({
         <div className="space-y-3">
           <div className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Doses Available</span>
+              <span className="text-muted-foreground">{t("breeding.semen.dosesAvailable")}</span>
               <span className={isLowStock ? "text-destructive font-medium" : ""}>
                 {batch.doses_available} / {batch.doses_total} {batch.unit}s
               </span>
             </div>
             <Progress value={100 - usagePercent} className="h-2" />
           </div>
+
+          {/* Quality metrics */}
+          {(batch.motility_percent || batch.concentration_million_per_ml) && (
+            <div className="flex flex-wrap gap-2">
+              {batch.motility_percent && (
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Droplets className="h-3 w-3" />
+                  {t("breeding.semen.motility")}: {batch.motility_percent}%
+                </Badge>
+              )}
+              {batch.concentration_million_per_ml && (
+                <Badge variant="outline" className="text-xs">
+                  {t("breeding.semen.concentration")}: {batch.concentration_million_per_ml}
+                </Badge>
+              )}
+            </div>
+          )}
           
           <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
             {batch.tank && (
