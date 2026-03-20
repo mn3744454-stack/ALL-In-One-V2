@@ -482,6 +482,9 @@ const HorseProfile = () => {
           </Card>
         )}
 
+        {/* Breeding Section */}
+        <HorseBreedingSection horseId={horse.id} horseName={horse.name} gender={horse.gender} />
+
         {/* Vet & Health Section */}
         <HorseVetSection horseId={horse.id} horseName={horse.name} />
 
