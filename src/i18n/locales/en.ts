@@ -3266,17 +3266,171 @@ export const en = {
   },
   // Breeding module
   breeding: {
-    title: "Breeding",
+    title: "Breeding & Reproduction",
+    dashboardTitle: "Breeding & Reproduction",
+    dashboardSubtitle: "Manage breeding records, pregnancies, embryo transfers, and semen inventory",
     unknownMare: "Unknown Mare",
+    unknownStallion: "Unknown Stallion",
     assigned: "Assigned",
     markSuccessful: "Mark Successful",
     markUnsuccessful: "Mark Unsuccessful",
+    addNew: "Add New",
+    noOrgSelected: "No Organization Selected",
+    noOrgDesc: "Please create or join an organization to manage breeding records.",
+    createOrg: "Create Organization",
+    // Tab labels
+    tabs: {
+      records: "Breeding Records",
+      pregnancies: "Pregnancies",
+      embryo: "Embryo Transfers",
+      inventory: "Semen Inventory",
+    },
+    // Breeding method labels
+    methods: {
+      natural: "Natural Cover",
+      ai_fresh: "Insemination (Fresh)",
+      ai_frozen: "Insemination (Frozen)",
+    },
+    // Legacy attemptTypes kept for backward compat
     attemptTypes: {
-      natural: "Natural",
-      aiFresh: "AI (Fresh)",
-      aiFrozen: "AI (Frozen)",
+      natural: "Natural Cover",
+      aiFresh: "Insemination (Fresh)",
+      aiFrozen: "Insemination (Frozen)",
       embryoTransfer: "Embryo Transfer",
     },
+    // Outcome labels
+    outcome: "Outcome",
+    outcomes: {
+      pending: "Pending",
+      successful: "Successful",
+      unsuccessful: "Unsuccessful",
+    },
+    // Source mode
+    source: "Source",
+    sourceMode: {
+      internal: "Internal",
+      connected: "Connected Partner",
+      external: "External Provider",
+    },
+    performedBy: "Performed By",
+    providerName: "Provider Name",
+    externalProvider: "External Provider",
+    connectedPartner: "Connected Partner",
+    // Dialog titles
+    addBreedingRecord: "Add Breeding Record",
+    addPregnancy: "Add Pregnancy Record",
+    addEmbryoTransfer: "Add Embryo Transfer",
+    addSemenBatch: "Add Semen Batch",
+    // Pregnancy exams
+    pregnancyExams: "Pregnancy Exams",
+    addExam: "Add Exam",
+    noExams: "No pregnancy exams recorded yet.",
+    examMethod: "Method",
+    examOutcome: "Outcome",
+    examMethods: {
+      ultrasound: "Ultrasound",
+      palpation: "Palpation",
+      blood_test: "Blood Test",
+      other: "Other",
+    },
+    examOutcomes: {
+      confirmed_pregnant: "Confirmed Pregnant",
+      confirmed_open: "Confirmed Open",
+      inconclusive: "Inconclusive",
+    },
+    // Pregnancy statuses (user-facing)
+    pregnancyStatus: {
+      open: "Suspected",
+      pregnant: "Confirmed Pregnant",
+      open_by_abortion: "Open (Abortion)",
+      closed: "Closed",
+    },
+    // Breeding record detail
+    detail: {
+      title: "Breeding Record Details",
+      mare: "Mare",
+      stallion: "Stallion",
+      method: "Breeding Method",
+      date: "Date",
+      sourceMode: "Source",
+      performedBy: "Performed By",
+      providerName: "Provider",
+      notes: "Notes",
+      externalStallion: "External Stallion",
+    },
+    // Pregnancy detail
+    pregnancyDetail: {
+      title: "Pregnancy Details",
+      startDate: "Conception Date",
+      expectedDue: "Expected Due Date",
+      daysPregnant: "Days Pregnant",
+      status: "Status",
+      verification: "Verification",
+      stallion: "Attributed Stallion",
+      sourceAttempt: "Source Breeding Record",
+      ended: "Ended",
+      endReason: "End Reason",
+    },
+    // Cards
+    startedOn: "Started",
+    dueOn: "Due",
+    days: "days",
+    fromRecord: "From record on",
+    // Semen
+    semen: {
+      dosesAvailable: "Doses Available",
+      collected: "Collected",
+      type: "Type",
+      fresh: "Fresh",
+      frozen: "Frozen",
+      motility: "Motility %",
+      concentration: "Concentration (M/ml)",
+      qualityNotes: "Quality Notes",
+      sourceProvenance: "Provenance",
+    },
+    // Embryo transfer
+    embryoTransfer: {
+      donorMare: "Donor Mare",
+      recipientMare: "Recipient Mare",
+      flushDate: "Flush Date",
+      transferDate: "Transfer Date",
+      embryoGrade: "Embryo Grade",
+      embryoCount: "Embryo Count",
+      grades: {
+        excellent: "Excellent",
+        good: "Good",
+        fair: "Fair",
+        poor: "Poor",
+      },
+    },
+    // Actions
+    actions: {
+      markTransferred: "Mark Transferred",
+      markCompleted: "Mark Completed",
+      markFailed: "Mark Failed",
+      markFoaled: "Mark as Foaled",
+      markAbortion: "Mark Abortion",
+      closeNotPregnant: "Close - Not Pregnant",
+      addCheck: "Add Exam",
+    },
+    // Empty states
+    empty: {
+      records: "No breeding records yet. Add your first breeding record to get started.",
+      pregnancies: "No pregnancy records yet.",
+      transfers: "No embryo transfers recorded yet.",
+      batches: "No semen batches in inventory yet.",
+      horseRecords: "No breeding records for this horse.",
+    },
+    // Horse profile section
+    horseSection: {
+      title: "Breeding History",
+      recentRecords: "Recent Breeding Records",
+      activePregnancy: "Active Pregnancy",
+      noActivePregnancy: "No active pregnancy",
+      viewAll: "View All in Breeding Dashboard",
+    },
+    // Demo data notice
+    demoNotice: "Showing demo data. Add your first record to see real data.",
   },
   // Status translations for badges
   status: {
@@ -3288,10 +3442,10 @@ export const en = {
     cancelled: "Cancelled",
     approved: "Approved",
     rejected: "Rejected",
-    unknown: "Unknown",
+    unknown: "Pending",
     successful: "Successful",
     unsuccessful: "Unsuccessful",
-    open: "Open",
+    open: "Suspected",
     pregnant: "Pregnant",
     open_by_abortion: "Open (Abortion)",
     closed: "Closed",

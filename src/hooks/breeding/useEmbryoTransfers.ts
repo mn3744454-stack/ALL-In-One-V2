@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { SourceMode } from "./useBreedingAttempts";
 
 export interface EmbryoTransfer {
   id: string;
@@ -15,6 +16,10 @@ export interface EmbryoTransfer {
   embryo_grade: string | null;
   embryo_count: number;
   status: "planned" | "transferred" | "failed" | "completed";
+  source_mode: SourceMode;
+  provider_tenant_id: string | null;
+  external_provider_name: string | null;
+  performed_by: string | null;
   notes: string | null;
   created_by: string;
   assigned_to: string | null;
@@ -43,6 +48,11 @@ export interface EmbryoTransfer {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  performer?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface CreateEmbryoTransferData {
@@ -55,6 +65,10 @@ export interface CreateEmbryoTransferData {
   embryo_count?: number;
   notes?: string | null;
   assigned_to?: string | null;
+  source_mode?: SourceMode;
+  provider_tenant_id?: string | null;
+  external_provider_name?: string | null;
+  performed_by?: string | null;
 }
 
 export interface EmbryoTransferFilters {
@@ -87,7 +101,8 @@ export function useEmbryoTransfers(filters?: EmbryoTransferFilters) {
           donor_mare:horses!embryo_transfers_donor_mare_id_fkey(id, name, name_ar, avatar_url),
           recipient_mare:horses!embryo_transfers_recipient_mare_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!embryo_transfers_created_by_fkey(id, full_name, avatar_url),
-          assignee:profiles!embryo_transfers_assigned_to_fkey(id, full_name, avatar_url)
+          assignee:profiles!embryo_transfers_assigned_to_fkey(id, full_name, avatar_url),
+          performer:profiles!embryo_transfers_performed_by_fkey(id, full_name, avatar_url)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });
@@ -130,6 +145,7 @@ export function useEmbryoTransfers(filters?: EmbryoTransferFilters) {
         .insert({
           tenant_id: activeTenant.tenant.id,
           created_by: user.id,
+          source_mode: data.source_mode || "internal",
           ...data,
         })
         .select()

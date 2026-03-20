@@ -4,6 +4,10 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export type SourceMode = "internal" | "connected" | "external";
+export type AttemptType = "natural" | "ai_fresh" | "ai_frozen";
+export type AttemptResult = "pending" | "successful" | "unsuccessful";
+
 export interface BreedingAttempt {
   id: string;
   tenant_id: string;
@@ -11,13 +15,17 @@ export interface BreedingAttempt {
   stallion_id: string | null;
   external_stallion_name: string | null;
   external_stallion_meta: Record<string, unknown>;
-  attempt_type: "natural" | "ai_fresh" | "ai_frozen" | "embryo_transfer";
+  attempt_type: AttemptType;
   attempt_date: string;
   heat_cycle_ref: string | null;
   location_ref: string | null;
   notes: string | null;
   semen_batch_id: string | null;
-  result: "unknown" | "successful" | "unsuccessful";
+  result: AttemptResult;
+  source_mode: SourceMode;
+  provider_tenant_id: string | null;
+  external_provider_name: string | null;
+  performed_by: string | null;
   created_by: string;
   assigned_to: string | null;
   created_at: string;
@@ -45,6 +53,11 @@ export interface BreedingAttempt {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  performer?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export interface CreateBreedingAttemptData {
@@ -52,13 +65,17 @@ export interface CreateBreedingAttemptData {
   stallion_id?: string | null;
   external_stallion_name?: string | null;
   external_stallion_meta?: Record<string, unknown>;
-  attempt_type: "natural" | "ai_fresh" | "ai_frozen" | "embryo_transfer";
+  attempt_type: AttemptType;
   attempt_date: string;
   heat_cycle_ref?: string | null;
   location_ref?: string | null;
   notes?: string | null;
   semen_batch_id?: string | null;
   assigned_to?: string | null;
+  source_mode?: SourceMode;
+  provider_tenant_id?: string | null;
+  external_provider_name?: string | null;
+  performed_by?: string | null;
 }
 
 export interface BreedingAttemptFilters {
@@ -93,7 +110,8 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
           mare:horses!breeding_attempts_mare_id_fkey(id, name, name_ar, avatar_url),
           stallion:horses!breeding_attempts_stallion_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!breeding_attempts_created_by_fkey(id, full_name, avatar_url),
-          assignee:profiles!breeding_attempts_assigned_to_fkey(id, full_name, avatar_url)
+          assignee:profiles!breeding_attempts_assigned_to_fkey(id, full_name, avatar_url),
+          performer:profiles!breeding_attempts_performed_by_fkey(id, full_name, avatar_url)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("attempt_date", { ascending: false });
@@ -117,7 +135,7 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
       setAttempts((data as unknown as BreedingAttempt[]) || []);
     } catch (error) {
       console.error("Error fetching breeding attempts:", error);
-      toast.error("Failed to load breeding attempts");
+      toast.error("Failed to load breeding records");
     } finally {
       setLoading(false);
     }
@@ -148,6 +166,10 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         notes: data.notes || null,
         semen_batch_id: data.semen_batch_id || null,
         assigned_to: data.assigned_to || null,
+        source_mode: data.source_mode || "internal",
+        provider_tenant_id: data.provider_tenant_id || null,
+        external_provider_name: data.external_provider_name || null,
+        performed_by: data.performed_by || null,
       };
 
       const { data: newAttempt, error } = await supabase
@@ -157,17 +179,17 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         .single();
 
       if (error) throw error;
-      toast.success("Breeding attempt created");
+      toast.success("Breeding record created");
       fetchAttempts();
       return newAttempt;
     } catch (error: any) {
       console.error("Error creating breeding attempt:", error);
-      toast.error(error.message || "Failed to create breeding attempt");
+      toast.error(error.message || "Failed to create breeding record");
       return null;
     }
   };
 
-  const updateAttempt = async (id: string, updates: { notes?: string | null; result?: "unknown" | "successful" | "unsuccessful"; assigned_to?: string | null }) => {
+  const updateAttempt = async (id: string, updates: { notes?: string | null; result?: AttemptResult; assigned_to?: string | null }) => {
     if (!activeTenant?.tenant?.id) {
       toast.error("No active tenant");
       return false;
@@ -181,12 +203,12 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         .eq("tenant_id", activeTenant.tenant.id);
 
       if (error) throw error;
-      toast.success("Breeding attempt updated");
+      toast.success("Breeding record updated");
       fetchAttempts();
       return true;
     } catch (error: any) {
       console.error("Error updating breeding attempt:", error);
-      toast.error(error.message || "Failed to update breeding attempt");
+      toast.error(error.message || "Failed to update breeding record");
       return false;
     }
   };
@@ -205,12 +227,12 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         .eq("tenant_id", activeTenant.tenant.id);
 
       if (error) throw error;
-      toast.success("Breeding attempt deleted");
+      toast.success("Breeding record deleted");
       fetchAttempts();
       return true;
     } catch (error: any) {
       console.error("Error deleting breeding attempt:", error);
-      toast.error(error.message || "Failed to delete breeding attempt");
+      toast.error(error.message || "Failed to delete breeding record");
       return false;
     }
   };

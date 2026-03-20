@@ -9,6 +9,7 @@ export interface Pregnancy {
   tenant_id: string;
   mare_id: string;
   source_attempt_id: string | null;
+  stallion_id: string | null;
   status: "open" | "pregnant" | "open_by_abortion" | "closed";
   verification_state: "unverified" | "verified";
   start_date: string;
@@ -27,6 +28,12 @@ export interface Pregnancy {
     name_ar: string | null;
     avatar_url: string | null;
   };
+  stallion?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    avatar_url: string | null;
+  } | null;
   source_attempt?: {
     id: string;
     attempt_type: string;
@@ -47,6 +54,7 @@ export interface Pregnancy {
 export interface CreatePregnancyData {
   mare_id: string;
   source_attempt_id?: string | null;
+  stallion_id?: string | null;
   start_date: string;
   expected_due_date?: string | null;
   notes?: string | null;
@@ -82,6 +90,7 @@ export function usePregnancies(filters?: PregnancyFilters) {
         .select(`
           *,
           mare:horses!pregnancies_mare_id_fkey(id, name, name_ar, avatar_url),
+          stallion:horses!pregnancies_stallion_id_fkey(id, name, name_ar, avatar_url),
           source_attempt:breeding_attempts!pregnancies_source_attempt_id_fkey(id, attempt_type, attempt_date),
           creator:profiles!pregnancies_created_by_fkey(id, full_name, avatar_url),
           assignee:profiles!pregnancies_assigned_to_fkey(id, full_name, avatar_url)

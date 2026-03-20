@@ -9,6 +9,7 @@ interface BreedingStatusBadgeProps {
 }
 
 const attemptStyles: Record<string, string> = {
+  pending: "bg-slate-500/20 text-slate-600 border-slate-500/30",
   unknown: "bg-slate-500/20 text-slate-600 border-slate-500/30",
   successful: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30",
   unsuccessful: "bg-red-500/20 text-red-600 border-red-500/30",

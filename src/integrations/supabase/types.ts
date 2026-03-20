@@ -541,6 +541,7 @@ export type Database = {
           attempt_type: string
           created_at: string
           created_by: string
+          external_provider_name: string | null
           external_stallion_meta: Json | null
           external_stallion_name: string | null
           heat_cycle_ref: string | null
@@ -548,8 +549,11 @@ export type Database = {
           location_ref: string | null
           mare_id: string
           notes: string | null
+          performed_by: string | null
+          provider_tenant_id: string | null
           result: string
           semen_batch_id: string | null
+          source_mode: string
           stallion_id: string | null
           tenant_id: string
           updated_at: string
@@ -560,6 +564,7 @@ export type Database = {
           attempt_type: string
           created_at?: string
           created_by: string
+          external_provider_name?: string | null
           external_stallion_meta?: Json | null
           external_stallion_name?: string | null
           heat_cycle_ref?: string | null
@@ -567,8 +572,11 @@ export type Database = {
           location_ref?: string | null
           mare_id: string
           notes?: string | null
+          performed_by?: string | null
+          provider_tenant_id?: string | null
           result?: string
           semen_batch_id?: string | null
+          source_mode?: string
           stallion_id?: string | null
           tenant_id: string
           updated_at?: string
@@ -579,6 +587,7 @@ export type Database = {
           attempt_type?: string
           created_at?: string
           created_by?: string
+          external_provider_name?: string | null
           external_stallion_meta?: Json | null
           external_stallion_name?: string | null
           heat_cycle_ref?: string | null
@@ -586,8 +595,11 @@ export type Database = {
           location_ref?: string | null
           mare_id?: string
           notes?: string | null
+          performed_by?: string | null
+          provider_tenant_id?: string | null
           result?: string
           semen_batch_id?: string | null
+          source_mode?: string
           stallion_id?: string | null
           tenant_id?: string
           updated_at?: string
@@ -612,6 +624,27 @@ export type Database = {
             columns: ["mare_id"]
             isOneToOne: false
             referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -1891,10 +1924,14 @@ export type Database = {
           donor_mare_id: string
           embryo_count: number
           embryo_grade: string | null
+          external_provider_name: string | null
           flush_date: string | null
           id: string
           notes: string | null
+          performed_by: string | null
+          provider_tenant_id: string | null
           recipient_mare_id: string
+          source_mode: string
           status: string
           tenant_id: string
           transfer_date: string | null
@@ -1908,10 +1945,14 @@ export type Database = {
           donor_mare_id: string
           embryo_count?: number
           embryo_grade?: string | null
+          external_provider_name?: string | null
           flush_date?: string | null
           id?: string
           notes?: string | null
+          performed_by?: string | null
+          provider_tenant_id?: string | null
           recipient_mare_id: string
+          source_mode?: string
           status?: string
           tenant_id: string
           transfer_date?: string | null
@@ -1925,10 +1966,14 @@ export type Database = {
           donor_mare_id?: string
           embryo_count?: number
           embryo_grade?: string | null
+          external_provider_name?: string | null
           flush_date?: string | null
           id?: string
           notes?: string | null
+          performed_by?: string | null
+          provider_tenant_id?: string | null
           recipient_mare_id?: string
+          source_mode?: string
           status?: string
           tenant_id?: string
           transfer_date?: string | null
@@ -1961,6 +2006,27 @@ export type Database = {
             columns: ["donor_mare_id"]
             isOneToOne: false
             referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
           {
@@ -6984,6 +7050,7 @@ export type Database = {
           mare_id: string
           notes: string | null
           source_attempt_id: string | null
+          stallion_id: string | null
           start_date: string
           status: string
           tenant_id: string
@@ -7001,6 +7068,7 @@ export type Database = {
           mare_id: string
           notes?: string | null
           source_attempt_id?: string | null
+          stallion_id?: string | null
           start_date: string
           status?: string
           tenant_id: string
@@ -7018,6 +7086,7 @@ export type Database = {
           mare_id?: string
           notes?: string | null
           source_attempt_id?: string | null
+          stallion_id?: string | null
           start_date?: string
           status?: string
           tenant_id?: string
@@ -7054,6 +7123,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pregnancies_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pregnancies_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -7078,6 +7154,7 @@ export type Database = {
           method: string
           notes: string | null
           outcome: string
+          performed_by: string | null
           pregnancy_id: string
           tenant_id: string
         }
@@ -7089,6 +7166,7 @@ export type Database = {
           method: string
           notes?: string | null
           outcome: string
+          performed_by?: string | null
           pregnancy_id: string
           tenant_id: string
         }
@@ -7100,6 +7178,7 @@ export type Database = {
           method?: string
           notes?: string | null
           outcome?: string
+          performed_by?: string | null
           pregnancy_id?: string
           tenant_id?: string
         }
@@ -7107,6 +7186,13 @@ export type Database = {
           {
             foreignKeyName: "pregnancy_checks_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancy_checks_performed_by_fkey"
+            columns: ["performed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -7474,11 +7560,16 @@ export type Database = {
       semen_batches: {
         Row: {
           collection_date: string
+          concentration_million_per_ml: number | null
           created_at: string
           doses_available: number
           doses_total: number
           id: string
+          motility_percent: number | null
           quality_notes: string | null
+          source_external_name: string | null
+          source_mode: string
+          source_tenant_id: string | null
           stallion_id: string
           tank_id: string | null
           tenant_id: string
@@ -7488,11 +7579,16 @@ export type Database = {
         }
         Insert: {
           collection_date: string
+          concentration_million_per_ml?: number | null
           created_at?: string
           doses_available: number
           doses_total: number
           id?: string
+          motility_percent?: number | null
           quality_notes?: string | null
+          source_external_name?: string | null
+          source_mode?: string
+          source_tenant_id?: string | null
           stallion_id: string
           tank_id?: string | null
           tenant_id: string
@@ -7502,11 +7598,16 @@ export type Database = {
         }
         Update: {
           collection_date?: string
+          concentration_million_per_ml?: number | null
           created_at?: string
           doses_available?: number
           doses_total?: number
           id?: string
+          motility_percent?: number | null
           quality_notes?: string | null
+          source_external_name?: string | null
+          source_mode?: string
+          source_tenant_id?: string | null
           stallion_id?: string
           tank_id?: string | null
           tenant_id?: string
@@ -7515,6 +7616,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "semen_batches_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_batches_source_tenant_id_fkey"
+            columns: ["source_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "semen_batches_stallion_id_fkey"
             columns: ["stallion_id"]
