@@ -38,6 +38,7 @@ import { CurrentOwnership } from "@/components/horses/CurrentOwnership";
 import { HorseMediaGallery } from "@/components/horses/HorseMediaGallery";
 import { HorseLabSection } from "@/components/laboratory/HorseLabSection";
 import { HorseVetSection } from "@/components/vet/HorseVetSection";
+import { HorseBreedingSection } from "@/components/breeding/HorseBreedingSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n } from "@/i18n";
@@ -480,6 +481,9 @@ const HorseProfile = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Breeding Section */}
+        <HorseBreedingSection horseId={horse.id} horseName={horse.name} gender={horse.gender} />
 
         {/* Vet & Health Section */}
         <HorseVetSection horseId={horse.id} horseName={horse.name} />
