@@ -3424,10 +3424,27 @@ export const en = {
     // Horse profile section
     horseSection: {
       title: "Breeding History",
+      titleMare: "Breeding & Reproduction",
+      titleStallion: "Breeding Service Records",
       recentRecords: "Recent Breeding Records",
+      serviceRecords: "Service Records",
       activePregnancy: "Active Pregnancy",
       noActivePregnancy: "No active pregnancy",
       viewAll: "View All in Breeding Dashboard",
+      notEligible: "This horse is not currently designated for breeding.",
+    },
+    // Pedigree
+    pedigree: {
+      grandparents: "Grandparents",
+      paternalGrandsire: "Paternal Grandsire",
+      paternalGranddam: "Paternal Granddam",
+      maternalGrandsire: "Maternal Grandsire",
+      maternalGranddam: "Maternal Granddam",
+    },
+    // Offspring
+    offspring: {
+      title: "Offspring",
+      empty: "No registered offspring.",
     },
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",

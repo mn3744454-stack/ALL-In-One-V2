@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useBreedingAttempts, CreateBreedingAttemptData, SourceMode } from "@/hooks/breeding/useBreedingAttempts";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
+import { filterEligibleMares, filterEligibleStallions } from "@/lib/breedingEligibility";
 import { useI18n } from "@/i18n";
 
 interface CreateBreedingAttemptDialogProps {
@@ -54,32 +55,12 @@ export function CreateBreedingAttemptDialog({
   const [sourceMode, setSourceMode] = useState<SourceMode>("internal");
   const [externalProviderName, setExternalProviderName] = useState("");
 
-  // Classification-aware filtering: exclude geldings from stallion picker
+  // Breeding-eligibility-aware filtering
   const { mares, stallions } = useMemo(() => {
-    const m = horses.filter(h => {
-      const type = getHorseTypeLabel({
-        gender: h.gender,
-        birth_date: h.birth_date,
-        birth_at: h.birth_at,
-        is_gelded: h.is_gelded,
-        breeding_role: h.breeding_role,
-      });
-      return type === 'mare' || type === 'broodmare' || type === 'filly';
-    });
-
-    const s = horses.filter(h => {
-      const type = getHorseTypeLabel({
-        gender: h.gender,
-        birth_date: h.birth_date,
-        birth_at: h.birth_at,
-        is_gelded: h.is_gelded,
-        breeding_role: h.breeding_role,
-      });
-      // Exclude geldings — only stallions and colts can breed
-      return type === 'stallion' || type === 'colt';
-    });
-
-    return { mares: m, stallions: s };
+    return {
+      mares: filterEligibleMares(horses),
+      stallions: filterEligibleStallions(horses),
+    };
   }, [horses]);
 
   const resetForm = () => {
