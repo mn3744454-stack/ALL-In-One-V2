@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Clock, User } from "lucide-react";
+import { Heart, MapPin, Clock, User, Baby, Crown } from "lucide-react";
 import { 
   getCurrentAgeParts, 
   formatAgeCompact, 
