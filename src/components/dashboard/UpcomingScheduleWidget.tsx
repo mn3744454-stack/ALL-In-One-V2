@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { useTenant } from "@/contexts/TenantContext";
 import { useScheduleItems, type ScheduleItem } from "@/hooks/useScheduleItems";
 import { useI18n } from "@/i18n";
-import { format, addDays } from "date-fns";
+import { addDays } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import {
   CalendarDays,
