@@ -24,28 +24,6 @@ import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 import { useI18n } from "@/i18n";
 import { displayServiceName } from "@/lib/displayHelpers";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { MoreVertical, Pencil, Trash2, Eye, EyeOff, Tag, Layers } from "lucide-react";
-import { TenantService, CreateServiceInput } from "@/hooks/useServices";
-import { ServiceFormDialog } from "./ServiceFormDialog";
 
 interface ServiceCardProps {
   service: TenantService;
@@ -68,6 +46,7 @@ export const ServiceCard = ({
 }: ServiceCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { t, lang } = useI18n();
+
   const handleUpdate = async (data: CreateServiceInput) => {
     await onUpdate({ ...data, id: service.id });
   };
@@ -76,9 +55,7 @@ export const ServiceCard = ({
     <>
       <Card
         variant="elevated"
-        className={`transition-all ${
-          !service.is_active ? "opacity-60" : ""
-        }`}
+        className={`transition-all ${!service.is_active ? "opacity-60" : ""}`}
       >
         <CardContent className="p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -89,15 +66,20 @@ export const ServiceCard = ({
                   {displayServiceName(service.name, service.name_ar, lang)}
                 </h3>
                 <div className="flex items-center gap-1.5 shrink-0">
+                  {service.service_kind && service.service_kind !== "service" && (
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {t(`services.kinds.${service.service_kind}` as any) || service.service_kind}
+                    </Badge>
+                  )}
                   {!service.is_public && (
                     <Badge variant="outline" className="text-xs">
                       <EyeOff className="w-3 h-3 mr-1" />
-                      Private
+                      {t("services.private")}
                     </Badge>
                   )}
                   {!service.is_active && (
                     <Badge variant="secondary" className="text-xs">
-                      Disabled
+                      {t("common.inactive")}
                     </Badge>
                   )}
                 </div>
@@ -129,7 +111,7 @@ export const ServiceCard = ({
                 {linkedPlanCount > 0 && (
                   <Badge variant="secondary" className="text-xs gap-1">
                     <Layers className="w-3 h-3" />
-                    {linkedPlanCount} {linkedPlanCount === 1 ? 'plan' : 'plans'}
+                    {linkedPlanCount} {linkedPlanCount === 1 ? "plan" : "plans"}
                   </Badge>
                 )}
               </div>
@@ -137,10 +119,9 @@ export const ServiceCard = ({
 
             {/* Actions */}
             <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-3 shrink-0">
-              {/* Toggle Active */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground hidden sm:inline">
-                  {service.is_active ? "Active" : "Disabled"}
+                  {service.is_active ? t("common.active") : t("common.inactive")}
                 </span>
                 <Switch
                   checked={service.is_active}
@@ -149,12 +130,11 @@ export const ServiceCard = ({
                 />
               </div>
 
-              {/* Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <MoreVertical className="w-4 h-4" />
-                    <span className="sr-only">Actions</span>
+                    <span className="sr-only">{t("common.actions")}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -165,7 +145,7 @@ export const ServiceCard = ({
                     trigger={
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Pencil className="w-4 h-4 mr-2" />
-                        Edit
+                        {t("common.edit")}
                       </DropdownMenuItem>
                     }
                   />
@@ -174,7 +154,7 @@ export const ServiceCard = ({
                     className="text-destructive focus:text-destructive"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
+                    {t("common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -187,20 +167,19 @@ export const ServiceCard = ({
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogTitle>{t("common.delete")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{service.name}"? This action cannot
-              be undone.
+              {t("common.confirm")} — "{displayServiceName(service.name, service.name_ar, lang)}"
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="mt-0">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="mt-0">{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onDelete(service.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
