@@ -41,6 +41,13 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
     stallionNameAr: attempt.stallion?.name_ar,
     eventDate: attempt.attempt_date,
     description: `${t("breeding.billing.sourceTypes.breeding_attempt")} — ${displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)}`,
+    // Contract-aware prefill
+    contractId: attempt.contract?.id,
+    contractNumber: attempt.contract?.contract_number,
+    contractServiceId: attempt.contract?.service_id,
+    contractUnitPrice: attempt.contract?.unit_price,
+    contractClientId: attempt.contract?.client_id,
+    contractClientName: attempt.contract?.client_name,
   };
 
   return (

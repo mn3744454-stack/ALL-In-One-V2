@@ -28,6 +28,7 @@ export interface BreedingAttempt {
   performed_by: string | null;
   created_by: string;
   assigned_to: string | null;
+  contract_id: string | null;
   created_at: string;
   updated_at: string;
   // Joined
@@ -58,7 +59,17 @@ export interface BreedingAttempt {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
 }
+
+
 
 export interface CreateBreedingAttemptData {
   mare_id: string;
@@ -111,7 +122,8 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
           stallion:horses!breeding_attempts_stallion_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!breeding_attempts_created_by_fkey(id, full_name, avatar_url),
           assignee:profiles!breeding_attempts_assigned_to_fkey(id, full_name, avatar_url),
-          performer:profiles!breeding_attempts_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!breeding_attempts_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!breeding_attempts_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("attempt_date", { ascending: false });

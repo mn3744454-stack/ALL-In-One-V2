@@ -37,6 +37,13 @@ export interface BreedingEventForInvoice {
   clientId?: string | null;
   clientName?: string;
   eventDate?: string;
+  // Contract prefill
+  contractId?: string | null;
+  contractNumber?: string | null;
+  contractServiceId?: string | null;
+  contractUnitPrice?: number | null;
+  contractClientId?: string | null;
+  contractClientName?: string | null;
 }
 
 interface Props {
@@ -64,15 +71,37 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
   }, [breedingServices, event.sourceType]);
 
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(event.clientId || null);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
-  const [clientName, setClientName] = useState(event.clientName || "");
-  const [totalAmount, setTotalAmount] = useState(event.suggestedAmount?.toString() || "0");
-  const [notes, setNotes] = useState(event.description || "");
+  const [clientName, setClientName] = useState("");
+  const [totalAmount, setTotalAmount] = useState("0");
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Auto-select matching service and prefill amount
+  // Contract-aware prefill: contract > service > event fallback
   useEffect(() => {
+    if (!open) return;
+
+    // 1. Contract prefill (highest priority)
+    if (event.contractId) {
+      if (event.contractServiceId) {
+        setSelectedServiceId(event.contractServiceId);
+      }
+      if (event.contractUnitPrice != null) {
+        setTotalAmount(event.contractUnitPrice.toString());
+      }
+      if (event.contractClientId) {
+        setSelectedClientId(event.contractClientId);
+      }
+      if (event.contractClientName) {
+        setClientName(event.contractClientName);
+      }
+      const contractNote = event.contractNumber ? `${t("breeding.contracts.contract")}: ${event.contractNumber}` : "";
+      setNotes(contractNote);
+      return;
+    }
+
+    // 2. Service auto-select
     if (relevantServices.length > 0 && !selectedServiceId) {
       const match = relevantServices.find(s => s.service_type === event.sourceType);
       const svc = match || relevantServices[0];
@@ -81,7 +110,13 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
         setTotalAmount(svc.unit_price.toString());
       }
     }
-  }, [relevantServices, event.sourceType, selectedServiceId]);
+
+    // 3. Event-level fallbacks
+    if (event.clientId && !selectedClientId) setSelectedClientId(event.clientId);
+    if (event.clientName && !clientName) setClientName(event.clientName);
+    if (event.suggestedAmount && totalAmount === "0") setTotalAmount(event.suggestedAmount.toString());
+    if (event.description && !notes) setNotes(event.description);
+  }, [open, event, relevantServices]);
 
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -120,6 +155,7 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
       if (sName && sName !== "—") parts.push(`× ${sName}`);
     }
     if (event.eventDate) parts.push(formatBreedingDate(event.eventDate));
+    if (event.contractNumber) parts.push(`${t("breeding.contracts.contract")} ${event.contractNumber}`);
     return parts.join(" | ");
   };
 
@@ -201,6 +237,9 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
           <div className="text-xs text-muted-foreground bg-muted rounded-md p-2">
             {sourceTypeLabel}
             {event.mareName && ` — ${displayHorseName(event.mareName, event.mareNameAr, lang)}`}
+            {event.contractNumber && (
+              <span className="ml-2 font-mono text-primary">({t("breeding.contracts.contract")} {event.contractNumber})</span>
+            )}
           </div>
 
           {/* Breeding service picker */}
