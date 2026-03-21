@@ -19,6 +19,30 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { MoreVertical, Pencil, Trash2, EyeOff, Tag, Layers } from "lucide-react";
+import { TenantService, CreateServiceInput } from "@/hooks/useServices";
+import { ServiceFormDialog } from "./ServiceFormDialog";
+import { useI18n } from "@/i18n";
+import { displayServiceName } from "@/lib/displayHelpers";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MoreVertical, Pencil, Trash2, Eye, EyeOff, Tag, Layers } from "lucide-react";
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceFormDialog } from "./ServiceFormDialog";
