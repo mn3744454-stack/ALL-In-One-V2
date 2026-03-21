@@ -116,7 +116,12 @@ export const ServiceCard = ({
                     {service.service_type}
                   </Badge>
                 )}
-                {service.price_display && (
+                {service.unit_price != null && (
+                  <span className="text-sm font-medium text-gold">
+                    {service.unit_price} SAR
+                  </span>
+                )}
+                {service.price_display && !service.unit_price && (
                   <span className="text-sm font-medium text-gold">
                     {service.price_display}
                   </span>
