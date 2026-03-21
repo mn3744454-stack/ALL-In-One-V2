@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExpenseStatusBadge } from "./ExpenseStatusBadge";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import {
