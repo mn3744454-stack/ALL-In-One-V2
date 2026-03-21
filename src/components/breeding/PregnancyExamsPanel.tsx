@@ -167,7 +167,7 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, onSubmit }: AddExamDia
               <PopoverTrigger asChild>
                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !checkDate && "text-muted-foreground")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {checkDate ? format(checkDate, "PPP") : t("common.select")}
+                  {checkDate ? formatBreedingDate(checkDate) : t("common.select")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[200]" align="start">
