@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { useClients } from "@/hooks/useClients";
