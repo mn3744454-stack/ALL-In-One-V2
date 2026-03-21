@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Heart, Baby, FlaskConical, Syringe, Stethoscope } from "lucide-react";
+import { Heart, Baby, FlaskConical, Syringe, Stethoscope, FileText } from "lucide-react";
 import { useI18n } from "@/i18n";
 
 interface BreedingBottomNavigationProps {
@@ -17,6 +17,7 @@ export function BreedingBottomNavigation({
     { id: "attempts", icon: Heart, label: t("breeding.tabs.records") },
     { id: "pregnancies", icon: Baby, label: t("breeding.tabs.pregnancies") },
     { id: "foalings", icon: Stethoscope, label: t("breeding.tabs.foalings") },
+    { id: "contracts", icon: FileText, label: t("breeding.tabs.contracts") },
     { id: "embryo", icon: FlaskConical, label: t("breeding.tabs.embryo") },
     { id: "inventory", icon: Syringe, label: t("breeding.tabs.inventory") },
   ];

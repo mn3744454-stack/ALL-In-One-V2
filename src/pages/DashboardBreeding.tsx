@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Plus, Heart, Baby, Syringe, FlaskConical, Stethoscope } from "lucide-react";
+import { Plus, Heart, Baby, Syringe, FlaskConical, Stethoscope, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,11 +12,13 @@ import { usePregnancies, Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { useEmbryoTransfers } from "@/hooks/breeding/useEmbryoTransfers";
 import { useSemenInventory } from "@/hooks/breeding/useSemenInventory";
 import { useFoalings, Foaling } from "@/hooks/breeding/useFoalings";
+import { useBreedingContracts, BreedingContract } from "@/hooks/breeding/useBreedingContracts";
 import { BreedingAttemptCard } from "@/components/breeding/BreedingAttemptCard";
 import { PregnancyCard } from "@/components/breeding/PregnancyCard";
 import { EmbryoTransferCard } from "@/components/breeding/EmbryoTransferCard";
 import { SemenBatchCard } from "@/components/breeding/SemenBatchCard";
 import { FoalingCard } from "@/components/breeding/FoalingCard";
+import { BreedingContractCard } from "@/components/breeding/BreedingContractCard";
 import { BreedingBottomNavigation } from "@/components/breeding/BreedingBottomNavigation";
 import { CreateBreedingAttemptDialog } from "@/components/breeding/CreateBreedingAttemptDialog";
 import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDialog";
@@ -24,8 +26,10 @@ import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTr
 import { CreateSemenBatchDialog } from "@/components/breeding/CreateSemenBatchDialog";
 import { RecordFoalingDialog } from "@/components/breeding/RecordFoalingDialog";
 import { RegisterFoalDialog } from "@/components/breeding/RegisterFoalDialog";
+import { CreateBreedingContractDialog } from "@/components/breeding/CreateBreedingContractDialog";
 import { BreedingRecordDetailSheet, PregnancyDetailSheet } from "@/components/breeding/BreedingDetailSheets";
 import { FoalingDetailSheet } from "@/components/breeding/FoalingDetailSheet";
+import { BreedingContractDetailSheet } from "@/components/breeding/BreedingContractDetailSheet";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
@@ -35,9 +39,11 @@ export default function DashboardBreeding() {
   const [showPregnancyDialog, setShowPregnancyDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [showBatchDialog, setShowBatchDialog] = useState(false);
+  const [showContractDialog, setShowContractDialog] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<BreedingAttempt | null>(null);
   const [selectedPregnancy, setSelectedPregnancy] = useState<Pregnancy | null>(null);
   const [selectedFoaling, setSelectedFoaling] = useState<Foaling | null>(null);
+  const [selectedContract, setSelectedContract] = useState<BreedingContract | null>(null);
   // Foaling recording from a pregnancy
   const [foalingPregnancy, setFoalingPregnancy] = useState<Pregnancy | null>(null);
   // Register foal from foaling card
@@ -46,7 +52,7 @@ export default function DashboardBreeding() {
   const { activeTenant } = useTenant();
   const { t } = useI18n();
 
-  const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'foalings', 'embryo', 'inventory'], []);
+  const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'foalings', 'contracts', 'embryo', 'inventory'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
@@ -65,6 +71,7 @@ export default function DashboardBreeding() {
   const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
   const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
   const { foalings, loading: foalingsLoading, canManage: foalCanManage, refresh: refreshFoalings } = useFoalings();
+  const { contracts, loading: contractsLoading, canManage: contractCanManage } = useBreedingContracts();
 
   const handleAddNew = () => {
     switch (activeTab) {
@@ -72,6 +79,7 @@ export default function DashboardBreeding() {
       case "pregnancies": setShowPregnancyDialog(true); break;
       case "embryo": setShowTransferDialog(true); break;
       case "inventory": setShowBatchDialog(true); break;
+      case "contracts": setShowContractDialog(true); break;
       // foalings are created from pregnancies, not standalone
     }
   };
@@ -132,6 +140,7 @@ export default function DashboardBreeding() {
                       <TabsTrigger value="attempts" className="gap-2"><Heart className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.records")}</span></TabsTrigger>
                       <TabsTrigger value="pregnancies" className="gap-2"><Baby className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.pregnancies")}</span></TabsTrigger>
                       <TabsTrigger value="foalings" className="gap-2"><Stethoscope className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.foalings")}</span></TabsTrigger>
+                      <TabsTrigger value="contracts" className="gap-2"><FileText className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.contracts")}</span></TabsTrigger>
                       <TabsTrigger value="embryo" className="gap-2"><FlaskConical className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.embryo")}</span></TabsTrigger>
                       <TabsTrigger value="inventory" className="gap-2"><Syringe className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.inventory")}</span></TabsTrigger>
                     </TabsList>
@@ -211,6 +220,24 @@ export default function DashboardBreeding() {
                     )}
                   </TabsContent>
 
+                  <TabsContent value="contracts">
+                    {contractsLoading ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                    ) : contracts.length === 0 ? (
+                      renderEmptyState("breeding.empty.contracts")
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {contracts.map((contract) => (
+                          <BreedingContractCard
+                            key={contract.id}
+                            contract={contract}
+                            onClick={setSelectedContract}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
                   <TabsContent value="embryo">
                     {transfersLoading ? (
                       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
@@ -257,6 +284,7 @@ export default function DashboardBreeding() {
         <CreatePregnancyDialog open={showPregnancyDialog} onOpenChange={setShowPregnancyDialog} />
         <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} />
         <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} />
+        <CreateBreedingContractDialog open={showContractDialog} onOpenChange={setShowContractDialog} />
 
         {/* Foaling dialogs */}
         <RecordFoalingDialog
@@ -290,6 +318,12 @@ export default function DashboardBreeding() {
           open={!!selectedFoaling}
           onOpenChange={(open) => { if (!open) setSelectedFoaling(null); }}
           canManage={foalCanManage}
+        />
+        <BreedingContractDetailSheet
+          contract={selectedContract}
+          open={!!selectedContract}
+          onOpenChange={(open) => { if (!open) setSelectedContract(null); }}
+          canManage={contractCanManage}
         />
       </DashboardShell>
     </>
