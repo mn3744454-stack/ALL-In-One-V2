@@ -167,7 +167,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
             <div className="flex items-start justify-between gap-2 mb-1">
               <div>
                 <h3 className="font-display font-semibold text-foreground truncate">
-                  {horse.name}
+                  {displayHorseName(horse.name, horse.name_ar, lang)}
                 </h3>
                 {horse.name_ar && (
                   <p className="text-xs text-muted-foreground truncate" dir="rtl">
