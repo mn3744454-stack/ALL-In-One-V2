@@ -101,7 +101,8 @@ export function useFoalings(filters?: FoalingFilters) {
           mare:horses!foalings_mare_id_fkey(id, name, name_ar, avatar_url),
           stallion:horses!foalings_stallion_id_fkey(id, name, name_ar),
           performer:profiles!foalings_performed_by_fkey(id, full_name),
-          foal_horse:horses!foalings_foal_horse_id_fkey(id, name, name_ar, avatar_url)
+          foal_horse:horses!foalings_foal_horse_id_fkey(id, name, name_ar, avatar_url),
+          contract:breeding_contracts!foalings_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("foaling_date", { ascending: false });

@@ -112,7 +112,8 @@ export function useEmbryoTransfers(filters?: EmbryoTransferFilters) {
           recipient_mare:horses!embryo_transfers_recipient_mare_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!embryo_transfers_created_by_fkey(id, full_name, avatar_url),
           assignee:profiles!embryo_transfers_assigned_to_fkey(id, full_name, avatar_url),
-          performer:profiles!embryo_transfers_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!embryo_transfers_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!embryo_transfers_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });

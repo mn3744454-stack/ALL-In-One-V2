@@ -69,7 +69,8 @@ export function usePregnancyChecks(pregnancyId?: string) {
         .select(`
           *,
           creator:profiles!pregnancy_checks_created_by_fkey(id, full_name, avatar_url),
-          performer:profiles!pregnancy_checks_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!pregnancy_checks_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!pregnancy_checks_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .eq("pregnancy_id", pregnancyId)
