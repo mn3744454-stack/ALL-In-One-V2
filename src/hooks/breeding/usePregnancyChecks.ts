@@ -44,6 +44,7 @@ export interface CreatePregnancyCheckData {
   outcome: "confirmed_pregnant" | "confirmed_open" | "inconclusive";
   notes?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export function usePregnancyChecks(pregnancyId?: string) {
