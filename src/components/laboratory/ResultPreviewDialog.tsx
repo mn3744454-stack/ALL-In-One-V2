@@ -97,7 +97,7 @@ export function ResultPreviewDialog({
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || 'Unknown Template';
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const collectionDate = format(new Date(result.created_at), "MMM d, yyyy");
+  const collectionDate = formatStandardDate(result.created_at);
 
   const handlePrint = () => {
     if (!previewRef.current) return;
