@@ -1597,7 +1597,7 @@ export function CreateSampleDialog({
                     >
                       <CalendarIcon className="me-2 h-4 w-4" />
                       {formData.collection_date
-                        ? format(formData.collection_date, "PPP")
+                        ? format(formData.collection_date, "dd-MM-yyyy")
                         : t("laboratory.createSample.selectDate")}
                     </Button>
                   </PopoverTrigger>
