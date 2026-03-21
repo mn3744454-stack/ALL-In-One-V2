@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -104,13 +104,13 @@ export function EmbryoTransferCard({
           {transfer.flush_date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span>{t("breeding.embryoTransfer.flushDate")}: {format(new Date(transfer.flush_date), "PP")}</span>
+              <span>{t("breeding.embryoTransfer.flushDate")}: {formatBreedingDate(transfer.flush_date)}</span>
             </div>
           )}
           {transfer.transfer_date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span>{t("breeding.embryoTransfer.transferDate")}: {format(new Date(transfer.transfer_date), "PP")}</span>
+              <span>{t("breeding.embryoTransfer.transferDate")}: {formatBreedingDate(transfer.transfer_date)}</span>
             </div>
           )}
           {(transfer.performer || transfer.assignee) && (

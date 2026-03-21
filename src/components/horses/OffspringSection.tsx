@@ -5,9 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Baby, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useHorseOffspring } from "@/hooks/useHorseOffspring";
-import { useI18n } from "@/i18n";
+import { useI18n, isRTL } from "@/i18n";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
 import { formatAgeCompact, getCurrentAgeParts } from "@/lib/horseClassification";
+import { displayHorseName } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 
 interface OffspringSectionProps {
@@ -16,7 +17,7 @@ interface OffspringSectionProps {
 }
 
 export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { offspring, loading } = useHorseOffspring(horseId, gender);
 
   if (loading) {
@@ -73,11 +74,11 @@ export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
                         <AvatarFallback className="text-xs">{foal.name[0]}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{foal.name}</p>
+                        <p className="font-medium text-sm truncate">{displayHorseName(foal.name, foal.name_ar, lang)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {badge && (
                             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", badge.className)}>
-                              {badge.label}
+                              {isRTL(lang) ? badge.labelAr : badge.label}
                             </Badge>
                           )}
                           {ageParts && <span>{ageStr}</span>}

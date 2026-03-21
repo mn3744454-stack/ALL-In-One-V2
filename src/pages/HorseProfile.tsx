@@ -40,7 +40,7 @@ import { HorseVetSection } from "@/components/vet/HorseVetSection";
 import { HorseBreedingSection } from "@/components/breeding/HorseBreedingSection";
 import { HorseAssignedStaff } from "@/components/hr/HorseAssignedStaff";
 import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
-import { useI18n } from "@/i18n";
+import { useI18n, isRTL } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
 import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
@@ -90,7 +90,7 @@ interface Horse {
 const HorseProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [horse, setHorse] = useState<Horse | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
@@ -269,7 +269,7 @@ const HorseProfile = () => {
               <div className="flex-1 text-center sm:text-start">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                   <Badge className={typeBadgeProps.className}>
-                    {typeBadgeProps.label}
+                    {isRTL(lang) ? typeBadgeProps.labelAr : typeBadgeProps.label}
                   </Badge>
                   {isIntakeDraft ? (
                     <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">

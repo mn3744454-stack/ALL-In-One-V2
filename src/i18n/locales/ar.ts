@@ -2799,6 +2799,14 @@ export const ar = {
       incomplete: "غير مكتمل",
       outside: "خارج",
     },
+    gender: {
+      male: "ذكر",
+      female: "أنثى",
+    },
+    breedingRoles: {
+      broodmare: "فرس تربية",
+      breeding_stallion: "فحل تربية",
+    },
     status: {
       active: "نشط",
       inactive: "غير نشط",
@@ -3482,6 +3490,7 @@ export const ar = {
       register: "تسجيل",
       registered: "مسجّل",
       registeredHorse: "سجل الحصان المسجل",
+      registeredFoalRecord: "سجل المهر المسجل",
       pedigreeAutoLinked: "سيتم ربط الأب والأم تلقائياً من سجل التلقيح.",
       birthDateAuto: "سيتم تعيين تاريخ الميلاد من تاريخ الولادة",
       additionalDetails: "تفاصيل إضافية",
@@ -3503,6 +3512,12 @@ export const ar = {
           na: "غير مطبق",
         },
       },
+    },
+    endReasons: {
+      foaled: "ولادة",
+      abortion: "إجهاض",
+      not_pregnant: "غير حامل",
+      other: "أخرى",
     },
     demoNotice: "بيانات تجريبية. أضف أول سجل لعرض البيانات الحقيقية.",
   },

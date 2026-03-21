@@ -2775,6 +2775,14 @@ export const en = {
       incomplete: "Incomplete",
       outside: "Outside",
     },
+    gender: {
+      male: "Male",
+      female: "Female",
+    },
+    breedingRoles: {
+      broodmare: "Broodmare",
+      breeding_stallion: "Breeding Stallion",
+    },
     status: {
       active: "Active",
       inactive: "Inactive",
@@ -3477,6 +3485,7 @@ export const en = {
       register: "Register",
       registered: "Registered",
       registeredHorse: "Registered Horse Record",
+      registeredFoalRecord: "Registered Foal Record",
       pedigreeAutoLinked: "Sire and dam will be automatically linked from the breeding record.",
       birthDateAuto: "Birth date will be set from foaling date",
       additionalDetails: "Additional Details",
@@ -3498,6 +3507,13 @@ export const en = {
           na: "N/A",
         },
       },
+    },
+    // End reasons for pregnancy closure
+    endReasons: {
+      foaled: "Foaled",
+      abortion: "Abortion",
+      not_pregnant: "Not Pregnant",
+      other: "Other",
     },
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",

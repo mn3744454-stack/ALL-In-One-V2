@@ -103,7 +103,7 @@ export function EntityTimeline({ events, loading }: EntityTimelineProps) {
                     </div>
                   )}
                   <span>•</span>
-                  <span>{format(new Date(event.created_at), "PPp")}</span>
+                  <span>{format(new Date(event.created_at), "dd-MM-yyyy HH:mm")}</span>
                 </div>
               </div>
             </div>

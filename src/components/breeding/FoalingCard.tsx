@@ -1,18 +1,12 @@
-import { format } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Baby, Calendar, MoreHorizontal, UserPlus } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Baby, Calendar, UserPlus } from "lucide-react";
 import { Foaling } from "@/hooks/breeding/useFoalings";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface FoalingCardProps {
   foaling: Foaling;
@@ -34,12 +28,17 @@ export function FoalingCard({
   onClick,
   onRegisterFoal,
 }: FoalingCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const outcomeLabel = t(`breeding.foaling.outcomes.${foaling.outcome}`);
   const outcomeStyle = outcomeStyles[foaling.outcome] || outcomeStyles.other;
 
   const canRegister = canManage && foaling.outcome === "live" && !foaling.foal_horse_id;
+
+  const mareName = displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang);
+  const stallionName = foaling.stallion
+    ? displayHorseName(foaling.stallion.name, foaling.stallion.name_ar, lang)
+    : null;
 
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => onClick?.(foaling)}>
@@ -51,9 +50,9 @@ export function FoalingCard({
               <AvatarFallback>{(foaling.mare?.name || "M")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{foaling.mare?.name || t("breeding.unknownMare")}</h3>
-              {foaling.stallion && (
-                <p className="text-xs text-muted-foreground">× {foaling.stallion.name}</p>
+              <h3 className="font-semibold">{mareName}</h3>
+              {stallionName && (
+                <p className="text-xs text-muted-foreground">× {stallionName}</p>
               )}
             </div>
           </div>
@@ -79,7 +78,7 @@ export function FoalingCard({
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            <span>{format(new Date(foaling.foaling_date), "PP")}</span>
+            <span>{formatBreedingDate(foaling.foaling_date)}</span>
           </div>
           {foaling.foal_name && (
             <div className="flex items-center gap-1">
@@ -95,7 +94,7 @@ export function FoalingCard({
           {foaling.foal_horse_id && foaling.foal_horse && (
             <div className="col-span-2">
               <Badge variant="secondary" className="text-[10px]">
-                {t("breeding.foaling.registered")}: {foaling.foal_horse.name}
+                {t("breeding.foaling.registered")}: {displayHorseName(foaling.foal_horse.name, foaling.foal_horse.name_ar, lang)}
               </Badge>
             </div>
           )}

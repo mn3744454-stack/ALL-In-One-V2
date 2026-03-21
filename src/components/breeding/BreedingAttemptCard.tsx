@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import {
 import { useI18n } from "@/i18n";
 import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
+import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface BreedingAttemptCardProps {
   attempt: BreedingAttempt;
@@ -31,9 +31,13 @@ export function BreedingAttemptCard({
   onClick,
   canManage = false,
 }: BreedingAttemptCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const methodKey = `breeding.methods.${attempt.attempt_type}` as const;
+  const mareName = displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang);
+  const stallionName = attempt.stallion
+    ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang)
+    : attempt.external_stallion_name || t("breeding.unknownStallion");
   
   return (
     <Card 
@@ -48,16 +52,12 @@ export function BreedingAttemptCard({
               <AvatarFallback>{(attempt.mare?.name || "M")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{attempt.mare?.name || t("breeding.unknownMare")}</h3>
+              <h3 className="font-semibold">{mareName}</h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>×</span>
-                {attempt.stallion ? (
-                  <span>{attempt.stallion.name}</span>
-                ) : attempt.external_stallion_name ? (
-                  <span className="italic">{attempt.external_stallion_name}</span>
-                ) : (
-                  <span className="italic">{t("breeding.unknownStallion")}</span>
-                )}
+                <span className={attempt.external_stallion_name && !attempt.stallion ? "italic" : ""}>
+                  {stallionName}
+                </span>
               </div>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function BreedingAttemptCard({
         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" />
-            <span>{format(new Date(attempt.attempt_date), "PP")}</span>
+            <span>{formatBreedingDate(attempt.attempt_date)}</span>
           </div>
           {attempt.location_ref && (
             <div className="flex items-center gap-1">

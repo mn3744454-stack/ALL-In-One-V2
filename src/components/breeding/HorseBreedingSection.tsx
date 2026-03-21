@@ -1,7 +1,7 @@
 import { Heart, Baby, Calendar, Crown, Shield, Stethoscope } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { useBreedingAttempts } from "@/hooks/breeding/useBreedingAttempts";
 import { usePregnancies } from "@/hooks/breeding/usePregnancies";
 import { useFoalings } from "@/hooks/breeding/useFoalings";
@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getBreedingRole } from "@/lib/breedingEligibility";
+import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface HorseBreedingSectionProps {
   horseId: string;
@@ -30,7 +31,7 @@ export function HorseBreedingSection({
   isGelded,
   breedingRole,
 }: HorseBreedingSectionProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   const role = getBreedingRole({
     gender,
@@ -44,7 +45,6 @@ export function HorseBreedingSection({
   const isStallion = role === 'breeding_stallion';
   const isIneligible = role === 'ineligible';
 
-  // Query based on reproductive role
   const attemptFilters = isMare
     ? { mare_id: horseId }
     : isStallion
@@ -63,7 +63,6 @@ export function HorseBreedingSection({
 
   const hasData = attempts.length > 0 || (isMare && pregnancies.length > 0) || recentFoalings.length > 0;
 
-  // Section title based on role
   const sectionTitle = isMare
     ? t("breeding.horseSection.titleMare")
     : isStallion
@@ -74,7 +73,6 @@ export function HorseBreedingSection({
     ? t("breeding.horseSection.serviceRecords")
     : t("breeding.horseSection.recentRecords");
 
-  // Don't show breeding section for ineligible horses (geldings, colts, fillies)
   if (isIneligible) {
     return (
       <Card>
@@ -130,12 +128,12 @@ export function HorseBreedingSection({
                   <BreedingStatusBadge status={activePregnancy.status} type="pregnancy" />
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                  <span>{t("breeding.startedOn")} {format(new Date(activePregnancy.start_date), "PP")}</span>
+                  <span>{t("breeding.startedOn")} {formatBreedingDate(activePregnancy.start_date)}</span>
                   <span>
                     {differenceInDays(new Date(), new Date(activePregnancy.start_date))} {t("breeding.days")}
                   </span>
                   {activePregnancy.expected_due_date && (
-                    <span>{t("breeding.dueOn")} {format(new Date(activePregnancy.expected_due_date), "PP")}</span>
+                    <span>{t("breeding.dueOn")} {formatBreedingDate(activePregnancy.expected_due_date)}</span>
                   )}
                 </div>
               </div>
@@ -154,7 +152,7 @@ export function HorseBreedingSection({
                     <div key={f.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
                       <div className="flex items-center gap-2 min-w-0">
                         <Stethoscope className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="shrink-0">{format(new Date(f.foaling_date), "PP")}</span>
+                        <span className="shrink-0">{formatBreedingDate(f.foaling_date)}</span>
                         {f.foal_name && (
                           <span className="text-xs text-muted-foreground truncate">{f.foal_name}</span>
                         )}
@@ -177,19 +175,18 @@ export function HorseBreedingSection({
                     <div key={attempt.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
                       <div className="flex items-center gap-2 min-w-0">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="shrink-0">{format(new Date(attempt.attempt_date), "PP")}</span>
+                        <span className="shrink-0">{formatBreedingDate(attempt.attempt_date)}</span>
                         <Badge variant="secondary" className="text-[10px] shrink-0">
                           {t(`breeding.methods.${attempt.attempt_type}`)}
                         </Badge>
-                        {/* Show the other party */}
                         {isStallion && attempt.mare && (
                           <span className="text-xs text-muted-foreground truncate">
-                            × {attempt.mare.name}
+                            × {displayHorseName(attempt.mare.name, attempt.mare.name_ar, lang)}
                           </span>
                         )}
                         {isMare && (attempt.stallion || attempt.external_stallion_name) && (
                           <span className="text-xs text-muted-foreground truncate">
-                            × {attempt.stallion?.name || attempt.external_stallion_name}
+                            × {attempt.stallion ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang) : attempt.external_stallion_name}
                           </span>
                         )}
                       </div>

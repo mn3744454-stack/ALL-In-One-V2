@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { format } from "date-fns";
 import { Baby } from "lucide-react";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Foaling, useFoalings, CreateFoalHorseData } from "@/hooks/breeding/useFoalings";
 import { useI18n } from "@/i18n";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 
 interface RegisterFoalDialogProps {
   open: boolean;
@@ -138,7 +138,7 @@ export function RegisterFoalDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {t("breeding.foaling.birthDateAuto")}: {format(new Date(foaling.foaling_date), "PPP")}
+            {t("breeding.foaling.birthDateAuto")}: {formatBreedingDate(foaling.foaling_date)}
           </p>
           <p className="text-xs text-muted-foreground">
             {t("breeding.foaling.pedigreeAutoLinked")}

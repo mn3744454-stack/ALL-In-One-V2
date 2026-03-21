@@ -8,8 +8,9 @@ import {
   getHorseTypeBadgeProps 
 } from "@/lib/horseClassification";
 import { useMemo } from "react";
-import { useI18n } from "@/i18n";
+import { useI18n, isRTL } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { displayHorseName } from "@/lib/displayHelpers";
 
 interface Horse {
   id: string;
@@ -42,7 +43,8 @@ interface HorseCardProps {
 }
 
 export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) => {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const rtl = isRTL(lang);
 
   const getGenderIcon = (gender: string) => {
     return gender === "female" ? "♀" : "♂";
@@ -78,6 +80,8 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
     };
   }, [horse.gender, horse.birth_date, horse.birth_at, horse.is_gelded, horse.breeding_role]);
 
+  const typeLabel = rtl ? typeBadgeProps.labelAr : typeBadgeProps.label;
+
   const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
   const branchName = horse.branch_data?.name;
@@ -112,9 +116,9 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm truncate">{horse.name}</h3>
+            <h3 className="font-medium text-sm truncate">{displayHorseName(horse.name, horse.name_ar, lang)}</h3>
             <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
-              {typeBadgeProps.label}
+              {typeLabel}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground truncate">
@@ -128,7 +132,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
           variant="secondary" 
           className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}
         >
-          {horse.status || "draft"}
+          {t(`horses.status.${horse.status || 'draft'}`)}
         </Badge>
       </div>
     );
@@ -164,7 +168,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
             <div className="flex items-start justify-between gap-2 mb-1">
               <div>
                 <h3 className="font-display font-semibold text-foreground truncate">
-                  {horse.name}
+                  {displayHorseName(horse.name, horse.name_ar, lang)}
                 </h3>
                 {horse.name_ar && (
                   <p className="text-xs text-muted-foreground truncate" dir="rtl">
@@ -177,10 +181,10 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
                   variant="secondary" 
                   className={cn("text-xs", getStatusColor(horse.status))}
                 >
-                  {horse.status || "draft"}
+                  {t(`horses.status.${horse.status || 'draft'}`)}
                 </Badge>
                 <Badge className={cn("text-xs", typeBadgeProps.className)}>
-                  {typeBadgeProps.label}
+                  {typeLabel}
                 </Badge>
               </div>
             </div>
