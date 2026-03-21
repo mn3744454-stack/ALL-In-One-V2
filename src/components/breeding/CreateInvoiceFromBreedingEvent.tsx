@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
+import { useServicesByKind } from "@/hooks/useServices";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
@@ -18,29 +20,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { displayHorseName, displayServiceName, formatBreedingDate } from "@/lib/displayHelpers";
 
 export type BreedingSourceType = "breeding_attempt" | "pregnancy_check" | "foaling" | "embryo_transfer";
 
 export interface BreedingEventForInvoice {
   sourceType: BreedingSourceType;
   sourceId: string;
-  /** Mare name (English) */
   mareName?: string;
   mareNameAr?: string;
-  /** Stallion name (English) */
   stallionName?: string;
   stallionNameAr?: string;
-  /** Suggested amount from service catalog */
   suggestedAmount?: number;
-  /** Pre-populated description */
   description?: string;
-  /** Currency */
   currency?: string;
-  /** Optional pre-selected client */
   clientId?: string | null;
   clientName?: string;
-  /** Event date for the line item */
   eventDate?: string;
 }
 
@@ -60,7 +55,15 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
   const { createInvoice, isCreating } = useInvoices(tenantId);
   const { createLinkAsync } = useBillingLinks(event.sourceType, event.sourceId);
   const { clients, loading: clientsLoading } = useClients();
+  const { data: breedingServices = [] } = useServicesByKind("breeding");
 
+  // Filter services matching this source type, with fallback to all breeding services
+  const relevantServices = useMemo(() => {
+    const byType = breedingServices.filter(s => s.is_active && s.service_type === event.sourceType);
+    return byType.length > 0 ? byType : breedingServices.filter(s => s.is_active);
+  }, [breedingServices, event.sourceType]);
+
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(event.clientId || null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientName, setClientName] = useState(event.clientName || "");
@@ -68,10 +71,34 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
   const [notes, setNotes] = useState(event.description || "");
   const [loading, setLoading] = useState(false);
 
+  // Auto-select matching service and prefill amount
+  useEffect(() => {
+    if (relevantServices.length > 0 && !selectedServiceId) {
+      const match = relevantServices.find(s => s.service_type === event.sourceType);
+      const svc = match || relevantServices[0];
+      setSelectedServiceId(svc.id);
+      if (svc.unit_price != null) {
+        setTotalAmount(svc.unit_price.toString());
+      }
+    }
+  }, [relevantServices, event.sourceType, selectedServiceId]);
+
+  const handleServiceChange = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const svc = breedingServices.find(s => s.id === serviceId);
+    if (svc?.unit_price != null) {
+      setTotalAmount(svc.unit_price.toString());
+    }
+  };
+
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
   const selectedClient = useMemo(
     () => activeClients.find(c => c.id === selectedClientId),
     [activeClients, selectedClientId]
+  );
+  const selectedService = useMemo(
+    () => breedingServices.find(s => s.id === selectedServiceId),
+    [breedingServices, selectedServiceId]
   );
 
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
@@ -80,13 +107,18 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
+    // Service name (bilingual)
+    if (selectedService) {
+      parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
+    } else {
+      parts.push(sourceTypeLabel);
+    }
     const horseName = displayHorseName(event.mareName, event.mareNameAr, lang);
-    if (horseName) parts.push(horseName);
+    if (horseName && horseName !== "—") parts.push(horseName);
     if (event.stallionName || event.stallionNameAr) {
       const sName = displayHorseName(event.stallionName, event.stallionNameAr, lang);
-      if (sName) parts.push(`× ${sName}`);
+      if (sName && sName !== "—") parts.push(`× ${sName}`);
     }
-    parts.push(sourceTypeLabel);
     if (event.eventDate) parts.push(formatBreedingDate(event.eventDate));
     return parts.join(" | ");
   };
@@ -100,7 +132,6 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
 
-      // Step 1: Create invoice header
       const invoice = await createInvoice({
         tenant_id: tenantId,
         invoice_number: generateInvoiceNumber(),
@@ -121,7 +152,6 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
         return;
       }
 
-      // Step 2: Create invoice_items with entity_type='breeding'
       const lineDescription = buildLineItemDescription();
       const { error: itemError } = await supabase
         .from("invoice_items" as any)
@@ -139,7 +169,6 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
         console.error("Error creating invoice item:", itemError);
       }
 
-      // Step 3: Create billing link
       await createLinkAsync({
         source_type: event.sourceType,
         source_id: event.sourceId,
@@ -148,7 +177,6 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
         amount,
       });
 
-      // Step 4: Invalidate queries
       invalidateFinanceQueries(queryClient, tenantId);
       queryClient.invalidateQueries({ queryKey: ["billing-links"] });
 
@@ -174,6 +202,32 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
             {sourceTypeLabel}
             {event.mareName && ` — ${displayHorseName(event.mareName, event.mareNameAr, lang)}`}
           </div>
+
+          {/* Breeding service picker */}
+          {relevantServices.length > 0 && (
+            <div>
+              <Label>{t("breeding.billing.service")}</Label>
+              <Select value={selectedServiceId} onValueChange={handleServiceChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("breeding.billing.selectService")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {relevantServices.map(svc => (
+                    <SelectItem key={svc.id} value={svc.id}>
+                      <span className="flex items-center justify-between gap-2 w-full">
+                        <span>{displayServiceName(svc.name, svc.name_ar, lang)}</span>
+                        {svc.unit_price != null && (
+                          <span className="text-xs text-muted-foreground">
+                            {svc.unit_price} {event.currency || "SAR"}
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Client picker */}
           <div>

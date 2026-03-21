@@ -30,6 +30,30 @@ export function displayHorseName(
 }
 
 /**
+ * Bilingual service name display helper.
+ * Same logic as displayHorseName but for services.
+ */
+export function displayServiceName(
+  name?: string | null,
+  nameAr?: string | null,
+  lang?: string
+): string {
+  const activeLang = lang || getCurrentLanguage();
+  const en = name?.trim() || null;
+  const ar = nameAr?.trim() || null;
+
+  if (!en && !ar) return "—";
+  if (!ar) return en!;
+  if (!en) return ar!;
+  if (en === ar) return en;
+
+  if (activeLang === "ar") {
+    return `${ar} (${en})`;
+  }
+  return `${en} (${ar})`;
+}
+
+/**
  * Format a date as DD-MM-YYYY for all breeding domain surfaces.
  */
 export function formatBreedingDate(date: Date | string): string {
