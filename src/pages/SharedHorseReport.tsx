@@ -512,7 +512,7 @@ export default function SharedHorseReport() {
                             {result.source_tenant || "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(result.created_at), "PP")}
+                            {formatStandardDate(new Date(result.created_at))}
                           </TableCell>
                         </TableRow>
                       ))}
