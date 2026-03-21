@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useClients } from "@/hooks/useClients";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useLedgerBalance } from "@/hooks/finance/useLedgerBalance";
