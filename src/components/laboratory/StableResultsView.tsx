@@ -208,7 +208,7 @@ function SampleGroupCard({
           </span>
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            {group.publishedAt ? format(new Date(group.publishedAt), "MMM d") : "—"}
+            {group.publishedAt ? formatStandardDate(group.publishedAt) : "—"}
           </span>
         </div>
       </CardContent>
