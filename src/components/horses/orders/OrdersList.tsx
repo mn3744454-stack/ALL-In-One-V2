@@ -13,7 +13,7 @@ import { OrderStatusBadge } from "./OrderStatusBadge";
 import { OrderPriorityBadge } from "./OrderPriorityBadge";
 import { ServiceModeBadge } from "./ServiceModeBadge";
 import { OrderCard } from "./OrderCard";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Plus, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
