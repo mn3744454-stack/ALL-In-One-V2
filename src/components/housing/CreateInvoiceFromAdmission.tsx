@@ -42,6 +42,12 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const { createInvoice, isCreating } = useInvoices(tenantId);
   const { createLinkAsync } = useBillingLinks("boarding", admission.id);
   const { clients, loading: clientsLoading } = useClients();
+  const { plans } = useStableServicePlans();
+  const { data: boardingServices = [] } = useServicesByKind('boarding');
+
+  // Resolve plan and its included services
+  const admissionPlan = admission.plan_id ? plans.find(p => p.id === admission.plan_id) : null;
+  const planIncludes = admissionPlan ? normalizeIncludes(admissionPlan.includes) : [];
 
   // Compute estimated cost
   const days = differenceInDays(
