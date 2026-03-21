@@ -86,7 +86,7 @@ export const ServiceCard = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 mb-2">
                 <h3 className="font-semibold text-navy text-base sm:text-lg truncate flex-1">
-                  {service.name}
+                  {displayServiceName(service.name, service.name_ar, lang)}
                 </h3>
                 <div className="flex items-center gap-1.5 shrink-0">
                   {!service.is_public && (
