@@ -539,6 +539,7 @@ export type Database = {
           assigned_to: string | null
           attempt_date: string
           attempt_type: string
+          contract_id: string | null
           created_at: string
           created_by: string
           external_provider_name: string | null
@@ -562,6 +563,7 @@ export type Database = {
           assigned_to?: string | null
           attempt_date: string
           attempt_type: string
+          contract_id?: string | null
           created_at?: string
           created_by: string
           external_provider_name?: string | null
@@ -585,6 +587,7 @@ export type Database = {
           assigned_to?: string | null
           attempt_date?: string
           attempt_type?: string
+          contract_id?: string | null
           created_at?: string
           created_by?: string
           external_provider_name?: string | null
@@ -610,6 +613,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_contracts"
             referencedColumns: ["id"]
           },
           {
@@ -670,6 +680,128 @@ export type Database = {
           },
           {
             foreignKeyName: "breeding_attempts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      breeding_contracts: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          contract_number: string
+          contract_type: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          end_date: string | null
+          external_party_name: string | null
+          id: string
+          mare_id: string | null
+          notes: string | null
+          pricing_mode: string
+          service_id: string | null
+          stallion_id: string | null
+          start_date: string | null
+          status: string
+          tenant_id: string
+          total_price: number | null
+          unit_price: number | null
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          contract_number: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          end_date?: string | null
+          external_party_name?: string | null
+          id?: string
+          mare_id?: string | null
+          notes?: string | null
+          pricing_mode?: string
+          service_id?: string | null
+          stallion_id?: string | null
+          start_date?: string | null
+          status?: string
+          tenant_id: string
+          total_price?: number | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          end_date?: string | null
+          external_party_name?: string | null
+          id?: string
+          mare_id?: string | null
+          notes?: string | null
+          pricing_mode?: string
+          service_id?: string | null
+          stallion_id?: string | null
+          start_date?: string | null
+          status?: string
+          tenant_id?: string
+          total_price?: number | null
+          unit_price?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "breeding_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1918,6 +2050,7 @@ export type Database = {
       embryo_transfers: {
         Row: {
           assigned_to: string | null
+          contract_id: string | null
           created_at: string
           created_by: string
           donor_attempt_id: string | null
@@ -1939,6 +2072,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by: string
           donor_attempt_id?: string | null
@@ -1960,6 +2094,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string
           donor_attempt_id?: string | null
@@ -1985,6 +2120,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_contracts"
             referencedColumns: ["id"]
           },
           {
@@ -2373,6 +2515,7 @@ export type Database = {
       }
       foalings: {
         Row: {
+          contract_id: string | null
           created_at: string
           created_by: string
           foal_alive: boolean
@@ -2398,6 +2541,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          contract_id?: string | null
           created_at?: string
           created_by: string
           foal_alive?: boolean
@@ -2423,6 +2567,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          contract_id?: string | null
           created_at?: string
           created_by?: string
           foal_alive?: boolean
@@ -2448,6 +2593,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "foalings_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "foalings_created_by_fkey"
             columns: ["created_by"]
@@ -7283,6 +7435,7 @@ export type Database = {
       pregnancy_checks: {
         Row: {
           check_date: string
+          contract_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -7295,6 +7448,7 @@ export type Database = {
         }
         Insert: {
           check_date: string
+          contract_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -7307,6 +7461,7 @@ export type Database = {
         }
         Update: {
           check_date?: string
+          contract_id?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -7318,6 +7473,13 @@ export type Database = {
           tenant_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pregnancy_checks_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "breeding_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pregnancy_checks_created_by_fkey"
             columns: ["created_by"]
