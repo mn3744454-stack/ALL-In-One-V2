@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Edit3, UserMinus, History, Loader2, ArrowRightLeft } from "lucide-react";
