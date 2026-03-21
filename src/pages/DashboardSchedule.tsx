@@ -343,7 +343,7 @@ export default function DashboardSchedule() {
                 />
               </Button>
               <h2 className="text-lg font-semibold text-navy min-w-48 text-center">
-                {format(selectedDate, "MMMM yyyy")}
+                {format(selectedDate, "MM-yyyy")}
               </h2>
               <Button
                 variant="ghost"
