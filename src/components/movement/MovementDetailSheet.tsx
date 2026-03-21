@@ -165,7 +165,7 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-amber-500 shrink-0" />
                     <span className="text-muted-foreground">{t('movement.lifecycle.scheduledFor')}:</span>
-                    <span className="font-medium">{format(new Date(movement.scheduled_at), "PPp")}</span>
+                    <span className="font-medium">{formatStandardDateTime(new Date(movement.scheduled_at))}</span>
                   </div>
                 )}
                 {movement.dispatched_at && (
