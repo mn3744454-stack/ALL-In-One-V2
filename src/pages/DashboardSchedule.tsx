@@ -20,6 +20,7 @@ import { useScheduleItems, type ScheduleItem } from "@/hooks/useScheduleItems";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import { formatStandardDate, formatStandardTime } from "@/lib/displayHelpers";
 import {
   Menu,
   Search,
