@@ -13,7 +13,7 @@ import {
   CreditCard,
   Clock
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 interface PaymentIntentCardProps {
   intent: PaymentIntent;

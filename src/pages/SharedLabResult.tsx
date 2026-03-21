@@ -16,7 +16,7 @@ import {
   Loader2,
   ShieldAlert
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
