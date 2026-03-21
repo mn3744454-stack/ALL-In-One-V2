@@ -3509,8 +3509,6 @@ export const en = {
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",
   },
-  // Horse gender labels
-  horses_extra: "unused",
   // Status translations for badges
   status: {
     draft: "Draft",
