@@ -1,6 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 
 interface GeneratePDFOptions {
