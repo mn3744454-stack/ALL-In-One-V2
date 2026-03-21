@@ -98,3 +98,12 @@ export function formatStandardDateTime(date: Date | string): string {
   if (isNaN(d.getTime())) return "—";
   return format(d, "dd-MM-yyyy HH:mm");
 }
+
+/**
+ * Format time-only as HH:mm (24h) — platform-wide standard.
+ */
+export function formatStandardTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "—";
+  return format(d, "HH:mm");
+}

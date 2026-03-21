@@ -118,7 +118,7 @@ export function OrderTimeline({ events, loading }: OrderTimelineProps) {
                       <span>•</span>
                     </>
                   )}
-                  <span>{format(new Date(event.created_at), "MMM d, yyyy HH:mm")}</span>
+                  <span>{formatStandardDateTime(event.created_at)}</span>
                 </div>
               </div>
             </div>

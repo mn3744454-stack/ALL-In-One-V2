@@ -127,7 +127,7 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
-                      <span>{format(new Date(m.movement_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                      <span>{formatStandardDateTime(m.movement_at)}</span>
                     </div>
                   </div>
                 </div>

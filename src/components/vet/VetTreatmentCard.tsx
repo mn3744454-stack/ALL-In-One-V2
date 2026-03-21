@@ -96,7 +96,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
               )}
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {format(new Date(treatment.created_at), "MMM d")}
+                {formatStandardDate(treatment.created_at)}
               </span>
             </div>
 

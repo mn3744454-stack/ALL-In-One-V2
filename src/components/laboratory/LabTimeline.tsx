@@ -119,7 +119,7 @@ export function LabTimeline({ entityType, entityId, limit = 50 }: LabTimelinePro
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {format(new Date(event.created_at), "MMM d, h:mm a")}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>
