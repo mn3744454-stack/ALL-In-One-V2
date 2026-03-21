@@ -10,7 +10,7 @@ import { SampleProgressStepper } from "./SampleProgressStepper";
 import { TemplateDetailsDialog } from "./TemplateDetailsDialog";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
