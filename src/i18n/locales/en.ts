@@ -60,6 +60,8 @@ export const en = {
     unknown: "Unknown",
     active: "Active",
     inactive: "Inactive",
+    saving: "Saving...",
+    creating: "Creating...",
     goToDashboard: "Go to Dashboard",
     backToDashboard: "Back to Dashboard",
     accessRestricted: "Access Restricted",
