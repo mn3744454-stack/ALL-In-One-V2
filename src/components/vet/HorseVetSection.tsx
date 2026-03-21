@@ -193,7 +193,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {vaccination.program?.name || 'Unknown Program'}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {format(dueDate, 'MMM d, yyyy')}
+                                Due: {formatStandardDate(dueDate)}
                               </p>
                             </div>
                           </div>
