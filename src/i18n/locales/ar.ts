@@ -3520,6 +3520,25 @@ export const ar = {
       other: "أخرى",
     },
     demoNotice: "بيانات تجريبية. أضف أول سجل لعرض البيانات الحقيقية.",
+    billing: {
+      generateInvoice: "إنشاء فاتورة",
+      createInvoiceTitle: "إنشاء فاتورة تناسل",
+      client: "العميل",
+      selectClient: "اختر عميل...",
+      searchClients: "بحث العملاء...",
+      noClientsFound: "لا يوجد عملاء",
+      clientNameManual: "اسم العميل",
+      totalAmount: "المبلغ الإجمالي",
+      createInvoice: "إنشاء فاتورة",
+      invoiceCreated: "تم إنشاء الفاتورة بنجاح",
+      invoiceFailed: "فشل إنشاء الفاتورة",
+      sourceTypes: {
+        breeding_attempt: "سجل تلقيح",
+        pregnancy_check: "فحص حمل",
+        foaling: "ولادة",
+        embryo_transfer: "نقل أجنة",
+      },
+    },
   },
   // Status translations for badges
   status: {
