@@ -26,7 +26,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
-import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
