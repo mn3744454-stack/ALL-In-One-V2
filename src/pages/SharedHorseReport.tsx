@@ -380,7 +380,7 @@ export default function SharedHorseReport() {
                   {horse.birth_date && (
                     <div>
                       <span className="text-muted-foreground">{t("birthDate")}:</span>{" "}
-                      {format(new Date(horse.birth_date), "PP")}
+                      {formatStandardDate(new Date(horse.birth_date))}
                     </div>
                   )}
                   {horse.tenant_name && (
