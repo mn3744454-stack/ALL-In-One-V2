@@ -16,6 +16,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useServicesByKind } from "@/hooks/useServices";
+import { normalizeIncludes } from "@/lib/planIncludes";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
