@@ -183,6 +183,7 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         provider_tenant_id: data.provider_tenant_id || null,
         external_provider_name: data.external_provider_name || null,
         performed_by: data.performed_by || null,
+        contract_id: data.contract_id || null,
       };
 
       const { data: newAttempt, error } = await supabase
