@@ -46,7 +46,7 @@ export function BreedingContractCard({ contract, onClick }: Props) {
         {(contract.client?.name || contract.client_name) && (
           <div className="flex items-center gap-1.5 text-xs">
             <User className="h-3 w-3 text-muted-foreground" />
-            <span>{contract.client?.name || contract.client_name}</span>
+            <span>{contract.client ? displayClientName(contract.client.name, contract.client.name_ar, lang) : contract.client_name}</span>
           </div>
         )}
 

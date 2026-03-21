@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Stethoscope } from "lucide-react";
+import { CalendarIcon, Plus, Stethoscope, FileText } from "lucide-react";
 import { formatBreedingDate } from "@/lib/displayHelpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,14 +28,16 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { usePregnancyChecks, PregnancyCheck, CreatePregnancyCheckData } from "@/hooks/breeding/usePregnancyChecks";
+import { useBreedingContracts } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 
 interface PregnancyExamsPanelProps {
   pregnancyId: string;
   canManage?: boolean;
+  mareId?: string;
 }
 
-export function PregnancyExamsPanel({ pregnancyId, canManage = false }: PregnancyExamsPanelProps) {
+export function PregnancyExamsPanel({ pregnancyId, canManage = false, mareId }: PregnancyExamsPanelProps) {
   const { checks, loading, createCheck } = usePregnancyChecks(pregnancyId);
   const { t } = useI18n();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -74,6 +76,7 @@ export function PregnancyExamsPanel({ pregnancyId, canManage = false }: Pregnanc
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         pregnancyId={pregnancyId}
+        mareId={mareId}
         onSubmit={createCheck}
       />
     </Card>
@@ -104,6 +107,12 @@ function ExamRow({ check }: { check: PregnancyCheck }) {
             {t("breeding.performedBy")}: {check.performer.full_name}
           </p>
         )}
+        {check.contract && (
+          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+            <FileText className="h-3 w-3" />
+            {check.contract.contract_number}
+          </p>
+        )}
         {check.notes && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{check.notes}</p>
         )}
@@ -116,22 +125,35 @@ interface AddExamDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pregnancyId: string;
+  mareId?: string;
   onSubmit: (data: CreatePregnancyCheckData) => Promise<unknown>;
 }
 
-function AddExamDialog({ open, onOpenChange, pregnancyId, onSubmit }: AddExamDialogProps) {
+function AddExamDialog({ open, onOpenChange, pregnancyId, mareId, onSubmit }: AddExamDialogProps) {
   const { t } = useI18n();
+  const { contracts } = useBreedingContracts();
   const [loading, setLoading] = useState(false);
   const [checkDate, setCheckDate] = useState<Date | undefined>(new Date());
   const [method, setMethod] = useState<PregnancyCheck["method"]>("ultrasound");
   const [outcome, setOutcome] = useState<PregnancyCheck["outcome"]>("inconclusive");
   const [notes, setNotes] = useState("");
+  const [contractId, setContractId] = useState("");
+
+  const availableContracts = useMemo(() => {
+    let filtered = contracts.filter(c => c.status === "active");
+    if (mareId) {
+      const mareFiltered = filtered.filter(c => !c.mare_id || c.mare_id === mareId);
+      if (mareFiltered.length > 0) filtered = mareFiltered;
+    }
+    return filtered;
+  }, [contracts, mareId]);
 
   const resetForm = () => {
     setCheckDate(new Date());
     setMethod("ultrasound");
     setOutcome("inconclusive");
     setNotes("");
+    setContractId("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,6 +168,7 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, onSubmit }: AddExamDia
         method,
         outcome,
         notes: notes || null,
+        contract_id: contractId && contractId !== "none" ? contractId : null,
       });
       resetForm();
       onOpenChange(false);
@@ -200,6 +223,24 @@ function AddExamDialog({ open, onOpenChange, pregnancyId, onSubmit }: AddExamDia
               </SelectContent>
             </Select>
           </div>
+
+          {/* Contract picker */}
+          {availableContracts.length > 0 && (
+            <div className="space-y-2">
+              <Label>{t("breeding.contracts.contract")}</Label>
+              <Select value={contractId} onValueChange={setContractId}>
+                <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
+                <SelectContent className="z-[200]">
+                  <SelectItem value="none">{t("common.none")}</SelectItem>
+                  {availableContracts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.contract_number} — {t(`breeding.contracts.types.${c.contract_type}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>{t("common.notes")}</Label>

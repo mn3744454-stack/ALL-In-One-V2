@@ -71,7 +71,7 @@ export function BreedingContractDetailSheet({ contract, open, onOpenChange, canM
 
           {/* Client */}
           {(contract.client?.name || contract.client_name) && (
-            <DetailRow label={t("breeding.billing.client")} value={contract.client?.name || contract.client_name || "—"} />
+            <DetailRow label={t("breeding.billing.client")} value={contract.client ? displayClientName(contract.client.name, contract.client.name_ar, lang) : contract.client_name || "—"} />
           )}
           {contract.external_party_name && (
             <DetailRow label={t("breeding.contracts.externalParty")} value={contract.external_party_name} />

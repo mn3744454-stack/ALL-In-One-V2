@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Baby, CheckCircle, Clock, Receipt, XCircle } from "lucide-react";
+import { Baby, CheckCircle, Clock, FileText, Receipt, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -46,6 +46,24 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
 
   const handleAliveToggle = async () => {
     await updateFoaling(foaling.id, { foal_alive: !foaling.foal_alive } as Partial<Foaling>);
+  };
+
+  const invoiceEvent: BreedingEventForInvoice = {
+    sourceType: "foaling",
+    sourceId: foaling.id,
+    mareName: foaling.mare?.name,
+    mareNameAr: foaling.mare?.name_ar,
+    stallionName: foaling.stallion?.name,
+    stallionNameAr: foaling.stallion?.name_ar,
+    eventDate: foaling.foaling_date,
+    description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
+    // Contract-aware prefill
+    contractId: foaling.contract?.id,
+    contractNumber: foaling.contract?.contract_number,
+    contractServiceId: foaling.contract?.service_id,
+    contractUnitPrice: foaling.contract?.unit_price,
+    contractClientId: foaling.contract?.client_id,
+    contractClientName: foaling.contract?.client_name,
   };
 
   return (
@@ -101,6 +119,18 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
 
           {foaling.performer && (
             <DetailRow label={t("breeding.performedBy")} value={foaling.performer.full_name || "—"} />
+          )}
+
+          {/* Linked contract */}
+          {foaling.contract && (
+            <>
+              <Separator />
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-muted-foreground">{t("breeding.contracts.contract")}:</span>
+                <span className="font-mono font-medium">{foaling.contract.contract_number}</span>
+              </div>
+            </>
           )}
 
           {/* Linked foal horse */}
@@ -202,16 +232,7 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
     <CreateInvoiceFromBreedingEvent
       open={invoiceDialogOpen}
       onOpenChange={setInvoiceDialogOpen}
-      event={{
-        sourceType: "foaling",
-        sourceId: foaling.id,
-        mareName: foaling.mare?.name,
-        mareNameAr: foaling.mare?.name_ar,
-        stallionName: foaling.stallion?.name,
-        stallionNameAr: foaling.stallion?.name_ar,
-        eventDate: foaling.foaling_date,
-        description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
-      } satisfies BreedingEventForInvoice}
+      event={invoiceEvent}
     />
     </>
   );
