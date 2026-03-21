@@ -157,7 +157,7 @@ export function CreateSampleDialog({
   onSuccess,
   fromRequest,
 }: CreateSampleDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { horses } = useHorses();
   const { clients, createClient, refresh: refreshClients } = useClients();
   const { createSample } = useLabSamples();
