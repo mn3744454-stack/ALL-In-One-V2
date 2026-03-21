@@ -365,7 +365,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             {selectedPlan && (
               <div className="flex items-center gap-2 p-2 rounded bg-muted/50 text-xs text-muted-foreground">
                 <Package className="h-3.5 w-3.5" />
-                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan.name}</span>
+                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan ? displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang) : ''}</span>
                 <span className="ms-auto text-xs">{t('housing.admissions.wizard.overrideHint')}</span>
               </div>
             )}
