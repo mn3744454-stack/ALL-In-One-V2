@@ -1,4 +1,5 @@
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
