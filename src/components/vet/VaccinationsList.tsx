@@ -92,7 +92,7 @@ export function VaccinationsList({
                         {isOverdue && <AlertTriangle className="w-3 h-3" />}
                         <Calendar className="w-3 h-3" />
                         {isOverdue ? "Overdue: " : isDueToday ? "Due Today: " : isDueTomorrow ? "Tomorrow: " : "Due: "}
-                        {format(dueDate, "MMM d, yyyy")}
+                        {formatStandardDate(dueDate)}
                       </span>
 
                       {vaccination.administered_date && (
