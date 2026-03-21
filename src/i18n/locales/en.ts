@@ -3499,9 +3499,18 @@ export const en = {
         },
       },
     },
+    // End reasons for pregnancy closure
+    endReasons: {
+      foaled: "Foaled",
+      abortion: "Abortion",
+      not_pregnant: "Not Pregnant",
+      other: "Other",
+    },
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",
   },
+  // Horse gender labels
+  horses_extra: "unused",
   // Status translations for badges
   status: {
     draft: "Draft",
