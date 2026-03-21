@@ -2188,7 +2188,7 @@ export function CreateSampleDialog({
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("laboratory.createSample.collectionDate")}</span>
-                <span>{format(formData.collection_date, "PPP")}</span>
+                <span>{format(formData.collection_date, "dd-MM-yyyy")}</span>
               </div>
               {formData.daily_number && (
                 <div className="flex justify-between">
