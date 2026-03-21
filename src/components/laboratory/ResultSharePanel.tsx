@@ -17,6 +17,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
@@ -170,10 +171,10 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d, yyyy")}
+                      {t("laboratory.share.created")} {formatStandardDate(share.created_at)}
                       {share.expires_at && (
                         <span className={isExpired ? 'text-destructive' : ''}>
-                          {" • "}{t("laboratory.share.expires")} {format(new Date(share.expires_at), "MMM d, yyyy")}
+                          {" • "}{t("laboratory.share.expires")} {formatStandardDate(share.expires_at)}
                         </span>
                       )}
                     </p>
@@ -236,8 +237,8 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                       {t("laboratory.share.revoked")}
                     </Badge>
                     <p className="text-xs text-muted-foreground">
-                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d")}
-                      {" • "}{t("laboratory.share.revoked")} {format(new Date(share.revoked_at!), "MMM d")}
+                      {t("laboratory.share.created")} {formatStandardDate(share.created_at)}
+                      {" • "}{t("laboratory.share.revoked")} {formatStandardDate(share.revoked_at!)}
                     </p>
                   </div>
                 </div>

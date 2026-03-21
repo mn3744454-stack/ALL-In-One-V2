@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardTime } from "@/lib/displayHelpers";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,13 +72,13 @@ export const MyBookingCard = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 shrink-0 text-gold" />
-              <span>{format(new Date(booking.session.start_at), "EEE, MMM d, yyyy")}</span>
+              <span>{formatStandardDate(booking.session.start_at)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 shrink-0 text-gold" />
               <span>
-                {format(new Date(booking.session.start_at), "h:mm a")} -{" "}
-                {format(new Date(booking.session.end_at), "h:mm a")}
+                {formatStandardTime(booking.session.start_at)} -{" "}
+                {formatStandardTime(booking.session.end_at)}
               </span>
             </div>
             {booking.session.location_text && (
@@ -105,7 +105,7 @@ export const MyBookingCard = ({
           {/* Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-border">
             <p className="text-xs text-muted-foreground">
-              Booked {format(new Date(booking.created_at), "MMM d, yyyy")}
+              Booked {formatStandardDate(booking.created_at)}
             </p>
             
             {canCancel && !isPast && (

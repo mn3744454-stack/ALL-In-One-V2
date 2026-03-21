@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VetStatusBadge } from "./VetStatusBadge";
 import type { VetFollowup } from "@/hooks/vet/useVetFollowups";
-import { format, isToday, isTomorrow, isPast } from "date-fns";
+import { isToday, isTomorrow, isPast } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Calendar, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +101,7 @@ export function VetFollowupsList({
                         {isOverdue && <AlertTriangle className="w-3 h-3" />}
                         <Calendar className="w-3 h-3" />
                         {isOverdue ? "Overdue: " : isDueToday ? "Today: " : isDueTomorrow ? "Tomorrow: " : ""}
-                        {format(dueDate, "MMM d, yyyy")}
+                        {formatStandardDate(dueDate)}
                       </span>
                     </div>
 

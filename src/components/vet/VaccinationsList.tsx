@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VetStatusBadge } from "./VetStatusBadge";
 import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
-import { format, isPast, isToday, isTomorrow } from "date-fns";
+import { isPast, isToday, isTomorrow } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -91,13 +92,13 @@ export function VaccinationsList({
                         {isOverdue && <AlertTriangle className="w-3 h-3" />}
                         <Calendar className="w-3 h-3" />
                         {isOverdue ? "Overdue: " : isDueToday ? "Due Today: " : isDueTomorrow ? "Tomorrow: " : "Due: "}
-                        {format(dueDate, "MMM d, yyyy")}
+                        {formatStandardDate(dueDate)}
                       </span>
 
                       {vaccination.administered_date && (
                         <span className="flex items-center gap-1 text-xs text-success">
                           <CheckCircle className="w-3 h-3" />
-                          Administered: {format(new Date(vaccination.administered_date), "MMM d, yyyy")}
+                          Administered: {formatStandardDate(vaccination.administered_date)}
                         </span>
                       )}
                     </div>

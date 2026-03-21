@@ -6,7 +6,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
@@ -118,7 +118,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
             {isScheduled && movement.scheduled_at && (
               <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
-                <span>{t('movement.lifecycle.scheduledFor')}: {format(new Date(movement.scheduled_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                <span>{t('movement.lifecycle.scheduledFor')}: {formatStandardDateTime(movement.scheduled_at)}</span>
               </div>
             )}
 
@@ -138,7 +138,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{format(new Date(movement.movement_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                <span>{formatStandardDateTime(movement.movement_at)}</span>
               </div>
               {movement.is_demo && (
                 <span className="text-amber-600 bg-amber-100 dark:bg-amber-950 px-1.5 py-0.5 rounded text-xs">

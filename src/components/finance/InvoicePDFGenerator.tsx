@@ -1,6 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 
 interface GeneratePDFOptions {
@@ -48,8 +48,8 @@ const createInvoiceHTML = (options: GeneratePDFOptions): string => {
         <div style="text-align: right;">
           <h2 style="margin: 0 0 8px 0; font-size: 32px; color: #c9a227; text-transform: uppercase;">Invoice</h2>
           <p style="margin: 4px 0; font-size: 16px; color: #1e3a5f; font-weight: bold;">#${invoice.invoice_number}</p>
-          <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Date: ${format(new Date(invoice.issue_date), "MMMM d, yyyy")}</p>
-          ${invoice.due_date ? `<p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Due: ${format(new Date(invoice.due_date), "MMMM d, yyyy")}</p>` : ""}
+           <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Date: ${formatStandardDate(invoice.issue_date)}</p>
+          ${invoice.due_date ? `<p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Due: ${formatStandardDate(invoice.due_date)}</p>` : ""}
         </div>
       </div>
 

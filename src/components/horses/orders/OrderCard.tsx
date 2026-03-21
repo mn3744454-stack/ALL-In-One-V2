@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { OrderPriorityBadge } from "./OrderPriorityBadge";
 import { ServiceModeBadge } from "./ServiceModeBadge";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Calendar, MoreVertical, Eye, CreditCard, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
@@ -178,7 +178,7 @@ export function OrderCard({
         {order.scheduled_for && (
           <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />
-            <span>{format(new Date(order.scheduled_for), "MMM d, yyyy HH:mm")}</span>
+            <span>{formatStandardDateTime(order.scheduled_for)}</span>
           </div>
         )}
 

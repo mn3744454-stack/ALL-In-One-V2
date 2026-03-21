@@ -4,7 +4,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -149,11 +149,11 @@ export function InvoiceCard({
             <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-2">
               <InvoiceStatusBadge status={invoice.status} />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {format(new Date(invoice.issue_date), "MMM d")}
+                {formatStandardDate(invoice.issue_date)}
               </span>
               {invoice.due_date && (
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  → {format(new Date(invoice.due_date), "MMM d")}
+                  → {formatStandardDate(invoice.due_date)}
                 </span>
               )}
             </div>

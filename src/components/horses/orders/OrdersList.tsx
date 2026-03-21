@@ -13,7 +13,7 @@ import { OrderStatusBadge } from "./OrderStatusBadge";
 import { OrderPriorityBadge } from "./OrderPriorityBadge";
 import { ServiceModeBadge } from "./ServiceModeBadge";
 import { OrderCard } from "./OrderCard";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Plus, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { HorseOrder } from "@/hooks/useHorseOrders";
@@ -188,7 +188,7 @@ export function OrdersList({
                 <TableCell>
                   {order.scheduled_for ? (
                     <span className="text-sm">
-                      {format(new Date(order.scheduled_for), "MMM d, HH:mm")}
+                      {formatStandardDateTime(order.scheduled_for)}
                     </span>
                   ) : (
                     <span className="text-sm text-muted-foreground">-</span>

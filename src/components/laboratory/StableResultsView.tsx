@@ -6,7 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useStableLabResults, type StableResultGroup, type StableHorseGroup } from "@/hooks/laboratory/useStableLabResults";
 import { useI18n } from "@/i18n";
 import { Search, FlaskConical, Calendar, Building2, ChevronDown, ChevronRight, FileStack, Heart } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { StableResultViewerDialog } from "./StableResultViewerDialog";
@@ -208,7 +208,7 @@ function SampleGroupCard({
           </span>
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            {group.publishedAt ? format(new Date(group.publishedAt), "MMM d") : "—"}
+            {group.publishedAt ? formatStandardDate(group.publishedAt) : "—"}
           </span>
         </div>
       </CardContent>
@@ -251,7 +251,7 @@ function SampleGroupTable({
                 <Badge variant="secondary" className="text-xs">{sg.results.length}</Badge>
               </td>
               <td className="py-2 px-3 text-muted-foreground">
-                {sg.publishedAt ? format(new Date(sg.publishedAt), "MMM d, yyyy") : "—"}
+                {sg.publishedAt ? formatStandardDate(sg.publishedAt) : "—"}
               </td>
               <td className="py-2 px-3 text-muted-foreground">{sg.labName}</td>
             </tr>

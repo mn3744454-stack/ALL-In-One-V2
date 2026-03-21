@@ -31,6 +31,7 @@ import {
   Lock,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -440,7 +441,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        <span>{format(new Date(sampleResults[0]?.created_at || sample.collection_date), "MMM d, yyyy")}</span>
+                        <span>{formatStandardDate(sampleResults[0]?.created_at || sample.collection_date)}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <FlaskConical className="h-3 w-3" />

@@ -20,6 +20,7 @@ import { useScheduleItems, type ScheduleItem } from "@/hooks/useScheduleItems";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { format, startOfMonth, endOfMonth, isSameDay, addMonths, subMonths } from "date-fns";
+import { formatStandardDate, formatStandardTime } from "@/lib/displayHelpers";
 import {
   Menu,
   Search,
@@ -88,7 +89,7 @@ function ScheduleItemCard({ item, onClick }: { item: ScheduleItem; onClick?: () 
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{format(new Date(item.startAt), "h:mm a")}</span>
+                <span>{formatStandardTime(item.startAt)}</span>
               </div>
               {item.horseName && (
                 <div className="flex items-center gap-1">
@@ -157,7 +158,7 @@ function ScheduleList({
       {groupedItems.map(([dateKey, dateItems]) => (
         <div key={dateKey}>
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
-            {format(new Date(dateKey), "EEEE, MMMM d, yyyy")}
+            {formatStandardDate(dateKey)}
           </h3>
           <div className="space-y-3">
             {dateItems.map(item => (
@@ -343,7 +344,7 @@ export default function DashboardSchedule() {
                 />
               </Button>
               <h2 className="text-lg font-semibold text-navy min-w-48 text-center">
-                {format(selectedDate, "MMMM yyyy")}
+                {format(selectedDate, "MM-yyyy")}
               </h2>
               <Button
                 variant="ghost"
@@ -380,7 +381,7 @@ export default function DashboardSchedule() {
             </div>
             <div className="order-1 lg:order-2 lg:col-span-2">
               <h3 className="text-base lg:text-lg font-semibold text-navy mb-3 lg:mb-4">
-                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                {formatStandardDate(selectedDate)}
               </h3>
               <ScheduleList 
                 items={calendarDayItems} 

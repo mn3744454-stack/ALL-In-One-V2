@@ -11,7 +11,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate, formatStandardDateTime } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 
 interface EmployeeTimelineProps {
@@ -70,7 +70,7 @@ export function EmployeeTimeline({ employeeId }: EmployeeTimelineProps) {
         break;
       case 'start_date_updated':
         if (payload.new_date) {
-          return format(new Date(payload.new_date), 'PPP');
+          return formatStandardDate(payload.new_date);
         }
         break;
     }
@@ -162,7 +162,7 @@ export function EmployeeTimeline({ employeeId }: EmployeeTimelineProps) {
                   )}
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(event.created_at), 'PPp')}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>

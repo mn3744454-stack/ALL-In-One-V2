@@ -6,7 +6,7 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Calendar, Clock, User, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
@@ -79,7 +79,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
               {treatment.scheduled_for && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  {format(new Date(treatment.scheduled_for), "MMM d, yyyy")}
+                  {formatStandardDate(treatment.scheduled_for)}
                 </span>
               )}
               {treatment.assignee && (
@@ -96,7 +96,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
               )}
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {format(new Date(treatment.created_at), "MMM d")}
+                {formatStandardDate(treatment.created_at)}
               </span>
             </div>
 

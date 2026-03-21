@@ -13,7 +13,7 @@ import { FollowupList } from "@/components/doctor/FollowupList";
 import { ConsultationForm } from "@/components/doctor/ConsultationForm";
 import { CreateInvoiceFromConsultation } from "@/components/doctor/CreateInvoiceFromConsultation";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 
 export default function DashboardDoctorConsultationDetail() {
@@ -118,9 +118,9 @@ export default function DashboardDoctorConsultationDetail() {
                     </div>
                   </div>
                   <div className="text-right text-sm text-muted-foreground">
-                    <p>{t('doctor.created')}: {format(new Date(consultation.created_at), "MMM d, yyyy")}</p>
-                    {consultation.scheduled_for && <p>{t('doctor.scheduledFor')}: {format(new Date(consultation.scheduled_for), "MMM d, yyyy HH:mm")}</p>}
-                    {consultation.completed_at && <p>{t('doctor.completed')}: {format(new Date(consultation.completed_at), "MMM d, yyyy")}</p>}
+                    <p>{t('doctor.created')}: {formatStandardDate(consultation.created_at)}</p>
+                    {consultation.scheduled_for && <p>{t('doctor.scheduledFor')}: {formatStandardDateTime(consultation.scheduled_for)}</p>}
+                    {consultation.completed_at && <p>{t('doctor.completed')}: {formatStandardDate(consultation.completed_at)}</p>}
                     {consultation.actual_cost != null && <p className="font-medium text-foreground text-base mt-1">{consultation.actual_cost} {consultation.currency}</p>}
                   </div>
                 </div>

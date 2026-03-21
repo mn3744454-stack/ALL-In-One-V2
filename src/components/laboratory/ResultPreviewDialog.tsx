@@ -36,7 +36,7 @@ import {
   Send,
   Link2
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
@@ -97,7 +97,7 @@ export function ResultPreviewDialog({
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || 'Unknown Template';
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const collectionDate = format(new Date(result.created_at), "MMM d, yyyy");
+  const collectionDate = formatStandardDate(result.created_at);
 
   const handlePrint = () => {
     if (!previewRef.current) return;
@@ -346,7 +346,7 @@ export function ResultPreviewDialog({
             </div>
             {designTemplate === 'classic' && (
               <div className="text-right text-sm text-muted-foreground">
-                <p>Report Date: {format(new Date(), "MMM d, yyyy")}</p>
+                <p>Report Date: {formatStandardDate(new Date())}</p>
                 <p>ID: {result.id.slice(0, 8)}</p>
               </div>
             )}
@@ -482,7 +482,7 @@ export function ResultPreviewDialog({
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{format(new Date(result.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+              <span>{formatStandardDateTime(result.created_at)}</span>
             </div>
           </div>
 

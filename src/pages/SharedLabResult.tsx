@@ -16,7 +16,7 @@ import {
   Loader2,
   ShieldAlert
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
@@ -424,7 +424,7 @@ export default function SharedLabResult() {
             )}
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.reportDate")}</p>
-              <p>{format(new Date(result.created_at), "MMM d, yyyy")}</p>
+              <p>{formatStandardDate(result.created_at)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.status")}</p>
@@ -504,7 +504,7 @@ export default function SharedLabResult() {
           <div className="text-sm text-muted-foreground text-center space-y-1">
             <div className="flex items-center justify-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{format(new Date(result.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+              <span>{formatStandardDateTime(result.created_at)}</span>
             </div>
           </div>
         </div>

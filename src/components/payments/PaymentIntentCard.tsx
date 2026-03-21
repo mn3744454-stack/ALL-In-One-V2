@@ -13,7 +13,7 @@ import {
   CreditCard,
   Clock
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 interface PaymentIntentCardProps {
   intent: PaymentIntent;
@@ -56,7 +56,7 @@ export function PaymentIntentCard({ intent, showTenant = false }: PaymentIntentC
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {format(new Date(intent.created_at), "MMM d, yyyy")}
+                {formatStandardDate(intent.created_at)}
               </span>
               {intent.currency && (
                 <span className="uppercase">{intent.currency}</span>

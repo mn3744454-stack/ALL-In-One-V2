@@ -5,7 +5,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { ArrowRight, MapPin, Clock, Link2, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -127,7 +127,7 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
-                      <span>{format(new Date(m.movement_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                      <span>{formatStandardDateTime(m.movement_at)}</span>
                     </div>
                   </div>
                 </div>

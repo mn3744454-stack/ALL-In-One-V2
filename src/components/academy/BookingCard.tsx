@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardTime } from "@/lib/displayHelpers";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -63,13 +63,13 @@ export const BookingCard = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 shrink-0 text-gold" />
-              <span>{format(new Date(booking.session.start_at), "EEE, MMM d, yyyy")}</span>
+              <span>{formatStandardDate(booking.session.start_at)}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 shrink-0 text-gold" />
               <span>
-                {format(new Date(booking.session.start_at), "h:mm a")} -{" "}
-                {format(new Date(booking.session.end_at), "h:mm a")}
+                {formatStandardTime(booking.session.start_at)} -{" "}
+                {formatStandardTime(booking.session.end_at)}
               </span>
             </div>
           </div>
@@ -123,7 +123,7 @@ export const BookingCard = ({
 
           {/* Metadata */}
           <p className="text-xs text-muted-foreground">
-            Requested {format(new Date(booking.created_at), "MMM d, yyyy 'at' h:mm a")}
+            Requested {formatStandardDate(booking.created_at)}
           </p>
         </div>
       </CardContent>

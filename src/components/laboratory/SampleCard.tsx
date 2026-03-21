@@ -10,7 +10,7 @@ import { SampleProgressStepper } from "./SampleProgressStepper";
 import { TemplateDetailsDialog } from "./TemplateDetailsDialog";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
@@ -301,7 +301,7 @@ export function SampleCard({
           )}
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{format(new Date(sample.collection_date), "MMM d, yyyy")}</span>
+            <span>{formatStandardDate(sample.collection_date)}</span>
           </div>
           {sample.retest_count > 0 && (
             <div className="flex items-center gap-1">

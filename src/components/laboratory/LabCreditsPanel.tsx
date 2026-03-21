@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RotateCcw } from "lucide-react";
 
 interface LabCreditsPanelProps {
@@ -192,7 +192,7 @@ export function LabCreditsPanel({ compact = false }: LabCreditsPanelProps) {
                     <div>
                       <p className="text-sm capitalize">{txn.txn_type}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(txn.created_at), "MMM d, h:mm a")}
+                        {formatStandardDateTime(txn.created_at)}
                       </p>
                     </div>
                   </div>

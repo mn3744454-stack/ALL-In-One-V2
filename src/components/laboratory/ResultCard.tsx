@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { SampleStatusBadge, ResultFlagsBadge } from "./SampleStatusBadge";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 import { 
@@ -70,7 +70,7 @@ export function ResultCard({
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
+            <span>{formatStandardDate(result.created_at)}</span>
           </div>
           {clientName && (
             <div className="flex items-center gap-1">

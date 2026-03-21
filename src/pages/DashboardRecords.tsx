@@ -19,7 +19,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useActivityLog, type ActivityItem } from "@/hooks/useActivityLog";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import {
   Menu,
   Search,
@@ -104,7 +105,7 @@ function ActivityItemRow({ item }: { item: ActivityItem }) {
       </div>
       
       <div className="text-xs text-muted-foreground text-end shrink-0">
-        {format(new Date(item.createdAt), "MMM d, h:mm a")}
+        {formatStandardDateTime(item.createdAt)}
       </div>
     </div>
   );

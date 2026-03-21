@@ -1,7 +1,7 @@
 import { useLabEvents, type LabEventEntityType } from "@/hooks/laboratory/useLabEvents";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { 
   FlaskConical, 
   CheckCircle2, 
@@ -119,7 +119,7 @@ export function LabTimeline({ entityType, entityId, limit = 50 }: LabTimelinePro
                   </div>
                 </div>
                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {format(new Date(event.created_at), "MMM d, h:mm a")}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>

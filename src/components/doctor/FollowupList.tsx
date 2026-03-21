@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Check, X } from "lucide-react";
 import { useFollowups } from "@/hooks/doctor/useFollowups";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 
 interface FollowupListProps {
   consultationId: string;
@@ -73,7 +73,7 @@ export function FollowupList({ consultationId }: FollowupListProps) {
               <div key={f.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-medium">{format(new Date(f.followup_date), "MMM d, yyyy HH:mm")}</p>
+                    <p className="font-medium">{formatStandardDateTime(f.followup_date)}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[f.status] || statusColors.pending}`}>{f.status}</span>
                   </div>
                   {f.notes && <p className="text-sm text-muted-foreground mt-1">{f.notes}</p>}

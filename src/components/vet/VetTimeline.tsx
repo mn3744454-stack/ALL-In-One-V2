@@ -1,7 +1,7 @@
 import { useVetEvents, type VetEvent } from "@/hooks/vet/useVetEvents";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { 
   Plus, 
   ArrowRight, 
@@ -112,7 +112,7 @@ export function VetTimeline({ entityType, entityId }: VetTimelineProps) {
                   </div>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(event.created_at), "MMM d, yyyy 'at' h:mm a")}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>

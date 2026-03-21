@@ -24,7 +24,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useMediaAssets, type MediaAsset } from "@/hooks/useMediaAssets";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { toast } from "sonner";
 import {
   Menu,
@@ -197,7 +197,7 @@ function FileCard({
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {format(new Date(asset.created_at), "MMM d, yyyy")}
+            {formatStandardDate(asset.created_at)}
           </p>
         </div>
       </CardContent>
@@ -249,7 +249,7 @@ function FileListRow({
       </Badge>
       
       <span className="text-sm text-muted-foreground shrink-0">
-        {format(new Date(asset.created_at), "MMM d, yyyy")}
+        {formatStandardDate(asset.created_at)}
       </span>
       
       <DropdownMenu>

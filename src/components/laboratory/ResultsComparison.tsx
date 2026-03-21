@@ -21,7 +21,7 @@ import {
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useHorses } from "@/hooks/useHorses";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -54,8 +54,8 @@ export function ResultsComparison() {
     return filteredResults.slice(0, 10).reverse().map(result => {
       const data = result.result_data as Record<string, number>;
       return {
-        date: format(new Date(result.created_at), "MMM d"),
-        fullDate: format(new Date(result.created_at), "MMM d, yyyy"),
+        date: formatStandardDate(result.created_at),
+        fullDate: formatStandardDate(result.created_at),
         ...data,
       };
     });
@@ -214,7 +214,7 @@ export function ResultsComparison() {
                           <td className="p-2">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3 text-muted-foreground" />
-                              <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
+                              <span>{formatStandardDate(result.created_at)}</span>
                             </div>
                           </td>
                           <td className="p-2">
@@ -304,7 +304,7 @@ export function ResultsComparison() {
                         {index === 0 ? "Latest" : "Previous"}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(result.created_at), "MMM d, yyyy")}
+                        {formatStandardDate(result.created_at)}
                       </span>
                     </div>
                     
