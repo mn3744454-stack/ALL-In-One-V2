@@ -57,6 +57,7 @@ export interface CreateFoalingData {
   location_ref?: string | null;
   notes?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export interface CreateFoalHorseData {
