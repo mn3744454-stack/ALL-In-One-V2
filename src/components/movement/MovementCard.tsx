@@ -138,7 +138,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{format(new Date(movement.movement_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                <span>{formatStandardDateTime(movement.movement_at)}</span>
               </div>
               {movement.is_demo && (
                 <span className="text-amber-600 bg-amber-100 dark:bg-amber-950 px-1.5 py-0.5 rounded text-xs">

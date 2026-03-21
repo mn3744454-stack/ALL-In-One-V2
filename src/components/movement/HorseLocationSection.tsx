@@ -208,7 +208,7 @@ export function HorseLocationSection({
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {format(new Date(movement.movement_at), "MMM d")}
+                    {formatStandardDate(movement.movement_at)}
                   </span>
                 </div>
               ))}

@@ -162,7 +162,7 @@ export function EmployeeTimeline({ employeeId }: EmployeeTimelineProps) {
                   )}
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(event.created_at), 'PPp')}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>
