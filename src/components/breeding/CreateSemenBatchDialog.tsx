@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CalendarIcon, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
