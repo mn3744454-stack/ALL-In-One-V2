@@ -55,6 +55,8 @@ export const ar = {
     clearFilters: "مسح الفلاتر",
     active: "نشط",
     inactive: "غير نشط",
+    saving: "جاري الحفظ...",
+    creating: "جاري الإنشاء...",
     notFoundInOrg: "غير موجود في هذه المنشأة",
     system: "نظام",
     selectAll: "تحديد الكل",
