@@ -157,7 +157,7 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
                   <SelectTrigger><SelectValue placeholder={t("breeding.billing.selectClient")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
                     {activeClients.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{displayClientName(c.name, c.name_ar, lang)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
