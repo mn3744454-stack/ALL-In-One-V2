@@ -216,7 +216,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   );
 }
 
-function AdmissionCard({ admission, onClick, t }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string }) {
+function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = differenceInDays(
     admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
