@@ -211,6 +211,7 @@ export function ServicePlansManager() {
               <div className="flex items-center gap-2">
                 <Switch checked={form.is_public} onCheckedChange={v => setForm(f => ({ ...f, is_public: v }))} />
                 <Label>{t('housing.plans.public')}</Label>
+              </div>
             </div>
             <PlanIncludedServicesPicker value={includedServices} onChange={setIncludedServices} />
           </div>
