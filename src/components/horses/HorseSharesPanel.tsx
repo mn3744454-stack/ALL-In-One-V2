@@ -143,7 +143,7 @@ export function HorseSharesPanel({ horseId, horseName }: HorseSharesPanelProps) 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {format(new Date(share.created_at), "PP")}
+            {formatStandardDate(new Date(share.created_at))}
           </span>
           {share.expires_at && (
             <span className="flex items-center gap-1">
