@@ -170,10 +170,10 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d, yyyy")}
+                      {t("laboratory.share.created")} {formatStandardDate(share.created_at)}
                       {share.expires_at && (
                         <span className={isExpired ? 'text-destructive' : ''}>
-                          {" • "}{t("laboratory.share.expires")} {format(new Date(share.expires_at), "MMM d, yyyy")}
+                          {" • "}{t("laboratory.share.expires")} {formatStandardDate(share.expires_at)}
                         </span>
                       )}
                     </p>
