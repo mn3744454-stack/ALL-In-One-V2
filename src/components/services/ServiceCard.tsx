@@ -67,7 +67,7 @@ export const ServiceCard = ({
   isDeleting = false,
 }: ServiceCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
+  const { t, lang } = useI18n();
   const handleUpdate = async (data: CreateServiceInput) => {
     await onUpdate({ ...data, id: service.id });
   };
