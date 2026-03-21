@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserPlus, Edit3, UserMinus, History, Loader2, ArrowRightLeft } from "lucide-react";
@@ -121,7 +121,7 @@ export const OwnershipTimeline = ({ horseId }: OwnershipTimelineProps) => {
                   </p>
                   
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(entry.changed_at), "PPp")}
+                    {formatStandardDateTime(new Date(entry.changed_at))}
                   </p>
                 </div>
               </div>

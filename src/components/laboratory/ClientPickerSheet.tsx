@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useClients, Client, ClientType, CreateClientData } from "@/hooks/useClients";
 import { ClientFormDialog } from "@/components/clients";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 
 interface ClientPickerSheetProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function ClientPickerSheet({
   const [searchValue, setSearchValue] = useState("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { clients, loading, createClient, canManage } = useClients();
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
 
   const activeClients = useMemo(() => {
     return clients.filter(c => c.status === "active");
@@ -162,12 +163,7 @@ export function ClientPickerSheet({
                         ) : (
                           <span className="shrink-0">{typeIcons[client.type]}</span>
                         )}
-                        <span className="font-medium truncate">{client.name}</span>
-                        {client.name_ar && (
-                          <span className="text-muted-foreground text-sm truncate" dir="rtl">
-                            {client.name_ar}
-                          </span>
-                        )}
+                        <span className="font-medium truncate">{displayClientName(client.name, client.name_ar, lang)}</span>
                       </div>
                       <Badge variant="secondary" className="text-[10px] shrink-0">
                         {typeLabels[client.type]}

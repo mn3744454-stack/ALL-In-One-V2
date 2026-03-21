@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CalendarIcon, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
@@ -157,7 +158,7 @@ export function CreateSemenBatchDialog({
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !collectionDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {collectionDate ? format(collectionDate, "PPP") : t("common.select")}
+                      {collectionDate ? formatStandardDate(collectionDate) : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">

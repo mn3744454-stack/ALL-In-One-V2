@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClipboardCheck, Calendar, DoorOpen, User, Building2, FileText, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { displayClientName } from '@/lib/displayHelpers';
 import { Link } from 'react-router-dom';
 import { useHorseCareNotes } from '@/hooks/housing/useHorseCareNotes';
 
@@ -18,7 +19,7 @@ interface HorseAdmissionCardProps {
 }
 
 export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
 
@@ -101,7 +102,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           {admission.client && (
             <div className="flex items-center gap-1.5">
               <User className="h-3 w-3 text-muted-foreground" />
-              <span className="truncate">{admission.client.name}</span>
+              <span className="truncate">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
             </div>
           )}
           {admission.branch && (

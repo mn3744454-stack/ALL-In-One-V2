@@ -47,6 +47,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +158,7 @@ export function CreateSampleDialog({
   onSuccess,
   fromRequest,
 }: CreateSampleDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { horses } = useHorses();
   const { clients, createClient, refresh: refreshClients } = useClients();
   const { createSample } = useLabSamples();
@@ -1120,7 +1121,7 @@ export function CreateSampleDialog({
                   onClick={() => setClientPickerOpen(true)}
                 >
                   {formData.client_id && selectedClient ? (
-                    <span className="truncate">{selectedClient.name}</span>
+                    <span className="truncate">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                   ) : (
                     <span className="text-muted-foreground">{t("laboratory.createSample.selectClient")}</span>
                   )}
@@ -1293,7 +1294,7 @@ export function CreateSampleDialog({
                   >
                     <CalendarIcon className="me-2 h-4 w-4" />
                     {formData.collection_date
-                      ? format(formData.collection_date, "PPP")
+                      ? format(formData.collection_date, "dd-MM-yyyy")
                       : t("laboratory.createSample.selectDate")}
                   </Button>
                 </PopoverTrigger>
@@ -1597,7 +1598,7 @@ export function CreateSampleDialog({
                     >
                       <CalendarIcon className="me-2 h-4 w-4" />
                       {formData.collection_date
-                        ? format(formData.collection_date, "PPP")
+                        ? format(formData.collection_date, "dd-MM-yyyy")
                         : t("laboratory.createSample.selectDate")}
                     </Button>
                   </PopoverTrigger>
@@ -1814,7 +1815,7 @@ export function CreateSampleDialog({
                   onClick={() => setClientPickerOpen(true)}
                 >
                   {formData.client_id && selectedClient ? (
-                    <span className="truncate">{selectedClient.name}</span>
+                    <span className="truncate">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                   ) : (
                     <span className="text-muted-foreground">{t("laboratory.createSample.selectClient")}</span>
                   )}
@@ -1946,7 +1947,7 @@ export function CreateSampleDialog({
                       {selectedClient && (
                         <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">{selectedClient.name}</span>
+                          <span className="text-sm font-medium">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                         </div>
                       )}
                       
@@ -2152,7 +2153,7 @@ export function CreateSampleDialog({
               {isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between border-b pb-3">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
-                  <span className="font-medium">{selectedClient.name}</span>
+                  <span className="font-medium">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                 </div>
               )}
               
@@ -2188,7 +2189,7 @@ export function CreateSampleDialog({
               )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("laboratory.createSample.collectionDate")}</span>
-                <span>{format(formData.collection_date, "PPP")}</span>
+                <span>{format(formData.collection_date, "dd-MM-yyyy")}</span>
               </div>
               {formData.daily_number && (
                 <div className="flex justify-between">
@@ -2210,7 +2211,7 @@ export function CreateSampleDialog({
               {!isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
-                  <span>{selectedClient.name}</span>
+                  <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                 </div>
               )}
               {isRetest && (

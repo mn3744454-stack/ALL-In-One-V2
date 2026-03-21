@@ -34,6 +34,7 @@ import {
   Building2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
@@ -257,7 +258,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(selectedResult.created_at), "PPP")}
+                {formatStandardDate(new Date(selectedResult.created_at))}
               </div>
               {getStatusBadge(selectedResult.status)}
             </div>
@@ -339,7 +340,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3 shrink-0" />
-                {format(new Date(result.created_at), "MMM d, yyyy")}
+                {formatStandardDate(new Date(result.created_at))}
               </span>
               <span className="text-primary/80 truncate">
                 {t('common.source')}: {sourceName}
@@ -511,7 +512,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3 shrink-0" />
-                          {format(new Date(req.requested_at), "MMM d, yyyy")}
+                          {formatStandardDate(new Date(req.requested_at))}
                         </span>
                         {req.external_lab_name && (
                           <span className="flex items-center gap-1">
@@ -599,7 +600,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                     <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {r.published_at ? format(new Date(r.published_at), "MMM d, yyyy") : "—"}
+                        {r.published_at ? formatStandardDate(new Date(r.published_at)) : "—"}
                       </span>
                       {r.lab_tenant_name && (
                         <span className="flex items-center gap-1">

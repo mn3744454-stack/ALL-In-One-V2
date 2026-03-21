@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
@@ -265,7 +266,7 @@ export function CreateVetTreatmentDialog({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.scheduled_for
-                        ? format(new Date(formData.scheduled_for), "PPP")
+                        ? formatStandardDate(new Date(formData.scheduled_for))
                         : "Select date"}
                     </Button>
                   </PopoverTrigger>

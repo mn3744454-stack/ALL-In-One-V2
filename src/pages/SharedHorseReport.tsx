@@ -27,7 +27,7 @@ import {
   Stethoscope,
   FlaskConical,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -380,7 +380,7 @@ export default function SharedHorseReport() {
                   {horse.birth_date && (
                     <div>
                       <span className="text-muted-foreground">{t("birthDate")}:</span>{" "}
-                      {format(new Date(horse.birth_date), "PP")}
+                      {formatStandardDate(new Date(horse.birth_date))}
                     </div>
                   )}
                   {horse.tenant_name && (
@@ -399,8 +399,8 @@ export default function SharedHorseReport() {
                 <Calendar className="h-4 w-4" />
                 <span>{t("dateRange")}:</span>
                 <span>
-                  {share.date_from ? format(new Date(share.date_from), "PP") : "—"} –{" "}
-                  {share.date_to ? format(new Date(share.date_to), "PP") : "—"}
+                  {share.date_from ? formatStandardDate(new Date(share.date_from)) : "—"} –{" "}
+                  {share.date_to ? formatStandardDate(new Date(share.date_to)) : "—"}
                 </span>
               </div>
             )}
@@ -455,9 +455,8 @@ export default function SharedHorseReport() {
                             {treatment.source_tenant || "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(
-                              new Date(treatment.requested_at || treatment.created_at),
-                              "PP"
+                            {formatStandardDate(
+                              new Date(treatment.requested_at || treatment.created_at)
                             )}
                           </TableCell>
                         </TableRow>
@@ -512,7 +511,7 @@ export default function SharedHorseReport() {
                             {result.source_tenant || "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(new Date(result.created_at), "PP")}
+                            {formatStandardDate(new Date(result.created_at))}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -544,7 +543,7 @@ export default function SharedHorseReport() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{file.filename}</p>
                       <p className="text-xs text-muted-foreground">
-                        {file.mime_type} • {format(new Date(file.created_at), "PP")}
+                        {file.mime_type} • {formatStandardDate(new Date(file.created_at))}
                       </p>
                     </div>
                   </div>
@@ -557,8 +556,8 @@ export default function SharedHorseReport() {
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground pt-4 border-t">
           {lang === "ar"
-            ? `تم إنشاء هذا التقرير تلقائياً • ${format(new Date(), "PPP")}`
-            : `Report generated automatically • ${format(new Date(), "PPP")}`}
+            ? `تم إنشاء هذا التقرير تلقائياً • ${formatStandardDate(new Date())}`
+            : `Report generated automatically • ${formatStandardDate(new Date())}`}
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing/useBoardingAdmissions";
@@ -43,7 +44,7 @@ const STEPS = ['horse', 'client', 'plan', 'housing', 'rates', 'details', 'review
 type Step = typeof STEPS[number];
 
 export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId }: AdmissionWizardProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
@@ -259,7 +260,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 >
                   <User className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{client.name}</p>
+                    <p className="font-medium text-sm">{displayClientName(client.name, client.name_ar, lang)}</p>
                     {client.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
                   </div>
                   {form.clientId === client.id && <Check className="h-4 w-4 text-primary" />}
@@ -477,7 +478,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 {selectedClient && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span>{selectedClient.name}</span>
+                    <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                   </div>
                 )}
                 {form.branchId && (

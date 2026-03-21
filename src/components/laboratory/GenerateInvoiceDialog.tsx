@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useClients } from "@/hooks/useClients";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useLedgerBalance } from "@/hooks/finance/useLedgerBalance";
@@ -54,7 +55,7 @@ export function GenerateInvoiceDialog({
   sample,
   request,
 }: GenerateInvoiceDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { clients, loading: clientsLoading } = useClients();
   const { templates } = useLabTemplates();
   const {
@@ -315,9 +316,7 @@ export function GenerateInvoiceDialog({
                     <SelectContent>
                       {clients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
-                          {dir === "rtl" && client.name_ar
-                            ? client.name_ar
-                            : client.name}
+                          {displayClientName(client.name, client.name_ar, lang)}
                         </SelectItem>
                       ))}
                     </SelectContent>

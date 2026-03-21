@@ -12,6 +12,7 @@ import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen, Receipt, FileX } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,7 @@ interface AdmissionsListProps {
 }
 
 export function AdmissionsList({ branchId }: AdmissionsListProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
   const [searchParams, setSearchParams] = useSearchParams();
@@ -193,6 +194,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               admission={admission}
               onClick={() => setSelectedAdmissionId(admission.id)}
               t={t}
+              lang={lang}
             />
           ))}
         </div>
@@ -215,7 +217,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   );
 }
 
-function AdmissionCard({ admission, onClick, t }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string }) {
+function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = differenceInDays(
     admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
@@ -257,9 +259,9 @@ function AdmissionCard({ admission, onClick, t }: { admission: BoardingAdmission
             </div>
             {/* Row 2: Operational details */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-              {admission.client?.name && (
+              {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
-                  <span className="font-medium text-foreground/70">{admission.client.name}</span>
+                  <span className="font-medium text-foreground/70">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
                 </span>
               )}
               {admission.branch && (

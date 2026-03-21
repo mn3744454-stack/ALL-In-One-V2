@@ -28,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { Filter, X, Check, Search, ChevronDown, User, ChevronsUpDown } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useClients } from "@/hooks/useClients";
 import { useHorses } from "@/hooks/useHorses";
 import { useLabHorses } from "@/hooks/laboratory/useLabHorses";
@@ -87,7 +88,7 @@ export function AdvancedFilters({
   isLabTenant = false,
   className,
 }: AdvancedFiltersProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { clients } = useClients();
   const { horses: stableHorses } = useHorses();
   const { labHorses } = useLabHorses({ includeArchived: false });
@@ -178,7 +179,7 @@ export function AdvancedFilters({
               )}
             >
               {selectedClient ? (
-                <span className="truncate max-w-[120px]">{selectedClient.name}</span>
+                <span className="truncate max-w-[120px]">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
               ) : (
                 <span className="text-muted-foreground">{t("laboratory.filters.client")}</span>
               )}
@@ -213,7 +214,7 @@ export function AdvancedFilters({
                       <Check
                         className={cn("me-2 h-4 w-4", clientId === client.id ? "opacity-100" : "opacity-0")}
                       />
-                      {client.name}
+                      {displayClientName(client.name, client.name_ar, lang)}
                     </CommandItem>
                   ))}
                 </CommandGroup>
@@ -334,7 +335,7 @@ export function AdvancedFilters({
         <div className="flex flex-wrap items-center gap-1.5">
           {clientId && selectedClient && (
             <Badge variant="secondary" className="gap-1">
-              {t("laboratory.filters.client")}: {selectedClient.name}
+              {t("laboratory.filters.client")}: {displayClientName(selectedClient.name, selectedClient.name_ar, lang)}
               <X
                 className="h-3 w-3 cursor-pointer"
                 onClick={() => onClientChange(undefined)}

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlaskConical, Calendar, Building2, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import type { StableResultGroup, StableLabResult } from "@/hooks/laboratory/useStableLabResults";
 
@@ -60,7 +60,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
               <p className="text-xs text-muted-foreground uppercase">{t("laboratory.stableResults.publishedAt")}</p>
               <p className="flex items-center gap-1 text-sm">
                 <Calendar className="h-3 w-3" />
-                {group.publishedAt ? format(new Date(group.publishedAt), "PPP") : "—"}
+                {group.publishedAt ? formatStandardDate(new Date(group.publishedAt)) : "—"}
               </p>
             </div>
             {group.physicalSampleId && (

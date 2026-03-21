@@ -14,6 +14,7 @@ import { useClients } from "@/hooks/useClients";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
@@ -31,7 +32,7 @@ interface Props {
 export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Props) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
   const queryClient = useQueryClient();
 
@@ -195,7 +196,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
                   aria-expanded={clientPickerOpen}
                   className="w-full justify-between font-normal"
                 >
-                  {selectedClient ? selectedClient.name : t("doctor.selectClient")}
+                  {selectedClient ? displayClientName(selectedClient.name, selectedClient.name_ar, lang) : t("doctor.selectClient")}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -216,7 +217,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
                           }}
                         >
                           <Check className={cn("mr-2 h-4 w-4", selectedClientId === client.id ? "opacity-100" : "opacity-0")} />
-                          <span>{client.name}</span>
+                          <span>{displayClientName(client.name, client.name_ar, lang)}</span>
                           {client.phone && <span className="ml-auto text-xs text-muted-foreground">{client.phone}</span>}
                         </CommandItem>
                       ))}

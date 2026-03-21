@@ -78,10 +78,23 @@ export function displayClientName(
 }
 
 /**
- * Format a date as DD-MM-YYYY for all breeding domain surfaces.
+ * Format a date as DD-MM-YYYY — platform-wide standard.
+ * Alias: formatBreedingDate (backward compat)
  */
-export function formatBreedingDate(date: Date | string): string {
+export function formatStandardDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "—";
   return format(d, "dd-MM-yyyy");
+}
+
+/** @deprecated Use formatStandardDate */
+export const formatBreedingDate = formatStandardDate;
+
+/**
+ * Format a date-time as DD-MM-YYYY HH:mm — platform-wide standard.
+ */
+export function formatStandardDateTime(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "—";
+  return format(d, "dd-MM-yyyy HH:mm");
 }

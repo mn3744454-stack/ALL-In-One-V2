@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -48,7 +48,7 @@ export function DateRangeFilter({
             )}
           >
             <CalendarIcon className="h-4 w-4 me-2" />
-            {dateFrom ? format(new Date(dateFrom), "PPP") : t("laboratory.filters.fromDate")}
+            {dateFrom ? formatStandardDate(new Date(dateFrom)) : t("laboratory.filters.fromDate")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -74,7 +74,7 @@ export function DateRangeFilter({
             )}
           >
             <CalendarIcon className="h-4 w-4 me-2" />
-            {dateTo ? format(new Date(dateTo), "PPP") : t("laboratory.filters.toDate")}
+            {dateTo ? formatStandardDate(new Date(dateTo)) : t("laboratory.filters.toDate")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

@@ -17,6 +17,7 @@ import { useBoardingAdmissions, type BoardingAdmission } from "@/hooks/housing/u
 import { CheckoutFinancialReview } from "./CheckoutFinancialReview";
 import { useFinancialGate } from "@/hooks/housing/useFinancialGate";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { LogOut, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +31,7 @@ interface CheckoutDialogProps {
 }
 
 export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: CheckoutDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
   const [notes, setNotes] = useState('');
   const [overrideConfirmed, setOverrideConfirmed] = useState(false);
@@ -131,7 +132,7 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
             {admission.client && (
               <div>
                 <span className="text-muted-foreground">{t('housing.admissions.detail.client')}: </span>
-                <span className="font-medium">{admission.client.name}</span>
+                <span className="font-medium">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
               </div>
             )}
           </div>

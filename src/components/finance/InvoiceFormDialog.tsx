@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { useClients } from "@/hooks/useClients";
@@ -42,7 +43,7 @@ export function InvoiceFormDialog({
   invoice,
   existingItems = [],
 }: InvoiceFormDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
@@ -254,7 +255,7 @@ export function InvoiceFormDialog({
                   <SelectContent className="z-[60]">
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
-                        {client.name}
+                        {displayClientName(client.name, client.name_ar, lang)}
                       </SelectItem>
                     ))}
                   </SelectContent>

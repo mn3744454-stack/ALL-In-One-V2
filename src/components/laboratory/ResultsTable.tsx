@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { MoreHorizontal, Eye, CheckCircle2, Lock, AlertTriangle, FileText, Send } from "lucide-react";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { Button } from "@/components/ui/button";
@@ -170,7 +170,7 @@ export function ResultsTable({
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground">
-                    {format(new Date(result.created_at), "PPP")}
+                    {formatStandardDate(new Date(result.created_at))}
                   </span>
                 </TableCell>
                 <TableCell>

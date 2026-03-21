@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import {
   Table,
   TableBody,
@@ -52,10 +53,7 @@ export function ClientsTable({
   const { t, dir, lang } = useI18n();
 
   const getClientDisplayName = (client: Client) => {
-    if (dir === "rtl" && client.name_ar) {
-      return client.name_ar;
-    }
-    return client.name;
+    return displayClientName(client.name, client.name_ar, lang);
   };
 
   return (

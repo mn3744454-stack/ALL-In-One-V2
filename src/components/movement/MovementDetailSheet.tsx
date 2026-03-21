@@ -12,7 +12,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
@@ -159,27 +159,27 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">{t('movement.detail.time')}:</span>
-                  <span className="font-medium">{format(new Date(movement.movement_at), "PPp")}</span>
+                  <span className="font-medium">{formatStandardDateTime(new Date(movement.movement_at))}</span>
                 </div>
                 {movement.scheduled_at && (
                   <div className="flex items-center gap-2 text-sm">
                     <Calendar className="h-4 w-4 text-amber-500 shrink-0" />
                     <span className="text-muted-foreground">{t('movement.lifecycle.scheduledFor')}:</span>
-                    <span className="font-medium">{format(new Date(movement.scheduled_at), "PPp")}</span>
+                    <span className="font-medium">{formatStandardDateTime(new Date(movement.scheduled_at))}</span>
                   </div>
                 )}
                 {movement.dispatched_at && (
                   <div className="flex items-center gap-2 text-sm">
                     <Truck className="h-4 w-4 text-blue-500 shrink-0" />
                     <span className="text-muted-foreground">{t('movement.lifecycle.dispatchedAt')}:</span>
-                    <span className="font-medium">{format(new Date(movement.dispatched_at), "PPp")}</span>
+                    <span className="font-medium">{formatStandardDateTime(new Date(movement.dispatched_at))}</span>
                   </div>
                 )}
                 {movement.completed_at && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-emerald-500 shrink-0" />
                     <span className="text-muted-foreground">{t('movement.lifecycle.completedAt')}:</span>
-                    <span className="font-medium">{format(new Date(movement.completed_at), "PPp")}</span>
+                    <span className="font-medium">{formatStandardDateTime(new Date(movement.completed_at))}</span>
                   </div>
                 )}
               </div>

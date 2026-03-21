@@ -31,7 +31,7 @@ import {
   Link2,
   Plus,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CreateHorseShareDialog } from "./CreateHorseShareDialog";
 import { toast } from "@/hooks/use-toast";
 
@@ -143,12 +143,12 @@ export function HorseSharesPanel({ horseId, horseName }: HorseSharesPanelProps) 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            {format(new Date(share.created_at), "PP")}
+            {formatStandardDate(new Date(share.created_at))}
           </span>
           {share.expires_at && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {t("horseShare.expiresLabel")}: {format(new Date(share.expires_at), "PP")}
+              {t("horseShare.expiresLabel")}: {formatStandardDate(new Date(share.expires_at))}
             </span>
           )}
           {share.recipient_email && (
