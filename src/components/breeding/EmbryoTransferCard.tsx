@@ -111,7 +111,7 @@ export function EmbryoTransferCard({
           {transfer.transfer_date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span>{t("breeding.embryoTransfer.transferDate")}: {format(new Date(transfer.transfer_date), "PP")}</span>
+              <span>{t("breeding.embryoTransfer.transferDate")}: {formatBreedingDate(transfer.transfer_date)}</span>
             </div>
           )}
           {(transfer.performer || transfer.assignee) && (

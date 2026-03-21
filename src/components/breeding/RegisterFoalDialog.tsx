@@ -139,7 +139,7 @@ export function RegisterFoalDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            {t("breeding.foaling.birthDateAuto")}: {format(new Date(foaling.foaling_date), "PPP")}
+            {t("breeding.foaling.birthDateAuto")}: {formatBreedingDate(foaling.foaling_date)}
           </p>
           <p className="text-xs text-muted-foreground">
             {t("breeding.foaling.pedigreeAutoLinked")}

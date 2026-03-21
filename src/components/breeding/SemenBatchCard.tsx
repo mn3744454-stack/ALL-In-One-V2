@@ -44,7 +44,7 @@ export function SemenBatchCard({
             <div>
               <h3 className="font-semibold">{batch.stallion?.name || t("breeding.unknownStallion")}</h3>
               <p className="text-xs text-muted-foreground">
-                {t("breeding.semen.collected")} {format(new Date(batch.collection_date), "PP")}
+                {t("breeding.semen.collected")} {formatBreedingDate(batch.collection_date)}
               </p>
             </div>
           </div>
