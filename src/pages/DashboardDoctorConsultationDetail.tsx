@@ -13,7 +13,7 @@ import { FollowupList } from "@/components/doctor/FollowupList";
 import { ConsultationForm } from "@/components/doctor/ConsultationForm";
 import { CreateInvoiceFromConsultation } from "@/components/doctor/CreateInvoiceFromConsultation";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 
 export default function DashboardDoctorConsultationDetail() {
