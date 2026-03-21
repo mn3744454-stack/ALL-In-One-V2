@@ -6,7 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useStableLabResults, type StableResultGroup, type StableHorseGroup } from "@/hooks/laboratory/useStableLabResults";
 import { useI18n } from "@/i18n";
 import { Search, FlaskConical, Calendar, Building2, ChevronDown, ChevronRight, FileStack, Heart } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { StableResultViewerDialog } from "./StableResultViewerDialog";
