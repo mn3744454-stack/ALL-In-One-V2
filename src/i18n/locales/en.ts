@@ -3433,6 +3433,7 @@ export const en = {
       batches: "No semen batches in inventory yet.",
       horseRecords: "No breeding records for this horse.",
       foalings: "No foaling records yet. Record a foaling from an active pregnancy.",
+      contracts: "No breeding contracts yet. Create your first contract to get started.",
     },
     // Horse profile section
     horseSection: {
