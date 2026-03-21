@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { differenceInDays } from "date-fns";
-import { Globe } from "lucide-react";
+import { Globe, Receipt } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +14,7 @@ import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
 import { PregnancyExamsPanel } from "./PregnancyExamsPanel";
+import { CreateInvoiceFromBreedingEvent, type BreedingEventForInvoice } from "./CreateInvoiceFromBreedingEvent";
 import { useI18n } from "@/i18n";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
@@ -26,57 +29,93 @@ interface BreedingRecordDetailSheetProps {
 
 export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canManage }: BreedingRecordDetailSheetProps) {
   const { t, lang } = useI18n();
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   if (!attempt) return null;
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="pb-4">
-          <SheetTitle className="text-lg">{t("breeding.detail.title")}</SheetTitle>
-        </SheetHeader>
+  const invoiceEvent: BreedingEventForInvoice = {
+    sourceType: "breeding_attempt",
+    sourceId: attempt.id,
+    mareName: attempt.mare?.name,
+    mareNameAr: attempt.mare?.name_ar,
+    stallionName: attempt.stallion?.name || attempt.external_stallion_name || undefined,
+    stallionNameAr: attempt.stallion?.name_ar,
+    eventDate: attempt.attempt_date,
+    description: `${t("breeding.billing.sourceTypes.breeding_attempt")} — ${displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)}`,
+  };
 
-        <div className="space-y-4">
-          {/* Status */}
-          <div className="flex items-center gap-2">
-            <BreedingStatusBadge status={attempt.result} type="attempt" />
-            {attempt.source_mode !== "internal" && (
-              <Badge variant="outline" className="gap-1">
-                <Globe className="h-3 w-3" />
-                {t(`breeding.sourceMode.${attempt.source_mode}`)}
-              </Badge>
+  return (
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle className="text-lg">{t("breeding.detail.title")}</SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-4">
+            {/* Status */}
+            <div className="flex items-center gap-2">
+              <BreedingStatusBadge status={attempt.result} type="attempt" />
+              {attempt.source_mode !== "internal" && (
+                <Badge variant="outline" className="gap-1">
+                  <Globe className="h-3 w-3" />
+                  {t(`breeding.sourceMode.${attempt.source_mode}`)}
+                </Badge>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Core info */}
+            <DetailRow label={t("breeding.detail.mare")} value={displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)} />
+            <DetailRow
+              label={t("breeding.detail.stallion")}
+              value={attempt.stallion ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang) : attempt.external_stallion_name || "—"}
+            />
+            <DetailRow label={t("breeding.detail.method")} value={t(`breeding.methods.${attempt.attempt_type}`)} />
+            <DetailRow label={t("breeding.detail.date")} value={formatBreedingDate(attempt.attempt_date)} />
+
+            {attempt.source_mode === "external" && attempt.external_provider_name && (
+              <DetailRow label={t("breeding.detail.providerName")} value={attempt.external_provider_name} />
+            )}
+            {attempt.performer && (
+              <DetailRow label={t("breeding.detail.performedBy")} value={attempt.performer.full_name || "—"} />
+            )}
+
+            {attempt.notes && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">{t("breeding.detail.notes")}</p>
+                  <p className="text-sm">{attempt.notes}</p>
+                </div>
+              </>
+            )}
+
+            {/* Generate Invoice action */}
+            {canManage && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={() => setInvoiceDialogOpen(true)}
+                >
+                  <Receipt className="h-4 w-4" />
+                  {t("breeding.billing.generateInvoice")}
+                </Button>
+              </>
             )}
           </div>
+        </SheetContent>
+      </Sheet>
 
-          <Separator />
-
-          {/* Core info */}
-          <DetailRow label={t("breeding.detail.mare")} value={displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)} />
-          <DetailRow
-            label={t("breeding.detail.stallion")}
-            value={attempt.stallion ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang) : attempt.external_stallion_name || "—"}
-          />
-          <DetailRow label={t("breeding.detail.method")} value={t(`breeding.methods.${attempt.attempt_type}`)} />
-          <DetailRow label={t("breeding.detail.date")} value={formatBreedingDate(attempt.attempt_date)} />
-
-          {attempt.source_mode === "external" && attempt.external_provider_name && (
-            <DetailRow label={t("breeding.detail.providerName")} value={attempt.external_provider_name} />
-          )}
-          {attempt.performer && (
-            <DetailRow label={t("breeding.detail.performedBy")} value={attempt.performer.full_name || "—"} />
-          )}
-
-          {attempt.notes && (
-            <>
-              <Separator />
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">{t("breeding.detail.notes")}</p>
-                <p className="text-sm">{attempt.notes}</p>
-              </div>
-            </>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+      <CreateInvoiceFromBreedingEvent
+        open={invoiceDialogOpen}
+        onOpenChange={setInvoiceDialogOpen}
+        event={invoiceEvent}
+      />
+    </>
   );
 }
 

@@ -178,9 +178,41 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
               </div>
             </>
           )}
+
+          {/* Generate Invoice action */}
+          {canManage && (
+            <>
+              <Separator />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setInvoiceDialogOpen(true)}
+              >
+                <Receipt className="h-4 w-4" />
+                {t("breeding.billing.generateInvoice")}
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
+
+    <CreateInvoiceFromBreedingEvent
+      open={invoiceDialogOpen}
+      onOpenChange={setInvoiceDialogOpen}
+      event={{
+        sourceType: "foaling",
+        sourceId: foaling.id,
+        mareName: foaling.mare?.name,
+        mareNameAr: foaling.mare?.name_ar,
+        stallionName: foaling.stallion?.name,
+        stallionNameAr: foaling.stallion?.name_ar,
+        eventDate: foaling.foaling_date,
+        description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
+      } satisfies BreedingEventForInvoice}
+    />
+    </>
   );
 }
 
