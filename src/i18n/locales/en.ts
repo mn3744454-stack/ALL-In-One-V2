@@ -3293,6 +3293,7 @@ export const en = {
       records: "Breeding Records",
       pregnancies: "Pregnancies",
       foalings: "Foalings",
+      contracts: "Contracts",
       embryo: "Embryo Transfers",
       inventory: "Semen Inventory",
     },
