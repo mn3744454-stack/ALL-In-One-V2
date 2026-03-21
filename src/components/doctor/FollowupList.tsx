@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Check, X } from "lucide-react";
 import { useFollowups } from "@/hooks/doctor/useFollowups";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 
 interface FollowupListProps {
   consultationId: string;
