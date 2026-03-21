@@ -150,7 +150,7 @@ export function CreatePregnancyDialog({
                   className={cn("w-full justify-start text-left font-normal", !expectedDueDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="me-2 h-4 w-4" />
-                  {expectedDueDate ? format(expectedDueDate, "PPP") : t("common.selectDate")}
+                  {expectedDueDate ? formatStandardDate(expectedDueDate) : t("common.selectDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 z-[200]" align="start">
