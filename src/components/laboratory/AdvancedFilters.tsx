@@ -214,7 +214,7 @@ export function AdvancedFilters({
                       <Check
                         className={cn("me-2 h-4 w-4", clientId === client.id ? "opacity-100" : "opacity-0")}
                       />
-                      {client.name}
+                      {displayClientName(client.name, client.name_ar, lang)}
                     </CommandItem>
                   ))}
                 </CommandGroup>
