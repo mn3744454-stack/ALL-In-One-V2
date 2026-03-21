@@ -3316,6 +3316,7 @@ export const ar = {
       records: "سجلات التلقيح",
       pregnancies: "الحمل",
       foalings: "الولادات",
+      contracts: "العقود",
       embryo: "نقل الأجنة",
       inventory: "مخزون السائل المنوي",
     },
