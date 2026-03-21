@@ -8,8 +8,8 @@ export interface EnrichedHorse {
   horseName: string;
   samples: Array<{ sampleLabel: string }>;
   items: string[];
-  /** Source domain: lab | boarding */
-  source?: "lab" | "boarding";
+  /** Source domain: lab | boarding | breeding */
+  source?: "lab" | "boarding" | "breeding";
 }
 
 export interface EnrichedStatementData {
@@ -86,6 +86,15 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         ...new Set(
           typedItems
             .filter((i) => i.entity_type === "boarding" && i.entity_id)
+            .map((i) => i.entity_id!)
+        ),
+      ];
+
+      // 3c. Collect all breeding entity_ids
+      const breedingIds = [
+        ...new Set(
+          typedItems
+            .filter((i) => i.entity_type === "breeding" && i.entity_id)
             .map((i) => i.entity_id!)
         ),
       ];
@@ -184,6 +193,9 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         }
       }
 
+      // 4c. Breeding resolution — uses description from invoice_items directly (no extra fetch needed since breeding line items contain the horse/event info in their description)
+      // Breeding items will be resolved from their description string at display time
+
       // 5. Build enriched data per entry
       for (const entry of entries) {
         if (!entry.reference_id) continue;
@@ -231,6 +243,18 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
             } else {
               if (item.description) noHorseItems.push(item.description);
             }
+          } else if (item.entity_type === "breeding" && item.entity_id) {
+            // Breeding items carry descriptive line items; group under a breeding key
+            const key = `breeding_${item.entity_id}`;
+            const existing = horseGroupMap.get(key) || {
+              horseId: item.entity_id,
+              horseName: "",
+              samples: [],
+              items: [],
+              source: "breeding" as const,
+            };
+            if (item.description) existing.items.push(item.description);
+            horseGroupMap.set(key, existing);
           } else {
             if (item.description) noHorseItems.push(item.description);
           }

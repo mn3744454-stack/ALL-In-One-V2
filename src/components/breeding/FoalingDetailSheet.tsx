@@ -1,4 +1,5 @@
-import { Baby, CheckCircle, Clock, XCircle } from "lucide-react";
+import { useState } from "react";
+import { Baby, CheckCircle, Clock, Receipt, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Foaling, useFoalings } from "@/hooks/breeding/useFoalings";
+import { CreateInvoiceFromBreedingEvent, type BreedingEventForInvoice } from "./CreateInvoiceFromBreedingEvent";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -31,6 +33,7 @@ interface FoalingDetailSheetProps {
 export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: FoalingDetailSheetProps) {
   const { t, lang } = useI18n();
   const { updateFoaling } = useFoalings();
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
 
   if (!foaling) return null;
 
@@ -46,6 +49,7 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
@@ -175,9 +179,41 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
               </div>
             </>
           )}
+
+          {/* Generate Invoice action */}
+          {canManage && (
+            <>
+              <Separator />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={() => setInvoiceDialogOpen(true)}
+              >
+                <Receipt className="h-4 w-4" />
+                {t("breeding.billing.generateInvoice")}
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>
+
+    <CreateInvoiceFromBreedingEvent
+      open={invoiceDialogOpen}
+      onOpenChange={setInvoiceDialogOpen}
+      event={{
+        sourceType: "foaling",
+        sourceId: foaling.id,
+        mareName: foaling.mare?.name,
+        mareNameAr: foaling.mare?.name_ar,
+        stallionName: foaling.stallion?.name,
+        stallionNameAr: foaling.stallion?.name_ar,
+        eventDate: foaling.foaling_date,
+        description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
+      } satisfies BreedingEventForInvoice}
+    />
+    </>
   );
 }
 

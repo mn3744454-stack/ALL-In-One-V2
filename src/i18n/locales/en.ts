@@ -3517,6 +3517,25 @@ export const en = {
     },
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",
+    billing: {
+      generateInvoice: "Generate Invoice",
+      createInvoiceTitle: "Create Breeding Invoice",
+      client: "Client",
+      selectClient: "Select a client...",
+      searchClients: "Search clients...",
+      noClientsFound: "No clients found",
+      clientNameManual: "Client Name",
+      totalAmount: "Total Amount",
+      createInvoice: "Create Invoice",
+      invoiceCreated: "Invoice created successfully",
+      invoiceFailed: "Failed to create invoice",
+      sourceTypes: {
+        breeding_attempt: "Breeding Record",
+        pregnancy_check: "Pregnancy Exam",
+        foaling: "Foaling",
+        embryo_transfer: "Embryo Transfer",
+      },
+    },
   },
   // Status translations for badges
   status: {
@@ -3757,6 +3776,7 @@ export const en = {
       domain: {
         lab: "Laboratory",
         boarding: "Boarding",
+        breeding: "Breeding",
         registration: "Registration",
         admin: "Administrative",
         transport: "Transport",

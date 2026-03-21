@@ -7,8 +7,11 @@ export interface TenantService {
   id: string;
   tenant_id: string;
   name: string;
+  name_ar: string | null;
   description: string | null;
   service_type: string | null;
+  service_kind: string;
+  unit_price: number | null;
   price_display: string | null;
   is_active: boolean;
   is_public: boolean;
@@ -18,8 +21,11 @@ export interface TenantService {
 
 export interface CreateServiceInput {
   name: string;
+  name_ar?: string;
   description?: string;
   service_type?: string;
+  service_kind?: string;
+  unit_price?: number | null;
   price_display?: string;
   is_active?: boolean;
   is_public?: boolean;
@@ -42,6 +48,29 @@ export const useServices = () => {
         .from("tenant_services")
         .select("*")
         .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as TenantService[];
+    },
+    enabled: !!tenantId,
+  });
+};
+
+export const useServicesByKind = (kind: string) => {
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant.id;
+
+  return useQuery({
+    queryKey: ["services", tenantId, kind],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("tenant_services")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("service_kind", kind)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -86,8 +115,11 @@ export const useCreateService = () => {
         .insert({
           tenant_id: tenantId,
           name: input.name,
+          name_ar: input.name_ar || null,
           description: input.description || null,
           service_type: input.service_type || null,
+          service_kind: input.service_kind || "service",
+          unit_price: input.unit_price ?? null,
           price_display: input.price_display || null,
           is_active: input.is_active ?? true,
           is_public: input.is_public ?? true,
