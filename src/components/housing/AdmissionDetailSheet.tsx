@@ -441,7 +441,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={Calendar}
                       label={t('housing.admissions.detail.expectedDeparture')}
-                      value={format(new Date(admission.expected_departure), 'PP')}
+                      value={formatStandardDate(admission.expected_departure)}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => startEdit('expected_departure', admission.expected_departure?.split('T')[0] || '')}
                     />
