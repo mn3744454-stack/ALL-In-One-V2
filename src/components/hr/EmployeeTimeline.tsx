@@ -70,7 +70,7 @@ export function EmployeeTimeline({ employeeId }: EmployeeTimelineProps) {
         break;
       case 'start_date_updated':
         if (payload.new_date) {
-          return format(new Date(payload.new_date), 'PPP');
+          return formatStandardDate(payload.new_date);
         }
         break;
     }
