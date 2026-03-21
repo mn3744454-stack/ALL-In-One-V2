@@ -2799,6 +2799,14 @@ export const ar = {
       incomplete: "غير مكتمل",
       outside: "خارج",
     },
+    gender: {
+      male: "ذكر",
+      female: "أنثى",
+    },
+    breedingRoles: {
+      broodmare: "فرس تربية",
+      breeding_stallion: "فحل تربية",
+    },
     status: {
       active: "نشط",
       inactive: "غير نشط",
