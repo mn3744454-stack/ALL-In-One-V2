@@ -115,9 +115,9 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm truncate">{horse.name}</h3>
+            <h3 className="font-medium text-sm truncate">{displayHorseName(horse.name, horse.name_ar, lang)}</h3>
             <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
-              {typeBadgeProps.label}
+              {typeLabel}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground truncate">
