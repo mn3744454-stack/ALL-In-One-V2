@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { SampleStatusBadge, ResultFlagsBadge } from "./SampleStatusBadge";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { getLabClientDisplayName } from "@/lib/laboratory/clientDisplay";
 import { 
