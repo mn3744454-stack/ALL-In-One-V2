@@ -31,7 +31,7 @@ import {
   Link2,
   Plus,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { CreateHorseShareDialog } from "./CreateHorseShareDialog";
 import { toast } from "@/hooks/use-toast";
 
