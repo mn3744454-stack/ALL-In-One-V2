@@ -418,7 +418,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     return <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />;
                   })()}
 
-                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={format(new Date(admission.admitted_at), 'PPp')} />
+                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={formatStandardDateTime(admission.admitted_at)} />
 
                   {/* Expected departure — editable */}
                   {editingField === 'expected_departure' ? (
