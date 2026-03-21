@@ -87,6 +87,7 @@ export interface CreateBreedingAttemptData {
   provider_tenant_id?: string | null;
   external_provider_name?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export interface BreedingAttemptFilters {
