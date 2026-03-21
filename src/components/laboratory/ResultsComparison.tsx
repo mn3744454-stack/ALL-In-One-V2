@@ -21,7 +21,7 @@ import {
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useHorses } from "@/hooks/useHorses";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
