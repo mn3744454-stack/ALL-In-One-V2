@@ -3305,6 +3305,7 @@ export const ar = {
     tabs: {
       records: "سجلات التلقيح",
       pregnancies: "الحمل",
+      foalings: "الولادات",
       embryo: "نقل الأجنة",
       inventory: "مخزون السائل المنوي",
     },
