@@ -27,6 +27,8 @@ import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { displayServiceName } from "@/lib/displayHelpers";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
