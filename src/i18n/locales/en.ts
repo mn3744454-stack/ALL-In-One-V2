@@ -3282,6 +3282,10 @@ export const en = {
     tabs: {
       records: "Breeding Records",
       pregnancies: "Pregnancies",
+      foalings: "Foalings",
+      embryo: "Embryo Transfers",
+      inventory: "Semen Inventory",
+    },
       embryo: "Embryo Transfers",
       inventory: "Semen Inventory",
     },
