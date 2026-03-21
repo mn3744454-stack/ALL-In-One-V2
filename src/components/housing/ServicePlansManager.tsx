@@ -57,10 +57,11 @@ export function ServicePlansManager() {
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
+    const payload = { ...form, includes: includedServices };
     if (editing) {
-      await updatePlan({ id: editing.id, ...form });
+      await updatePlan({ id: editing.id, ...payload });
     } else {
-      await createPlan(form);
+      await createPlan(payload);
     }
     setDialogOpen(false);
   };
