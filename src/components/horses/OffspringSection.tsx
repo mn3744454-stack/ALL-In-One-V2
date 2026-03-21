@@ -5,9 +5,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Baby, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useHorseOffspring } from "@/hooks/useHorseOffspring";
-import { useI18n } from "@/i18n";
+import { useI18n, isRTL } from "@/i18n";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
 import { formatAgeCompact, getCurrentAgeParts } from "@/lib/horseClassification";
+import { displayHorseName } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 
 interface OffspringSectionProps {
