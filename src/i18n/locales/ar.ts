@@ -3779,6 +3779,7 @@ export const ar = {
       domain: {
         lab: "مختبر",
         boarding: "إيواء",
+        breeding: "تناسل",
         registration: "تسجيل",
         admin: "إدارية",
         transport: "نقل",
