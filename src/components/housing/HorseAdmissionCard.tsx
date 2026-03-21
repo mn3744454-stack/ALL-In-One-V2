@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClipboardCheck, Calendar, DoorOpen, User, Building2, FileText, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { displayClientName } from '@/lib/displayHelpers';
 import { Link } from 'react-router-dom';
 import { useHorseCareNotes } from '@/hooks/housing/useHorseCareNotes';

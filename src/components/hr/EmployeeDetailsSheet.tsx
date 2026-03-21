@@ -17,7 +17,7 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DollarSign, Plus, Calendar, FileText, Link } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 
 interface SalaryPaymentsSectionProps {

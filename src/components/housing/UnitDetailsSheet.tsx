@@ -17,7 +17,7 @@ import { AssignHorseDialog } from "./AssignHorseDialog";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Plus, LogOut, Home, Trees, BedDouble, Loader2 } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 

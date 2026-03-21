@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useHorseCareNotes, type CareNoteType, type HorseCareNote } from "@/hooks/housing/useHorseCareNotes";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Plus, FileText, AlertTriangle, Utensils, Pill, MessageSquare, Pencil, Trash2, Lock } from "lucide-react";
 
 interface CareNotesListProps {

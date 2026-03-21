@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Utensils, Pill, AlertTriangle, MessageSquare, GraduationCap, Stethoscope, Lock } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useState } from "react";
 import { CareNotesList } from "./CareNotesList";
 

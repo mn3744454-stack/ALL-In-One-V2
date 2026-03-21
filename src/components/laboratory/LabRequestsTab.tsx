@@ -28,6 +28,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabCatalogViewer } from "./LabCatalogViewer";
 import { LabRequestThread } from "./LabRequestThread";
 import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare, SlidersHorizontal, Heart, X } from "lucide-react";

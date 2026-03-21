@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronRight, Phone, Mail, Briefcase, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import type { Employee } from '@/hooks/hr/useEmployees';
 
 interface ExtendedEmployee extends Employee {

@@ -17,7 +17,8 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { CreateVetTreatmentDialog } from "./CreateVetTreatmentDialog";
-import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
+import { formatDistanceToNow, isPast, isToday } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n";
 
