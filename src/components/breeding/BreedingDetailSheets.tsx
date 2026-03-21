@@ -88,6 +88,11 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
               <DetailRow label={t("breeding.detail.performedBy")} value={attempt.performer.full_name || "—"} />
             )}
 
+            {/* Linked contract */}
+            {attempt.contract && (
+              <DetailRow label={t("breeding.contracts.contract")} value={attempt.contract.contract_number} />
+            )}
+
             {attempt.notes && (
               <>
                 <Separator />

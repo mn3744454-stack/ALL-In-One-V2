@@ -260,7 +260,7 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : t("common.select")}
+                      {endDate ? formatBreedingDate(endDate) : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
