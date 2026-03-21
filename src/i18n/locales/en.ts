@@ -2775,6 +2775,14 @@ export const en = {
       incomplete: "Incomplete",
       outside: "Outside",
     },
+    gender: {
+      male: "Male",
+      female: "Female",
+    },
+    breedingRoles: {
+      broodmare: "Broodmare",
+      breeding_stallion: "Breeding Stallion",
+    },
     status: {
       active: "Active",
       inactive: "Inactive",
