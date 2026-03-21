@@ -60,7 +60,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
               <p className="text-xs text-muted-foreground uppercase">{t("laboratory.stableResults.publishedAt")}</p>
               <p className="flex items-center gap-1 text-sm">
                 <Calendar className="h-3 w-3" />
-                {group.publishedAt ? format(new Date(group.publishedAt), "PPP") : "—"}
+                {group.publishedAt ? formatStandardDate(new Date(group.publishedAt)) : "—"}
               </p>
             </div>
             {group.physicalSampleId && (

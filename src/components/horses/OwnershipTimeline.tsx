@@ -121,7 +121,7 @@ export const OwnershipTimeline = ({ horseId }: OwnershipTimelineProps) => {
                   </p>
                   
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(entry.changed_at), "PPp")}
+                    {formatStandardDateTime(new Date(entry.changed_at))}
                   </p>
                 </div>
               </div>

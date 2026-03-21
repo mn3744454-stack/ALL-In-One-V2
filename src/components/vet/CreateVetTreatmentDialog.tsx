@@ -265,7 +265,7 @@ export function CreateVetTreatmentDialog({
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.scheduled_for
-                        ? format(new Date(formData.scheduled_for), "PPP")
+                        ? formatStandardDate(new Date(formData.scheduled_for))
                         : "Select date"}
                     </Button>
                   </PopoverTrigger>

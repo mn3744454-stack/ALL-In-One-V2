@@ -170,7 +170,7 @@ export function ResultsTable({
                 </TableCell>
                 <TableCell>
                   <span className="text-sm text-muted-foreground">
-                    {format(new Date(result.created_at), "PPP")}
+                    {formatStandardDate(new Date(result.created_at))}
                   </span>
                 </TableCell>
                 <TableCell>

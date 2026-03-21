@@ -174,7 +174,7 @@ export function CreateVetVisitDialog({
                         )}
                       >
                         <CalendarIcon className="me-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : t("vetVisits.placeholders.pickDate")}
+                        {selectedDate ? formatStandardDate(selectedDate) : t("vetVisits.placeholders.pickDate")}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
