@@ -75,7 +75,7 @@ export default function DashboardDoctorOverview() {
               {upcomingFollowups.slice(0, 5).map(f => (
                 <div key={f.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
-                    <p className="text-sm font-medium">{format(new Date(f.followup_date), "MMM d, yyyy")}</p>
+                    <p className="text-sm font-medium">{formatStandardDate(f.followup_date)}</p>
                     <p className="text-sm text-muted-foreground">{f.notes?.slice(0, 50) || t('common.notes')}</p>
                   </div>
                   <span className="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">{f.status}</span>

@@ -249,7 +249,7 @@ function FileListRow({
       </Badge>
       
       <span className="text-sm text-muted-foreground shrink-0">
-        {format(new Date(asset.created_at), "MMM d, yyyy")}
+        {formatStandardDate(asset.created_at)}
       </span>
       
       <DropdownMenu>

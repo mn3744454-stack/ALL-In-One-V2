@@ -328,7 +328,7 @@ export function ScheduleCalendarView({
             <AlertDialogDescription>
               {rescheduleInfo && (
                 <>
-                  Move "{rescheduleInfo.item.title}" to {format(rescheduleInfo.newDate, "EEEE, MMMM d, yyyy")}?
+                  Move "{rescheduleInfo.item.title}" to {formatStandardDate(rescheduleInfo.newDate)}?
                 </>
               )}
             </AlertDialogDescription>

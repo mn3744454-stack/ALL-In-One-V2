@@ -188,7 +188,7 @@ export function OrdersList({
                 <TableCell>
                   {order.scheduled_for ? (
                     <span className="text-sm">
-                      {format(new Date(order.scheduled_for), "MMM d, HH:mm")}
+                      {formatStandardDateTime(order.scheduled_for)}
                     </span>
                   ) : (
                     <span className="text-sm text-muted-foreground">-</span>

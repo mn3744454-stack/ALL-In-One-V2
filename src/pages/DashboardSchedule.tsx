@@ -380,7 +380,7 @@ export default function DashboardSchedule() {
             </div>
             <div className="order-1 lg:order-2 lg:col-span-2">
               <h3 className="text-base lg:text-lg font-semibold text-navy mb-3 lg:mb-4">
-                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                {formatStandardDate(selectedDate)}
               </h3>
               <ScheduleList 
                 items={calendarDayItems} 

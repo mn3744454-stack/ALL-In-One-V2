@@ -83,7 +83,7 @@ export default function DashboardDoctorConsultations() {
                       <p className="text-sm text-muted-foreground mt-1 truncate">{c.chief_complaint || t('doctor.noComplaintRecorded')}</p>
                     </div>
                     <div className="text-sm text-muted-foreground ml-4 text-right whitespace-nowrap">
-                      {format(new Date(c.created_at), "MMM d, yyyy")}
+                      {formatStandardDate(c.created_at)}
                       {c.actual_cost != null && <p className="font-medium text-foreground">{c.actual_cost} {c.currency}</p>}
                     </div>
                   </div>

@@ -105,7 +105,7 @@ function ActivityItemRow({ item }: { item: ActivityItem }) {
       </div>
       
       <div className="text-xs text-muted-foreground text-end shrink-0">
-        {format(new Date(item.createdAt), "MMM d, h:mm a")}
+        {formatStandardDateTime(item.createdAt)}
       </div>
     </div>
   );
