@@ -28,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { Filter, X, Check, Search, ChevronDown, User, ChevronsUpDown } from "lucide-react";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { useClients } from "@/hooks/useClients";
 import { useHorses } from "@/hooks/useHorses";
 import { useLabHorses } from "@/hooks/laboratory/useLabHorses";
