@@ -123,7 +123,7 @@ export const BookingCard = ({
 
           {/* Metadata */}
           <p className="text-xs text-muted-foreground">
-            Requested {format(new Date(booking.created_at), "MMM d, yyyy 'at' h:mm a")}
+            Requested {formatStandardDate(booking.created_at)}
           </p>
         </div>
       </CardContent>

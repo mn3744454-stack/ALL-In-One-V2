@@ -108,13 +108,13 @@ export const BookingDialog = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-gold" />
-                <span>{format(new Date(session.start_at), "EEE, MMM d, yyyy")}</span>
+                <span>{formatStandardDate(session.start_at)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-gold" />
                 <span>
-                  {format(new Date(session.start_at), "h:mm a")} -{" "}
-                  {format(new Date(session.end_at), "h:mm a")}
+                  {formatStandardTime(session.start_at)} -{" "}
+                  {formatStandardTime(session.end_at)}
                 </span>
               </div>
               {session.location_text && (

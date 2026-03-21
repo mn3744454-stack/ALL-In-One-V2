@@ -105,7 +105,7 @@ export const MyBookingCard = ({
           {/* Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-border">
             <p className="text-xs text-muted-foreground">
-              Booked {format(new Date(booking.created_at), "MMM d, yyyy")}
+              Booked {formatStandardDate(booking.created_at)}
             </p>
             
             {canCancel && !isPast && (
