@@ -31,6 +31,7 @@ import {
   Lock,
 } from "lucide-react";
 import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
