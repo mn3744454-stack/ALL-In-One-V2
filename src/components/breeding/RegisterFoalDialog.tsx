@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Foaling, useFoalings, CreateFoalHorseData } from "@/hooks/breeding/useFoalings";
 import { useI18n } from "@/i18n";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 
 interface RegisterFoalDialogProps {
   open: boolean;
