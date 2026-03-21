@@ -19,7 +19,7 @@ import {
 import { BreedingContract, ContractStatus, useBreedingContracts } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { displayHorseName, displayServiceName, formatBreedingDate } from "@/lib/displayHelpers";
+import { displayHorseName, displayClientName, displayServiceName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface Props {
   contract: BreedingContract | null;
