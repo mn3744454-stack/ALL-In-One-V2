@@ -498,7 +498,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 {selectedPlan && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
-                    <span>{selectedPlan.name}</span>
+                    <span>{displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang)}</span>
                   </div>
                 )}
                 {(form.monthlyRate || form.dailyRate) && (
