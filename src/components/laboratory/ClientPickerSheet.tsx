@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useClients, Client, ClientType, CreateClientData } from "@/hooks/useClients";
 import { ClientFormDialog } from "@/components/clients";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 
 interface ClientPickerSheetProps {
   open: boolean;
