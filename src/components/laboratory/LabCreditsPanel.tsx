@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Wallet, Plus, ArrowDownCircle, ArrowUpCircle, RotateCcw } from "lucide-react";
 
 interface LabCreditsPanelProps {
