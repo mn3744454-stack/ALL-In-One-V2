@@ -113,7 +113,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           )}
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3 w-3 text-muted-foreground" />
-            <span>{t('housing.admissions.list.since')} {format(new Date(admission.admitted_at), 'MMM d')}</span>
+            <span>{t('housing.admissions.list.since')} {formatStandardDate(admission.admitted_at)}</span>
           </div>
           {admission.expected_departure && (
             <div className="flex items-center gap-1.5">
