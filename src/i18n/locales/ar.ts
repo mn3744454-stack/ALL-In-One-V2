@@ -3523,6 +3523,8 @@ export const ar = {
     billing: {
       generateInvoice: "إنشاء فاتورة",
       createInvoiceTitle: "إنشاء فاتورة تناسل",
+      service: "الخدمة",
+      selectService: "اختر خدمة...",
       client: "العميل",
       selectClient: "اختر عميل...",
       searchClients: "بحث العملاء...",

@@ -3520,6 +3520,8 @@ export const en = {
     billing: {
       generateInvoice: "Generate Invoice",
       createInvoiceTitle: "Create Breeding Invoice",
+      service: "Service",
+      selectService: "Select a service...",
       client: "Client",
       selectClient: "Select a client...",
       searchClients: "Search clients...",
