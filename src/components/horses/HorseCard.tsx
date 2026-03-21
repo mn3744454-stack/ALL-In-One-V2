@@ -180,7 +180,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
                   variant="secondary" 
                   className={cn("text-xs", getStatusColor(horse.status))}
                 >
-                  {horse.status || "draft"}
+                  {t(`horses.status.${horse.status || 'draft'}`)}
                 </Badge>
                 <Badge className={cn("text-xs", typeBadgeProps.className)}>
                   {typeBadgeProps.label}
