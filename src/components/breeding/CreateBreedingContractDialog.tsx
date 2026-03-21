@@ -31,7 +31,7 @@ import { useServicesByKind } from "@/hooks/useServices";
 import { useBreedingContracts, ContractType, PricingMode, CreateBreedingContractData } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 import { filterEligibleMares, filterEligibleStallions } from "@/lib/breedingEligibility";
-import { displayServiceName } from "@/lib/displayHelpers";
+import { displayServiceName, displayClientName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface Props {
   open: boolean;
