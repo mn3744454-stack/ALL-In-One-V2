@@ -98,8 +98,7 @@ export function ServicePlansManager() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="font-medium">{plan.name}</h3>
-                    {plan.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{plan.name_ar}</p>}
+                    <h3 className="font-medium">{displayServiceName(plan.name, plan.name_ar, lang)}</h3>
                   </div>
                   <div className="flex items-center gap-1">
                     {!plan.is_active && <Badge variant="secondary">{t('common.inactive')}</Badge>}
@@ -111,13 +110,14 @@ export function ServicePlansManager() {
                   </div>
                 </div>
                 {plan.description && <p className="text-xs text-muted-foreground mb-2">{plan.description}</p>}
-                <div className="flex items-center gap-2 flex-wrap">
+                <PlanIncludedServicesDisplay includes={plan.includes} compact />
+                <div className="flex items-center gap-2 flex-wrap mt-2">
                   {plan.service_id && (() => {
                     const parentService = services.find(s => s.id === plan.service_id);
                     return parentService ? (
                       <Badge variant="default" className="text-xs gap-1">
                         <Link2 className="h-3 w-3" />
-                        {parentService.name}
+                        {displayServiceName(parentService.name, parentService.name_ar, lang)}
                       </Badge>
                     ) : null;
                   })()}
