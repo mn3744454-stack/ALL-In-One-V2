@@ -92,8 +92,11 @@ export const useCreateService = () => {
         .insert({
           tenant_id: tenantId,
           name: input.name,
+          name_ar: input.name_ar || null,
           description: input.description || null,
           service_type: input.service_type || null,
+          service_kind: input.service_kind || "service",
+          unit_price: input.unit_price ?? null,
           price_display: input.price_display || null,
           is_active: input.is_active ?? true,
           is_public: input.is_public ?? true,
