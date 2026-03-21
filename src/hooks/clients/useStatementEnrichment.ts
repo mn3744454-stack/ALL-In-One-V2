@@ -90,6 +90,15 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         ),
       ];
 
+      // 3c. Collect all breeding entity_ids
+      const breedingIds = [
+        ...new Set(
+          typedItems
+            .filter((i) => i.entity_type === "breeding" && i.entity_id)
+            .map((i) => i.entity_id!)
+        ),
+      ];
+
       // 4. Batch fetch samples + lab horses
       const sampleToHorse = new Map<string, { horseId: string; horseName: string; sampleLabel: string }>();
       

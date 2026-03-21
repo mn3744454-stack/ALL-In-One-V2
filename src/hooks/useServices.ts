@@ -57,6 +57,29 @@ export const useServices = () => {
   });
 };
 
+export const useServicesByKind = (kind: string) => {
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant.id;
+
+  return useQuery({
+    queryKey: ["services", tenantId, kind],
+    queryFn: async () => {
+      if (!tenantId) return [];
+
+      const { data, error } = await supabase
+        .from("tenant_services")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("service_kind", kind)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as TenantService[];
+    },
+    enabled: !!tenantId,
+  });
+};
+
 export const usePublicServices = (tenantId: string | undefined) => {
   return useQuery({
     queryKey: ["public-services", tenantId],
