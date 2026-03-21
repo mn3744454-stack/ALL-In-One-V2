@@ -17,6 +17,7 @@ import { useBoardingAdmissions, type BoardingAdmission } from "@/hooks/housing/u
 import { CheckoutFinancialReview } from "./CheckoutFinancialReview";
 import { useFinancialGate } from "@/hooks/housing/useFinancialGate";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { LogOut, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
