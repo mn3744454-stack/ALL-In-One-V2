@@ -179,7 +179,7 @@ export function AdvancedFilters({
               )}
             >
               {selectedClient ? (
-                <span className="truncate max-w-[120px]">{selectedClient.name}</span>
+                <span className="truncate max-w-[120px]">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
               ) : (
                 <span className="text-muted-foreground">{t("laboratory.filters.client")}</span>
               )}
