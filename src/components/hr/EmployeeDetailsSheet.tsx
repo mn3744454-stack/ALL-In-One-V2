@@ -175,7 +175,7 @@ export function EmployeeDetailsSheet({
           <InfoRow
             icon={Calendar}
             label={t('hr.startDate')}
-            value={format(new Date(employee.start_date), 'PPP')}
+            value={formatStandardDate(employee.start_date)}
           />
         )}
 
