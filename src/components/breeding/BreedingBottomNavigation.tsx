@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Heart, Baby, FlaskConical, Syringe } from "lucide-react";
+import { Heart, Baby, FlaskConical, Syringe, Stethoscope } from "lucide-react";
 import { useI18n } from "@/i18n";
 
 interface BreedingBottomNavigationProps {
@@ -16,6 +16,7 @@ export function BreedingBottomNavigation({
   const tabs = [
     { id: "attempts", icon: Heart, label: t("breeding.tabs.records") },
     { id: "pregnancies", icon: Baby, label: t("breeding.tabs.pregnancies") },
+    { id: "foalings", icon: Stethoscope, label: t("breeding.tabs.foalings") },
     { id: "embryo", icon: FlaskConical, label: t("breeding.tabs.embryo") },
     { id: "inventory", icon: Syringe, label: t("breeding.tabs.inventory") },
   ];
@@ -70,7 +71,7 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
       </div>
       <span
         className={cn(
-          "text-[10px] font-medium mt-1 max-w-16 text-center leading-tight",
+          "text-[10px] font-medium mt-1 max-w-14 text-center leading-tight",
           active ? "text-primary font-semibold" : "text-muted-foreground"
         )}
       >
