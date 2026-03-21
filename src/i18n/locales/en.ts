@@ -2051,6 +2051,12 @@ export const en = {
       parentService: "Parent Service",
       noParentService: "No parent service",
       linkedPlans: "plans",
+      includedServices: "Included Services",
+      addIncludedService: "Add Included Service",
+      searchServices: "Search services...",
+      noServicesFound: "No boarding services found",
+      noBoardingServices: "No boarding services defined yet. Create services with kind 'boarding' first.",
+      includedService: "Included",
     },
     checkout: {
       financial: {
