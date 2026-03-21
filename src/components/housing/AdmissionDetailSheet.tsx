@@ -460,7 +460,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   ) : null}
 
                   {admission.checked_out_at && (
-                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={format(new Date(admission.checked_out_at), 'PPp')} />
+                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={formatStandardDateTime(admission.checked_out_at)} />
                   )}
 
                   {/* Rate — editable */}
