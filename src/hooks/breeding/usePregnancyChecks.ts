@@ -14,6 +14,7 @@ export interface PregnancyCheck {
   notes: string | null;
   performed_by: string | null;
   created_by: string;
+  contract_id: string | null;
   created_at: string;
   // Joined
   creator?: {
@@ -26,6 +27,14 @@ export interface PregnancyCheck {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
 }
 
 export interface CreatePregnancyCheckData {
@@ -35,6 +44,7 @@ export interface CreatePregnancyCheckData {
   outcome: "confirmed_pregnant" | "confirmed_open" | "inconclusive";
   notes?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export function usePregnancyChecks(pregnancyId?: string) {
@@ -59,7 +69,8 @@ export function usePregnancyChecks(pregnancyId?: string) {
         .select(`
           *,
           creator:profiles!pregnancy_checks_created_by_fkey(id, full_name, avatar_url),
-          performer:profiles!pregnancy_checks_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!pregnancy_checks_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!pregnancy_checks_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .eq("pregnancy_id", pregnancyId)

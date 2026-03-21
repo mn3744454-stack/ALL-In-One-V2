@@ -23,6 +23,7 @@ export interface EmbryoTransfer {
   notes: string | null;
   created_by: string;
   assigned_to: string | null;
+  contract_id: string | null;
   created_at: string;
   updated_at: string;
   // Joined
@@ -53,6 +54,14 @@ export interface EmbryoTransfer {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
 }
 
 export interface CreateEmbryoTransferData {
@@ -69,6 +78,7 @@ export interface CreateEmbryoTransferData {
   provider_tenant_id?: string | null;
   external_provider_name?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export interface EmbryoTransferFilters {
@@ -102,7 +112,8 @@ export function useEmbryoTransfers(filters?: EmbryoTransferFilters) {
           recipient_mare:horses!embryo_transfers_recipient_mare_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!embryo_transfers_created_by_fkey(id, full_name, avatar_url),
           assignee:profiles!embryo_transfers_assigned_to_fkey(id, full_name, avatar_url),
-          performer:profiles!embryo_transfers_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!embryo_transfers_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!embryo_transfers_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("created_at", { ascending: false });

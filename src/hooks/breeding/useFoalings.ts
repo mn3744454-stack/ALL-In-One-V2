@@ -21,6 +21,7 @@ export interface Foaling {
   notes: string | null;
   performed_by: string | null;
   created_by: string;
+  contract_id: string | null;
   registry_notification_status: string;
   registry_blood_sample_status: string;
   registry_microchip_status: string;
@@ -33,6 +34,14 @@ export interface Foaling {
   stallion?: { id: string; name: string; name_ar: string | null } | null;
   performer?: { id: string; full_name: string | null } | null;
   foal_horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
 }
 
 export interface CreateFoalingData {
@@ -48,6 +57,7 @@ export interface CreateFoalingData {
   location_ref?: string | null;
   notes?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export interface CreateFoalHorseData {
@@ -91,7 +101,8 @@ export function useFoalings(filters?: FoalingFilters) {
           mare:horses!foalings_mare_id_fkey(id, name, name_ar, avatar_url),
           stallion:horses!foalings_stallion_id_fkey(id, name, name_ar),
           performer:profiles!foalings_performed_by_fkey(id, full_name),
-          foal_horse:horses!foalings_foal_horse_id_fkey(id, name, name_ar, avatar_url)
+          foal_horse:horses!foalings_foal_horse_id_fkey(id, name, name_ar, avatar_url),
+          contract:breeding_contracts!foalings_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("foaling_date", { ascending: false });

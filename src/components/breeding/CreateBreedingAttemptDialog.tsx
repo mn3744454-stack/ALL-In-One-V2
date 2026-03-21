@@ -28,9 +28,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useHorses } from "@/hooks/useHorses";
 import { useBreedingAttempts, CreateBreedingAttemptData, SourceMode } from "@/hooks/breeding/useBreedingAttempts";
+import { useBreedingContracts } from "@/hooks/breeding/useBreedingContracts";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
 import { filterEligibleMares, filterEligibleStallions } from "@/lib/breedingEligibility";
 import { useI18n } from "@/i18n";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 
 interface CreateBreedingAttemptDialogProps {
   open: boolean;
@@ -43,6 +45,7 @@ export function CreateBreedingAttemptDialog({
 }: CreateBreedingAttemptDialogProps) {
   const { horses } = useHorses();
   const { createAttempt } = useBreedingAttempts();
+  const { contracts } = useBreedingContracts();
   const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +57,7 @@ export function CreateBreedingAttemptDialog({
   const [notes, setNotes] = useState("");
   const [sourceMode, setSourceMode] = useState<SourceMode>("internal");
   const [externalProviderName, setExternalProviderName] = useState("");
+  const [contractId, setContractId] = useState("");
 
   // Breeding-eligibility-aware filtering
   const { mares, stallions } = useMemo(() => {
@@ -62,6 +66,16 @@ export function CreateBreedingAttemptDialog({
       stallions: filterEligibleStallions(horses),
     };
   }, [horses]);
+
+  // Active contracts, optionally filtered by selected mare
+  const availableContracts = useMemo(() => {
+    let filtered = contracts.filter(c => c.status === "active");
+    if (mareId) {
+      const mareFiltered = filtered.filter(c => !c.mare_id || c.mare_id === mareId);
+      if (mareFiltered.length > 0) filtered = mareFiltered;
+    }
+    return filtered;
+  }, [contracts, mareId]);
 
   const resetForm = () => {
     setMareId("");
@@ -72,6 +86,7 @@ export function CreateBreedingAttemptDialog({
     setNotes("");
     setSourceMode("internal");
     setExternalProviderName("");
+    setContractId("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,6 +104,7 @@ export function CreateBreedingAttemptDialog({
         notes: notes || null,
         source_mode: sourceMode,
         external_provider_name: sourceMode === "external" ? externalProviderName || null : null,
+        contract_id: contractId || null,
       });
       resetForm();
       onOpenChange(false);
@@ -228,7 +244,7 @@ export function CreateBreedingAttemptDialog({
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {attemptDate ? format(attemptDate, "PPP") : <span>{t("common.select")}</span>}
+                      {attemptDate ? formatBreedingDate(attemptDate) : <span>{t("common.select")}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
@@ -242,6 +258,26 @@ export function CreateBreedingAttemptDialog({
                   </PopoverContent>
                 </Popover>
               </div>
+
+              {/* Contract picker */}
+              {availableContracts.length > 0 && (
+                <div className="space-y-2">
+                  <Label>{t("breeding.contracts.contract")}</Label>
+                  <Select value={contractId} onValueChange={setContractId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("common.select")} />
+                    </SelectTrigger>
+                    <SelectContent className="z-[200]">
+                      <SelectItem value="none">{t("common.none")}</SelectItem>
+                      {availableContracts.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.contract_number} — {t(`breeding.contracts.types.${c.contract_type}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
           </div>
 

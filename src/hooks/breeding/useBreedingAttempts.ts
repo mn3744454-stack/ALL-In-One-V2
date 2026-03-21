@@ -87,6 +87,7 @@ export interface CreateBreedingAttemptData {
   provider_tenant_id?: string | null;
   external_provider_name?: string | null;
   performed_by?: string | null;
+  contract_id?: string | null;
 }
 
 export interface BreedingAttemptFilters {
@@ -182,6 +183,7 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
         provider_tenant_id: data.provider_tenant_id || null,
         external_provider_name: data.external_provider_name || null,
         performed_by: data.performed_by || null,
+        contract_id: data.contract_id || null,
       };
 
       const { data: newAttempt, error } = await supabase

@@ -88,6 +88,11 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
               <DetailRow label={t("breeding.detail.performedBy")} value={attempt.performer.full_name || "—"} />
             )}
 
+            {/* Linked contract */}
+            {attempt.contract && (
+              <DetailRow label={t("breeding.contracts.contract")} value={attempt.contract.contract_number} />
+            )}
+
             {attempt.notes && (
               <>
                 <Separator />
@@ -195,7 +200,7 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage 
           <Separator />
 
           {/* Pregnancy Exams — read-only for closed pregnancies */}
-          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} />
+          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} mareId={pregnancy.mare_id} />
         </div>
       </SheetContent>
     </Sheet>

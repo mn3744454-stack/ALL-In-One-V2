@@ -31,7 +31,7 @@ import { useServicesByKind } from "@/hooks/useServices";
 import { useBreedingContracts, ContractType, PricingMode, CreateBreedingContractData } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 import { filterEligibleMares, filterEligibleStallions } from "@/lib/breedingEligibility";
-import { displayServiceName } from "@/lib/displayHelpers";
+import { displayServiceName, displayClientName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface Props {
   open: boolean;
@@ -157,7 +157,7 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
                   <SelectTrigger><SelectValue placeholder={t("breeding.billing.selectClient")} /></SelectTrigger>
                   <SelectContent className="z-[200]">
                     {activeClients.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      <SelectItem key={c.id} value={c.id}>{displayClientName(c.name, c.name_ar, lang)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -245,7 +245,7 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : t("common.select")}
+                      {startDate ? formatBreedingDate(startDate) : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
@@ -260,7 +260,7 @@ export function CreateBreedingContractDialog({ open, onOpenChange, editContract 
                   <PopoverTrigger asChild>
                     <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : t("common.select")}
+                      {endDate ? formatBreedingDate(endDate) : t("common.select")}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-[200]" align="start">
