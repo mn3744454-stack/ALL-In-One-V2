@@ -235,7 +235,7 @@ export function RequestDetailDialog({
                   </span>
                 )}
                 <span>
-                  {format(new Date(request.requested_at), 'PP')}
+                  {formatStandardDate(request.requested_at)}
                 </span>
                 {request.priority && request.priority !== 'normal' && (
                   <Badge variant="outline" className="text-xs">{t(`common.${request.priority}`) || request.priority}</Badge>

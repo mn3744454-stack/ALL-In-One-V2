@@ -28,6 +28,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { ar as arLocale, enUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
 import { 

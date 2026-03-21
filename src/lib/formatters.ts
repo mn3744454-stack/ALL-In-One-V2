@@ -119,10 +119,11 @@ export function formatTime(date: Date | string, formatStr: string = 'HH:mm'): st
 }
 
 /**
- * Format relative date (e.g., "PP" for localized date)
+ * @deprecated Use formatStandardDate from displayHelpers instead.
+ * Format date as dd-MM-yyyy (platform standard).
  */
 export function formatRelativeDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (isNaN(d.getTime())) return '-';
-  return format(d, 'PP');
+  return format(d, 'dd-MM-yyyy');
 }

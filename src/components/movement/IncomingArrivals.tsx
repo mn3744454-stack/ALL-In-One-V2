@@ -19,7 +19,7 @@ import { useIncomingMovements, type IncomingMovement } from "@/hooks/movement/us
 import { usePermissions } from "@/hooks/usePermissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
