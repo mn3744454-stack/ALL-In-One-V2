@@ -143,7 +143,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             <div className="min-w-0">
                               <p className="font-medium truncate">{treatment.title}</p>
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                                <span>{format(new Date(treatment.requested_at), 'MMM d, yyyy')}</span>
+                                <span>{formatStandardDate(treatment.requested_at)}</span>
                                 <span className="text-primary/80 truncate">
                                   {t('common.source')}: {sourceName}
                                 </span>
