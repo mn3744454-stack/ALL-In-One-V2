@@ -54,8 +54,8 @@ export function ResultsComparison() {
     return filteredResults.slice(0, 10).reverse().map(result => {
       const data = result.result_data as Record<string, number>;
       return {
-        date: format(new Date(result.created_at), "MMM d"),
-        fullDate: format(new Date(result.created_at), "MMM d, yyyy"),
+        date: formatStandardDate(result.created_at),
+        fullDate: formatStandardDate(result.created_at),
         ...data,
       };
     });
