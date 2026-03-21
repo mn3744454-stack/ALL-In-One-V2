@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronRight, Phone, Mail, Briefcase, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import type { Employee } from '@/hooks/hr/useEmployees';
 
 interface ExtendedEmployee extends Employee {
@@ -100,7 +100,7 @@ export function EmployeeCard({ employee, onClick }: EmployeeCardProps) {
             {employee.start_date && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {format(new Date(employee.start_date), 'MMM yyyy')}
+                {formatStandardDate(employee.start_date)}
               </span>
             )}
             {isInternal && employee.salary_amount && (

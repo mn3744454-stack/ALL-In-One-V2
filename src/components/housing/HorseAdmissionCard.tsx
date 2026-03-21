@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClipboardCheck, Calendar, DoorOpen, User, Building2, FileText, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { displayClientName } from '@/lib/displayHelpers';
 import { Link } from 'react-router-dom';
 import { useHorseCareNotes } from '@/hooks/housing/useHorseCareNotes';
@@ -113,12 +113,12 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           )}
           <div className="flex items-center gap-1.5">
             <Calendar className="h-3 w-3 text-muted-foreground" />
-            <span>{t('housing.admissions.list.since')} {format(new Date(admission.admitted_at), 'MMM d')}</span>
+            <span>{t('housing.admissions.list.since')} {formatStandardDate(admission.admitted_at)}</span>
           </div>
           {admission.expected_departure && (
             <div className="flex items-center gap-1.5">
               <Calendar className="h-3 w-3 text-muted-foreground" />
-              <span>{t('housing.admissions.detail.expectedDeparture')}: {format(new Date(admission.expected_departure), 'MMM d')}</span>
+              <span>{t('housing.admissions.detail.expectedDeparture')}: {formatStandardDate(admission.expected_departure)}</span>
             </div>
           )}
         </div>

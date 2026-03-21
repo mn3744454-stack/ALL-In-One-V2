@@ -28,6 +28,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabCatalogViewer } from "./LabCatalogViewer";
 import { LabRequestThread } from "./LabRequestThread";
 import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare, SlidersHorizontal, Heart, X } from "lucide-react";
@@ -568,7 +569,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </span>
           )}
           <span>
-            {format(new Date(request.requested_at), 'PP')}
+            {formatStandardDate(request.requested_at)}
           </span>
         </div>
 
@@ -1099,7 +1100,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
                       <td className="py-2 px-3 font-medium">{horseName}</td>
                       <td className="py-2 px-3 truncate max-w-[200px]">{request.test_description}</td>
                       <td className="py-2 px-3"><RequestStatusBadge status={request.status} /></td>
-                      <td className="py-2 px-3 text-muted-foreground">{format(new Date(request.requested_at), 'PP')}</td>
+                      <td className="py-2 px-3 text-muted-foreground">{formatStandardDate(request.requested_at)}</td>
                       <td className="py-2 px-3">
                         <Button size="sm" variant="ghost" className="gap-1.5" onClick={(e) => { e.stopPropagation(); handleOpenDetail(request); }}>
                           <FileText className="h-4 w-4" />

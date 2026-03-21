@@ -15,7 +15,7 @@ import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
   Tag, Building2, MessageSquare, Receipt, FlaskConical,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -235,7 +235,7 @@ export function RequestDetailDialog({
                   </span>
                 )}
                 <span>
-                  {format(new Date(request.requested_at), 'PP')}
+                  {formatStandardDate(request.requested_at)}
                 </span>
                 {request.priority && request.priority !== 'normal' && (
                   <Badge variant="outline" className="text-xs">{t(`common.${request.priority}`) || request.priority}</Badge>

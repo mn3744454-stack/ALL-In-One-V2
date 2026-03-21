@@ -17,7 +17,7 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';
@@ -175,7 +175,7 @@ export function EmployeeDetailsSheet({
           <InfoRow
             icon={Calendar}
             label={t('hr.startDate')}
-            value={format(new Date(employee.start_date), 'PPP')}
+            value={formatStandardDate(employee.start_date)}
           />
         )}
 
@@ -190,7 +190,7 @@ export function EmployeeDetailsSheet({
         <InfoRow
           icon={Calendar}
           label={t('hr.createdAt')}
-          value={format(new Date(employee.created_at), 'PPP')}
+          value={formatStandardDate(employee.created_at)}
         />
 
         {employee.notes && (

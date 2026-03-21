@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useHorseCareNotes, type CareNoteType, type HorseCareNote } from "@/hooks/housing/useHorseCareNotes";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Plus, FileText, AlertTriangle, Utensils, Pill, MessageSquare, Pencil, Trash2, Lock } from "lucide-react";
 
 interface CareNotesListProps {
@@ -133,7 +133,7 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
                       <Lock className="h-3 w-3 text-muted-foreground" />
                     )}
                     <span className="text-xs text-muted-foreground ms-auto">
-                      {format(new Date(note.created_at), 'MMM d')}
+                      {formatStandardDate(note.created_at)}
                     </span>
                     {editable && (
                       <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">

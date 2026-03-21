@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Utensils, Pill, AlertTriangle, MessageSquare, GraduationCap, Stethoscope, Lock } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useState } from "react";
 import { CareNotesList } from "./CareNotesList";
 
@@ -116,7 +116,7 @@ export function HorseProfileCareNotes({ horseId, admissionId }: HorseProfileCare
                     </Badge>
                   )}
                   <span className="text-xs text-muted-foreground ms-auto">
-                    {format(new Date(note.created_at), 'MMM d')}
+                    {formatStandardDate(note.created_at)}
                   </span>
                 </div>
                 {note.title && <p className="font-medium text-sm">{note.title}</p>}

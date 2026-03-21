@@ -19,7 +19,7 @@ import { useIncomingMovements, type IncomingMovement } from "@/hooks/movement/us
 import { usePermissions } from "@/hooks/usePermissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -219,7 +219,7 @@ function IncomingCard({ incoming, canConfirm, onConfirm, onCancel, getStatusBadg
               <span>{t('movement.incoming.from')}: {incoming.sender_tenant_name || t('common.unknown')}</span>
             </div>
             {incoming.scheduled_at && (
-              <p className="text-xs text-muted-foreground mt-0.5">{t('movement.incoming.scheduledAt')}: {format(new Date(incoming.scheduled_at), 'PPp')}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t('movement.incoming.scheduledAt')}: {formatStandardDateTime(incoming.scheduled_at)}</p>
             )}
             {incoming.reason && (
               <p className="text-xs text-muted-foreground mt-0.5 truncate">{t('movement.detail.reason')}: {incoming.reason}</p>

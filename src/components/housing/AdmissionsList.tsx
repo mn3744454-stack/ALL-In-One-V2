@@ -14,7 +14,8 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen, Receipt, FileX } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
@@ -292,7 +293,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {format(new Date(admission.admitted_at), 'MMM d, yyyy')}
+                {formatStandardDate(admission.admitted_at)}
                 <span className="text-foreground/60">·</span>
                 <span className="font-medium text-foreground/70">{stayDays}{t('housing.admissions.list.daysUnit')}</span>
               </span>

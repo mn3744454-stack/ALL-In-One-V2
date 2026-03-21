@@ -25,7 +25,8 @@ import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
@@ -417,7 +418,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     return <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />;
                   })()}
 
-                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={format(new Date(admission.admitted_at), 'PPp')} />
+                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={formatStandardDateTime(admission.admitted_at)} />
 
                   {/* Expected departure — editable */}
                   {editingField === 'expected_departure' ? (
@@ -440,7 +441,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={Calendar}
                       label={t('housing.admissions.detail.expectedDeparture')}
-                      value={format(new Date(admission.expected_departure), 'PP')}
+                      value={formatStandardDate(admission.expected_departure)}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => startEdit('expected_departure', admission.expected_departure?.split('T')[0] || '')}
                     />
@@ -459,7 +460,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   ) : null}
 
                   {admission.checked_out_at && (
-                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={format(new Date(admission.checked_out_at), 'PPp')} />
+                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={formatStandardDateTime(admission.checked_out_at)} />
                   )}
 
                   {/* Rate — editable */}
@@ -609,7 +610,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                         <div key={m.id} className="flex items-center gap-2 text-sm flex-wrap">
                           <MovementTypeIcon type={m.movement_type} />
                           <span className="text-muted-foreground">
-                            {format(new Date(m.movement_at), 'MMM d, HH:mm')}
+                            {formatStandardDateTime(m.movement_at)}
                           </span>
                           <Badge variant="outline" className="text-xs capitalize">
                             {m.movement_type === 'in'
@@ -652,7 +653,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       {history.map((h: any) => (
                         <div key={h.id} className="flex items-center gap-2 text-sm">
                           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                          <span className="text-muted-foreground">{format(new Date(h.created_at), 'MMM d, HH:mm')}</span>
+                          <span className="text-muted-foreground">{formatStandardDateTime(h.created_at)}</span>
                           <span>→ <Badge variant="outline" className="text-xs capitalize">{h.to_status}</Badge></span>
                           {h.changed_by_profile?.full_name && (
                             <span className="text-muted-foreground text-xs">

@@ -17,7 +17,8 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { CreateVetTreatmentDialog } from "./CreateVetTreatmentDialog";
-import { format, formatDistanceToNow, isPast, isToday } from "date-fns";
+import { formatDistanceToNow, isPast, isToday } from "date-fns";
+import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n";
 
@@ -142,7 +143,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             <div className="min-w-0">
                               <p className="font-medium truncate">{treatment.title}</p>
                               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                                <span>{format(new Date(treatment.requested_at), 'MMM d, yyyy')}</span>
+                                <span>{formatStandardDate(treatment.requested_at)}</span>
                                 <span className="text-primary/80 truncate">
                                   {t('common.source')}: {sourceName}
                                 </span>
@@ -192,7 +193,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {vaccination.program?.name || 'Unknown Program'}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {format(dueDate, 'MMM d, yyyy')}
+                                Due: {formatStandardDate(dueDate)}
                               </p>
                             </div>
                           </div>
@@ -242,7 +243,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {followup.type.replace(/_/g, ' ')}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {format(dueDate, 'MMM d, yyyy h:mm a')}
+                                Due: {formatStandardDateTime(dueDate)}
                               </p>
                             </div>
                           </div>

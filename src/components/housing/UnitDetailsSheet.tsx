@@ -17,7 +17,7 @@ import { AssignHorseDialog } from "./AssignHorseDialog";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { Plus, LogOut, Home, Trees, BedDouble, Loader2 } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
@@ -154,7 +154,7 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                                 : occupant.horse?.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {t('housing.occupants.since')} {format(new Date(occupant.since), 'PP')}
+                              {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
                             </p>
                           </div>
                         </div>
