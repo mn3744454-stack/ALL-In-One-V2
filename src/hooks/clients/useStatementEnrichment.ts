@@ -243,6 +243,18 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
             } else {
               if (item.description) noHorseItems.push(item.description);
             }
+          } else if (item.entity_type === "breeding" && item.entity_id) {
+            // Breeding items carry descriptive line items; group under a breeding key
+            const key = `breeding_${item.entity_id}`;
+            const existing = horseGroupMap.get(key) || {
+              horseId: item.entity_id,
+              horseName: "",
+              samples: [],
+              items: [],
+              source: "breeding" as const,
+            };
+            if (item.description) existing.items.push(item.description);
+            horseGroupMap.set(key, existing);
           } else {
             if (item.description) noHorseItems.push(item.description);
           }
