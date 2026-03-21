@@ -16,7 +16,7 @@ import {
   EyeOff,
   ExternalLink
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
