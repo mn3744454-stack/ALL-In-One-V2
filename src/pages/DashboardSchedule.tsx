@@ -157,7 +157,7 @@ function ScheduleList({
       {groupedItems.map(([dateKey, dateItems]) => (
         <div key={dateKey}>
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
-            {format(new Date(dateKey), "EEEE, MMMM d, yyyy")}
+            {formatStandardDate(dateKey)}
           </h3>
           <div className="space-y-3">
             {dateItems.map(item => (
