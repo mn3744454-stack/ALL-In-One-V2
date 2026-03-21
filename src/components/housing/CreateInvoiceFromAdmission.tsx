@@ -14,6 +14,7 @@ import { useClients } from "@/hooks/useClients";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { supabase } from "@/integrations/supabase/client";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
