@@ -48,7 +48,7 @@ export function DateRangeFilter({
             )}
           >
             <CalendarIcon className="h-4 w-4 me-2" />
-            {dateFrom ? format(new Date(dateFrom), "PPP") : t("laboratory.filters.fromDate")}
+            {dateFrom ? formatStandardDate(new Date(dateFrom)) : t("laboratory.filters.fromDate")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
