@@ -512,7 +512,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3 shrink-0" />
-                          {format(new Date(req.requested_at), "MMM d, yyyy")}
+                          {formatStandardDate(new Date(req.requested_at))}
                         </span>
                         {req.external_lab_name && (
                           <span className="flex items-center gap-1">
