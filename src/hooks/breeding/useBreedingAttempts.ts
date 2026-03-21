@@ -28,8 +28,46 @@ export interface BreedingAttempt {
   performed_by: string | null;
   created_by: string;
   assigned_to: string | null;
+  contract_id: string | null;
   created_at: string;
   updated_at: string;
+  // Joined
+  mare?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    avatar_url: string | null;
+  };
+  stallion?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    avatar_url: string | null;
+  } | null;
+  creator?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  };
+  assignee?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  performer?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
+}
   // Joined
   mare?: {
     id: string;
