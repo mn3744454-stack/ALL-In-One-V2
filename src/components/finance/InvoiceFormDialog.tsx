@@ -255,7 +255,7 @@ export function InvoiceFormDialog({
                   <SelectContent className="z-[60]">
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
-                        {client.name}
+                        {displayClientName(client.name, client.name_ar, lang)}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -148,7 +148,7 @@ export function HorseSharesPanel({ horseId, horseName }: HorseSharesPanelProps) 
           {share.expires_at && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              {t("horseShare.expiresLabel")}: {format(new Date(share.expires_at), "PP")}
+              {t("horseShare.expiresLabel")}: {formatStandardDate(new Date(share.expires_at))}
             </span>
           )}
           {share.recipient_email && (

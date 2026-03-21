@@ -335,7 +335,7 @@ export function AdvancedFilters({
         <div className="flex flex-wrap items-center gap-1.5">
           {clientId && selectedClient && (
             <Badge variant="secondary" className="gap-1">
-              {t("laboratory.filters.client")}: {selectedClient.name}
+              {t("laboratory.filters.client")}: {displayClientName(selectedClient.name, selectedClient.name_ar, lang)}
               <X
                 className="h-3 w-3 cursor-pointer"
                 onClick={() => onClientChange(undefined)}

@@ -557,8 +557,8 @@ export default function SharedHorseReport() {
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground pt-4 border-t">
           {lang === "ar"
-            ? `تم إنشاء هذا التقرير تلقائياً • ${format(new Date(), "PPP")}`
-            : `Report generated automatically • ${format(new Date(), "PPP")}`}
+            ? `تم إنشاء هذا التقرير تلقائياً • ${formatStandardDate(new Date())}`
+            : `Report generated automatically • ${formatStandardDate(new Date())}`}
         </div>
       </div>
     </div>

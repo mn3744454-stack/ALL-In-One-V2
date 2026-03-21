@@ -258,9 +258,9 @@ function AdmissionCard({ admission, onClick, t }: { admission: BoardingAdmission
             </div>
             {/* Row 2: Operational details */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-              {admission.client?.name && (
+              {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
-                  <span className="font-medium text-foreground/70">{admission.client.name}</span>
+                  <span className="font-medium text-foreground/70">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
                 </span>
               )}
               {admission.branch && (

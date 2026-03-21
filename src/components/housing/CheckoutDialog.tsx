@@ -132,7 +132,7 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
             {admission.client && (
               <div>
                 <span className="text-muted-foreground">{t('housing.admissions.detail.client')}: </span>
-                <span className="font-medium">{admission.client.name}</span>
+                <span className="font-medium">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
               </div>
             )}
           </div>

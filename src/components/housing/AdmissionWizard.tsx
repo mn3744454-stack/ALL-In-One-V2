@@ -478,7 +478,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 {selectedClient && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span>{selectedClient.name}</span>
+                    <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                   </div>
                 )}
                 {form.branchId && (

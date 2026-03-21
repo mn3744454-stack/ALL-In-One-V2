@@ -163,12 +163,7 @@ export function ClientPickerSheet({
                         ) : (
                           <span className="shrink-0">{typeIcons[client.type]}</span>
                         )}
-                        <span className="font-medium truncate">{client.name}</span>
-                        {client.name_ar && (
-                          <span className="text-muted-foreground text-sm truncate" dir="rtl">
-                            {client.name_ar}
-                          </span>
-                        )}
+                        <span className="font-medium truncate">{displayClientName(client.name, client.name_ar, lang)}</span>
                       </div>
                       <Badge variant="secondary" className="text-[10px] shrink-0">
                         {typeLabels[client.type]}

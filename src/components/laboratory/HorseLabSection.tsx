@@ -257,7 +257,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(selectedResult.created_at), "PPP")}
+                {formatStandardDate(new Date(selectedResult.created_at))}
               </div>
               {getStatusBadge(selectedResult.status)}
             </div>

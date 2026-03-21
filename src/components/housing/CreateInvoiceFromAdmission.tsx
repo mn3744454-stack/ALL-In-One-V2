@@ -217,7 +217,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
                           }}
                         >
                           <Check className={cn("mr-2 h-4 w-4", selectedClientId === client.id ? "opacity-100" : "opacity-0")} />
-                          <span>{client.name}</span>
+                          <span>{displayClientName(client.name, client.name_ar, lang)}</span>
                           {client.phone && <span className="ml-auto text-xs text-muted-foreground">{client.phone}</span>}
                         </CommandItem>
                       ))}

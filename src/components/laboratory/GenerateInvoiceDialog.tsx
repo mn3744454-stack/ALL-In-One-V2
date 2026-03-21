@@ -316,9 +316,7 @@ export function GenerateInvoiceDialog({
                     <SelectContent>
                       {clients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
-                          {dir === "rtl" && client.name_ar
-                            ? client.name_ar
-                            : client.name}
+                          {displayClientName(client.name, client.name_ar, lang)}
                         </SelectItem>
                       ))}
                     </SelectContent>

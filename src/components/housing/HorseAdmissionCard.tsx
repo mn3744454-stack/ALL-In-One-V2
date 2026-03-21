@@ -19,7 +19,7 @@ interface HorseAdmissionCardProps {
 }
 
 export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
 
