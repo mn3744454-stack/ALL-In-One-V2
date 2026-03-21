@@ -1,0 +1,2 @@
+ALTER TABLE public.horses DROP CONSTRAINT chk_breeding_role;
+ALTER TABLE public.horses ADD CONSTRAINT chk_breeding_role CHECK (breeding_role IS NULL OR breeding_role IN ('broodmare', 'breeding_stallion'));
