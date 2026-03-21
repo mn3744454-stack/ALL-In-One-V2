@@ -43,7 +43,7 @@ export function InvoiceFormDialog({
   invoice,
   existingItems = [],
 }: InvoiceFormDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();

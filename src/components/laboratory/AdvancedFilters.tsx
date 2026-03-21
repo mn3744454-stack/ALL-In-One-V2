@@ -88,7 +88,7 @@ export function AdvancedFilters({
   isLabTenant = false,
   className,
 }: AdvancedFiltersProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { clients } = useClients();
   const { horses: stableHorses } = useHorses();
   const { labHorses } = useLabHorses({ includeArchived: false });

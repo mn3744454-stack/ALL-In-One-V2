@@ -47,6 +47,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";

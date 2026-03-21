@@ -43,7 +43,7 @@ interface AdmissionsListProps {
 }
 
 export function AdmissionsList({ branchId }: AdmissionsListProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
   const [searchParams, setSearchParams] = useSearchParams();

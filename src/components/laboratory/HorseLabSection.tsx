@@ -600,7 +600,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
                     <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {r.published_at ? format(new Date(r.published_at), "MMM d, yyyy") : "—"}
+                        {r.published_at ? formatStandardDate(new Date(r.published_at)) : "—"}
                       </span>
                       {r.lab_tenant_name && (
                         <span className="flex items-center gap-1">

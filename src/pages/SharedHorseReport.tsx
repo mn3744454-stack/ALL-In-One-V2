@@ -455,9 +455,8 @@ export default function SharedHorseReport() {
                             {treatment.source_tenant || "—"}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">
-                            {format(
-                              new Date(treatment.requested_at || treatment.created_at),
-                              "PP"
+                            {formatStandardDate(
+                              new Date(treatment.requested_at || treatment.created_at)
                             )}
                           </TableCell>
                         </TableRow>

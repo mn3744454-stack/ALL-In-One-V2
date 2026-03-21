@@ -41,7 +41,7 @@ export function ClientPickerSheet({
   const [searchValue, setSearchValue] = useState("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const { clients, loading, createClient, canManage } = useClients();
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
 
   const activeClients = useMemo(() => {
     return clients.filter(c => c.status === "active");

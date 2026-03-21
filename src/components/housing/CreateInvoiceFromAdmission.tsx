@@ -32,7 +32,7 @@ interface Props {
 export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Props) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
   const queryClient = useQueryClient();
 

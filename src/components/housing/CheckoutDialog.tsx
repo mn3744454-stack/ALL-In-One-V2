@@ -31,7 +31,7 @@ interface CheckoutDialogProps {
 }
 
 export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: CheckoutDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
   const [notes, setNotes] = useState('');
   const [overrideConfirmed, setOverrideConfirmed] = useState(false);

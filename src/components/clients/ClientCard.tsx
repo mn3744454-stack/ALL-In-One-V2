@@ -44,11 +44,6 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="font-semibold text-foreground truncate">{displayName}</h3>
-              {secondaryName && secondaryName !== displayName && (
-                <p className="text-sm text-muted-foreground truncate" dir={lang === 'ar' ? 'ltr' : 'rtl'}>
-                  {secondaryName}
-                </p>
-              )}
             </div>
           </div>
           

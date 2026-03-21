@@ -44,7 +44,7 @@ const STEPS = ['horse', 'client', 'plan', 'housing', 'rates', 'details', 'review
 type Step = typeof STEPS[number];
 
 export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId }: AdmissionWizardProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;

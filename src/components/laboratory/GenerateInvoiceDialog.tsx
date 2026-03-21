@@ -55,7 +55,7 @@ export function GenerateInvoiceDialog({
   sample,
   request,
 }: GenerateInvoiceDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { clients, loading: clientsLoading } = useClients();
   const { templates } = useLabTemplates();
   const {
