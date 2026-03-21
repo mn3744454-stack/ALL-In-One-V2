@@ -14,16 +14,21 @@ import { useStableServicePlans, type StableServicePlan, type CreatePlanData } fr
 import { useServices } from "@/hooks/useServices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
+import { displayServiceName } from "@/lib/displayHelpers";
+import { normalizeIncludes, type IncludedServiceEntry } from "@/lib/planIncludes";
+import { PlanIncludedServicesPicker } from "./PlanIncludedServicesPicker";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { Plus, Pencil, Package, Trash2, Link2 } from "lucide-react";
 
 export function ServicePlansManager() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
   const { data: services = [] } = useServices();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
+  const [includedServices, setIncludedServices] = useState<IncludedServiceEntry[]>([]);
   const [form, setForm] = useState<CreatePlanData>({
     name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding',
     billing_cycle: 'monthly', base_price: 0, currency: 'SAR',
@@ -32,12 +37,14 @@ export function ServicePlansManager() {
 
   const openCreate = () => {
     setEditing(null);
+    setIncludedServices([]);
     setForm({ name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding', billing_cycle: 'monthly', base_price: 0, currency: 'SAR', is_active: true, is_public: false });
     setDialogOpen(true);
   };
 
   const openEdit = (plan: StableServicePlan) => {
     setEditing(plan);
+    setIncludedServices(normalizeIncludes(plan.includes));
     setForm({
       name: plan.name, name_ar: plan.name_ar || '', description: plan.description || '',
       service_id: plan.service_id || null,
@@ -50,10 +57,11 @@ export function ServicePlansManager() {
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
+    const payload = { ...form, includes: includedServices };
     if (editing) {
-      await updatePlan({ id: editing.id, ...form });
+      await updatePlan({ id: editing.id, ...payload });
     } else {
-      await createPlan(form);
+      await createPlan(payload);
     }
     setDialogOpen(false);
   };
@@ -90,8 +98,7 @@ export function ServicePlansManager() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="font-medium">{plan.name}</h3>
-                    {plan.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{plan.name_ar}</p>}
+                    <h3 className="font-medium">{displayServiceName(plan.name, plan.name_ar, lang)}</h3>
                   </div>
                   <div className="flex items-center gap-1">
                     {!plan.is_active && <Badge variant="secondary">{t('common.inactive')}</Badge>}
@@ -103,13 +110,14 @@ export function ServicePlansManager() {
                   </div>
                 </div>
                 {plan.description && <p className="text-xs text-muted-foreground mb-2">{plan.description}</p>}
-                <div className="flex items-center gap-2 flex-wrap">
+                <PlanIncludedServicesDisplay includes={plan.includes} compact />
+                <div className="flex items-center gap-2 flex-wrap mt-2">
                   {plan.service_id && (() => {
                     const parentService = services.find(s => s.id === plan.service_id);
                     return parentService ? (
                       <Badge variant="default" className="text-xs gap-1">
                         <Link2 className="h-3 w-3" />
-                        {parentService.name}
+                        {displayServiceName(parentService.name, parentService.name_ar, lang)}
                       </Badge>
                     ) : null;
                   })()}
@@ -205,6 +213,7 @@ export function ServicePlansManager() {
                 <Label>{t('housing.plans.public')}</Label>
               </div>
             </div>
+            <PlanIncludedServicesPicker value={includedServices} onChange={setIncludedServices} />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>

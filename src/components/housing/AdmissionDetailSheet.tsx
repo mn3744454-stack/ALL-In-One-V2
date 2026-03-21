@@ -26,7 +26,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
-import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
@@ -414,8 +415,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   {/* Plan */}
                   {admission.plan_id && (() => {
                     const plan = plans.find(p => p.id === admission.plan_id);
-                    const planLabel = plan ? (dir === 'rtl' && plan.name_ar ? plan.name_ar : plan.name) : admission.plan_id;
-                    return <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />;
+                    const planLabel = plan ? displayServiceName(plan.name, plan.name_ar) : admission.plan_id;
+                    return (
+                      <>
+                        <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />
+                        {plan && <PlanIncludedServicesDisplay includes={plan.includes} />}
+                      </>
+                    );
                   })()}
 
                   <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={formatStandardDateTime(admission.admitted_at)} />

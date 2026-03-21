@@ -27,6 +27,8 @@ import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { displayServiceName } from "@/lib/displayHelpers";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -341,8 +343,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 >
                   <Package className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{plan.name}</p>
-                    {plan.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{plan.name_ar}</p>}
+                    <p className="font-medium text-sm">{displayServiceName(plan.name, plan.name_ar, lang)}</p>
+                    <PlanIncludedServicesDisplay includes={plan.includes} compact />
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">{plan.base_price} {plan.currency}</Badge>
                       <Badge variant="outline" className="text-xs capitalize">{plan.billing_cycle}</Badge>
@@ -363,7 +365,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             {selectedPlan && (
               <div className="flex items-center gap-2 p-2 rounded bg-muted/50 text-xs text-muted-foreground">
                 <Package className="h-3.5 w-3.5" />
-                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan.name}</span>
+                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan ? displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang) : ''}</span>
                 <span className="ms-auto text-xs">{t('housing.admissions.wizard.overrideHint')}</span>
               </div>
             )}
@@ -496,7 +498,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 {selectedPlan && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Package className="h-4 w-4" />
-                    <span>{selectedPlan.name}</span>
+                    <span>{displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang)}</span>
                   </div>
                 )}
                 {(form.monthlyRate || form.dailyRate) && (

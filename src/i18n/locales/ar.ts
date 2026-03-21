@@ -2075,6 +2075,12 @@ export const ar = {
       parentService: "الخدمة الأم",
       noParentService: "بدون خدمة أم",
       linkedPlans: "خطط",
+      includedServices: "الخدمات المشمولة",
+      addIncludedService: "إضافة خدمة مشمولة",
+      searchServices: "البحث عن خدمات...",
+      noServicesFound: "لا توجد خدمات إيواء",
+      noBoardingServices: "لم يتم تعريف خدمات إيواء بعد. أنشئ خدمات من نوع 'إيواء' أولاً.",
+      includedService: "مشمول",
     },
     checkout: {
       financial: {
