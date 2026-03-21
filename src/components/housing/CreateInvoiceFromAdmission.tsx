@@ -196,7 +196,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
                   aria-expanded={clientPickerOpen}
                   className="w-full justify-between font-normal"
                 >
-                  {selectedClient ? selectedClient.name : t("doctor.selectClient")}
+                  {selectedClient ? displayClientName(selectedClient.name, selectedClient.name_ar, lang) : t("doctor.selectClient")}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
