@@ -3776,6 +3776,7 @@ export const en = {
       domain: {
         lab: "Laboratory",
         boarding: "Boarding",
+        breeding: "Breeding",
         registration: "Registration",
         admin: "Administrative",
         transport: "Transport",
