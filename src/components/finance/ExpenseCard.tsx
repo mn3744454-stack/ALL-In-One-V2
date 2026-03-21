@@ -137,7 +137,7 @@ export function ExpenseCard({
             <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-2">
               <ExpenseStatusBadge status={expense.status} />
               <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {format(new Date(expense.expense_date), "MMM d, yyyy")}
+                {formatStandardDate(expense.expense_date)}
               </span>
               {expense.receipt_asset_id && (
                 <Button

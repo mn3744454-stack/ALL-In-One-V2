@@ -144,7 +144,7 @@ export function DelegationAuditLog() {
                         {t("permissions.to")} <span className="font-medium">{targetName}</span>
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(entry.created_at), "MMM d, yyyy 'at' h:mm a")}
+                        {formatStandardDateTime(entry.created_at)}
                       </p>
                     </div>
                   </div>
