@@ -3485,6 +3485,7 @@ export const en = {
       register: "Register",
       registered: "Registered",
       registeredHorse: "Registered Horse Record",
+      registeredFoalRecord: "Registered Foal Record",
       pedigreeAutoLinked: "Sire and dam will be automatically linked from the breeding record.",
       birthDateAuto: "Birth date will be set from foaling date",
       additionalDetails: "Additional Details",

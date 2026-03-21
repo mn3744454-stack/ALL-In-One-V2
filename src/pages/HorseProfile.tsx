@@ -269,7 +269,7 @@ const HorseProfile = () => {
               <div className="flex-1 text-center sm:text-start">
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
                   <Badge className={typeBadgeProps.className}>
-                    {typeBadgeProps.label}
+                    {isRTL(lang) ? typeBadgeProps.labelAr : typeBadgeProps.label}
                   </Badge>
                   {isIntakeDraft ? (
                     <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">

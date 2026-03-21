@@ -3490,6 +3490,7 @@ export const ar = {
       register: "تسجيل",
       registered: "مسجّل",
       registeredHorse: "سجل الحصان المسجل",
+      registeredFoalRecord: "سجل المهر المسجل",
       pedigreeAutoLinked: "سيتم ربط الأب والأم تلقائياً من سجل التلقيح.",
       birthDateAuto: "سيتم تعيين تاريخ الميلاد من تاريخ الولادة",
       additionalDetails: "تفاصيل إضافية",
