@@ -74,7 +74,7 @@ export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
                         <AvatarFallback className="text-xs">{foal.name[0]}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{foal.name}</p>
+                        <p className="font-medium text-sm truncate">{displayHorseName(foal.name, foal.name_ar, lang)}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {badge && (
                             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", badge.className)}>
