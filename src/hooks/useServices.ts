@@ -7,8 +7,11 @@ export interface TenantService {
   id: string;
   tenant_id: string;
   name: string;
+  name_ar: string | null;
   description: string | null;
   service_type: string | null;
+  service_kind: string;
+  unit_price: number | null;
   price_display: string | null;
   is_active: boolean;
   is_public: boolean;
@@ -18,8 +21,11 @@ export interface TenantService {
 
 export interface CreateServiceInput {
   name: string;
+  name_ar?: string;
   description?: string;
   service_type?: string;
+  service_kind?: string;
+  unit_price?: number | null;
   price_display?: string;
   is_active?: boolean;
   is_public?: boolean;
