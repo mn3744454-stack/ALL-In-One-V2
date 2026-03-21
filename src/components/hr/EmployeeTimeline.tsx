@@ -11,7 +11,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatStandardDate, formatStandardDateTime } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 
 interface EmployeeTimelineProps {
