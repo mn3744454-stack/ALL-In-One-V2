@@ -1120,7 +1120,7 @@ export function CreateSampleDialog({
                   onClick={() => setClientPickerOpen(true)}
                 >
                   {formData.client_id && selectedClient ? (
-                    <span className="truncate">{selectedClient.name}</span>
+                    <span className="truncate">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                   ) : (
                     <span className="text-muted-foreground">{t("laboratory.createSample.selectClient")}</span>
                   )}
