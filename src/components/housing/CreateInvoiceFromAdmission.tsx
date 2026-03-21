@@ -142,9 +142,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
       // Step 2: Create invoice_items with entity_type='boarding'
       const lineDescription = buildLineItemDescription();
-      const { error: itemError } = await supabase
-        .from("invoice_items" as any)
-        .insert({
+      const items: any[] = [
+        {
           invoice_id: invoice.id,
           description: lineDescription,
           entity_type: "boarding",
@@ -154,12 +153,31 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
             ? (admission.daily_rate || amount)
             : (admission.monthly_rate || amount),
           total_price: amount,
+        },
+      ];
+
+      // Add informational included-service line items (zero-cost, descriptive only)
+      for (const entry of planIncludes) {
+        const svc = boardingServices.find(s => s.id === entry.service_id);
+        const label = svc?.name || entry.label;
+        items.push({
+          invoice_id: invoice.id,
+          description: `${t('housing.plans.includedService')}: ${label}`,
+          entity_type: "boarding",
+          entity_id: admission.id,
+          quantity: 1,
+          unit_price: 0,
+          total_price: 0,
         });
+      }
+
+      const { error: itemError } = await supabase
+        .from("invoice_items" as any)
+        .insert(items);
 
       if (itemError) {
-        console.error("Error creating invoice item:", itemError);
-        toast.error(t("housing.admissions.billing.invoiceItemFailed") || "Failed to create invoice line item");
-        // Don't return — invoice header exists, continue to link it
+        console.error("Error creating invoice items:", itemError);
+        toast.error(t("housing.admissions.billing.invoiceItemFailed") || "Failed to create invoice line items");
       }
 
       // Step 3: Create billing link
