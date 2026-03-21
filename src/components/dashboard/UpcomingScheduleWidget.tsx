@@ -119,7 +119,7 @@ export function UpcomingScheduleWidget() {
                     <p className="font-medium text-xs sm:text-sm text-navy truncate">{item.title}</p>
                     <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />
-                      <span>{format(new Date(item.startAt), "MMM d, h:mm a")}</span>
+                      <span>{formatStandardDateTime(item.startAt)}</span>
                       {item.horseName && (
                         <>
                           <span className="hidden xs:inline">•</span>

@@ -101,7 +101,7 @@ export function VetFollowupsList({
                         {isOverdue && <AlertTriangle className="w-3 h-3" />}
                         <Calendar className="w-3 h-3" />
                         {isOverdue ? "Overdue: " : isDueToday ? "Today: " : isDueTomorrow ? "Tomorrow: " : ""}
-                        {format(dueDate, "MMM d, yyyy")}
+                        {formatStandardDate(dueDate)}
                       </span>
                     </div>
 

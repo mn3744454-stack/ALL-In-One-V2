@@ -251,7 +251,7 @@ function SampleGroupTable({
                 <Badge variant="secondary" className="text-xs">{sg.results.length}</Badge>
               </td>
               <td className="py-2 px-3 text-muted-foreground">
-                {sg.publishedAt ? format(new Date(sg.publishedAt), "MMM d, yyyy") : "—"}
+                {sg.publishedAt ? formatStandardDate(sg.publishedAt) : "—"}
               </td>
               <td className="py-2 px-3 text-muted-foreground">{sg.labName}</td>
             </tr>

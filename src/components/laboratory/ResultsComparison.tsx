@@ -304,7 +304,7 @@ export function ResultsComparison() {
                         {index === 0 ? "Latest" : "Previous"}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
-                        {format(new Date(result.created_at), "MMM d, yyyy")}
+                        {formatStandardDate(result.created_at)}
                       </span>
                     </div>
                     

@@ -301,7 +301,7 @@ export function SampleCard({
           )}
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{format(new Date(sample.collection_date), "MMM d, yyyy")}</span>
+            <span>{formatStandardDate(sample.collection_date)}</span>
           </div>
           {sample.retest_count > 0 && (
             <div className="flex items-center gap-1">

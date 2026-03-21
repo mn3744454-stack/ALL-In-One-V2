@@ -112,7 +112,7 @@ export function VetTimeline({ entityType, entityId }: VetTimelineProps) {
                   </div>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  {format(new Date(event.created_at), "MMM d, yyyy 'at' h:mm a")}
+                  {formatStandardDateTime(event.created_at)}
                 </span>
               </div>
             </div>

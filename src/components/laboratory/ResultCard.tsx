@@ -70,7 +70,7 @@ export function ResultCard({
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
+            <span>{formatStandardDate(result.created_at)}</span>
           </div>
           {clientName && (
             <div className="flex items-center gap-1">

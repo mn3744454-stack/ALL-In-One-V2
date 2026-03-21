@@ -142,11 +142,11 @@ export function VetVisitCard({
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
-            <span>{format(new Date(visit.scheduled_date), "MMM d, yyyy")}</span>
+            <span>{formatStandardDate(visit.scheduled_date)}</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4" />
-            <span>{format(new Date(visit.scheduled_date), "h:mm a")}</span>
+            <span>{formatStandardTime(visit.scheduled_date)}</span>
           </div>
         </div>
 

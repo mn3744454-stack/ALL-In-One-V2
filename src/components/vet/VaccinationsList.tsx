@@ -98,7 +98,7 @@ export function VaccinationsList({
                       {vaccination.administered_date && (
                         <span className="flex items-center gap-1 text-xs text-success">
                           <CheckCircle className="w-3 h-3" />
-                          Administered: {format(new Date(vaccination.administered_date), "MMM d, yyyy")}
+                          Administered: {formatStandardDate(vaccination.administered_date)}
                         </span>
                       )}
                     </div>

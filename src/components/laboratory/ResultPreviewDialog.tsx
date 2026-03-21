@@ -482,7 +482,7 @@ export function ResultPreviewDialog({
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>{format(new Date(result.created_at), "MMM d, yyyy 'at' h:mm a")}</span>
+              <span>{formatStandardDateTime(result.created_at)}</span>
             </div>
           </div>
 

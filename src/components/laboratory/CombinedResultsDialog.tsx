@@ -313,7 +313,7 @@ export function CombinedResultsDialog({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">تاريخ الجمع</p>
-                  <p className="text-sm md:text-base">{format(new Date(sample.collection_date), "d MMM yyyy")}</p>
+                  <p className="text-sm md:text-base">{formatStandardDate(sample.collection_date)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">التحاليل</p>

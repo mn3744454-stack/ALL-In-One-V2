@@ -192,7 +192,7 @@ export function LabCreditsPanel({ compact = false }: LabCreditsPanelProps) {
                     <div>
                       <p className="text-sm capitalize">{txn.txn_type}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(txn.created_at), "MMM d, h:mm a")}
+                        {formatStandardDateTime(txn.created_at)}
                       </p>
                     </div>
                   </div>

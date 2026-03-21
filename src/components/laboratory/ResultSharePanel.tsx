@@ -236,8 +236,8 @@ export function ResultSharePanel({ resultId, resultStatus }: ResultSharePanelPro
                       {t("laboratory.share.revoked")}
                     </Badge>
                     <p className="text-xs text-muted-foreground">
-                      {t("laboratory.share.created")} {format(new Date(share.created_at), "MMM d")}
-                      {" • "}{t("laboratory.share.revoked")} {format(new Date(share.revoked_at!), "MMM d")}
+                      {t("laboratory.share.created")} {formatStandardDate(share.created_at)}
+                      {" • "}{t("laboratory.share.revoked")} {formatStandardDate(share.revoked_at!)}
                     </p>
                   </div>
                 </div>
