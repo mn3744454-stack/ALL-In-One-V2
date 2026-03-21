@@ -93,7 +93,7 @@ function ExamRow({ check }: { check: PregnancyCheck }) {
     <div className="flex items-start gap-3 p-3 rounded-lg border bg-card">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium">{format(new Date(check.check_date), "PP")}</span>
+          <span className="text-sm font-medium">{formatBreedingDate(check.check_date)}</span>
           <Badge variant="secondary" className="text-xs">{t(`breeding.examMethods.${check.method}`)}</Badge>
           <Badge variant="outline" className={cn("text-xs", outcomeStyles[check.outcome] || "")}>
             {t(`breeding.examOutcomes.${check.outcome}`)}
