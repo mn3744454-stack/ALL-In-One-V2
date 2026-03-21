@@ -131,7 +131,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
           variant="secondary" 
           className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}
         >
-          {horse.status || "draft"}
+          {t(`horses.status.${horse.status || 'draft'}`)}
         </Badge>
       </div>
     );
