@@ -79,7 +79,7 @@ export function VetTreatmentCard({ treatment, onView, onEdit }: VetTreatmentCard
               {treatment.scheduled_for && (
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
-                  {format(new Date(treatment.scheduled_for), "MMM d, yyyy")}
+                  {formatStandardDate(treatment.scheduled_for)}
                 </span>
               )}
               {treatment.assignee && (
