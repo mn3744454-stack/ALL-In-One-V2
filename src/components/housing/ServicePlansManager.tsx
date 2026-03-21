@@ -14,16 +14,21 @@ import { useStableServicePlans, type StableServicePlan, type CreatePlanData } fr
 import { useServices } from "@/hooks/useServices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
+import { displayServiceName } from "@/lib/displayHelpers";
+import { normalizeIncludes, type IncludedServiceEntry } from "@/lib/planIncludes";
+import { PlanIncludedServicesPicker } from "./PlanIncludedServicesPicker";
+import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { Plus, Pencil, Package, Trash2, Link2 } from "lucide-react";
 
 export function ServicePlansManager() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canManagePlans = isOwner || hasPermission('boarding.admission.update');
   const { plans, isLoading, createPlan, isCreating, updatePlan, deletePlan } = useStableServicePlans();
   const { data: services = [] } = useServices();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StableServicePlan | null>(null);
+  const [includedServices, setIncludedServices] = useState<IncludedServiceEntry[]>([]);
   const [form, setForm] = useState<CreatePlanData>({
     name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding',
     billing_cycle: 'monthly', base_price: 0, currency: 'SAR',
