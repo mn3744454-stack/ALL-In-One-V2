@@ -30,6 +30,9 @@ interface Horse {
   branch_data?: { name: string } | null;
   // Optional ownership info
   primary_owner?: { name: string } | null;
+  // Breeding enrichment indicators (optional, from enriched queries)
+  _hasOffspring?: boolean;
+  _isBreedingActive?: boolean;
 }
 
 interface HorseCardProps {
