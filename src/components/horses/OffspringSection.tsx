@@ -17,7 +17,7 @@ interface OffspringSectionProps {
 }
 
 export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { offspring, loading } = useHorseOffspring(horseId, gender);
 
   if (loading) {
