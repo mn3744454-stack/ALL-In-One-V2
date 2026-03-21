@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FlaskConical, Calendar, Building2, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import type { StableResultGroup, StableLabResult } from "@/hooks/laboratory/useStableLabResults";
 
