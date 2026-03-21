@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { MapPin, ArrowRight, Clock, Plus, ChevronRight, Building2, DoorOpen } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { useSingleHorseMovements, type HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { MovementTypeBadge } from "./MovementTypeBadge";
