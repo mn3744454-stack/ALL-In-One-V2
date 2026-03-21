@@ -569,7 +569,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </span>
           )}
           <span>
-            {format(new Date(request.requested_at), 'PP')}
+            {formatStandardDate(request.requested_at)}
           </span>
         </div>
 
