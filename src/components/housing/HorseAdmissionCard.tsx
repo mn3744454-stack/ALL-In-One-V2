@@ -102,7 +102,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           {admission.client && (
             <div className="flex items-center gap-1.5">
               <User className="h-3 w-3 text-muted-foreground" />
-              <span className="truncate">{admission.client.name}</span>
+              <span className="truncate">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
             </div>
           )}
           {admission.branch && (
