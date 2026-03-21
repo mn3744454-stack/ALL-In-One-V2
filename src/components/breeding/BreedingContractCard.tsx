@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { BreedingContract } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
-import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { displayHorseName, displayClientName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface Props {
   contract: BreedingContract;
