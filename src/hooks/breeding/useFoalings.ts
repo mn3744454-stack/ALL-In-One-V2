@@ -21,6 +21,7 @@ export interface Foaling {
   notes: string | null;
   performed_by: string | null;
   created_by: string;
+  contract_id: string | null;
   registry_notification_status: string;
   registry_blood_sample_status: string;
   registry_microchip_status: string;
@@ -33,6 +34,14 @@ export interface Foaling {
   stallion?: { id: string; name: string; name_ar: string | null } | null;
   performer?: { id: string; full_name: string | null } | null;
   foal_horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
+  } | null;
 }
 
 export interface CreateFoalingData {
