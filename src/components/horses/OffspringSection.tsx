@@ -78,7 +78,7 @@ export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {badge && (
                             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", badge.className)}>
-                              {badge.label}
+                              {isRTL(lang) ? badge.labelAr : badge.label}
                             </Badge>
                           )}
                           {ageParts && <span>{ageStr}</span>}

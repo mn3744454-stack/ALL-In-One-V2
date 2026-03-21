@@ -90,7 +90,7 @@ interface Horse {
 const HorseProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [horse, setHorse] = useState<Horse | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
