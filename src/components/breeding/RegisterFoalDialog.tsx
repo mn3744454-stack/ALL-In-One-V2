@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Baby } from "lucide-react";
-import { Baby } from "lucide-react";
 import {
   Dialog,
   DialogContent,
