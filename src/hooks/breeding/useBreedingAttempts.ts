@@ -68,35 +68,8 @@ export interface BreedingAttempt {
     client_name: string | null;
   } | null;
 }
-  // Joined
-  mare?: {
-    id: string;
-    name: string;
-    name_ar: string | null;
-    avatar_url: string | null;
-  };
-  stallion?: {
-    id: string;
-    name: string;
-    name_ar: string | null;
-    avatar_url: string | null;
-  } | null;
-  creator?: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  };
-  assignee?: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-  performer?: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-}
+
+
 
 export interface CreateBreedingAttemptData {
   mare_id: string;
