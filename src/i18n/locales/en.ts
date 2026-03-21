@@ -3282,6 +3282,10 @@ export const en = {
     tabs: {
       records: "Breeding Records",
       pregnancies: "Pregnancies",
+      foalings: "Foalings",
+      embryo: "Embryo Transfers",
+      inventory: "Semen Inventory",
+    },
       embryo: "Embryo Transfers",
       inventory: "Semen Inventory",
     },
@@ -3420,6 +3424,7 @@ export const en = {
       transfers: "No embryo transfers recorded yet.",
       batches: "No semen batches in inventory yet.",
       horseRecords: "No breeding records for this horse.",
+      foalings: "No foaling records yet. Record a foaling from an active pregnancy.",
     },
     // Horse profile section
     horseSection: {
@@ -3432,6 +3437,7 @@ export const en = {
       noActivePregnancy: "No active pregnancy",
       viewAll: "View All in Breeding Dashboard",
       notEligible: "This horse is not currently designated for breeding.",
+      foalingHistory: "Foaling History",
     },
     // Pedigree
     pedigree: {
@@ -3445,6 +3451,56 @@ export const en = {
     offspring: {
       title: "Offspring",
       empty: "No registered offspring.",
+    },
+    // Foaling
+    foaling: {
+      recordTitle: "Record Foaling",
+      detailTitle: "Foaling Details",
+      date: "Foaling Date",
+      time: "Foaling Time",
+      outcome: "Outcome",
+      outcomes: {
+        live: "Live Foal",
+        stillborn: "Stillborn",
+        non_viable: "Non-Viable",
+        other: "Other",
+      },
+      foalSex: "Foal Sex",
+      selectSex: "Select sex",
+      foalName: "Foal Name",
+      foalNamePlaceholder: "Enter foal name",
+      foalNameAr: "Foal Name (Arabic)",
+      foalNameArPlaceholder: "أدخل اسم المهر بالعربية",
+      foalColor: "Foal Color",
+      foalColorPlaceholder: "Enter color",
+      registerAsHorse: "Register foal as a new horse record",
+      registerFoal: "Register Foal",
+      registerFoalTitle: "Register Foal as Horse",
+      registerFoalDesc: "Create a horse record for this foal with automatic pedigree linkage.",
+      register: "Register",
+      registered: "Registered",
+      registeredHorse: "Registered Horse Record",
+      pedigreeAutoLinked: "Sire and dam will be automatically linked from the breeding record.",
+      birthDateAuto: "Birth date will be set from foaling date",
+      additionalDetails: "Additional Details",
+      notesPlaceholder: "Notes about the foaling...",
+      save: "Record Foaling",
+      alive: "Alive",
+      deceased: "Deceased",
+      markDeceased: "Mark as Deceased",
+      markAlive: "Mark as Alive",
+      registry: {
+        title: "Foal Registry Status",
+        notification: "Notification",
+        blood: "Blood Sample",
+        microchip: "Microchip",
+        registration: "Registration",
+        statuses: {
+          pending: "Pending",
+          done: "Done",
+          na: "N/A",
+        },
+      },
     },
     // Demo data notice
     demoNotice: "Showing demo data. Add your first record to see real data.",

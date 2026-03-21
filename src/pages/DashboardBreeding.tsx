@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { Plus, Heart, Baby, Syringe, FlaskConical } from "lucide-react";
+import { Plus, Heart, Baby, Syringe, FlaskConical, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,16 +11,21 @@ import { useBreedingAttempts, BreedingAttempt } from "@/hooks/breeding/useBreedi
 import { usePregnancies, Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { useEmbryoTransfers } from "@/hooks/breeding/useEmbryoTransfers";
 import { useSemenInventory } from "@/hooks/breeding/useSemenInventory";
+import { useFoalings, Foaling } from "@/hooks/breeding/useFoalings";
 import { BreedingAttemptCard } from "@/components/breeding/BreedingAttemptCard";
 import { PregnancyCard } from "@/components/breeding/PregnancyCard";
 import { EmbryoTransferCard } from "@/components/breeding/EmbryoTransferCard";
 import { SemenBatchCard } from "@/components/breeding/SemenBatchCard";
+import { FoalingCard } from "@/components/breeding/FoalingCard";
 import { BreedingBottomNavigation } from "@/components/breeding/BreedingBottomNavigation";
 import { CreateBreedingAttemptDialog } from "@/components/breeding/CreateBreedingAttemptDialog";
 import { CreatePregnancyDialog } from "@/components/breeding/CreatePregnancyDialog";
 import { CreateEmbryoTransferDialog } from "@/components/breeding/CreateEmbryoTransferDialog";
 import { CreateSemenBatchDialog } from "@/components/breeding/CreateSemenBatchDialog";
+import { RecordFoalingDialog } from "@/components/breeding/RecordFoalingDialog";
+import { RegisterFoalDialog } from "@/components/breeding/RegisterFoalDialog";
 import { BreedingRecordDetailSheet, PregnancyDetailSheet } from "@/components/breeding/BreedingDetailSheets";
+import { FoalingDetailSheet } from "@/components/breeding/FoalingDetailSheet";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 
@@ -32,11 +37,16 @@ export default function DashboardBreeding() {
   const [showBatchDialog, setShowBatchDialog] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<BreedingAttempt | null>(null);
   const [selectedPregnancy, setSelectedPregnancy] = useState<Pregnancy | null>(null);
+  const [selectedFoaling, setSelectedFoaling] = useState<Foaling | null>(null);
+  // Foaling recording from a pregnancy
+  const [foalingPregnancy, setFoalingPregnancy] = useState<Pregnancy | null>(null);
+  // Register foal from foaling card
+  const [registerFoalFoaling, setRegisterFoalFoaling] = useState<Foaling | null>(null);
 
   const { activeTenant } = useTenant();
   const { t } = useI18n();
 
-  const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'embryo', 'inventory'], []);
+  const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'foalings', 'embryo', 'inventory'], []);
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
@@ -51,9 +61,10 @@ export default function DashboardBreeding() {
   };
   
   const { attempts, loading: attemptsLoading, canManage, updateAttempt, deleteAttempt } = useBreedingAttempts();
-  const { pregnancies, loading: pregnanciesLoading, canManage: pregCanManage, closePregnancy } = usePregnancies();
+  const { pregnancies, loading: pregnanciesLoading, canManage: pregCanManage, closePregnancy, refresh: refreshPregnancies } = usePregnancies();
   const { transfers, loading: transfersLoading, updateTransfer, deleteTransfer } = useEmbryoTransfers();
   const { batches, loading: inventoryLoading, deleteBatch } = useSemenInventory();
+  const { foalings, loading: foalingsLoading, canManage: foalCanManage, refresh: refreshFoalings } = useFoalings();
 
   const handleAddNew = () => {
     switch (activeTab) {
@@ -61,6 +72,15 @@ export default function DashboardBreeding() {
       case "pregnancies": setShowPregnancyDialog(true); break;
       case "embryo": setShowTransferDialog(true); break;
       case "inventory": setShowBatchDialog(true); break;
+      // foalings are created from pregnancies, not standalone
+    }
+  };
+
+  // Handle "Mark as Foaled" from pregnancy card — opens foaling dialog
+  const handleMarkFoaled = (pregnancyId: string) => {
+    const preg = pregnancies.find(p => p.id === pregnancyId);
+    if (preg) {
+      setFoalingPregnancy(preg);
     }
   };
 
@@ -70,6 +90,9 @@ export default function DashboardBreeding() {
       <p className="text-sm text-muted-foreground">{t(messageKey)}</p>
     </div>
   );
+
+  // Show Add button for all tabs except foalings (foalings are created from pregnancies)
+  const showAddButton = canManage && activeTab !== "foalings";
 
   return (
     <>
@@ -108,11 +131,12 @@ export default function DashboardBreeding() {
                     <TabsList className="hidden lg:flex">
                       <TabsTrigger value="attempts" className="gap-2"><Heart className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.records")}</span></TabsTrigger>
                       <TabsTrigger value="pregnancies" className="gap-2"><Baby className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.pregnancies")}</span></TabsTrigger>
+                      <TabsTrigger value="foalings" className="gap-2"><Stethoscope className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.foalings")}</span></TabsTrigger>
                       <TabsTrigger value="embryo" className="gap-2"><FlaskConical className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.embryo")}</span></TabsTrigger>
                       <TabsTrigger value="inventory" className="gap-2"><Syringe className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.inventory")}</span></TabsTrigger>
                     </TabsList>
 
-                    {canManage && (
+                    {showAddButton && (
                       <Button className="gap-2" onClick={handleAddNew}>
                         <Plus className="h-4 w-4" />
                         {t("breeding.addNew")}
@@ -154,7 +178,33 @@ export default function DashboardBreeding() {
                             pregnancy={pregnancy}
                             canManage={pregCanManage}
                             onView={setSelectedPregnancy}
-                            onClose={closePregnancy}
+                            onClose={(id, reason) => {
+                              if (reason === "foaled") {
+                                handleMarkFoaled(id);
+                              } else {
+                                closePregnancy(id, reason);
+                              }
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="foalings">
+                    {foalingsLoading ? (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                    ) : foalings.length === 0 ? (
+                      renderEmptyState("breeding.empty.foalings")
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {foalings.map((foaling) => (
+                          <FoalingCard
+                            key={foaling.id}
+                            foaling={foaling}
+                            canManage={foalCanManage}
+                            onClick={setSelectedFoaling}
+                            onRegisterFoal={setRegisterFoalFoaling}
                           />
                         ))}
                       </div>
@@ -208,6 +258,20 @@ export default function DashboardBreeding() {
         <CreateEmbryoTransferDialog open={showTransferDialog} onOpenChange={setShowTransferDialog} />
         <CreateSemenBatchDialog open={showBatchDialog} onOpenChange={setShowBatchDialog} />
 
+        {/* Foaling dialogs */}
+        <RecordFoalingDialog
+          open={!!foalingPregnancy}
+          onOpenChange={(open) => { if (!open) setFoalingPregnancy(null); }}
+          pregnancy={foalingPregnancy}
+          onSuccess={() => { refreshPregnancies(); refreshFoalings(); }}
+        />
+        <RegisterFoalDialog
+          open={!!registerFoalFoaling}
+          onOpenChange={(open) => { if (!open) setRegisterFoalFoaling(null); }}
+          foaling={registerFoalFoaling}
+          onSuccess={refreshFoalings}
+        />
+
         {/* Detail Sheets */}
         <BreedingRecordDetailSheet
           attempt={selectedAttempt}
@@ -220,6 +284,12 @@ export default function DashboardBreeding() {
           open={!!selectedPregnancy}
           onOpenChange={(open) => { if (!open) setSelectedPregnancy(null); }}
           canManage={pregCanManage}
+        />
+        <FoalingDetailSheet
+          foaling={selectedFoaling}
+          open={!!selectedFoaling}
+          onOpenChange={(open) => { if (!open) setSelectedFoaling(null); }}
+          canManage={foalCanManage}
         />
       </DashboardShell>
     </>

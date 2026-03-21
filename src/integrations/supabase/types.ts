@@ -2371,6 +2371,141 @@ export type Database = {
           },
         ]
       }
+      foalings: {
+        Row: {
+          created_at: string
+          created_by: string
+          foal_alive: boolean
+          foal_color: string | null
+          foal_horse_id: string | null
+          foal_name: string | null
+          foal_sex: string | null
+          foaling_date: string
+          foaling_time: string | null
+          id: string
+          location_ref: string | null
+          mare_id: string
+          notes: string | null
+          outcome: string
+          performed_by: string | null
+          pregnancy_id: string
+          registry_blood_sample_status: string
+          registry_microchip_status: string
+          registry_notification_status: string
+          registry_registration_status: string
+          stallion_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          foal_alive?: boolean
+          foal_color?: string | null
+          foal_horse_id?: string | null
+          foal_name?: string | null
+          foal_sex?: string | null
+          foaling_date?: string
+          foaling_time?: string | null
+          id?: string
+          location_ref?: string | null
+          mare_id: string
+          notes?: string | null
+          outcome?: string
+          performed_by?: string | null
+          pregnancy_id: string
+          registry_blood_sample_status?: string
+          registry_microchip_status?: string
+          registry_notification_status?: string
+          registry_registration_status?: string
+          stallion_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          foal_alive?: boolean
+          foal_color?: string | null
+          foal_horse_id?: string | null
+          foal_name?: string | null
+          foal_sex?: string | null
+          foaling_date?: string
+          foaling_time?: string | null
+          id?: string
+          location_ref?: string | null
+          mare_id?: string
+          notes?: string | null
+          outcome?: string
+          performed_by?: string | null
+          pregnancy_id?: string
+          registry_blood_sample_status?: string
+          registry_microchip_status?: string
+          registry_notification_status?: string
+          registry_registration_status?: string
+          stallion_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "foalings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_foal_horse_id_fkey"
+            columns: ["foal_horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_pregnancy_id_fkey"
+            columns: ["pregnancy_id"]
+            isOneToOne: true
+            referencedRelation: "pregnancies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string

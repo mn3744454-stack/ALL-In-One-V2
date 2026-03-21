@@ -8,3 +8,7 @@ export * from "./BreedingBottomNavigation";
 export * from "./PregnancyExamsPanel";
 export * from "./BreedingDetailSheets";
 export * from "./HorseBreedingSection";
+export * from "./FoalingCard";
+export * from "./FoalingDetailSheet";
+export * from "./RecordFoalingDialog";
+export * from "./RegisterFoalDialog";

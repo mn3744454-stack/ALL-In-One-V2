@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, Clock, User } from "lucide-react";
+import { Heart, MapPin, Clock, User, Baby, Crown } from "lucide-react";
 import { 
   getCurrentAgeParts, 
   formatAgeCompact, 
@@ -30,6 +30,9 @@ interface Horse {
   branch_data?: { name: string } | null;
   // Optional ownership info
   primary_owner?: { name: string } | null;
+  // Breeding enrichment indicators (optional, from enriched queries)
+  _hasOffspring?: boolean;
+  _isBreedingActive?: boolean;
 }
 
 interface HorseCardProps {
@@ -204,6 +207,18 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
                 <span className="flex items-center gap-1">
                   <User className="w-3 h-3" />
                   {ownerName}
+                </span>
+              )}
+              {horse.breeding_role && (
+                <span className="flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-primary" />
+                  {t(`horses.breedingRoles.${horse.breeding_role}`)}
+                </span>
+              )}
+              {horse._hasOffspring && (
+                <span className="flex items-center gap-1">
+                  <Baby className="w-3 h-3 text-primary" />
+                  {t("breeding.offspring.title")}
                 </span>
               )}
             </div>
