@@ -12,7 +12,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
