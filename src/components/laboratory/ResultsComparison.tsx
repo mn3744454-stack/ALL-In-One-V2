@@ -214,7 +214,7 @@ export function ResultsComparison() {
                           <td className="p-2">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3 text-muted-foreground" />
-                              <span>{format(new Date(result.created_at), "MMM d, yyyy")}</span>
+                              <span>{formatStandardDate(result.created_at)}</span>
                             </div>
                           </td>
                           <td className="p-2">
