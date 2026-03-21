@@ -346,7 +346,7 @@ export function ResultPreviewDialog({
             </div>
             {designTemplate === 'classic' && (
               <div className="text-right text-sm text-muted-foreground">
-                <p>Report Date: {format(new Date(), "MMM d, yyyy")}</p>
+                <p>Report Date: {formatStandardDate(new Date())}</p>
                 <p>ID: {result.id.slice(0, 8)}</p>
               </div>
             )}
