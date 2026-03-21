@@ -29,7 +29,9 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { useFoalings, CreateFoalingData, CreateFoalHorseData } from "@/hooks/breeding/useFoalings";
+import { useBreedingContracts } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 
 interface RecordFoalingDialogProps {
   open: boolean;
@@ -46,6 +48,7 @@ export function RecordFoalingDialog({
 }: RecordFoalingDialogProps) {
   const { t } = useI18n();
   const { createFoaling, createFoalHorse } = useFoalings();
+  const { contracts } = useBreedingContracts();
   const [loading, setLoading] = useState(false);
 
   // Core foaling fields
@@ -56,6 +59,7 @@ export function RecordFoalingDialog({
   const [foalColor, setFoalColor] = useState("");
   const [foalName, setFoalName] = useState("");
   const [notes, setNotes] = useState("");
+  const [contractId, setContractId] = useState("");
 
   // Foal registration option
   const [registerFoal, setRegisterFoal] = useState(false);
@@ -65,6 +69,15 @@ export function RecordFoalingDialog({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const isLive = outcome === "live";
+
+  const availableContracts = useMemo(() => {
+    let filtered = contracts.filter(c => c.status === "active");
+    if (pregnancy?.mare_id) {
+      const mareFiltered = filtered.filter(c => !c.mare_id || c.mare_id === pregnancy.mare_id);
+      if (mareFiltered.length > 0) filtered = mareFiltered;
+    }
+    return filtered;
+  }, [contracts, pregnancy?.mare_id]);
 
   const resetForm = () => {
     setFoalingDate(new Date());
@@ -77,6 +90,7 @@ export function RecordFoalingDialog({
     setNotes("");
     setRegisterFoal(false);
     setShowAdvanced(false);
+    setContractId("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -96,6 +110,7 @@ export function RecordFoalingDialog({
         foal_color: foalColor || null,
         foal_name: foalName || null,
         notes: notes || null,
+        contract_id: contractId && contractId !== "none" ? contractId : null,
       };
 
       const foaling = await createFoaling(foalingData);
@@ -153,7 +168,7 @@ export function RecordFoalingDialog({
                     className={cn("w-full justify-start text-left font-normal", !foalingDate && "text-muted-foreground")}
                   >
                     <CalendarIcon className="me-2 h-4 w-4" />
-                    {foalingDate ? format(foalingDate, "PPP") : t("common.selectDate")}
+                    {foalingDate ? formatBreedingDate(foalingDate) : t("common.selectDate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 z-[200]" align="start">
@@ -205,6 +220,24 @@ export function RecordFoalingDialog({
                   onChange={(e) => setFoalName(e.target.value)}
                   placeholder={t("breeding.foaling.foalNamePlaceholder")}
                 />
+              </div>
+            )}
+
+            {/* Contract picker */}
+            {availableContracts.length > 0 && (
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t("breeding.contracts.contract")}</Label>
+                <Select value={contractId} onValueChange={setContractId}>
+                  <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
+                  <SelectContent className="z-[200]">
+                    <SelectItem value="none">{t("common.none")}</SelectItem>
+                    {availableContracts.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.contract_number} — {t(`breeding.contracts.types.${c.contract_type}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>
