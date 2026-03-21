@@ -399,8 +399,8 @@ export default function SharedHorseReport() {
                 <Calendar className="h-4 w-4" />
                 <span>{t("dateRange")}:</span>
                 <span>
-                  {share.date_from ? format(new Date(share.date_from), "PP") : "—"} –{" "}
-                  {share.date_to ? format(new Date(share.date_to), "PP") : "—"}
+                  {share.date_from ? formatStandardDate(new Date(share.date_from)) : "—"} –{" "}
+                  {share.date_to ? formatStandardDate(new Date(share.date_to)) : "—"}
                 </span>
               </div>
             )}
