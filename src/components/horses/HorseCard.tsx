@@ -183,7 +183,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
                   {t(`horses.status.${horse.status || 'draft'}`)}
                 </Badge>
                 <Badge className={cn("text-xs", typeBadgeProps.className)}>
-                  {typeBadgeProps.label}
+                  {typeLabel}
                 </Badge>
               </div>
             </div>
