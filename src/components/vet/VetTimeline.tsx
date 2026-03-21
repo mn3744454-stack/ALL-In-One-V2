@@ -1,7 +1,7 @@
 import { useVetEvents, type VetEvent } from "@/hooks/vet/useVetEvents";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { 
   Plus, 
   ArrowRight, 
