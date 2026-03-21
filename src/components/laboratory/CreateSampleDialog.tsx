@@ -1946,7 +1946,7 @@ export function CreateSampleDialog({
                       {selectedClient && (
                         <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">{selectedClient.name}</span>
+                          <span className="text-sm font-medium">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
                         </div>
                       )}
                       
