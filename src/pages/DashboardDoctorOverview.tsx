@@ -8,7 +8,8 @@ import { useFollowups } from "@/hooks/doctor/useFollowups";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
-import { format, isToday, isFuture } from "date-fns";
+import { isToday, isFuture } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 export default function DashboardDoctorOverview() {
   const { activeTenant } = useTenant();
