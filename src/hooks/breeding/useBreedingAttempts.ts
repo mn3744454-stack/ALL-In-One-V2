@@ -149,7 +149,8 @@ export function useBreedingAttempts(filters?: BreedingAttemptFilters) {
           stallion:horses!breeding_attempts_stallion_id_fkey(id, name, name_ar, avatar_url),
           creator:profiles!breeding_attempts_created_by_fkey(id, full_name, avatar_url),
           assignee:profiles!breeding_attempts_assigned_to_fkey(id, full_name, avatar_url),
-          performer:profiles!breeding_attempts_performed_by_fkey(id, full_name, avatar_url)
+          performer:profiles!breeding_attempts_performed_by_fkey(id, full_name, avatar_url),
+          contract:breeding_contracts!breeding_attempts_contract_id_fkey(id, contract_number, service_id, unit_price, client_id, client_name)
         `)
         .eq("tenant_id", activeTenant.tenant.id)
         .order("attempt_date", { ascending: false });
