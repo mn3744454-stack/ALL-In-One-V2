@@ -1,4 +1,5 @@
 import { useI18n } from "@/i18n";
+import { displayClientName } from "@/lib/displayHelpers";
 import {
   Table,
   TableBody,
