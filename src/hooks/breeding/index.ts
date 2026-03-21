@@ -4,3 +4,4 @@ export * from "./usePregnancyChecks";
 export * from "./useEmbryoTransfers";
 export * from "./useSemenInventory";
 export * from "./useBreedingEvents";
+export * from "./useFoalings";
