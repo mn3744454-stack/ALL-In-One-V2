@@ -45,7 +45,6 @@ interface HorseCardProps {
 export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) => {
   const { t, lang } = useI18n();
   const rtl = isRTL(lang);
-  const typeLabel = rtl ? typeBadgeProps?.labelAr : typeBadgeProps?.label;
 
   const getGenderIcon = (gender: string) => {
     return gender === "female" ? "♀" : "♂";
