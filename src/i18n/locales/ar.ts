@@ -3512,6 +3512,12 @@ export const ar = {
         },
       },
     },
+    endReasons: {
+      foaled: "ولادة",
+      abortion: "إجهاض",
+      not_pregnant: "غير حامل",
+      other: "أخرى",
+    },
     demoNotice: "بيانات تجريبية. أضف أول سجل لعرض البيانات الحقيقية.",
   },
   // Status translations for badges
