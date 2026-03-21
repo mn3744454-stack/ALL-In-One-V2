@@ -197,7 +197,7 @@ function FileCard({
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {format(new Date(asset.created_at), "MMM d, yyyy")}
+            {formatStandardDate(asset.created_at)}
           </p>
         </div>
       </CardContent>
