@@ -3286,9 +3286,6 @@ export const en = {
       embryo: "Embryo Transfers",
       inventory: "Semen Inventory",
     },
-      embryo: "Embryo Transfers",
-      inventory: "Semen Inventory",
-    },
     // Breeding method labels
     methods: {
       natural: "Natural Cover",
