@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search } from "lucide-react";
 import { useConsultations } from "@/hooks/doctor/useConsultations";
 import { useI18n } from "@/i18n";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 export default function DashboardDoctorConsultations() {
   const [search, setSearch] = useState("");
