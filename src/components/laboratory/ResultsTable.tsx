@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { MoreHorizontal, Eye, CheckCircle2, Lock, AlertTriangle, FileText, Send } from "lucide-react";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { Button } from "@/components/ui/button";
