@@ -1,5 +1,4 @@
-import { format } from "date-fns";
-import { Baby, Calendar, User, MapPin, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Baby, CheckCircle, Clock, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -20,6 +19,7 @@ import { Foaling, useFoalings } from "@/hooks/breeding/useFoalings";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
 interface FoalingDetailSheetProps {
   foaling: Foaling | null;
@@ -29,7 +29,7 @@ interface FoalingDetailSheetProps {
 }
 
 export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: FoalingDetailSheetProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { updateFoaling } = useFoalings();
 
   if (!foaling) return null;
@@ -76,11 +76,11 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
           <Separator />
 
           {/* Core info */}
-          <DetailRow label={t("breeding.detail.mare")} value={foaling.mare?.name} />
+          <DetailRow label={t("breeding.detail.mare")} value={displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)} />
           {foaling.stallion && (
-            <DetailRow label={t("breeding.detail.stallion")} value={foaling.stallion.name} />
+            <DetailRow label={t("breeding.detail.stallion")} value={displayHorseName(foaling.stallion.name, foaling.stallion.name_ar, lang)} />
           )}
-          <DetailRow label={t("breeding.foaling.date")} value={format(new Date(foaling.foaling_date), "PPP")} />
+          <DetailRow label={t("breeding.foaling.date")} value={formatBreedingDate(foaling.foaling_date)} />
           {foaling.foaling_time && (
             <DetailRow label={t("breeding.foaling.time")} value={foaling.foaling_time} />
           )}
@@ -104,11 +104,11 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
             <>
               <Separator />
               <div>
-                <p className="text-xs text-muted-foreground mb-1">{t("breeding.foaling.registeredHorse")}</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("breeding.foaling.registeredFoalRecord")}</p>
                 <Link to={`/dashboard/horses/${foaling.foal_horse.id}`}>
                   <Button variant="outline" size="sm" className="gap-2 w-full justify-start">
                     <Baby className="h-3.5 w-3.5" />
-                    {foaling.foal_horse.name}
+                    {displayHorseName(foaling.foal_horse.name, foaling.foal_horse.name_ar, lang)}
                   </Button>
                 </Link>
               </div>

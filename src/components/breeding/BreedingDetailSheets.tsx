@@ -1,7 +1,6 @@
-import { format, differenceInDays } from "date-fns";
-import { Calendar, Clock, User, Globe, X } from "lucide-react";
+import { differenceInDays } from "date-fns";
+import { Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -14,6 +13,7 @@ import { Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
 import { PregnancyExamsPanel } from "./PregnancyExamsPanel";
 import { useI18n } from "@/i18n";
+import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 
 // ── Breeding Record Detail Sheet ──
 
@@ -25,7 +25,7 @@ interface BreedingRecordDetailSheetProps {
 }
 
 export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canManage }: BreedingRecordDetailSheetProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   if (!attempt) return null;
 
   return (
@@ -50,13 +50,13 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
           <Separator />
 
           {/* Core info */}
-          <DetailRow label={t("breeding.detail.mare")} value={attempt.mare?.name} />
+          <DetailRow label={t("breeding.detail.mare")} value={displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)} />
           <DetailRow
             label={t("breeding.detail.stallion")}
-            value={attempt.stallion?.name || attempt.external_stallion_name || "—"}
+            value={attempt.stallion ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang) : attempt.external_stallion_name || "—"}
           />
           <DetailRow label={t("breeding.detail.method")} value={t(`breeding.methods.${attempt.attempt_type}`)} />
-          <DetailRow label={t("breeding.detail.date")} value={format(new Date(attempt.attempt_date), "PPP")} />
+          <DetailRow label={t("breeding.detail.date")} value={formatBreedingDate(attempt.attempt_date)} />
 
           {attempt.source_mode === "external" && attempt.external_provider_name && (
             <DetailRow label={t("breeding.detail.providerName")} value={attempt.external_provider_name} />
@@ -90,12 +90,14 @@ interface PregnancyDetailSheetProps {
 }
 
 export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage }: PregnancyDetailSheetProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   if (!pregnancy) return null;
 
   const daysPregnant = (pregnancy.status === "pregnant" || pregnancy.status === "open")
     ? differenceInDays(new Date(), new Date(pregnancy.start_date))
     : null;
+
+  const isActive = !pregnancy.ended_at;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -112,13 +114,13 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage 
 
           <Separator />
 
-          <DetailRow label={t("breeding.detail.mare")} value={pregnancy.mare?.name} />
+          <DetailRow label={t("breeding.detail.mare")} value={displayHorseName(pregnancy.mare?.name, pregnancy.mare?.name_ar, lang)} />
           {pregnancy.stallion && (
-            <DetailRow label={t("breeding.pregnancyDetail.stallion")} value={pregnancy.stallion.name} />
+            <DetailRow label={t("breeding.pregnancyDetail.stallion")} value={displayHorseName(pregnancy.stallion.name, pregnancy.stallion.name_ar, lang)} />
           )}
-          <DetailRow label={t("breeding.pregnancyDetail.startDate")} value={format(new Date(pregnancy.start_date), "PPP")} />
+          <DetailRow label={t("breeding.pregnancyDetail.startDate")} value={formatBreedingDate(pregnancy.start_date)} />
           {pregnancy.expected_due_date && (
-            <DetailRow label={t("breeding.pregnancyDetail.expectedDue")} value={format(new Date(pregnancy.expected_due_date), "PPP")} />
+            <DetailRow label={t("breeding.pregnancyDetail.expectedDue")} value={formatBreedingDate(pregnancy.expected_due_date)} />
           )}
           {daysPregnant !== null && (
             <DetailRow label={t("breeding.pregnancyDetail.daysPregnant")} value={`${daysPregnant} ${t("breeding.days")}`} />
@@ -127,9 +129,9 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage 
           {pregnancy.ended_at && (
             <>
               <Separator />
-              <DetailRow label={t("breeding.pregnancyDetail.ended")} value={format(new Date(pregnancy.ended_at), "PPP")} />
+              <DetailRow label={t("breeding.pregnancyDetail.ended")} value={formatBreedingDate(pregnancy.ended_at)} />
               {pregnancy.end_reason && (
-                <DetailRow label={t("breeding.pregnancyDetail.endReason")} value={pregnancy.end_reason.replace(/_/g, " ")} />
+                <DetailRow label={t("breeding.pregnancyDetail.endReason")} value={t(`breeding.endReasons.${pregnancy.end_reason}`)} />
               )}
             </>
           )}
@@ -146,8 +148,8 @@ export function PregnancyDetailSheet({ pregnancy, open, onOpenChange, canManage 
 
           <Separator />
 
-          {/* Pregnancy Exams */}
-          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage} />
+          {/* Pregnancy Exams — read-only for closed pregnancies */}
+          <PregnancyExamsPanel pregnancyId={pregnancy.id} canManage={canManage && isActive} />
         </div>
       </SheetContent>
     </Sheet>
