@@ -1,9 +1,10 @@
-import { Heart, Baby, Calendar, Crown, Shield } from "lucide-react";
+import { Heart, Baby, Calendar, Crown, Shield, Stethoscope } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, differenceInDays } from "date-fns";
 import { useBreedingAttempts } from "@/hooks/breeding/useBreedingAttempts";
 import { usePregnancies } from "@/hooks/breeding/usePregnancies";
+import { useFoalings } from "@/hooks/breeding/useFoalings";
 import { BreedingStatusBadge } from "@/components/breeding/BreedingStatusBadge";
 import { useI18n } from "@/i18n";
 import { Link } from "react-router-dom";
@@ -52,13 +53,15 @@ export function HorseBreedingSection({
 
   const { attempts, loading: attemptsLoading } = useBreedingAttempts(attemptFilters);
   const { pregnancies, loading: pregnanciesLoading } = usePregnancies(isMare ? { mare_id: horseId } : undefined);
+  const { foalings, loading: foalingsLoading } = useFoalings(isMare ? { mare_id: horseId } : undefined);
 
   const recentAttempts = attempts.slice(0, 3);
   const activePregnancy = isMare
     ? pregnancies.find(p => !p.ended_at && (p.status === "pregnant" || p.status === "open"))
     : null;
+  const recentFoalings = isMare ? foalings.slice(0, 2) : [];
 
-  const hasData = attempts.length > 0 || (isMare && pregnancies.length > 0);
+  const hasData = attempts.length > 0 || (isMare && pregnancies.length > 0) || recentFoalings.length > 0;
 
   // Section title based on role
   const sectionTitle = isMare
@@ -107,7 +110,7 @@ export function HorseBreedingSection({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {attemptsLoading || pregnanciesLoading ? (
+        {attemptsLoading || pregnanciesLoading || foalingsLoading ? (
           <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         ) : !hasData ? (
           <div className="text-center py-6">
@@ -140,6 +143,29 @@ export function HorseBreedingSection({
 
             {isMare && !activePregnancy && (
               <p className="text-xs text-muted-foreground">{t("breeding.horseSection.noActivePregnancy")}</p>
+            )}
+
+            {/* Recent foaling history for mares */}
+            {isMare && recentFoalings.length > 0 && (
+              <div>
+                <h4 className="text-xs font-medium text-muted-foreground mb-2">{t("breeding.horseSection.foalingHistory")}</h4>
+                <div className="space-y-2">
+                  {recentFoalings.map((f) => (
+                    <div key={f.id} className="flex items-center justify-between p-2 rounded-md border text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Stethoscope className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="shrink-0">{format(new Date(f.foaling_date), "PP")}</span>
+                        {f.foal_name && (
+                          <span className="text-xs text-muted-foreground truncate">{f.foal_name}</span>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">
+                        {t(`breeding.foaling.outcomes.${f.outcome}`)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* Recent breeding/service records */}
