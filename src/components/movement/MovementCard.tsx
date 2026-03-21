@@ -118,7 +118,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
             {isScheduled && movement.scheduled_at && (
               <div className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
-                <span>{t('movement.lifecycle.scheduledFor')}: {format(new Date(movement.scheduled_at), "MMM d, yyyy 'at' h:mm a")}</span>
+                <span>{t('movement.lifecycle.scheduledFor')}: {formatStandardDateTime(movement.scheduled_at)}</span>
               </div>
             )}
 
