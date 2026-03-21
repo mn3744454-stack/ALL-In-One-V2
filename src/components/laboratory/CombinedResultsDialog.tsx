@@ -22,7 +22,7 @@ import {
   Loader2,
   FileText,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
