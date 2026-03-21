@@ -105,7 +105,7 @@ export function EmbryoTransferCard({
           {transfer.flush_date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span>{t("breeding.embryoTransfer.flushDate")}: {format(new Date(transfer.flush_date), "PP")}</span>
+              <span>{t("breeding.embryoTransfer.flushDate")}: {formatBreedingDate(transfer.flush_date)}</span>
             </div>
           )}
           {transfer.transfer_date && (
