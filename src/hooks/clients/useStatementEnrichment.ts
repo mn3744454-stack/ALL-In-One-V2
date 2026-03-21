@@ -193,6 +193,9 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         }
       }
 
+      // 4c. Breeding resolution — uses description from invoice_items directly (no extra fetch needed since breeding line items contain the horse/event info in their description)
+      // Breeding items will be resolved from their description string at display time
+
       // 5. Build enriched data per entry
       for (const entry of entries) {
         if (!entry.reference_id) continue;
