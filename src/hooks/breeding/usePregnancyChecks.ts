@@ -14,6 +14,7 @@ export interface PregnancyCheck {
   notes: string | null;
   performed_by: string | null;
   created_by: string;
+  contract_id: string | null;
   created_at: string;
   // Joined
   creator?: {
@@ -25,6 +26,14 @@ export interface PregnancyCheck {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+  } | null;
+  contract?: {
+    id: string;
+    contract_number: string;
+    service_id: string | null;
+    unit_price: number | null;
+    client_id: string | null;
+    client_name: string | null;
   } | null;
 }
 
