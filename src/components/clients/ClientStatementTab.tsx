@@ -34,22 +34,26 @@ interface ClientStatementTabProps {
 
 /** Renders the multi-line "story" description for a statement entry */
 /** Domain source badge for statement rows */
-function DomainBadge({ source, t }: { source?: "lab" | "boarding"; t: (k: string) => string }) {
+function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding"; t: (k: string) => string }) {
   if (!source) return null;
   const label = source === "boarding"
     ? t("clients.statement.domain.boarding")
+    : source === "breeding"
+    ? t("clients.statement.domain.breeding")
     : t("clients.statement.domain.lab");
   const cls = source === "boarding"
     ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+    : source === "breeding"
+    ? "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
     : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
   return <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border-0", cls)}>{label}</Badge>;
 }
 
 /** Determine the primary domain source from enriched data */
-function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | undefined {
+function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | "breeding" | undefined {
   if (!enriched || enriched.horses.length === 0) return undefined;
-  // If any horse is boarding, show boarding; otherwise lab
   const sources = enriched.horses.map(h => h.source).filter(Boolean);
+  if (sources.includes("breeding")) return "breeding";
   if (sources.includes("boarding")) return "boarding";
   if (sources.includes("lab")) return "lab";
   return undefined;
