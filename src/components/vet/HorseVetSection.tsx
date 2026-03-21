@@ -243,7 +243,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {followup.type.replace(/_/g, ' ')}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {format(dueDate, 'MMM d, yyyy h:mm a')}
+                                Due: {formatStandardDateTime(dueDate)}
                               </p>
                             </div>
                           </div>

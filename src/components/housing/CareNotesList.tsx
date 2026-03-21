@@ -133,7 +133,7 @@ export function CareNotesList({ horseId, admissionId }: CareNotesListProps) {
                       <Lock className="h-3 w-3 text-muted-foreground" />
                     )}
                     <span className="text-xs text-muted-foreground ms-auto">
-                      {format(new Date(note.created_at), 'MMM d')}
+                      {formatStandardDate(note.created_at)}
                     </span>
                     {editable && (
                       <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">

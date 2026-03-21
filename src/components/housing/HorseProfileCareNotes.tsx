@@ -116,7 +116,7 @@ export function HorseProfileCareNotes({ horseId, admissionId }: HorseProfileCare
                     </Badge>
                   )}
                   <span className="text-xs text-muted-foreground ms-auto">
-                    {format(new Date(note.created_at), 'MMM d')}
+                    {formatStandardDate(note.created_at)}
                   </span>
                 </div>
                 {note.title && <p className="font-medium text-sm">{note.title}</p>}

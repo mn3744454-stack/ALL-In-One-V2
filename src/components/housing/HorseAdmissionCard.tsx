@@ -118,7 +118,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           {admission.expected_departure && (
             <div className="flex items-center gap-1.5">
               <Calendar className="h-3 w-3 text-muted-foreground" />
-              <span>{t('housing.admissions.detail.expectedDeparture')}: {format(new Date(admission.expected_departure), 'MMM d')}</span>
+              <span>{t('housing.admissions.detail.expectedDeparture')}: {formatStandardDate(admission.expected_departure)}</span>
             </div>
           )}
         </div>

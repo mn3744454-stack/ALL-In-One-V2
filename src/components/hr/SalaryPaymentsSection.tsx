@@ -138,7 +138,7 @@ export function SalaryPaymentsSection({
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {format(new Date(payment.paid_at), 'PPP')}
+                      {formatStandardDate(payment.paid_at)}
                       {payment.finance_expense_id && (
                         <Badge variant="secondary" className="text-[10px] gap-0.5">
                           <Link className="h-2.5 w-2.5" />

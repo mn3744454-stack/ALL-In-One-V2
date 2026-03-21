@@ -154,7 +154,7 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                                 : occupant.horse?.name}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {t('housing.occupants.since')} {format(new Date(occupant.since), 'PP')}
+                              {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
                             </p>
                           </div>
                         </div>

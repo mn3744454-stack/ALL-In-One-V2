@@ -293,7 +293,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                {format(new Date(admission.admitted_at), 'MMM d, yyyy')}
+                {formatStandardDate(admission.admitted_at)}
                 <span className="text-foreground/60">·</span>
                 <span className="font-medium text-foreground/70">{stayDays}{t('housing.admissions.list.daysUnit')}</span>
               </span>

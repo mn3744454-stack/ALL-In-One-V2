@@ -653,7 +653,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       {history.map((h: any) => (
                         <div key={h.id} className="flex items-center gap-2 text-sm">
                           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                          <span className="text-muted-foreground">{format(new Date(h.created_at), 'MMM d, HH:mm')}</span>
+                          <span className="text-muted-foreground">{formatStandardDateTime(h.created_at)}</span>
                           <span>→ <Badge variant="outline" className="text-xs capitalize">{h.to_status}</Badge></span>
                           {h.changed_by_profile?.full_name && (
                             <span className="text-muted-foreground text-xs">
