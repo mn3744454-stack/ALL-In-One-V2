@@ -33,7 +33,7 @@ import {
   ExternalLink,
   Building2,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
