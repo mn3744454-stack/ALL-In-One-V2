@@ -88,7 +88,7 @@ function ScheduleItemCard({ item, onClick }: { item: ScheduleItem; onClick?: () 
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{format(new Date(item.startAt), "h:mm a")}</span>
+                <span>{formatStandardTime(item.startAt)}</span>
               </div>
               {item.horseName && (
                 <div className="flex items-center gap-1">
