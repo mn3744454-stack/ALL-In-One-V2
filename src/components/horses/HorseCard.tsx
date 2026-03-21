@@ -8,8 +8,9 @@ import {
   getHorseTypeBadgeProps 
 } from "@/lib/horseClassification";
 import { useMemo } from "react";
-import { useI18n } from "@/i18n";
+import { useI18n, isRTL } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { displayHorseName } from "@/lib/displayHelpers";
 
 interface Horse {
   id: string;
