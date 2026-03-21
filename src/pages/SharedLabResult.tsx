@@ -424,7 +424,7 @@ export default function SharedLabResult() {
             )}
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.reportDate")}</p>
-              <p>{format(new Date(result.created_at), "MMM d, yyyy")}</p>
+              <p>{formatStandardDate(result.created_at)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">{t("laboratory.sharedResult.status")}</p>
