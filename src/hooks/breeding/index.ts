@@ -5,3 +5,4 @@ export * from "./useEmbryoTransfers";
 export * from "./useSemenInventory";
 export * from "./useBreedingEvents";
 export * from "./useFoalings";
+export * from "./useBreedingContracts";
