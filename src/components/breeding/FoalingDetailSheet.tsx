@@ -49,6 +49,7 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
