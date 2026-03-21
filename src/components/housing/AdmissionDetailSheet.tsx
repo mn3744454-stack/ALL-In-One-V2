@@ -610,7 +610,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                         <div key={m.id} className="flex items-center gap-2 text-sm flex-wrap">
                           <MovementTypeIcon type={m.movement_type} />
                           <span className="text-muted-foreground">
-                            {format(new Date(m.movement_at), 'MMM d, HH:mm')}
+                            {formatStandardDateTime(m.movement_at)}
                           </span>
                           <Badge variant="outline" className="text-xs capitalize">
                             {m.movement_type === 'in'
