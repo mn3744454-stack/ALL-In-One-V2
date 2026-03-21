@@ -544,7 +544,7 @@ export default function SharedHorseReport() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{file.filename}</p>
                       <p className="text-xs text-muted-foreground">
-                        {file.mime_type} • {format(new Date(file.created_at), "PP")}
+                        {file.mime_type} • {formatStandardDate(new Date(file.created_at))}
                       </p>
                     </div>
                   </div>
