@@ -37,12 +37,14 @@ export function ServicePlansManager() {
 
   const openCreate = () => {
     setEditing(null);
+    setIncludedServices([]);
     setForm({ name: '', name_ar: '', description: '', service_id: null, plan_type: 'boarding', billing_cycle: 'monthly', base_price: 0, currency: 'SAR', is_active: true, is_public: false });
     setDialogOpen(true);
   };
 
   const openEdit = (plan: StableServicePlan) => {
     setEditing(plan);
+    setIncludedServices(normalizeIncludes(plan.includes));
     setForm({
       name: plan.name, name_ar: plan.name_ar || '', description: plan.description || '',
       service_id: plan.service_id || null,
