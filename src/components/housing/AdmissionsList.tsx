@@ -194,6 +194,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               admission={admission}
               onClick={() => setSelectedAdmissionId(admission.id)}
               t={t}
+              lang={lang}
             />
           ))}
         </div>
