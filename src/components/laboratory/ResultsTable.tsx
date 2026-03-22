@@ -178,7 +178,7 @@ export function ResultsTable({
                     {result.creator?.full_name || "-"}
                   </span>
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                   {onPublishToStable ? (
                     <PublishToStableAction
                       resultId={result.id}
