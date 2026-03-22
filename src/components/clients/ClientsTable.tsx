@@ -80,8 +80,8 @@ export function ClientsTable({
             
             return (
               <TableRow key={client.id} className="hover:bg-muted/50">
-                <TableCell className="font-medium">
-                  {getClientDisplayName(client)}
+                <TableCell>
+                  <span className="font-medium">{getClientDisplayName(client)}</span>
                 </TableCell>
                 <TableCell className="text-center font-mono text-sm" dir="ltr">
                   {client.phone || "-"}

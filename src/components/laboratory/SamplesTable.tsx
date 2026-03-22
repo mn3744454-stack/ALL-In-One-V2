@@ -137,7 +137,7 @@ export function SamplesTable({
                   <TableCell className="text-center">
                     <SampleStatusBadge status={sample.status} />
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">
                       {format(new Date(sample.collection_date), "dd-MM-yyyy")}
                     </span>

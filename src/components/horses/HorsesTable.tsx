@@ -155,7 +155,7 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                     {getGenderIcon(horse.gender)}
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell>
                   <div className="min-w-0">
                     <div className="font-medium truncate">{horse.name}</div>
                     {horse.name_ar && (
@@ -165,15 +165,15 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-center text-muted-foreground">{breedName}</TableCell>
+                <TableCell className="text-muted-foreground">{breedName}</TableCell>
                 <TableCell className="text-center">
                   <Badge className={cn("text-xs", typeBadgeProps.className)}>
                     {typeLabel}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">{formattedAge}</TableCell>
-                <TableCell className="text-center text-muted-foreground">{colorName}</TableCell>
-                <TableCell className="text-center text-muted-foreground">{ownerName}</TableCell>
+                <TableCell className="text-muted-foreground">{colorName}</TableCell>
+                <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
                   <Badge 
                     variant="secondary" 

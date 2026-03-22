@@ -122,12 +122,12 @@ export function ResultsTable({
             <TableHead className="w-[60px] text-center">{t("laboratory.table.number")}</TableHead>
             <TableHead>{t("laboratory.table.horse")}</TableHead>
             <TableHead>{t("laboratory.table.template")}</TableHead>
-            <TableHead>{t("laboratory.table.status")}</TableHead>
-            <TableHead>{t("laboratory.table.flags")}</TableHead>
-            <TableHead>{t("laboratory.table.resultDate")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.table.status")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.table.flags")}</TableHead>
+            <TableHead className="text-center whitespace-nowrap">{t("laboratory.table.resultDate")}</TableHead>
             <TableHead>{t("laboratory.table.createdBy")}</TableHead>
-            <TableHead>{t("laboratory.results.publishToStable")}</TableHead>
-            <TableHead className="w-[60px]">{t("laboratory.table.actions")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.results.publishToStable")}</TableHead>
+            <TableHead className="w-[60px] text-center">{t("laboratory.table.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

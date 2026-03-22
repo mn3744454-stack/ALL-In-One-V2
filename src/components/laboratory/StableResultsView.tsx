@@ -96,7 +96,7 @@ export function StableResultsView() {
               onViewModeChange={setViewMode}
               onGridColumnsChange={setGridColumns}
               showTable
-              showLabels={false}
+              showLabels={true}
             />
           </div>
         </div>
