@@ -115,8 +115,8 @@ export function SamplesTable({
                   <TableCell className="text-center font-bold">
                     {(sample as any).daily_number ? `#${(sample as any).daily_number}` : "-"}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center gap-2">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
                       <span className="font-medium">{horseName}</span>
                       {isRetest && (
                         <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
@@ -126,7 +126,7 @@ export function SamplesTable({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell>
                     <span className="text-sm">{clientName}</span>
                   </TableCell>
                   <TableCell className="text-center">
