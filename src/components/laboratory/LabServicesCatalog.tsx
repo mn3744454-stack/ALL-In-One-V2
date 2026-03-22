@@ -270,7 +270,7 @@ export function LabServicesCatalog() {
                 gridColumns={gridColumns}
                 onViewModeChange={setViewMode}
                 onGridColumnsChange={setGridColumns}
-                showLabels={false}
+                showLabels={true}
               />
             </div>
             <Button variant="gold" onClick={() => { setEditingService(null); setDialogOpen(true); }}>

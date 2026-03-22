@@ -61,14 +61,14 @@ export function ClientsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">{t("clients.form.name")}</TableHead>
+            <TableHead>{t("clients.form.name")}</TableHead>
             <TableHead className="text-center">{t("clients.form.phone")}</TableHead>
             <TableHead className="text-center">{t("clients.form.type")}</TableHead>
             <TableHead className="text-center">{t("clients.form.creditLimit")}</TableHead>
             <TableHead className="text-center">{t("clients.outstandingBalance")}</TableHead>
             <TableHead className="text-center">{t("finance.creditLimit.available")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
-            <TableHead className="text-center">{t("common.actions")}</TableHead>
+            <TableHead className="text-center w-[60px]">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -80,8 +80,8 @@ export function ClientsTable({
             
             return (
               <TableRow key={client.id} className="hover:bg-muted/50">
-                <TableCell className="font-medium">
-                  {getClientDisplayName(client)}
+                <TableCell>
+                  <span className="font-medium">{getClientDisplayName(client)}</span>
                 </TableCell>
                 <TableCell className="text-center font-mono text-sm" dir="ltr">
                   {client.phone || "-"}

@@ -122,12 +122,12 @@ export function ResultsTable({
             <TableHead className="w-[60px] text-center">{t("laboratory.table.number")}</TableHead>
             <TableHead>{t("laboratory.table.horse")}</TableHead>
             <TableHead>{t("laboratory.table.template")}</TableHead>
-            <TableHead>{t("laboratory.table.status")}</TableHead>
-            <TableHead>{t("laboratory.table.flags")}</TableHead>
-            <TableHead>{t("laboratory.table.resultDate")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.table.status")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.table.flags")}</TableHead>
+            <TableHead className="text-center whitespace-nowrap">{t("laboratory.table.resultDate")}</TableHead>
             <TableHead>{t("laboratory.table.createdBy")}</TableHead>
-            <TableHead>{t("laboratory.results.publishToStable")}</TableHead>
-            <TableHead className="w-[60px]">{t("laboratory.table.actions")}</TableHead>
+            <TableHead className="text-center">{t("laboratory.results.publishToStable")}</TableHead>
+            <TableHead className="w-[60px] text-center">{t("laboratory.table.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -162,13 +162,13 @@ export function ResultsTable({
                     <span>{templateName}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {getStatusBadge(result.status)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {getFlagsBadge(result.flags)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center whitespace-nowrap">
                   <span className="text-sm text-muted-foreground">
                     {formatStandardDate(new Date(result.created_at))}
                   </span>
@@ -178,7 +178,7 @@ export function ResultsTable({
                     {result.creator?.full_name || "-"}
                   </span>
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                   {onPublishToStable ? (
                     <PublishToStableAction
                       resultId={result.id}

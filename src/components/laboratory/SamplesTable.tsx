@@ -89,11 +89,11 @@ export function SamplesTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[60px] text-center">{t("laboratory.table.number")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.horse")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.client")}</TableHead>
+              <TableHead>{t("laboratory.table.horse")}</TableHead>
+              <TableHead>{t("laboratory.table.client")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.sampleId")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.status")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.collectionDate")}</TableHead>
+              <TableHead className="text-center whitespace-nowrap">{t("laboratory.table.collectionDate")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.results")}</TableHead>
               <TableHead className="w-[60px] text-center">{t("laboratory.table.actions")}</TableHead>
             </TableRow>
@@ -115,8 +115,8 @@ export function SamplesTable({
                   <TableCell className="text-center font-bold">
                     {(sample as any).daily_number ? `#${(sample as any).daily_number}` : "-"}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <div className="flex items-center justify-center gap-2">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
                       <span className="font-medium">{horseName}</span>
                       {isRetest && (
                         <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
@@ -126,7 +126,7 @@ export function SamplesTable({
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell>
                     <span className="text-sm">{clientName}</span>
                   </TableCell>
                   <TableCell className="text-center">
@@ -137,7 +137,7 @@ export function SamplesTable({
                   <TableCell className="text-center">
                     <SampleStatusBadge status={sample.status} />
                   </TableCell>
-                  <TableCell className="text-center">
+                  <TableCell className="text-center whitespace-nowrap">
                     <span className="text-sm text-muted-foreground">
                       {format(new Date(sample.collection_date), "dd-MM-yyyy")}
                     </span>

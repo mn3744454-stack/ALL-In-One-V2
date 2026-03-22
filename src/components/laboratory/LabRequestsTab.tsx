@@ -1005,7 +1005,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
             onViewModeChange={setViewMode}
             onGridColumnsChange={setGridColumns}
             showTable
-            showLabels={false}
+            showLabels={true}
           />
         </div>
       </div>

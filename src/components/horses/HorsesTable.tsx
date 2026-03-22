@@ -109,14 +109,14 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[50px] text-center"></TableHead>
             <TableHead>{t('horses.table.name')}</TableHead>
             <TableHead>{t('horses.table.breed')}</TableHead>
-            <TableHead>{t('horses.table.type')}</TableHead>
-            <TableHead>{t('horses.table.age')}</TableHead>
+            <TableHead className="text-center">{t('horses.table.type')}</TableHead>
+            <TableHead className="text-center">{t('horses.table.age')}</TableHead>
             <TableHead>{t('horses.table.color')}</TableHead>
             <TableHead>{t('horses.table.owner')}</TableHead>
-            <TableHead>{t('horses.table.status')}</TableHead>
+            <TableHead className="text-center">{t('horses.table.status')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -155,7 +155,7 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                     {getGenderIcon(horse.gender)}
                   </div>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell>
                   <div className="min-w-0">
                     <div className="font-medium truncate">{horse.name}</div>
                     {horse.name_ar && (
@@ -165,15 +165,15 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-center text-muted-foreground">{breedName}</TableCell>
+                <TableCell className="text-muted-foreground">{breedName}</TableCell>
                 <TableCell className="text-center">
                   <Badge className={cn("text-xs", typeBadgeProps.className)}>
                     {typeLabel}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">{formattedAge}</TableCell>
-                <TableCell className="text-center text-muted-foreground">{colorName}</TableCell>
-                <TableCell className="text-center text-muted-foreground">{ownerName}</TableCell>
+                <TableCell className="text-muted-foreground">{colorName}</TableCell>
+                <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
                   <Badge 
                     variant="secondary" 
