@@ -162,13 +162,13 @@ export function ResultsTable({
                     <span>{templateName}</span>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {getStatusBadge(result.status)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {getFlagsBadge(result.flags)}
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center whitespace-nowrap">
                   <span className="text-sm text-muted-foreground">
                     {formatStandardDate(new Date(result.created_at))}
                   </span>
