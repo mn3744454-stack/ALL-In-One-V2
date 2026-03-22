@@ -61,14 +61,14 @@ export function ClientsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">{t("clients.form.name")}</TableHead>
+            <TableHead>{t("clients.form.name")}</TableHead>
             <TableHead className="text-center">{t("clients.form.phone")}</TableHead>
             <TableHead className="text-center">{t("clients.form.type")}</TableHead>
             <TableHead className="text-center">{t("clients.form.creditLimit")}</TableHead>
             <TableHead className="text-center">{t("clients.outstandingBalance")}</TableHead>
             <TableHead className="text-center">{t("finance.creditLimit.available")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
-            <TableHead className="text-center">{t("common.actions")}</TableHead>
+            <TableHead className="text-center w-[60px]">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
