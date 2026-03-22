@@ -89,11 +89,11 @@ export function SamplesTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[60px] text-center">{t("laboratory.table.number")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.horse")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.client")}</TableHead>
+              <TableHead>{t("laboratory.table.horse")}</TableHead>
+              <TableHead>{t("laboratory.table.client")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.sampleId")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.status")}</TableHead>
-              <TableHead className="text-center">{t("laboratory.table.collectionDate")}</TableHead>
+              <TableHead className="text-center whitespace-nowrap">{t("laboratory.table.collectionDate")}</TableHead>
               <TableHead className="text-center">{t("laboratory.table.results")}</TableHead>
               <TableHead className="w-[60px] text-center">{t("laboratory.table.actions")}</TableHead>
             </TableRow>
