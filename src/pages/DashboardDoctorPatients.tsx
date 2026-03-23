@@ -10,6 +10,8 @@ import { PatientFormDialog } from "@/components/doctor/PatientFormDialog";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardDoctorPatients() {
   const [search, setSearch] = useState("");
@@ -80,7 +82,7 @@ export default function DashboardDoctorPatients() {
                 gridColumns={gridColumns}
                 onViewModeChange={setViewMode}
                 onGridColumnsChange={setGridColumns}
-                showTable={false}
+                showTable={true}
               />
             </div>
           </div>
@@ -90,6 +92,48 @@ export default function DashboardDoctorPatients() {
           <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
         ) : patients.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">{t('doctor.noPatients')}</CardContent></Card>
+        ) : viewMode === 'table' ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Breed</TableHead>
+                <TableHead>Gender</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Microchip</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead className="w-[60px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {patients.map((p) => (
+                <TableRow key={p.id} className={`cursor-pointer ${p.is_archived ? 'opacity-60' : ''}`} onClick={() => { setEditPatient(p); setFormOpen(true); }}>
+                  <TableCell className="font-medium">
+                    <div>
+                      {p.name}
+                      {p.name_ar && <span className="text-muted-foreground text-xs ms-1">({p.name_ar})</span>}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{p.breed_text || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm capitalize">{p.gender || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{p.owner_name || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm font-mono text-xs">{p.microchip_number || '—'}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-xs capitalize">{p.source}</Badge></TableCell>
+                  <TableCell className="w-[60px]">
+                    {!p.is_archived ? (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); archivePatient(p.id); }}>
+                        <Archive className="h-3.5 w-3.5" />
+                      </Button>
+                    ) : (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); archivePatient(p.id, false); }}>
+                        <ArchiveRestore className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <div className={getGridClass(gridColumns, viewMode)}>
             {patients.map(renderCard)}

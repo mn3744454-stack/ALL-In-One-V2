@@ -7,6 +7,10 @@ import { SessionCard } from "./SessionCard";
 import { SessionFormDialog } from "./SessionFormDialog";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 interface SessionsListProps {
   onEmpty?: () => React.ReactNode;
@@ -102,7 +106,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-semibold text-navy">Sessions</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground">Sessions</h2>
           <p className="text-sm text-muted-foreground">
             Manage your training sessions and classes
           </p>
@@ -114,7 +118,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
               gridColumns={gridColumns}
               onViewModeChange={setViewMode}
               onGridColumnsChange={setGridColumns}
-              showTable={false}
+              showTable={true}
             />
           </div>
           <Button variant="gold" onClick={handleCreate} className="w-full sm:w-auto">
@@ -128,7 +132,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
         onEmpty?.() || (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
             <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-            <h3 className="font-semibold text-navy mb-2">No Sessions Yet</h3>
+            <h3 className="font-semibold text-foreground mb-2">No Sessions Yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Create your first training session to start accepting bookings
             </p>
@@ -138,6 +142,35 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
             </Button>
           </div>
         )
+      ) : viewMode === 'table' ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead className="whitespace-nowrap">Start</TableHead>
+              <TableHead className="whitespace-nowrap">End</TableHead>
+              <TableHead>Capacity</TableHead>
+              <TableHead>Price</TableHead>
+              <TableHead>Public</TableHead>
+              <TableHead>Active</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sessions.map((session) => (
+              <TableRow key={session.id} className="cursor-pointer" onClick={() => handleEdit(session)}>
+                <TableCell className="font-medium">{session.title}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{session.location_text || '—'}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(session.start_at)}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(session.end_at)}</TableCell>
+                <TableCell>{session.capacity}</TableCell>
+                <TableCell className="text-sm">{session.price_display || '—'}</TableCell>
+                <TableCell><Badge variant={session.is_public ? 'default' : 'secondary'} className="text-xs">{session.is_public ? 'Yes' : 'No'}</Badge></TableCell>
+                <TableCell><Switch checked={session.is_active} onCheckedChange={() => handleToggleActive(session)} /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {sessions.map((session) => (

@@ -12,8 +12,18 @@ import { useTenantBookings, useUpdateBookingStatus, type BookingWithUser } from 
 import { BookingCard } from "./BookingCard";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 type StatusFilter = "all" | "pending" | "confirmed" | "rejected" | "cancelled";
+
+const statusVariants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  pending: "outline",
+  confirmed: "default",
+  rejected: "destructive",
+  cancelled: "secondary",
+};
 
 export const BookingsList = () => {
   const { data: bookings = [], isLoading } = useTenantBookings();
@@ -49,7 +59,7 @@ export const BookingsList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-semibold text-navy">Bookings</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground">Bookings</h2>
           <p className="text-sm text-muted-foreground">
             Manage booking requests for your sessions
           </p>
@@ -78,7 +88,7 @@ export const BookingsList = () => {
               gridColumns={gridColumns}
               onViewModeChange={setViewMode}
               onGridColumnsChange={setGridColumns}
-              showTable={false}
+              showTable={true}
             />
           </div>
         </div>
@@ -87,13 +97,48 @@ export const BookingsList = () => {
       {filteredBookings.length === 0 ? (
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <h3 className="font-semibold text-navy mb-2">No Bookings</h3>
+          <h3 className="font-semibold text-foreground mb-2">No Bookings</h3>
           <p className="text-sm text-muted-foreground">
             {statusFilter === "all"
               ? "No booking requests yet"
               : `No ${statusFilter} bookings`}
           </p>
         </div>
+      ) : viewMode === 'table' ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Session</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="whitespace-nowrap">Booked On</TableHead>
+              <TableHead className="w-[120px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredBookings.map((booking) => (
+              <TableRow key={booking.id}>
+                <TableCell className="font-medium">{booking.profile?.full_name || booking.profile?.email || '—'}</TableCell>
+                <TableCell className="text-sm">{booking.session?.title || '—'}</TableCell>
+                <TableCell><Badge variant={statusVariants[booking.status] || 'outline'} className="text-xs capitalize">{booking.status}</Badge></TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(booking.created_at)}</TableCell>
+                <TableCell className="w-[120px]">
+                  <div className="flex gap-1">
+                    {booking.status === 'pending' && (
+                      <>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-success" disabled={updateStatus.isPending} onClick={() => handleConfirm(booking.id)}>Confirm</Button>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" disabled={updateStatus.isPending} onClick={() => handleReject(booking.id)}>Reject</Button>
+                      </>
+                    )}
+                    {booking.status === 'confirmed' && (
+                      <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" disabled={updateStatus.isPending} onClick={() => handleCancel(booking.id)}>Cancel</Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredBookings.map((booking) => (
@@ -112,16 +157,16 @@ export const BookingsList = () => {
       {bookings.length > 0 && (
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
           <span>
-            <strong className="text-navy">{bookings.filter(b => b.status === "pending").length}</strong> pending
+            <strong className="text-foreground">{bookings.filter(b => b.status === "pending").length}</strong> pending
           </span>
           <span>
-            <strong className="text-navy">{bookings.filter(b => b.status === "confirmed").length}</strong> confirmed
+            <strong className="text-foreground">{bookings.filter(b => b.status === "confirmed").length}</strong> confirmed
           </span>
           <span>
-            <strong className="text-navy">{bookings.filter(b => b.status === "rejected").length}</strong> rejected
+            <strong className="text-foreground">{bookings.filter(b => b.status === "rejected").length}</strong> rejected
           </span>
           <span>
-            <strong className="text-navy">{bookings.filter(b => b.status === "cancelled").length}</strong> cancelled
+            <strong className="text-foreground">{bookings.filter(b => b.status === "cancelled").length}</strong> cancelled
           </span>
         </div>
       )}

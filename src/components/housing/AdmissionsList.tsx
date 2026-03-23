@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBoardingAdmissions, type AdmissionStatus, type BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
-import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
@@ -21,6 +20,7 @@ import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
 
@@ -57,7 +57,6 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   const [selectedAdmissionId, setSelectedAdmissionId] = useState<string | null>(null);
   const [preselectedHorseId, setPreselectedHorseId] = useState<string | undefined>(undefined);
 
-  // Handle startAdmission query param from IncomingArrivals
   useEffect(() => {
     const shouldStart = searchParams.get('startAdmission');
     const horseId = searchParams.get('horseId');
@@ -71,30 +70,25 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     }
   }, [searchParams, canCreate, setSearchParams]);
 
-  // Fetch all admissions for counts (no status filter) 
   const { admissions: allAdmissions, isLoading } = useBoardingAdmissions({
     status: 'all',
     search: search || undefined,
   });
 
-  // Filter by branch if provided
   const branchFiltered = useMemo(() => 
     branchId ? allAdmissions.filter(a => a.branch_id === branchId) : allAdmissions,
     [allAdmissions, branchId]
   );
 
-  // Compute counts for sub-filter badges
   const counts = useMemo(() => {
     const active = branchFiltered.filter(a => a.status === 'active').length;
     const checkoutPending = branchFiltered.filter(a => a.status === 'checkout_pending').length;
     const checkedOut = branchFiltered.filter(a => a.status === 'checked_out').length;
     const draft = branchFiltered.filter(a => a.status === 'draft').length;
-    // no_invoice: active admissions with rates but no billing link (approximation)
     const withRates = branchFiltered.filter(a => a.status === 'active' && (a.daily_rate || a.monthly_rate));
     return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, withRates: withRates.length };
   }, [branchFiltered]);
 
-  // Apply sub-filter
   const filteredAdmissions = useMemo(() => {
     switch (subFilter) {
       case 'active': return branchFiltered.filter(a => a.status === 'active');
@@ -119,7 +113,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               gridColumns={gridColumns}
               onViewModeChange={setViewMode}
               onGridColumnsChange={setGridColumns}
-              showTable={false}
+              showTable={true}
             />
           </div>
           {canCreate && (
@@ -201,6 +195,56 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             )}
           </CardContent>
         </Card>
+      ) : viewMode === 'table' ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Horse</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>Unit</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="whitespace-nowrap">Admitted</TableHead>
+              <TableHead>Days</TableHead>
+              <TableHead>Rate</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAdmissions.map((admission) => {
+              const stayDays = differenceInDays(
+                admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
+                new Date(admission.admitted_at)
+              );
+              const hasRate = !!(admission.monthly_rate || admission.daily_rate);
+              return (
+                <TableRow key={admission.id} className="cursor-pointer" onClick={() => setSelectedAdmissionId(admission.id)}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={admission.horse?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium truncate max-w-[120px]">{admission.horse?.name || t('common.unknown')}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? displayClientName(admission.client.name, admission.client.name_ar, lang) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{admission.branch?.name || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
+                  <TableCell>{getStatusBadge(admission.status, t)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
+                  <TableCell className="text-sm">{stayDays}{t('housing.admissions.list.daysUnit')}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">
+                    {hasRate ? (
+                      admission.monthly_rate
+                        ? `${admission.monthly_rate} ${admission.rate_currency}/mo`
+                        : `${admission.daily_rate} ${admission.rate_currency}/d`
+                    ) : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredAdmissions.map((admission) => (
@@ -254,7 +298,6 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 space-y-1.5">
-            {/* Row 1: Horse name + status + warnings */}
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold truncate">
                 {admission.horse?.name || t('common.unknown')}
@@ -272,7 +315,6 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
                 </Badge>
               )}
             </div>
-            {/* Row 2: Operational details */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
@@ -303,7 +345,6 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
                 </span>
               )}
             </div>
-            {/* Row 3: Duration + financial indicator */}
             <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />

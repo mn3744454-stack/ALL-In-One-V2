@@ -12,6 +12,8 @@ import { useI18n } from "@/i18n";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function DashboardDoctorConsultations() {
   const [search, setSearch] = useState("");
@@ -92,7 +94,7 @@ export default function DashboardDoctorConsultations() {
               gridColumns={gridColumns}
               onViewModeChange={setViewMode}
               onGridColumnsChange={setGridColumns}
-              showTable={false}
+              showTable={true}
             />
           </div>
         </div>
@@ -101,6 +103,38 @@ export default function DashboardDoctorConsultations() {
           <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
         ) : consultations.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">{t('doctor.noConsultations')}</CardContent></Card>
+        ) : viewMode === 'table' ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Patient</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+                <TableHead>Complaint</TableHead>
+                <TableHead className="whitespace-nowrap">Date</TableHead>
+                <TableHead className="whitespace-nowrap">Cost</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {consultations.map((c: any) => (
+                <TableRow key={c.id} className="cursor-pointer" onClick={() => navigate(`/dashboard/doctor/consultations/${c.id}`)}>
+                  <TableCell className="font-medium">{c.horse_name_snapshot || t('doctor.unknownPatient')}</TableCell>
+                  <TableCell><Badge variant="outline" className="text-xs">{c.consultation_type}</Badge></TableCell>
+                  <TableCell><span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[c.status] || statusColors.draft}`}>{c.status}</span></TableCell>
+                  <TableCell>
+                    {c.priority !== 'normal' && (
+                      <Badge variant={c.priority === 'urgent' ? 'destructive' : c.priority === 'high' ? 'default' : 'secondary'} className="text-xs capitalize">{c.priority}</Badge>
+                    )}
+                    {c.priority === 'normal' && <span className="text-xs text-muted-foreground">Normal</span>}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">{c.chief_complaint || '—'}</TableCell>
+                  <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(c.created_at)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm">{c.actual_cost != null ? `${c.actual_cost} ${c.currency}` : '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         ) : (
           <div className={getGridClass(gridColumns, viewMode)}>
             {consultations.map(renderCard)}
