@@ -510,9 +510,8 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
   
-  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
-    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
-    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
+  const horseName = request.horse_name_snapshot || request.horse?.name || null;
+  const horseNameAr = request.horse_name_ar_snapshot || (request.horse as any)?.name_ar || null;
 
   // Check if request is billable (ready or received status)
   const isBillable = request.status === 'ready' || request.status === 'received';
