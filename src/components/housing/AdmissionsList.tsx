@@ -228,7 +228,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                       <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? displayClientName(admission.client.name, admission.client.name_ar, lang) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" /> : '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{admission.branch?.name || '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
                   <TableCell>{getStatusBadge(admission.status, t)}</TableCell>
