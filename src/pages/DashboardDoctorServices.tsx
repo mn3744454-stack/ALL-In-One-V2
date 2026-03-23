@@ -8,6 +8,7 @@ import { Plus, Edit } from "lucide-react";
 import { useDoctorServices, type DoctorService } from "@/hooks/doctor/useDoctorServices";
 import { ServiceFormDialog } from "@/components/doctor/ServiceFormDialog";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
