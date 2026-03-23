@@ -35,10 +35,6 @@ export function BreedingAttemptCard({
   const { t, lang } = useI18n();
 
   const methodKey = `breeding.methods.${attempt.attempt_type}` as const;
-  const mareName = displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang);
-  const stallionName = attempt.stallion
-    ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang)
-    : attempt.external_stallion_name || t("breeding.unknownStallion");
   
   return (
     <Card 
