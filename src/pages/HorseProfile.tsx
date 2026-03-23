@@ -128,8 +128,8 @@ const HorseProfile = () => {
     } catch (error: any) {
       console.error("Error fetching horse:", error);
       toast({
-        title: "Error",
-        description: "Failed to load horse details",
+        title: t('common.error'),
+        description: t('horses.loadError'),
         variant: "destructive",
       });
       navigate("/dashboard/horses");
