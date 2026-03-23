@@ -84,7 +84,7 @@ export function VetTreatmentsList({
                       <AvatarImage src={treatment.horse?.avatar_url || undefined} />
                       <AvatarFallback className="text-xs">{treatment.horse?.name?.[0] || '?'}</AvatarFallback>
                     </Avatar>
-                    <span className="truncate max-w-[120px]">{treatment.horse?.name || '—'}</span>
+                    <BilingualName name={treatment.horse?.name} nameAr={treatment.horse?.name_ar} primaryClassName="text-sm" />
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{treatment.title}</TableCell>
