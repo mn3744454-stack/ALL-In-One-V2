@@ -98,7 +98,7 @@ export function VetTreatmentsList({
                 <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(treatment.requested_at)}</TableCell>
                 <TableCell className="w-[60px]">
                   <div className="flex gap-1">
-                    {onView && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onView(treatment); }}><View className="h-3.5 w-3.5" /></Button>}
+                    {onView && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onView(treatment); }}><Eye className="h-3.5 w-3.5" /></Button>}
                     {onEdit && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEdit(treatment); }}><Edit className="h-3.5 w-3.5" /></Button>}
                   </div>
                 </TableCell>
