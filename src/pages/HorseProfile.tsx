@@ -151,8 +151,8 @@ const HorseProfile = () => {
       if (error) throw error;
 
       toast({
-        title: "Horse deleted",
-        description: `${horse.name} has been removed.`,
+        title: t('horses.horseDeleted'),
+        description: t('horses.horseDeletedDesc').replace('{{name}}', horse.name),
       });
       navigate("/dashboard/horses");
     } catch (error: any) {
