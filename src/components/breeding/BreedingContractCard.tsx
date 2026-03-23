@@ -57,9 +57,9 @@ export function BreedingContractCard({ contract, onClick }: Props) {
         {contract.mare && (
           <div className="text-xs">
             <span className="text-muted-foreground">{t("breeding.detail.mare")}: </span>
-            {displayHorseName(contract.mare.name, contract.mare.name_ar, lang)}
+            <BilingualName name={contract.mare.name} nameAr={contract.mare.name_ar} inline primaryClassName="text-xs" secondaryClassName="text-[10px]" />
             {contract.stallion && (
-              <span> × {displayHorseName(contract.stallion.name, contract.stallion.name_ar, lang)}</span>
+              <span> × <BilingualName name={contract.stallion.name} nameAr={contract.stallion.name_ar} inline primaryClassName="text-xs" secondaryClassName="text-[10px]" /></span>
             )}
           </div>
         )}
