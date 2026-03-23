@@ -317,7 +317,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
-                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} inline primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
+                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
                 </span>
               )}
               {admission.branch && (

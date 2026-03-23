@@ -532,7 +532,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 flex-1 min-w-0">
-            <CardTitle className="text-base"><BilingualName name={horseName} nameAr={horseNameAr} inline /></CardTitle>
+            <CardTitle className="text-base"><BilingualName name={horseName} nameAr={horseNameAr} /></CardTitle>
             <CardDescription className="line-clamp-2">
               {request.test_description}
             </CardDescription>

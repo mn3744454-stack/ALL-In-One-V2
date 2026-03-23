@@ -48,7 +48,7 @@ export default function DashboardDoctorConsultations() {
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <BilingualName name={c.horse_name_snapshot} nameAr={c.horse_name_ar_snapshot} inline />
+              <BilingualName name={c.horse_name_snapshot} nameAr={c.horse_name_ar_snapshot} />
               <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[c.status] || statusColors.draft}`}>{c.status}</span>
               <span className="text-xs text-muted-foreground">{c.consultation_type}</span>
               {c.priority !== "normal" && (

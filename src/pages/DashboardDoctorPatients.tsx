@@ -35,7 +35,7 @@ export default function DashboardDoctorPatients() {
       <CardContent className="py-4 flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <BilingualName name={p.name} nameAr={p.name_ar} inline primaryClassName="text-sm" />
+            <BilingualName name={p.name} nameAr={p.name_ar} primaryClassName="text-sm" />
             {p.is_archived && <span className="text-xs bg-muted px-2 py-0.5 rounded">{t('doctor.showArchived')}</span>}
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">

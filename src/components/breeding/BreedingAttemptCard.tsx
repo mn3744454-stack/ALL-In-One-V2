@@ -53,11 +53,13 @@ export function BreedingAttemptCard({
               <AvatarFallback>{(attempt.mare?.name || "M")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{mareName}</h3>
+              <BilingualName name={attempt.mare?.name} nameAr={attempt.mare?.name_ar} primaryClassName="font-semibold" />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>×</span>
                 <span className={attempt.external_stallion_name && !attempt.stallion ? "italic" : ""}>
-                  {stallionName}
+                  {attempt.stallion
+                    ? <BilingualName name={attempt.stallion.name} nameAr={attempt.stallion.name_ar} inline primaryClassName="text-sm font-medium" secondaryClassName="text-[10px]" />
+                    : (attempt.external_stallion_name || t("breeding.unknownStallion"))}
                 </span>
               </div>
             </div>
