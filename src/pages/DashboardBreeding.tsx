@@ -167,11 +167,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="attempts">
                     {attemptsLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : attempts.length === 0 ? (
                       renderEmptyState("breeding.empty.records")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {attempts.map((attempt) => (
                           <BreedingAttemptCard
                             key={attempt.id}
@@ -188,11 +188,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="pregnancies">
                     {pregnanciesLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : pregnancies.length === 0 ? (
                       renderEmptyState("breeding.empty.pregnancies")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {pregnancies.map((pregnancy) => (
                           <PregnancyCard
                             key={pregnancy.id}
@@ -214,11 +214,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="foalings">
                     {foalingsLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : foalings.length === 0 ? (
                       renderEmptyState("breeding.empty.foalings")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {foalings.map((foaling) => (
                           <FoalingCard
                             key={foaling.id}
@@ -234,11 +234,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="contracts">
                     {contractsLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : contracts.length === 0 ? (
                       renderEmptyState("breeding.empty.contracts")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {contracts.map((contract) => (
                           <BreedingContractCard
                             key={contract.id}
@@ -252,11 +252,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="embryo">
                     {transfersLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : transfers.length === 0 ? (
                       renderEmptyState("breeding.empty.transfers")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {transfers.map((transfer) => (
                           <EmbryoTransferCard
                             key={transfer.id}
@@ -272,11 +272,11 @@ export default function DashboardBreeding() {
 
                   <TabsContent value="inventory">
                     {inventoryLoading ? (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
+                      <div className={getGridClass(gridColumns, viewMode)}>{[1, 2, 3].map((i) => <Skeleton key={i} className="h-48" />)}</div>
                     ) : batches.length === 0 ? (
                       renderEmptyState("breeding.empty.batches")
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      <div className={getGridClass(gridColumns, viewMode)}>
                         {batches.map((batch) => (
                           <SemenBatchCard key={batch.id} batch={batch} canManage={canManage} onDelete={deleteBatch} />
                         ))}
