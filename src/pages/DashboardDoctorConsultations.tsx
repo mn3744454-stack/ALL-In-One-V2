@@ -10,12 +10,15 @@ import { Plus, Search } from "lucide-react";
 import { useConsultations } from "@/hooks/doctor/useConsultations";
 import { useI18n } from "@/i18n";
 import { formatStandardDate } from "@/lib/displayHelpers";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 export default function DashboardDoctorConsultations() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const navigate = useNavigate();
   const { t } = useI18n();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('doctor-consultations');
 
   const { consultations, loading } = useConsultations({
     search,
@@ -34,6 +37,30 @@ export default function DashboardDoctorConsultations() {
     <Button onClick={() => navigate("/dashboard/doctor/consultations/new")}>
       <Plus className="h-4 w-4 mr-1" />{t('doctor.newConsultation')}
     </Button>
+  );
+
+  const renderCard = (c: any) => (
+    <Card key={c.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate(`/dashboard/doctor/consultations/${c.id}`)}>
+      <CardContent className="py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-medium">{c.horse_name_snapshot || t('doctor.unknownPatient')}</p>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[c.status] || statusColors.draft}`}>{c.status}</span>
+              <span className="text-xs text-muted-foreground">{c.consultation_type}</span>
+              {c.priority !== "normal" && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${c.priority === 'urgent' ? 'bg-red-100 text-red-700' : c.priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-muted text-muted-foreground'}`}>{c.priority}</span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1 truncate">{c.chief_complaint || t('doctor.noComplaintRecorded')}</p>
+          </div>
+          <div className="text-sm text-muted-foreground ml-4 text-right whitespace-nowrap">
+            {formatStandardDate(c.created_at)}
+            {c.actual_cost != null && <p className="font-medium text-foreground">{c.actual_cost} {c.currency}</p>}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -59,6 +86,15 @@ export default function DashboardDoctorConsultations() {
               </SelectContent>
             </Select>
           </div>
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={false}
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -66,30 +102,8 @@ export default function DashboardDoctorConsultations() {
         ) : consultations.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">{t('doctor.noConsultations')}</CardContent></Card>
         ) : (
-          <div className="grid gap-3">
-            {consultations.map(c => (
-              <Card key={c.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate(`/dashboard/doctor/consultations/${c.id}`)}>
-                <CardContent className="py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium">{c.horse_name_snapshot || t('doctor.unknownPatient')}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[c.status] || statusColors.draft}`}>{c.status}</span>
-                        <span className="text-xs text-muted-foreground">{c.consultation_type}</span>
-                        {c.priority !== "normal" && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${c.priority === 'urgent' ? 'bg-red-100 text-red-700' : c.priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-muted text-muted-foreground'}`}>{c.priority}</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1 truncate">{c.chief_complaint || t('doctor.noComplaintRecorded')}</p>
-                    </div>
-                    <div className="text-sm text-muted-foreground ml-4 text-right whitespace-nowrap">
-                      {formatStandardDate(c.created_at)}
-                      {c.actual_cost != null && <p className="font-medium text-foreground">{c.actual_cost} {c.currency}</p>}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className={getGridClass(gridColumns, viewMode)}>
+            {consultations.map(renderCard)}
           </div>
         )}
       </div>
