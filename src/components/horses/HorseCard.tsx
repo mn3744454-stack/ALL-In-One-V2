@@ -10,7 +10,7 @@ import {
 import { useMemo } from "react";
 import { useI18n, isRTL } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { displayHorseName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface Horse {
   id: string;
