@@ -49,6 +49,8 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   const { t, lang } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('housing-admissions');
+  const canCreate = hasPermission('boarding.admission.create');
   const [searchParams, setSearchParams] = useSearchParams();
   const [subFilter, setSubFilter] = useState<AdmissionSubFilter>('active');
   const [search, setSearch] = useState('');
