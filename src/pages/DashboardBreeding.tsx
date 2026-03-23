@@ -146,12 +146,23 @@ export default function DashboardBreeding() {
                       <TabsTrigger value="inventory" className="gap-2"><Syringe className="h-4 w-4" /><span className="hidden sm:inline">{t("breeding.tabs.inventory")}</span></TabsTrigger>
                     </TabsList>
 
-                    {showAddButton && (
-                      <Button className="gap-2" onClick={handleAddNew}>
-                        <Plus className="h-4 w-4" />
-                        {t("breeding.addNew")}
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <div className="hidden md:block">
+                        <ViewSwitcher
+                          viewMode={viewMode}
+                          gridColumns={gridColumns}
+                          onViewModeChange={setViewMode}
+                          onGridColumnsChange={setGridColumns}
+                          showTable={false}
+                        />
+                      </div>
+                      {showAddButton && (
+                        <Button className="gap-2" onClick={handleAddNew}>
+                          <Plus className="h-4 w-4" />
+                          {t("breeding.addNew")}
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   <TabsContent value="attempts">
