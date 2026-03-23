@@ -203,7 +203,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {filteredAdmissions.map((admission) => (
             <AdmissionCard
               key={admission.id}
