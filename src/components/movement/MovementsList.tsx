@@ -10,6 +10,8 @@ import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovem
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseActiveAdmission } from "@/hooks/housing/useHorseActiveAdmission";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface MovementsListProps {
   onRecordMovement: () => void;
