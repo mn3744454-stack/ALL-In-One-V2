@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { useState } from "react";
 
 interface ServicesListProps {

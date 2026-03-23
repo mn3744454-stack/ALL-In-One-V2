@@ -108,11 +108,8 @@ export default function DashboardDoctorPatients() {
             <TableBody>
               {patients.map((p) => (
                 <TableRow key={p.id} className={`cursor-pointer ${p.is_archived ? 'opacity-60' : ''}`} onClick={() => { setEditPatient(p); setFormOpen(true); }}>
-                  <TableCell className="font-medium">
-                    <div>
-                      {p.name}
-                      {p.name_ar && <span className="text-muted-foreground text-xs ms-1">({p.name_ar})</span>}
-                    </div>
+                  <TableCell>
+                    <BilingualName name={p.name} nameAr={p.name_ar} />
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{p.breed_text || '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm capitalize">{p.gender || '—'}</TableCell>

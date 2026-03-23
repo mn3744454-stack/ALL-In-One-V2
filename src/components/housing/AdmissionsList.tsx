@@ -300,9 +300,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
           </Avatar>
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold truncate">
-                {admission.horse?.name || t('common.unknown')}
-              </span>
+              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" inline />
               {getStatusBadge(admission.status, t)}
               {admission.reason && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">

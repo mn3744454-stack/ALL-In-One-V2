@@ -88,11 +88,8 @@ export default function DashboardDoctorServices() {
             <TableBody>
               {services.map((s) => (
                 <TableRow key={s.id} className={!s.is_active ? 'opacity-60' : ''}>
-                  <TableCell className="font-medium">
-                    <div>
-                      {s.name}
-                      {s.name_ar && <span className="text-muted-foreground text-xs ms-1">({s.name_ar})</span>}
-                    </div>
+                  <TableCell>
+                    <BilingualName name={s.name} nameAr={s.name_ar} />
                   </TableCell>
                   <TableCell>{s.category ? <Badge variant="outline" className="text-xs">{s.category}</Badge> : '—'}</TableCell>
                   <TableCell className="whitespace-nowrap">{s.base_price} {s.currency}</TableCell>
