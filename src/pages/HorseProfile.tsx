@@ -48,6 +48,7 @@ import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNote
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
 import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface Horse {
   id: string;
@@ -127,8 +128,8 @@ const HorseProfile = () => {
     } catch (error: any) {
       console.error("Error fetching horse:", error);
       toast({
-        title: "Error",
-        description: "Failed to load horse details",
+        title: t('common.error'),
+        description: t('horses.loadError'),
         variant: "destructive",
       });
       navigate("/dashboard/horses");
@@ -150,15 +151,15 @@ const HorseProfile = () => {
       if (error) throw error;
 
       toast({
-        title: "Horse deleted",
-        description: `${horse.name} has been removed.`,
+        title: t('horses.horseDeleted'),
+        description: t('horses.horseDeletedDesc').replace('{{name}}', horse.name),
       });
       navigate("/dashboard/horses");
     } catch (error: any) {
       console.error("Error deleting horse:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete horse",
+        title: t('common.error'),
+        description: error.message || t('horses.deleteError'),
         variant: "destructive",
       });
     } finally {
@@ -179,8 +180,8 @@ const HorseProfile = () => {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <h2 className="font-display text-xl font-semibold text-navy mb-2">Horse not found</h2>
-          <Button onClick={() => navigate("/dashboard/horses")}>Go Back</Button>
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">{t('horses.notFound')}</h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
         </div>
       </div>
     );
@@ -282,14 +283,13 @@ const HorseProfile = () => {
                   )}
                 </div>
                 
-                <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">
-                  {horse.name}
-                </h1>
-                {horse.name_ar && (
-                  <p className="text-base sm:text-lg text-muted-foreground mb-3" dir="rtl">
-                    {horse.name_ar}
-                  </p>
-                )}
+                <BilingualName
+                  name={horse.name}
+                  nameAr={horse.name_ar}
+                  primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
+                  secondaryClassName="text-base sm:text-lg"
+                  className="mb-3"
+                />
 
                 <p className="text-sm sm:text-base text-muted-foreground mb-4">
                   {breedName}

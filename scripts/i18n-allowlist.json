@@ -9,6 +9,7 @@
     "laboratory.samples.status.*",
     "laboratory.results.status.*",
     "laboratory.sampleStatus.*",
-    "laboratory.resultStatus.*"
+    "laboratory.resultStatus.*",
+    "horses.status.*"
   ]
 }

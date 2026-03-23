@@ -4,10 +4,11 @@ import { HorsesTable } from "./HorsesTable";
 import { HorseFilters, HorseFiltersState } from "./HorseFilters";
 import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
+import { IncompleteProfileModal } from "./IncompleteProfileModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
@@ -31,7 +32,7 @@ interface Horse {
   current_location_id?: string | null;
 }
 
-type OperationalTab = 'all' | 'inside' | 'intake_draft' | 'incomplete' | 'outside';
+type OperationalTab = 'all' | 'inside' | 'outside';
 
 interface HorsesListProps {
   horses: Horse[];
@@ -52,24 +53,22 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
   });
   const [wizardOpen, setWizardOpen] = useState(false);
   const [operationalTab, setOperationalTab] = useState<OperationalTab>('all');
+  const [incompleteModalOpen, setIncompleteModalOpen] = useState(false);
 
   // Operational buckets
   const horseBuckets = useMemo(() => {
     const inside = horses.filter(h => h.status === 'active' && h.current_location_id);
-    const intakeDraft = horses.filter(h => h.status === 'intake_draft');
     const incomplete = horses.filter(h => 
       h.status === 'active' && (!h.birth_date || !h.microchip_number || !h.passport_number)
     );
     const outside = horses.filter(h => h.status === 'active' && !h.current_location_id);
-    return { all: horses, inside, intakeDraft, incomplete, outside };
+    return { all: horses, inside, incomplete, outside };
   }, [horses]);
 
   // Get base list from operational tab
   const baseHorses = useMemo(() => {
     switch (operationalTab) {
       case 'inside': return horseBuckets.inside;
-      case 'intake_draft': return horseBuckets.intakeDraft;
-      case 'incomplete': return horseBuckets.incomplete;
       case 'outside': return horseBuckets.outside;
       default: return horseBuckets.all;
     }
@@ -146,33 +145,39 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
         </div>
       </div>
 
-      {/* Operational Status Tabs */}
-      <Tabs value={operationalTab} onValueChange={(v) => setOperationalTab(v as OperationalTab)}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all" className="gap-1.5">
-            {t('horses.tabs.all')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.all.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="inside" className="gap-1.5">
-            {t('horses.tabs.inside')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.inside.length}</Badge>
-          </TabsTrigger>
-          {horseBuckets.intakeDraft.length > 0 && (
-            <TabsTrigger value="intake_draft" className="gap-1.5">
-              {t('horses.tabs.intakeDraft')}
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{horseBuckets.intakeDraft.length}</Badge>
+      {/* Primary Category Tabs + Incomplete Badge */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Tabs value={operationalTab} onValueChange={(v) => setOperationalTab(v as OperationalTab)}>
+          <TabsList className="h-auto gap-1">
+            <TabsTrigger value="all" className="gap-1.5">
+              {t('horses.tabs.all')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.all.length}</Badge>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="incomplete" className="gap-1.5">
+            <TabsTrigger value="inside" className="gap-1.5">
+              {t('horses.tabs.inside')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.inside.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="outside" className="gap-1.5">
+              {t('horses.tabs.outside')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.outside.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Separate Incomplete Profile Badge */}
+        {horseBuckets.incomplete.length > 0 && (
+          <button
+            onClick={() => setIncompleteModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-xs font-medium hover:bg-amber-100 dark:hover:bg-amber-950/50 transition-colors cursor-pointer"
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
             {t('horses.tabs.incomplete')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.incomplete.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="outside" className="gap-1.5">
-            {t('horses.tabs.outside')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.outside.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 border-amber-300 text-amber-700 dark:text-amber-400">
+              {horseBuckets.incomplete.length}
+            </Badge>
+          </button>
+        )}
+      </div>
 
       {/* Filters */}
       <HorseFilters filters={filters} onChange={setFilters} />
@@ -213,6 +218,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
               horse={horse}
               onClick={() => onHorseClick?.(horse)}
               compact={viewMode === 'list'}
+              dense={viewMode === 'grid' && gridColumns >= 4}
             />
           ))}
         </div>
@@ -223,6 +229,14 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
         open={wizardOpen}
         onOpenChange={setWizardOpen}
         onSuccess={handleWizardSuccess}
+      />
+
+      {/* Incomplete Profile Modal */}
+      <IncompleteProfileModal
+        open={incompleteModalOpen}
+        onOpenChange={setIncompleteModalOpen}
+        horses={horseBuckets.incomplete}
+        onHorseClick={onHorseClick}
       />
     </div>
   );
