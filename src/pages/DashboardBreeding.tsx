@@ -32,6 +32,8 @@ import { FoalingDetailSheet } from "@/components/breeding/FoalingDetailSheet";
 import { BreedingContractDetailSheet } from "@/components/breeding/BreedingContractDetailSheet";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 export default function DashboardBreeding() {
   const [searchParams, setSearchParams] = useSearchParams();
