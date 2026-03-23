@@ -78,12 +78,23 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         />
       )}
 
-      {canManage && (
-        <Button onClick={onRecordMovement} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 me-2" />
-          {t("movement.form.recordMovement")}
-        </Button>
-      )}
+      <div className="flex items-center justify-between">
+        {canManage && (
+          <Button onClick={onRecordMovement} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 me-2" />
+            {t("movement.form.recordMovement")}
+          </Button>
+        )}
+        <div className="hidden md:block ms-auto">
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable={false}
+          />
+        </div>
+      </div>
 
       {movements.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -102,7 +113,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
           )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {movements.map((movement) => (
             <MovementCard
               key={movement.id}
