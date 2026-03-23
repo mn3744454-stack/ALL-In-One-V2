@@ -113,12 +113,23 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{t('housing.admissions.title')}</h2>
-        {canCreate && (
-          <Button onClick={() => setWizardOpen(true)} size="sm">
-            <Plus className="h-4 w-4 me-1" />
-            {t('housing.admissions.newAdmission')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={false}
+            />
+          </div>
+          {canCreate && (
+            <Button onClick={() => setWizardOpen(true)} size="sm">
+              <Plus className="h-4 w-4 me-1" />
+              {t('housing.admissions.newAdmission')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
