@@ -116,7 +116,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm truncate">{displayHorseName(horse.name, horse.name_ar, lang)}</h3>
+            <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-sm" secondaryClassName="text-[10px]" />
             <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
               {typeLabel}
             </Badge>
