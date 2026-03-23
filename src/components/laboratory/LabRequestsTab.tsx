@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { RequestDetailDialog, RequestStatusBadge } from "./RequestDetailDialog";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface LabOption {
   tenantId: string;
