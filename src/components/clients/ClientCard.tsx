@@ -29,9 +29,6 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
   const { t, lang } = useI18n();
   const Icon = getClientTypeIcon(client.type);
 
-  // Use shared bilingual display helper
-  const displayName = displayClientName(client.name, client.name_ar, lang);
-
   const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
 
   return (
