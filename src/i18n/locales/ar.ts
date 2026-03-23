@@ -75,7 +75,6 @@ export const ar = {
     duplicate: "تكرار",
     of: "من",
     tryAdjustingFilters: "جرب تعديل الفلاتر",
-    viewAll: "عرض الكل",
     source: "المصدر",
     unknownOrganization: "منشأة غير معروفة",
     noPreference: "بدون تفضيل",
