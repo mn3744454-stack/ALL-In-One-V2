@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { 
   getCurrentAgeParts, 
   getHorseTypeLabel, 
