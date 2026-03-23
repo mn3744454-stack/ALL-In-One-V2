@@ -30,31 +30,42 @@ export function BranchOverview({ branches, onSelectBranch }: BranchOverviewProps
     queryFn: async () => {
       if (!tenantId) return {};
 
-      const [facilitiesRes, admissionsRes, horsesRes] = await Promise.all([
+      const [facilitiesRes, horsesRes, unitsRes, occupantsRes] = await Promise.all([
         supabase
           .from('facility_areas')
           .select('id, branch_id')
           .eq('tenant_id', tenantId)
           .eq('is_active', true),
-        (supabase as any)
-          .from('boarding_admissions')
-          .select('id, branch_id')
-          .eq('tenant_id', tenantId)
-          .eq('status', 'active'),
         supabase
           .from('horses')
           .select('id, current_location_id')
           .eq('tenant_id', tenantId)
           .not('current_location_id', 'is', null),
+        supabase
+          .from('housing_units')
+          .select('id, branch_id')
+          .eq('tenant_id', tenantId)
+          .eq('is_active', true),
+        supabase
+          .from('housing_unit_occupants')
+          .select('id, unit_id')
+          .eq('tenant_id', tenantId)
+          .is('until', null),
       ]);
 
-      const stats: Record<string, { facilities: number; admissions: number; horses: number }> = {};
+      const units = unitsRes.data || [];
+      const occupants = occupantsRes.data || [];
+      const occupiedUnitIds = new Set(occupants.map((o: any) => o.unit_id));
+
+      const stats: Record<string, { facilities: number; horses: number; totalUnits: number; occupiedUnits: number }> = {};
 
       for (const branch of branches) {
+        const branchUnits = units.filter((u: any) => u.branch_id === branch.id);
         stats[branch.id] = {
           facilities: (facilitiesRes.data || []).filter((f: any) => f.branch_id === branch.id).length,
-          admissions: (admissionsRes.data || []).filter((a: any) => a.branch_id === branch.id).length,
           horses: (horsesRes.data || []).filter((h: any) => h.current_location_id === branch.id).length,
+          totalUnits: branchUnits.length,
+          occupiedUnits: branchUnits.filter((u: any) => occupiedUnitIds.has(u.id)).length,
         };
       }
       return stats;
