@@ -170,7 +170,9 @@ export function LabServicesCatalog() {
                 <Badge variant="secondary" className="text-xs shrink-0">{t("laboratory.catalog.inactive")}</Badge>
               )}
             </div>
-            {service.name_ar && <p className="text-sm text-muted-foreground truncate" dir="rtl">{service.name_ar}</p>}
+            {service.name_ar && (
+              <p className="text-xs text-muted-foreground truncate" dir="rtl">({service.name_ar})</p>
+            )}
             {viewMode !== 'list' && service.description && (
               <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
             )}
