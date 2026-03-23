@@ -2812,7 +2812,7 @@ export const ar = {
     addFirstHorse: "أضف أول خيل للبدء",
     tabs: {
       all: "الكل",
-      inside: "داخل الاستبل",
+      inside: "داخل الإسطبل",
       intakeDraft: "في انتظار الوصول",
       incomplete: "ملف غير مكتمل",
       outside: "بدون موقع",
