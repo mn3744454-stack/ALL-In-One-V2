@@ -158,8 +158,8 @@ const HorseProfile = () => {
     } catch (error: any) {
       console.error("Error deleting horse:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete horse",
+        title: t('common.error'),
+        description: error.message || t('horses.deleteError'),
         variant: "destructive",
       });
     } finally {
