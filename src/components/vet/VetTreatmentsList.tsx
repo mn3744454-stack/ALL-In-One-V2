@@ -11,6 +11,7 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface VetTreatmentsListProps {
   treatments: VetTreatment[];
@@ -84,7 +85,7 @@ export function VetTreatmentsList({
                       <AvatarImage src={treatment.horse?.avatar_url || undefined} />
                       <AvatarFallback className="text-xs">{treatment.horse?.name?.[0] || '?'}</AvatarFallback>
                     </Avatar>
-                    <span className="truncate max-w-[120px]">{treatment.horse?.name || '—'}</span>
+                    <BilingualName name={treatment.horse?.name} nameAr={(treatment.horse as any)?.name_ar} primaryClassName="text-sm" />
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{treatment.title}</TableCell>

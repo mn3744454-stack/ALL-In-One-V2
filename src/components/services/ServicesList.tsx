@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { useState } from "react";
 
 interface ServicesListProps {
@@ -89,11 +90,8 @@ export const ServicesList = ({
           <TableBody>
             {services.map((service) => (
               <TableRow key={service.id}>
-                <TableCell className="font-medium">
-                  <div>
-                    {service.name}
-                    {service.name_ar && <span className="text-muted-foreground text-xs ms-1">({service.name_ar})</span>}
-                  </div>
+                <TableCell>
+                  <BilingualName name={service.name} nameAr={service.name_ar} />
                 </TableCell>
                 <TableCell><Badge variant="outline" className="text-xs">{service.service_type || '—'}</Badge></TableCell>
                 <TableCell className="text-muted-foreground text-sm capitalize">{service.service_kind}</TableCell>

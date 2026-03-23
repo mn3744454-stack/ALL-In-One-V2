@@ -1,5 +1,5 @@
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import {
   Table,
   TableBody,
@@ -52,9 +52,6 @@ export function ClientsTable({
 }: ClientsTableProps) {
   const { t, dir, lang } = useI18n();
 
-  const getClientDisplayName = (client: Client) => {
-    return displayClientName(client.name, client.name_ar, lang);
-  };
 
   return (
     <div className="rounded-md border overflow-x-auto">
@@ -81,7 +78,7 @@ export function ClientsTable({
             return (
               <TableRow key={client.id} className="hover:bg-muted/50">
                 <TableCell>
-                  <span className="font-medium">{getClientDisplayName(client)}</span>
+                  <BilingualName name={client.name} nameAr={client.name_ar} />
                 </TableCell>
                 <TableCell className="text-center font-mono text-sm" dir="ltr">
                   {client.phone || "-"}

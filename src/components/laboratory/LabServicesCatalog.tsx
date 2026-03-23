@@ -35,6 +35,7 @@ import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 type DialogTarget = { service: LabService; action: "deactivate" | "delete" } | null;
 
@@ -169,7 +170,9 @@ export function LabServicesCatalog() {
                 <Badge variant="secondary" className="text-xs shrink-0">{t("laboratory.catalog.inactive")}</Badge>
               )}
             </div>
-            {service.name_ar && <p className="text-sm text-muted-foreground truncate" dir="rtl">{service.name_ar}</p>}
+            {service.name_ar && (
+              <p className="text-xs text-muted-foreground truncate" dir="rtl">({service.name_ar})</p>
+            )}
             {viewMode !== 'list' && service.description && (
               <p className="text-sm text-muted-foreground line-clamp-1 mt-1">{service.description}</p>
             )}
@@ -222,10 +225,7 @@ export function LabServicesCatalog() {
           {filtered.map(service => (
             <TableRow key={service.id} className={`cursor-pointer ${!service.is_active ? "opacity-60" : ""}`} onClick={() => openEdit(service)}>
               <TableCell>
-                <div>
-                  <span className="font-medium">{service.name}</span>
-                  {service.name_ar && <span className="text-xs text-muted-foreground ms-2" dir="rtl">{service.name_ar}</span>}
-                </div>
+                <BilingualName name={service.name} nameAr={service.name_ar} />
               </TableCell>
               <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
               <TableCell>{service.category || "—"}</TableCell>

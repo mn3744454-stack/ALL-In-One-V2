@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { RequestDetailDialog, RequestStatusBadge } from "./RequestDetailDialog";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface LabOption {
   tenantId: string;
@@ -510,9 +511,8 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
   const { t, dir } = useI18n();
   const { updateRequest } = useLabRequests();
   
-  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
-    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
-    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
+  const horseName = request.horse_name_snapshot || request.horse?.name || null;
+  const horseNameAr = request.horse_name_ar_snapshot || (request.horse as any)?.name_ar || null;
 
   // Check if request is billable (ready or received status)
   const isBillable = request.status === 'ready' || request.status === 'received';
@@ -532,7 +532,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1 flex-1 min-w-0">
-            <CardTitle className="text-base">{horseName}</CardTitle>
+            <CardTitle className="text-base"><BilingualName name={horseName} nameAr={horseNameAr} inline /></CardTitle>
             <CardDescription className="line-clamp-2">
               {request.test_description}
             </CardDescription>
@@ -1088,16 +1088,18 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
               </thead>
               <tbody>
                 {filteredRequests.map((request) => {
-                  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
-                    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
-                    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
                   return (
                     <tr
                       key={request.id}
                       className="border-b hover:bg-muted/50 cursor-pointer"
                       onClick={() => handleOpenDetail(request)}
                     >
-                      <td className="py-2 px-3 font-medium">{horseName}</td>
+                      <td className="py-2 px-3">
+                        <BilingualName
+                          name={request.horse_name_snapshot || request.horse?.name}
+                          nameAr={request.horse_name_ar_snapshot || (request.horse as any)?.name_ar}
+                        />
+                      </td>
                       <td className="py-2 px-3 truncate max-w-[200px]">{request.test_description}</td>
                       <td className="py-2 px-3"><RequestStatusBadge status={request.status} /></td>
                       <td className="py-2 px-3 text-muted-foreground">{formatStandardDate(request.requested_at)}</td>

@@ -8,6 +8,7 @@ import { Plus, Edit } from "lucide-react";
 import { useDoctorServices, type DoctorService } from "@/hooks/doctor/useDoctorServices";
 import { ServiceFormDialog } from "@/components/doctor/ServiceFormDialog";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -33,8 +34,7 @@ export default function DashboardDoctorServices() {
       <CardContent className="pt-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-medium">{s.name}</h3>
-            {s.name_ar && <p className="text-sm text-muted-foreground">{s.name_ar}</p>}
+            <BilingualName name={s.name} nameAr={s.name_ar} primaryClassName="font-medium" />
             {s.category && <span className="text-xs bg-muted px-2 py-0.5 rounded mt-1 inline-block">{s.category}</span>}
           </div>
           <Button variant="ghost" size="icon" onClick={() => { setEditService(s); setFormOpen(true); }}>
@@ -88,11 +88,8 @@ export default function DashboardDoctorServices() {
             <TableBody>
               {services.map((s) => (
                 <TableRow key={s.id} className={!s.is_active ? 'opacity-60' : ''}>
-                  <TableCell className="font-medium">
-                    <div>
-                      {s.name}
-                      {s.name_ar && <span className="text-muted-foreground text-xs ms-1">({s.name_ar})</span>}
-                    </div>
+                  <TableCell>
+                    <BilingualName name={s.name} nameAr={s.name_ar} />
                   </TableCell>
                   <TableCell>{s.category ? <Badge variant="outline" className="text-xs">{s.category}</Badge> : '—'}</TableCell>
                   <TableCell className="whitespace-nowrap">{s.base_price} {s.currency}</TableCell>

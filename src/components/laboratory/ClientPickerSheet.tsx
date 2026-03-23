@@ -10,6 +10,7 @@ import { useClients, Client, ClientType, CreateClientData } from "@/hooks/useCli
 import { ClientFormDialog } from "@/components/clients";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface ClientPickerSheetProps {
   open: boolean;
@@ -163,7 +164,7 @@ export function ClientPickerSheet({
                         ) : (
                           <span className="shrink-0">{typeIcons[client.type]}</span>
                         )}
-                        <span className="font-medium truncate">{displayClientName(client.name, client.name_ar, lang)}</span>
+                        <BilingualName name={client.name} nameAr={client.name_ar} inline primaryClassName="text-sm" />
                       </div>
                       <Badge variant="secondary" className="text-[10px] shrink-0">
                         {typeLabels[client.type]}

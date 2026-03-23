@@ -23,7 +23,7 @@ import { MoreVertical, Pencil, Trash2, EyeOff, Tag, Layers } from "lucide-react"
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 import { useI18n } from "@/i18n";
-import { displayServiceName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface ServiceCardProps {
   service: TenantService;
@@ -62,9 +62,7 @@ export const ServiceCard = ({
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 mb-2">
-                <h3 className="font-semibold text-navy text-base sm:text-lg truncate flex-1">
-                  {displayServiceName(service.name, service.name_ar, lang)}
-                </h3>
+                <BilingualName name={service.name} nameAr={service.name_ar} primaryClassName="font-semibold text-navy text-base sm:text-lg" className="flex-1 min-w-0" />
                 <div className="flex items-center gap-1.5 shrink-0">
                   {service.service_kind && service.service_kind !== "service" && (
                     <Badge variant="outline" className="text-xs capitalize">
@@ -169,7 +167,7 @@ export const ServiceCard = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("common.delete")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("common.confirm")} — "{displayServiceName(service.name, service.name_ar, lang)}"
+              {t("common.confirm")} — "{service.name}"
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">

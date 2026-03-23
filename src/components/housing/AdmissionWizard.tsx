@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing/useBoardingAdmissions";
@@ -226,8 +227,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{horse.name}</p>
-                    {horse.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{horse.name_ar}</p>}
+                    <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
                   </div>
                   {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                 </button>
@@ -262,7 +262,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 >
                   <User className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{displayClientName(client.name, client.name_ar, lang)}</p>
+                    <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="text-sm" />
                     {client.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
                   </div>
                   {form.clientId === client.id && <Check className="h-4 w-4 text-primary" />}
@@ -343,7 +343,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 >
                   <Package className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{displayServiceName(plan.name, plan.name_ar, lang)}</p>
+                    <BilingualName name={plan.name} nameAr={plan.name_ar} primaryClassName="text-sm" />
                     <PlanIncludedServicesDisplay includes={plan.includes} compact />
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">{plan.base_price} {plan.currency}</Badge>
@@ -480,7 +480,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 {selectedClient && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
+                    <BilingualName name={selectedClient.name} nameAr={selectedClient.name_ar} inline primaryClassName="text-sm" />
                   </div>
                 )}
                 {form.branchId && (

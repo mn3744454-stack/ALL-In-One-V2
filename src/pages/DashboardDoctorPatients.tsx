@@ -8,6 +8,7 @@ import { Plus, Search, Archive, ArchiveRestore } from "lucide-react";
 import { usePatients, type DoctorPatient } from "@/hooks/doctor/usePatients";
 import { PatientFormDialog } from "@/components/doctor/PatientFormDialog";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -34,8 +35,7 @@ export default function DashboardDoctorPatients() {
       <CardContent className="py-4 flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-medium truncate">{p.name}</p>
-            {p.name_ar && <span className="text-muted-foreground text-sm">({p.name_ar})</span>}
+            <BilingualName name={p.name} nameAr={p.name_ar} inline primaryClassName="text-sm" />
             {p.is_archived && <span className="text-xs bg-muted px-2 py-0.5 rounded">{t('doctor.showArchived')}</span>}
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
@@ -108,11 +108,8 @@ export default function DashboardDoctorPatients() {
             <TableBody>
               {patients.map((p) => (
                 <TableRow key={p.id} className={`cursor-pointer ${p.is_archived ? 'opacity-60' : ''}`} onClick={() => { setEditPatient(p); setFormOpen(true); }}>
-                  <TableCell className="font-medium">
-                    <div>
-                      {p.name}
-                      {p.name_ar && <span className="text-muted-foreground text-xs ms-1">({p.name_ar})</span>}
-                    </div>
+                  <TableCell>
+                    <BilingualName name={p.name} nameAr={p.name_ar} />
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{p.breed_text || '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm capitalize">{p.gender || '—'}</TableCell>

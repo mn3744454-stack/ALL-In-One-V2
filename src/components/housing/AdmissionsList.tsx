@@ -12,6 +12,7 @@ import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen, Receipt, FileX } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
@@ -224,10 +225,10 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                         <AvatarImage src={admission.horse?.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
                       </Avatar>
-                      <span className="font-medium truncate max-w-[120px]">{admission.horse?.name || t('common.unknown')}</span>
+                      <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? displayClientName(admission.client.name, admission.client.name_ar, lang) : '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" /> : '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{admission.branch?.name || '—'}</TableCell>
                   <TableCell className="text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
                   <TableCell>{getStatusBadge(admission.status, t)}</TableCell>
@@ -299,9 +300,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
           </Avatar>
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold truncate">
-                {admission.horse?.name || t('common.unknown')}
-              </span>
+              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" inline />
               {getStatusBadge(admission.status, t)}
               {admission.reason && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
@@ -318,7 +317,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
-                  <span className="font-medium text-foreground/70">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
+                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} inline primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
                 </span>
               )}
               {admission.branch && (

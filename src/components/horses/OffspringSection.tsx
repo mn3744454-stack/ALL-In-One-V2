@@ -8,7 +8,7 @@ import { useHorseOffspring } from "@/hooks/useHorseOffspring";
 import { useI18n, isRTL } from "@/i18n";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
 import { formatAgeCompact, getCurrentAgeParts } from "@/lib/horseClassification";
-import { displayHorseName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
 
 interface OffspringSectionProps {
@@ -74,7 +74,7 @@ export function OffspringSection({ horseId, gender }: OffspringSectionProps) {
                         <AvatarFallback className="text-xs">{foal.name[0]}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{displayHorseName(foal.name, foal.name_ar, lang)}</p>
+                        <BilingualName name={foal.name} nameAr={foal.name_ar} inline primaryClassName="text-sm" />
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           {badge && (
                             <Badge variant="outline" className={cn("text-[9px] px-1 py-0", badge.className)}>

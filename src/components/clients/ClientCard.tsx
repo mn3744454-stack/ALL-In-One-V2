@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileText } from "lucide-react";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
@@ -29,9 +29,6 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
   const { t, lang } = useI18n();
   const Icon = getClientTypeIcon(client.type);
 
-  // Use shared bilingual display helper
-  const displayName = displayClientName(client.name, client.name_ar, lang);
-
   const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
 
   return (
@@ -43,7 +40,7 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
               <Icon className="w-5 h-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-foreground truncate">{displayName}</h3>
+              <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="font-semibold text-foreground" />
             </div>
           </div>
           

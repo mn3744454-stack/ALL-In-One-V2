@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BreedingContract } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 import { displayHorseName, displayClientName, formatBreedingDate } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface Props {
   contract: BreedingContract;
@@ -46,7 +47,9 @@ export function BreedingContractCard({ contract, onClick }: Props) {
         {(contract.client?.name || contract.client_name) && (
           <div className="flex items-center gap-1.5 text-xs">
             <User className="h-3 w-3 text-muted-foreground" />
-            <span>{contract.client ? displayClientName(contract.client.name, contract.client.name_ar, lang) : contract.client_name}</span>
+            {contract.client
+              ? <BilingualName name={contract.client.name} nameAr={contract.client.name_ar} inline primaryClassName="text-xs" secondaryClassName="text-[10px]" />
+              : <span>{contract.client_name}</span>}
           </div>
         )}
 
@@ -54,9 +57,9 @@ export function BreedingContractCard({ contract, onClick }: Props) {
         {contract.mare && (
           <div className="text-xs">
             <span className="text-muted-foreground">{t("breeding.detail.mare")}: </span>
-            {displayHorseName(contract.mare.name, contract.mare.name_ar, lang)}
+            <BilingualName name={contract.mare.name} nameAr={contract.mare.name_ar} inline primaryClassName="text-xs" secondaryClassName="text-[10px]" />
             {contract.stallion && (
-              <span> × {displayHorseName(contract.stallion.name, contract.stallion.name_ar, lang)}</span>
+              <span> × <BilingualName name={contract.stallion.name} nameAr={contract.stallion.name_ar} inline primaryClassName="text-xs" secondaryClassName="text-[10px]" /></span>
             )}
           </div>
         )}
