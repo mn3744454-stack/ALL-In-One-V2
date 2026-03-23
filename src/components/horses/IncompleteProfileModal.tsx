@@ -52,7 +52,7 @@ export function IncompleteProfileModal({
             <div className="space-y-2">
               {horses.map((horse) => {
                 const missingFields: string[] = [];
-                if (!horse.birth_date) missingFields.push(t('horses.profile.birthDate') || 'Birth Date');
+                if (!horse.birth_date) missingFields.push(t('horses.wizard.fields.birthDate'));
                 if (!horse.microchip_number) missingFields.push(t('horses.profile.microchip'));
                 if (!horse.passport_number) missingFields.push(t('horses.profile.passport'));
 
