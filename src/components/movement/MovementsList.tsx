@@ -21,6 +21,7 @@ interface MovementsListProps {
 
 export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: MovementsListProps) {
   const { t } = useI18n();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('movements');
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
