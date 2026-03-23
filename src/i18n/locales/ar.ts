@@ -1614,6 +1614,15 @@ export const ar = {
       currentHousing: "السكن الحالي",
       noHousing: "لا توجد وحدة معينة",
     },
+    horseSection: {
+      title: "الموقع والحركة",
+      currentLocation: "الموقع الحالي",
+      noLocation: "لا يوجد موقع محدد",
+      homeLocation: "الموقع الأصلي",
+      recentMovements: "الحركات الأخيرة",
+      noMovements: "لا توجد حركات مسجلة بعد",
+      viewAll: "عرض الكل",
+    },
     housing: {
       selectLocationFirst: "اختر الوجهة أولاً",
       noAreasInBranch: "لا توجد أقسام في هذا الفرع",
@@ -2802,7 +2811,7 @@ export const ar = {
     addFirstHorse: "أضف أول خيل للبدء",
     tabs: {
       all: "الكل",
-      inside: "داخل الاستبل",
+      inside: "داخل الإسطبل",
       intakeDraft: "في انتظار الوصول",
       incomplete: "ملف غير مكتمل",
       outside: "بدون موقع",
@@ -3076,6 +3085,7 @@ export const ar = {
       noLocation: "لا يوجد موقع محدد",
       mediaGallery: "معرض الوسائط",
       notes: "الملاحظات",
+      breed: "السلالة",
       incompleteTitle: "ملف غير مكتمل",
       completeProfile: "إكمال الملف",
     },

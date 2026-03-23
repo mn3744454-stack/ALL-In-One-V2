@@ -73,6 +73,7 @@ export const en = {
     columns4: "4 Columns",
     of: "of",
     tryAdjustingFilters: "Try adjusting your filters",
+    viewAll: "View All",
   },
   workspace: {
     personal: "Personal",
@@ -1598,6 +1599,15 @@ export const en = {
       currentHousing: "Current Housing",
       noHousing: "No assigned unit",
     },
+    horseSection: {
+      title: "Location & Movement",
+      currentLocation: "Current Location",
+      noLocation: "No location assigned",
+      homeLocation: "Home Location",
+      recentMovements: "Recent Movements",
+      noMovements: "No movements recorded yet",
+      viewAll: "View All",
+    },
     housing: {
       selectLocationFirst: "Select a destination first",
       noAreasInBranch: "No sections in this branch",
@@ -3060,6 +3070,7 @@ export const en = {
       noLocation: "No location assigned",
       mediaGallery: "Media Gallery",
       notes: "Notes",
+      breed: "Breed",
       incompleteTitle: "Incomplete Profile",
       completeProfile: "Complete Profile",
     },

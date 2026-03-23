@@ -213,7 +213,7 @@ const HorseProfile = () => {
   return (
     <div className="min-h-screen bg-background" dir={dir}>
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4 lg:px-8 max-w-6xl mx-auto">
           <Button 
             variant="ghost" 
