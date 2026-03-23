@@ -229,6 +229,52 @@ export function EmployeesList({
             {t('hr.addEmployee')}
           </Button>
         </div>
+      ) : viewMode === 'table' ? (
+        <div className="rounded-md border overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('hr.name')}</TableHead>
+                <TableHead>{t('hr.employeeType')}</TableHead>
+                <TableHead>{t('hr.department')}</TableHead>
+                <TableHead className="text-center">{t('hr.phone')}</TableHead>
+                <TableHead className="text-center">{t('common.status')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {employees.map((employee) => (
+                <TableRow
+                  key={employee.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedEmployee(employee)}
+                >
+                  <TableCell>
+                    <span className="font-medium">{employee.full_name}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {t(`hr.employeeTypes.${employee.employee_type}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {employee.department || '-'}
+                  </TableCell>
+                  <TableCell className="text-center font-mono text-sm" dir="ltr">
+                    {employee.phone || '-'}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge
+                      variant="secondary"
+                      className={employee.is_active ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}
+                    >
+                      {employee.is_active ? t('common.active') : t('common.inactive')}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {employees.map((employee) => (
