@@ -145,7 +145,7 @@ export function OrdersList({
       <div className="rounded-lg border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow>
               <TableHead className="w-[200px]">{t("orders.table.horse")}</TableHead>
               <TableHead>{t("orders.table.type")}</TableHead>
               <TableHead>{t("orders.table.status")}</TableHead>
