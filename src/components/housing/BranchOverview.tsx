@@ -95,7 +95,7 @@ export function BranchOverview({ branches, onSelectBranch }: BranchOverviewProps
           const stats = branchStats[branch.id] || { facilities: 0, horses: 0, totalUnits: 0, occupiedUnits: 0 };
           const occupancyLabel = stats.totalUnits > 0
             ? `${stats.occupiedUnits}/${stats.totalUnits}`
-            : '0';
+            : '—';
           return (
             <Card
               key={branch.id}
