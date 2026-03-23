@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BreedingContract } from "@/hooks/breeding/useBreedingContracts";
 import { useI18n } from "@/i18n";
 import { displayHorseName, displayClientName, formatBreedingDate } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface Props {
   contract: BreedingContract;
