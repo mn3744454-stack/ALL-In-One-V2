@@ -1701,7 +1701,7 @@ export const en = {
       overviewDesc: "Select a branch to manage its facilities, admissions, and operations.",
       facilities: "Facilities",
       horses: "Horses",
-      admissions: "Admissions",
+      occupancy: "Occupancy",
     },
     facilityTypes: {
       barn: "Barn",
