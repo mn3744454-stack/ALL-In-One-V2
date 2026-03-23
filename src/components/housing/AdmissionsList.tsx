@@ -19,6 +19,8 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
 
