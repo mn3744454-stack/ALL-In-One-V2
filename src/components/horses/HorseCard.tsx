@@ -29,9 +29,7 @@ interface Horse {
   breed_data?: { name: string } | null;
   color_data?: { name: string } | null;
   branch_data?: { name: string } | null;
-  // Optional ownership info
   primary_owner?: { name: string } | null;
-  // Breeding enrichment indicators (optional, from enriched queries)
   _hasOffspring?: boolean;
   _isBreedingActive?: boolean;
 }
@@ -40,9 +38,11 @@ interface HorseCardProps {
   horse: Horse;
   onClick?: () => void;
   compact?: boolean;
+  /** Dense mode for 4-column grid — vertical layout with smaller avatar */
+  dense?: boolean;
 }
 
-export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) => {
+export const HorseCard = ({ horse, onClick, compact = false, dense = false }: HorseCardProps) => {
   const { t, lang } = useI18n();
   const rtl = isRTL(lang);
 
@@ -56,7 +56,6 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
     return "bg-muted text-muted-foreground";
   };
 
-  // Calculate age and classification
   const { formattedAge, typeBadgeProps } = useMemo(() => {
     const ageParts = getCurrentAgeParts({
       gender: horse.gender,
@@ -81,7 +80,6 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
   }, [horse.gender, horse.birth_date, horse.birth_at, horse.is_gelded, horse.breeding_role]);
 
   const typeLabel = rtl ? typeBadgeProps.labelAr : typeBadgeProps.label;
-
   const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
   const branchName = horse.branch_data?.name;
@@ -97,14 +95,9 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
         )}
         onClick={onClick}
       >
-        {/* Small Avatar */}
         <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden">
           {horse.avatar_url ? (
-            <img 
-              src={horse.avatar_url} 
-              alt={horse.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={horse.avatar_url} alt={horse.name} className="w-full h-full object-cover" />
           ) : (
             <Heart className="w-4 h-4 text-gold" />
           )}
@@ -112,8 +105,6 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
             {getGenderIcon(horse.gender)}
           </span>
         </div>
-
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-sm" secondaryClassName="text-[10px]" />
@@ -126,19 +117,80 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
             {formattedAge && ` • ${formattedAge}`}
           </p>
         </div>
-
-        {/* Status */}
-        <Badge 
-          variant="secondary" 
-          className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}
-        >
+        <Badge variant="secondary" className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}>
           {t(`horses.status.${horse.status || 'draft'}`)}
         </Badge>
       </div>
     );
   }
 
-  // Full card mode for grid view
+  // Dense mode for 4-column grid — vertical layout
+  if (dense) {
+    return (
+      <Card 
+        variant="elevated" 
+        className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden"
+        onClick={onClick}
+      >
+        <CardContent className="p-3">
+          {/* Top: Avatar + Gender */}
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden">
+              {horse.avatar_url ? (
+                <img src={horse.avatar_url} alt={horse.name} className="w-full h-full object-cover" />
+              ) : (
+                <Heart className="w-5 h-5 text-gold" />
+              )}
+              <span className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-navy text-cream text-[10px] font-bold rounded-full flex items-center justify-center">
+                {getGenderIcon(horse.gender)}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <BilingualName
+                name={horse.name}
+                nameAr={horse.name_ar}
+                primaryClassName="text-sm font-semibold"
+                secondaryClassName="text-[10px]"
+              />
+            </div>
+          </div>
+
+          {/* Badges row */}
+          <div className="flex flex-wrap gap-1 mb-2">
+            <Badge variant="secondary" className={cn("text-[10px] px-1.5", getStatusColor(horse.status))}>
+              {t(`horses.status.${horse.status || 'draft'}`)}
+            </Badge>
+            <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
+              {typeLabel}
+            </Badge>
+          </div>
+
+          {/* Info */}
+          <p className="text-xs text-muted-foreground truncate mb-1">
+            {breedName}
+            {colorName && ` • ${colorName}`}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
+            {horse.birth_date && formattedAge && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formattedAge}
+              </span>
+            )}
+            {branchName && (
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {branchName}
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full card mode for grid view (2-3 columns)
   return (
     <Card 
       variant="elevated" 
@@ -150,11 +202,7 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
           {/* Avatar */}
           <div className="relative w-16 h-16 rounded-xl bg-gradient-to-br from-gold/20 to-gold/5 flex items-center justify-center shrink-0 overflow-hidden">
             {horse.avatar_url ? (
-              <img 
-                src={horse.avatar_url} 
-                alt={horse.name}
-                className="w-full h-full object-cover"
-              />
+              <img src={horse.avatar_url} alt={horse.name} className="w-full h-full object-cover" />
             ) : (
               <Heart className="w-7 h-7 text-gold" />
             )}
