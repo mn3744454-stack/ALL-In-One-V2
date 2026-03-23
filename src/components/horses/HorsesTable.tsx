@@ -109,15 +109,15 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-muted/80">
             <TableHead className="w-[50px] text-center"></TableHead>
-            <TableHead>{t('horses.table.name')}</TableHead>
-            <TableHead>{t('horses.table.breed')}</TableHead>
-            <TableHead className="text-center">{t('horses.table.type')}</TableHead>
-            <TableHead className="text-center">{t('horses.table.age')}</TableHead>
-            <TableHead>{t('horses.table.color')}</TableHead>
-            <TableHead>{t('horses.table.owner')}</TableHead>
-            <TableHead className="text-center">{t('horses.table.status')}</TableHead>
+            <TableHead className="text-start font-bold text-sm">{t('horses.table.name')}</TableHead>
+            <TableHead className="text-start font-bold text-sm">{t('horses.table.breed')}</TableHead>
+            <TableHead className="text-center font-bold text-sm">{t('horses.table.type')}</TableHead>
+            <TableHead className="text-center font-bold text-sm">{t('horses.table.age')}</TableHead>
+            <TableHead className="text-start font-bold text-sm">{t('horses.table.color')}</TableHead>
+            <TableHead className="text-start font-bold text-sm">{t('horses.table.owner')}</TableHead>
+            <TableHead className="text-center font-bold text-sm">{t('horses.table.status')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
