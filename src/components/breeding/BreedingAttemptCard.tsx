@@ -12,7 +12,7 @@ import {
 import { useI18n } from "@/i18n";
 import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
-import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
 
 interface BreedingAttemptCardProps {
