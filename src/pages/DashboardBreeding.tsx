@@ -46,13 +46,12 @@ export default function DashboardBreeding() {
   const [selectedPregnancy, setSelectedPregnancy] = useState<Pregnancy | null>(null);
   const [selectedFoaling, setSelectedFoaling] = useState<Foaling | null>(null);
   const [selectedContract, setSelectedContract] = useState<BreedingContract | null>(null);
-  // Foaling recording from a pregnancy
   const [foalingPregnancy, setFoalingPregnancy] = useState<Pregnancy | null>(null);
-  // Register foal from foaling card
   const [registerFoalFoaling, setRegisterFoalFoaling] = useState<Foaling | null>(null);
 
   const { activeTenant } = useTenant();
   const { t } = useI18n();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('breeding');
 
   const availableTabs = useMemo(() => ['attempts', 'pregnancies', 'foalings', 'contracts', 'embryo', 'inventory'], []);
 
