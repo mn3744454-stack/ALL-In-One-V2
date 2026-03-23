@@ -211,9 +211,9 @@ const HorseProfile = () => {
   const isIntakeDraft = horse.status === 'intake_draft';
 
   return (
-    <div className="min-h-screen bg-background" dir={dir}>
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
+    <div className="h-dvh flex flex-col bg-background overflow-hidden" dir={dir}>
+      {/* Header — sits above the scroll region, always visible */}
+      <header className="shrink-0 z-30 bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="flex items-center justify-between h-14 sm:h-16 px-3 sm:px-4 lg:px-8 max-w-6xl mx-auto">
           <Button 
             variant="ghost" 
@@ -248,7 +248,8 @@ const HorseProfile = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6">
+      <main className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-6xl mx-auto p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6">
         {/* Hero Section */}
         <Card variant="elevated">
           <CardContent className="p-4 sm:p-6">
