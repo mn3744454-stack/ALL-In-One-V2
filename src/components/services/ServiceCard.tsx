@@ -62,9 +62,7 @@ export const ServiceCard = ({
             {/* Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start gap-2 mb-2">
-                <h3 className="font-semibold text-navy text-base sm:text-lg truncate flex-1">
-                  {displayServiceName(service.name, service.name_ar, lang)}
-                </h3>
+                <BilingualName name={service.name} nameAr={service.name_ar} primaryClassName="font-semibold text-navy text-base sm:text-lg" className="flex-1 min-w-0" />
                 <div className="flex items-center gap-1.5 shrink-0">
                   {service.service_kind && service.service_kind !== "service" && (
                     <Badge variant="outline" className="text-xs capitalize">
