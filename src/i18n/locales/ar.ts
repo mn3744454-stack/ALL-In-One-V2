@@ -1614,6 +1614,15 @@ export const ar = {
       currentHousing: "السكن الحالي",
       noHousing: "لا توجد وحدة معينة",
     },
+    horseSection: {
+      title: "الموقع والحركة",
+      currentLocation: "الموقع الحالي",
+      noLocation: "لا يوجد موقع محدد",
+      homeLocation: "الموقع الأصلي",
+      recentMovements: "الحركات الأخيرة",
+      noMovements: "لا توجد حركات مسجلة بعد",
+      viewAll: "عرض الكل",
+    },
     housing: {
       selectLocationFirst: "اختر الوجهة أولاً",
       noAreasInBranch: "لا توجد أقسام في هذا الفرع",
