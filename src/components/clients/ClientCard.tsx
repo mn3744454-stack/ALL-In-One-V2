@@ -9,8 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileText } from "lucide-react";
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
