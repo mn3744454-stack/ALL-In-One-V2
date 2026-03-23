@@ -11,6 +11,7 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface VetTreatmentsListProps {
   treatments: VetTreatment[];
