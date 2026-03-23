@@ -73,6 +73,7 @@ export const en = {
     columns4: "4 Columns",
     of: "of",
     tryAdjustingFilters: "Try adjusting your filters",
+    viewAll: "View All",
   },
   workspace: {
     personal: "Personal",
