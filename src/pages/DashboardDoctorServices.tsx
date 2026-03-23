@@ -34,8 +34,7 @@ export default function DashboardDoctorServices() {
       <CardContent className="pt-6">
         <div className="flex items-start justify-between">
           <div>
-            <h3 className="font-medium">{s.name}</h3>
-            {s.name_ar && <p className="text-sm text-muted-foreground">{s.name_ar}</p>}
+            <BilingualName name={s.name} nameAr={s.name_ar} primaryClassName="font-medium" />
             {s.category && <span className="text-xs bg-muted px-2 py-0.5 rounded mt-1 inline-block">{s.category}</span>}
           </div>
           <Button variant="ghost" size="icon" onClick={() => { setEditService(s); setFormOpen(true); }}>
