@@ -8,6 +8,7 @@ import { Plus, Search, Archive, ArchiveRestore } from "lucide-react";
 import { usePatients, type DoctorPatient } from "@/hooks/doctor/usePatients";
 import { PatientFormDialog } from "@/components/doctor/PatientFormDialog";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
