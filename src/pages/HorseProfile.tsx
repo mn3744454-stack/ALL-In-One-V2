@@ -495,6 +495,7 @@ const HorseProfile = () => {
 
         {/* Sharing Links */}
         <HorseSharesPanel horseId={horse.id} horseName={horse.name} />
+        </div>
       </main>
 
       {/* Edit Wizard */}
