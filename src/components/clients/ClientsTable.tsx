@@ -1,5 +1,5 @@
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import {
   Table,
   TableBody,
