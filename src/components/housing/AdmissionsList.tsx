@@ -225,7 +225,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                         <AvatarImage src={admission.horse?.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
                       </Avatar>
-                      <span className="font-medium truncate max-w-[120px]">{admission.horse?.name || t('common.unknown')}</span>
+                      <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? displayClientName(admission.client.name, admission.client.name_ar, lang) : '—'}</TableCell>
