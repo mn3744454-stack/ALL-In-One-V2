@@ -12,7 +12,7 @@ import {
 import { useI18n } from "@/i18n";
 import { BreedingAttempt } from "@/hooks/breeding/useBreedingAttempts";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
-import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { formatBreedingDate } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
 
 interface BreedingAttemptCardProps {
@@ -35,10 +35,6 @@ export function BreedingAttemptCard({
   const { t, lang } = useI18n();
 
   const methodKey = `breeding.methods.${attempt.attempt_type}` as const;
-  const mareName = displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang);
-  const stallionName = attempt.stallion
-    ? displayHorseName(attempt.stallion.name, attempt.stallion.name_ar, lang)
-    : attempt.external_stallion_name || t("breeding.unknownStallion");
   
   return (
     <Card 
@@ -53,11 +49,13 @@ export function BreedingAttemptCard({
               <AvatarFallback>{(attempt.mare?.name || "M")[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{mareName}</h3>
+              <BilingualName name={attempt.mare?.name} nameAr={attempt.mare?.name_ar} primaryClassName="font-semibold" />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>×</span>
                 <span className={attempt.external_stallion_name && !attempt.stallion ? "italic" : ""}>
-                  {stallionName}
+                  {attempt.stallion
+                    ? <BilingualName name={attempt.stallion.name} nameAr={attempt.stallion.name_ar} inline primaryClassName="text-sm font-medium" secondaryClassName="text-[10px]" />
+                    : (attempt.external_stallion_name || t("breeding.unknownStallion"))}
                 </span>
               </div>
             </div>

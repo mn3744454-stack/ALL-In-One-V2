@@ -300,7 +300,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
           </Avatar>
           <div className="flex-1 min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" inline />
+              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-semibold" />
               {getStatusBadge(admission.status, t)}
               {admission.reason && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
@@ -317,7 +317,7 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {(admission.client?.name || admission.client?.name_ar) && (
                 <span className="flex items-center gap-1">
-                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} inline primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
+                  <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-xs font-medium text-foreground/70" secondaryClassName="text-[10px]" />
                 </span>
               )}
               {admission.branch && (
