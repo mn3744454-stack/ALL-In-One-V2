@@ -262,7 +262,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 >
                   <User className="h-5 w-5 text-muted-foreground shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{displayClientName(client.name, client.name_ar, lang)}</p>
+                    <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="text-sm" />
                     {client.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
                   </div>
                   {form.clientId === client.id && <Check className="h-4 w-4 text-primary" />}
