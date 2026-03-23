@@ -10,6 +10,7 @@ import { Plus, Search } from "lucide-react";
 import { useConsultations } from "@/hooks/doctor/useConsultations";
 import { useI18n } from "@/i18n";
 import { formatStandardDate } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
