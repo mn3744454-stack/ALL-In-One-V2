@@ -3,6 +3,8 @@ import { Loader2, Package } from "lucide-react";
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceCard } from "./ServiceCard";
 import { ServiceFormDialog } from "./ServiceFormDialog";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface ServicesListProps {
   services: TenantService[];
@@ -29,6 +31,8 @@ export const ServicesList = ({
   isUpdating = false,
   isDeleting = false,
 }: ServicesListProps) => {
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('services-catalog');
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -54,18 +58,29 @@ export const ServicesList = ({
 
   return (
     <div className="space-y-4">
-      {services.map((service) => (
-        <ServiceCard
-          key={service.id}
-          service={service}
-          linkedPlanCount={planCountByServiceId[service.id] || 0}
-          onUpdate={onUpdate}
-          onDelete={onDelete}
-          onToggleActive={onToggleActive}
-          isUpdating={isUpdating}
-          isDeleting={isDeleting}
+      <div className="hidden md:flex justify-end">
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={false}
         />
-      ))}
+      </div>
+      <div className={getGridClass(gridColumns, viewMode)}>
+        {services.map((service) => (
+          <ServiceCard
+            key={service.id}
+            service={service}
+            linkedPlanCount={planCountByServiceId[service.id] || 0}
+            onUpdate={onUpdate}
+            onDelete={onDelete}
+            onToggleActive={onToggleActive}
+            isUpdating={isUpdating}
+            isDeleting={isDeleting}
+          />
+        ))}
+      </div>
     </div>
   );
 };

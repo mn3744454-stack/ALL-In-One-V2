@@ -641,7 +641,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Samples Tab */}
         <TabsContent value="samples">
           <div className="space-y-4">
-            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
+            <div className={cn("hidden md:flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={samplesView}
                 gridColumns={samplesGridCols}
@@ -677,7 +677,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Results Tab */}
         <TabsContent value="results">
           <div className="space-y-4">
-            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
+            <div className={cn("hidden md:flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={resultsView}
                 gridColumns={resultsGridCols}
@@ -806,13 +806,15 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">{t("laboratory.labHorses.invoices")}</CardTitle>
-                  <ViewSwitcher
-                    viewMode={invoicesView}
-                    gridColumns={2}
-                    onViewModeChange={setInvoicesView}
-                    onGridColumnsChange={() => {}}
-                    showTable={true}
-                  />
+                  <div className="hidden md:block">
+                    <ViewSwitcher
+                      viewMode={invoicesView}
+                      gridColumns={2}
+                      onViewModeChange={setInvoicesView}
+                      onGridColumnsChange={() => {}}
+                      showTable={true}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {!financialSummary?.invoices?.length ? (

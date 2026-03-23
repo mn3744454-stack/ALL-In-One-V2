@@ -8,6 +8,8 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface VaccinationsListProps {
   vaccinations: HorseVaccination[];
@@ -24,6 +26,8 @@ export function VaccinationsList({
   onCancel,
   emptyMessage = "No vaccinations scheduled"
 }: VaccinationsListProps) {
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-vaccinations');
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -46,103 +50,112 @@ export function VaccinationsList({
   }
 
   return (
-    <div className="space-y-3">
-      {vaccinations.map((vaccination) => {
-        const dueDate = new Date(vaccination.due_date);
-        const isOverdue = isPast(dueDate) && vaccination.status === 'due';
-        const isDueToday = isToday(dueDate);
-        const isDueTomorrow = isTomorrow(dueDate);
+    <div className="space-y-4">
+      <div className="hidden md:flex justify-end">
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={false}
+        />
+      </div>
+      <div className={getGridClass(gridColumns, viewMode)}>
+        {vaccinations.map((vaccination) => {
+          const dueDate = new Date(vaccination.due_date);
+          const isOverdue = isPast(dueDate) && vaccination.status === 'due';
+          const isDueToday = isToday(dueDate);
+          const isDueTomorrow = isTomorrow(dueDate);
 
-        return (
-          <Card key={vaccination.id} className={isOverdue ? "border-destructive/50" : ""}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {/* Horse Avatar */}
-                  <Avatar className="w-10 h-10 rounded-lg">
-                    <AvatarImage src={vaccination.horse?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gold/20 text-gold-dark rounded-lg">
-                      {vaccination.horse?.name?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+          return (
+            <Card key={vaccination.id} className={isOverdue ? "border-destructive/50" : ""}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Avatar className="w-10 h-10 rounded-lg">
+                      <AvatarImage src={vaccination.horse?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gold/20 text-gold-dark rounded-lg">
+                        {vaccination.horse?.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-navy truncate">
-                        {vaccination.program?.name || "Unknown Vaccine"}
-                      </h4>
-                      <VetStatusBadge status={vaccination.status} />
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {vaccination.horse?.name}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {vaccination.service_mode === 'internal' ? 'Internal' : 'External'}
-                      </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-navy truncate">
+                          {vaccination.program?.name || "Unknown Vaccine"}
+                        </h4>
+                        <VetStatusBadge status={vaccination.status} />
+                      </div>
                       
-                      <span className={`flex items-center gap-1 text-xs ${
-                        isOverdue ? "text-destructive font-medium" : 
-                        isDueToday ? "text-amber-600 font-medium" : 
-                        isDueTomorrow ? "text-blue-600" : 
-                        "text-muted-foreground"
-                      }`}>
-                        {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                        <Calendar className="w-3 h-3" />
-                        {isOverdue ? "Overdue: " : isDueToday ? "Due Today: " : isDueTomorrow ? "Tomorrow: " : "Due: "}
-                        {formatStandardDate(dueDate)}
-                      </span>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {vaccination.horse?.name}
+                      </p>
 
-                      {vaccination.administered_date && (
-                        <span className="flex items-center gap-1 text-xs text-success">
-                          <CheckCircle className="w-3 h-3" />
-                          Administered: {formatStandardDate(vaccination.administered_date)}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {vaccination.service_mode === 'internal' ? 'Internal' : 'External'}
+                        </Badge>
+                        
+                        <span className={`flex items-center gap-1 text-xs ${
+                          isOverdue ? "text-destructive font-medium" : 
+                          isDueToday ? "text-amber-600 font-medium" : 
+                          isDueTomorrow ? "text-blue-600" : 
+                          "text-muted-foreground"
+                        }`}>
+                          {isOverdue && <AlertTriangle className="w-3 h-3" />}
+                          <Calendar className="w-3 h-3" />
+                          {isOverdue ? "Overdue: " : isDueToday ? "Due Today: " : isDueTomorrow ? "Tomorrow: " : "Due: "}
+                          {formatStandardDate(dueDate)}
                         </span>
+
+                        {vaccination.administered_date && (
+                          <span className="flex items-center gap-1 text-xs text-success">
+                            <CheckCircle className="w-3 h-3" />
+                            Administered: {formatStandardDate(vaccination.administered_date)}
+                          </span>
+                        )}
+                      </div>
+
+                      {vaccination.notes && (
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-1">
+                          {vaccination.notes}
+                        </p>
                       )}
                     </div>
-
-                    {vaccination.notes && (
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-1">
-                        {vaccination.notes}
-                      </p>
-                    )}
                   </div>
+
+                  {vaccination.status === 'due' && (
+                    <div className="flex gap-1 shrink-0">
+                      {onMarkAdministered && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
+                          onClick={() => onMarkAdministered(vaccination.id)}
+                          title="Mark as administered"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {onCancel && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => onCancel(vaccination.id)}
+                          title="Cancel vaccination"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {/* Actions */}
-                {vaccination.status === 'due' && (
-                  <div className="flex gap-1 shrink-0">
-                    {onMarkAdministered && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
-                        onClick={() => onMarkAdministered(vaccination.id)}
-                        title="Mark as administered"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onCancel && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => onCancel(vaccination.id)}
-                        title="Cancel vaccination"
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

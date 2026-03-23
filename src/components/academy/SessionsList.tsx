@@ -5,12 +5,13 @@ import { useAcademySessions, useDeleteSession, useToggleSessionActive, type Acad
 import { supabase } from "@/integrations/supabase/client";
 import { SessionCard } from "./SessionCard";
 import { SessionFormDialog } from "./SessionFormDialog";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface SessionsListProps {
   onEmpty?: () => React.ReactNode;
 }
 
-// Wrapper to fetch confirmed count for each session
 const SessionCardWithCount = ({
   session,
   onEdit,
@@ -57,6 +58,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
   const { data: sessions = [], isLoading } = useAcademySessions();
   const deleteSession = useDeleteSession();
   const toggleActive = useToggleSessionActive();
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('academy-sessions');
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<AcademySession | undefined>();
@@ -98,7 +100,6 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Add Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold text-navy">Sessions</h2>
@@ -106,13 +107,23 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
             Manage your training sessions and classes
           </p>
         </div>
-        <Button variant="gold" onClick={handleCreate} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Session
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={false}
+            />
+          </div>
+          <Button variant="gold" onClick={handleCreate} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Session
+          </Button>
+        </div>
       </div>
 
-      {/* Sessions List */}
       {sessions.length === 0 ? (
         onEmpty?.() || (
           <div className="py-12 text-center border border-dashed border-border rounded-xl">
@@ -128,7 +139,7 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
           </div>
         )
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {sessions.map((session) => (
             <SessionCardWithCount
               key={session.id}
@@ -142,7 +153,6 @@ export const SessionsList = ({ onEmpty }: SessionsListProps) => {
         </div>
       )}
 
-      {/* Form Dialog */}
       <SessionFormDialog
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}

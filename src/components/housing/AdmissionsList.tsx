@@ -19,6 +19,8 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
 
@@ -47,6 +49,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   const { t, lang } = useI18n();
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('housing-admissions');
   const [searchParams, setSearchParams] = useSearchParams();
   const [subFilter, setSubFilter] = useState<AdmissionSubFilter>('active');
   const [search, setSearch] = useState('');
@@ -109,12 +112,23 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">{t('housing.admissions.title')}</h2>
-        {canCreate && (
-          <Button onClick={() => setWizardOpen(true)} size="sm">
-            <Plus className="h-4 w-4 me-1" />
-            {t('housing.admissions.newAdmission')}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={false}
+            />
+          </div>
+          {canCreate && (
+            <Button onClick={() => setWizardOpen(true)} size="sm">
+              <Plus className="h-4 w-4 me-1" />
+              {t('housing.admissions.newAdmission')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
@@ -188,7 +202,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {filteredAdmissions.map((admission) => (
             <AdmissionCard
               key={admission.id}

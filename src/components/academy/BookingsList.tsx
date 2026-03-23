@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { useTenantBookings, useUpdateBookingStatus, type BookingWithUser } from "@/hooks/useAcademyBookings";
 import { BookingCard } from "./BookingCard";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 type StatusFilter = "all" | "pending" | "confirmed" | "rejected" | "cancelled";
 
@@ -17,6 +19,7 @@ export const BookingsList = () => {
   const { data: bookings = [], isLoading } = useTenantBookings();
   const updateStatus = useUpdateBookingStatus();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('academy-bookings');
 
   const filteredBookings = statusFilter === "all"
     ? bookings
@@ -44,7 +47,6 @@ export const BookingsList = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="font-display text-xl font-semibold text-navy">Bookings</h2>
@@ -53,7 +55,6 @@ export const BookingsList = () => {
           </p>
         </div>
 
-        {/* Filter */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <Select
@@ -71,10 +72,18 @@ export const BookingsList = () => {
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
+          <div className="hidden md:block">
+            <ViewSwitcher
+              viewMode={viewMode}
+              gridColumns={gridColumns}
+              onViewModeChange={setViewMode}
+              onGridColumnsChange={setGridColumns}
+              showTable={false}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Bookings List */}
       {filteredBookings.length === 0 ? (
         <div className="py-12 text-center border border-dashed border-border rounded-xl">
           <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
@@ -86,7 +95,7 @@ export const BookingsList = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className={getGridClass(gridColumns, viewMode)}>
           {filteredBookings.map((booking) => (
             <BookingCard
               key={booking.id}
@@ -100,7 +109,6 @@ export const BookingsList = () => {
         </div>
       )}
 
-      {/* Summary */}
       {bookings.length > 0 && (
         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground pt-4 border-t border-border">
           <span>

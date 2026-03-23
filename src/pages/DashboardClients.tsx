@@ -159,7 +159,7 @@ export default function DashboardClients() {
               onTypeChange={setTypeFilter}
             />
           </div>
-          <div className="flex-shrink-0 flex justify-end sm:justify-start">
+          <div className="flex-shrink-0 hidden md:flex justify-end sm:justify-start">
             <ViewSwitcher
               viewMode={viewMode}
               gridColumns={gridColumns}
