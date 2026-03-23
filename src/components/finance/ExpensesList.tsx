@@ -200,13 +200,15 @@ export function ExpensesList({
           </SelectContent>
         </Select>
 
-        <ViewSwitcher
-          viewMode={viewMode}
-          gridColumns={gridColumns}
-          onViewModeChange={setViewMode}
-          onGridColumnsChange={setGridColumns}
-          showTable={true}
-        />
+        <div className="hidden md:block">
+          <ViewSwitcher
+            viewMode={viewMode}
+            gridColumns={gridColumns}
+            onViewModeChange={setViewMode}
+            onGridColumnsChange={setGridColumns}
+            showTable={true}
+          />
+        </div>
       </div>
 
       {/* Results */}

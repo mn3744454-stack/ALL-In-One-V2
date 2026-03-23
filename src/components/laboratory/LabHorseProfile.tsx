@@ -806,13 +806,15 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">{t("laboratory.labHorses.invoices")}</CardTitle>
-                  <ViewSwitcher
-                    viewMode={invoicesView}
-                    gridColumns={2}
-                    onViewModeChange={setInvoicesView}
-                    onGridColumnsChange={() => {}}
-                    showTable={true}
-                  />
+                  <div className="hidden md:block">
+                    <ViewSwitcher
+                      viewMode={invoicesView}
+                      gridColumns={2}
+                      onViewModeChange={setInvoicesView}
+                      onGridColumnsChange={() => {}}
+                      showTable={true}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {!financialSummary?.invoices?.length ? (
