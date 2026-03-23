@@ -52,9 +52,6 @@ export function ClientsTable({
 }: ClientsTableProps) {
   const { t, dir, lang } = useI18n();
 
-  const getClientDisplayName = (client: Client) => {
-    return displayClientName(client.name, client.name_ar, lang);
-  };
 
   return (
     <div className="rounded-md border overflow-x-auto">
