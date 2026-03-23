@@ -3086,6 +3086,7 @@ export const ar = {
       noLocation: "لا يوجد موقع محدد",
       mediaGallery: "معرض الوسائط",
       notes: "الملاحظات",
+      breed: "السلالة",
       incompleteTitle: "ملف غير مكتمل",
       completeProfile: "إكمال الملف",
     },
