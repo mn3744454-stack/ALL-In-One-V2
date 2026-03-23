@@ -180,8 +180,8 @@ const HorseProfile = () => {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="text-center">
-          <h2 className="font-display text-xl font-semibold text-navy mb-2">Horse not found</h2>
-          <Button onClick={() => navigate("/dashboard/horses")}>Go Back</Button>
+          <h2 className="font-display text-xl font-semibold text-navy mb-2">{t('horses.notFound')}</h2>
+          <Button onClick={() => navigate("/dashboard/horses")}>{t('common.back')}</Button>
         </div>
       </div>
     );
