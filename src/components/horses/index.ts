@@ -6,3 +6,4 @@ export { HorseWizard } from "./HorseWizard";
 export { HorsesTable } from "./HorsesTable";
 export { AddMasterDataDialog } from "./AddMasterDataDialog";
 export { HorseMediaGallery } from "./HorseMediaGallery";
+export { IncompleteProfileModal } from "./IncompleteProfileModal";
