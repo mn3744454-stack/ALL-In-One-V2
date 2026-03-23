@@ -283,14 +283,13 @@ const HorseProfile = () => {
                   )}
                 </div>
                 
-                <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1">
-                  {horse.name}
-                </h1>
-                {horse.name_ar && (
-                  <p className="text-base sm:text-lg text-muted-foreground mb-3" dir="rtl">
-                    {horse.name_ar}
-                  </p>
-                )}
+                <BilingualName
+                  name={horse.name}
+                  nameAr={horse.name_ar}
+                  primaryClassName="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground"
+                  secondaryClassName="text-base sm:text-lg"
+                  className="mb-3"
+                />
 
                 <p className="text-sm sm:text-base text-muted-foreground mb-4">
                   {breedName}
