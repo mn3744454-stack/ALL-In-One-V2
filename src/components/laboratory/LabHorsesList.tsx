@@ -178,14 +178,14 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">{t("common.name")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.walkIn.microchip")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.walkIn.passportNumber")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.labHorses.ownerName")}</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            8<TableHead>{t("laboratory.walkIn.microchip")}</TableHead>
+            <TableHead>{t("laboratory.walkIn.passportNumber")}</TableHead>
+            <TableHead>{t("laboratory.labHorses.ownerName")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.ownerPhone")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.samplesCount")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.outstanding")}</TableHead>
-            <TableHead className="text-center w-[80px]">{t("common.actions")}</TableHead>
+            <TableHead className="w-[60px]">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
