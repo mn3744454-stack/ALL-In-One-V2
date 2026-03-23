@@ -12,6 +12,7 @@ import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen, Receipt, FileX } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
