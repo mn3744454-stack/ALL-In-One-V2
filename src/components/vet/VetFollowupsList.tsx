@@ -8,6 +8,8 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 import { Calendar, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface VetFollowupsListProps {
   followups: VetFollowup[];
@@ -33,6 +35,8 @@ export function VetFollowupsList({
   onCancel,
   emptyMessage = "No follow-ups scheduled"
 }: VetFollowupsListProps) {
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-followups');
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -55,94 +59,103 @@ export function VetFollowupsList({
   }
 
   return (
-    <div className="space-y-3">
-      {followups.map((followup) => {
-        const dueDate = new Date(followup.due_at);
-        const isOverdue = isPast(dueDate) && followup.status === 'open';
-        const isDueToday = isToday(dueDate);
-        const isDueTomorrow = isTomorrow(dueDate);
+    <div className="space-y-4">
+      <div className="hidden md:flex justify-end">
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={false}
+        />
+      </div>
+      <div className={getGridClass(gridColumns, viewMode)}>
+        {followups.map((followup) => {
+          const dueDate = new Date(followup.due_at);
+          const isOverdue = isPast(dueDate) && followup.status === 'open';
+          const isDueToday = isToday(dueDate);
+          const isDueTomorrow = isTomorrow(dueDate);
 
-        return (
-          <Card key={followup.id} className={isOverdue ? "border-destructive/50" : ""}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {/* Horse Avatar */}
-                  <Avatar className="w-10 h-10 rounded-lg">
-                    <AvatarImage src={followup.treatment?.horse?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gold/20 text-gold-dark rounded-lg">
-                      {followup.treatment?.horse?.name?.[0] || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+          return (
+            <Card key={followup.id} className={isOverdue ? "border-destructive/50" : ""}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Avatar className="w-10 h-10 rounded-lg">
+                      <AvatarImage src={followup.treatment?.horse?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gold/20 text-gold-dark rounded-lg">
+                        {followup.treatment?.horse?.name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-navy truncate">
-                        {followup.treatment?.title || "Unknown Treatment"}
-                      </h4>
-                      <VetStatusBadge status={followup.status} />
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {followup.treatment?.horse?.name}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {typeLabels[followup.type] || followup.type}
-                      </Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium text-navy truncate">
+                          {followup.treatment?.title || "Unknown Treatment"}
+                        </h4>
+                        <VetStatusBadge status={followup.status} />
+                      </div>
                       
-                      <span className={`flex items-center gap-1 text-xs ${
-                        isOverdue ? "text-destructive font-medium" : 
-                        isDueToday ? "text-amber-600 font-medium" : 
-                        isDueTomorrow ? "text-blue-600" : 
-                        "text-muted-foreground"
-                      }`}>
-                        {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                        <Calendar className="w-3 h-3" />
-                        {isOverdue ? "Overdue: " : isDueToday ? "Today: " : isDueTomorrow ? "Tomorrow: " : ""}
-                        {formatStandardDate(dueDate)}
-                      </span>
-                    </div>
-
-                    {followup.notes && (
-                      <p className="text-xs text-muted-foreground mt-2 line-clamp-1">
-                        {followup.notes}
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {followup.treatment?.horse?.name}
                       </p>
-                    )}
-                  </div>
-                </div>
 
-                {/* Actions */}
-                {followup.status === 'open' && (
-                  <div className="flex gap-1 shrink-0">
-                    {onMarkDone && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
-                        onClick={() => onMarkDone(followup.id)}
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onCancel && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => onCancel(followup.id)}
-                      >
-                        <XCircle className="w-4 h-4" />
-                      </Button>
-                    )}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {typeLabels[followup.type] || followup.type}
+                        </Badge>
+                        
+                        <span className={`flex items-center gap-1 text-xs ${
+                          isOverdue ? "text-destructive font-medium" : 
+                          isDueToday ? "text-amber-600 font-medium" : 
+                          isDueTomorrow ? "text-blue-600" : 
+                          "text-muted-foreground"
+                        }`}>
+                          {isOverdue && <AlertTriangle className="w-3 h-3" />}
+                          <Calendar className="w-3 h-3" />
+                          {isOverdue ? "Overdue: " : isDueToday ? "Today: " : isDueTomorrow ? "Tomorrow: " : ""}
+                          {formatStandardDate(dueDate)}
+                        </span>
+                      </div>
+
+                      {followup.notes && (
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-1">
+                          {followup.notes}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+
+                  {followup.status === 'open' && (
+                    <div className="flex gap-1 shrink-0">
+                      {onMarkDone && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
+                          onClick={() => onMarkDone(followup.id)}
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                      {onCancel && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => onCancel(followup.id)}
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

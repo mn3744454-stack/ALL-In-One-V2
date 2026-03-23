@@ -2,6 +2,8 @@ import { VetTreatmentCard } from "./VetTreatmentCard";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stethoscope } from "lucide-react";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface VetTreatmentsListProps {
   treatments: VetTreatment[];
@@ -18,6 +20,8 @@ export function VetTreatmentsList({
   onEdit,
   emptyMessage = "No treatments found"
 }: VetTreatmentsListProps) {
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-treatments');
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -41,15 +45,26 @@ export function VetTreatmentsList({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {treatments.map((treatment) => (
-        <VetTreatmentCard
-          key={treatment.id}
-          treatment={treatment}
-          onView={onView}
-          onEdit={onEdit}
+    <div className="space-y-4">
+      <div className="hidden md:flex justify-end">
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={false}
         />
-      ))}
+      </div>
+      <div className={getGridClass(gridColumns, viewMode)}>
+        {treatments.map((treatment) => (
+          <VetTreatmentCard
+            key={treatment.id}
+            treatment={treatment}
+            onView={onView}
+            onEdit={onEdit}
+          />
+        ))}
+      </div>
     </div>
   );
 }

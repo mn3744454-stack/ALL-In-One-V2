@@ -2,6 +2,8 @@ import { VetVisitCard } from "./VetVisitCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarX2 } from "lucide-react";
 import type { VetVisit } from "@/hooks/vet/useVetVisits";
+import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
+import { useViewPreference } from "@/hooks/useViewPreference";
 
 interface VetVisitsListProps {
   visits: VetVisit[];
@@ -26,6 +28,8 @@ export function VetVisitsList({
   onCancel,
   onVisitClick,
 }: VetVisitsListProps) {
+  const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-visits');
+
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -48,19 +52,30 @@ export function VetVisitsList({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {visits.map((visit) => (
-        <VetVisitCard
-          key={visit.id}
-          visit={visit}
-          horses={horses}
-          onConfirm={onConfirm}
-          onStart={onStart}
-          onComplete={onComplete}
-          onCancel={onCancel}
-          onClick={onVisitClick}
+    <div className="space-y-4">
+      <div className="hidden md:flex justify-end">
+        <ViewSwitcher
+          viewMode={viewMode}
+          gridColumns={gridColumns}
+          onViewModeChange={setViewMode}
+          onGridColumnsChange={setGridColumns}
+          showTable={false}
         />
-      ))}
+      </div>
+      <div className={getGridClass(gridColumns, viewMode)}>
+        {visits.map((visit) => (
+          <VetVisitCard
+            key={visit.id}
+            visit={visit}
+            horses={horses}
+            onConfirm={onConfirm}
+            onStart={onStart}
+            onComplete={onComplete}
+            onCancel={onCancel}
+            onClick={onVisitClick}
+          />
+        ))}
+      </div>
     </div>
   );
 }
