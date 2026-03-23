@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useHorses } from "@/hooks/useHorses";
 import { useBoardingAdmissions, type CreateAdmissionData } from "@/hooks/housing/useBoardingAdmissions";
