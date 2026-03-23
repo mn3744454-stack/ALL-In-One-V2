@@ -4,6 +4,10 @@ import { CalendarX2 } from "lucide-react";
 import type { VetVisit } from "@/hooks/vet/useVetVisits";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { VetStatusBadge } from "./VetStatusBadge";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { formatStandardDate } from "@/lib/displayHelpers";
 
 interface VetVisitsListProps {
   visits: VetVisit[];
@@ -59,23 +63,50 @@ export function VetVisitsList({
           gridColumns={gridColumns}
           onViewModeChange={setViewMode}
           onGridColumnsChange={setGridColumns}
-          showTable={false}
+          showTable={true}
         />
       </div>
-      <div className={getGridClass(gridColumns, viewMode)}>
-        {visits.map((visit) => (
-          <VetVisitCard
-            key={visit.id}
-            visit={visit}
-            horses={horses}
-            onConfirm={onConfirm}
-            onStart={onStart}
-            onComplete={onComplete}
-            onCancel={onCancel}
-            onClick={onVisitClick}
-          />
-        ))}
-      </div>
+      {viewMode === 'table' ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Vet</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="whitespace-nowrap">Scheduled</TableHead>
+              <TableHead className="whitespace-nowrap">Est. Cost</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visits.map((visit) => (
+              <TableRow key={visit.id} className="cursor-pointer" onClick={() => onVisitClick?.(visit)}>
+                <TableCell className="font-medium">{visit.title}</TableCell>
+                <TableCell><Badge variant="outline" className="text-xs capitalize">{visit.visit_type.replace('_', ' ')}</Badge></TableCell>
+                <TableCell className="text-muted-foreground">{visit.vet_name || '—'}</TableCell>
+                <TableCell><VetStatusBadge status={visit.status} /></TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(visit.scheduled_date)}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{visit.estimated_cost != null ? visit.estimated_cost : '—'}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className={getGridClass(gridColumns, viewMode)}>
+          {visits.map((visit) => (
+            <VetVisitCard
+              key={visit.id}
+              visit={visit}
+              horses={horses}
+              onConfirm={onConfirm}
+              onStart={onStart}
+              onComplete={onComplete}
+              onCancel={onCancel}
+              onClick={onVisitClick}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
