@@ -641,7 +641,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Samples Tab */}
         <TabsContent value="samples">
           <div className="space-y-4">
-            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
+            <div className={cn("hidden md:flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={samplesView}
                 gridColumns={samplesGridCols}
