@@ -3069,6 +3069,7 @@ export const en = {
       noLocation: "No location assigned",
       mediaGallery: "Media Gallery",
       notes: "Notes",
+      breed: "Breed",
       incompleteTitle: "Incomplete Profile",
       completeProfile: "Complete Profile",
     },
