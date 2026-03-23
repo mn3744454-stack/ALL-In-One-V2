@@ -40,7 +40,7 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
               <Icon className="w-5 h-5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-foreground truncate">{displayName}</h3>
+              <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="font-semibold text-foreground" />
             </div>
           </div>
           

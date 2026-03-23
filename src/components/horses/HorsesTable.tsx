@@ -157,14 +157,7 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{horse.name}</div>
-                    {horse.name_ar && (
-                      <div className="text-xs text-muted-foreground truncate" dir="rtl">
-                        {horse.name_ar}
-                      </div>
-                    )}
-                  </div>
+                  <BilingualName name={horse.name} nameAr={horse.name_ar} />
                 </TableCell>
                 <TableCell className="text-muted-foreground">{breedName}</TableCell>
                 <TableCell className="text-center">

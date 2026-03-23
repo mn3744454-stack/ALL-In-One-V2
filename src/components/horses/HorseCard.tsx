@@ -166,16 +166,11 @@ export const HorseCard = ({ horse, onClick, compact = false }: HorseCardProps) =
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
-              <div>
-                <h3 className="font-display font-semibold text-foreground truncate">
-                  {displayHorseName(horse.name, horse.name_ar, lang)}
-                </h3>
-                {horse.name_ar && (
-                  <p className="text-xs text-muted-foreground truncate" dir="rtl">
-                    {horse.name_ar}
-                  </p>
-                )}
-              </div>
+              <BilingualName
+                name={horse.name}
+                nameAr={horse.name_ar}
+                primaryClassName="font-display font-semibold text-foreground"
+              />
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <Badge 
                   variant="secondary" 
