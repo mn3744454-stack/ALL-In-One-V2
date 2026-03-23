@@ -1088,16 +1088,18 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
               </thead>
               <tbody>
                 {filteredRequests.map((request) => {
-                  const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
-                    ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
-                    : (request.horse_name_snapshot || request.horse?.name || t('laboratory.samples.unknownHorse'));
                   return (
                     <tr
                       key={request.id}
                       className="border-b hover:bg-muted/50 cursor-pointer"
                       onClick={() => handleOpenDetail(request)}
                     >
-                      <td className="py-2 px-3 font-medium">{horseName}</td>
+                      <td className="py-2 px-3">
+                        <BilingualName
+                          name={request.horse_name_snapshot || request.horse?.name}
+                          nameAr={request.horse_name_ar_snapshot || (request.horse as any)?.name_ar}
+                        />
+                      </td>
                       <td className="py-2 px-3 truncate max-w-[200px]">{request.test_description}</td>
                       <td className="py-2 px-3"><RequestStatusBadge status={request.status} /></td>
                       <td className="py-2 px-3 text-muted-foreground">{formatStandardDate(request.requested_at)}</td>
