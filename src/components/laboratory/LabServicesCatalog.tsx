@@ -225,10 +225,7 @@ export function LabServicesCatalog() {
           {filtered.map(service => (
             <TableRow key={service.id} className={`cursor-pointer ${!service.is_active ? "opacity-60" : ""}`} onClick={() => openEdit(service)}>
               <TableCell>
-                <div>
-                  <span className="font-medium">{service.name}</span>
-                  {service.name_ar && <span className="text-xs text-muted-foreground ms-2" dir="rtl">{service.name_ar}</span>}
-                </div>
+                <BilingualName name={service.name} nameAr={service.name_ar} />
               </TableCell>
               <TableCell><span className="font-mono text-xs">{service.code || "—"}</span></TableCell>
               <TableCell>{service.category || "—"}</TableCell>

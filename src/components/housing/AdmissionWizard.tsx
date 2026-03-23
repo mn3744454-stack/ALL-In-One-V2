@@ -226,8 +226,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{horse.name}</p>
-                    {horse.name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{horse.name_ar}</p>}
+                    <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
                   </div>
                   {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                 </button>
