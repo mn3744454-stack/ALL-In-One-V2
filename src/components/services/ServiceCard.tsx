@@ -167,7 +167,7 @@ export const ServiceCard = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("common.delete")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("common.confirm")} — "{displayServiceName(service.name, service.name_ar, lang)}"
+              {t("common.confirm")} — "{service.name}"
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
