@@ -215,7 +215,7 @@ export function LabServicesCatalog() {
             <TableHead>{t("laboratory.catalog.category")}</TableHead>
             <TableHead>{t("laboratory.catalog.price")}</TableHead>
             <TableHead className="text-center">{t("laboratory.catalog.active")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.catalog.actions")}</TableHead>
+            <TableHead className="w-[60px] text-center">{t("laboratory.catalog.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

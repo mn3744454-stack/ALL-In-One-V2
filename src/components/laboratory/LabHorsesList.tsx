@@ -178,14 +178,14 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">{t("common.name")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.walkIn.microchip")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.walkIn.passportNumber")}</TableHead>
-            <TableHead className="text-center">{t("laboratory.labHorses.ownerName")}</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead>{t("laboratory.walkIn.microchip")}</TableHead>
+            <TableHead>{t("laboratory.walkIn.passportNumber")}</TableHead>
+            <TableHead>{t("laboratory.labHorses.ownerName")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.ownerPhone")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.samplesCount")}</TableHead>
             <TableHead className="text-center">{t("laboratory.labHorses.outstanding")}</TableHead>
-            <TableHead className="text-center w-[80px]">{t("common.actions")}</TableHead>
+            <TableHead className="w-[60px]">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -198,8 +198,8 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
               )}
               onClick={() => handleViewProfile(horse.id)}
             >
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell>
+                <div className="flex items-center gap-2">
                   <span className="font-medium">{getHorseDisplayName(horse)}</span>
                   {horse.is_archived && (
                     <Badge variant="secondary" className="text-xs">
@@ -208,13 +208,13 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
                   )}
                 </div>
               </TableCell>
-              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+              <TableCell className="font-mono text-sm text-muted-foreground">
                 {horse.microchip_number || "-"}
               </TableCell>
-              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+              <TableCell className="font-mono text-sm text-muted-foreground">
                 {horse.passport_number || "-"}
               </TableCell>
-              <TableCell className="text-center">{horse.owner_name || "-"}</TableCell>
+              <TableCell>{horse.owner_name || "-"}</TableCell>
               <TableCell className="text-center font-mono text-sm">
                 {horse.owner_phone || "-"}
               </TableCell>
