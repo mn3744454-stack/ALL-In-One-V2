@@ -677,7 +677,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         {/* Results Tab */}
         <TabsContent value="results">
           <div className="space-y-4">
-            <div className={cn("flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
+            <div className={cn("hidden md:flex", dir === 'rtl' ? 'justify-start' : 'justify-end')}>
               <ViewSwitcher
                 viewMode={resultsView}
                 gridColumns={resultsGridCols}
