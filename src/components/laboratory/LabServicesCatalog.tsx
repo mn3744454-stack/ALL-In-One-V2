@@ -35,6 +35,7 @@ import { LabServiceFormDialog } from "./LabServiceFormDialog";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 type DialogTarget = { service: LabService; action: "deactivate" | "delete" } | null;
 
