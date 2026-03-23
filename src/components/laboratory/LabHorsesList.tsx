@@ -198,8 +198,8 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
               )}
               onClick={() => handleViewProfile(horse.id)}
             >
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-2">
+              <TableCell>
+                <div className="flex items-center gap-2">
                   <span className="font-medium">{getHorseDisplayName(horse)}</span>
                   {horse.is_archived && (
                     <Badge variant="secondary" className="text-xs">
@@ -208,13 +208,13 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
                   )}
                 </div>
               </TableCell>
-              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+              <TableCell className="font-mono text-sm text-muted-foreground">
                 {horse.microchip_number || "-"}
               </TableCell>
-              <TableCell className="text-center font-mono text-sm text-muted-foreground">
+              <TableCell className="font-mono text-sm text-muted-foreground">
                 {horse.passport_number || "-"}
               </TableCell>
-              <TableCell className="text-center">{horse.owner_name || "-"}</TableCell>
+              <TableCell>{horse.owner_name || "-"}</TableCell>
               <TableCell className="text-center font-mono text-sm">
                 {horse.owner_phone || "-"}
               </TableCell>
