@@ -48,6 +48,7 @@ import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNote
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
 import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface Horse {
   id: string;
