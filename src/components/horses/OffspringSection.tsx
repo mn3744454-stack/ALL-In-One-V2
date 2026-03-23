@@ -8,7 +8,7 @@ import { useHorseOffspring } from "@/hooks/useHorseOffspring";
 import { useI18n, isRTL } from "@/i18n";
 import { getHorseTypeLabel, getHorseTypeBadgeProps } from "@/lib/horseClassification";
 import { formatAgeCompact, getCurrentAgeParts } from "@/lib/horseClassification";
-import { displayHorseName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
 
 interface OffspringSectionProps {
