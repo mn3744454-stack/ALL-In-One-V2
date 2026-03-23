@@ -23,7 +23,7 @@ import { MoreVertical, Pencil, Trash2, EyeOff, Tag, Layers } from "lucide-react"
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 import { useI18n } from "@/i18n";
-import { displayServiceName } from "@/lib/displayHelpers";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface ServiceCardProps {
   service: TenantService;
