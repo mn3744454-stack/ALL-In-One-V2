@@ -77,10 +77,7 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   </Avatar>
                 )}
                 <div className="flex-1">
-                  <h3 className="font-semibold">{movement.horse?.name || t('common.unknown')}</h3>
-                  {movement.horse?.name_ar && (
-                    <p className="text-xs text-muted-foreground" dir="rtl">{movement.horse.name_ar}</p>
-                  )}
+                  <BilingualName name={movement.horse?.name} nameAr={movement.horse?.name_ar} primaryClassName="font-semibold" />
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <MovementTypeBadge type={movement.movement_type} size="sm" />
