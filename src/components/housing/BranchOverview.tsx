@@ -165,7 +165,7 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <DoorOpen className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
                       <p className="text-lg font-semibold">{stats.facilities}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.facilities')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.branchScope.facilities')}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <Heart className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
