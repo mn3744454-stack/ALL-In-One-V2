@@ -1729,6 +1729,7 @@ export const ar = {
     },
     branchActions: {
       edit: "تعديل الفرع",
+      editDesc: "تحديث اسم الفرع وتفاصيل الموقع.",
       delete: "حذف الفرع",
       deleteTitle: "حذف الفرع",
       deleteConfirm: "هل أنت متأكد أنك تريد حذف \"{name}\"؟ سيتم تعطيل الفرع.",
