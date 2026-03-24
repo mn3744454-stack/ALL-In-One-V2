@@ -36,7 +36,7 @@ interface ExpandedBranchDetailProps {
 }
 
 export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranchDetailProps) {
-  const { t, dir, language } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [expandedFacilities, setExpandedFacilities] = useState<Set<string>>(new Set());
