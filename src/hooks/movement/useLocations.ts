@@ -96,9 +96,10 @@ export function useLocations() {
         .from('branches')
         .update({
           name: data.name,
+          name_ar: data.name_ar,
           address: data.address,
           city: data.city,
-        })
+        } as any)
         .eq('id', id)
         .eq('tenant_id', tenantId)
         .select()

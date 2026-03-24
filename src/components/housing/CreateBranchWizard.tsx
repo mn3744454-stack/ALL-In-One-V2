@@ -81,6 +81,7 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
       // Create the branch
       const newBranch = await createLocation({
         name: branchName.trim(),
+        name_ar: branchNameAr.trim() || undefined,
         city: city.trim() || undefined,
         address: address.trim() || undefined,
       });
