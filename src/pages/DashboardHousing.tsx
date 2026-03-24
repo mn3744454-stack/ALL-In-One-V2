@@ -109,8 +109,8 @@ export default function DashboardHousing() {
                 <SelectItem key={loc.id} value={loc.id}>
                   <span className="flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5" />
-                    {loc.name}
-                    {loc.city && <span className="text-muted-foreground text-xs">({loc.city})</span>}
+                    <BilingualName name={loc.name} nameAr={(loc as any).name_ar} inline primaryClassName="font-medium text-sm" secondaryClassName="text-xs" />
+                    {loc.city && <span className="text-muted-foreground text-xs">· {loc.city}</span>}
                   </span>
                 </SelectItem>
               ))}
