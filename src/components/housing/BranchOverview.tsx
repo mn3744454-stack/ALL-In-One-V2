@@ -26,7 +26,7 @@ interface BranchOverviewProps {
 }
 
 export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [expandedBranchId, setExpandedBranchId] = useState<string | null>(null);

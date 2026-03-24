@@ -47,7 +47,7 @@ interface ExpandedBranchDetailProps {
 }
 
 export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranchDetailProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { toggleLocationActive } = useLocations();
