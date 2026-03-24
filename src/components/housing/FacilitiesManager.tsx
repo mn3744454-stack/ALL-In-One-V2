@@ -1,46 +1,30 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from "@/components/ui/sheet";
-import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useFacilityAreas, FACILITY_TYPES, SUBDIVISION_CONFIG, type FacilityType } from "@/hooks/housing/useFacilityAreas";
-import { UnitsManager } from "./UnitsManager";
+import { FacilitySection } from "./FacilitySection";
+import { useFacilityAreas, FACILITY_TYPES, type FacilityType } from "@/hooks/housing/useFacilityAreas";
+import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
-import { cn } from "@/lib/utils";
-import { Plus, Building2, Edit, Power, Loader2, LayoutGrid, ChevronRight } from "lucide-react";
-
-function getManageKey(type: FacilityType): string {
-  switch (type) {
-    case 'barn': return 'manageStalls';
-    case 'paddock':
-    case 'pasture': return 'manageZones';
-    case 'isolation': return 'manageBays';
-    case 'storage': return 'manageSections';
-    default: return 'manageSubunits';
-  }
-}
+import { Plus, Building2, Loader2 } from "lucide-react";
 
 interface FacilitiesManagerProps {
   lockedBranchId?: string;
 }
 
 export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
-  const { t, dir, lang: language } = useI18n();
+  const { t } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>(lockedBranchId || '');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
-  const [unitsSheetFacility, setUnitsSheetFacility] = useState<{ id: string; name: string; facilityType: FacilityType } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     name_ar: '',
@@ -52,16 +36,20 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const effectiveBranchId = lockedBranchId || selectedBranchId;
 
   const { activeLocations } = useLocations();
-  const { 
-    areas, 
-    isLoading, 
-    canManage, 
-    createArea, 
-    updateArea, 
+  const {
+    areas,
+    isLoading,
+    canManage,
+    createArea,
+    updateArea,
     toggleAreaActive,
-    isCreating, 
-    isUpdating 
+    isCreating,
+    isUpdating,
   } = useFacilityAreas(effectiveBranchId || undefined);
+
+  // Get all facility IDs for bulk unit+occupant fetch
+  const facilityIds = useMemo(() => areas.filter(a => a.is_active).map(a => a.id), [areas]);
+  const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
 
   const resetForm = () => {
     setFormData({ name: '', name_ar: '', code: '', branch_id: lockedBranchId || '', facility_type: 'barn' });
@@ -120,7 +108,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
 
   return (
     <div className="space-y-4">
-      {/* Filters — only show branch picker when not locked */}
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         {!lockedBranchId && (
           <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
@@ -146,7 +134,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         )}
       </div>
 
-      {/* Facilities Grid */}
+      {/* Inline Facility Sections */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
@@ -164,122 +152,20 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {areas.map((area) => {
-            const displayName = language === 'ar' && area.name_ar ? area.name_ar : area.name;
-            const config = SUBDIVISION_CONFIG[area.facility_type as FacilityType] || SUBDIVISION_CONFIG.other;
-            
-            return (
-              <Card 
-                key={area.id} 
-                className={cn(!area.is_active && "opacity-60")}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{displayName}</CardTitle>
-                        {area.code && (
-                          <p className="text-sm text-muted-foreground">{area.code}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {t(`housing.facilityTypes.${area.facility_type}`)}
-                      </Badge>
-                      {area.is_demo && (
-                        <Badge variant="outline" className="text-xs">Demo</Badge>
-                      )}
-                      {!area.is_active && (
-                        <Badge variant="secondary" className="text-xs">{t('common.inactive')}</Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {area.branch && (
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {area.branch.name}
-                    </p>
-                  )}
-                  
-                  <div className="flex flex-col gap-2">
-                    {config.supportsChildren && canManage && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-1.5"
-                        onClick={() => setUnitsSheetFacility({
-                          id: area.id,
-                          name: displayName,
-                          facilityType: area.facility_type as FacilityType,
-                        })}
-                      >
-                        <LayoutGrid className="w-3.5 h-3.5" />
-                        {t(`housing.facilities.${getManageKey(area.facility_type as FacilityType)}`)}
-                        <ChevronRight className={cn("w-3.5 h-3.5 ms-auto", dir === 'rtl' && "rotate-180")} />
-                      </Button>
-                    )}
-
-                    {canManage && (
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 gap-1"
-                          onClick={() => handleOpenDialog(area.id)}
-                        >
-                          <Edit className="w-3 h-3" />
-                          {t('common.edit')}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            "gap-1",
-                            area.is_active ? "text-destructive" : "text-emerald-600"
-                          )}
-                          onClick={() => toggleAreaActive({ 
-                            id: area.id, 
-                            isActive: !area.is_active 
-                          })}
-                        >
-                          <Power className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="space-y-4">
+          {areas.map((area) => (
+            <FacilitySection
+              key={area.id}
+              facility={area}
+              facilityData={facilityUnitsMap[area.id]}
+              isLoadingUnits={isLoadingUnits}
+              canManage={canManage}
+              onEdit={handleOpenDialog}
+              onToggleActive={toggleAreaActive}
+            />
+          ))}
         </div>
       )}
-
-      {/* Units Sheet */}
-      <Sheet open={!!unitsSheetFacility} onOpenChange={(open) => { if (!open) setUnitsSheetFacility(null); }}>
-        <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-lg md:max-w-2xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="flex items-center gap-2">
-              <LayoutGrid className="w-5 h-5" />
-              {unitsSheetFacility?.name} — {t('housing.facilities.manageSubdivisions')}
-            </SheetTitle>
-          </SheetHeader>
-          {unitsSheetFacility && (
-            <div className="mt-4">
-              <UnitsManager
-                lockedBranchId={effectiveBranchId || undefined}
-                lockedAreaId={unitsSheetFacility.id}
-                facilityType={unitsSheetFacility.facilityType}
-              />
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -293,8 +179,8 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{t('movement.locations.branch')} *</Label>
-              <Select 
-                value={formData.branch_id} 
+              <Select
+                value={formData.branch_id}
                 onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v }))}
                 disabled={!!editingArea || !!lockedBranchId}
               >
@@ -363,12 +249,14 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
               disabled={!formData.name || !formData.branch_id || isCreating || isUpdating}
             >
               {(isCreating || isUpdating) ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
+              ) : editingArea ? (
+                t('common.update')
               ) : (
                 t('common.save')
               )}
