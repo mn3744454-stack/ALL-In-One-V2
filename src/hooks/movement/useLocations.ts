@@ -18,6 +18,7 @@ export interface Location {
 
 export interface CreateLocationData {
   name: string;
+  name_ar?: string;
   address?: string;
   city?: string;
 }
