@@ -143,11 +143,6 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
     enabled: !!tenantId,
   });
 
-  const horseName = (h: { name: string; name_ar: string | null }) =>
-    lang === 'ar' && h.name_ar ? h.name_ar : h.name;
-
-  const facilityDisplayName = (f: { name: string; name_ar: string | null }) =>
-    lang === 'ar' && f.name_ar ? f.name_ar : f.name;
 
   // Deletion safety
   const deletionBlockers: string[] = [];
