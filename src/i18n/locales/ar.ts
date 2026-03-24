@@ -1729,6 +1729,7 @@ export const ar = {
     },
     branchActions: {
       edit: "تعديل الفرع",
+      editDesc: "تحديث اسم الفرع وتفاصيل الموقع.",
       delete: "حذف الفرع",
       deleteTitle: "حذف الفرع",
       deleteConfirm: "هل أنت متأكد أنك تريد حذف \"{name}\"؟ سيتم تعطيل الفرع.",
@@ -1747,7 +1748,7 @@ export const ar = {
       step2Desc: "أضف المرافق الأولية لهذا الفرع (اختياري).",
       stepIdentity: "الهوية",
       stepFacilities: "المرافق",
-      branchName: "اسم الفرع",
+      branchName: "الاسم بالإنجليزية",
       branchNamePlaceholder: "مثال: الإسطبل الرئيسي",
       branchNameAr: "الاسم بالعربية",
       branchNameArPlaceholder: "مثال: الإسطبل الرئيسي",

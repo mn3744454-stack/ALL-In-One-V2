@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,24 +53,42 @@ export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialo
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t('housing.branchActions.edit')}</DialogTitle>
+          <DialogDescription>{t('housing.branchActions.editDesc')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>{t('housing.branchWizard.branchName')} *</Label>
-            <Input value={name} onChange={e => setName(e.target.value)} />
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder={t('housing.branchWizard.branchNamePlaceholder')}
+            />
           </div>
           <div className="space-y-2">
             <Label>{t('housing.branchWizard.branchNameAr')}</Label>
-            <Input value={nameAr} onChange={e => setNameAr(e.target.value)} dir="rtl" />
+            <Input
+              value={nameAr}
+              onChange={e => setNameAr(e.target.value)}
+              placeholder={t('housing.branchWizard.branchNameArPlaceholder')}
+              dir="rtl"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>{t('housing.branchWizard.city')}</Label>
-              <Input value={city} onChange={e => setCity(e.target.value)} />
+              <Input
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                placeholder={t('housing.branchWizard.cityPlaceholder')}
+              />
             </div>
             <div className="space-y-2">
               <Label>{t('housing.branchWizard.address')}</Label>
-              <Input value={address} onChange={e => setAddress(e.target.value)} />
+              <Input
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                placeholder={t('housing.branchWizard.addressPlaceholder')}
+              />
             </div>
           </div>
         </div>
@@ -78,7 +96,7 @@ export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialo
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
           <Button size="sm" onClick={handleSave} disabled={!name.trim() || isUpdating}>
             {isUpdating && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-            {t('common.save')}
+            {t('common.update')}
           </Button>
         </div>
       </DialogContent>
