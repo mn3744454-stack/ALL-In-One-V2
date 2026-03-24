@@ -280,7 +280,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
                   {/* Facility header */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-medium text-sm truncate">{facilityDisplayName(facility)}</span>
+                      <BilingualName name={facility.name} nameAr={facility.name_ar} inline primaryClassName="font-medium text-sm" />
                       <Badge variant="outline" className="text-[10px] shrink-0">
                         {t(`housing.facilityTypes.${facility.facility_type}` as any)}
                       </Badge>
