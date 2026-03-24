@@ -1725,6 +1725,18 @@ export const ar = {
       unitsOccupied: "مشغول",
       unassignedHorses: "خيول غير معينة",
     },
+    branchActions: {
+      edit: "تعديل الفرع",
+      delete: "حذف الفرع",
+      deleteTitle: "حذف الفرع",
+      deleteConfirm: "هل أنت متأكد أنك تريد حذف \"{name}\"؟ سيتم تعطيل الفرع.",
+      cannotDelete: "لا يمكن حذف هذا الفرع لوجود تبعيات نشطة:",
+      blockHorses: "يحتوي هذا الفرع على {n} خيل/خيول. انقلهم أولاً.",
+      blockFacilities: "يحتوي هذا الفرع على {n} مرفق/مرافق نشطة. أزلهم أو عطلهم أولاً.",
+      blockAdmissions: "يحتوي هذا الفرع على إيواء نشط. أكمل أو ألغِ السجلات أولاً.",
+      resolveFirst: "حل جميع التبعيات قبل حذف هذا الفرع.",
+      deleted: "تم تعطيل الفرع بنجاح",
+    },
     branchWizard: {
       title: "إنشاء فرع",
       createBranch: "إنشاء فرع",

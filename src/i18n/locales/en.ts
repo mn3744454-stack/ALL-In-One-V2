@@ -1710,6 +1710,18 @@ export const en = {
       unitsOccupied: "occupied",
       unassignedHorses: "Unassigned Horses",
     },
+    branchActions: {
+      edit: "Edit Branch",
+      delete: "Delete Branch",
+      deleteTitle: "Delete Branch",
+      deleteConfirm: "Are you sure you want to delete \"{name}\"? This action will deactivate the branch.",
+      cannotDelete: "This branch cannot be deleted because it has active dependencies:",
+      blockHorses: "This branch has {n} horse(s). Relocate or remove them first.",
+      blockFacilities: "This branch has {n} active facility(ies). Remove or deactivate them first.",
+      blockAdmissions: "This branch has active boarding admissions. Complete or cancel them first.",
+      resolveFirst: "Resolve all dependencies before deleting this branch.",
+      deleted: "Branch deactivated successfully",
+    },
     branchWizard: {
       title: "Create Branch",
       createBranch: "Create Branch",
