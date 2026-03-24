@@ -1,21 +1,31 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Building2, Heart, DoorOpen, BarChart3, MapPin, ChevronDown, ChevronUp,
-  Plus, ClipboardCheck, ArrowLeftRight, Loader2,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Heart, DoorOpen, BarChart3, MapPin, Plus, Loader2, MoreVertical,
+  Pencil, Trash2, AlertTriangle,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
+import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { EditBranchDialog } from "./EditBranchDialog";
 
 interface Branch {
   id: string;
   name: string;
+  name_ar?: string | null;
   city: string | null;
   address: string | null;
 }
@@ -36,17 +46,21 @@ interface ExpandedBranchDetailProps {
 }
 
 export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranchDetailProps) {
-  const { t, dir, lang } = useI18n();
+  const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
-  const [expandedFacilities, setExpandedFacilities] = useState<Set<string>>(new Set());
+  const { toggleLocationActive } = useLocations();
+  const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['expanded-branch-detail', tenantId, branch.id],
     queryFn: async () => {
       if (!tenantId) return null;
 
-      const [facilitiesRes, unitsRes, occupantsRes, horsesRes] = await Promise.all([
+      const [facilitiesRes, unitsRes, occupantsRes, horsesRes, admissionsRes] = await Promise.all([
         supabase
           .from('facility_areas')
           .select('id, name, name_ar, facility_type')
@@ -70,6 +84,13 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           .select('id, name, name_ar, current_location_id')
           .eq('tenant_id', tenantId)
           .eq('current_location_id', branch.id),
+        supabase
+          .from('boarding_admissions')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('branch_id', branch.id)
+          .eq('status', 'active')
+          .limit(1),
       ]);
 
       const facilities = facilitiesRes.data || [];
@@ -77,11 +98,9 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
       const occupants = occupantsRes.data || [];
       const horses = horsesRes.data || [];
 
-      // Build unit-to-area mapping
       const unitToArea: Record<string, string> = {};
       units.forEach((u: any) => { if (u.area_id) unitToArea[u.id] = u.area_id; });
 
-      // Build occupied unit set and horse-to-area mapping
       const occupiedUnitIds = new Set(occupants.map((o: any) => o.unit_id));
       const horseToArea: Record<string, string> = {};
       occupants.forEach((o: any) => {
@@ -89,7 +108,6 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         if (area) horseToArea[o.horse_id] = area;
       });
 
-      // Build facility data with horses
       const facilitiesWithHorses: FacilityWithHorses[] = facilities.map((f: any) => {
         const facilityUnits = units.filter((u: any) => u.area_id === f.id);
         const facilityHorses = horses.filter((h: any) => horseToArea[h.id] === f.id);
@@ -104,7 +122,6 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         };
       });
 
-      // Horses not assigned to any facility (present at branch but not in a unit)
       const assignedHorseIds = new Set(Object.keys(horseToArea));
       const unassignedHorses = horses
         .filter((h: any) => !assignedHorseIds.has(h.id))
@@ -119,25 +136,45 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         totalUnits,
         occupiedUnits,
         unassignedHorses,
+        hasActiveAdmissions: (admissionsRes.data || []).length > 0,
       };
     },
     enabled: !!tenantId,
   });
-
-  const toggleFacility = (facilityId: string) => {
-    setExpandedFacilities(prev => {
-      const next = new Set(prev);
-      if (next.has(facilityId)) next.delete(facilityId);
-      else next.add(facilityId);
-      return next;
-    });
-  };
 
   const horseName = (h: { name: string; name_ar: string | null }) =>
     lang === 'ar' && h.name_ar ? h.name_ar : h.name;
 
   const facilityDisplayName = (f: { name: string; name_ar: string | null }) =>
     lang === 'ar' && f.name_ar ? f.name_ar : f.name;
+
+  // Deletion safety
+  const deletionBlockers: string[] = [];
+  if (data) {
+    if (data.totalHorses > 0)
+      deletionBlockers.push(t('housing.branchActions.blockHorses').replace('{n}', String(data.totalHorses)));
+    if (data.facilities.length > 0)
+      deletionBlockers.push(t('housing.branchActions.blockFacilities').replace('{n}', String(data.facilities.length)));
+    if (data.hasActiveAdmissions)
+      deletionBlockers.push(t('housing.branchActions.blockAdmissions'));
+  }
+  const canDelete = deletionBlockers.length === 0;
+
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    setIsDeleting(true);
+    try {
+      await toggleLocationActive({ id: branch.id, isActive: false });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
+      toast.success(t('housing.branchActions.deleted'));
+      setDeleteDialogOpen(false);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -153,145 +190,137 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   const vacantUnits = data.totalUnits - data.occupiedUnits;
 
   return (
-    <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
-      {/* ── Branch Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <Building2 className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{branch.name}</h3>
-            {(branch.city || branch.address) && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {[branch.city, branch.address].filter(Boolean).join(' · ')}
-              </p>
-            )}
-          </div>
-        </div>
-        {/* Quick actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {onNavigateToTab && (
-            <>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onNavigateToTab('facilities')}>
-                <Plus className="h-3.5 w-3.5" />
-                {t('housing.facilities.addFacility')}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => onNavigateToTab('admissions')}>
-                <ClipboardCheck className="h-3.5 w-3.5" />
-                {t('housing.tabs.admissions')}
-              </Button>
-            </>
+    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* ── Branch metadata + actions ── */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="min-w-0">
+          {(branch.city || branch.address) && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+              <MapPin className="h-3 w-3 shrink-0" />
+              {[branch.city, branch.address].filter(Boolean).join(' · ')}
+            </p>
           )}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onNavigateToTab && (
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => onNavigateToTab('facilities')}>
+              <Plus className="h-3.5 w-3.5" />
+              {t('housing.facilities.addFacility')}
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                <Pencil className="h-3.5 w-3.5 me-2" />
+                {t('housing.branchActions.edit')}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5 me-2" />
+                {t('housing.branchActions.delete')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* ── Stats Bar ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard icon={DoorOpen} label={t('housing.branchScope.facilities')} value={data.facilities.length} />
-        <StatCard icon={Heart} label={t('housing.branchScope.horses')} value={data.totalHorses} />
-        <StatCard
+      {/* ── Stats Row ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+        <StatCell icon={DoorOpen} label={t('housing.branchScope.facilities')} value={data.facilities.length} />
+        <StatCell icon={Heart} label={t('housing.branchScope.horses')} value={data.totalHorses} />
+        <StatCell
           icon={BarChart3}
           label={t('housing.branchScope.occupancy')}
           value={data.totalUnits > 0 ? `${data.occupiedUnits}/${data.totalUnits}` : '—'}
         />
-        <div className="rounded-xl border bg-card p-3">
-          <div className="flex items-center gap-2 mb-2">
+        <div className="rounded-lg border bg-muted/30 p-2.5">
+          <div className="flex items-center gap-2 mb-1.5">
             <div className={cn(
               "w-2 h-2 rounded-full",
               vacantUnits > 0 ? "bg-primary/60" : data.totalUnits > 0 ? "bg-destructive" : "bg-muted-foreground/30"
             )} />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {data.totalUnits > 0
                 ? `${vacantUnits} ${t('housing.branchScope.vacant')}`
                 : t('housing.branchScope.noUnitsYet')}
             </span>
           </div>
-          {data.totalUnits > 0 && (
-            <Progress value={occupancyPct} className="h-1.5" />
-          )}
+          {data.totalUnits > 0 && <Progress value={occupancyPct} className="h-1.5" />}
         </div>
       </div>
 
       {/* ── Facilities Section ── */}
-      <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <DoorOpen className="h-4 w-4 text-muted-foreground" />
+      <div className="mb-4">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-3">
+          <DoorOpen className="h-3.5 w-3.5" />
           {t('housing.branchScope.facilitiesSection')}
-          <Badge variant="secondary" className="text-[10px]">{data.facilities.length}</Badge>
+          <Badge variant="secondary" className="text-[10px] font-normal">{data.facilities.length}</Badge>
         </h4>
 
         {data.facilities.length === 0 ? (
-          <Card>
-            <CardContent className="py-6 text-center">
-              <p className="text-sm text-muted-foreground">{t('housing.branchScope.noFacilitiesYet')}</p>
-              {onNavigateToTab && (
-                <Button variant="link" size="sm" className="mt-1" onClick={() => onNavigateToTab('facilities')}>
-                  {t('housing.facilities.addFacility')}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-lg border border-dashed p-5 text-center">
+            <p className="text-sm text-muted-foreground">{t('housing.branchScope.noFacilitiesYet')}</p>
+            {onNavigateToTab && (
+              <Button variant="link" size="sm" className="mt-1" onClick={() => onNavigateToTab('facilities')}>
+                {t('housing.facilities.addFacility')}
+              </Button>
+            )}
+          </div>
         ) : (
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {data.facilities.map((facility) => {
-              const isExpanded = expandedFacilities.has(facility.id);
               const fOccPct = facility.totalUnits > 0
-                ? Math.round((facility.occupiedUnits / facility.totalUnits) * 100)
-                : 0;
+                ? Math.round((facility.occupiedUnits / facility.totalUnits) * 100) : 0;
 
               return (
-                <Card key={facility.id} className="overflow-hidden">
-                  <button
-                    className="w-full text-start p-3 sm:p-4 flex items-center gap-3 hover:bg-muted/30 transition-colors"
-                    onClick={() => toggleFacility(facility.id)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm truncate">{facilityDisplayName(facility)}</span>
-                        <Badge variant="outline" className="text-[10px] shrink-0">
-                          {t(`housing.facilityTypes.${facility.facility_type}` as any)}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                        {facility.totalUnits > 0 ? (
-                          <>
-                            <span>{facility.occupiedUnits}/{facility.totalUnits} {t('housing.branchScope.unitsOccupied')}</span>
-                            <Progress value={fOccPct} className="h-1 w-16" />
-                          </>
-                        ) : (
-                          <span>{t('housing.branchScope.noUnitsYet')}</span>
-                        )}
-                        {facility.horses.length > 0 && (
-                          <span className="flex items-center gap-1">
-                            <Heart className="h-3 w-3" />
-                            {facility.horses.length}
-                          </span>
-                        )}
-                      </div>
+                <div key={facility.id} className="rounded-lg border bg-card p-3 space-y-2">
+                  {/* Facility header */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-medium text-sm truncate">{facilityDisplayName(facility)}</span>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {t(`housing.facilityTypes.${facility.facility_type}` as any)}
+                      </Badge>
                     </div>
                     {facility.horses.length > 0 && (
-                      isExpanded
-                        ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
-                        : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                        <Heart className="h-3 w-3" />
+                        {facility.horses.length}
+                      </span>
                     )}
-                  </button>
+                  </div>
 
-                  {/* Expanded horse names */}
-                  {isExpanded && facility.horses.length > 0 && (
-                    <div className="px-3 sm:px-4 pb-3 border-t bg-muted/20">
-                      <div className="pt-2 flex flex-wrap gap-1.5">
-                        {facility.horses.map((horse) => (
-                          <Badge key={horse.id} variant="secondary" className="text-xs font-normal gap-1">
-                            <Heart className="h-3 w-3 text-primary/70" />
-                            {horseName(horse)}
-                          </Badge>
-                        ))}
-                      </div>
+                  {/* Occupancy bar */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {facility.totalUnits > 0 ? (
+                      <>
+                        <span>{facility.occupiedUnits}/{facility.totalUnits} {t('housing.branchScope.unitsOccupied')}</span>
+                        <Progress value={fOccPct} className="h-1 flex-1 max-w-20" />
+                      </>
+                    ) : (
+                      <span>{t('housing.branchScope.noUnitsYet')}</span>
+                    )}
+                  </div>
+
+                  {/* Horse names — ALWAYS VISIBLE */}
+                  {facility.horses.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/40">
+                      {facility.horses.map((horse) => (
+                        <Badge key={horse.id} variant="secondary" className="text-xs font-normal gap-1 py-0.5">
+                          <Heart className="h-2.5 w-2.5 text-primary/70" />
+                          {horseName(horse)}
+                        </Badge>
+                      ))}
                     </div>
                   )}
-                </Card>
+                </div>
               );
             })}
           </div>
@@ -300,35 +329,76 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
 
       {/* ── Unassigned Horses ── */}
       {data.unassignedHorses.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Heart className="h-4 w-4 text-muted-foreground" />
+        <div>
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-2.5">
+            <Heart className="h-3.5 w-3.5" />
             {t('housing.branchScope.unassignedHorses')}
-            <Badge variant="secondary" className="text-[10px]">{data.unassignedHorses.length}</Badge>
+            <Badge variant="secondary" className="text-[10px] font-normal">{data.unassignedHorses.length}</Badge>
           </h4>
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex flex-wrap gap-1.5">
-              {data.unassignedHorses.map((horse) => (
-                  <Badge key={horse.id} variant="outline" className="text-xs font-normal gap-1">
-                    <Heart className="h-3 w-3 text-muted-foreground" />
-                    {horseName(horse)}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-wrap gap-1.5">
+            {data.unassignedHorses.map((horse) => (
+              <Badge key={horse.id} variant="outline" className="text-xs font-normal gap-1 py-0.5">
+                <Heart className="h-2.5 w-2.5 text-muted-foreground" />
+                {horseName(horse)}
+              </Badge>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* ── Edit Dialog ── */}
+      <EditBranchDialog branch={branch} open={editOpen} onOpenChange={setEditOpen} />
+
+      {/* ── Delete Dialog ── */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {!canDelete && <AlertTriangle className="h-5 w-5 text-destructive" />}
+              {t('housing.branchActions.deleteTitle')}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                {canDelete ? (
+                  <p>{t('housing.branchActions.deleteConfirm').replace('{name}', branch.name)}</p>
+                ) : (
+                  <>
+                    <p>{t('housing.branchActions.cannotDelete')}</p>
+                    <ul className="list-disc ps-5 space-y-1 text-sm">
+                      {deletionBlockers.map((b, i) => (
+                        <li key={i}>{b}</li>
+                      ))}
+                    </ul>
+                    <p className="text-xs text-muted-foreground">{t('housing.branchActions.resolveFirst')}</p>
+                  </>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            {canDelete && (
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                {t('housing.branchActions.delete')}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
+function StatCell({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border bg-card p-3 text-center">
-      <Icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
-      <p className="text-lg font-semibold text-foreground">{value}</p>
+    <div className="rounded-lg border bg-muted/30 p-2.5 text-center">
+      <Icon className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-1" />
+      <p className="text-base font-semibold text-foreground">{value}</p>
       <p className="text-[10px] text-muted-foreground">{label}</p>
     </div>
   );
