@@ -39,6 +39,7 @@ export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialo
     await updateLocation({
       id: branch.id,
       name: name.trim(),
+      name_ar: nameAr.trim() || undefined,
       city: city.trim() || undefined,
       address: address.trim() || undefined,
     });

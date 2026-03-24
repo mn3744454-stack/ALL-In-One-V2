@@ -8,6 +8,7 @@ export interface Location {
   id: string;
   tenant_id: string;
   name: string;
+  name_ar: string | null;
   address: string | null;
   city: string | null;
   is_active: boolean;

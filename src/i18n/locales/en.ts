@@ -1669,6 +1669,8 @@ export const en = {
       failedToCreate: "Failed to record movement",
       failedToRecord: "Failed to record movement",
       permissionDenied: "Permission denied",
+      locationCreated: "Branch created successfully",
+      locationUpdated: "Branch updated successfully",
     },
   },
   housing: {

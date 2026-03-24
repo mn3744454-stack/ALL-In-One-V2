@@ -329,7 +329,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-2.5">
             <Heart className="h-3.5 w-3.5" />
             {t('housing.branchScope.unassignedHorses')}
-            <Badge variant="secondary" className="text-[10px] font-normal">{data.unassignedHorses.length}</Badge>
+            <Badge variant="secondary" className="text-xs font-normal">{data.unassignedHorses.length}</Badge>
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {data.unassignedHorses.map((horse) => (

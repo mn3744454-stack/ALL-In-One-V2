@@ -120,19 +120,19 @@ export default function DashboardHousing() {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="hidden md:flex">
-            <TabsTrigger value="branches" className="gap-2">
+            <TabsTrigger value="branches" className="gap-2 text-sm font-medium">
               <Building2 className="h-4 w-4" />
               {t('housing.tabs.branches')}
             </TabsTrigger>
-            <TabsTrigger value="facilities" className="gap-2">
+            <TabsTrigger value="facilities" className="gap-2 text-sm font-medium">
               <Warehouse className="h-4 w-4" />
               {t('housing.tabs.facilities')}
             </TabsTrigger>
-            <TabsTrigger value="admissions" className="gap-2">
+            <TabsTrigger value="admissions" className="gap-2 text-sm font-medium">
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
             </TabsTrigger>
-            <TabsTrigger value="arrivalsAndDepartures" className="gap-2">
+            <TabsTrigger value="arrivalsAndDepartures" className="gap-2 text-sm font-medium">
               <ArrowLeftRight className="h-4 w-4" />
               {t('housing.tabs.arrivalsAndDepartures')}
             </TabsTrigger>
