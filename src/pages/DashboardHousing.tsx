@@ -15,6 +15,7 @@ import { useLocations } from "@/hooks/movement/useLocations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AlertCircle, Building2, ClipboardCheck, ArrowLeftRight, LayoutDashboard, Warehouse } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 export default function DashboardHousing() {
   const { t, dir } = useI18n();
