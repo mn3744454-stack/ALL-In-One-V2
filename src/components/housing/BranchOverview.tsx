@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ExpandedBranchDetail } from "./ExpandedBranchDetail";
 import { CreateBranchWizard } from "./CreateBranchWizard";
 
