@@ -200,7 +200,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           <div className="flex items-center gap-2 mb-2">
             <div className={cn(
               "w-2 h-2 rounded-full",
-              vacantUnits > 0 ? "bg-emerald-500" : data.totalUnits > 0 ? "bg-red-500" : "bg-muted-foreground/30"
+              vacantUnits > 0 ? "bg-primary/60" : data.totalUnits > 0 ? "bg-destructive" : "bg-muted-foreground/30"
             )} />
             <span className="text-xs text-muted-foreground">
               {data.totalUnits > 0
