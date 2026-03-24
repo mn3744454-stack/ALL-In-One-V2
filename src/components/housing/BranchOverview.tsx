@@ -141,8 +141,13 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{branchDisplayName(branch)}</h3>
+                    <div className="min-w-0">
+                      <BilingualName
+                        name={branch.name}
+                        nameAr={branch.name_ar}
+                        primaryClassName="text-base font-semibold text-foreground"
+                        secondaryClassName="text-xs"
+                      />
                       {branch.city && (
                         <p className="text-xs text-muted-foreground">{branch.city}</p>
                       )}
