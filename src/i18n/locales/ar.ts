@@ -1684,6 +1684,8 @@ export const ar = {
       failedToCreate: "فشل في تسجيل الحركة",
       failedToRecord: "فشل في تسجيل الحركة",
       permissionDenied: "الإذن مرفوض",
+      locationCreated: "تم إنشاء الفرع بنجاح",
+      locationUpdated: "تم تحديث الفرع بنجاح",
     },
   },
   housing: {
