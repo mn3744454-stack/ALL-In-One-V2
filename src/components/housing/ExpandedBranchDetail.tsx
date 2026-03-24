@@ -257,7 +257,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-3">
           <DoorOpen className="h-3.5 w-3.5" />
           {t('housing.branchScope.facilitiesSection')}
-          <Badge variant="secondary" className="text-[10px] font-normal">{data.facilities.length}</Badge>
+          <Badge variant="secondary" className="text-xs font-normal">{data.facilities.length}</Badge>
         </h4>
 
         {data.facilities.length === 0 ? (
