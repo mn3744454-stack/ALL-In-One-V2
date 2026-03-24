@@ -20,4 +20,6 @@ export * from './HorseAdmissionCard';
 export * from './HorseProfileCareNotes';
 export * from './CreateInvoiceFromAdmission';
 export * from './BranchOverview';
+export * from './ExpandedBranchDetail';
+export * from './CreateBranchWizard';
 export * from './ArrivalsAndDepartures';
