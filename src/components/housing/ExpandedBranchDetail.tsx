@@ -20,6 +20,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { EditBranchDialog } from "./EditBranchDialog";
 
 interface Branch {
@@ -46,7 +47,7 @@ interface ExpandedBranchDetailProps {
 }
 
 export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranchDetailProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { toggleLocationActive } = useLocations();
@@ -142,11 +143,6 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
     enabled: !!tenantId,
   });
 
-  const horseName = (h: { name: string; name_ar: string | null }) =>
-    lang === 'ar' && h.name_ar ? h.name_ar : h.name;
-
-  const facilityDisplayName = (f: { name: string; name_ar: string | null }) =>
-    lang === 'ar' && f.name_ar ? f.name_ar : f.name;
 
   // Deletion safety
   const deletionBlockers: string[] = [];
@@ -246,13 +242,13 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
               "w-2 h-2 rounded-full",
               vacantUnits > 0 ? "bg-primary/60" : data.totalUnits > 0 ? "bg-destructive" : "bg-muted-foreground/30"
             )} />
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {data.totalUnits > 0
                 ? `${vacantUnits} ${t('housing.branchScope.vacant')}`
                 : t('housing.branchScope.noUnitsYet')}
             </span>
           </div>
-          {data.totalUnits > 0 && <Progress value={occupancyPct} className="h-1.5" />}
+          {data.totalUnits > 0 && <Progress value={occupancyPct} className="h-2" />}
         </div>
       </div>
 
@@ -261,7 +257,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-3">
           <DoorOpen className="h-3.5 w-3.5" />
           {t('housing.branchScope.facilitiesSection')}
-          <Badge variant="secondary" className="text-[10px] font-normal">{data.facilities.length}</Badge>
+          <Badge variant="secondary" className="text-xs font-normal">{data.facilities.length}</Badge>
         </h4>
 
         {data.facilities.length === 0 ? (
@@ -284,7 +280,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
                   {/* Facility header */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-medium text-sm truncate">{facilityDisplayName(facility)}</span>
+                      <BilingualName name={facility.name} nameAr={facility.name_ar} inline primaryClassName="font-medium text-sm" />
                       <Badge variant="outline" className="text-[10px] shrink-0">
                         {t(`housing.facilityTypes.${facility.facility_type}` as any)}
                       </Badge>
@@ -315,7 +311,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
                       {facility.horses.map((horse) => (
                         <Badge key={horse.id} variant="secondary" className="text-xs font-normal gap-1 py-0.5">
                           <Heart className="h-2.5 w-2.5 text-primary/70" />
-                          {horseName(horse)}
+                          <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-xs font-normal" secondaryClassName="text-[10px]" />
                         </Badge>
                       ))}
                     </div>
@@ -333,13 +329,13 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-2.5">
             <Heart className="h-3.5 w-3.5" />
             {t('housing.branchScope.unassignedHorses')}
-            <Badge variant="secondary" className="text-[10px] font-normal">{data.unassignedHorses.length}</Badge>
+            <Badge variant="secondary" className="text-xs font-normal">{data.unassignedHorses.length}</Badge>
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {data.unassignedHorses.map((horse) => (
               <Badge key={horse.id} variant="outline" className="text-xs font-normal gap-1 py-0.5">
                 <Heart className="h-2.5 w-2.5 text-muted-foreground" />
-                {horseName(horse)}
+                <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-xs font-normal" secondaryClassName="text-[10px]" />
               </Badge>
             ))}
           </div>
@@ -399,7 +395,7 @@ function StatCell({ icon: Icon, label, value }: { icon: React.ElementType; label
     <div className="rounded-lg border bg-muted/30 p-2.5 text-center">
       <Icon className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-1" />
       <p className="text-base font-semibold text-foreground">{value}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }

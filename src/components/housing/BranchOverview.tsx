@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ExpandedBranchDetail } from "./ExpandedBranchDetail";
 import { CreateBranchWizard } from "./CreateBranchWizard";
 
@@ -25,7 +26,7 @@ interface BranchOverviewProps {
 }
 
 export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [expandedBranchId, setExpandedBranchId] = useState<string | null>(null);
@@ -83,8 +84,6 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
     setExpandedBranchId(prev => prev === branchId ? null : branchId);
   };
 
-  const branchDisplayName = (b: Branch) =>
-    lang === 'ar' && b.name_ar ? b.name_ar : b.name;
 
   if (branches.length === 0) {
     return (
@@ -142,8 +141,13 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{branchDisplayName(branch)}</h3>
+                    <div className="min-w-0">
+                      <BilingualName
+                        name={branch.name}
+                        nameAr={branch.name_ar}
+                        primaryClassName="text-base font-semibold text-foreground"
+                        secondaryClassName="text-xs"
+                      />
                       {branch.city && (
                         <p className="text-xs text-muted-foreground">{branch.city}</p>
                       )}
@@ -161,17 +165,17 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <DoorOpen className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
                       <p className="text-lg font-semibold">{stats.facilities}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.facilities')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.branchScope.facilities')}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <Heart className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
                       <p className="text-lg font-semibold">{stats.horses}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.horses')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.branchScope.horses')}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <BarChart3 className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
                       <p className="text-lg font-semibold">{occupancyLabel}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.occupancy')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.branchScope.occupancy')}</p>
                     </div>
                   </div>
                 )}

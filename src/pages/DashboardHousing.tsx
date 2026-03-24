@@ -15,6 +15,7 @@ import { useLocations } from "@/hooks/movement/useLocations";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AlertCircle, Building2, ClipboardCheck, ArrowLeftRight, LayoutDashboard, Warehouse } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 export default function DashboardHousing() {
   const { t, dir } = useI18n();
@@ -108,8 +109,8 @@ export default function DashboardHousing() {
                 <SelectItem key={loc.id} value={loc.id}>
                   <span className="flex items-center gap-2">
                     <Building2 className="h-3.5 w-3.5" />
-                    {loc.name}
-                    {loc.city && <span className="text-muted-foreground text-xs">({loc.city})</span>}
+                    <BilingualName name={loc.name} nameAr={(loc as any).name_ar} inline primaryClassName="font-medium text-sm" secondaryClassName="text-xs" />
+                    {loc.city && <span className="text-muted-foreground text-xs">· {loc.city}</span>}
                   </span>
                 </SelectItem>
               ))}
@@ -119,19 +120,19 @@ export default function DashboardHousing() {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="hidden md:flex">
-            <TabsTrigger value="branches" className="gap-2">
+            <TabsTrigger value="branches" className="gap-2 text-sm font-medium">
               <Building2 className="h-4 w-4" />
               {t('housing.tabs.branches')}
             </TabsTrigger>
-            <TabsTrigger value="facilities" className="gap-2">
+            <TabsTrigger value="facilities" className="gap-2 text-sm font-medium">
               <Warehouse className="h-4 w-4" />
               {t('housing.tabs.facilities')}
             </TabsTrigger>
-            <TabsTrigger value="admissions" className="gap-2">
+            <TabsTrigger value="admissions" className="gap-2 text-sm font-medium">
               <ClipboardCheck className="h-4 w-4" />
               {t('housing.tabs.admissions')}
             </TabsTrigger>
-            <TabsTrigger value="arrivalsAndDepartures" className="gap-2">
+            <TabsTrigger value="arrivalsAndDepartures" className="gap-2 text-sm font-medium">
               <ArrowLeftRight className="h-4 w-4" />
               {t('housing.tabs.arrivalsAndDepartures')}
             </TabsTrigger>
