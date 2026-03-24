@@ -311,7 +311,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
                       {facility.horses.map((horse) => (
                         <Badge key={horse.id} variant="secondary" className="text-xs font-normal gap-1 py-0.5">
                           <Heart className="h-2.5 w-2.5 text-primary/70" />
-                          {horseName(horse)}
+                          <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-xs font-normal" secondaryClassName="text-[10px]" />
                         </Badge>
                       ))}
                     </div>
