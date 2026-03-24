@@ -66,11 +66,12 @@ export function useLocations() {
         .insert({
           tenant_id: tenantId,
           name: data.name,
+          name_ar: data.name_ar || null,
           address: data.address || null,
           city: data.city || null,
           is_active: true,
           is_demo: false,
-        })
+        } as any)
         .select()
         .single();
 
