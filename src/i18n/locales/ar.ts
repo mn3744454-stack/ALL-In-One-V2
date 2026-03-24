@@ -1748,7 +1748,7 @@ export const ar = {
       step2Desc: "أضف المرافق الأولية لهذا الفرع (اختياري).",
       stepIdentity: "الهوية",
       stepFacilities: "المرافق",
-      branchName: "اسم الفرع",
+      branchName: "الاسم بالإنجليزية",
       branchNamePlaceholder: "مثال: الإسطبل الرئيسي",
       branchNameAr: "الاسم بالعربية",
       branchNameArPlaceholder: "مثال: الإسطبل الرئيسي",

@@ -1733,7 +1733,7 @@ export const en = {
       step2Desc: "Add initial facilities to this branch (optional).",
       stepIdentity: "Identity",
       stepFacilities: "Facilities",
-      branchName: "Branch Name",
+      branchName: "English Name",
       branchNamePlaceholder: "e.g. Main Stable",
       branchNameAr: "Arabic Name",
       branchNameArPlaceholder: "e.g. الإسطبل الرئيسي",
