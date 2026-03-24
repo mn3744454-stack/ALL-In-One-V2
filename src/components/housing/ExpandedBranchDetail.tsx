@@ -395,7 +395,7 @@ function StatCell({ icon: Icon, label, value }: { icon: React.ElementType; label
     <div className="rounded-lg border bg-muted/30 p-2.5 text-center">
       <Icon className="h-3.5 w-3.5 mx-auto text-muted-foreground mb-1" />
       <p className="text-base font-semibold text-foreground">{value}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
