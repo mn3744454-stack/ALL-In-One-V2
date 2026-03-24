@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { FacilitiesManager, HousingBottomNav, AdmissionsList } from "@/components/housing";
@@ -35,29 +34,26 @@ export default function DashboardHousing() {
     } else {
       next.set('branch', branchId);
     }
-    // When switching branches, default to admissions tab for specific branch, overview for all
-    next.set('tab', branchId === '__all__' ? 'overview' : 'admissions');
+    // Stay on current tab when switching branches
+    if (!next.get('tab')) {
+      next.set('tab', 'branches');
+    }
     setSearchParams(next, { replace: true });
   };
 
-  // Tabs: for all-branches, show overview first. For specific branch, show branch-scoped tabs.
-  const availableTabs = useMemo(() => {
-    if (selectedBranchId === '__all__') {
-      return ['overview', 'admissions', 'facilities', 'arrivalsAndDepartures'];
-    }
-    return ['overview', 'admissions', 'facilities', 'arrivalsAndDepartures'];
-  }, [selectedBranchId]);
+  const availableTabs = ['branches', 'admissions', 'facilities', 'arrivalsAndDepartures'];
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
     // Support legacy tabs
+    if (urlTab === 'overview') return 'branches';
     if (urlTab === 'areas' || urlTab === 'units') return 'facilities';
     if (urlTab === 'movement' || urlTab === 'incoming') return 'arrivalsAndDepartures';
     if (urlTab && availableTabs.includes(urlTab)) {
       return urlTab;
     }
-    return selectedBranchId === '__all__' ? 'overview' : 'admissions';
-  }, [searchParams, availableTabs, selectedBranchId]);
+    return 'branches';
+  }, [searchParams]);
 
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
@@ -98,7 +94,7 @@ export default function DashboardHousing() {
             <h2 className="text-lg font-semibold">{t('housing.title')}</h2>
           </div>
           <Select value={selectedBranchId} onValueChange={handleBranchChange}>
-            <SelectTrigger className="w-full sm:w-[220px]">
+            <SelectTrigger className="w-full sm:w-[280px]">
               <SelectValue placeholder={t('housing.branchScope.selectBranch')} />
             </SelectTrigger>
             <SelectContent>
@@ -119,18 +115,13 @@ export default function DashboardHousing() {
               ))}
             </SelectContent>
           </Select>
-          {selectedBranch && (
-            <Badge variant="outline" className="text-xs">
-              {selectedBranch.name}
-            </Badge>
-          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList className="hidden md:flex">
-            <TabsTrigger value="overview" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              {t('housing.tabs.overview')}
+            <TabsTrigger value="branches" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              {t('housing.tabs.branches')}
             </TabsTrigger>
             <TabsTrigger value="facilities" className="gap-2">
               <Warehouse className="h-4 w-4" />
@@ -146,16 +137,16 @@ export default function DashboardHousing() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="mt-0">
+          <TabsContent value="branches" className="mt-0">
             {selectedBranchId === '__all__' ? (
               <BranchOverview
                 branches={activeLocations}
-                onSelectBranch={(branchId) => handleBranchChange(branchId)}
+                onNavigateToTab={handleTabChange}
               />
             ) : (
               <BranchOverview
                 branches={activeLocations.filter(l => l.id === selectedBranchId)}
-                onSelectBranch={() => {}}
+                onNavigateToTab={handleTabChange}
               />
             )}
           </TabsContent>

@@ -309,9 +309,9 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           <Card>
             <CardContent className="p-3">
               <div className="flex flex-wrap gap-1.5">
-                {data.unassignedHorses.map((horse) => (
+              {data.unassignedHorses.map((horse) => (
                   <Badge key={horse.id} variant="outline" className="text-xs font-normal gap-1">
-                    <Heart className="h-3 w-3 text-amber-500" />
+                    <Heart className="h-3 w-3 text-muted-foreground" />
                     {horseName(horse)}
                   </Badge>
                 ))}
