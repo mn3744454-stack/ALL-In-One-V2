@@ -170,7 +170,7 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <Heart className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
                       <p className="text-lg font-semibold">{stats.horses}</p>
-                      <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.horses')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.branchScope.horses')}</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <BarChart3 className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
