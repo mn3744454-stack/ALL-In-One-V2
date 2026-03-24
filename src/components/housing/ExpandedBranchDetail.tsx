@@ -242,13 +242,13 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
               "w-2 h-2 rounded-full",
               vacantUnits > 0 ? "bg-primary/60" : data.totalUnits > 0 ? "bg-destructive" : "bg-muted-foreground/30"
             )} />
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {data.totalUnits > 0
                 ? `${vacantUnits} ${t('housing.branchScope.vacant')}`
                 : t('housing.branchScope.noUnitsYet')}
             </span>
           </div>
-          {data.totalUnits > 0 && <Progress value={occupancyPct} className="h-1.5" />}
+          {data.totalUnits > 0 && <Progress value={occupancyPct} className="h-2" />}
         </div>
       </div>
 
