@@ -1714,6 +1714,7 @@ export const en = {
     },
     branchActions: {
       edit: "Edit Branch",
+      editDesc: "Update branch name and location details.",
       delete: "Delete Branch",
       deleteTitle: "Delete Branch",
       deleteConfirm: "Are you sure you want to delete \"{name}\"? This action will deactivate the branch.",
