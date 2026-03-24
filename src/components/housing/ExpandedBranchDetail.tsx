@@ -134,10 +134,10 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   };
 
   const horseName = (h: { name: string; name_ar: string | null }) =>
-    language === 'ar' && h.name_ar ? h.name_ar : h.name;
+    lang === 'ar' && h.name_ar ? h.name_ar : h.name;
 
-  const facilityName = (f: { name: string; name_ar: string | null }) =>
-    language === 'ar' && f.name_ar ? f.name_ar : f.name;
+  const facilityDisplayName = (f: { name: string; name_ar: string | null }) =>
+    lang === 'ar' && f.name_ar ? f.name_ar : f.name;
 
   if (isLoading) {
     return (
