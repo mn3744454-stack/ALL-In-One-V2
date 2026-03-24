@@ -20,6 +20,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { EditBranchDialog } from "./EditBranchDialog";
 
 interface Branch {
