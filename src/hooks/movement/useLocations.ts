@@ -18,6 +18,7 @@ export interface Location {
 
 export interface CreateLocationData {
   name: string;
+  name_ar?: string;
   address?: string;
   city?: string;
 }
@@ -65,11 +66,12 @@ export function useLocations() {
         .insert({
           tenant_id: tenantId,
           name: data.name,
+          name_ar: data.name_ar || null,
           address: data.address || null,
           city: data.city || null,
           is_active: true,
           is_demo: false,
-        })
+        } as any)
         .select()
         .single();
 
@@ -94,9 +96,10 @@ export function useLocations() {
         .from('branches')
         .update({
           name: data.name,
+          name_ar: data.name_ar,
           address: data.address,
           city: data.city,
-        })
+        } as any)
         .eq('id', id)
         .eq('tenant_id', tenantId)
         .select()

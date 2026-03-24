@@ -13,6 +13,7 @@ import { CreateBranchWizard } from "./CreateBranchWizard";
 interface Branch {
   id: string;
   name: string;
+  name_ar?: string | null;
   city: string | null;
   address?: string | null;
 }
@@ -24,13 +25,12 @@ interface BranchOverviewProps {
 }
 
 export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProps) {
-  const { t, dir } = useI18n();
+  const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [expandedBranchId, setExpandedBranchId] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
 
-  // Fetch aggregate stats per branch
   const { data: branchStats = {} } = useQuery({
     queryKey: ['branch-overview-stats', tenantId],
     queryFn: async () => {
@@ -83,6 +83,9 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
     setExpandedBranchId(prev => prev === branchId ? null : branchId);
   };
 
+  const branchDisplayName = (b: Branch) =>
+    lang === 'ar' && b.name_ar ? b.name_ar : b.name;
+
   if (branches.length === 0) {
     return (
       <Card>
@@ -120,35 +123,40 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
           const isExpanded = expandedBranchId === branch.id;
 
           return (
-            <div key={branch.id}>
-              <Card
-                className={cn(
-                  "cursor-pointer transition-all",
-                  isExpanded
-                    ? "ring-2 ring-primary/30 shadow-md"
-                    : "hover:shadow-md"
-                )}
+            <Card
+              key={branch.id}
+              className={cn(
+                "transition-all",
+                isExpanded
+                  ? "ring-2 ring-primary/30 shadow-md"
+                  : "cursor-pointer hover:shadow-md"
+              )}
+            >
+              {/* Collapsed header — always visible */}
+              <div
+                className={cn("p-4 sm:p-5", isExpanded ? "" : "cursor-pointer")}
                 onClick={() => toggleBranch(branch.id)}
               >
-                <CardContent className="p-4 sm:p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <Building2 className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{branch.name}</h3>
-                        {branch.city && (
-                          <p className="text-xs text-muted-foreground">{branch.city}</p>
-                        )}
-                      </div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Building2 className="h-5 w-5 text-primary" />
                     </div>
-                    <ChevronDown className={cn(
-                      "h-5 w-5 text-muted-foreground transition-transform duration-200",
-                      isExpanded && "rotate-180"
-                    )} />
+                    <div>
+                      <h3 className="font-semibold text-foreground">{branchDisplayName(branch)}</h3>
+                      {branch.city && (
+                        <p className="text-xs text-muted-foreground">{branch.city}</p>
+                      )}
+                    </div>
                   </div>
+                  <ChevronDown className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform duration-200",
+                    isExpanded && "rotate-180"
+                  )} />
+                </div>
 
+                {/* Summary metrics — only when collapsed */}
+                {!isExpanded && (
                   <div className="grid grid-cols-3 gap-3">
                     <div className="text-center p-2 rounded-lg bg-muted/50">
                       <DoorOpen className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
@@ -166,19 +174,19 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
                       <p className="text-[10px] text-muted-foreground">{t('housing.branchScope.occupancy')}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
 
-              {/* In-place expanded detail */}
+              {/* Expanded detail — INSIDE the same Card */}
               {isExpanded && (
-                <div className="mt-2 ms-2 me-2 sm:ms-4 sm:me-4 pb-2">
+                <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-border/40 pt-4">
                   <ExpandedBranchDetail
                     branch={branch as any}
                     onNavigateToTab={onNavigateToTab}
                   />
                 </div>
               )}
-            </div>
+            </Card>
           );
         })}
       </div>

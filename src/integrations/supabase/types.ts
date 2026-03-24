@@ -447,6 +447,7 @@ export type Database = {
           is_active: boolean
           is_demo: boolean
           name: string
+          name_ar: string | null
           tenant_id: string
           updated_at: string
         }
@@ -458,6 +459,7 @@ export type Database = {
           is_active?: boolean
           is_demo?: boolean
           name: string
+          name_ar?: string | null
           tenant_id: string
           updated_at?: string
         }
@@ -469,6 +471,7 @@ export type Database = {
           is_active?: boolean
           is_demo?: boolean
           name?: string
+          name_ar?: string | null
           tenant_id?: string
           updated_at?: string
         }

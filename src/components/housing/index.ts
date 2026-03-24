@@ -22,4 +22,5 @@ export * from './CreateInvoiceFromAdmission';
 export * from './BranchOverview';
 export * from './ExpandedBranchDetail';
 export * from './CreateBranchWizard';
+export * from './EditBranchDialog';
 export * from './ArrivalsAndDepartures';
