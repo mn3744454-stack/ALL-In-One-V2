@@ -84,8 +84,6 @@ export function BranchOverview({ branches, onNavigateToTab }: BranchOverviewProp
     setExpandedBranchId(prev => prev === branchId ? null : branchId);
   };
 
-  const branchDisplayName = (b: Branch) =>
-    lang === 'ar' && b.name_ar ? b.name_ar : b.name;
 
   if (branches.length === 0) {
     return (
