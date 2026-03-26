@@ -59,6 +59,7 @@ export interface CreateAreaData {
   area_size?: number;
   shade?: string;
   has_water?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export function useFacilityAreas(branchId?: string) {
