@@ -38,6 +38,10 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     name_ar: '',
     code: '',
     facility_type: 'barn' as FacilityType,
+    capacity: '' as number | '',
+    area_size: '' as number | '',
+    shade: 'none',
+    has_water: false,
   });
 
   const effectiveBranchId = lockedBranchId || selectedBranchId;
