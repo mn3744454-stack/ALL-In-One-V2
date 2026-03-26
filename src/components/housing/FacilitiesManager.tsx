@@ -82,6 +82,10 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         name_ar: area.name_ar || '',
         code: area.code || '',
         facility_type: area.facility_type || 'barn',
+        capacity: area.capacity ?? '',
+        area_size: (area as any).area_size ?? '',
+        shade: (area as any).shade || 'none',
+        has_water: (area as any).has_water || false,
       });
       setEditingArea(areaId);
       setEditDialogOpen(true);
