@@ -312,21 +312,3 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   );
 }
 
-function OpenAreaEmptyState({ facility }: { facility: FacilityArea }) {
-  const { t } = useI18n();
-  const capacity = (facility as any).capacity;
-  
-  return (
-    <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
-      <Users className="w-6 h-6 opacity-40 shrink-0" />
-      <div>
-        {capacity ? (
-          <p className="text-sm font-medium text-foreground/80">
-            {t('housing.create.noZonesCapacity').replace('{capacity}', String(capacity))}
-          </p>
-        ) : null}
-        <p className="text-xs">{t('housing.create.noZonesDefault')}</p>
-      </div>
-    </div>
-  );
-}
