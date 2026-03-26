@@ -102,6 +102,7 @@ export function useFacilityAreas(branchId?: string) {
           name_ar: data.name_ar || null,
           code: data.code || null,
           facility_type: data.facility_type || 'barn',
+          capacity: data.capacity || null,
           is_active: true,
           is_demo: false,
         })
