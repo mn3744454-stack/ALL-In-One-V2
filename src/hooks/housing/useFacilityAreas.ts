@@ -4,9 +4,9 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
-export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage' | 'other';
+export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage';
 
-export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage', 'other'];
+export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage'];
 
 export interface SubdivisionConfig {
   label: string;
