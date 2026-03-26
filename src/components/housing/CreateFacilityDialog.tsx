@@ -675,12 +675,104 @@ export function CreateFacilityDialog({
             </>
           )}
 
-          {(category === 'activity' || category === 'storage') && (
+          {isActivity && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium mb-1">{t('housing.activity.setupTitle')}</h4>
+                  <p className="text-xs text-muted-foreground">{t('housing.activity.setupDesc')}</p>
+                </div>
+
+                {/* Arena: dimensions */}
+                {facilityType === 'arena' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.dimensions')}</Label>
+                    <Input
+                      value={actDimensions}
+                      onChange={(e) => setActDimensions(e.target.value)}
+                      placeholder={t('housing.activity.dimensionsPlaceholder')}
+                    />
+                  </div>
+                )}
+
+                {/* Round pen: diameter */}
+                {facilityType === 'round_pen' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.diameter')}</Label>
+                    <Input
+                      value={actDiameter}
+                      onChange={(e) => setActDiameter(e.target.value)}
+                      placeholder={t('housing.activity.diameterPlaceholder')}
+                    />
+                  </div>
+                )}
+
+                {/* Covered / uncovered (shared) */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.coveredLabel')}</Label>
+                    <Select value={actCovered} onValueChange={setActCovered}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="covered">{t('housing.activity.covered')}</SelectItem>
+                        <SelectItem value="uncovered">{t('housing.activity.uncovered')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Footing for arena/round_pen */}
+                  {facilityType !== 'wash_area' && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.footingLabel')}</Label>
+                      <Select value={actFooting} onValueChange={setActFooting}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['sand', 'grass', 'rubber', 'dirt', 'synthetic'].map(f => (
+                            <SelectItem key={f} value={f}>{t(`housing.activity.footing_${f}`)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Wash area: wash points + water type */}
+                {facilityType === 'wash_area' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.washPoints')}</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={actWashPoints}
+                        onChange={(e) => setActWashPoints(e.target.value ? parseInt(e.target.value) : '')}
+                        placeholder="1"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.waterTypeLabel')}</Label>
+                      <Select value={actWaterType} onValueChange={setActWaterType}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cold">{t('housing.activity.water_cold')}</SelectItem>
+                          <SelectItem value="hot_cold">{t('housing.activity.water_hot_cold')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {category === 'storage' && (
             <>
               <Separator />
               <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
                 <Building2 className="w-4 h-4 shrink-0" />
-                <span>{t(`housing.create.${category}Note`)}</span>
+                <span>{t('housing.create.storageNote')}</span>
               </div>
             </>
           )}
