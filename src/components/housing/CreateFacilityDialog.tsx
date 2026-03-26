@@ -100,6 +100,9 @@ export function CreateFacilityDialog({
   const [roomSetup, setRoomSetup] = useState<RoomSetup[]>([]);
   // Open-area specific
   const [capacity, setCapacity] = useState<number | ''>('');
+  const [areaSize, setAreaSize] = useState<number | ''>('');
+  const [shade, setShade] = useState('none');
+  const [hasWater, setHasWater] = useState(false);
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
