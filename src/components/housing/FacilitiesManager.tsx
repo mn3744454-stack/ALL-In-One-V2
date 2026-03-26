@@ -241,6 +241,60 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
                 </div>
               </div>
             )}
+
+            {/* Open-area edit fields */}
+            {editIsOpenArea && (
+              <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.create.approxCapacity')}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={editFormData.capacity}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, capacity: e.target.value ? parseInt(e.target.value) : '' }))}
+                      placeholder={t('housing.create.capacityPlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.openArea.areaSizeLabel')}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={editFormData.area_size}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, area_size: e.target.value ? parseFloat(e.target.value) : '' }))}
+                      placeholder={t('housing.openArea.areaSizePlaceholder')}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.openArea.shadeLabel')}</Label>
+                    <Select value={editFormData.shade} onValueChange={(v) => setEditFormData(prev => ({ ...prev, shade: v }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t('housing.openArea.shadeNone')}</SelectItem>
+                        <SelectItem value="partial">{t('housing.openArea.shadePartial')}</SelectItem>
+                        <SelectItem value="full">{t('housing.openArea.shadeFull')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end pb-1">
+                    <label className="flex items-center gap-2 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editFormData.has_water}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, has_water: e.target.checked }))}
+                        className="rounded border-border"
+                      />
+                      {t('housing.openArea.waterAvailable')}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
