@@ -110,6 +110,9 @@ export function useFacilityAreas(branchId?: string) {
           code: data.code || null,
           facility_type: data.facility_type || 'barn',
           capacity: data.capacity || null,
+          area_size: data.area_size || null,
+          shade: data.shade || 'none',
+          has_water: data.has_water || false,
           is_active: true,
           is_demo: false,
         })
