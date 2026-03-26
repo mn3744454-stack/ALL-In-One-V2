@@ -50,6 +50,7 @@ export interface CreateAreaData {
   name_ar?: string;
   code?: string;
   facility_type?: FacilityType;
+  capacity?: number;
 }
 
 export function useFacilityAreas(branchId?: string) {
