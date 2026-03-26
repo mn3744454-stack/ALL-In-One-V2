@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid } from "lucide-react";
-import type { FacilityArea } from "@/hooks/housing/useFacilityAreas";
+import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot } from "lucide-react";
+import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
+import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
@@ -20,9 +22,47 @@ interface FacilitySectionProps {
   onToggleActive: (params: { id: string; isActive: boolean }) => void;
 }
 
+/** Icons for non-housing facility types */
+const NON_HOUSING_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
+  arena: Dumbbell,
+  round_pen: CircleDot,
+  wash_area: Droplets,
+  storage: Warehouse,
+};
+
+/** Determine the appropriate description key for non-housing types */
+function getNonHousingDescKey(type: FacilityType): string {
+  switch (type) {
+    case 'arena':
+    case 'round_pen':
+      return 'housing.facilities.activitySpaceDesc';
+    case 'wash_area':
+      return 'housing.facilities.serviceSpaceDesc';
+    case 'storage':
+      return 'housing.facilities.storageSpaceDesc';
+    default:
+      return 'housing.facilities.activitySpaceDesc';
+  }
+}
+
+function getNonHousingLabelKey(type: FacilityType): string {
+  switch (type) {
+    case 'arena':
+    case 'round_pen':
+      return 'housing.facilities.activitySpace';
+    case 'wash_area':
+      return 'housing.facilities.serviceSpace';
+    case 'storage':
+      return 'housing.facilities.storageSpace';
+    default:
+      return 'housing.facilities.activitySpace';
+  }
+}
+
 /**
  * Inline facility section that replaces the old card + Sheet pattern.
- * Shows a summary header bar followed by a compact unit grid.
+ * Shows a summary header bar followed by a compact unit grid (for housing types)
+ * or a simple info card (for non-housing types).
  */
 export function FacilitySection({
   facility,
@@ -42,10 +82,12 @@ export function FacilitySection({
   const occupiedCount = facilityData?.occupiedCount || 0;
   const totalCount = facilityData?.totalCount || 0;
 
+  // Determine if this facility type supports housing units
+  const config = SUBDIVISION_CONFIG[facility.facility_type];
+  const isHousingType = config?.supportsChildren ?? true;
+
   const handleUnitClick = (inlineUnit: InlineUnit) => {
-    // Find occupant count for this unit
     const unitOccupants = occupants.filter(o => o.unit_id === inlineUnit.id);
-    // Bridge to HousingUnit type for the detail sheet
     const housingUnit: HousingUnit = {
       id: inlineUnit.id,
       tenant_id: facility.tenant_id,
@@ -104,15 +146,15 @@ export function FacilitySection({
             )}
           </div>
 
-          {/* Occupancy fraction */}
+          {/* Occupancy fraction — only for housing types with units */}
           <div className="flex items-center gap-3 shrink-0">
-            {totalCount > 0 && (
+            {isHousingType && totalCount > 0 && (
               <div className="text-center">
                 <div className="text-sm font-semibold">
                   {occupiedCount}/{totalCount}
                 </div>
                 <div className="text-[10px] text-muted-foreground leading-none">
-                  {t('housing.branchOverview.occupancy')}
+                  {t('housing.facilities.occupancy')}
                 </div>
               </div>
             )}
@@ -120,25 +162,35 @@ export function FacilitySection({
             {/* Management actions */}
             {canManage && (
               <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => onEdit(facility.id)}
-                >
-                  <Edit className="w-3.5 h-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "h-7 w-7",
-                    facility.is_active ? "text-destructive" : "text-emerald-600"
-                  )}
-                  onClick={() => onToggleActive({ id: facility.id, isActive: !facility.is_active })}
-                >
-                  <Power className="w-3.5 h-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onEdit(facility.id)}
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('housing.facilities.editTooltip')}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-7 w-7",
+                        facility.is_active ? "text-destructive" : "text-emerald-600"
+                      )}
+                      onClick={() => onToggleActive({ id: facility.id, isActive: !facility.is_active })}
+                    >
+                      <Power className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('housing.facilities.toggleTooltip')}</TooltipContent>
+                </Tooltip>
               </div>
             )}
 
@@ -154,29 +206,35 @@ export function FacilitySection({
           </div>
         </div>
 
-        {/* Unit Grid */}
+        {/* Content area */}
         {!collapsed && (
           <div className="p-3">
-            {isLoadingUnits ? (
-              <div className="flex items-center justify-center py-6">
-                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              </div>
-            ) : units.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
-                <p className="text-sm">{t('housing.units.noUnits')}</p>
-              </div>
+            {isHousingType ? (
+              /* Housing-type: unit grid */
+              isLoadingUnits ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                </div>
+              ) : units.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                  <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
+                  <p className="text-sm">{t('housing.units.noUnits')}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+                  {units.map((unit) => (
+                    <UnitCell
+                      key={unit.id}
+                      unit={unit}
+                      occupants={occupants}
+                      onClick={handleUnitClick}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
-                {units.map((unit) => (
-                  <UnitCell
-                    key={unit.id}
-                    unit={unit}
-                    occupants={occupants}
-                    onClick={handleUnitClick}
-                  />
-                ))}
-              </div>
+              /* Non-housing type: simple info card */
+              <NonHousingContent facilityType={facility.facility_type} />
             )}
           </div>
         )}
@@ -189,5 +247,21 @@ export function FacilitySection({
         onOpenChange={setDetailsOpen}
       />
     </>
+  );
+}
+
+/** Simple info card for non-housing facility types */
+function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
+  const { t } = useI18n();
+  const Icon = NON_HOUSING_ICONS[facilityType] || Building2;
+  
+  return (
+    <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
+      <Icon className="w-6 h-6 opacity-40 shrink-0" />
+      <div>
+        <p className="text-sm font-medium text-foreground/80">{t(getNonHousingLabelKey(facilityType))}</p>
+        <p className="text-xs">{t(getNonHousingDescKey(facilityType))}</p>
+      </div>
+    </div>
   );
 }

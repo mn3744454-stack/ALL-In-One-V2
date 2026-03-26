@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -112,7 +112,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
       <div className="flex flex-col sm:flex-row gap-4">
         {!lockedBranchId && (
           <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full sm:w-[280px]">
               <SelectValue placeholder={t('housing.facilities.selectBranch')} />
             </SelectTrigger>
             <SelectContent>
@@ -174,11 +174,14 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
             <DialogTitle>
               {editingArea ? t('housing.facilities.editFacility') : t('housing.facilities.addFacility')}
             </DialogTitle>
+            <DialogDescription>
+              {editingArea ? t('housing.facilities.editFacilityDesc') : t('housing.facilities.addFacilityDesc')}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('movement.locations.branch')} *</Label>
+              <Label>{t('housing.facilities.branch')} *</Label>
               <Select
                 value={formData.branch_id}
                 onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v }))}
@@ -258,7 +261,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               ) : editingArea ? (
                 t('common.update')
               ) : (
-                t('common.save')
+                t('common.create')
               )}
             </Button>
           </DialogFooter>

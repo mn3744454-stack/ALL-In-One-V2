@@ -6,11 +6,23 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { UnitTypeBadge } from "./UnitTypeBadge";
 import { OccupancyBadge } from "./OccupancyBadge";
 import { AssignHorseDialog } from "./AssignHorseDialog";
@@ -30,6 +42,7 @@ interface UnitDetailsSheetProps {
 export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetProps) {
   const { t, dir, lang: language } = useI18n();
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [vacateTarget, setVacateTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
   
   const { 
     occupants, 
@@ -50,6 +63,15 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     room: BedDouble,
   };
   const Icon = iconMap[unit.unit_type] || Home;
+
+  const handleVacateConfirm = async () => {
+    if (!vacateTarget) return;
+    try {
+      await vacateHorse({ occupantId: vacateTarget.occupantId, horseId: vacateTarget.horseId });
+    } finally {
+      setVacateTarget(null);
+    }
+  };
 
   return (
     <>
@@ -84,7 +106,9 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
             {unit.area && (
               <div>
                 <p className="text-sm text-muted-foreground">{t('housing.areas.title')}</p>
-                <p className="font-medium">{unit.area.name}</p>
+                <p className="font-medium">
+                  <BilingualName name={unit.area.name} nameAr={null} inline />
+                </p>
               </div>
             )}
 
@@ -135,45 +159,59 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
               ) : (
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
-                    {occupants.map((occupant) => (
-                      <div 
-                        key={occupant.id}
-                        className="flex items-center justify-between p-3 rounded-lg border bg-card"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={occupant.horse?.avatar_url || ''} />
-                            <AvatarFallback>
-                              {occupant.horse?.name?.[0]?.toUpperCase() || 'H'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">
-                              {language === 'ar' && occupant.horse?.name_ar 
-                                ? occupant.horse.name_ar 
-                                : occupant.horse?.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
-                            </p>
+                    {occupants.map((occupant) => {
+                      const horseName = language === 'ar' && occupant.horse?.name_ar
+                        ? occupant.horse.name_ar
+                        : occupant.horse?.name || '—';
+
+                      return (
+                        <div 
+                          key={occupant.id}
+                          className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={occupant.horse?.avatar_url || ''} />
+                              <AvatarFallback>
+                                {occupant.horse?.name?.[0]?.toUpperCase() || 'H'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <BilingualName
+                                name={occupant.horse?.name || '—'}
+                                nameAr={occupant.horse?.name_ar}
+                                primaryClassName="text-sm font-medium"
+                                secondaryClassName="text-xs"
+                                inline
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
+                              </p>
+                            </div>
                           </div>
+                          {canManage && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-destructive hover:text-destructive"
+                                  disabled={isVacating}
+                                  onClick={() => setVacateTarget({
+                                    occupantId: occupant.id,
+                                    horseId: occupant.horse_id,
+                                    horseName,
+                                  })}
+                                >
+                                  <LogOut className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{t('housing.occupants.vacateTooltip')}</TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
-                        {canManage && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-destructive hover:text-destructive"
-                            disabled={isVacating}
-                            onClick={() => vacateHorse({ 
-                              occupantId: occupant.id, 
-                              horseId: occupant.horse_id 
-                            })}
-                          >
-                            <LogOut className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               )}
@@ -181,6 +219,29 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Vacate Confirmation Dialog */}
+      <AlertDialog open={!!vacateTarget} onOpenChange={(open) => { if (!open) setVacateTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('housing.facilities.vacateConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('housing.facilities.vacateConfirmDesc')
+                .replace('{horse}', vacateTarget?.horseName || '')
+                .replace('{unit}', unit?.code || '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleVacateConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('housing.occupants.vacate')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AssignHorseDialog
         unit={unit}
