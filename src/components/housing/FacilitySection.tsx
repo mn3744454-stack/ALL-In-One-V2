@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
+import { AddUnitsDialog } from "./AddUnitsDialog";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Users } from "lucide-react";
+import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Users, Plus } from "lucide-react";
 import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
@@ -23,7 +24,7 @@ interface FacilitySectionProps {
   onToggleActive: (params: { id: string; isActive: boolean }) => void;
 }
 
-/** Icons for non-housing facility types */
+/** Icons for facility types */
 const FACILITY_TYPE_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
   barn: Home,
   isolation: ShieldAlert,
@@ -35,7 +36,6 @@ const FACILITY_TYPE_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
   storage: Warehouse,
 };
 
-/** Determine the appropriate description key for non-housing types */
 function getNonHousingDescKey(type: FacilityType): string {
   switch (type) {
     case 'arena':
@@ -64,11 +64,6 @@ function getNonHousingLabelKey(type: FacilityType): string {
   }
 }
 
-/**
- * Inline facility section that replaces the old card + Sheet pattern.
- * Shows a summary header bar followed by a compact unit grid (for housing types)
- * or a simple info card (for non-housing types).
- */
 export function FacilitySection({
   facility,
   facilityData,
@@ -77,19 +72,32 @@ export function FacilitySection({
   onEdit,
   onToggleActive,
 }: FacilitySectionProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantType = activeTenant?.tenant?.type || 'stable';
+  const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
+
   const [collapsed, setCollapsed] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [addUnitsOpen, setAddUnitsOpen] = useState(false);
 
   const units = facilityData?.units || [];
   const occupants = facilityData?.occupants || [];
   const occupiedCount = facilityData?.occupiedCount || 0;
   const totalCount = facilityData?.totalCount || 0;
 
-  // Determine if this facility type supports housing units
   const config = SUBDIVISION_CONFIG[facility.facility_type];
   const isHousingType = config?.supportsChildren ?? true;
+
+  // Account-aware type label
+  const getTypeLabel = useCallback(() => {
+    if (facility.facility_type === 'barn') {
+      if (isClinic) return lang === 'ar' ? 'عنبر' : 'Ward';
+      return lang === 'ar' ? 'جناح' : 'Stall Block';
+    }
+    return t(`housing.facilityTypes.${facility.facility_type}`);
+  }, [facility.facility_type, isClinic, lang, t]);
 
   const handleUnitClick = (inlineUnit: InlineUnit) => {
     const unitOccupants = occupants.filter(o => o.unit_id === inlineUnit.id);
@@ -140,7 +148,7 @@ export function FacilitySection({
                 inline
               />
               <Badge variant="outline" className="text-[10px] capitalize shrink-0">
-                {t(`housing.facilityTypes.${facility.facility_type}`)}
+                {getTypeLabel()}
               </Badge>
               {!facility.is_active && (
                 <Badge variant="secondary" className="text-[10px] shrink-0">{t('common.inactive')}</Badge>
@@ -167,6 +175,22 @@ export function FacilitySection({
             {/* Management actions */}
             {canManage && (
               <div className="flex items-center gap-1">
+                {/* Add units button for housing facilities */}
+                {isHousingType && facility.is_active && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => setAddUnitsOpen(true)}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('housing.create.addUnitsTooltip')}</TooltipContent>
+                  </Tooltip>
+                )}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -215,19 +239,23 @@ export function FacilitySection({
         {!collapsed && (
           <div className="p-3">
             {isHousingType ? (
-              /* Housing-type: unit grid */
               isLoadingUnits ? (
                 <div className="flex items-center justify-center py-6">
                   <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               ) : units.length === 0 ? (
-                /* Open-area empty state with capacity, or generic empty */
                 (facility.facility_type === 'paddock' || facility.facility_type === 'pasture') ? (
                   <OpenAreaEmptyState facility={facility} />
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
                     <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
                     <p className="text-sm">{t('housing.units.noUnits')}</p>
+                    {canManage && isHousingType && facility.is_active && (
+                      <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
+                        <Plus className="w-3 h-3 mr-1" />
+                        {t('housing.create.addUnitsSubmit')}
+                      </Button>
+                    )}
                   </div>
                 )
               ) : (
@@ -243,24 +271,32 @@ export function FacilitySection({
                 </div>
               )
             ) : (
-              /* Non-housing type: simple info card */
               <NonHousingContent facilityType={facility.facility_type} />
             )}
           </div>
         )}
       </div>
 
-      {/* Unit Detail Sheet — secondary interaction */}
+      {/* Unit Detail Sheet */}
       <UnitDetailsSheet
         unit={selectedUnit}
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
       />
+
+      {/* Add Units Dialog */}
+      {isHousingType && (
+        <AddUnitsDialog
+          open={addUnitsOpen}
+          onOpenChange={setAddUnitsOpen}
+          facility={facility}
+          existingUnitCount={totalCount}
+        />
+      )}
     </>
   );
 }
 
-/** Simple info card for non-housing facility types */
 function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   const { t } = useI18n();
   const Icon = FACILITY_TYPE_ICONS[facilityType] || Building2;
@@ -276,7 +312,6 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   );
 }
 
-/** Open-area empty state — shows capacity if available instead of "no units" */
 function OpenAreaEmptyState({ facility }: { facility: FacilityArea }) {
   const { t } = useI18n();
   const capacity = (facility as any).capacity;

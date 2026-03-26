@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,23 +9,28 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { FacilitySection } from "./FacilitySection";
-import { CreateFacilityDialog } from "./CreateFacilityDialog";
-import { useFacilityAreas, FACILITY_TYPES, type FacilityType } from "@/hooks/housing/useFacilityAreas";
+import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
+import { useFacilityAreas, SUBDIVISION_CONFIG, type FacilityType } from "@/hooks/housing/useFacilityAreas";
 import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
-import { Plus, Building2, Loader2 } from "lucide-react";
+import { useTenant } from "@/contexts/TenantContext";
+import { Plus, Building2, Loader2, Home, ShieldAlert } from "lucide-react";
 
 interface FacilitiesManagerProps {
   lockedBranchId?: string;
 }
 
 export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantType = activeTenant?.tenant?.type || 'stable';
+  const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
+
   const [selectedBranchId, setSelectedBranchId] = useState<string>(lockedBranchId || '');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  // Edit dialog state (uses old simple form)
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -47,9 +52,22 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     isUpdating,
   } = useFacilityAreas(effectiveBranchId || undefined);
 
-  // Get all facility IDs for bulk unit+occupant fetch
   const facilityIds = useMemo(() => areas.filter(a => a.is_active).map(a => a.id), [areas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
+
+  const getEditTypeLabel = useCallback(() => {
+    const ft = editFormData.facility_type;
+    if (ft === 'barn') {
+      if (isClinic) return lang === 'ar' ? 'عنبر' : 'Ward';
+      return lang === 'ar' ? 'جناح' : 'Stall Block';
+    }
+    return t(`housing.facilityTypes.${ft}`);
+  }, [editFormData.facility_type, isClinic, lang, t]);
+
+  const editFacilityCategory = FACILITY_CATEGORY[editFormData.facility_type];
+  const editIsHousing = editFacilityCategory === 'housing';
+  const editUnitCount = editingArea ? (facilityUnitsMap[editingArea]?.totalCount || 0) : 0;
+  const editOccupiedCount = editingArea ? (facilityUnitsMap[editingArea]?.occupiedCount || 0) : 0;
 
   const handleOpenEdit = (areaId: string) => {
     const area = areas.find(a => a.id === areaId);
@@ -151,30 +169,37 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         effectiveBranchId={effectiveBranchId}
       />
 
-      {/* Edit Dialog — simple update form */}
+      {/* Edit Dialog — type-aware */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('housing.facilities.editFacility')}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {t('housing.facilities.editFacility')}
+              <Badge variant="outline" className="text-[10px] capitalize">
+                {getEditTypeLabel()}
+              </Badge>
+            </DialogTitle>
             <DialogDescription>{t('housing.facilities.editFacilityDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('housing.facilities.name')} *</Label>
-              <Input
-                value={editFormData.name}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder={t('housing.facilities.namePlaceholder')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('housing.facilities.nameAr')}</Label>
-              <Input
-                value={editFormData.name_ar}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, name_ar: e.target.value }))}
-                placeholder={t('housing.facilities.nameArPlaceholder')}
-                dir="rtl"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>{t('housing.facilities.name')} *</Label>
+                <Input
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder={t('housing.facilities.namePlaceholder')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('housing.facilities.nameAr')}</Label>
+                <Input
+                  value={editFormData.name_ar}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, name_ar: e.target.value }))}
+                  placeholder={t('housing.facilities.nameArPlaceholder')}
+                  dir="rtl"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>{t('housing.facilities.code')}</Label>
@@ -184,6 +209,24 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
                 placeholder={t('housing.facilities.codePlaceholder')}
               />
             </div>
+
+            {/* Type-aware context info */}
+            {editIsHousing && (
+              <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+                {editFormData.facility_type === 'isolation' ? (
+                  <ShieldAlert className="w-5 h-5 text-orange-500 shrink-0" />
+                ) : (
+                  <Home className="w-5 h-5 text-primary shrink-0" />
+                )}
+                <div className="text-sm">
+                  <span className="font-medium">{editUnitCount}</span>
+                  <span className="text-muted-foreground ml-1">{t('housing.create.editUnitsInfo')}</span>
+                  {editOccupiedCount > 0 && (
+                    <span className="text-muted-foreground"> · <span className="font-medium">{editOccupiedCount}</span> {t('housing.facilities.occupancy').toLowerCase()}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
