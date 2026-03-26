@@ -115,6 +115,7 @@ export function useFacilityAreas(branchId?: string) {
           area_size: data.area_size || null,
           shade: data.shade || 'none',
           has_water: data.has_water || false,
+          metadata: data.metadata || {},
           is_active: true,
           is_demo: false,
         })
