@@ -12,10 +12,12 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
-import { Loader2, Home, Package, Lock } from "lucide-react";
+import { Loader2, Home, Package, Lock, LayoutGrid, Rows3 } from "lucide-react";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 
 type RoomFunction = 'default' | 'storage' | 'isolation_room';
+type LayoutMode = 'single' | 'two_sided';
+type StartSide = 'a' | 'b';
 
 interface RoomSetup {
   index: number;
@@ -40,6 +42,8 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
   const [count, setCount] = useState(2);
   const [codePrefix, setCodePrefix] = useState('S');
   const [startNumber, setStartNumber] = useState(existingUnitCount + 1);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('two_sided');
+  const [startSide, setStartSide] = useState<StartSide>('a');
   const [roomSetup, setRoomSetup] = useState<RoomSetup[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +66,17 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
     }
     return rooms;
   }, [count, codePrefix, startNumber, roomSetup]);
+
+  const twoSidedRows = useMemo(() => {
+    if (layoutMode !== 'two_sided') return null;
+    const half = Math.ceil(previewRooms.length / 2);
+    const rowA = previewRooms.slice(0, half);
+    const rowB = previewRooms.slice(half);
+    if (startSide === 'b') {
+      return { topRow: rowB, bottomRow: rowA };
+    }
+    return { topRow: rowA, bottomRow: rowB };
+  }, [layoutMode, previewRooms, startSide]);
 
   const setRoomFunction = (index: number, fn: RoomFunction) => {
     setRoomSetup(prev => {
@@ -113,6 +128,45 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
     }
   };
 
+  const RoomCell = ({ room }: { room: RoomSetup }) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex flex-col items-center justify-center p-1.5 rounded-md border text-[10px] transition-all hover:scale-105 cursor-pointer min-h-[44px]",
+            getRoomColor(room.fn)
+          )}
+        >
+          <span className="font-mono font-semibold text-[11px]">{room.code}</span>
+          <span className="opacity-70 leading-none mt-0.5">{getRoomFnLabel(room.fn)}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-40 p-1" align="center" side="top">
+        <div className="space-y-0.5">
+          {([
+            { fn: 'default' as RoomFunction, icon: Home, label: getRoomDefaultLabel(), color: 'text-emerald-600' },
+            { fn: 'storage' as RoomFunction, icon: Package, label: t('housing.create.roomStorage'), color: 'text-amber-600' },
+            { fn: 'isolation_room' as RoomFunction, icon: Lock, label: t('housing.create.roomIsolation'), color: 'text-orange-600' },
+          ]).map((opt) => (
+            <button
+              key={opt.fn}
+              type="button"
+              onClick={() => setRoomFunction(room.index, opt.fn)}
+              className={cn(
+                "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors",
+                room.fn === opt.fn ? "bg-accent font-medium" : "hover:bg-muted"
+              )}
+            >
+              <opt.icon className={cn("w-3.5 h-3.5", opt.color)} />
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
@@ -139,48 +193,144 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
             </div>
           </div>
 
+          {/* Layout Mode Toggle */}
+          <div className="flex items-center gap-2">
+            <Label className="text-xs shrink-0">{t('housing.create.layout')}</Label>
+            <div className="flex border rounded-lg overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setLayoutMode('single')}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                  layoutMode === 'single'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-muted text-muted-foreground"
+                )}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                {t('housing.create.layoutSingle')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setLayoutMode('two_sided')}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                  layoutMode === 'two_sided'
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background hover:bg-muted text-muted-foreground"
+                )}
+              >
+                <Rows3 className="w-3.5 h-3.5" />
+                {t('housing.create.layoutTwoSided')}
+              </button>
+            </div>
+          </div>
+
+          {/* Start Side Toggle — only in two-sided mode */}
+          {layoutMode === 'two_sided' && (
+            <div className="flex items-center gap-2">
+              <Label className="text-xs shrink-0">{t('housing.create.startSide')}</Label>
+              <div className="flex border rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setStartSide('a')}
+                  className={cn(
+                    "px-3 py-1.5 text-xs transition-colors",
+                    startSide === 'a'
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  {t('housing.create.startFromSideA')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStartSide('b')}
+                  className={cn(
+                    "px-3 py-1.5 text-xs transition-colors",
+                    startSide === 'b'
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background hover:bg-muted text-muted-foreground"
+                  )}
+                >
+                  {t('housing.create.startFromSideB')}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Preview */}
           <div className="space-y-2">
-            <Label className="text-xs">{t('housing.create.previewTitle')}</Label>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(70px,1fr))] gap-1.5 p-3 bg-muted/30 rounded-lg border">
-              {previewRooms.map((room) => (
-                <Popover key={room.index}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        "flex flex-col items-center justify-center p-1.5 rounded-md border text-[10px] transition-all hover:scale-105 cursor-pointer min-h-[44px]",
-                        getRoomColor(room.fn)
-                      )}
-                    >
-                      <span className="font-mono font-semibold text-[11px]">{room.code}</span>
-                      <span className="opacity-70 leading-none mt-0.5">{getRoomFnLabel(room.fn)}</span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-40 p-1" align="center" side="top">
-                    <div className="space-y-0.5">
-                      {([
-                        { fn: 'default' as RoomFunction, icon: Home, label: getRoomDefaultLabel(), color: 'text-emerald-600' },
-                        { fn: 'storage' as RoomFunction, icon: Package, label: t('housing.create.roomStorage'), color: 'text-amber-600' },
-                        { fn: 'isolation_room' as RoomFunction, icon: Lock, label: t('housing.create.roomIsolation'), color: 'text-orange-600' },
-                      ]).map((opt) => (
-                        <button
-                          key={opt.fn}
-                          type="button"
-                          onClick={() => setRoomFunction(room.index, opt.fn)}
-                          className={cn(
-                            "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors",
-                            room.fn === opt.fn ? "bg-accent font-medium" : "hover:bg-muted"
-                          )}
-                        >
-                          <opt.icon className={cn("w-3.5 h-3.5", opt.color)} />
-                          {opt.label}
-                        </button>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs">{t('housing.create.previewTitle')}</Label>
+              <span className="text-[10px] text-muted-foreground">
+                {t('housing.create.clickToAssign')}
+              </span>
+            </div>
+
+            {layoutMode === 'two_sided' && twoSidedRows ? (
+              <div className="p-3 bg-muted/30 rounded-lg border space-y-1">
+                {/* Side A */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider w-10 shrink-0 text-center">
+                    {t('housing.create.sideA')}
+                  </span>
+                  <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(55px, 1fr))` }}>
+                    {twoSidedRows.topRow.map((room) => (
+                      <RoomCell key={room.index} room={room} />
+                    ))}
+                  </div>
+                </div>
+                {/* Aisle */}
+                <div className="flex items-center gap-2">
+                  <span className="w-10 shrink-0" />
+                  <div className="flex-1 flex items-center gap-2 py-1.5">
+                    <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                    <span className="text-[9px] text-muted-foreground/50 font-medium uppercase tracking-wider shrink-0">
+                      {t('housing.create.aisle')}
+                    </span>
+                    <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                  </div>
+                </div>
+                {/* Side B */}
+                {twoSidedRows.bottomRow.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider w-10 shrink-0 text-center">
+                      {t('housing.create.sideB')}
+                    </span>
+                    <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(55px, 1fr))` }}>
+                      {twoSidedRows.bottomRow.map((room) => (
+                        <RoomCell key={room.index} room={room} />
                       ))}
+                      {twoSidedRows.bottomRow.length < twoSidedRows.topRow.length && (
+                        <div className="min-h-[44px]" />
+                      )}
                     </div>
-                  </PopoverContent>
-                </Popover>
-              ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(70px,1fr))] gap-1.5 p-3 bg-muted/30 rounded-lg border">
+                {previewRooms.map((room) => (
+                  <RoomCell key={room.index} room={room} />
+                ))}
+              </div>
+            )}
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-200 border border-emerald-300" />
+                {getRoomDefaultLabel()}
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-amber-200 border border-amber-300" />
+                {t('housing.create.roomStorage')}
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-sm bg-orange-200 border border-orange-300" />
+                {t('housing.create.roomIsolation')}
+              </span>
             </div>
           </div>
         </div>
