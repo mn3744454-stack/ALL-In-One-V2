@@ -203,6 +203,12 @@ export function CreateFacilityDialog({
     setAreaSize('');
     setShade('none');
     setHasWater(false);
+    setActDimensions('');
+    setActDiameter('');
+    setActCovered('uncovered');
+    setActFooting('sand');
+    setActWashPoints(1);
+    setActWaterType('cold');
     setBranchId(lockedBranchId || effectiveBranchId || '');
   };
 
