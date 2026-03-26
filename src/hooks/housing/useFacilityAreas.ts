@@ -38,6 +38,7 @@ export interface FacilityArea {
   area_size: number | null;
   shade: string | null;
   has_water: boolean | null;
+  metadata: Record<string, unknown> | null;
   is_active: boolean;
   is_demo: boolean;
   created_at: string;
