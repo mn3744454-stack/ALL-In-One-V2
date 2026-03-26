@@ -240,26 +240,24 @@ export function FacilitySection({
         {/* Content area */}
         {!collapsed && (
           <div className="p-3">
-            {isHousingType ? (
+            {isOpenArea ? (
+              <OpenAreaContent facility={facility} />
+            ) : isHousingType ? (
               isLoadingUnits ? (
                 <div className="flex items-center justify-center py-6">
                   <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               ) : units.length === 0 ? (
-                (facility.facility_type === 'paddock' || facility.facility_type === 'pasture') ? (
-                  <OpenAreaEmptyState facility={facility} />
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                    <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
-                    <p className="text-sm">{t('housing.units.noUnits')}</p>
-                    {canManage && isHousingType && facility.is_active && (
-                      <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
-                        <Plus className="w-3 h-3 mr-1" />
-                        {t('housing.create.addUnitsSubmit')}
-                      </Button>
-                    )}
-                  </div>
-                )
+                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                  <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
+                  <p className="text-sm">{t('housing.units.noUnits')}</p>
+                  {canManage && facility.is_active && (
+                    <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
+                      <Plus className="w-3 h-3 mr-1" />
+                      {t('housing.create.addUnitsSubmit')}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
                   {units.map((unit) => (
