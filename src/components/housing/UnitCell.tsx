@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 import type { InlineUnit, InlineOccupant } from "@/hooks/housing/useInlineFacilityUnits";
 
 interface UnitCellProps {
@@ -13,18 +14,15 @@ interface UnitCellProps {
  * Shows unit code, horse name (or vacant), and status color via left border.
  */
 export function UnitCell({ unit, occupants, onClick }: UnitCellProps) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
 
   const currentOccupants = occupants.filter(o => o.unit_id === unit.id);
   const isOccupied = currentOccupants.length > 0;
   const isFull = currentOccupants.length >= unit.capacity;
   const isGroup = unit.occupancy === 'group';
 
-  // Determine horse display for single-occupancy
+  // Get horse for single-occupancy display
   const horse = currentOccupants[0]?.horse;
-  const horseName = horse
-    ? (lang === 'ar' && horse.name_ar ? horse.name_ar : horse.name)
-    : null;
 
   // Status color: green=vacant, primary=occupied, amber=full
   const borderColor = !isOccupied
@@ -60,10 +58,18 @@ export function UnitCell({ unit, occupants, onClick }: UnitCellProps) {
           <span className="text-sm font-semibold text-foreground leading-tight mt-1">
             {currentOccupants.length}/{unit.capacity}
           </span>
+        ) : horse ? (
+          <div className="mt-1 truncate">
+            <BilingualName
+              name={horse.name}
+              nameAr={horse.name_ar}
+              primaryClassName="text-sm font-medium leading-tight"
+              secondaryClassName="text-[10px]"
+              inline
+            />
+          </div>
         ) : (
-          <span className="text-sm font-medium text-foreground leading-tight mt-1 truncate">
-            {horseName}
-          </span>
+          <span className="text-sm font-medium text-foreground leading-tight mt-1">—</span>
         )
       ) : (
         <span className="text-xs text-muted-foreground/60 mt-1">
