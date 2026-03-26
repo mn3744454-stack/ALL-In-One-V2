@@ -89,7 +89,8 @@ export function FacilitySection({
   const totalCount = facilityData?.totalCount || 0;
 
   const config = SUBDIVISION_CONFIG[facility.facility_type];
-  const isHousingType = config?.supportsChildren ?? true;
+  const isOpenArea = facility.facility_type === 'paddock' || facility.facility_type === 'pasture';
+  const isHousingType = !isOpenArea && (config?.supportsChildren ?? true);
 
   // Account-aware type label
   const getTypeLabel = useCallback(() => {
