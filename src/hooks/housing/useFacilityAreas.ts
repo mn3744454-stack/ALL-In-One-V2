@@ -137,6 +137,10 @@ export function useFacilityAreas(branchId?: string) {
       if (data.name_ar !== undefined) updatePayload.name_ar = data.name_ar;
       if (data.code !== undefined) updatePayload.code = data.code;
       if (data.facility_type !== undefined) updatePayload.facility_type = data.facility_type;
+      if (data.capacity !== undefined) updatePayload.capacity = data.capacity;
+      if (data.area_size !== undefined) updatePayload.area_size = data.area_size;
+      if (data.shade !== undefined) updatePayload.shade = data.shade;
+      if (data.has_water !== undefined) updatePayload.has_water = data.has_water;
 
       const { data: updated, error } = await supabase
         .from('facility_areas')
