@@ -1888,6 +1888,12 @@ export const en = {
       deactivated: "Unit deactivated",
       viewDetails: "View Details",
       active: "active units",
+      editRoom: "Edit room",
+      roomCode: "Room Code",
+      roomName: "Room Name",
+      renameOccupiedTitle: "Room is currently occupied",
+      renameOccupiedDesc: "Room {unit} currently houses {count} horse(s). Changing its code or name will affect how this room is identified. Are you sure?",
+      confirmRename: "Rename anyway",
       types: {
         stall: "Stall",
         paddock: "Paddock",

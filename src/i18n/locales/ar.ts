@@ -1903,6 +1903,12 @@ export const ar = {
       deactivated: "تم إلغاء تفعيل الوحدة",
       viewDetails: "عرض التفاصيل",
       active: "وحدات نشطة",
+      editRoom: "تعديل الغرفة",
+      roomCode: "رمز الغرفة",
+      roomName: "اسم الغرفة",
+      renameOccupiedTitle: "الغرفة مشغولة حالياً",
+      renameOccupiedDesc: "الغرفة {unit} تحتوي حالياً على {count} حصان/أحصنة. تغيير الرمز أو الاسم سيؤثر على تعريف هذه الغرفة. هل أنت متأكد؟",
+      confirmRename: "إعادة تسمية على أي حال",
       types: {
         stall: "إسطبل",
         paddock: "حظيرة",
