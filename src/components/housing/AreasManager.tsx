@@ -230,7 +230,7 @@ export function AreasManager() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('movement.locations.branch')} *</Label>
+              <Label>{t('housing.facilities.branch')} *</Label>
               <Select 
                 value={formData.branch_id} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v }))}

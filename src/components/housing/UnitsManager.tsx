@@ -276,7 +276,7 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pe-2">
             <div className="space-y-2">
-              <Label>{t('movement.locations.branch')} *</Label>
+              <Label>{t('housing.facilities.branch')} *</Label>
               <Select 
                 value={formData.branch_id} 
                 onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v, area_id: '' }))}
