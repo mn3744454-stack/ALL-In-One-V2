@@ -4,9 +4,9 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
-export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage' | 'other';
+export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage';
 
-export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage', 'other'];
+export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage'];
 
 export interface SubdivisionConfig {
   label: string;
@@ -20,11 +20,10 @@ export const SUBDIVISION_CONFIG: Record<FacilityType, SubdivisionConfig> = {
   paddock: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section', 'partition'], supportsChildren: true },
   isolation: { label: 'Bay', labelAr: 'حجرة عزل', types: ['isolation_room', 'isolation_bay'], supportsChildren: true },
   pasture: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section'], supportsChildren: true },
-  storage: { label: 'Section', labelAr: 'قسم', types: ['section', 'shelf', 'bin'], supportsChildren: true },
+  storage: { label: 'Storage', labelAr: 'مستودع', types: [], supportsChildren: false },
   arena: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
   wash_area: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
   round_pen: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
-  other: { label: 'Subdivision', labelAr: 'تقسيم', types: ['other'], supportsChildren: true },
 };
 
 export interface FacilityArea {
@@ -51,6 +50,7 @@ export interface CreateAreaData {
   name_ar?: string;
   code?: string;
   facility_type?: FacilityType;
+  capacity?: number;
 }
 
 export function useFacilityAreas(branchId?: string) {
@@ -102,6 +102,7 @@ export function useFacilityAreas(branchId?: string) {
           name_ar: data.name_ar || null,
           code: data.code || null,
           facility_type: data.facility_type || 'barn',
+          capacity: data.capacity || null,
           is_active: true,
           is_demo: false,
         })

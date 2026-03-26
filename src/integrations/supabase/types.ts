@@ -2346,6 +2346,7 @@ export type Database = {
       facility_areas: {
         Row: {
           branch_id: string
+          capacity: number | null
           code: string | null
           created_at: string | null
           facility_type: string
@@ -2359,6 +2360,7 @@ export type Database = {
         }
         Insert: {
           branch_id: string
+          capacity?: number | null
           code?: string | null
           created_at?: string | null
           facility_type?: string
@@ -2372,6 +2374,7 @@ export type Database = {
         }
         Update: {
           branch_id?: string
+          capacity?: number | null
           code?: string | null
           created_at?: string | null
           facility_type?: string
@@ -10136,7 +10139,14 @@ export type Database = {
         | "driver"
         | "farrier"
         | "other"
-      internal_unit_type: "stall" | "paddock" | "room" | "cage" | "other"
+      internal_unit_type:
+        | "stall"
+        | "paddock"
+        | "room"
+        | "cage"
+        | "other"
+        | "storage"
+        | "isolation_room"
       invitation_status:
         | "pending"
         | "accepted"
@@ -10317,7 +10327,15 @@ export const Constants = {
         "farrier",
         "other",
       ],
-      internal_unit_type: ["stall", "paddock", "room", "cage", "other"],
+      internal_unit_type: [
+        "stall",
+        "paddock",
+        "room",
+        "cage",
+        "other",
+        "storage",
+        "isolation_room",
+      ],
       invitation_status: [
         "pending",
         "accepted",

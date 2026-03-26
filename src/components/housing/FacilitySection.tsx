@@ -6,8 +6,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { useI18n } from "@/i18n";
+import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot } from "lucide-react";
+import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Users } from "lucide-react";
 import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
@@ -23,7 +24,11 @@ interface FacilitySectionProps {
 }
 
 /** Icons for non-housing facility types */
-const NON_HOUSING_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
+const FACILITY_TYPE_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
+  barn: Home,
+  isolation: ShieldAlert,
+  paddock: Fence,
+  pasture: TreePine,
   arena: Dumbbell,
   round_pen: CircleDot,
   wash_area: Droplets,
@@ -122,7 +127,7 @@ export function FacilitySection({
         {/* Facility Summary Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30 rounded-t-xl">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Building2 className="w-4.5 h-4.5 text-primary" />
+            {(() => { const FIcon = FACILITY_TYPE_ICONS[facility.facility_type] || Building2; return <FIcon className="w-4.5 h-4.5 text-primary" />; })()}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -216,10 +221,15 @@ export function FacilitySection({
                   <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               ) : units.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                  <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
-                  <p className="text-sm">{t('housing.units.noUnits')}</p>
-                </div>
+                /* Open-area empty state with capacity, or generic empty */
+                (facility.facility_type === 'paddock' || facility.facility_type === 'pasture') ? (
+                  <OpenAreaEmptyState facility={facility} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                    <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
+                    <p className="text-sm">{t('housing.units.noUnits')}</p>
+                  </div>
+                )
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
                   {units.map((unit) => (
@@ -253,7 +263,7 @@ export function FacilitySection({
 /** Simple info card for non-housing facility types */
 function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   const { t } = useI18n();
-  const Icon = NON_HOUSING_ICONS[facilityType] || Building2;
+  const Icon = FACILITY_TYPE_ICONS[facilityType] || Building2;
   
   return (
     <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
@@ -261,6 +271,26 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
       <div>
         <p className="text-sm font-medium text-foreground/80">{t(getNonHousingLabelKey(facilityType))}</p>
         <p className="text-xs">{t(getNonHousingDescKey(facilityType))}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Open-area empty state — shows capacity if available instead of "no units" */
+function OpenAreaEmptyState({ facility }: { facility: FacilityArea }) {
+  const { t } = useI18n();
+  const capacity = (facility as any).capacity;
+  
+  return (
+    <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
+      <Users className="w-6 h-6 opacity-40 shrink-0" />
+      <div>
+        {capacity ? (
+          <p className="text-sm font-medium text-foreground/80">
+            {t('housing.create.noZonesCapacity').replace('{capacity}', String(capacity))}
+          </p>
+        ) : null}
+        <p className="text-xs">{t('housing.create.noZonesDefault')}</p>
       </div>
     </div>
   );

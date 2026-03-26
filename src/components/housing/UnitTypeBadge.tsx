@@ -16,6 +16,8 @@ export function UnitTypeBadge({ type, className }: UnitTypeBadgeProps) {
     paddock: { icon: Trees, color: "bg-green-100 text-green-700 border-green-200", label: t('housing.units.types.paddock') },
     room: { icon: BedDouble, color: "bg-purple-100 text-purple-700 border-purple-200", label: t('housing.units.types.room') },
     cage: { icon: Box, color: "bg-orange-100 text-orange-700 border-orange-200", label: t('housing.units.types.cage') },
+    storage: { icon: Box, color: "bg-amber-100 text-amber-700 border-amber-200", label: t('housing.create.roomStorage') },
+    isolation_room: { icon: HelpCircle, color: "bg-red-100 text-red-700 border-red-200", label: t('housing.create.roomIsolation') },
     other: { icon: HelpCircle, color: "bg-gray-100 text-gray-700 border-gray-200", label: t('housing.units.types.other') },
   };
 
