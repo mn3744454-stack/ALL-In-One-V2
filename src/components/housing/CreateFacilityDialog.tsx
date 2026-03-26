@@ -103,6 +103,13 @@ export function CreateFacilityDialog({
   const [areaSize, setAreaSize] = useState<number | ''>('');
   const [shade, setShade] = useState('none');
   const [hasWater, setHasWater] = useState(false);
+  // Activity-specific
+  const [actDimensions, setActDimensions] = useState('');
+  const [actDiameter, setActDiameter] = useState('');
+  const [actCovered, setActCovered] = useState('uncovered');
+  const [actFooting, setActFooting] = useState('sand');
+  const [actWashPoints, setActWashPoints] = useState<number | ''>(1);
+  const [actWaterType, setActWaterType] = useState('cold');
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
