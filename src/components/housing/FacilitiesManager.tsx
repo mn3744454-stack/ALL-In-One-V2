@@ -43,6 +43,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     area_size: '' as number | '',
     shade: 'none',
     has_water: false,
+    metadata: {} as Record<string, unknown>,
   });
 
   const effectiveBranchId = lockedBranchId || selectedBranchId;
