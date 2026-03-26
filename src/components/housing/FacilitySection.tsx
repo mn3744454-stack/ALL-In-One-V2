@@ -127,7 +127,7 @@ export function FacilitySection({
         {/* Facility Summary Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30 rounded-t-xl">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Building2 className="w-4.5 h-4.5 text-primary" />
+            {(() => { const FIcon = FACILITY_TYPE_ICONS[facility.facility_type] || Building2; return <FIcon className="w-4.5 h-4.5 text-primary" />; })()}
           </div>
 
           <div className="flex-1 min-w-0">
