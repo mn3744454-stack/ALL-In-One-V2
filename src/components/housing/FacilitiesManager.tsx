@@ -299,6 +299,100 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
                 </div>
               </div>
             )}
+
+            {/* Activity edit fields */}
+            {editIsActivity && (
+              <div className="space-y-3 p-3 bg-muted/30 rounded-lg border">
+                {/* Arena dimensions */}
+                {editFormData.facility_type === 'arena' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.dimensions')}</Label>
+                    <Input
+                      value={(editFormData.metadata?.dimensions as string) || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, dimensions: e.target.value } }))}
+                      placeholder={t('housing.activity.dimensionsPlaceholder')}
+                    />
+                  </div>
+                )}
+
+                {/* Round pen diameter */}
+                {editFormData.facility_type === 'round_pen' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.diameter')}</Label>
+                    <Input
+                      value={(editFormData.metadata?.diameter as string) || ''}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, diameter: e.target.value } }))}
+                      placeholder={t('housing.activity.diameterPlaceholder')}
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Covered */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.activity.coveredLabel')}</Label>
+                    <Select
+                      value={(editFormData.metadata?.covered as string) || 'uncovered'}
+                      onValueChange={(v) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, covered: v } }))}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="covered">{t('housing.activity.covered')}</SelectItem>
+                        <SelectItem value="uncovered">{t('housing.activity.uncovered')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Footing for arena/round_pen */}
+                  {editFormData.facility_type !== 'wash_area' && (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.footingLabel')}</Label>
+                      <Select
+                        value={(editFormData.metadata?.footing as string) || 'sand'}
+                        onValueChange={(v) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, footing: v } }))}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {['sand', 'grass', 'rubber', 'dirt', 'synthetic'].map(f => (
+                            <SelectItem key={f} value={f}>{t(`housing.activity.footing_${f}`)}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Wash area specifics */}
+                {editFormData.facility_type === 'wash_area' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.washPoints')}</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={(editFormData.metadata?.wash_points as number) || 1}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, wash_points: e.target.value ? parseInt(e.target.value) : 1 } }))}
+                        placeholder="1"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.activity.waterTypeLabel')}</Label>
+                      <Select
+                        value={(editFormData.metadata?.water_type as string) || 'cold'}
+                        onValueChange={(v) => setEditFormData(prev => ({ ...prev, metadata: { ...prev.metadata, water_type: v } }))}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cold">{t('housing.activity.water_cold')}</SelectItem>
+                          <SelectItem value="hot_cold">{t('housing.activity.water_hot_cold')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
