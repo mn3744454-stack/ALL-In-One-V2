@@ -218,6 +218,20 @@ export function CreateFacilityDialog({
     setIsSubmitting(true);
 
     try {
+      // Build activity metadata
+      let metadata: Record<string, unknown> | undefined;
+      if (isActivity) {
+        metadata = {};
+        if (facilityType === 'arena' && actDimensions) metadata.dimensions = actDimensions;
+        if (facilityType === 'round_pen' && actDiameter) metadata.diameter = actDiameter;
+        metadata.covered = actCovered;
+        if (facilityType !== 'wash_area') metadata.footing = actFooting;
+        if (facilityType === 'wash_area') {
+          if (actWashPoints) metadata.wash_points = Number(actWashPoints);
+          metadata.water_type = actWaterType;
+        }
+      }
+
       const newArea = await createArea({
         branch_id: branchId,
         name,
@@ -228,6 +242,7 @@ export function CreateFacilityDialog({
         area_size: isOpenArea && areaSize ? Number(areaSize) : undefined,
         shade: isOpenArea ? shade : undefined,
         has_water: isOpenArea ? hasWater : undefined,
+        metadata,
       });
 
       if (isHousing && unitCount > 0 && newArea?.id) {
