@@ -69,7 +69,7 @@ export function CreateFacilityDialog({
   lockedBranchId,
   effectiveBranchId,
 }: CreateFacilityDialogProps) {
-  const { t, language } = useI18n();
+  const { t, lang: language } = useI18n();
   const { activeTenant } = useTenant();
   const tenantType = activeTenant?.tenant?.type || 'stable';
 
