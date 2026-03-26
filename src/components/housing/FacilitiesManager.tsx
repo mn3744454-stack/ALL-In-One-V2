@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { FacilitySection } from "./FacilitySection";
+import { CreateFacilityDialog } from "./CreateFacilityDialog";
 import { useFacilityAreas, FACILITY_TYPES, type FacilityType } from "@/hooks/housing/useFacilityAreas";
 import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
@@ -23,13 +24,14 @@ interface FacilitiesManagerProps {
 export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const { t } = useI18n();
   const [selectedBranchId, setSelectedBranchId] = useState<string>(lockedBranchId || '');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  // Edit dialog state (uses old simple form)
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [editFormData, setEditFormData] = useState({
     name: '',
     name_ar: '',
     code: '',
-    branch_id: lockedBranchId || '',
     facility_type: 'barn' as FacilityType,
   });
 
@@ -40,10 +42,8 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     areas,
     isLoading,
     canManage,
-    createArea,
     updateArea,
     toggleAreaActive,
-    isCreating,
     isUpdating,
   } = useFacilityAreas(effectiveBranchId || undefined);
 
@@ -51,56 +51,32 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const facilityIds = useMemo(() => areas.filter(a => a.is_active).map(a => a.id), [areas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
 
-  const resetForm = () => {
-    setFormData({ name: '', name_ar: '', code: '', branch_id: lockedBranchId || '', facility_type: 'barn' });
-    setEditingArea(null);
-  };
-
-  const handleOpenDialog = (areaId?: string) => {
-    if (areaId) {
-      const area = areas.find(a => a.id === areaId);
-      if (area) {
-        setFormData({
-          name: area.name,
-          name_ar: area.name_ar || '',
-          code: area.code || '',
-          branch_id: area.branch_id,
-          facility_type: area.facility_type || 'barn',
-        });
-        setEditingArea(areaId);
-      }
-    } else {
-      resetForm();
-      if (effectiveBranchId) {
-        setFormData(prev => ({ ...prev, branch_id: effectiveBranchId }));
-      }
+  const handleOpenEdit = (areaId: string) => {
+    const area = areas.find(a => a.id === areaId);
+    if (area) {
+      setEditFormData({
+        name: area.name,
+        name_ar: area.name_ar || '',
+        code: area.code || '',
+        facility_type: area.facility_type || 'barn',
+      });
+      setEditingArea(areaId);
+      setEditDialogOpen(true);
     }
-    setDialogOpen(true);
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.branch_id) return;
-
+  const handleEditSubmit = async () => {
+    if (!editingArea || !editFormData.name) return;
     try {
-      if (editingArea) {
-        await updateArea({
-          id: editingArea,
-          name: formData.name,
-          name_ar: formData.name_ar || undefined,
-          code: formData.code || undefined,
-          facility_type: formData.facility_type,
-        });
-      } else {
-        await createArea({
-          branch_id: formData.branch_id,
-          name: formData.name,
-          name_ar: formData.name_ar || undefined,
-          code: formData.code || undefined,
-          facility_type: formData.facility_type,
-        });
-      }
-      setDialogOpen(false);
-      resetForm();
+      await updateArea({
+        id: editingArea,
+        name: editFormData.name,
+        name_ar: editFormData.name_ar || undefined,
+        code: editFormData.code || undefined,
+        facility_type: editFormData.facility_type,
+      });
+      setEditDialogOpen(false);
+      setEditingArea(null);
     } catch (error) {
       // Error handled by mutation
     }
@@ -127,7 +103,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         )}
 
         {canManage && (
-          <Button className="gap-2" onClick={() => handleOpenDialog()}>
+          <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4" />
             {t('housing.facilities.addFacility')}
           </Button>
@@ -145,7 +121,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
             <Building2 className="w-12 h-12 text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">{t('housing.facilities.noFacilities')}</p>
             {canManage && (
-              <Button variant="link" onClick={() => handleOpenDialog()}>
+              <Button variant="link" onClick={() => setCreateDialogOpen(true)}>
                 {t('housing.facilities.addFirst')}
               </Button>
             )}
@@ -160,109 +136,64 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               facilityData={facilityUnitsMap[area.id]}
               isLoadingUnits={isLoadingUnits}
               canManage={canManage}
-              onEdit={handleOpenDialog}
+              onEdit={handleOpenEdit}
               onToggleActive={toggleAreaActive}
             />
           ))}
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* Create Dialog — type-driven */}
+      <CreateFacilityDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        lockedBranchId={lockedBranchId}
+        effectiveBranchId={effectiveBranchId}
+      />
+
+      {/* Edit Dialog — simple update form */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingArea ? t('housing.facilities.editFacility') : t('housing.facilities.addFacility')}
-            </DialogTitle>
-            <DialogDescription>
-              {editingArea ? t('housing.facilities.editFacilityDesc') : t('housing.facilities.addFacilityDesc')}
-            </DialogDescription>
+            <DialogTitle>{t('housing.facilities.editFacility')}</DialogTitle>
+            <DialogDescription>{t('housing.facilities.editFacilityDesc')}</DialogDescription>
           </DialogHeader>
-
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('housing.facilities.branch')} *</Label>
-              <Select
-                value={formData.branch_id}
-                onValueChange={(v) => setFormData(prev => ({ ...prev, branch_id: v }))}
-                disabled={!!editingArea || !!lockedBranchId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('housing.facilities.selectBranch')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {activeLocations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{t('housing.facilities.facilityType')} *</Label>
-              <Select
-                value={formData.facility_type}
-                onValueChange={(v) => setFormData(prev => ({ ...prev, facility_type: v as FacilityType }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FACILITY_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(`housing.facilityTypes.${type}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <Label>{t('housing.facilities.name')} *</Label>
               <Input
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                value={editFormData.name}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder={t('housing.facilities.namePlaceholder')}
               />
             </div>
-
             <div className="space-y-2">
               <Label>{t('housing.facilities.nameAr')}</Label>
               <Input
-                value={formData.name_ar}
-                onChange={(e) => setFormData(prev => ({ ...prev, name_ar: e.target.value }))}
+                value={editFormData.name_ar}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name_ar: e.target.value }))}
                 placeholder={t('housing.facilities.nameArPlaceholder')}
                 dir="rtl"
               />
             </div>
-
             <div className="space-y-2">
               <Label>{t('housing.facilities.code')}</Label>
               <Input
-                value={formData.code}
-                onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                value={editFormData.code}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, code: e.target.value }))}
                 placeholder={t('housing.facilities.codePlaceholder')}
               />
             </div>
           </div>
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               {t('common.cancel')}
             </Button>
             <Button
-              onClick={handleSubmit}
-              disabled={!formData.name || !formData.branch_id || isCreating || isUpdating}
+              onClick={handleEditSubmit}
+              disabled={!editFormData.name || isUpdating}
             >
-              {(isCreating || isUpdating) ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : editingArea ? (
-                t('common.update')
-              ) : (
-                t('common.create')
-              )}
+              {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.update')}
             </Button>
           </DialogFooter>
         </DialogContent>
