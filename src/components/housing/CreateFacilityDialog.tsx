@@ -9,6 +9,9 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
@@ -18,7 +21,8 @@ import { useHousingUnits, type CreateUnitData } from "@/hooks/housing/useHousing
 import { useLocations } from "@/hooks/movement/useLocations";
 import {
   Loader2, Building2, Fence, Dumbbell, Droplets,
-  Warehouse, CircleDot, TreePine, ShieldAlert, Home
+  Warehouse, CircleDot, TreePine, ShieldAlert, Home,
+  LayoutGrid, Rows3, Package, Lock
 } from "lucide-react";
 
 // ─── Facility category classification ──────────────────────────────
@@ -48,6 +52,8 @@ const FACILITY_ICONS: Record<FacilityType, React.ElementType> = {
 
 // ─── Room exception type for setup ──────────────────────────────
 type RoomFunction = 'default' | 'storage' | 'isolation_room';
+
+type LayoutMode = 'single' | 'two_sided';
 
 interface RoomSetup {
   index: number;
@@ -86,6 +92,8 @@ export function CreateFacilityDialog({
   // Housing-specific
   const [unitCount, setUnitCount] = useState(6);
   const [codePrefix, setCodePrefix] = useState('S');
+  const [startNumber, setStartNumber] = useState(1);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('two_sided');
   const [roomSetup, setRoomSetup] = useState<RoomSetup[]>([]);
   // Open-area specific
   const [capacity, setCapacity] = useState<number | ''>('');
@@ -95,46 +103,50 @@ export function CreateFacilityDialog({
   const category = FACILITY_CATEGORY[facilityType];
   const isHousing = category === 'housing';
   const isOpenArea = category === 'open_area';
+  const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
 
   // ─── Account-type-aware label for housing types ──────────────────
   const getHousingLabel = useCallback(() => {
-    if (tenantType === 'clinic' || tenantType === 'doctor') {
+    if (isClinic) {
       return language === 'ar' ? 'عنبر' : 'Ward';
     }
     return language === 'ar' ? 'جناح' : 'Stall Block';
-  }, [tenantType, language]);
+  }, [isClinic, language]);
 
-  // ─── Generate preview rooms when count/prefix changes ──────────────
+  // ─── Account-aware room default label ──────────────────
+  const getRoomDefaultLabel = useCallback(() => {
+    if (facilityType === 'isolation') return t('housing.create.roomIsolationDefault');
+    if (isClinic) return t('housing.create.roomPatient');
+    return t('housing.create.roomDefault');
+  }, [facilityType, isClinic, t]);
+
+  // ─── Generate preview rooms when count/prefix/startNumber changes ──────
   const previewRooms = useMemo(() => {
     const count = Math.max(1, Math.min(unitCount || 1, 50));
+    const start = Math.max(1, startNumber || 1);
     const rooms: RoomSetup[] = [];
     for (let i = 0; i < count; i++) {
       const existingSetup = roomSetup.find(r => r.index === i);
       rooms.push({
         index: i,
-        code: `${codePrefix}${String(i + 1).padStart(2, '0')}`,
+        code: `${codePrefix}${String(start + i).padStart(2, '0')}`,
         fn: existingSetup?.fn || 'default',
       });
     }
     return rooms;
-  }, [unitCount, codePrefix, roomSetup]);
+  }, [unitCount, codePrefix, startNumber, roomSetup]);
 
-  // ─── Room exception toggle ──────────────────────────────
-  const toggleRoomFunction = (index: number) => {
+  // ─── Set room function via popover ──────────────────────────────
+  const setRoomFunction = (index: number, fn: RoomFunction) => {
     setRoomSetup(prev => {
-      const existing = prev.find(r => r.index === index);
-      const cycle: RoomFunction[] = ['default', 'storage', 'isolation_room'];
-      const currentFn = existing?.fn || 'default';
-      const nextIdx = (cycle.indexOf(currentFn) + 1) % cycle.length;
-      const nextFn = cycle[nextIdx];
-
-      if (nextFn === 'default') {
+      if (fn === 'default') {
         return prev.filter(r => r.index !== index);
       }
+      const existing = prev.find(r => r.index === index);
       if (existing) {
-        return prev.map(r => r.index === index ? { ...r, fn: nextFn } : r);
+        return prev.map(r => r.index === index ? { ...r, fn } : r);
       }
-      return [...prev, { index, code: `${codePrefix}${String(index + 1).padStart(2, '0')}`, fn: nextFn }];
+      return [...prev, { index, code: '', fn }];
     });
   };
 
@@ -151,9 +163,7 @@ export function CreateFacilityDialog({
     switch (fn) {
       case 'storage': return t('housing.create.roomStorage');
       case 'isolation_room': return t('housing.create.roomIsolation');
-      default: return isHousing && facilityType === 'isolation'
-        ? t('housing.create.roomIsolationDefault')
-        : t('housing.create.roomDefault');
+      default: return getRoomDefaultLabel();
     }
   };
 
@@ -171,6 +181,8 @@ export function CreateFacilityDialog({
     setFacilityType('barn');
     setUnitCount(6);
     setCodePrefix('S');
+    setStartNumber(1);
+    setLayoutMode('two_sided');
     setRoomSetup([]);
     setCapacity('');
     setBranchId(lockedBranchId || effectiveBranchId || '');
@@ -182,7 +194,6 @@ export function CreateFacilityDialog({
     setIsSubmitting(true);
 
     try {
-      // 1. Create the facility
       const newArea = await createArea({
         branch_id: branchId,
         name,
@@ -192,7 +203,6 @@ export function CreateFacilityDialog({
         capacity: isOpenArea && capacity ? Number(capacity) : undefined,
       });
 
-      // 2. For housing types, batch-create units
       if (isHousing && unitCount > 0 && newArea?.id) {
         const defaultUnitType = facilityType === 'isolation' ? 'isolation_room' : 'stall';
 
@@ -218,6 +228,60 @@ export function CreateFacilityDialog({
       setIsSubmitting(false);
     }
   };
+
+  // ─── Two-sided layout helpers ──────────────────────────────
+  const twoSidedRows = useMemo(() => {
+    if (layoutMode !== 'two_sided') return null;
+    const half = Math.ceil(previewRooms.length / 2);
+    return {
+      topRow: previewRooms.slice(0, half),
+      bottomRow: previewRooms.slice(half),
+    };
+  }, [layoutMode, previewRooms]);
+
+  // ─── Room cell component ──────────────────────────────
+  const RoomCell = ({ room }: { room: RoomSetup }) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex flex-col items-center justify-center p-1.5 rounded-md border text-[10px] transition-all hover:scale-105 cursor-pointer min-h-[48px]",
+            getRoomColor(room.fn)
+          )}
+        >
+          <span className="font-mono font-semibold text-[11px]">{room.code}</span>
+          <span className="opacity-70 leading-none mt-0.5">
+            {getRoomFnLabel(room.fn)}
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-40 p-1" align="center" side="top">
+        <div className="space-y-0.5">
+          {([
+            { fn: 'default' as RoomFunction, icon: Home, label: getRoomDefaultLabel(), color: 'text-emerald-600' },
+            { fn: 'storage' as RoomFunction, icon: Package, label: t('housing.create.roomStorage'), color: 'text-amber-600' },
+            { fn: 'isolation_room' as RoomFunction, icon: Lock, label: t('housing.create.roomIsolation'), color: 'text-orange-600' },
+          ]).map((opt) => (
+            <button
+              key={opt.fn}
+              type="button"
+              onClick={() => setRoomFunction(room.index, opt.fn)}
+              className={cn(
+                "flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs transition-colors",
+                room.fn === opt.fn
+                  ? "bg-accent font-medium"
+                  : "hover:bg-muted"
+              )}
+            >
+              <opt.icon className={cn("w-3.5 h-3.5", opt.color)} />
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); onOpenChange(v); }}>
@@ -313,17 +377,20 @@ export function CreateFacilityDialog({
             </div>
           </div>
 
-          {/* ── Phase 2b: Type-specific fields ── */}
+          {/* ── Phase 2b: Housing-specific fields ── */}
           {isHousing && (
             <>
               <Separator />
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium mb-1">{t('housing.create.unitSetup')}</h4>
+                  <h4 className="text-sm font-medium mb-1">
+                    {isClinic ? t('housing.create.wardSetup') : t('housing.create.stallSetup')}
+                  </h4>
                   <p className="text-xs text-muted-foreground">{t('housing.create.unitSetupDesc')}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* Row 1: Count + Prefix + Start Number */}
+                <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">{t('housing.create.unitCount')} *</Label>
                     <Input
@@ -343,6 +410,49 @@ export function CreateFacilityDialog({
                       maxLength={4}
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.create.startNumber')}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={startNumber}
+                      onChange={(e) => setStartNumber(Math.max(1, parseInt(e.target.value) || 1))}
+                    />
+                  </div>
+                </div>
+
+                {/* Layout Mode Toggle */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs shrink-0">{t('housing.create.layout')}</Label>
+                  <div className="flex border rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setLayoutMode('single')}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                        layoutMode === 'single'
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      {t('housing.create.layoutSingle')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLayoutMode('two_sided')}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                        layoutMode === 'two_sided'
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <Rows3 className="w-3.5 h-3.5" />
+                      {t('housing.create.layoutTwoSided')}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Live Preview Grid */}
@@ -350,32 +460,54 @@ export function CreateFacilityDialog({
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">{t('housing.create.previewTitle')}</Label>
                     <span className="text-[10px] text-muted-foreground">
-                      {t('housing.create.clickToToggle')}
+                      {t('housing.create.clickToAssign')}
                     </span>
                   </div>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(70px,1fr))] gap-1.5 p-3 bg-muted/30 rounded-lg border">
-                    {previewRooms.map((room) => (
-                      <button
-                        key={room.index}
-                        type="button"
-                        onClick={() => toggleRoomFunction(room.index)}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-1.5 rounded-md border text-[10px] transition-all hover:scale-105 cursor-pointer min-h-[44px]",
-                          getRoomColor(room.fn)
-                        )}
-                      >
-                        <span className="font-mono font-semibold text-[11px]">{room.code}</span>
-                        <span className="opacity-70 leading-none mt-0.5">
-                          {getRoomFnLabel(room.fn)}
+
+                  {layoutMode === 'two_sided' && twoSidedRows ? (
+                    /* ── Two-sided arrangement with aisle ── */
+                    <div className="p-3 bg-muted/30 rounded-lg border space-y-1">
+                      {/* Top row */}
+                      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
+                        {twoSidedRows.topRow.map((room) => (
+                          <RoomCell key={room.index} room={room} />
+                        ))}
+                      </div>
+                      {/* Aisle */}
+                      <div className="flex items-center gap-2 py-1.5">
+                        <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                        <span className="text-[9px] text-muted-foreground/50 font-medium uppercase tracking-wider shrink-0">
+                          {t('housing.create.aisle')}
                         </span>
-                      </button>
-                    ))}
-                  </div>
+                        <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                      </div>
+                      {/* Bottom row */}
+                      {twoSidedRows.bottomRow.length > 0 && (
+                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
+                          {twoSidedRows.bottomRow.map((room) => (
+                            <RoomCell key={room.index} room={room} />
+                          ))}
+                          {/* Fill empty cells for alignment when odd count */}
+                          {twoSidedRows.bottomRow.length < twoSidedRows.topRow.length && (
+                            <div className="min-h-[48px]" />
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* ── Single-row flat grid ── */
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(70px,1fr))] gap-1.5 p-3 bg-muted/30 rounded-lg border">
+                      {previewRooms.map((room) => (
+                        <RoomCell key={room.index} room={room} />
+                      ))}
+                    </div>
+                  )}
+
                   {/* Legend */}
                   <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <span className="w-2.5 h-2.5 rounded-sm bg-emerald-200 border border-emerald-300" />
-                      {facilityType === 'isolation' ? t('housing.create.roomIsolationDefault') : t('housing.create.roomDefault')}
+                      {getRoomDefaultLabel()}
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="w-2.5 h-2.5 rounded-sm bg-amber-200 border border-amber-300" />
@@ -415,7 +547,6 @@ export function CreateFacilityDialog({
             </>
           )}
 
-          {/* Activity/Storage: no extra fields, just a note */}
           {(category === 'activity' || category === 'storage') && (
             <>
               <Separator />
@@ -446,3 +577,7 @@ export function CreateFacilityDialog({
     </Dialog>
   );
 }
+
+// ─── Exported helpers for use by other components ──────────────────
+export { FACILITY_CATEGORY, FACILITY_ICONS };
+export type { FacilityCategory, RoomFunction, LayoutMode };
