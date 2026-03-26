@@ -277,7 +277,6 @@ export function FacilitySection({
             ) : (
               <NonHousingContent facilityType={facility.facility_type} />
             )}
-            )}
           </div>
         )}
       </div>
