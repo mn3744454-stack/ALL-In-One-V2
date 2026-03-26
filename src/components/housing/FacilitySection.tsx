@@ -6,8 +6,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { useI18n } from "@/i18n";
+import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot } from "lucide-react";
+import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Users } from "lucide-react";
 import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
