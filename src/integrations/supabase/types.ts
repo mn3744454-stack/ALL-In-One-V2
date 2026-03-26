@@ -2355,6 +2355,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_demo: boolean | null
+          metadata: Json | null
           name: string
           name_ar: string | null
           shade: string | null
@@ -2372,6 +2373,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
+          metadata?: Json | null
           name: string
           name_ar?: string | null
           shade?: string | null
@@ -2389,6 +2391,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
+          metadata?: Json | null
           name?: string
           name_ar?: string | null
           shade?: string | null
