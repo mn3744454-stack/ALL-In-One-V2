@@ -116,6 +116,7 @@ export function CreateFacilityDialog({
   const category = FACILITY_CATEGORY[facilityType];
   const isHousing = category === 'housing';
   const isOpenArea = category === 'open_area';
+  const isActivity = category === 'activity';
   const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
 
   // ─── Account-type-aware label for housing types ──────────────────

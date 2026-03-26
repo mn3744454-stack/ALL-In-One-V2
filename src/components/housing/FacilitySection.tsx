@@ -244,6 +244,8 @@ export function FacilitySection({
           <div className="p-3">
             {isOpenArea ? (
               <OpenAreaContent facility={facility} />
+            ) : isActivityType ? (
+              <ActivityContent facility={facility} />
             ) : isHousingType ? (
               isLoadingUnits ? (
                 <div className="flex items-center justify-center py-6">
@@ -274,6 +276,7 @@ export function FacilitySection({
               )
             ) : (
               <NonHousingContent facilityType={facility.facility_type} />
+            )}
             )}
           </div>
         )}
