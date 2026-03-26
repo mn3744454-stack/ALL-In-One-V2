@@ -7,6 +7,7 @@ import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import { OpenAreaContent } from "./OpenAreaContent";
+import { ActivityContent } from "./ActivityContent";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
