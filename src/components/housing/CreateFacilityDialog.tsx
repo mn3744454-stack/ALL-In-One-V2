@@ -192,6 +192,9 @@ export function CreateFacilityDialog({
     setStartSide('a');
     setRoomSetup([]);
     setCapacity('');
+    setAreaSize('');
+    setShade('none');
+    setHasWater(false);
     setBranchId(lockedBranchId || effectiveBranchId || '');
   };
 
