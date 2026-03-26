@@ -211,6 +211,9 @@ export function CreateFacilityDialog({
         code: code || undefined,
         facility_type: facilityType,
         capacity: isOpenArea && capacity ? Number(capacity) : undefined,
+        area_size: isOpenArea && areaSize ? Number(areaSize) : undefined,
+        shade: isOpenArea ? shade : undefined,
+        has_water: isOpenArea ? hasWater : undefined,
       });
 
       if (isHousing && unitCount > 0 && newArea?.id) {
