@@ -263,7 +263,7 @@ export function FacilitySection({
 /** Simple info card for non-housing facility types */
 function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   const { t } = useI18n();
-  const Icon = NON_HOUSING_ICONS[facilityType] || Building2;
+  const Icon = FACILITY_TYPE_ICONS[facilityType] || Building2;
   
   return (
     <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
@@ -271,6 +271,26 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
       <div>
         <p className="text-sm font-medium text-foreground/80">{t(getNonHousingLabelKey(facilityType))}</p>
         <p className="text-xs">{t(getNonHousingDescKey(facilityType))}</p>
+      </div>
+    </div>
+  );
+}
+
+/** Open-area empty state — shows capacity if available instead of "no units" */
+function OpenAreaEmptyState({ facility }: { facility: FacilityArea }) {
+  const { t } = useI18n();
+  const capacity = (facility as any).capacity;
+  
+  return (
+    <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
+      <Users className="w-6 h-6 opacity-40 shrink-0" />
+      <div>
+        {capacity ? (
+          <p className="text-sm font-medium text-foreground/80">
+            {t('housing.create.noZonesCapacity').replace('{capacity}', String(capacity))}
+          </p>
+        ) : null}
+        <p className="text-xs">{t('housing.create.noZonesDefault')}</p>
       </div>
     </div>
   );
