@@ -70,6 +70,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
 
   const editFacilityCategory = FACILITY_CATEGORY[editFormData.facility_type];
   const editIsHousing = editFacilityCategory === 'housing';
+  const editIsOpenArea = editFacilityCategory === 'open_area';
   const editUnitCount = editingArea ? (facilityUnitsMap[editingArea]?.totalCount || 0) : 0;
   const editOccupiedCount = editingArea ? (facilityUnitsMap[editingArea]?.occupiedCount || 0) : 0;
 
