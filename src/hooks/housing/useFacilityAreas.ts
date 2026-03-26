@@ -38,6 +38,7 @@ export interface FacilityArea {
   area_size: number | null;
   shade: string | null;
   has_water: boolean | null;
+  metadata: Record<string, unknown> | null;
   is_active: boolean;
   is_demo: boolean;
   created_at: string;
@@ -58,6 +59,7 @@ export interface CreateAreaData {
   area_size?: number;
   shade?: string;
   has_water?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export function useFacilityAreas(branchId?: string) {
@@ -100,22 +102,25 @@ export function useFacilityAreas(branchId?: string) {
     mutationFn: async (data: CreateAreaData) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
 
+      const insertPayload: Record<string, unknown> = {
+        tenant_id: tenantId,
+        branch_id: data.branch_id,
+        name: data.name,
+        name_ar: data.name_ar || null,
+        code: data.code || null,
+        facility_type: data.facility_type || 'barn',
+        capacity: data.capacity || null,
+        area_size: data.area_size || null,
+        shade: data.shade || 'none',
+        has_water: data.has_water || false,
+        metadata: data.metadata || {},
+        is_active: true,
+        is_demo: false,
+      };
+
       const { data: newArea, error } = await supabase
         .from('facility_areas')
-        .insert({
-          tenant_id: tenantId,
-          branch_id: data.branch_id,
-          name: data.name,
-          name_ar: data.name_ar || null,
-          code: data.code || null,
-          facility_type: data.facility_type || 'barn',
-          capacity: data.capacity || null,
-          area_size: data.area_size || null,
-          shade: data.shade || 'none',
-          has_water: data.has_water || false,
-          is_active: true,
-          is_demo: false,
-        })
+        .insert(insertPayload as any)
         .select()
         .single();
 
@@ -144,6 +149,7 @@ export function useFacilityAreas(branchId?: string) {
       if (data.area_size !== undefined) updatePayload.area_size = data.area_size;
       if (data.shade !== undefined) updatePayload.shade = data.shade;
       if (data.has_water !== undefined) updatePayload.has_water = data.has_water;
+      if (data.metadata !== undefined) updatePayload.metadata = data.metadata;
 
       const { data: updated, error } = await supabase
         .from('facility_areas')

@@ -7,6 +7,7 @@ import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import { OpenAreaContent } from "./OpenAreaContent";
+import { ActivityContent } from "./ActivityContent";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
@@ -90,7 +91,8 @@ export function FacilitySection({
 
   const config = SUBDIVISION_CONFIG[facility.facility_type];
   const isOpenArea = facility.facility_type === 'paddock' || facility.facility_type === 'pasture';
-  const isHousingType = !isOpenArea && (config?.supportsChildren ?? true);
+  const isActivityType = facility.facility_type === 'arena' || facility.facility_type === 'round_pen' || facility.facility_type === 'wash_area';
+  const isHousingType = !isOpenArea && !isActivityType && (config?.supportsChildren ?? true);
 
   // Account-aware type label
   const getTypeLabel = useCallback(() => {
@@ -242,6 +244,8 @@ export function FacilitySection({
           <div className="p-3">
             {isOpenArea ? (
               <OpenAreaContent facility={facility} />
+            ) : isActivityType ? (
+              <ActivityContent facility={facility} />
             ) : isHousingType ? (
               isLoadingUnits ? (
                 <div className="flex items-center justify-center py-6">
