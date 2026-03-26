@@ -101,6 +101,10 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         name_ar: editFormData.name_ar || undefined,
         code: editFormData.code || undefined,
         facility_type: editFormData.facility_type,
+        capacity: editIsOpenArea && editFormData.capacity ? Number(editFormData.capacity) : undefined,
+        area_size: editIsOpenArea && editFormData.area_size ? Number(editFormData.area_size) : undefined,
+        shade: editIsOpenArea ? editFormData.shade : undefined,
+        has_water: editIsOpenArea ? editFormData.has_water : undefined,
       });
       setEditDialogOpen(false);
       setEditingArea(null);
