@@ -20,11 +20,10 @@ export const SUBDIVISION_CONFIG: Record<FacilityType, SubdivisionConfig> = {
   paddock: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section', 'partition'], supportsChildren: true },
   isolation: { label: 'Bay', labelAr: 'حجرة عزل', types: ['isolation_room', 'isolation_bay'], supportsChildren: true },
   pasture: { label: 'Zone', labelAr: 'منطقة', types: ['zone', 'section'], supportsChildren: true },
-  storage: { label: 'Section', labelAr: 'قسم', types: ['section', 'shelf', 'bin'], supportsChildren: true },
+  storage: { label: 'Storage', labelAr: 'مستودع', types: [], supportsChildren: false },
   arena: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
   wash_area: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
   round_pen: { label: 'Operational Space', labelAr: 'مساحة تشغيلية', types: [], supportsChildren: false },
-  other: { label: 'Subdivision', labelAr: 'تقسيم', types: ['other'], supportsChildren: true },
 };
 
 export interface FacilityArea {
