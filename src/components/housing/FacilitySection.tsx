@@ -24,7 +24,11 @@ interface FacilitySectionProps {
 }
 
 /** Icons for non-housing facility types */
-const NON_HOUSING_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
+const FACILITY_TYPE_ICONS: Partial<Record<FacilityType, React.ElementType>> = {
+  barn: Home,
+  isolation: ShieldAlert,
+  paddock: Fence,
+  pasture: TreePine,
   arena: Dumbbell,
   round_pen: CircleDot,
   wash_area: Droplets,
