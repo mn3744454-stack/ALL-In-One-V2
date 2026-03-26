@@ -55,6 +55,8 @@ type RoomFunction = 'default' | 'storage' | 'isolation_room';
 
 type LayoutMode = 'single' | 'two_sided';
 
+type StartSide = 'a' | 'b';
+
 interface RoomSetup {
   index: number;
   code: string;
@@ -94,6 +96,7 @@ export function CreateFacilityDialog({
   const [codePrefix, setCodePrefix] = useState('S');
   const [startNumber, setStartNumber] = useState(1);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('two_sided');
+  const [startSide, setStartSide] = useState<StartSide>('a');
   const [roomSetup, setRoomSetup] = useState<RoomSetup[]>([]);
   // Open-area specific
   const [capacity, setCapacity] = useState<number | ''>('');
@@ -183,6 +186,7 @@ export function CreateFacilityDialog({
     setCodePrefix('S');
     setStartNumber(1);
     setLayoutMode('two_sided');
+    setStartSide('a');
     setRoomSetup([]);
     setCapacity('');
     setBranchId(lockedBranchId || effectiveBranchId || '');
@@ -233,11 +237,14 @@ export function CreateFacilityDialog({
   const twoSidedRows = useMemo(() => {
     if (layoutMode !== 'two_sided') return null;
     const half = Math.ceil(previewRooms.length / 2);
-    return {
-      topRow: previewRooms.slice(0, half),
-      bottomRow: previewRooms.slice(half),
-    };
-  }, [layoutMode, previewRooms]);
+    const rowA = previewRooms.slice(0, half);
+    const rowB = previewRooms.slice(half);
+    // If startSide is 'b', swap which side gets lower numbers
+    if (startSide === 'b') {
+      return { topRow: rowB, bottomRow: rowA };
+    }
+    return { topRow: rowA, bottomRow: rowB };
+  }, [layoutMode, previewRooms, startSide]);
 
   // ─── Room cell component ──────────────────────────────
   const RoomCell = ({ room }: { room: RoomSetup }) => (
@@ -455,6 +462,39 @@ export function CreateFacilityDialog({
                   </div>
                 </div>
 
+                {/* Start Side Toggle — only visible in two-sided mode */}
+                {layoutMode === 'two_sided' && (
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs shrink-0">{t('housing.create.startSide')}</Label>
+                    <div className="flex border rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setStartSide('a')}
+                        className={cn(
+                          "px-3 py-1.5 text-xs transition-colors",
+                          startSide === 'a'
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background hover:bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {t('housing.create.startFromSideA')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStartSide('b')}
+                        className={cn(
+                          "px-3 py-1.5 text-xs transition-colors",
+                          startSide === 'b'
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background hover:bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {t('housing.create.startFromSideB')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Live Preview Grid */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -465,32 +505,45 @@ export function CreateFacilityDialog({
                   </div>
 
                   {layoutMode === 'two_sided' && twoSidedRows ? (
-                    /* ── Two-sided arrangement with aisle ── */
+                    /* ── Two-sided arrangement with aisle + side labels ── */
                     <div className="p-3 bg-muted/30 rounded-lg border space-y-1">
-                      {/* Top row */}
-                      <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
-                        {twoSidedRows.topRow.map((room) => (
-                          <RoomCell key={room.index} room={room} />
-                        ))}
-                      </div>
-                      {/* Aisle */}
-                      <div className="flex items-center gap-2 py-1.5">
-                        <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
-                        <span className="text-[9px] text-muted-foreground/50 font-medium uppercase tracking-wider shrink-0">
-                          {t('housing.create.aisle')}
+                      {/* Side A label + row */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider w-10 shrink-0 text-center">
+                          {t('housing.create.sideA')}
                         </span>
-                        <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
-                      </div>
-                      {/* Bottom row */}
-                      {twoSidedRows.bottomRow.length > 0 && (
-                        <div className="grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
-                          {twoSidedRows.bottomRow.map((room) => (
+                        <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
+                          {twoSidedRows.topRow.map((room) => (
                             <RoomCell key={room.index} room={room} />
                           ))}
-                          {/* Fill empty cells for alignment when odd count */}
-                          {twoSidedRows.bottomRow.length < twoSidedRows.topRow.length && (
-                            <div className="min-h-[48px]" />
-                          )}
+                        </div>
+                      </div>
+                      {/* Aisle */}
+                      <div className="flex items-center gap-2">
+                        <span className="w-10 shrink-0" />
+                        <div className="flex-1 flex items-center gap-2 py-1.5">
+                          <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                          <span className="text-[9px] text-muted-foreground/50 font-medium uppercase tracking-wider shrink-0">
+                            {t('housing.create.aisle')}
+                          </span>
+                          <div className="flex-1 border-t-2 border-dashed border-muted-foreground/25" />
+                        </div>
+                      </div>
+                      {/* Side B label + row */}
+                      {twoSidedRows.bottomRow.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider w-10 shrink-0 text-center">
+                            {t('housing.create.sideB')}
+                          </span>
+                          <div className="flex-1 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${twoSidedRows.topRow.length}, minmax(60px, 1fr))` }}>
+                            {twoSidedRows.bottomRow.map((room) => (
+                              <RoomCell key={room.index} room={room} />
+                            ))}
+                            {/* Fill empty cells for alignment when odd count */}
+                            {twoSidedRows.bottomRow.length < twoSidedRows.topRow.length && (
+                              <div className="min-h-[48px]" />
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -580,4 +633,4 @@ export function CreateFacilityDialog({
 
 // ─── Exported helpers for use by other components ──────────────────
 export { FACILITY_CATEGORY, FACILITY_ICONS };
-export type { FacilityCategory, RoomFunction, LayoutMode };
+export type { FacilityCategory, RoomFunction, LayoutMode, StartSide };
