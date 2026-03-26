@@ -91,7 +91,8 @@ export function FacilitySection({
 
   const config = SUBDIVISION_CONFIG[facility.facility_type];
   const isOpenArea = facility.facility_type === 'paddock' || facility.facility_type === 'pasture';
-  const isHousingType = !isOpenArea && (config?.supportsChildren ?? true);
+  const isActivityType = facility.facility_type === 'arena' || facility.facility_type === 'round_pen' || facility.facility_type === 'wash_area';
+  const isHousingType = !isOpenArea && !isActivityType && (config?.supportsChildren ?? true);
 
   // Account-aware type label
   const getTypeLabel = useCallback(() => {
