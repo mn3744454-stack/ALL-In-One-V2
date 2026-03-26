@@ -1814,6 +1814,18 @@ export const ar = {
       noZonesCapacity: "السعة: {capacity} خيول",
       noZonesDefault: "لم يتم إعداد مناطق بعد. أضف مناطق لإدارة الإيواء الجماعي.",
     },
+    openArea: {
+      areaSizeLabel: "المساحة (م²)",
+      areaSizePlaceholder: "مثال: 500",
+      shadeLabel: "الظل / المأوى",
+      shadeNone: "بدون ظل",
+      shadePartial: "ظل جزئي",
+      shadeFull: "مأوى كامل",
+      waterAvailable: "مياه متوفرة",
+      horsesPresent: "خيول",
+      horsesInArea: "{count} خيول في هذه المنطقة",
+      emptyState: "لا توجد خيول معيّنة حالياً في هذه المنطقة.",
+    },
     facilities: {
       title: "المرافق",
       addFacility: "إضافة مرفق",

@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
+import { OpenAreaContent } from "./OpenAreaContent";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,8 @@ export function FacilitySection({
   const totalCount = facilityData?.totalCount || 0;
 
   const config = SUBDIVISION_CONFIG[facility.facility_type];
-  const isHousingType = config?.supportsChildren ?? true;
+  const isOpenArea = facility.facility_type === 'paddock' || facility.facility_type === 'pasture';
+  const isHousingType = !isOpenArea && (config?.supportsChildren ?? true);
 
   // Account-aware type label
   const getTypeLabel = useCallback(() => {
@@ -238,26 +240,24 @@ export function FacilitySection({
         {/* Content area */}
         {!collapsed && (
           <div className="p-3">
-            {isHousingType ? (
+            {isOpenArea ? (
+              <OpenAreaContent facility={facility} />
+            ) : isHousingType ? (
               isLoadingUnits ? (
                 <div className="flex items-center justify-center py-6">
                   <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                 </div>
               ) : units.length === 0 ? (
-                (facility.facility_type === 'paddock' || facility.facility_type === 'pasture') ? (
-                  <OpenAreaEmptyState facility={facility} />
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                    <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
-                    <p className="text-sm">{t('housing.units.noUnits')}</p>
-                    {canManage && isHousingType && facility.is_active && (
-                      <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
-                        <Plus className="w-3 h-3 mr-1" />
-                        {t('housing.create.addUnitsSubmit')}
-                      </Button>
-                    )}
-                  </div>
-                )
+                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                  <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
+                  <p className="text-sm">{t('housing.units.noUnits')}</p>
+                  {canManage && facility.is_active && (
+                    <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
+                      <Plus className="w-3 h-3 mr-1" />
+                      {t('housing.create.addUnitsSubmit')}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
                   {units.map((unit) => (
@@ -312,21 +312,3 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
   );
 }
 
-function OpenAreaEmptyState({ facility }: { facility: FacilityArea }) {
-  const { t } = useI18n();
-  const capacity = (facility as any).capacity;
-  
-  return (
-    <div className="flex items-center gap-3 py-4 px-3 text-muted-foreground">
-      <Users className="w-6 h-6 opacity-40 shrink-0" />
-      <div>
-        {capacity ? (
-          <p className="text-sm font-medium text-foreground/80">
-            {t('housing.create.noZonesCapacity').replace('{capacity}', String(capacity))}
-          </p>
-        ) : null}
-        <p className="text-xs">{t('housing.create.noZonesDefault')}</p>
-      </div>
-    </div>
-  );
-}

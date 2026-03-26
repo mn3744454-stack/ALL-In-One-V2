@@ -2345,44 +2345,53 @@ export type Database = {
       }
       facility_areas: {
         Row: {
+          area_size: number | null
           branch_id: string
           capacity: number | null
           code: string | null
           created_at: string | null
           facility_type: string
+          has_water: boolean | null
           id: string
           is_active: boolean | null
           is_demo: boolean | null
           name: string
           name_ar: string | null
+          shade: string | null
           tenant_id: string
           updated_at: string | null
         }
         Insert: {
+          area_size?: number | null
           branch_id: string
           capacity?: number | null
           code?: string | null
           created_at?: string | null
           facility_type?: string
+          has_water?: boolean | null
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
           name: string
           name_ar?: string | null
+          shade?: string | null
           tenant_id: string
           updated_at?: string | null
         }
         Update: {
+          area_size?: number | null
           branch_id?: string
           capacity?: number | null
           code?: string | null
           created_at?: string | null
           facility_type?: string
+          has_water?: boolean | null
           id?: string
           is_active?: boolean | null
           is_demo?: boolean | null
           name?: string
           name_ar?: string | null
+          shade?: string | null
           tenant_id?: string
           updated_at?: string | null
         }

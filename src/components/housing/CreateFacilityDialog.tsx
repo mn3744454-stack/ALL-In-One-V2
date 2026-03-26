@@ -100,6 +100,9 @@ export function CreateFacilityDialog({
   const [roomSetup, setRoomSetup] = useState<RoomSetup[]>([]);
   // Open-area specific
   const [capacity, setCapacity] = useState<number | ''>('');
+  const [areaSize, setAreaSize] = useState<number | ''>('');
+  const [shade, setShade] = useState('none');
+  const [hasWater, setHasWater] = useState(false);
   // Submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -189,6 +192,9 @@ export function CreateFacilityDialog({
     setStartSide('a');
     setRoomSetup([]);
     setCapacity('');
+    setAreaSize('');
+    setShade('none');
+    setHasWater(false);
     setBranchId(lockedBranchId || effectiveBranchId || '');
   };
 
@@ -205,6 +211,9 @@ export function CreateFacilityDialog({
         code: code || undefined,
         facility_type: facilityType,
         capacity: isOpenArea && capacity ? Number(capacity) : undefined,
+        area_size: isOpenArea && areaSize ? Number(areaSize) : undefined,
+        shade: isOpenArea ? shade : undefined,
+        has_water: isOpenArea ? hasWater : undefined,
       });
 
       if (isHousing && unitCount > 0 && newArea?.id) {
@@ -584,17 +593,54 @@ export function CreateFacilityDialog({
                   <h4 className="text-sm font-medium mb-1">{t('housing.create.openAreaSetup')}</h4>
                   <p className="text-xs text-muted-foreground">{t('housing.create.openAreaSetupDesc')}</p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('housing.create.approxCapacity')}</Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={200}
-                    value={capacity}
-                    onChange={(e) => setCapacity(e.target.value ? parseInt(e.target.value) : '')}
-                    placeholder={t('housing.create.capacityPlaceholder')}
-                    className="w-1/2"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.create.approxCapacity')}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={200}
+                      value={capacity}
+                      onChange={(e) => setCapacity(e.target.value ? parseInt(e.target.value) : '')}
+                      placeholder={t('housing.create.capacityPlaceholder')}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.openArea.areaSizeLabel')}</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={areaSize}
+                      onChange={(e) => setAreaSize(e.target.value ? parseFloat(e.target.value) : '')}
+                      placeholder={t('housing.openArea.areaSizePlaceholder')}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">{t('housing.openArea.shadeLabel')}</Label>
+                    <Select value={shade} onValueChange={setShade}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t('housing.openArea.shadeNone')}</SelectItem>
+                        <SelectItem value="partial">{t('housing.openArea.shadePartial')}</SelectItem>
+                        <SelectItem value="full">{t('housing.openArea.shadeFull')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-end pb-1">
+                    <label className="flex items-center gap-2 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={hasWater}
+                        onChange={(e) => setHasWater(e.target.checked)}
+                        className="rounded border-border"
+                      />
+                      {t('housing.openArea.waterAvailable')}
+                    </label>
+                  </div>
                 </div>
               </div>
             </>

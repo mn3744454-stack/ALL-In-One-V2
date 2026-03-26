@@ -1799,6 +1799,18 @@ export const en = {
       noZonesCapacity: "Capacity: {capacity} horses",
       noZonesDefault: "No zones configured yet. Add zones to manage group placements.",
     },
+    openArea: {
+      areaSizeLabel: "Area Size (m²)",
+      areaSizePlaceholder: "e.g. 500",
+      shadeLabel: "Shade / Shelter",
+      shadeNone: "No shade",
+      shadePartial: "Partial shade",
+      shadeFull: "Full shelter",
+      waterAvailable: "Water available",
+      horsesPresent: "horses",
+      horsesInArea: "{count} horses in this area",
+      emptyState: "No horses currently assigned to this area.",
+    },
     facilities: {
       title: "Facilities",
       addFacility: "Add Facility",
