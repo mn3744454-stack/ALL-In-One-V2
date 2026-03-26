@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -27,10 +29,11 @@ import { UnitTypeBadge } from "./UnitTypeBadge";
 import { OccupancyBadge } from "./OccupancyBadge";
 import { AssignHorseDialog } from "./AssignHorseDialog";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
+import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Plus, LogOut, Home, Trees, BedDouble, Loader2 } from "lucide-react";
+import { Plus, LogOut, Home, Trees, BedDouble, Loader2, Pencil, Check, X } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
 interface UnitDetailsSheetProps {
@@ -44,6 +47,13 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [vacateTarget, setVacateTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
   
+  // Inline editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editCode, setEditCode] = useState('');
+  const [editName, setEditName] = useState('');
+  const [showOccupiedWarning, setShowOccupiedWarning] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<{ code: string; name: string } | null>(null);
+
   const { 
     occupants, 
     isLoading, 
@@ -52,10 +62,13 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     isVacating 
   } = useUnitOccupants(unit?.id);
 
+  const { updateUnit } = useHousingUnits();
+
   if (!unit) return null;
 
   const displayName = language === 'ar' && unit.name_ar ? unit.name_ar : (unit.name || unit.code);
   const isFull = (unit.current_occupants || 0) >= unit.capacity;
+  const isOccupied = occupants.length > 0;
 
   const iconMap: Record<string, React.ElementType> = {
     stall: Home,
@@ -63,6 +76,49 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     room: BedDouble,
   };
   const Icon = iconMap[unit.unit_type] || Home;
+
+  const handleStartEditing = () => {
+    setEditCode(unit.code);
+    setEditName(unit.name || unit.code);
+    setIsEditing(true);
+  };
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+    setEditCode('');
+    setEditName('');
+  };
+
+  const handleSaveEdit = () => {
+    const codeChanged = editCode !== unit.code;
+    const nameChanged = editName !== (unit.name || unit.code);
+    if (!codeChanged && !nameChanged) {
+      setIsEditing(false);
+      return;
+    }
+    if (isOccupied) {
+      setPendingEdit({ code: editCode, name: editName });
+      setShowOccupiedWarning(true);
+      return;
+    }
+    commitEdit(editCode, editName);
+  };
+
+  const commitEdit = async (code: string, name: string) => {
+    try {
+      await updateUnit({ id: unit.id, code, name });
+      setIsEditing(false);
+    } catch {
+      // handled by mutation
+    }
+  };
+
+  const handleConfirmOccupiedEdit = async () => {
+    if (!pendingEdit) return;
+    await commitEdit(pendingEdit.code, pendingEdit.name);
+    setPendingEdit(null);
+    setShowOccupiedWarning(false);
+  };
 
   const handleVacateConfirm = async () => {
     if (!vacateTarget) return;
@@ -75,21 +131,53 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
+      <Sheet open={open} onOpenChange={(o) => { if (!o) handleCancelEditing(); onOpenChange(o); }}>
         <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-md">
           <SheetHeader>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Icon className="w-6 h-6 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <SheetTitle>{displayName}</SheetTitle>
                 <SheetDescription>{unit.code}</SheetDescription>
               </div>
+              {canManage && !isEditing && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleStartEditing}>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('housing.units.editRoom')}</TooltipContent>
+                </Tooltip>
+              )}
             </div>
           </SheetHeader>
 
           <div className="mt-6 space-y-6">
+            {/* Inline edit fields */}
+            {isEditing && (
+              <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('housing.units.roomCode')}</Label>
+                  <Input value={editCode} onChange={(e) => setEditCode(e.target.value)} className="h-8 text-sm" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{t('housing.units.roomName')}</Label>
+                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-sm" />
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="ghost" size="sm" onClick={handleCancelEditing}>
+                    <X className="w-3.5 h-3.5 mr-1" /> {t('common.cancel')}
+                  </Button>
+                  <Button size="sm" onClick={handleSaveEdit}>
+                    <Check className="w-3.5 h-3.5 mr-1" /> {t('common.save')}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Unit Info */}
             <div className="flex flex-wrap gap-2">
               <UnitTypeBadge type={unit.unit_type} />
@@ -219,6 +307,26 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Occupied Room Rename Warning */}
+      <AlertDialog open={showOccupiedWarning} onOpenChange={(o) => { if (!o) { setShowOccupiedWarning(false); setPendingEdit(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('housing.units.renameOccupiedTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('housing.units.renameOccupiedDesc')
+                .replace('{unit}', unit.code)
+                .replace('{count}', String(occupants.length))}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmOccupiedEdit}>
+              {t('housing.units.confirmRename')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Vacate Confirmation Dialog */}
       <AlertDialog open={!!vacateTarget} onOpenChange={(open) => { if (!open) setVacateTarget(null); }}>
