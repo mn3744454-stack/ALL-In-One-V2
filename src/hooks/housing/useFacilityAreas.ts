@@ -34,6 +34,10 @@ export interface FacilityArea {
   name_ar: string | null;
   code: string | null;
   facility_type: FacilityType;
+  capacity: number | null;
+  area_size: number | null;
+  shade: string | null;
+  has_water: boolean | null;
   is_active: boolean;
   is_demo: boolean;
   created_at: string;
