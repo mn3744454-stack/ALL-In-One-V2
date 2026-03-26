@@ -102,23 +102,25 @@ export function useFacilityAreas(branchId?: string) {
     mutationFn: async (data: CreateAreaData) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
 
+      const insertPayload: Record<string, unknown> = {
+        tenant_id: tenantId,
+        branch_id: data.branch_id,
+        name: data.name,
+        name_ar: data.name_ar || null,
+        code: data.code || null,
+        facility_type: data.facility_type || 'barn',
+        capacity: data.capacity || null,
+        area_size: data.area_size || null,
+        shade: data.shade || 'none',
+        has_water: data.has_water || false,
+        metadata: data.metadata || {},
+        is_active: true,
+        is_demo: false,
+      };
+
       const { data: newArea, error } = await supabase
         .from('facility_areas')
-        .insert({
-          tenant_id: tenantId,
-          branch_id: data.branch_id,
-          name: data.name,
-          name_ar: data.name_ar || null,
-          code: data.code || null,
-          facility_type: data.facility_type || 'barn',
-          capacity: data.capacity || null,
-          area_size: data.area_size || null,
-          shade: data.shade || 'none',
-          has_water: data.has_water || false,
-          metadata: data.metadata || {},
-          is_active: true,
-          is_demo: false,
-        })
+        .insert(insertPayload as any)
         .select()
         .single();
 
