@@ -247,7 +247,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {t(`vet.followupType.${followup.type}`)}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {formatStandardDateTime(dueDate)}
+                                {t('vet.dueLabel')}: {formatStandardDateTime(dueDate)}
                               </p>
                             </div>
                           </div>
