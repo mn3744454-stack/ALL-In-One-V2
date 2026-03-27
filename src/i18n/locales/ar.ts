@@ -2287,6 +2287,8 @@ export const ar = {
         creditLimit: "حد الائتمان",
         available: "المتاح",
         creditExceeded: "تجاوز حد الائتمان — يتطلب تجاوز",
+        accrued: "المستحق",
+        unbilledWarning: "قيمة إيواء غير مفوترة",
       },
     },
     dashboard: {

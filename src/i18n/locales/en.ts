@@ -2272,6 +2272,8 @@ export const en = {
         creditLimit: "Credit Limit",
         available: "Available",
         creditExceeded: "Credit limit exceeded — override required",
+        accrued: "Accrued",
+        unbilledWarning: "Unbilled boarding value",
       },
     },
     dashboard: {
