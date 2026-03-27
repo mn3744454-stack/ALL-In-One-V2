@@ -17,7 +17,7 @@ interface UnitCellProps {
  * Shows unit code, horse name (or vacant), and status color via left border.
  * Supports maintenance / out-of-service / isolation visual states.
  */
-export function UnitCell({ unit, occupants, onClick }: UnitCellProps) {
+export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProps) {
   const { t } = useI18n();
 
   const currentOccupants = occupants.filter(o => o.unit_id === unit.id);
