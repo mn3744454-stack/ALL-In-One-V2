@@ -188,48 +188,60 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         />
       </div>
 
-      {/* Sub-filter tabs */}
-      <Tabs value={subFilter} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all" className="gap-1.5">
-            {t('common.all')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.all}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="active" className="gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            {t('housing.admissions.status.active')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
-          </TabsTrigger>
-          {counts.checkoutPending > 0 && (
-            <TabsTrigger value="checkout_pending" className="gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              {t('housing.admissions.status.checkoutPending')}
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.checkoutPending}</Badge>
+      {/* Sub-filter tabs – operational lifecycle + financial state */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Operational lifecycle group */}
+        <Tabs value={['all','active','checkout_pending','checked_out','draft'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="all" className="gap-1.5">
+              {t('common.all')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.all}</Badge>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="checked_out" className="gap-1.5">
-            <LogOut className="h-3.5 w-3.5" />
-            {t('housing.admissions.status.checkedOut')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.checkedOut}</Badge>
-          </TabsTrigger>
-          {counts.draft > 0 && (
-            <TabsTrigger value="draft" className="gap-1.5">
-              {t('housing.admissions.status.draft')}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.draft}</Badge>
+            <TabsTrigger value="active" className="gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t('housing.admissions.status.active')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="no_invoice" className="gap-1.5">
-            <FileX className="h-3.5 w-3.5" />
-            {t('housing.admissions.subFilters.noInvoice')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="outstanding" className="gap-1.5">
-            <Receipt className="h-3.5 w-3.5" />
-            {t('housing.admissions.subFilters.outstanding')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            {counts.checkoutPending > 0 && (
+              <TabsTrigger value="checkout_pending" className="gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                {t('housing.admissions.status.checkoutPending')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.checkoutPending}</Badge>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="checked_out" className="gap-1.5">
+              <LogOut className="h-3.5 w-3.5" />
+              {t('housing.admissions.status.checkedOut')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.checkedOut}</Badge>
+            </TabsTrigger>
+            {counts.draft > 0 && (
+              <TabsTrigger value="draft" className="gap-1.5">
+                {t('housing.admissions.status.draft')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.draft}</Badge>
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </Tabs>
+
+        {/* Visual separator */}
+        <div className="h-6 w-px bg-border hidden sm:block" />
+
+        {/* Financial state group */}
+        <Tabs value={['no_invoice','outstanding'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="no_invoice" className="gap-1.5">
+              <FileX className="h-3.5 w-3.5" />
+              {t('housing.admissions.subFilters.noInvoice')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="outstanding" className="gap-1.5">
+              <Receipt className="h-3.5 w-3.5" />
+              {t('housing.admissions.subFilters.outstanding')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {/* List */}
       {isLoading ? (
