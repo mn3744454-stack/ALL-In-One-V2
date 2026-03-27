@@ -357,11 +357,11 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                       <div>
                         <span className="text-muted-foreground block">{t('housing.admissions.financial.accrued')}</span>
-                        <span className="font-medium text-sm">{accruedCost.toFixed(2)} {admission.rate_currency}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block">{t('housing.admissions.financial.invoiced')}</span>
-                        <span className="font-medium text-sm">{totalBilled.toFixed(2)} {admission.rate_currency}</span>
+                         <span className="font-medium text-sm">{formatBoardingAmount(accruedCost)} {admission.rate_currency}</span>
+                       </div>
+                       <div>
+                         <span className="text-muted-foreground block">{t('housing.admissions.financial.invoiced')}</span>
+                         <span className="font-medium text-sm">{formatBoardingAmount(totalBilled)} {admission.rate_currency}</span>
                       </div>
                       {unbilledAmount > 0 && (
                         <div className="col-span-2">
