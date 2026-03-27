@@ -50,7 +50,8 @@ interface AdmissionsListProps {
 }
 
 export function AdmissionsList({ branchId }: AdmissionsListProps) {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const isRTL = dir === 'rtl';
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('housing-admissions');
@@ -262,7 +263,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
           </CardContent>
         </Card>
       ) : viewMode === 'table' ? (
-        <div className="rounded-md border">
+        <div className="rounded-md border" dir={isRTL ? 'rtl' : 'ltr'}>
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/80">
@@ -304,10 +305,12 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                     <TableCell className="text-center text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
                     <TableCell className="text-center">{getStatusBadge(admission.status, t)}</TableCell>
                     <TableCell className="text-center whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
-                    <TableCell className="text-center text-sm whitespace-nowrap">{formatStayDuration(stayDays, lang)}</TableCell>
+                    <TableCell className="text-center text-sm whitespace-nowrap">
+                      <span dir="ltr" className="inline-block">{formatStayDuration(stayDays, lang)}</span>
+                    </TableCell>
                     <TableCell className="text-start whitespace-nowrap text-sm">
                       {rateDisplay
-                        ? <span>{rateDisplay}</span>
+                        ? <span dir="ltr" className="inline-block">{rateDisplay}</span>
                         : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
                       }
                     </TableCell>
