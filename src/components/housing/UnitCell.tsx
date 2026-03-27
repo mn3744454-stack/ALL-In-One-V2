@@ -8,6 +8,8 @@ interface UnitCellProps {
   unit: InlineUnit;
   occupants: InlineOccupant[];
   onClick?: (unit: InlineUnit) => void;
+  /** When true, adds a subtle highlight ring to indicate search match */
+  highlighted?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface UnitCellProps {
  * Shows unit code, horse name (or vacant), and status color via left border.
  * Supports maintenance / out-of-service / isolation visual states.
  */
-export function UnitCell({ unit, occupants, onClick }: UnitCellProps) {
+export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProps) {
   const { t } = useI18n();
 
   const currentOccupants = occupants.filter(o => o.unit_id === unit.id);
@@ -60,6 +62,7 @@ export function UnitCell({ unit, occupants, onClick }: UnitCellProps) {
         borderColor,
         bgColor,
         isUnavailable && "opacity-75",
+        highlighted && "ring-2 ring-primary/40",
       )}
     >
       {/* Status icon overlay for special states */}
