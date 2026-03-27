@@ -118,7 +118,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
                 <div>
                   <span className="text-muted-foreground block">{t('housing.checkout.financial.available')}</span>
                   <span className={cn("font-medium", (fin.clientAvailableCredit || 0) < 0 ? "text-destructive" : "text-success")}>
-                    {(fin.clientAvailableCredit || 0).toFixed(2)}
+                    {formatBoardingAmount(fin.clientAvailableCredit || 0)}
                   </span>
                 </div>
               </>
