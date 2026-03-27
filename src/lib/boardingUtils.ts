@@ -72,8 +72,8 @@ export function formatBoardingRate(
 
   if (activeLang === 'ar') {
     const currLabel = currency === 'SAR' ? 'ريال' : currency;
-    if (monthlyRate) return `${monthlyRate} ${currLabel} / شهري`;
-    if (dailyRate) return `${dailyRate} ${currLabel} / يومي`;
+    if (monthlyRate) return `${monthlyRate} ${currLabel} في الشهر`;
+    if (dailyRate) return `${dailyRate} ${currLabel} في اليوم`;
     return null;
   }
 
