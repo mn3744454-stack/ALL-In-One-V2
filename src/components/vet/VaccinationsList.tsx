@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VetStatusBadge } from "./VetStatusBadge";
+import { CreateInvoiceFromVaccination } from "./CreateInvoiceFromVaccination";
 import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { isPast, isToday, isTomorrow } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +24,7 @@ interface VaccinationsListProps {
   onMarkAdministered?: (id: string) => void;
   onCancel?: (id: string) => void;
   emptyMessage?: string;
+  showBilling?: boolean;
 }
 
 export function VaccinationsList({ 
