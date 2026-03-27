@@ -147,10 +147,20 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     }
   };
 
+  const FILTER_CHIPS: { key: OccupancyFilter; labelKey: string; count?: number }[] = [
+    { key: 'all', labelKey: 'housing.filter.all' },
+    { key: 'vacant', labelKey: 'housing.filter.vacant', count: aggregateStats.vacant },
+    { key: 'occupied', labelKey: 'housing.filter.occupied', count: aggregateStats.occupied },
+    { key: 'full', labelKey: 'housing.filter.full' },
+    { key: 'maintenance', labelKey: 'housing.filter.maintenance', count: aggregateStats.maintenance },
+    { key: 'out_of_service', labelKey: 'housing.filter.outOfService', count: aggregateStats.outOfService },
+    { key: 'isolation', labelKey: 'housing.filter.isolation', count: aggregateStats.isolation },
+  ];
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Top bar: branch selector + add button */}
+      <div className="flex flex-col sm:flex-row gap-3">
         {!lockedBranchId && (
           <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
             <SelectTrigger className="w-full sm:w-[280px]">
@@ -160,7 +170,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               <SelectItem value="__all__">{t('common.all')}</SelectItem>
               {activeLocations.map((loc) => (
                 <SelectItem key={loc.id} value={loc.id}>
-                  {loc.name}
+                  <BilingualName name={loc.name} nameAr={(loc as any).name_ar} inline primaryClassName="text-sm" secondaryClassName="text-xs" />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -174,6 +184,69 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
           </Button>
         )}
       </div>
+
+      {/* Search + Filter bar */}
+      {areas.length > 0 && (
+        <div className="space-y-3">
+          {/* Search input */}
+          <div className="relative">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('housing.search.placeholder')}
+              className="ps-9 pe-9 h-10"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter chips + aggregate stats */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {FILTER_CHIPS.map(chip => {
+              const isActive = activeFilter === chip.key;
+              const showCount = chip.count !== undefined && chip.count > 0 && chip.key !== 'all';
+              return (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={() => setActiveFilter(isActive && chip.key !== 'all' ? 'all' : chip.key)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-border hover:bg-muted/50 hover:text-foreground"
+                  )}
+                >
+                  {t(chip.labelKey)}
+                  {showCount && (
+                    <span className={cn(
+                      "min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold",
+                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground"
+                    )}>
+                      {chip.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* Total units summary */}
+            {aggregateStats.total > 0 && (
+              <span className="text-xs text-muted-foreground ms-auto tabular-nums">
+                {aggregateStats.total} {t('housing.stats.total').toLowerCase()} · {aggregateStats.vacant} {t('housing.vacancy.vacant')}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Inline Facility Sections */}
       {isLoading ? (
