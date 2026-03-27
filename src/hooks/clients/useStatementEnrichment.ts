@@ -202,8 +202,45 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         }
       }
 
-      // 4c. Breeding resolution — uses description from invoice_items directly (no extra fetch needed since breeding line items contain the horse/event info in their description)
+      // 4c. Breeding resolution — uses description from invoice_items directly
       // Breeding items will be resolved from their description string at display time
+
+      // 4d. Batch fetch vet treatments + stable horses for vet entity type
+      const vetToHorse = new Map<string, { horseId: string; horseName: string }>();
+
+      if (vetIds.length > 0) {
+        const { data: treatments } = await supabase
+          .from("vet_treatments")
+          .select("id, horse_id")
+          .in("id", vetIds);
+
+        if (treatments && treatments.length > 0) {
+          const vetHorseIds = [...new Set((treatments as any[]).map((t) => t.horse_id).filter(Boolean))];
+
+          const vetHorseNameMap = new Map<string, { name: string; nameAr: string }>();
+          if (vetHorseIds.length > 0) {
+            const { data: horses } = await supabase
+              .from("horses")
+              .select("id, name, name_ar")
+              .in("id", vetHorseIds);
+
+            horses?.forEach((h: any) => {
+              vetHorseNameMap.set(h.id, { name: h.name || "", nameAr: h.name_ar || "" });
+            });
+          }
+
+          (treatments as any[]).forEach((tr) => {
+            const horseData = tr.horse_id ? vetHorseNameMap.get(tr.horse_id) : null;
+            const displayName = horseData
+              ? (lang === "ar" ? (horseData.nameAr || horseData.name) : (horseData.name || horseData.nameAr))
+              : "";
+            vetToHorse.set(tr.id, {
+              horseId: tr.horse_id || "",
+              horseName: displayName,
+            });
+          });
+        }
+      }
 
       // 5. Build enriched data per entry
       for (const entry of entries) {
