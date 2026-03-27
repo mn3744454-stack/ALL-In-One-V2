@@ -20,4 +20,5 @@ export function invalidateFinanceQueries(queryClient: QueryClient, tenantId?: st
   queryClient.invalidateQueries({ queryKey: ["clients", tenantId] });
   queryClient.invalidateQueries({ queryKey: ["ledger-balance"] });
   queryClient.invalidateQueries({ queryKey: ["ledger-balances"] });
+  queryClient.invalidateQueries({ queryKey: ["billing-links"] });
 }
