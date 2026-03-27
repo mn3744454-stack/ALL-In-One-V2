@@ -242,10 +242,10 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
 
           {/* Package-awareness banner */}
           {isIncluded && planName && (
-            <div className="flex items-start gap-2 p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-xs">
-              <Info className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
-              <span className="text-emerald-800 dark:text-emerald-300">
-                {t("vet.billing.serviceIncludedInPlan", { planName })}
+            <div className="flex items-start gap-2 p-2.5 rounded-md bg-accent/50 border border-accent text-xs">
+              <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="text-foreground">
+                {t("vet.billing.serviceIncludedInPlan")} — {planName}
               </span>
             </div>
           )}
