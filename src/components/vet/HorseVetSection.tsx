@@ -21,6 +21,7 @@ import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface HorseVetSectionProps {
   horseId: string;
