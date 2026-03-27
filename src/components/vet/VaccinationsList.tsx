@@ -33,9 +33,11 @@ export function VaccinationsList({
   onMarkAdministered, 
   onCancel,
   emptyMessage,
+  showBilling = false,
 }: VaccinationsListProps) {
   const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-vaccinations');
+  const [invoiceTarget, setInvoiceTarget] = useState<HorseVaccination | null>(null);
 
   if (loading) {
     return (
