@@ -80,12 +80,12 @@ export function formatBoardingRate(
 
   if (activeLang === 'ar') {
     const currLabel = currency === 'SAR' ? 'ريال' : currency;
-    if (monthlyRate) return `${monthlyRate} ${currLabel} في الشهر`;
-    if (dailyRate) return `${dailyRate} ${currLabel} في اليوم`;
+    if (monthlyRate) return `\u200E${formatBoardingAmount(monthlyRate, 0)} ${currLabel} في الشهر`;
+    if (dailyRate) return `\u200E${formatBoardingAmount(dailyRate, 0)} ${currLabel} في اليوم`;
     return null;
   }
 
-  if (monthlyRate) return `${monthlyRate} ${currency}/mo`;
-  if (dailyRate) return `${dailyRate} ${currency}/d`;
+  if (monthlyRate) return `${formatBoardingAmount(monthlyRate, 0)} ${currency}/mo`;
+  if (dailyRate) return `${formatBoardingAmount(dailyRate, 0)} ${currency}/d`;
   return null;
 }
