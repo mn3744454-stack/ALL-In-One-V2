@@ -58,7 +58,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
           </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.paid')}</span>
-            <span className="font-medium">{fin.admissionPaid.toFixed(2)}</span>
+            <span className="font-medium">{formatBoardingAmount(fin.admissionPaid)}</span>
           </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.balance')}</span>
