@@ -107,11 +107,7 @@ export function useUnitOccupants(unitId?: string) {
 
       if (error) throw error;
 
-      // Clear horse's housing_unit_id
-      await supabase
-        .from('horses')
-        .update({ housing_unit_id: null })
-        .eq('id', horseId);
+      // horses.housing_unit_id is cleared automatically via DB trigger
     },
     onSuccess: () => {
       toast.success(tGlobal('housing.occupants.vacated'));
