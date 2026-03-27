@@ -229,6 +229,16 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
             )}
           </div>
 
+          {/* Package-awareness banner */}
+          {isIncluded && planName && (
+            <div className="flex items-start gap-2 p-2.5 rounded-md bg-accent/50 border border-accent text-xs">
+              <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="text-foreground">
+                {t("vet.billing.serviceIncludedInPlan")} — {planName}
+              </span>
+            </div>
+          )}
+
           {/* Vet service picker */}
           {relevantServices.length > 0 && (
             <div>
