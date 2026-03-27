@@ -76,6 +76,8 @@ export function FacilitySection({
   canManage,
   onEdit,
   onToggleActive,
+  searchQuery = '',
+  activeFilter = 'all',
 }: FacilitySectionProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
@@ -96,6 +98,44 @@ export function FacilitySection({
   const isOpenArea = facility.facility_type === 'paddock' || facility.facility_type === 'pasture';
   const isActivityType = facility.facility_type === 'arena' || facility.facility_type === 'round_pen' || facility.facility_type === 'wash_area';
   const isHousingType = !isOpenArea && !isActivityType && (config?.supportsChildren ?? true);
+
+  // Filter units based on search + filter
+  const filteredUnits = useMemo(() => {
+    if (!isHousingType) return units;
+    return units.filter(unit => {
+      // Search matching
+      if (searchQuery && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery)) return false;
+      // Filter matching
+      if (activeFilter === 'all') return true;
+      const unitOccupants = occupants.filter(o => o.unit_id === unit.id);
+      const isOcc = unitOccupants.length > 0;
+      const isFull = unitOccupants.length >= unit.capacity;
+      switch (activeFilter) {
+        case 'vacant': return !isOcc && unit.status === 'available';
+        case 'occupied': return isOcc && !isFull;
+        case 'full': return isFull;
+        case 'isolation': return unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
+        case 'maintenance': return unit.status === 'maintenance';
+        case 'out_of_service': return unit.status === 'out_of_service';
+        default: return true;
+      }
+    });
+  }, [units, searchQuery, activeFilter, occupants, facilityData, isHousingType]);
+
+  // Compute vacancy for header
+  const vacantCount = useMemo(() => {
+    return units.filter(u => {
+      if (u.status !== 'available') return false;
+      return !occupants.some(o => o.unit_id === u.id);
+    }).length;
+  }, [units, occupants]);
+
+  // Hide entire facility if search/filter yields no units (only for housing types)
+  const hasVisibleContent = !isHousingType || filteredUnits.length > 0 || (!searchQuery && activeFilter === 'all');
+
+  // Pressure indicator: > 85% occupied
+  const occupancyRatio = totalCount > 0 ? occupiedCount / totalCount : 0;
+  const isHighPressure = occupancyRatio >= 0.85 && totalCount > 0;
 
   // Account-aware type label
   const getTypeLabel = useCallback(() => {
