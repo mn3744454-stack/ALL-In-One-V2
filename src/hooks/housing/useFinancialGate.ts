@@ -52,6 +52,8 @@ export function useFinancialGate(
         clientBalance: 0,
         outstandingAmount: 0,
         hasOverridePermission: false,
+        unbilledValue: 0,
+        hasUnbilled: false,
       };
     }
 
