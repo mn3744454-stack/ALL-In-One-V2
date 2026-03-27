@@ -2,7 +2,7 @@ import { useI18n } from "@/i18n";
 import { useAdmissionFinancials } from "@/hooks/housing/useAdmissionFinancials";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertTriangle, CheckCircle2, CreditCard, Wallet, TrendingDown } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard, Wallet, TrendingDown, FileWarning } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CheckoutFinancialReviewProps {
@@ -28,24 +28,29 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
   const admissionClear = fin.admissionBalance <= 0;
   const clientClear = fin.clientLedgerBalance <= 0;
   const creditExceeded = fin.clientAvailableCredit !== null && fin.clientAvailableCredit < 0;
+  const hasUnbilled = fin.unbilledValue > 0;
 
   return (
     <div className="space-y-3">
       {/* Admission-scoped */}
       <div className={cn(
         "rounded-lg border p-3 space-y-2",
-        admissionClear ? "border-success/30 bg-success/5" : "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20"
+        (!admissionClear || hasUnbilled) ? "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20" : "border-success/30 bg-success/5"
       )}>
         <div className="flex items-center gap-2 text-sm font-medium">
           <CreditCard className="h-4 w-4 shrink-0" />
           {t('housing.checkout.financial.admissionScope')}
-          {admissionClear ? (
+          {admissionClear && !hasUnbilled ? (
             <CheckCircle2 className="h-4 w-4 text-success ms-auto" />
           ) : (
             <AlertTriangle className="h-4 w-4 text-amber-600 ms-auto" />
           )}
         </div>
-        <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+          <div>
+            <span className="text-muted-foreground block">{t('housing.checkout.financial.accrued')}</span>
+            <span className="font-medium">{fin.accruedValue.toFixed(2)}</span>
+          </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.billed')}</span>
             <span className="font-medium">{fin.admissionBilled.toFixed(2)}</span>
@@ -61,6 +66,17 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
             </span>
           </div>
         </div>
+
+        {/* Unbilled warning */}
+        {hasUnbilled && (
+          <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
+            <FileWarning className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {t('housing.checkout.financial.unbilledWarning')}: <strong>{fin.unbilledValue.toFixed(2)}</strong>
+            </span>
+          </div>
+        )}
+
         {fin.hasDeposit && (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
             <Badge variant="outline" className="text-xs">{t('housing.checkout.financial.deposit')}: {fin.depositTotal.toFixed(2)}</Badge>

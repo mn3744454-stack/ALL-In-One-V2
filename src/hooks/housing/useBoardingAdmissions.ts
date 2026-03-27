@@ -39,7 +39,7 @@ export interface BoardingAdmission {
   updated_at: string;
   horse?: { id: string; name: string; name_ar: string | null; avatar_url: string | null };
   client?: { id: string; name: string; name_ar: string | null; phone: string | null };
-  branch?: { id: string; name: string };
+  branch?: { id: string; name: string; name_ar?: string | null };
   area?: { id: string; name: string; name_ar: string | null; facility_type?: string };
   unit?: { id: string; code: string; name: string | null; unit_type?: string };
   admitted_by_profile?: { id: string; full_name: string | null };
@@ -76,7 +76,7 @@ const ADMISSION_SELECT = `
   *,
   horse:horses!horse_id(id, name, name_ar, avatar_url),
   client:clients!client_id(id, name, name_ar, phone),
-  branch:branches!branch_id(id, name),
+  branch:branches!branch_id(id, name, name_ar),
   area:facility_areas!area_id(id, name, name_ar, facility_type),
   unit:housing_units!unit_id(id, code, name, unit_type),
   admitted_by_profile:profiles!admitted_by(id, full_name)
