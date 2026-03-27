@@ -188,48 +188,60 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         />
       </div>
 
-      {/* Sub-filter tabs */}
-      <Tabs value={subFilter} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all" className="gap-1.5">
-            {t('common.all')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.all}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="active" className="gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            {t('housing.admissions.status.active')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
-          </TabsTrigger>
-          {counts.checkoutPending > 0 && (
-            <TabsTrigger value="checkout_pending" className="gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              {t('housing.admissions.status.checkoutPending')}
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.checkoutPending}</Badge>
+      {/* Sub-filter tabs – operational lifecycle + financial state */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Operational lifecycle group */}
+        <Tabs value={['all','active','checkout_pending','checked_out','draft'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="all" className="gap-1.5">
+              {t('common.all')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.all}</Badge>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="checked_out" className="gap-1.5">
-            <LogOut className="h-3.5 w-3.5" />
-            {t('housing.admissions.status.checkedOut')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.checkedOut}</Badge>
-          </TabsTrigger>
-          {counts.draft > 0 && (
-            <TabsTrigger value="draft" className="gap-1.5">
-              {t('housing.admissions.status.draft')}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.draft}</Badge>
+            <TabsTrigger value="active" className="gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t('housing.admissions.status.active')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
             </TabsTrigger>
-          )}
-          <TabsTrigger value="no_invoice" className="gap-1.5">
-            <FileX className="h-3.5 w-3.5" />
-            {t('housing.admissions.subFilters.noInvoice')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="outstanding" className="gap-1.5">
-            <Receipt className="h-3.5 w-3.5" />
-            {t('housing.admissions.subFilters.outstanding')}
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+            {counts.checkoutPending > 0 && (
+              <TabsTrigger value="checkout_pending" className="gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                {t('housing.admissions.status.checkoutPending')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.checkoutPending}</Badge>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="checked_out" className="gap-1.5">
+              <LogOut className="h-3.5 w-3.5" />
+              {t('housing.admissions.status.checkedOut')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.checkedOut}</Badge>
+            </TabsTrigger>
+            {counts.draft > 0 && (
+              <TabsTrigger value="draft" className="gap-1.5">
+                {t('housing.admissions.status.draft')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.draft}</Badge>
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </Tabs>
+
+        {/* Visual separator */}
+        <div className="h-6 w-px bg-border hidden sm:block" />
+
+        {/* Financial state group */}
+        <Tabs value={['no_invoice','outstanding'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+          <TabsList className="flex-wrap h-auto gap-1">
+            <TabsTrigger value="no_invoice" className="gap-1.5">
+              <FileX className="h-3.5 w-3.5" />
+              {t('housing.admissions.subFilters.noInvoice')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="outstanding" className="gap-1.5">
+              <Receipt className="h-3.5 w-3.5" />
+              {t('housing.admissions.subFilters.outstanding')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
       {/* List */}
       {isLoading ? (
@@ -250,59 +262,61 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
           </CardContent>
         </Card>
       ) : viewMode === 'table' ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('housing.admissions.table.horse')}</TableHead>
-              <TableHead>{t('housing.admissions.table.client')}</TableHead>
-              <TableHead>{t('housing.admissions.table.branch')}</TableHead>
-              <TableHead>{t('housing.admissions.table.unit')}</TableHead>
-              <TableHead>{t('housing.admissions.table.status')}</TableHead>
-              <TableHead className="whitespace-nowrap">{t('housing.admissions.table.admitted')}</TableHead>
-              <TableHead>{t('housing.admissions.table.stay')}</TableHead>
-              <TableHead>{t('housing.admissions.table.rate')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAdmissions.map((admission) => {
-              const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
-              const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
-              return (
-                <TableRow key={admission.id} className="cursor-pointer" onClick={() => setSelectedAdmissionId(admission.id)}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-7 w-7">
-                        <AvatarImage src={admission.horse?.avatar_url || undefined} />
-                        <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
-                      </Avatar>
-                      <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {(admission.client?.name || admission.client?.name_ar)
-                      ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" />
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {admission.branch
-                      ? <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-sm font-normal" />
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
-                  <TableCell>{getStatusBadge(admission.status, t)}</TableCell>
-                  <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
-                  <TableCell className="text-sm">{formatStayDuration(stayDays, lang, true)}</TableCell>
-                  <TableCell className="whitespace-nowrap text-sm">
-                    {rateDisplay
-                      ? <span>{rateDisplay}</span>
-                      : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
-                    }
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/80">
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.horse')}</TableHead>
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.client')}</TableHead>
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.branch')}</TableHead>
+                <TableHead className="text-center font-bold text-sm">{t('housing.admissions.table.unit')}</TableHead>
+                <TableHead className="text-center font-bold text-sm">{t('housing.admissions.table.status')}</TableHead>
+                <TableHead className="text-center font-bold text-sm whitespace-nowrap">{t('housing.admissions.table.admitted')}</TableHead>
+                <TableHead className="text-center font-bold text-sm">{t('housing.admissions.table.stay')}</TableHead>
+                <TableHead className="text-start font-bold text-sm">{t('housing.admissions.table.rate')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAdmissions.map((admission) => {
+                const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
+                const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+                return (
+                  <TableRow key={admission.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAdmissionId(admission.id)}>
+                    <TableCell className="text-start">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={admission.horse?.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">{admission.horse?.name?.charAt(0) || '?'}</AvatarFallback>
+                        </Avatar>
+                        <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-start text-muted-foreground text-sm">
+                      {(admission.client?.name || admission.client?.name_ar)
+                        ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" />
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-start text-muted-foreground text-sm">
+                      {admission.branch
+                        ? <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-sm font-normal" />
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-center text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
+                    <TableCell className="text-center">{getStatusBadge(admission.status, t)}</TableCell>
+                    <TableCell className="text-center whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
+                    <TableCell className="text-center text-sm whitespace-nowrap">{formatStayDuration(stayDays, lang)}</TableCell>
+                    <TableCell className="text-start whitespace-nowrap text-sm">
+                      {rateDisplay
+                        ? <span>{rateDisplay}</span>
+                        : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
+                      }
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredAdmissions.map((admission) => (
