@@ -2097,6 +2097,7 @@ export const en = {
         area: "Section",
         facility: "Facility",
         unit: "Unit",
+        horseName: "Horse",
         admittedAt: "Admitted",
         expectedDeparture: "Expected Departure",
         checkedOutAt: "Checked Out",
