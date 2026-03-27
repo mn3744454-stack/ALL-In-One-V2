@@ -4902,6 +4902,7 @@ export const en = {
       general: "General",
       boarding: "Boarding",
       breeding: "Breeding",
+      vet: "Veterinary",
     },
     form: {
       addService: "Add Service",

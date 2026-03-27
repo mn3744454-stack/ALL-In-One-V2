@@ -4878,6 +4878,7 @@ export const ar = {
       general: "عام",
       boarding: "إيواء",
       breeding: "تناسل",
+      vet: "بيطري",
     },
     form: {
       addService: "إضافة خدمة",
