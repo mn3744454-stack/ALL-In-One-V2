@@ -81,9 +81,15 @@ export function displayClientName(
  * Format a date as DD-MM-YYYY — platform-wide standard.
  * Alias: formatBreedingDate (backward compat)
  */
-export function formatStandardDate(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "—";
+function toValidDate(date?: Date | string | null): Date | null {
+  if (!date) return null;
+  const parsed = typeof date === "string" ? new Date(date) : date;
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function formatStandardDate(date?: Date | string | null): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
   return format(d, "dd-MM-yyyy");
 }
 
@@ -93,17 +99,17 @@ export const formatBreedingDate = formatStandardDate;
 /**
  * Format a date-time as DD-MM-YYYY HH:mm — platform-wide standard.
  */
-export function formatStandardDateTime(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "—";
+export function formatStandardDateTime(date?: Date | string | null): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
   return format(d, "dd-MM-yyyy HH:mm");
 }
 
 /**
  * Format time-only as HH:mm (24h) — platform-wide standard.
  */
-export function formatStandardTime(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
-  if (isNaN(d.getTime())) return "—";
+export function formatStandardTime(date?: Date | string | null): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
   return format(d, "HH:mm");
 }
