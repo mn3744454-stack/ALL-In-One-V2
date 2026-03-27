@@ -34,25 +34,30 @@ interface ClientStatementTabProps {
 
 /** Renders the multi-line "story" description for a statement entry */
 /** Domain source badge for statement rows */
-function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding"; t: (k: string) => string }) {
+function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding" | "vet"; t: (k: string) => string }) {
   if (!source) return null;
-  const label = source === "boarding"
-    ? t("clients.statement.domain.boarding")
-    : source === "breeding"
-    ? t("clients.statement.domain.breeding")
-    : t("clients.statement.domain.lab");
-  const cls = source === "boarding"
-    ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
-    : source === "breeding"
-    ? "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300"
-    : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+  const labelMap: Record<string, string> = {
+    boarding: t("clients.statement.domain.boarding"),
+    breeding: t("clients.statement.domain.breeding"),
+    lab: t("clients.statement.domain.lab"),
+    vet: t("vet.domain.vet"),
+  };
+  const label = labelMap[source] || source;
+  const clsMap: Record<string, string> = {
+    boarding: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+    breeding: "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
+    lab: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    vet: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
+  };
+  const cls = clsMap[source] || "";
   return <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border-0", cls)}>{label}</Badge>;
 }
 
 /** Determine the primary domain source from enriched data */
-function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | "breeding" | undefined {
+function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | "breeding" | "vet" | undefined {
   if (!enriched || enriched.horses.length === 0) return undefined;
   const sources = enriched.horses.map(h => h.source).filter(Boolean);
+  if (sources.includes("vet")) return "vet";
   if (sources.includes("breeding")) return "breeding";
   if (sources.includes("boarding")) return "boarding";
   if (sources.includes("lab")) return "lab";
