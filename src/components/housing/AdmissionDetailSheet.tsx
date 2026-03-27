@@ -277,7 +277,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     {accruedCost !== null && (
                       <span className="flex items-center gap-1">
                         <CreditCard className="h-3 w-3" />
-                        ~{accruedCost.toFixed(0)} {admission.rate_currency}
+                        ~{formatBoardingAmount(accruedCost, 0)} {admission.rate_currency}
                       </span>
                     )}
                   </div>
