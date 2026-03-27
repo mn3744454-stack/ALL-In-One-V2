@@ -54,10 +54,10 @@ export function formatStayDuration(
   const activeLang = lang || getCurrentLanguage();
 
   if (activeLang === 'ar') {
-    if (days === 1) return `1 يوم`;
-    if (days === 2) return `2 يومان`;
-    // 3-10 uses جمع, 11+ uses مفرد form in Arabic
-    return `${days} يوم`;
+    if (days === 1) return `\u200E1 يوم`;
+    if (days === 2) return `\u200E2 يومان`;
+    // LRM (\u200E) forces number-first display in RTL context
+    return `\u200E${days} يوم`;
   }
 
   if (compact) return `${days}d`;
