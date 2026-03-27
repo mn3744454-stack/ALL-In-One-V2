@@ -10,22 +10,26 @@ export async function approveInvoice(
   invoiceId: string,
   tenantId: string
 ): Promise<void> {
-  // 1. Update status
+  // Fetch invoice to check amount and client
+  const { data: inv } = await supabase
+    .from("invoices" as any)
+    .select("client_id, total_amount")
+    .eq("id", invoiceId)
+    .maybeSingle();
+
+  const totalAmount = Number((inv as any)?.total_amount) || 0;
+
+  // 1. Update status to approved
   const { error } = await supabase
     .from("invoices" as any)
     .update({ status: "approved" })
     .eq("id", invoiceId);
   if (error) throw error;
 
-  // 2. Post to ledger (idempotent — checks for existing entry)
-  // Fetch client_id to determine if ledger posting is needed
-  const { data: inv } = await supabase
-    .from("invoices" as any)
-    .select("client_id")
-    .eq("id", invoiceId)
-    .maybeSingle();
-
-  if ((inv as any)?.client_id) {
+  // 2. Post to ledger (idempotent) — skip zero-charge invoices
+  // Zero-charge invoices (e.g., plan-included services) remain as
+  // approved audit records but do not post to ledger/statements
+  if ((inv as any)?.client_id && totalAmount > 0) {
     await postLedgerForInvoice(invoiceId, tenantId);
   }
 }

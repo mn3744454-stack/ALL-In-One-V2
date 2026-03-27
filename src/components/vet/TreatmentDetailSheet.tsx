@@ -20,10 +20,15 @@ import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { useVetMedications } from "@/hooks/vet/useVetMedications";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
+import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
+import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
+import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { isPast } from "date-fns";
 import { useI18n } from "@/i18n";
 import { tScope } from "@/i18n/labels";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import {
   Calendar,
   Clock,
@@ -38,6 +43,7 @@ import {
   Loader2,
   Receipt,
   FileText,
+  Landmark,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -68,7 +74,7 @@ export function TreatmentDetailSheet({
         </SheetHeader>
 
         {/* Action buttons row */}
-        <div className="flex justify-end gap-2 mb-4">
+        <div className="flex justify-end gap-2 mb-4 flex-wrap">
           {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onEdit(treatment)}>
               <Edit className="w-3.5 h-3.5" />
@@ -76,6 +82,7 @@ export function TreatmentDetailSheet({
             </Button>
           )}
           <BillingActionButton treatment={treatment} onOpenInvoiceDialog={() => setInvoiceDialogOpen(true)} />
+          <StableCostButton treatment={treatment} />
         </div>
 
         <div className="space-y-6">
@@ -186,6 +193,69 @@ function BillingActionButton({ treatment, onOpenInvoiceDialog }: { treatment: Ve
     <Button variant="outline" size="sm" className="gap-1.5" onClick={onOpenInvoiceDialog}>
       <Receipt className="w-3.5 h-3.5" />
       {t("vet.billing.generateInvoice")}
+    </Button>
+  );
+}
+
+/** S3: Record as Stable Cost button */
+function StableCostButton({ treatment }: { treatment: VetTreatment }) {
+  const { t } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+  const { entries, loading: entriesLoading } = useFinancialEntries("vet_treatment", treatment.id);
+  const [recording, setRecording] = useState(false);
+
+  // Check if already recorded as cost
+  const hasCostEntry = entries.some(e => !e.is_income);
+  // Also check if already invoiced
+  const { links } = useBillingLinks("vet_treatment", treatment.id);
+  const hasInvoice = links.length > 0;
+
+  // Don't show if already invoiced or already recorded
+  if (hasInvoice || hasCostEntry || entriesLoading) return null;
+
+  const handleRecordCost = async () => {
+    if (!tenantId) return;
+    setRecording(true);
+    try {
+      // If external, also create supplier payable
+      if (treatment.service_mode === 'external' && (treatment.provider?.name || treatment.external_provider_name)) {
+        await createSupplierPayableForExternal({
+          tenantId,
+          sourceType: "vet_treatment",
+          sourceId: treatment.id,
+          supplierName: treatment.provider?.name || treatment.external_provider_name || "",
+          supplierId: treatment.external_provider_id || undefined,
+          description: treatment.title,
+        });
+      }
+
+      const success = await recordAsStableCost({
+        tenantId,
+        entityType: "vet_treatment",
+        entityId: treatment.id,
+        amount: 0, // actual cost can be entered later
+        serviceMode: treatment.service_mode,
+        externalProviderId: treatment.external_provider_id,
+        description: treatment.title,
+      });
+
+      if (success) {
+        toast.success(t("vet.billing.stableCostRecorded"));
+      } else {
+        toast.error(t("common.error"));
+      }
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setRecording(false);
+    }
+  };
+
+  return (
+    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={handleRecordCost} disabled={recording}>
+      {recording ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Landmark className="w-3.5 h-3.5" />}
+      {t("vet.billing.recordStableCost")}
     </Button>
   );
 }

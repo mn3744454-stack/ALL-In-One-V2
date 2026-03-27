@@ -260,7 +260,7 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
                   {t("vet.billing.includedInPlanTitle")}
                 </p>
                 <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                  {t("vet.billing.includedInPlanDescription", { planName })}
+                  {t("vet.billing.includedInPlanDescription").replace("{{planName}}", planName || "")}
                 </p>
                 {amountManuallyOverridden && parseFloat(totalAmount) > 0 && (
                   <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
