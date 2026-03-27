@@ -2112,6 +2112,7 @@ export const ar = {
         area: "القسم",
         facility: "المرفق",
         unit: "الوحدة",
+        horseName: "الخيل",
         admittedAt: "تاريخ الدخول",
         expectedDeparture: "المغادرة المتوقعة",
         checkedOutAt: "تاريخ الإخراج",
