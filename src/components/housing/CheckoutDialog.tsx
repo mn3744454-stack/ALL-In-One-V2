@@ -17,8 +17,8 @@ import { useBoardingAdmissions, type BoardingAdmission } from "@/hooks/housing/u
 import { CheckoutFinancialReview } from "./CheckoutFinancialReview";
 import { useFinancialGate } from "@/hooks/housing/useFinancialGate";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
-import { LogOut, ShieldAlert, ShieldCheck, Ban } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
+import { LogOut, ShieldAlert, ShieldCheck, Ban, Receipt, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -28,9 +28,10 @@ interface CheckoutDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  onGenerateInvoice?: () => void;
 }
 
-export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: CheckoutDialogProps) {
+export function CheckoutDialog({ admission, open, onOpenChange, onSuccess, onGenerateInvoice }: CheckoutDialogProps) {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const [notes, setNotes] = useState('');
@@ -66,6 +67,7 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
             outstanding_amount: gate.outstandingAmount,
             admission_balance: gate.admissionBalance,
             client_balance: gate.clientBalance,
+            unbilled_value: gate.unbilledValue,
             context: 'checkout',
           },
         };
@@ -103,11 +105,11 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
     <AlertDialog open={open} onOpenChange={(o) => { if (!o) setOverrideConfirmed(false); onOpenChange(o); }}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
+          <AlertDialogTitle className="flex items-center gap-2">
             {isPending
               ? t('housing.admissions.checkout.confirmTitle')
               : t('housing.admissions.checkout.initiateTitle')
-            }: {admission.horse?.name}
+            }
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isPending
@@ -120,6 +122,10 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
         <div className="space-y-4 py-2">
           {/* Admission summary */}
           <div className="text-sm space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{t('housing.admissions.detail.horseName')}:</span>
+              <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="font-medium text-sm" inline />
+            </div>
             {admission.unit && (
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">{t('housing.admissions.detail.unit')}:</span>
@@ -130,9 +136,9 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
               </div>
             )}
             {admission.client && (
-              <div>
+              <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">{t('housing.admissions.detail.client')}: </span>
-                <span className="font-medium">{displayClientName(admission.client.name, admission.client.name_ar, lang)}</span>
+                <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
               </div>
             )}
           </div>
@@ -142,6 +148,35 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess }: Che
             admissionId={admission.id}
             clientId={admission.client_id}
           />
+
+          {/* Unbilled accrual suggestion to generate invoice */}
+          {gate.hasUnbilled && !financiallyBlocked && onGenerateInvoice && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-700 dark:text-amber-400">
+                    {t('housing.admissions.checkout.unbilledSuggestion')}
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {t('housing.admissions.checkout.unbilledAmount')}: {gate.unbilledValue.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  onGenerateInvoice();
+                }}
+                className="w-full border-amber-300 text-amber-700 hover:bg-amber-100 dark:text-amber-400 dark:hover:bg-amber-950"
+              >
+                <Receipt className="h-4 w-4 me-1" />
+                {t('housing.admissions.billing.generateInvoice')}
+              </Button>
+            </div>
+          )}
 
           {/* Financial Gate Messages */}
           {financiallyBlocked && (

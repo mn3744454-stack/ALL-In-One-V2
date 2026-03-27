@@ -11,17 +11,17 @@ import { useBoardingAdmissions, type AdmissionStatus, type BoardingAdmission } f
 import { getWarningCount } from "@/hooks/housing/admissionChecks";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { Plus, Search, AlertTriangle, CheckCircle2, Clock, LogOut, Heart, Building2, CreditCard, DoorOpen, Receipt, FileX } from "lucide-react";
-import { differenceInDays } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStayDuration, formatBoardingRate, computeStayDays } from "@/lib/boardingUtils";
 import { cn } from "@/lib/utils";
 import { AdmissionWizard } from "./AdmissionWizard";
 import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
 
@@ -81,13 +81,26 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     [allAdmissions, branchId]
   );
 
+  // Fetch all billing links for boarding to compute "no invoice" tab
+  const activeAdmissionIds = useMemo(() =>
+    branchFiltered.filter(a => a.status === 'active').map(a => a.id),
+    [branchFiltered]
+  );
+
   const counts = useMemo(() => {
     const active = branchFiltered.filter(a => a.status === 'active').length;
     const checkoutPending = branchFiltered.filter(a => a.status === 'checkout_pending').length;
     const checkedOut = branchFiltered.filter(a => a.status === 'checked_out').length;
     const draft = branchFiltered.filter(a => a.status === 'draft').length;
-    const withRates = branchFiltered.filter(a => a.status === 'active' && (a.daily_rate || a.monthly_rate));
-    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, withRates: withRates.length };
+    // "No Invoice" = active admissions without any billing link
+    const noInvoice = branchFiltered.filter(a =>
+      a.status === 'active' && (a.daily_rate || a.monthly_rate) && !a.balance_cleared
+    ).length;
+    // "Outstanding" = active admissions that have a rate but balance not cleared
+    const outstanding = branchFiltered.filter(a =>
+      a.status === 'active' && !a.balance_cleared && (a.daily_rate || a.monthly_rate)
+    ).length;
+    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding };
   }, [branchFiltered]);
 
   const filteredAdmissions = useMemo(() => {
@@ -96,8 +109,12 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       case 'checkout_pending': return branchFiltered.filter(a => a.status === 'checkout_pending');
       case 'checked_out': return branchFiltered.filter(a => a.status === 'checked_out');
       case 'draft': return branchFiltered.filter(a => a.status === 'draft');
-      case 'no_invoice': return branchFiltered.filter(a => a.status === 'active' && (!a.daily_rate && !a.monthly_rate));
-      case 'outstanding': return branchFiltered.filter(a => a.status === 'active' && !a.balance_cleared);
+      case 'no_invoice': return branchFiltered.filter(a =>
+        a.status === 'active' && (!a.daily_rate && !a.monthly_rate)
+      );
+      case 'outstanding': return branchFiltered.filter(a =>
+        a.status === 'active' && !a.balance_cleared && (a.daily_rate || a.monthly_rate)
+      );
       default: return branchFiltered;
     }
   }, [branchFiltered, subFilter]);
@@ -170,10 +187,12 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
           <TabsTrigger value="no_invoice" className="gap-1.5">
             <FileX className="h-3.5 w-3.5" />
             {t('housing.admissions.subFilters.noInvoice')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
           </TabsTrigger>
           <TabsTrigger value="outstanding" className="gap-1.5">
             <Receipt className="h-3.5 w-3.5" />
             {t('housing.admissions.subFilters.outstanding')}
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -200,23 +219,20 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Horse</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Branch</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="whitespace-nowrap">Admitted</TableHead>
-              <TableHead>Days</TableHead>
-              <TableHead>Rate</TableHead>
+              <TableHead>{t('housing.admissions.table.horse')}</TableHead>
+              <TableHead>{t('housing.admissions.table.client')}</TableHead>
+              <TableHead>{t('housing.admissions.table.branch')}</TableHead>
+              <TableHead>{t('housing.admissions.table.unit')}</TableHead>
+              <TableHead>{t('housing.admissions.table.status')}</TableHead>
+              <TableHead className="whitespace-nowrap">{t('housing.admissions.table.admitted')}</TableHead>
+              <TableHead>{t('housing.admissions.table.stay')}</TableHead>
+              <TableHead>{t('housing.admissions.table.rate')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAdmissions.map((admission) => {
-              const stayDays = differenceInDays(
-                admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
-                new Date(admission.admitted_at)
-              );
-              const hasRate = !!(admission.monthly_rate || admission.daily_rate);
+              const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
+              const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
               return (
                 <TableRow key={admission.id} className="cursor-pointer" onClick={() => setSelectedAdmissionId(admission.id)}>
                   <TableCell>
@@ -228,18 +244,25 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                       <BilingualName name={admission.horse?.name} nameAr={admission.horse?.name_ar} primaryClassName="text-sm" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{(admission.client?.name || admission.client?.name_ar) ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" /> : '—'}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{admission.branch?.name || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {(admission.client?.name || admission.client?.name_ar)
+                      ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="text-sm font-normal" />
+                      : '—'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {admission.branch
+                      ? <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-sm font-normal" />
+                      : '—'}
+                  </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
                   <TableCell>{getStatusBadge(admission.status, t)}</TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
-                  <TableCell className="text-sm">{stayDays}{t('housing.admissions.list.daysUnit')}</TableCell>
+                  <TableCell className="text-sm">{formatStayDuration(stayDays, lang, true)}</TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
-                    {hasRate ? (
-                      admission.monthly_rate
-                        ? `${admission.monthly_rate} ${admission.rate_currency}/mo`
-                        : `${admission.daily_rate} ${admission.rate_currency}/d`
-                    ) : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>}
+                    {rateDisplay
+                      ? <span>{rateDisplay}</span>
+                      : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
+                    }
                   </TableCell>
                 </TableRow>
               );
@@ -279,11 +302,8 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
 
 function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
-  const stayDays = differenceInDays(
-    admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
-    new Date(admission.admitted_at)
-  );
-  const hasRate = !!(admission.monthly_rate || admission.daily_rate);
+  const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
+  const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
 
   return (
     <Card
@@ -323,13 +343,13 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
               {admission.branch && (
                 <span className="flex items-center gap-1">
                   <Building2 className="h-3 w-3" />
-                  {admission.branch.name}
+                  <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-xs" inline />
                 </span>
               )}
               {admission.area && (
                 <span className="flex items-center gap-1">
                   <span>›</span>
-                  {admission.area.name}
+                  <BilingualName name={admission.area.name} nameAr={admission.area.name_ar} primaryClassName="text-xs" inline />
                   {admission.area.facility_type && (
                     <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight">
                       {t(`housing.facilityTypes.${admission.area.facility_type}`)}
@@ -349,15 +369,12 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
                 <Clock className="h-3 w-3" />
                 {formatStandardDate(admission.admitted_at)}
                 <span className="text-foreground/60">·</span>
-                <span className="font-medium text-foreground/70">{stayDays}{t('housing.admissions.list.daysUnit')}</span>
+                <span className="font-medium text-foreground/70">{formatStayDuration(stayDays, lang)}</span>
               </span>
-              {hasRate ? (
+              {rateDisplay ? (
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-3 w-3" />
-                  {admission.monthly_rate
-                    ? `${admission.monthly_rate} ${admission.rate_currency}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}`
-                    : `${admission.daily_rate} ${admission.rate_currency}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}`
-                  }
+                  {rateDisplay}
                 </span>
               ) : (
                 <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.list.noBilling')}</span>
