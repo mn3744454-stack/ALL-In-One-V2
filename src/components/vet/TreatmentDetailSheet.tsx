@@ -15,9 +15,11 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { CreateInvoiceFromTreatment } from "./CreateInvoiceFromTreatment";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { useVetMedications } from "@/hooks/vet/useVetMedications";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { isPast } from "date-fns";
 import { useI18n } from "@/i18n";
@@ -34,6 +36,8 @@ import {
   CheckCircle,
   Plus,
   Loader2,
+  Receipt,
+  FileText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -50,6 +54,8 @@ export function TreatmentDetailSheet({
   onOpenChange,
   onEdit,
 }: TreatmentDetailSheetProps) {
+  const { t } = useI18n();
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const { t } = useI18n();
 
   if (!treatment) return null;
