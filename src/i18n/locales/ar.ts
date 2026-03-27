@@ -4165,6 +4165,7 @@ export const ar = {
         lab: "مختبر",
         boarding: "إيواء",
         breeding: "تناسل",
+        vet: "بيطري",
         registration: "تسجيل",
         admin: "إدارية",
         transport: "نقل",

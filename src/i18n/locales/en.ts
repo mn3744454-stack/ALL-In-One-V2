@@ -4171,6 +4171,7 @@ export const en = {
         lab: "Laboratory",
         boarding: "Boarding",
         breeding: "Breeding",
+        vet: "Veterinary",
         registration: "Registration",
         admin: "Administrative",
         transport: "Transport",
