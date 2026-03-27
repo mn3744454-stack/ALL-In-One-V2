@@ -7,13 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Info } from "lucide-react";
+import { Check, ChevronsUpDown, Info, ShieldCheck, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
 import { useServicesByKind } from "@/hooks/useServices";
 import { usePlanInclusionCheck } from "@/hooks/billing/usePlanInclusionCheck";
+import { useSupplierPayableForSource } from "@/hooks/billing/useSupplierPayableForSource";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
@@ -65,6 +66,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
+  const [amountManuallyOverridden, setAmountManuallyOverridden] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -74,9 +76,13 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
     selectedServiceId || undefined
   );
 
+  // Provider cost reference (S2)
+  const { payable: linkedPayable } = useSupplierPayableForSource("vet_treatment", treatment.id);
+
   // Prefill from treatment context + auto-select service
   useEffect(() => {
     if (!open) return;
+    setAmountManuallyOverridden(false);
 
     // Client prefill — from treatment or resolve from horse's active admission
     if (treatment.client_id) {
@@ -103,6 +109,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         : null;
       const svc = match || relevantServices[0];
       setSelectedServiceId(svc.id);
+      // Price will be set by the isIncluded effect or by catalog price
       if (svc.unit_price != null) {
         setTotalAmount(svc.unit_price.toString());
       }
@@ -111,12 +118,26 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
     setNotes(treatment.title || "");
   }, [open, treatment, relevantServices, tenantId]);
 
+  // S1: Auto-zero when included
+  useEffect(() => {
+    if (isIncluded && !amountManuallyOverridden) {
+      setTotalAmount("0");
+    }
+  }, [isIncluded, amountManuallyOverridden]);
+
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
+    setAmountManuallyOverridden(false);
     const svc = vetServices.find(s => s.id === serviceId);
     if (svc?.unit_price != null) {
+      // Will be overridden to 0 by inclusion effect if applicable
       setTotalAmount(svc.unit_price.toString());
     }
+  };
+
+  const handleAmountChange = (value: string) => {
+    setTotalAmount(value);
+    setAmountManuallyOverridden(true);
   };
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
@@ -129,28 +150,26 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
     [vetServices, selectedServiceId]
   );
 
+  const isZeroCharge = (parseFloat(totalAmount) || 0) === 0;
+
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    // Service name (bilingual)
     if (selectedService) {
       parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
     } else {
       parts.push(treatment.title);
     }
-    // Horse name
     const horseName = displayHorseName(
       data.horseName || treatment.horse?.name,
       data.horseNameAr || (treatment.horse as any)?.name_ar,
       lang
     );
     if (horseName && horseName !== "—") parts.push(horseName);
-    // Category
     if (treatment.category) {
       parts.push(t(`vet.category.${treatment.category}`));
     }
-    // Date
     if (treatment.requested_at) {
       parts.push(formatStandardDate(treatment.requested_at));
     }
@@ -186,7 +205,6 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         return;
       }
 
-      // Create invoice line item with entity_type='vet'
       const lineDescription = buildLineItemDescription();
       const { error: itemError } = await supabase
         .from("invoice_items" as any)
@@ -204,7 +222,6 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         console.error("Error creating invoice item:", itemError);
       }
 
-      // Create billing_link with source_type='vet_treatment'
       await createLinkAsync({
         source_type: "vet_treatment",
         source_id: treatment.id,
@@ -242,13 +259,38 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
             )}
           </div>
 
-          {/* Package-awareness banner */}
+          {/* S1: Enhanced package-awareness banner */}
           {isIncluded && planName && (
-            <div className="flex items-start gap-2 p-2.5 rounded-md bg-accent/50 border border-accent text-xs">
-              <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-              <span className="text-foreground">
-                {t("vet.billing.serviceIncludedInPlan")} — {planName}
-              </span>
+            <div className="flex items-start gap-2 p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                  {t("vet.billing.includedInPlanTitle")}
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                  {t("vet.billing.includedInPlanDescription", { planName })}
+                </p>
+                {amountManuallyOverridden && parseFloat(totalAmount) > 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    {t("vet.billing.includedOverrideWarning")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* S2: Provider cost reference */}
+          {linkedPayable && (
+            <div className="flex items-start gap-2 p-2.5 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs">
+              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+              <div>
+                <span className="text-blue-800 dark:text-blue-300">
+                  {t("vet.billing.providerCostRef")}: {linkedPayable.amount} {linkedPayable.currency}
+                </span>
+                <span className="text-blue-600 dark:text-blue-400 ms-1">
+                  ({linkedPayable.supplier_name})
+                </span>
+              </div>
             </div>
           )}
 
@@ -330,7 +372,12 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
 
           <div>
             <Label>{t("vet.billing.totalAmount")} (SAR)</Label>
-            <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+            <Input type="number" step="0.01" value={totalAmount} onChange={e => handleAmountChange(e.target.value)} />
+            {isIncluded && isZeroCharge && !amountManuallyOverridden && (
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
+                {t("vet.billing.zeroChargeIncluded")}
+              </p>
+            )}
           </div>
           <div>
             <Label>{t("common.notes")}</Label>
@@ -339,7 +386,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={loading || isCreating}>
-              {loading ? t("common.loading") : t("vet.billing.createInvoice")}
+              {loading ? t("common.loading") : isZeroCharge ? t("vet.billing.createZeroInvoice") : t("vet.billing.createInvoice")}
             </Button>
           </div>
         </form>
