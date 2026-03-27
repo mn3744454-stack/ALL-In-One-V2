@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { isPast } from "date-fns";
+import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
 
 // DB stores: 'due' | 'done' | 'skipped' - 'overdue' is UI-calculated
 export type VaccinationStatus = 'due' | 'done' | 'skipped';
@@ -121,6 +122,25 @@ export function useHorseVaccinations(filters: VaccinationFilters = {}) {
         .single();
 
       if (error) throw error;
+
+      // S2: Auto-create supplier payable for external vaccinations
+      if (data.service_mode === 'external' && data.external_provider_id && activeTenant.tenant.id) {
+        // Resolve provider name
+        const { data: provider } = await supabase
+          .from("service_providers")
+          .select("name")
+          .eq("id", data.external_provider_id)
+          .maybeSingle();
+        
+        createSupplierPayableForExternal({
+          tenantId: activeTenant.tenant.id,
+          sourceType: "vaccination",
+          sourceId: vaccination.id,
+          supplierName: (provider as any)?.name || "External Provider",
+          supplierId: data.external_provider_id,
+          description: `Vaccination: ${data.program_id}`,
+        }).catch(err => console.error("Auto-payable creation failed:", err));
+      }
 
       toast.success("Vaccination scheduled");
       fetchVaccinations();
