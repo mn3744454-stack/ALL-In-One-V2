@@ -226,6 +226,8 @@ export function UnitsManager({ lockedBranchId, lockedAreaId, facilityType }: Uni
               <SelectItem value="vacant">{t('housing.units.status.vacant')}</SelectItem>
               <SelectItem value="occupied">{t('housing.units.status.occupied')}</SelectItem>
               <SelectItem value="full">{t('housing.units.status.full')}</SelectItem>
+              <SelectItem value="maintenance">{t('housing.units.status.maintenance')}</SelectItem>
+              <SelectItem value="out_of_service">{t('housing.units.status.outOfService')}</SelectItem>
             </SelectContent>
           </Select>
 
