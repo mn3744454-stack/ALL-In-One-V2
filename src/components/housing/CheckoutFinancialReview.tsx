@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, CheckCircle2, CreditCard, Wallet, TrendingDown, FileWarning } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatBoardingAmount } from "@/lib/boardingUtils";
 
 interface CheckoutFinancialReviewProps {
   admissionId: string;
