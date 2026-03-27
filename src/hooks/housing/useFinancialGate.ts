@@ -60,18 +60,25 @@ export function useFinancialGate(
     const admissionBalance = Math.max(fin.admissionBalance, 0);
     const clientBalance = Math.max(fin.clientLedgerBalance, 0);
     const outstandingAmount = Math.max(admissionBalance, clientBalance);
+    const unbilledValue = fin.unbilledValue || 0;
+    const hasUnbilled = unbilledValue > 0;
     const hasOutstanding = outstandingAmount > 0;
     const hasOverridePerm = isOwner || hasPermission(OVERRIDE_PERMISSION);
 
+    // Consider unbilled as a warning-level concern (doesn't block but warns)
+    const hasFinancialIssue = hasOutstanding;
+
     return {
       isLoading: false,
-      canProceed: !hasOutstanding,
-      needsOverride: hasOutstanding && hasOverridePerm,
-      isBlocked: hasOutstanding && !hasOverridePerm,
+      canProceed: !hasFinancialIssue && !hasUnbilled,
+      needsOverride: hasFinancialIssue && hasOverridePerm,
+      isBlocked: hasFinancialIssue && !hasOverridePerm,
       admissionBalance,
       clientBalance,
       outstandingAmount,
       hasOverridePermission: hasOverridePerm,
+      unbilledValue,
+      hasUnbilled,
     };
   }, [fin, finLoading, permLoading, hasPermission, isOwner]);
 }
