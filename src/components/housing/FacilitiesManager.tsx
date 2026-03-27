@@ -24,6 +24,23 @@ import { Plus, Building2, Loader2, Home, ShieldAlert, Search, X } from "lucide-r
 
 export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'isolation' | 'maintenance' | 'out_of_service';
 
+/** Check if a unit (or its occupants) matches a search query */
+export function unitMatchesSearch(
+  unit: { id: string; code: string; name: string | null; name_ar: string | null },
+  facilityData: { occupants: { unit_id: string; horse: { name: string; name_ar: string | null } | null }[] },
+  query: string
+): boolean {
+  if (!query) return true;
+  if (unit.code?.toLowerCase().includes(query)) return true;
+  if (unit.name?.toLowerCase().includes(query)) return true;
+  if (unit.name_ar?.includes(query)) return true;
+  const unitOccupants = facilityData.occupants.filter(o => o.unit_id === unit.id);
+  return unitOccupants.some(o => {
+    if (!o.horse) return false;
+    return o.horse.name?.toLowerCase().includes(query) || o.horse.name_ar?.includes(query);
+  });
+}
+
 interface FacilitiesManagerProps {
   lockedBranchId?: string;
 }

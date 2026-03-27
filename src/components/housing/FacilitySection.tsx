@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BilingualName } from "@/components/ui/BilingualName";
@@ -8,6 +8,7 @@ import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import { OpenAreaContent } from "./OpenAreaContent";
 import { ActivityContent } from "./ActivityContent";
+import { unitMatchesSearch, type OccupancyFilter } from "./FacilitiesManager";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ interface FacilitySectionProps {
   canManage: boolean;
   onEdit: (facilityId: string) => void;
   onToggleActive: (params: { id: string; isActive: boolean }) => void;
+  searchQuery?: string;
+  activeFilter?: OccupancyFilter;
 }
 
 /** Icons for facility types */
