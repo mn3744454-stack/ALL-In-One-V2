@@ -60,6 +60,7 @@ export function TreatmentDetailSheet({
   if (!treatment) return null;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4 pe-10">
