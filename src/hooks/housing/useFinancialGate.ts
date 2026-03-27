@@ -19,6 +19,10 @@ export interface FinancialGateResult {
   outstandingAmount: number;
   /** Whether user has the override permission */
   hasOverridePermission: boolean;
+  /** Accrued boarding value not yet invoiced */
+  unbilledValue: number;
+  /** Whether there is significant unbilled accrual */
+  hasUnbilled: boolean;
 }
 
 const OVERRIDE_PERMISSION = 'boarding.checkout.override_balance';
