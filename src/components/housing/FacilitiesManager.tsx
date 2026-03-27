@@ -276,8 +276,20 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               canManage={canManage}
               onEdit={handleOpenEdit}
               onToggleActive={toggleAreaActive}
+              searchQuery={normalizedQuery}
+              activeFilter={activeFilter}
             />
           ))}
+          {/* No results state for search/filter */}
+          {normalizedQuery && areas.every(area => {
+            const fd = facilityUnitsMap[area.id];
+            if (!fd) return true;
+            return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery));
+          }) && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              {t('housing.search.noResults')}
+            </div>
+          )}
         </div>
       )}
 
