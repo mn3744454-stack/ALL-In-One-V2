@@ -202,9 +202,9 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             className="shrink-0"
                           >
                             {isOverdue 
-                              ? 'Overdue' 
+                              ? t('vet.timeLabels.overdue')
                               : isDueToday 
-                                ? 'Today' 
+                                ? t('vet.timeLabels.dueToday')
                                 : formatDistanceToNow(dueDate, { addSuffix: true })
                             }
                           </Badge>
