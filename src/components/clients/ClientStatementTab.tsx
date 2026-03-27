@@ -453,6 +453,38 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         }
       }
 
+      // === 3. Vet path: invoice_items(vet) → vet_treatments → horse_id ===
+      const { data: vetItems } = await supabase
+        .from("invoice_items" as any)
+        .select("invoice_id, entity_id")
+        .in("invoice_id", invoiceRefs)
+        .eq("entity_type", "vet");
+
+      if (vetItems && vetItems.length > 0) {
+        const treatmentIds = (vetItems as any[]).map((i) => i.entity_id).filter(Boolean);
+        if (treatmentIds.length > 0) {
+          const { data: treatments } = await supabase
+            .from("vet_treatments")
+            .select("id, horse_id")
+            .in("id", treatmentIds);
+
+          if (treatments) {
+            const treatToInvoice = new Map<string, string[]>();
+            (vetItems as any[]).forEach((item) => {
+              if (!treatToInvoice.has(item.entity_id)) treatToInvoice.set(item.entity_id, []);
+              treatToInvoice.get(item.entity_id)!.push(item.invoice_id);
+            });
+
+            (treatments as any[]).forEach((tr) => {
+              if (selectedSet.has(tr.horse_id)) {
+                const invIds = treatToInvoice.get(tr.id) || [];
+                invIds.forEach((id) => matchingInvoiceIds.add(id));
+              }
+            });
+          }
+        }
+      }
+
       const allowedEntryIds = new Set<string>();
       statement.entries.forEach((e) => {
         if (e.reference_id && matchingInvoiceIds.has(e.reference_id)) {
