@@ -63,7 +63,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.balance')}</span>
             <span className={cn("font-medium", fin.admissionBalance > 0 ? "text-amber-600" : "text-success")}>
-              {fin.admissionBalance.toFixed(2)}
+              {formatBoardingAmount(fin.admissionBalance)}
             </span>
           </div>
         </div>
