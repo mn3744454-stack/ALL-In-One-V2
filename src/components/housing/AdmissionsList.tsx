@@ -81,10 +81,33 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     [allAdmissions, branchId]
   );
 
-  // Fetch all billing links for boarding to compute "no invoice" tab
+  // Fetch billing links for all active boarding admissions to determine "no invoice" state
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+
   const activeAdmissionIds = useMemo(() =>
-    branchFiltered.filter(a => a.status === 'active').map(a => a.id),
+    branchFiltered.filter(a => a.status === 'active' || a.status === 'checkout_pending').map(a => a.id),
     [branchFiltered]
+  );
+
+  const { data: boardingBillingLinks = [] } = useQuery({
+    queryKey: ['billing-links-boarding-bulk', tenantId, activeAdmissionIds],
+    queryFn: async () => {
+      if (!tenantId || activeAdmissionIds.length === 0) return [];
+      const { data } = await supabase
+        .from('billing_links')
+        .select('source_id')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'boarding')
+        .in('source_id', activeAdmissionIds);
+      return data || [];
+    },
+    enabled: !!tenantId && activeAdmissionIds.length > 0,
+  });
+
+  const invoicedAdmissionIds = useMemo(() =>
+    new Set(boardingBillingLinks.map((l: { source_id: string }) => l.source_id)),
+    [boardingBillingLinks]
   );
 
   const counts = useMemo(() => {
@@ -92,16 +115,20 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     const checkoutPending = branchFiltered.filter(a => a.status === 'checkout_pending').length;
     const checkedOut = branchFiltered.filter(a => a.status === 'checked_out').length;
     const draft = branchFiltered.filter(a => a.status === 'draft').length;
-    // "No Invoice" = active admissions without any billing link
+    // "No Invoice" = active admissions with a rate but no billing_link (never invoiced)
     const noInvoice = branchFiltered.filter(a =>
-      a.status === 'active' && (a.daily_rate || a.monthly_rate) && !a.balance_cleared
+      (a.status === 'active' || a.status === 'checkout_pending') &&
+      (a.daily_rate || a.monthly_rate) &&
+      !invoicedAdmissionIds.has(a.id)
     ).length;
-    // "Outstanding" = active admissions that have a rate but balance not cleared
+    // "Outstanding" = active/pending admissions with a rate that are not balance-cleared and have been invoiced
     const outstanding = branchFiltered.filter(a =>
-      a.status === 'active' && !a.balance_cleared && (a.daily_rate || a.monthly_rate)
+      (a.status === 'active' || a.status === 'checkout_pending') &&
+      !a.balance_cleared &&
+      invoicedAdmissionIds.has(a.id)
     ).length;
     return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding };
-  }, [branchFiltered]);
+  }, [branchFiltered, invoicedAdmissionIds]);
 
   const filteredAdmissions = useMemo(() => {
     switch (subFilter) {
@@ -110,14 +137,18 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       case 'checked_out': return branchFiltered.filter(a => a.status === 'checked_out');
       case 'draft': return branchFiltered.filter(a => a.status === 'draft');
       case 'no_invoice': return branchFiltered.filter(a =>
-        a.status === 'active' && (!a.daily_rate && !a.monthly_rate)
+        (a.status === 'active' || a.status === 'checkout_pending') &&
+        (a.daily_rate || a.monthly_rate) &&
+        !invoicedAdmissionIds.has(a.id)
       );
       case 'outstanding': return branchFiltered.filter(a =>
-        a.status === 'active' && !a.balance_cleared && (a.daily_rate || a.monthly_rate)
+        (a.status === 'active' || a.status === 'checkout_pending') &&
+        !a.balance_cleared &&
+        invoicedAdmissionIds.has(a.id)
       );
       default: return branchFiltered;
     }
-  }, [branchFiltered, subFilter]);
+  }, [branchFiltered, subFilter, invoicedAdmissionIds]);
 
   return (
     <div className="space-y-4">
