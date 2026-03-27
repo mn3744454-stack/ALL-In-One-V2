@@ -2489,6 +2489,8 @@ export const en = {
     },
     billing: {
       createInvoiceTitle: "Create Invoice from Treatment",
+      service: "Service",
+      selectService: "Select service",
       client: "Client",
       selectClient: "Select client",
       searchClients: "Search clients...",

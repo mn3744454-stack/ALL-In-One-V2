@@ -2504,6 +2504,8 @@ export const ar = {
     },
     billing: {
       createInvoiceTitle: "إنشاء فاتورة من العلاج",
+      service: "الخدمة",
+      selectService: "اختر الخدمة",
       client: "العميل",
       selectClient: "اختر العميل",
       searchClients: "بحث عن عميل...",
