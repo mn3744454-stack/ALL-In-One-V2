@@ -81,12 +81,7 @@ export function useUnitOccupants(unitId?: string) {
 
       if (error) throw error;
 
-      // Update horse's housing_unit_id
-      await supabase
-        .from('horses')
-        .update({ housing_unit_id: unitId })
-        .eq('id', horseId);
-
+      // horses.housing_unit_id is synced automatically via DB trigger
       return data;
     },
     onSuccess: () => {
