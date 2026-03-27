@@ -2505,6 +2505,7 @@ export const ar = {
     },
     billing: {
       createInvoiceTitle: "إنشاء فاتورة من العلاج",
+      createVaccinationInvoiceTitle: "إنشاء فاتورة من التطعيم",
       service: "الخدمة",
       selectService: "اختر الخدمة",
       client: "العميل",
@@ -2520,6 +2521,7 @@ export const ar = {
       invoiced: "تم الفوترة",
       notInvoiced: "لم يتم الفوترة",
       linkedInvoice: "فاتورة مرتبطة",
+      serviceIncludedInPlan: "هذه الخدمة مشمولة في باقة إقامة الحصان",
     },
     domain: {
       vet: "بيطري",

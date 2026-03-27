@@ -162,6 +162,7 @@ const DashboardVet = () => {
               onMarkAdministered={canManage ? markAsAdministered : undefined}
               onCancel={canManage ? skipVaccination : undefined}
               emptyMessage={t("vet.emptyMessages.vaccinations")}
+              showBilling={canManage}
             />
           </TabsContent>
 
