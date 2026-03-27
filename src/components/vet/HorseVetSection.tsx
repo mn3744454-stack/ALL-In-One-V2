@@ -190,10 +190,14 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             {isOverdue && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
                             <div className="min-w-0">
                               <p className="font-medium truncate">
-                                {vaccination.program?.name || 'Unknown Program'}
+                                <BilingualName
+                                  name={vaccination.program?.name || t('common.unknown')}
+                                  nameAr={(vaccination.program as any)?.name_ar}
+                                  inline
+                                />
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {formatStandardDate(dueDate)}
+                                {t('vet.dueLabel')}: {formatStandardDate(dueDate)}
                               </p>
                             </div>
                           </div>
