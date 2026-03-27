@@ -8,8 +8,8 @@ export interface EnrichedHorse {
   horseName: string;
   samples: Array<{ sampleLabel: string }>;
   items: string[];
-  /** Source domain: lab | boarding | breeding */
-  source?: "lab" | "boarding" | "breeding";
+  /** Source domain: lab | boarding | breeding | vet */
+  source?: "lab" | "boarding" | "breeding" | "vet";
 }
 
 export interface EnrichedStatementData {
