@@ -33,6 +33,8 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
         admissionBilled: 0,
         admissionPaid: 0,
         admissionBalance: 0,
+        accruedValue: 0,
+        unbilledValue: 0,
         clientLedgerBalance: 0,
         clientCreditLimit: null,
         clientAvailableCredit: null,
