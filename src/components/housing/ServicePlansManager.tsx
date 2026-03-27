@@ -147,7 +147,7 @@ export function ServicePlansManager() {
             </div>
             <div>
               <Label>{t('housing.plans.parentService')}</Label>
-              <FormDescription className="text-xs text-muted-foreground mb-1">{t('services.parentServiceHint')}</FormDescription>
+              <p className="text-xs text-muted-foreground mb-1">{t('services.parentServiceHint')}</p>
               <Select value={form.service_id || '_none'} onValueChange={v => setForm(f => ({ ...f, service_id: v === '_none' ? null : v }))}>
                 <SelectTrigger><SelectValue placeholder={t('housing.plans.noParentService')} /></SelectTrigger>
                 <SelectContent>
