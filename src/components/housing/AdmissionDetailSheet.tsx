@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
-import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
+import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost, formatBoardingAmount } from "@/lib/boardingUtils";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import {
