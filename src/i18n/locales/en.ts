@@ -1968,6 +1968,24 @@ export const en = {
       filterByStatus: "Filter by status",
       allTypes: "All types",
       allStatuses: "All statuses",
+      isolation: "Isolation",
+    },
+    search: {
+      placeholder: "Search horse or unit…",
+      noResults: "No matches found",
+    },
+    filter: {
+      all: "All",
+      vacant: "Vacant",
+      occupied: "Occupied",
+      full: "Full",
+      isolation: "Isolation",
+      maintenance: "Maintenance",
+      outOfService: "Out of Service",
+    },
+    vacancy: {
+      vacant: "vacant",
+      available: "available",
     },
     stats: {
       title: "Housing Overview",

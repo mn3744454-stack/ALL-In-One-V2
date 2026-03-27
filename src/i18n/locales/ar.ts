@@ -1983,6 +1983,24 @@ export const ar = {
       filterByStatus: "تصفية حسب الحالة",
       allTypes: "جميع الأنواع",
       allStatuses: "جميع الحالات",
+      isolation: "عزل",
+    },
+    search: {
+      placeholder: "ابحث عن حصان أو وحدة…",
+      noResults: "لا توجد نتائج",
+    },
+    filter: {
+      all: "الكل",
+      vacant: "شاغر",
+      occupied: "مشغول",
+      full: "ممتلئ",
+      isolation: "عزل",
+      maintenance: "صيانة",
+      outOfService: "خارج الخدمة",
+    },
+    vacancy: {
+      vacant: "شاغر",
+      available: "متاح",
     },
     stats: {
       title: "نظرة عامة على الإسكان",

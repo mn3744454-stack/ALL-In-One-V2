@@ -18,7 +18,11 @@ import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { Plus, Building2, Loader2, Home, ShieldAlert } from "lucide-react";
+import { BilingualName } from "@/components/ui/BilingualName";
+import { cn } from "@/lib/utils";
+import { Plus, Building2, Loader2, Home, ShieldAlert, Search, X } from "lucide-react";
+
+export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'isolation' | 'maintenance' | 'out_of_service';
 
 interface FacilitiesManagerProps {
   lockedBranchId?: string;
