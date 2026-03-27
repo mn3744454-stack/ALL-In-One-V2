@@ -4872,6 +4872,7 @@ export const ar = {
     accessRestrictedDesc: "يمكن للمالكين والمديرين فقط إدارة الخدمات.",
     public: "عام",
     private: "خاص",
+    parentServiceHint: "ربط هذه الخطة بخدمة أساسية للتنظيم",
     tabs: {
       catalog: "كتالوج الخدمات",
       plans: "الخطط والباقات",
@@ -4881,6 +4882,35 @@ export const ar = {
       boarding: "إيواء",
       breeding: "تناسل",
       vet: "بيطري",
+    },
+    types: {
+      emergency: "طوارئ",
+      checkup: "فحص",
+      treatment: "علاج",
+      surgery: "جراحة",
+      vaccination: "تطعيم",
+      consultation: "استشارة",
+      procedure: "إجراء",
+      follow_up: "متابعة",
+      dental: "أسنان",
+      reproductive: "تناسلي",
+    },
+    billingCycles: {
+      daily: "يومي",
+      weekly: "أسبوعي",
+      monthly: "شهري",
+    },
+    table: {
+      type: "النوع",
+      kind: "المجال",
+      unitPrice: "سعر الوحدة",
+      plans: "الخطط",
+      public: "عام",
+      active: "نشط",
+    },
+    emptyState: {
+      title: "لا توجد خدمات بعد",
+      desc: "أنشئ أول خدمة لعرض ما يقدمه نشاطك التجاري",
     },
     form: {
       addService: "إضافة خدمة",
