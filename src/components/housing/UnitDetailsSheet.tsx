@@ -16,6 +16,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -33,7 +39,7 @@ import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Plus, LogOut, Home, Trees, BedDouble, Loader2, Pencil, Check, X } from "lucide-react";
+import { Plus, LogOut, Home, Trees, BedDouble, Loader2, Pencil, Check, X, Wrench, Ban, CircleCheck, MoreVertical } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
 interface UnitDetailsSheetProps {
@@ -54,6 +60,9 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   const [showOccupiedWarning, setShowOccupiedWarning] = useState(false);
   const [pendingEdit, setPendingEdit] = useState<{ code: string; name: string } | null>(null);
 
+  // Status change state
+  const [statusChangeTarget, setStatusChangeTarget] = useState<{ status: string; warning: string } | null>(null);
+
   const { 
     occupants, 
     isLoading, 
@@ -62,13 +71,17 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     isVacating 
   } = useUnitOccupants(unit?.id);
 
-  const { updateUnit } = useHousingUnits();
+  const { updateUnit, setUnitStatus } = useHousingUnits();
 
   if (!unit) return null;
 
   const displayName = language === 'ar' && unit.name_ar ? unit.name_ar : (unit.name || unit.code);
   const isFull = (unit.current_occupants || 0) >= unit.capacity;
   const isOccupied = occupants.length > 0;
+  const isMaintenance = unit.status === 'maintenance';
+  const isOutOfService = unit.status === 'out_of_service';
+  const isUnavailable = isMaintenance || isOutOfService;
+  const canAssign = !isFull && !isUnavailable;
 
   const iconMap: Record<string, React.ElementType> = {
     stall: Home,
@@ -129,29 +142,102 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     }
   };
 
+  const handleStatusChange = async () => {
+    if (!statusChangeTarget) return;
+    try {
+      await setUnitStatus({ id: unit.id, status: statusChangeTarget.status });
+    } finally {
+      setStatusChangeTarget(null);
+    }
+  };
+
+  // Status badge for the header area
+  const getStatusBadge = () => {
+    if (isOutOfService) {
+      return (
+        <Badge variant="outline" className="gap-1 bg-destructive/10 text-destructive border-destructive/30">
+          <Ban className="w-3 h-3" />
+          {t('housing.units.status.outOfService')}
+        </Badge>
+      );
+    }
+    if (isMaintenance) {
+      return (
+        <Badge variant="outline" className="gap-1 bg-muted text-muted-foreground border-muted-foreground/30">
+          <Wrench className="w-3 h-3" />
+          {t('housing.units.status.maintenance')}
+        </Badge>
+      );
+    }
+    return null;
+  };
+
   return (
     <>
       <Sheet open={open} onOpenChange={(o) => { if (!o) handleCancelEditing(); onOpenChange(o); }}>
         <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-md">
           <SheetHeader>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Icon className="w-6 h-6 text-primary" />
+              <div className={cn(
+                "w-12 h-12 rounded-xl flex items-center justify-center",
+                isOutOfService ? "bg-destructive/10" : isMaintenance ? "bg-muted" : "bg-primary/10"
+              )}>
+                <Icon className={cn(
+                  "w-6 h-6",
+                  isOutOfService ? "text-destructive" : isMaintenance ? "text-muted-foreground" : "text-primary"
+                )} />
               </div>
               <div className="flex-1">
                 <SheetTitle>{displayName}</SheetTitle>
                 <SheetDescription>{unit.code}</SheetDescription>
               </div>
-              {canManage && !isEditing && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleStartEditing}>
-                      <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{t('housing.units.editRoom')}</TooltipContent>
-                </Tooltip>
-              )}
+              <div className="flex items-center gap-1">
+                {canManage && !isEditing && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleStartEditing}>
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('housing.units.editRoom')}</TooltipContent>
+                  </Tooltip>
+                )}
+                {canManage && !isEditing && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {unit.status !== 'available' && (
+                        <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
+                          <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
+                          {t('housing.units.setAvailable')}
+                        </DropdownMenuItem>
+                      )}
+                      {unit.status !== 'maintenance' && !isOccupied && (
+                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                          status: 'maintenance',
+                          warning: t('housing.units.maintenanceWarning'),
+                        })}>
+                          <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
+                          {t('housing.units.setMaintenance')}
+                        </DropdownMenuItem>
+                      )}
+                      {unit.status !== 'out_of_service' && !isOccupied && (
+                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                          status: 'out_of_service',
+                          warning: t('housing.units.outOfServiceWarning'),
+                        })}>
+                          <Ban className="w-4 h-4 me-2 text-destructive" />
+                          {t('housing.units.setOutOfService')}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
           </SheetHeader>
 
@@ -169,10 +255,10 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                 </div>
                 <div className="flex gap-2 justify-end">
                   <Button variant="ghost" size="sm" onClick={handleCancelEditing}>
-                    <X className="w-3.5 h-3.5 mr-1" /> {t('common.cancel')}
+                    <X className="w-3.5 h-3.5 me-1" /> {t('common.cancel')}
                   </Button>
                   <Button size="sm" onClick={handleSaveEdit}>
-                    <Check className="w-3.5 h-3.5 mr-1" /> {t('common.save')}
+                    <Check className="w-3.5 h-3.5 me-1" /> {t('common.save')}
                   </Button>
                 </div>
               </div>
@@ -184,12 +270,24 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
               <OccupancyBadge 
                 occupancy={unit.occupancy} 
                 current={unit.current_occupants || 0} 
-                capacity={unit.capacity} 
+                capacity={unit.capacity}
+                status={unit.status}
               />
+              {getStatusBadge()}
               {unit.is_demo && (
                 <Badge variant="outline">Demo</Badge>
               )}
             </div>
+
+            {/* Unavailable notice */}
+            {isUnavailable && (
+              <div className={cn(
+                "rounded-lg p-3 text-sm",
+                isOutOfService ? "bg-destructive/5 text-destructive border border-destructive/20" : "bg-muted text-muted-foreground border"
+              )}>
+                {t('housing.units.unitUnavailable')}
+              </div>
+            )}
 
             {unit.area && (
               <div>
@@ -213,7 +311,7 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">{t('housing.occupants.title')}</h3>
-                {canManage && !isFull && (
+                {canManage && canAssign && (
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -234,7 +332,7 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                 <div className="text-center py-8 text-muted-foreground">
                   <Home className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>{t('housing.occupants.noOccupants')}</p>
-                  {canManage && (
+                  {canManage && canAssign && (
                     <Button 
                       variant="link" 
                       className="mt-2"
@@ -346,6 +444,28 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {t('housing.occupants.vacate')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Status Change Confirmation */}
+      <AlertDialog open={!!statusChangeTarget} onOpenChange={(open) => { if (!open) setStatusChangeTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {statusChangeTarget?.status === 'maintenance' && t('housing.units.setMaintenance')}
+              {statusChangeTarget?.status === 'out_of_service' && t('housing.units.setOutOfService')}
+              {statusChangeTarget?.status === 'available' && t('housing.units.setAvailable')}
+            </AlertDialogTitle>
+            {statusChangeTarget?.warning && (
+              <AlertDialogDescription>{statusChangeTarget.warning}</AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleStatusChange}>
+              {t('common.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

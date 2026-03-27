@@ -208,6 +208,28 @@ export function useHousingUnits(branchId?: string, areaId?: string) {
     },
   });
 
+  const setStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+
+      const { error } = await supabase
+        .from('housing_units')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('tenant_id', tenantId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(tGlobal('housing.units.updated'));
+      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
   return {
     units,
     activeUnits,
@@ -217,6 +239,7 @@ export function useHousingUnits(branchId?: string, areaId?: string) {
     createUnit: createMutation.mutateAsync,
     updateUnit: updateMutation.mutateAsync,
     toggleUnitActive: toggleActiveMutation.mutateAsync,
+    setUnitStatus: setStatusMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
   };

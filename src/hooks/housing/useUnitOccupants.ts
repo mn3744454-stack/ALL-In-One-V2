@@ -81,18 +81,14 @@ export function useUnitOccupants(unitId?: string) {
 
       if (error) throw error;
 
-      // Update horse's housing_unit_id
-      await supabase
-        .from('horses')
-        .update({ housing_unit_id: unitId })
-        .eq('id', horseId);
-
+      // horses.housing_unit_id is synced automatically via DB trigger
       return data;
     },
     onSuccess: () => {
       toast.success(tGlobal('housing.occupants.assigned'));
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['horses'] });
     },
     onError: (error) => {
@@ -112,16 +108,13 @@ export function useUnitOccupants(unitId?: string) {
 
       if (error) throw error;
 
-      // Clear horse's housing_unit_id
-      await supabase
-        .from('horses')
-        .update({ housing_unit_id: null })
-        .eq('id', horseId);
+      // horses.housing_unit_id is cleared automatically via DB trigger
     },
     onSuccess: () => {
       toast.success(tGlobal('housing.occupants.vacated'));
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['horses'] });
     },
     onError: (error) => {
