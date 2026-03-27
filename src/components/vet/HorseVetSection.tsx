@@ -166,7 +166,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <Syringe className="w-4 h-4" />
-                    Upcoming Vaccinations
+                    {t('vet.upcomingVaccinations')}
                   </h4>
                   <div className="space-y-2">
                     {upcomingVaccinations.map((vaccination) => {
@@ -202,9 +202,9 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             className="shrink-0"
                           >
                             {isOverdue 
-                              ? 'Overdue' 
+                              ? t('vet.timeLabels.overdue')
                               : isDueToday 
-                                ? 'Today' 
+                                ? t('vet.timeLabels.dueToday')
                                 : formatDistanceToNow(dueDate, { addSuffix: true })
                             }
                           </Badge>
@@ -220,7 +220,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <CalendarClock className="w-4 h-4" />
-                    Open Follow-ups
+                    {t('vet.openFollowups')}
                   </h4>
                   <div className="space-y-2">
                     {openFollowups.map((followup) => {
@@ -240,7 +240,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             {isOverdue && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
                             <div className="min-w-0">
                               <p className="font-medium truncate capitalize">
-                                {followup.type.replace(/_/g, ' ')}
+                                {t(`vet.followupType.${followup.type}`)}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Due: {formatStandardDateTime(dueDate)}
@@ -252,7 +252,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             className="shrink-0"
                           >
                             {isOverdue 
-                              ? 'Overdue' 
+                              ? t('vet.timeLabels.overdue')
                               : formatDistanceToNow(dueDate, { addSuffix: true })
                             }
                           </Badge>

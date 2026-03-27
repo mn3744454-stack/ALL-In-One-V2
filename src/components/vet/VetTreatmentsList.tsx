@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit } from "lucide-react";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { useI18n } from "@/i18n";
+import { tCategory, tSeverity } from "@/i18n/labels";
 
 interface VetTreatmentsListProps {
   treatments: VetTreatment[];
@@ -26,8 +28,9 @@ export function VetTreatmentsList({
   loading, 
   onView, 
   onEdit,
-  emptyMessage = "No treatments found"
+  emptyMessage,
 }: VetTreatmentsListProps) {
+  const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-treatments');
 
   if (loading) {
@@ -46,8 +49,8 @@ export function VetTreatmentsList({
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <Stethoscope className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="font-semibold text-foreground mb-1">No Treatments</h3>
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <h3 className="font-semibold text-foreground mb-1">{t("vet.noTreatments")}</h3>
+        <p className="text-sm text-muted-foreground">{emptyMessage || t("vet.emptyMessages.treatments")}</p>
       </div>
     );
   }
@@ -67,12 +70,12 @@ export function VetTreatmentsList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Horse</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead className="whitespace-nowrap">Requested</TableHead>
+              <TableHead>{t("vet.form.horse")}</TableHead>
+              <TableHead>{t("vet.form.title")}</TableHead>
+              <TableHead>{t("vet.form.category")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead>{t("vet.form.priority")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("vet.detail.requestedAt")}</TableHead>
               <TableHead className="w-[60px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -89,11 +92,11 @@ export function VetTreatmentsList({
                   </div>
                 </TableCell>
                 <TableCell className="font-medium">{treatment.title}</TableCell>
-                <TableCell><Badge variant="outline" className="text-xs capitalize">{treatment.category}</Badge></TableCell>
+                <TableCell><Badge variant="outline" className="text-xs capitalize">{tCategory(treatment.category)}</Badge></TableCell>
                 <TableCell><VetStatusBadge status={treatment.status} /></TableCell>
                 <TableCell>
                   <Badge variant={treatment.priority === 'urgent' ? 'destructive' : treatment.priority === 'high' ? 'default' : 'secondary'} className="text-xs capitalize">
-                    {treatment.priority}
+                    {tSeverity(treatment.priority)}
                   </Badge>
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(treatment.requested_at)}</TableCell>
