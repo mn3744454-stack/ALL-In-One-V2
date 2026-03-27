@@ -301,6 +301,23 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
             };
             if (item.description) existing.items.push(item.description);
             horseGroupMap.set(key, existing);
+          } else if (item.entity_type === "vet" && item.entity_id) {
+            // Resolve vet treatment -> horse
+            const resolved = vetToHorse.get(item.entity_id);
+            if (resolved && resolved.horseId) {
+              const key = `vet_${resolved.horseId}`;
+              const existing = horseGroupMap.get(key) || {
+                horseId: resolved.horseId,
+                horseName: resolved.horseName,
+                samples: [],
+                items: [],
+                source: "vet" as const,
+              };
+              if (item.description) existing.items.push(item.description);
+              horseGroupMap.set(key, existing);
+            } else {
+              if (item.description) noHorseItems.push(item.description);
+            }
           } else {
             if (item.description) noHorseItems.push(item.description);
           }
