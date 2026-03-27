@@ -68,6 +68,12 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Package-awareness check
+  const { isIncluded, planName } = usePlanInclusionCheck(
+    treatment.horse_id,
+    selectedServiceId || undefined
+  );
+
   // Prefill from treatment context + auto-select service
   useEffect(() => {
     if (!open) return;
