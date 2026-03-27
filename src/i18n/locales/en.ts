@@ -2286,8 +2286,9 @@ export const en = {
       includedServices: "Included Services",
       addIncludedService: "Add Included Service",
       searchServices: "Search services...",
-      noServicesFound: "No boarding services found",
-      noBoardingServices: "No boarding services defined yet. Create services with kind 'boarding' first.",
+      noServicesFound: "No services found",
+      noBoardingServices: "No services defined yet. Create services first.",
+      boardingServices: "Boarding Services",
       includedService: "Included",
     },
     checkout: {
