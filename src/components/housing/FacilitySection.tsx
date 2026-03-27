@@ -173,6 +173,8 @@ export function FacilitySection({
     setDetailsOpen(true);
   };
 
+  if (!hasVisibleContent) return null;
+
   return (
     <>
       <div className={cn(
@@ -192,7 +194,6 @@ export function FacilitySection({
                 nameAr={facility.name_ar}
                 primaryClassName="text-sm font-semibold"
                 secondaryClassName="text-xs"
-                inline
               />
               <Badge variant="outline" className="text-[10px] capitalize shrink-0">
                 {getTypeLabel()}
@@ -206,32 +207,38 @@ export function FacilitySection({
             )}
           </div>
 
-          {/* Occupancy fraction — only for housing types with units */}
+          {/* Occupancy + vacancy — only for housing types with units */}
           <div className="flex items-center gap-3 shrink-0">
             {isHousingType && totalCount > 0 && (
-              <div className="text-center">
-                <div className="text-sm font-semibold">
-                  {occupiedCount}/{totalCount}
+              <div className="flex items-center gap-3">
+                <div className="text-center">
+                  <div className={cn("text-sm font-semibold tabular-nums", isHighPressure && "text-amber-600")}>
+                    {occupiedCount}/{totalCount}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground leading-none">
+                    {t('housing.facilities.occupancy')}
+                  </div>
                 </div>
-                <div className="text-[10px] text-muted-foreground leading-none">
-                  {t('housing.facilities.occupancy')}
-                </div>
+                {vacantCount > 0 && (
+                  <div className="text-center">
+                    <div className="text-sm font-semibold text-emerald-600 tabular-nums">
+                      {vacantCount}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground leading-none">
+                      {t('housing.vacancy.vacant')}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Management actions */}
             {canManage && (
               <div className="flex items-center gap-1">
-                {/* Add units button for housing facilities */}
                 {isHousingType && facility.is_active && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => setAddUnitsOpen(true)}
-                      >
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAddUnitsOpen(true)}>
                         <Plus className="w-3.5 h-3.5" />
                       </Button>
                     </TooltipTrigger>
@@ -240,12 +247,7 @@ export function FacilitySection({
                 )}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => onEdit(facility.id)}
-                    >
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(facility.id)}>
                       <Edit className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
@@ -256,10 +258,7 @@ export function FacilitySection({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={cn(
-                        "h-7 w-7",
-                        facility.is_active ? "text-destructive" : "text-emerald-600"
-                      )}
+                      className={cn("h-7 w-7", facility.is_active ? "text-destructive" : "text-emerald-600")}
                       onClick={() => onToggleActive({ id: facility.id, isActive: !facility.is_active })}
                     >
                       <Power className="w-3.5 h-3.5" />
@@ -270,13 +269,7 @@ export function FacilitySection({
               </div>
             )}
 
-            {/* Collapse toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => setCollapsed(!collapsed)}
-            >
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCollapsed(!collapsed)}>
               {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </Button>
           </div>
@@ -300,19 +293,24 @@ export function FacilitySection({
                   <p className="text-sm">{t('housing.units.noUnits')}</p>
                   {canManage && facility.is_active && (
                     <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
-                      <Plus className="w-3 h-3 mr-1" />
+                      <Plus className="w-3 h-3 me-1" />
                       {t('housing.create.addUnitsSubmit')}
                     </Button>
                   )}
                 </div>
+              ) : filteredUnits.length === 0 ? (
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                  {t('housing.search.noResults')}
+                </div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
-                  {units.map((unit) => (
+                  {filteredUnits.map((unit) => (
                     <UnitCell
                       key={unit.id}
                       unit={unit}
                       occupants={occupants}
                       onClick={handleUnitClick}
+                      highlighted={!!searchQuery}
                     />
                   ))}
                 </div>
@@ -324,21 +322,10 @@ export function FacilitySection({
         )}
       </div>
 
-      {/* Unit Detail Sheet */}
-      <UnitDetailsSheet
-        unit={selectedUnit}
-        open={detailsOpen}
-        onOpenChange={setDetailsOpen}
-      />
+      <UnitDetailsSheet unit={selectedUnit} open={detailsOpen} onOpenChange={setDetailsOpen} />
 
-      {/* Add Units Dialog */}
       {isHousingType && (
-        <AddUnitsDialog
-          open={addUnitsOpen}
-          onOpenChange={setAddUnitsOpen}
-          facility={facility}
-          existingUnitCount={totalCount}
-        />
+        <AddUnitsDialog open={addUnitsOpen} onOpenChange={setAddUnitsOpen} facility={facility} existingUnitCount={totalCount} />
       )}
     </>
   );
