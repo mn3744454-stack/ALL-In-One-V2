@@ -166,7 +166,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <Syringe className="w-4 h-4" />
-                    Upcoming Vaccinations
+                    {t('vet.upcomingVaccinations')}
                   </h4>
                   <div className="space-y-2">
                     {upcomingVaccinations.map((vaccination) => {
