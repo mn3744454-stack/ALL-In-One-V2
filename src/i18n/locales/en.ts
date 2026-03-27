@@ -4896,6 +4896,7 @@ export const en = {
     accessRestrictedDesc: "Only owners and managers can manage services.",
     public: "Public",
     private: "Private",
+    parentServiceHint: "Link this plan to a parent service for grouping",
     tabs: {
       catalog: "Service Catalog",
       plans: "Plans & Packages",
@@ -4905,6 +4906,35 @@ export const en = {
       boarding: "Boarding",
       breeding: "Breeding",
       vet: "Veterinary",
+    },
+    types: {
+      emergency: "Emergency",
+      checkup: "Checkup",
+      treatment: "Treatment",
+      surgery: "Surgery",
+      vaccination: "Vaccination",
+      consultation: "Consultation",
+      procedure: "Procedure",
+      follow_up: "Follow-up",
+      dental: "Dental",
+      reproductive: "Reproductive",
+    },
+    billingCycles: {
+      daily: "Daily",
+      weekly: "Weekly",
+      monthly: "Monthly",
+    },
+    table: {
+      type: "Type",
+      kind: "Domain",
+      unitPrice: "Unit Price",
+      plans: "Plans",
+      public: "Public",
+      active: "Active",
+    },
+    emptyState: {
+      title: "No Services Yet",
+      desc: "Create your first service to showcase what your business offers",
     },
     form: {
       addService: "Add Service",

@@ -204,6 +204,7 @@ export const ServiceFormDialog = ({
                         <SelectItem value="service">{t("services.kinds.general")}</SelectItem>
                         <SelectItem value="boarding">{t("services.kinds.boarding")}</SelectItem>
                         <SelectItem value="breeding">{t("services.kinds.breeding")}</SelectItem>
+                        <SelectItem value="vet">{t("services.kinds.vet")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

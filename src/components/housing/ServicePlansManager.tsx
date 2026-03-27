@@ -122,8 +122,8 @@ export function ServicePlansManager() {
                     ) : null;
                   })()}
                   <Badge variant="outline">{plan.base_price} {plan.currency}</Badge>
-                  <Badge variant="outline" className="capitalize">{plan.billing_cycle}</Badge>
-                  <Badge variant="outline" className="capitalize">{plan.plan_type}</Badge>
+                  <Badge variant="outline">{t(`services.billingCycles.${plan.billing_cycle}` as any) || plan.billing_cycle}</Badge>
+                  <Badge variant="outline">{t(`housing.plans.types.${plan.plan_type}` as any) || plan.plan_type}</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -132,7 +132,7 @@ export function ServicePlansManager() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? t('housing.plans.editPlan') : t('housing.plans.addPlan')}</DialogTitle>
           </DialogHeader>
@@ -147,12 +147,15 @@ export function ServicePlansManager() {
             </div>
             <div>
               <Label>{t('housing.plans.parentService')}</Label>
+              <p className="text-xs text-muted-foreground mb-1">{t('services.parentServiceHint')}</p>
               <Select value={form.service_id || '_none'} onValueChange={v => setForm(f => ({ ...f, service_id: v === '_none' ? null : v }))}>
                 <SelectTrigger><SelectValue placeholder={t('housing.plans.noParentService')} /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_none">{t('housing.plans.noParentService')}</SelectItem>
                   {services.filter(s => s.is_active).map(s => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    <SelectItem key={s.id} value={s.id}>
+                      {displayServiceName(s.name, s.name_ar, lang)}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
