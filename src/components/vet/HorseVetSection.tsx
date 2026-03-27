@@ -220,7 +220,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
                     <CalendarClock className="w-4 h-4" />
-                    Open Follow-ups
+                    {t('vet.openFollowups')}
                   </h4>
                   <div className="space-y-2">
                     {openFollowups.map((followup) => {
