@@ -44,8 +44,28 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
 
       if (!tenantId) return result;
 
-      // 1. Admission-scoped billing via billing_links
+      // 1. Admission-scoped billing via billing_links + accrual
       if (admissionId) {
+        // Fetch admission record for rate/date info
+        const { data: admissionData } = await (supabase as any)
+          .from('boarding_admissions')
+          .select('admitted_at, checked_out_at, daily_rate, monthly_rate, billing_cycle')
+          .eq('id', admissionId)
+          .eq('tenant_id', tenantId)
+          .maybeSingle();
+
+        // Compute accrued value
+        if (admissionData) {
+          const days = computeStayDays(admissionData.admitted_at, admissionData.checked_out_at);
+          const accrued = computeAccruedCost(
+            days,
+            admissionData.daily_rate,
+            admissionData.monthly_rate,
+            admissionData.billing_cycle
+          );
+          result.accruedValue = accrued || 0;
+        }
+
         const { data: links } = await supabase
           .from('billing_links')
           .select('link_kind, amount, invoice_id')
@@ -95,6 +115,7 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
           }
         }
         result.admissionBalance = result.admissionBilled - result.admissionPaid;
+        result.unbilledValue = Math.max(result.accruedValue - result.admissionBilled, 0);
       }
 
       // 2. Client-level ledger balance + credit limit
