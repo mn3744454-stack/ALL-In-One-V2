@@ -110,21 +110,26 @@ export function VaccinationsList({
                     </span>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{vaccination.administered_date ? formatStandardDate(vaccination.administered_date) : '—'}</TableCell>
-                  <TableCell className="w-[60px]">
-                    {vaccination.status === 'due' && (
-                      <div className="flex gap-1">
-                        {onMarkAdministered && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success hover:bg-success/10" onClick={() => onMarkAdministered(vaccination.id)}>
-                            <CheckCircle className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                        {onCancel && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onCancel(vaccination.id)}>
-                            <XCircle className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                  <TableCell className="w-[100px]">
+                    <div className="flex gap-1">
+                      {showBilling && vaccination.status === 'done' && (
+                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                      )}
+                      {vaccination.status === 'due' && (
+                        <>
+                          {onMarkAdministered && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success hover:bg-success/10" onClick={() => onMarkAdministered(vaccination.id)}>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onCancel && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onCancel(vaccination.id)}>
+                              <XCircle className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
