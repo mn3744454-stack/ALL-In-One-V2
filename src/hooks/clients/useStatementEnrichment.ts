@@ -205,41 +205,57 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
       // 4c. Breeding resolution — uses description from invoice_items directly
       // Breeding items will be resolved from their description string at display time
 
-      // 4d. Batch fetch vet treatments + stable horses for vet entity type
+      // 4d. Batch fetch vet treatments + vaccinations + stable horses for vet entity type
       const vetToHorse = new Map<string, { horseId: string; horseName: string }>();
 
       if (vetIds.length > 0) {
+        // Try treatments first
         const { data: treatments } = await supabase
           .from("vet_treatments")
           .select("id, horse_id")
           .in("id", vetIds);
 
-        if (treatments && treatments.length > 0) {
-          const vetHorseIds = [...new Set((treatments as any[]).map((t) => t.horse_id).filter(Boolean))];
+        const resolvedTreatmentIds = new Set((treatments || []).map((t: any) => t.id));
 
-          const vetHorseNameMap = new Map<string, { name: string; nameAr: string }>();
-          if (vetHorseIds.length > 0) {
-            const { data: horses } = await supabase
-              .from("horses")
-              .select("id, name, name_ar")
-              .in("id", vetHorseIds);
+        // Any vet entity_ids not found in treatments are vaccinations
+        const unresolvedIds = vetIds.filter(id => !resolvedTreatmentIds.has(id));
 
-            horses?.forEach((h: any) => {
-              vetHorseNameMap.set(h.id, { name: h.name || "", nameAr: h.name_ar || "" });
-            });
-          }
+        // Fetch vaccinations for unresolved IDs
+        let vaccinationRecords: any[] = [];
+        if (unresolvedIds.length > 0) {
+          const { data: vaccinations } = await supabase
+            .from("horse_vaccinations")
+            .select("id, horse_id")
+            .in("id", unresolvedIds);
+          vaccinationRecords = vaccinations || [];
+        }
 
-          (treatments as any[]).forEach((tr) => {
-            const horseData = tr.horse_id ? vetHorseNameMap.get(tr.horse_id) : null;
-            const displayName = horseData
-              ? (lang === "ar" ? (horseData.nameAr || horseData.name) : (horseData.name || horseData.nameAr))
-              : "";
-            vetToHorse.set(tr.id, {
-              horseId: tr.horse_id || "",
-              horseName: displayName,
-            });
+        // Combine all horse_ids from both sources
+        const allVetRecords = [...(treatments || []) as any[], ...vaccinationRecords];
+        const vetHorseIds = [...new Set(allVetRecords.map((r) => r.horse_id).filter(Boolean))];
+
+        const vetHorseNameMap = new Map<string, { name: string; nameAr: string }>();
+        if (vetHorseIds.length > 0) {
+          const { data: horses } = await supabase
+            .from("horses")
+            .select("id, name, name_ar")
+            .in("id", vetHorseIds);
+
+          horses?.forEach((h: any) => {
+            vetHorseNameMap.set(h.id, { name: h.name || "", nameAr: h.name_ar || "" });
           });
         }
+
+        allVetRecords.forEach((rec) => {
+          const horseData = rec.horse_id ? vetHorseNameMap.get(rec.horse_id) : null;
+          const displayName = horseData
+            ? (lang === "ar" ? (horseData.nameAr || horseData.name) : (horseData.name || horseData.nameAr))
+            : "";
+          vetToHorse.set(rec.id, {
+            horseId: rec.horse_id || "",
+            horseName: displayName,
+          });
+        });
       }
 
       // 5. Build enriched data per entry
