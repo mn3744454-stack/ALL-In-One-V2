@@ -56,7 +56,6 @@ export function TreatmentDetailSheet({
 }: TreatmentDetailSheetProps) {
   const { t } = useI18n();
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
-  const { t } = useI18n();
 
   if (!treatment) return null;
 
