@@ -137,6 +137,19 @@ export function useVetTreatments(filters: VetTreatmentFilters = {}) {
         .single();
 
       if (error) throw error;
+
+      // S2: Auto-create supplier payable for external treatments
+      if (data.service_mode === 'external' && (data.external_provider_name || data.external_provider_id) && tenantId) {
+        createSupplierPayableForExternal({
+          tenantId,
+          sourceType: "vet_treatment",
+          sourceId: treatment.id,
+          supplierName: data.external_provider_name || "External Provider",
+          supplierId: data.external_provider_id || null,
+          description: data.title,
+        }).catch(err => console.error("Auto-payable creation failed:", err));
+      }
+
       return treatment;
     },
     onSuccess: () => {
