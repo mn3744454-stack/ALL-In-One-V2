@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { isPast } from "date-fns";
+import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
 
 // DB stores: 'due' | 'done' | 'skipped' - 'overdue' is UI-calculated
 export type VaccinationStatus = 'due' | 'done' | 'skipped';
