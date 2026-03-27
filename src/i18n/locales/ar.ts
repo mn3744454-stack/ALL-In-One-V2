@@ -2410,12 +2410,13 @@ export const ar = {
     scheduleVaccination: "جدولة تطعيم",
     filterByHorse: "تصفية حسب الحصان",
     allHorses: "جميع الخيول",
+    dueLabel: "الاستحقاق",
     tabs: {
       treatments: "العلاجات",
       vaccinations: "التطعيمات",
       visits: "الزيارات",
       followups: "المتابعات",
-      settings: "الإعدادات",
+      programs: "برامج التطعيم",
     },
     emptyMessages: {
       treatments: "لا توجد علاجات بعد. أنشئ أول علاج للبدء.",
