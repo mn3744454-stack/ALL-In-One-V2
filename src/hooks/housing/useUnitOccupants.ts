@@ -114,6 +114,7 @@ export function useUnitOccupants(unitId?: string) {
       toast.success(tGlobal('housing.occupants.vacated'));
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['horses'] });
     },
     onError: (error) => {
