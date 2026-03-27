@@ -8,6 +8,8 @@ interface UnitCellProps {
   unit: InlineUnit;
   occupants: InlineOccupant[];
   onClick?: (unit: InlineUnit) => void;
+  /** When true, adds a subtle highlight ring to indicate search match */
+  highlighted?: boolean;
 }
 
 /**
