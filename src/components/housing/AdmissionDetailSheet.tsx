@@ -25,13 +25,15 @@ import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { differenceInDays } from "date-fns";
 import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
+import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
-  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft, Receipt
+  Pencil, X, Check, Package, ArrowLeftRight, ArrowRight, ArrowLeft, Receipt,
+  TrendingUp, FileWarning
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
@@ -43,8 +45,18 @@ interface AdmissionDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Warning check key → translation key mapping
+const CHECK_TRANSLATION_MAP: Record<string, string> = {
+  horse_exists: 'housing.admissions.checks.horseRequired',
+  branch_selected: 'housing.admissions.checks.branchRequired',
+  client_assigned: 'housing.admissions.checks.noClient',
+  housing_assigned: 'housing.admissions.checks.noUnit',
+  emergency_contact: 'housing.admissions.checks.noEmergency',
+  rate_configured: 'housing.admissions.checks.noRate',
+};
+
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
@@ -79,7 +91,8 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   });
 
   const hasBilledInvoice = linkedInvoices.length > 0;
-  const financiallyActiveInvoices = linkedInvoices.filter(inv => !["draft", "reviewed", "cancelled"].includes(inv.status));
+  const FINANCIALLY_ACTIVE = ['approved', 'shared', 'paid', 'overdue', 'partial', 'issued'];
+  const financiallyActiveInvoices = linkedInvoices.filter(inv => FINANCIALLY_ACTIVE.includes(inv.status));
   const totalBilled = financiallyActiveInvoices.reduce((s, inv) => s + (inv.total_amount || 0), 0);
   const allPaid = hasBilledInvoice && linkedInvoices.every(inv => inv.status === "paid");
 
@@ -106,8 +119,8 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
         .from('horse_movements')
         .select(`
           id, movement_type, movement_status, movement_at, reason, notes,
-          from_location:branches!horse_movements_from_location_id_fkey(id, name),
-          to_location:branches!horse_movements_to_location_id_fkey(id, name),
+          from_location:branches!horse_movements_from_location_id_fkey(id, name, name_ar),
+          to_location:branches!horse_movements_to_location_id_fkey(id, name, name_ar),
           from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
           to_unit:housing_units!horse_movements_to_unit_id_fkey(id, code, name)
         `)
@@ -198,25 +211,20 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
     }
   };
 
-  // Calculate stay duration
-  const stayDuration = admission ? differenceInDays(
-    admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
-    new Date(admission.admitted_at)
-  ) : 0;
-
-  // Estimated cost
-  const estimatedCost = admission ? (() => {
-    if (admission.monthly_rate && stayDuration > 0) {
-      return Math.round((admission.monthly_rate / 30) * stayDuration * 100) / 100;
-    }
-    if (admission.daily_rate && stayDuration > 0) {
-      return admission.daily_rate * stayDuration;
-    }
-    return null;
-  })() : null;
+  // Calculate stay duration and accrued cost
+  const stayDuration = admission ? computeStayDays(admission.admitted_at, admission.checked_out_at) : 0;
+  const accruedCost = admission ? computeAccruedCost(stayDuration, admission.daily_rate, admission.monthly_rate, admission.billing_cycle) : null;
+  const unbilledAmount = accruedCost !== null ? Math.max(accruedCost - totalBilled, 0) : 0;
 
   const branchUnits = admission ? units.filter(u => u.branch_id === admission.branch_id && u.is_active) : [];
   const activeClients = useMemo(() => clients.filter(c => c.status === 'active'), [clients]);
+
+  // Translate invoice status
+  const getInvoiceStatusLabel = (status: string) => {
+    const statusKey = `housing.admissions.invoiceStatuses.${status}`;
+    const translated = t(statusKey);
+    return translated !== statusKey ? translated : status;
+  };
 
   return (
     <>
@@ -245,7 +253,11 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h3 className="font-semibold">{admission.horse?.name || t('common.unknown')}</h3>
+                      <BilingualName
+                        name={admission.horse?.name}
+                        nameAr={admission.horse?.name_ar}
+                        primaryClassName="font-semibold"
+                      />
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <StatusBadge status={admission.status} t={t} />
                         {admission.reason && (
@@ -260,70 +272,108 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {stayDuration} {t('housing.admissions.detail.days')}
+                      {formatStayDuration(stayDuration, lang)}
                     </span>
-                    {estimatedCost !== null && (
+                    {accruedCost !== null && (
                       <span className="flex items-center gap-1">
                         <CreditCard className="h-3 w-3" />
-                        ~{estimatedCost} {admission.rate_currency}
+                        ~{accruedCost.toFixed(0)} {admission.rate_currency}
                       </span>
                     )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Warnings — actionable */}
+              {/* Warnings — key-based rendering */}
               {warnings.length > 0 && (
                 <Card className="border-amber-300 bg-amber-50/50 dark:bg-amber-950/20">
                   <CardContent className="p-3 space-y-2">
-                    {warnings.map(([key, val]: [string, any]) => (
-                      <div key={key} className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
-                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                          <span>{val.message}</span>
+                    {warnings.map(([key, val]: [string, any]) => {
+                      const translationKey = CHECK_TRANSLATION_MAP[key];
+                      const message = translationKey ? t(translationKey) : (val.message || key);
+                      return (
+                        <div key={key} className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-400">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                            <span>{message}</span>
+                          </div>
+                          {isEditable && canUpdate && key === 'housing_assigned' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs shrink-0"
+                              onClick={() => setEditingField('unit_id')}
+                            >
+                              {t('housing.admissions.detail.assignUnit')}
+                            </Button>
+                          )}
+                          {isEditable && canUpdate && key === 'emergency_contact' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs shrink-0"
+                              onClick={() => startEdit('emergency_contact', '')}
+                            >
+                              {t('housing.admissions.detail.addContact')}
+                            </Button>
+                          )}
+                          {isEditable && canUpdate && key === 'rate_configured' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs shrink-0"
+                              onClick={() => startNumEdit('daily_rate', admission.daily_rate)}
+                            >
+                              {t('housing.admissions.detail.setRate')}
+                            </Button>
+                          )}
+                          {isEditable && canUpdate && key === 'client_assigned' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs shrink-0"
+                              onClick={() => setEditingField('client_id')}
+                            >
+                              {t('housing.admissions.detail.assignClient')}
+                            </Button>
+                          )}
                         </div>
-                        {isEditable && canUpdate && key === 'no_unit' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs shrink-0"
-                            onClick={() => setEditingField('unit_id')}
-                          >
-                            {t('housing.admissions.detail.assignUnit')}
-                          </Button>
-                        )}
-                        {isEditable && canUpdate && key === 'no_emergency_contact' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs shrink-0"
-                            onClick={() => startEdit('emergency_contact', '')}
-                          >
-                            {t('housing.admissions.detail.addContact')}
-                          </Button>
-                        )}
-                        {isEditable && canUpdate && key === 'no_rate' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs shrink-0"
-                            onClick={() => startNumEdit('daily_rate', admission.daily_rate)}
-                          >
-                            {t('housing.admissions.detail.setRate')}
-                          </Button>
-                        )}
-                        {isEditable && canUpdate && key === 'no_client' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-xs shrink-0"
-                            onClick={() => setEditingField('client_id')}
-                          >
-                            {t('housing.admissions.detail.assignClient')}
-                          </Button>
-                        )}
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Financial Summary Card */}
+              {accruedCost !== null && accruedCost > 0 && (
+                <Card>
+                  <CardHeader className="p-4 pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      {t('housing.admissions.financial.summary')}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">{t('housing.admissions.financial.accrued')}</span>
+                        <span className="font-medium text-sm">{accruedCost.toFixed(2)} {admission.rate_currency}</span>
                       </div>
-                    ))}
+                      <div>
+                        <span className="text-muted-foreground block">{t('housing.admissions.financial.invoiced')}</span>
+                        <span className="font-medium text-sm">{totalBilled.toFixed(2)} {admission.rate_currency}</span>
+                      </div>
+                      {unbilledAmount > 0 && (
+                        <div className="col-span-2">
+                          <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
+                            <FileWarning className="h-3.5 w-3.5 shrink-0" />
+                            <span className="text-xs">
+                              {t('housing.admissions.financial.unbilled')}: <strong>{unbilledAmount.toFixed(2)} {admission.rate_currency}</strong>
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -359,20 +409,35 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={User}
                       label={t('housing.admissions.detail.client')}
-                      value={admission.client?.name || t('housing.admissions.detail.notAssigned')}
+                      value={
+                        admission.client
+                          ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
+                          : <span>{t('housing.admissions.detail.notAssigned')}</span>
+                      }
                       canEdit={isEditable && canUpdate}
                       onEdit={() => setEditingField('client_id')}
                     />
                   )}
 
                   {admission.branch && (
-                    <DetailRow icon={Building2} label={t('housing.admissions.detail.branch')} value={admission.branch.name} />
+                    <DetailRow
+                      icon={Building2}
+                      label={t('housing.admissions.detail.branch')}
+                      value={<BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="font-medium text-sm" inline />}
+                    />
                   )}
                   {admission.area && (
                     <DetailRow 
                       icon={Building2} 
                       label={t('housing.admissions.detail.facility')} 
-                      value={`${admission.area.name}${admission.area.facility_type ? ` (${t(`housing.facilityTypes.${admission.area.facility_type}`)})` : ''}`} 
+                      value={
+                        <span>
+                          <BilingualName name={admission.area.name} nameAr={admission.area.name_ar} primaryClassName="font-medium text-sm" inline />
+                          {admission.area.facility_type && (
+                            <span className="text-muted-foreground text-xs ms-1">({t(`housing.facilityTypes.${admission.area.facility_type}`)})</span>
+                          )}
+                        </span>
+                      }
                     />
                   )}
 
@@ -406,7 +471,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={DoorOpen}
                       label={t('housing.admissions.detail.unit')}
-                      value={admission.unit?.code || t('housing.admissions.detail.notAssigned')}
+                      value={<span className="font-medium">{admission.unit?.code || t('housing.admissions.detail.notAssigned')}</span>}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => setEditingField('unit_id')}
                     />
@@ -418,13 +483,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     const planLabel = plan ? displayServiceName(plan.name, plan.name_ar) : admission.plan_id;
                     return (
                       <>
-                        <DetailRow icon={Package} label={t('housing.plans.title')} value={planLabel} />
+                        <DetailRow icon={Package} label={t('housing.plans.title')} value={<span className="font-medium">{planLabel}</span>} />
                         {plan && <PlanIncludedServicesDisplay includes={plan.includes} />}
                       </>
                     );
                   })()}
 
-                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={formatStandardDateTime(admission.admitted_at)} />
+                  <DetailRow icon={Calendar} label={t('housing.admissions.detail.admittedAt')} value={<span className="font-medium">{formatStandardDateTime(admission.admitted_at)}</span>} />
 
                   {/* Expected departure — editable */}
                   {editingField === 'expected_departure' ? (
@@ -447,7 +512,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={Calendar}
                       label={t('housing.admissions.detail.expectedDeparture')}
-                      value={formatStandardDate(admission.expected_departure)}
+                      value={<span className="font-medium">{formatStandardDate(admission.expected_departure)}</span>}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => startEdit('expected_departure', admission.expected_departure?.split('T')[0] || '')}
                     />
@@ -466,7 +531,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   ) : null}
 
                   {admission.checked_out_at && (
-                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={formatStandardDateTime(admission.checked_out_at)} />
+                    <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={<span className="font-medium">{formatStandardDateTime(admission.checked_out_at)}</span>} />
                   )}
 
                   {/* Rate — editable */}
@@ -527,9 +592,9 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       icon={CreditCard}
                       label={t('housing.admissions.detail.rate')}
                       value={
-                        (admission.monthly_rate || admission.daily_rate)
-                          ? `${admission.daily_rate ? `${admission.daily_rate}/${t('housing.admissions.wizard.cycleDaily').toLowerCase()}` : ''}${admission.daily_rate && admission.monthly_rate ? ' · ' : ''}${admission.monthly_rate ? `${admission.monthly_rate}/${t('housing.admissions.wizard.cycleMonthly').toLowerCase()}` : ''} ${admission.rate_currency}`
-                          : t('housing.admissions.detail.notAssigned')
+                        <span className="font-medium">
+                          {formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang) || t('housing.admissions.detail.notAssigned')}
+                        </span>
                       }
                       canEdit={isEditable && canUpdate}
                       onEdit={() => {
@@ -566,7 +631,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={FileText}
                       label={t('housing.admissions.detail.instructions')}
-                      value={admission.special_instructions || '—'}
+                      value={<span className="font-medium">{admission.special_instructions || '—'}</span>}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => startEdit('special_instructions', admission.special_instructions || '')}
                     />
@@ -593,7 +658,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <EditableDetailRow
                       icon={User}
                       label={t('housing.admissions.detail.emergencyContact')}
-                      value={admission.emergency_contact || '—'}
+                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => startEdit('emergency_contact', admission.emergency_contact || '')}
                     />
@@ -645,7 +710,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 </Card>
               )}
 
-              {/* Status History */}
+              {/* Status History — improved with from→to */}
               {history.length > 0 && (
                 <Card>
                   <CardHeader className="pb-2">
@@ -657,14 +722,23 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                   <CardContent className="p-4 pt-0">
                     <div className="space-y-2">
                       {history.map((h: any) => (
-                        <div key={h.id} className="flex items-center gap-2 text-sm">
+                        <div key={h.id} className="flex items-center gap-2 text-sm flex-wrap">
                           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-                          <span className="text-muted-foreground">{formatStandardDateTime(h.created_at)}</span>
-                          <span>→ <Badge variant="outline" className="text-xs capitalize">{h.to_status}</Badge></span>
+                          <span className="text-muted-foreground text-xs">{formatStandardDateTime(h.created_at)}</span>
+                          {h.from_status && (
+                            <>
+                              <Badge variant="outline" className="text-[10px]">{t(`housing.admissions.status.${h.from_status}`)}</Badge>
+                              <span className="text-muted-foreground">→</span>
+                            </>
+                          )}
+                          <Badge variant="outline" className="text-[10px]">{t(`housing.admissions.status.${h.to_status}`)}</Badge>
                           {h.changed_by_profile?.full_name && (
                             <span className="text-muted-foreground text-xs">
                               {t('housing.admissions.detail.by')} {h.changed_by_profile.full_name}
                             </span>
+                          )}
+                          {h.reason && (
+                            <span className="text-muted-foreground text-xs truncate max-w-[150px]">— {h.reason}</span>
                           )}
                         </div>
                       ))}
@@ -711,9 +785,9 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="font-medium">{inv.invoice_number}</span>
                             <Badge variant="outline" className={cn(
-                              "text-[10px] capitalize",
+                              "text-[10px]",
                               ["draft", "reviewed"].includes(inv.status) && "text-muted-foreground"
-                            )}>{inv.status}</Badge>
+                            )}>{getInvoiceStatusLabel(inv.status)}</Badge>
                           </div>
                           <span className={cn(
                             "font-medium",
@@ -789,6 +863,10 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
             setCheckoutOpen(false);
             onOpenChange(false);
           }}
+          onGenerateInvoice={() => {
+            setCheckoutOpen(false);
+            setInvoiceDialogOpen(true);
+          }}
         />
       )}
 
@@ -823,13 +901,13 @@ function StatusBadge({ status, t }: { status: string; t: (key: string) => string
   }
 }
 
-function DetailRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+function DetailRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2 text-sm">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-      <div>
+      <div className="flex-1 min-w-0">
         <span className="text-muted-foreground">{label}: </span>
-        <span className="font-medium">{value}</span>
+        {value}
       </div>
     </div>
   );
@@ -838,16 +916,16 @@ function DetailRow({ icon: Icon, label, value }: { icon: React.ElementType; labe
 function EditableDetailRow({ icon: Icon, label, value, canEdit, onEdit }: {
   icon: React.ElementType;
   label: string;
-  value: string;
+  value: React.ReactNode;
   canEdit?: boolean;
   onEdit: () => void;
 }) {
   return (
     <div className="flex items-start gap-2 text-sm group">
       <Icon className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <span className="text-muted-foreground">{label}: </span>
-        <span className="font-medium">{value}</span>
+        {value}
       </div>
       {canEdit && (
         <Button
