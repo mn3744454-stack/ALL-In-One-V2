@@ -2198,6 +2198,8 @@ export const en = {
         outstandingAmount: "Outstanding amount",
         confirmOverride: "Override and Proceed",
         overrideAccepted: "Financial override confirmed",
+        unbilledSuggestion: "There is unbilled boarding value. Consider generating an invoice before checkout.",
+        unbilledAmount: "Unbilled amount",
       },
     },
     careNotes: {
