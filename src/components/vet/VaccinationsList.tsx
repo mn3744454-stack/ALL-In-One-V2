@@ -11,6 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { BilingualName } from "@/components/ui/BilingualName";
+import { useI18n } from "@/i18n";
+import { tScope } from "@/i18n/labels";
 
 interface VaccinationsListProps {
   vaccinations: HorseVaccination[];
@@ -25,8 +28,9 @@ export function VaccinationsList({
   loading, 
   onMarkAdministered, 
   onCancel,
-  emptyMessage = "No vaccinations scheduled"
+  emptyMessage,
 }: VaccinationsListProps) {
+  const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-vaccinations');
 
   if (loading) {
@@ -45,7 +49,7 @@ export function VaccinationsList({
         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
           <Syringe className="w-6 h-6 text-muted-foreground" />
         </div>
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <p className="text-sm text-muted-foreground">{emptyMessage || t("vet.emptyMessages.vaccinations")}</p>
       </div>
     );
   }
@@ -65,12 +69,12 @@ export function VaccinationsList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Horse</TableHead>
-              <TableHead>Vaccine</TableHead>
-              <TableHead>Mode</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="whitespace-nowrap">Due Date</TableHead>
-              <TableHead className="whitespace-nowrap">Administered</TableHead>
+              <TableHead>{t("vet.form.horse")}</TableHead>
+              <TableHead>{t("vet.vaccination.vaccine")}</TableHead>
+              <TableHead>{t("vet.form.serviceMode")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("vet.vaccination.dueDate")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("vet.timeLabels.administered")}</TableHead>
               <TableHead className="w-[60px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -85,11 +89,13 @@ export function VaccinationsList({
                         <AvatarImage src={vaccination.horse?.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">{vaccination.horse?.name?.[0] || '?'}</AvatarFallback>
                       </Avatar>
-                      <span className="truncate max-w-[120px]">{vaccination.horse?.name || '—'}</span>
+                      <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} layout="inline" primaryClassName="text-sm truncate max-w-[120px]" />
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{vaccination.program?.name || '—'}</TableCell>
-                  <TableCell><Badge variant="outline" className="text-xs">{vaccination.service_mode === 'internal' ? 'Internal' : 'External'}</Badge></TableCell>
+                  <TableCell className="font-medium">
+                    <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} layout="inline" primaryClassName="text-sm" />
+                  </TableCell>
+                  <TableCell><Badge variant="outline" className="text-xs">{tScope(vaccination.service_mode)}</Badge></TableCell>
                   <TableCell><VetStatusBadge status={vaccination.status} /></TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     <span className={isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}>
@@ -142,18 +148,18 @@ export function VaccinationsList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-foreground truncate">
-                            {vaccination.program?.name || "Unknown Vaccine"}
+                            <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} layout="inline" />
                           </h4>
                           <VetStatusBadge status={vaccination.status} />
                         </div>
                         
                         <p className="text-sm text-muted-foreground mb-2">
-                          {vaccination.horse?.name}
+                          <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} layout="inline" />
                         </p>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline" className="text-xs">
-                            {vaccination.service_mode === 'internal' ? 'Internal' : 'External'}
+                            {tScope(vaccination.service_mode)}
                           </Badge>
                           
                           <span className={`flex items-center gap-1 text-xs ${
@@ -164,14 +170,14 @@ export function VaccinationsList({
                           }`}>
                             {isOverdue && <AlertTriangle className="w-3 h-3" />}
                             <Calendar className="w-3 h-3" />
-                            {isOverdue ? "Overdue: " : isDueToday ? "Due Today: " : isDueTomorrow ? "Tomorrow: " : "Due: "}
+                            {isOverdue ? `${t("vet.timeLabels.overdue")}: ` : isDueToday ? `${t("vet.timeLabels.dueToday")}: ` : isDueTomorrow ? `${t("vet.timeLabels.tomorrow")}: ` : `${t("vet.timeLabels.due")}: `}
                             {formatStandardDate(dueDate)}
                           </span>
 
                           {vaccination.administered_date && (
                             <span className="flex items-center gap-1 text-xs text-success">
                               <CheckCircle className="w-3 h-3" />
-                              Administered: {formatStandardDate(vaccination.administered_date)}
+                              {t("vet.timeLabels.administered")}: {formatStandardDate(vaccination.administered_date)}
                             </span>
                           )}
                         </div>
@@ -192,7 +198,6 @@ export function VaccinationsList({
                             size="icon" 
                             className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
                             onClick={() => onMarkAdministered(vaccination.id)}
-                            title="Mark as administered"
                           >
                             <CheckCircle className="w-4 h-4" />
                           </Button>
@@ -203,7 +208,6 @@ export function VaccinationsList({
                             size="icon" 
                             className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                             onClick={() => onCancel(vaccination.id)}
-                            title="Cancel vaccination"
                           >
                             <XCircle className="w-4 h-4" />
                           </Button>

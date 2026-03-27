@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { useI18n } from "@/i18n";
 
 interface VetFollowupsListProps {
   followups: VetFollowup[];
@@ -20,23 +21,26 @@ interface VetFollowupsListProps {
   emptyMessage?: string;
 }
 
-const typeLabels: Record<string, string> = {
-  followup: "Follow-up",
-  recheck: "Recheck",
-  medication_refill: "Medication Refill",
-  wound_check: "Wound Check",
-  suture_removal: "Suture Removal",
-  lab_result: "Lab Result",
-};
-
 export function VetFollowupsList({ 
   followups, 
   loading, 
   onMarkDone, 
   onCancel,
-  emptyMessage = "No follow-ups scheduled"
+  emptyMessage,
 }: VetFollowupsListProps) {
+  const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-followups');
+
+  const getTypeLabel = (type: string): string => {
+    return t(`vet.followupType.${type}`);
+  };
+
+  const getTimeLabel = (dueDate: Date, isOverdue: boolean, isDueToday: boolean, isDueTomorrow: boolean): string => {
+    if (isOverdue) return `${t("vet.timeLabels.overdue")}: `;
+    if (isDueToday) return `${t("vet.timeLabels.dueToday")}: `;
+    if (isDueTomorrow) return `${t("vet.timeLabels.tomorrow")}: `;
+    return "";
+  };
 
   if (loading) {
     return (
@@ -54,7 +58,7 @@ export function VetFollowupsList({
         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
           <Calendar className="w-6 h-6 text-muted-foreground" />
         </div>
-        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <p className="text-sm text-muted-foreground">{emptyMessage || t("vet.emptyMessages.followups")}</p>
       </div>
     );
   }
@@ -74,11 +78,11 @@ export function VetFollowupsList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Horse</TableHead>
-              <TableHead>Treatment</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="whitespace-nowrap">Due Date</TableHead>
+              <TableHead>{t("vet.form.horse")}</TableHead>
+              <TableHead>{t("vet.form.title")}</TableHead>
+              <TableHead>{t("common.type")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("vet.vaccination.dueDate")}</TableHead>
               <TableHead className="w-[60px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -97,7 +101,7 @@ export function VetFollowupsList({
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{followup.treatment?.title || '—'}</TableCell>
-                  <TableCell><Badge variant="secondary" className="text-xs">{typeLabels[followup.type] || followup.type}</Badge></TableCell>
+                  <TableCell><Badge variant="secondary" className="text-xs">{getTypeLabel(followup.type)}</Badge></TableCell>
                   <TableCell><VetStatusBadge status={followup.status} /></TableCell>
                   <TableCell className="whitespace-nowrap text-sm">
                     <span className={isOverdue ? "text-destructive font-medium" : "text-muted-foreground"}>
@@ -149,7 +153,7 @@ export function VetFollowupsList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-foreground truncate">
-                            {followup.treatment?.title || "Unknown Treatment"}
+                            {followup.treatment?.title || "—"}
                           </h4>
                           <VetStatusBadge status={followup.status} />
                         </div>
@@ -160,7 +164,7 @@ export function VetFollowupsList({
 
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="secondary" className="text-xs">
-                            {typeLabels[followup.type] || followup.type}
+                            {getTypeLabel(followup.type)}
                           </Badge>
                           
                           <span className={`flex items-center gap-1 text-xs ${
@@ -171,7 +175,7 @@ export function VetFollowupsList({
                           }`}>
                             {isOverdue && <AlertTriangle className="w-3 h-3" />}
                             <Calendar className="w-3 h-3" />
-                            {isOverdue ? "Overdue: " : isDueToday ? "Today: " : isDueTomorrow ? "Tomorrow: " : ""}
+                            {getTimeLabel(dueDate, isOverdue, isDueToday, isDueTomorrow)}
                             {formatStandardDate(dueDate)}
                           </span>
                         </div>
