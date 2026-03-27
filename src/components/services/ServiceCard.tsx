@@ -109,7 +109,7 @@ export const ServiceCard = ({
                 {linkedPlanCount > 0 && (
                   <Badge variant="secondary" className="text-xs gap-1">
                     <Layers className="w-3 h-3" />
-                    {linkedPlanCount} {linkedPlanCount === 1 ? "plan" : "plans"}
+                    {linkedPlanCount} {t('services.table.plans')}
                   </Badge>
                 )}
               </div>
