@@ -38,6 +38,8 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<OccupancyFilter>('all');
   const [editFormData, setEditFormData] = useState({
     name: '',
     name_ar: '',
@@ -64,6 +66,29 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
 
   const facilityIds = useMemo(() => areas.filter(a => a.is_active).map(a => a.id), [areas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
+
+  // Aggregate stats across all visible facilities
+  const aggregateStats = useMemo(() => {
+    let total = 0, vacant = 0, occupied = 0, maintenance = 0, outOfService = 0, isolation = 0;
+    for (const fid of facilityIds) {
+      const fd = facilityUnitsMap[fid];
+      if (!fd) continue;
+      for (const unit of fd.units) {
+        total++;
+        const unitOccupants = fd.occupants.filter(o => o.unit_id === unit.id);
+        const isOcc = unitOccupants.length > 0;
+        if (unit.status === 'maintenance') maintenance++;
+        else if (unit.status === 'out_of_service') outOfService++;
+        else if (!isOcc) vacant++;
+        else occupied++;
+        if (unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay') isolation++;
+      }
+    }
+    return { total, vacant, occupied, maintenance, outOfService, isolation };
+  }, [facilityIds, facilityUnitsMap]);
+
+  // Normalize search query for matching
+  const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const getEditTypeLabel = useCallback(() => {
     const ft = editFormData.facility_type;
