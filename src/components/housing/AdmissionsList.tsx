@@ -50,7 +50,8 @@ interface AdmissionsListProps {
 }
 
 export function AdmissionsList({ branchId }: AdmissionsListProps) {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
+  const isRTL = dir === 'rtl';
   const { hasPermission } = usePermissions();
   const canCreate = hasPermission('boarding.admission.create');
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('housing-admissions');
