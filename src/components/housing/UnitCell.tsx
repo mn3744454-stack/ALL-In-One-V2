@@ -62,6 +62,7 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
         borderColor,
         bgColor,
         isUnavailable && "opacity-75",
+        highlighted && "ring-2 ring-primary/40",
       )}
     >
       {/* Status icon overlay for special states */}
