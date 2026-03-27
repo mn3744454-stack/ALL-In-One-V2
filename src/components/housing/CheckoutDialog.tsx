@@ -103,8 +103,8 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess, onGen
 
   return (
     <AlertDialog open={open} onOpenChange={(o) => { if (!o) setOverrideConfirmed(false); onOpenChange(o); }}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
+      <AlertDialogContent className="max-h-[90vh] flex flex-col">
+        <AlertDialogHeader className="shrink-0">
           <AlertDialogTitle className="flex items-center gap-2">
             {isPending
               ? t('housing.admissions.checkout.confirmTitle')
@@ -119,7 +119,7 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess, onGen
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 overflow-y-auto flex-1 min-h-0 pe-1">
           {/* Admission summary */}
           <div className="text-sm space-y-1">
             <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export function CheckoutDialog({ admission, open, onOpenChange, onSuccess, onGen
           )}
         </div>
 
-        <AlertDialogFooter>
+        <AlertDialogFooter className="shrink-0">
           <AlertDialogCancel disabled={isProcessing}>{t('common.cancel')}</AlertDialogCancel>
           {isPending ? (
             <AlertDialogAction onClick={handleConfirm} disabled={actionDisabled}>
