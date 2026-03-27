@@ -6,6 +6,10 @@ export interface AdmissionFinancialSummary {
   admissionBilled: number;
   admissionPaid: number;
   admissionBalance: number;
+  /** Accrued boarding value (rate × days) */
+  accruedValue: number;
+  /** Unbilled = accrued - billed (clamped to 0) */
+  unbilledValue: number;
   clientLedgerBalance: number;
   clientCreditLimit: number | null;
   clientAvailableCredit: number | null;
