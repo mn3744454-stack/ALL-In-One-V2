@@ -73,7 +73,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
           <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
             <FileWarning className="h-3.5 w-3.5 shrink-0" />
             <span>
-              {t('housing.checkout.financial.unbilledWarning')}: <strong>{fin.unbilledValue.toFixed(2)}</strong>
+              {t('housing.checkout.financial.unbilledWarning')}: <strong>{formatBoardingAmount(fin.unbilledValue)}</strong>
             </span>
           </div>
         )}
