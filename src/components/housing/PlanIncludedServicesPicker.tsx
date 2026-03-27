@@ -12,7 +12,7 @@ import {
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 interface Props {
   value: IncludedServiceEntry[];
@@ -22,9 +22,13 @@ interface Props {
 export function PlanIncludedServicesPicker({ value, onChange }: Props) {
   const { t, lang } = useI18n();
   const { data: boardingServices = [] } = useServicesByKind('boarding');
+  const { data: vetServices = [] } = useServicesByKind('vet');
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const activeServices = boardingServices.filter(s => s.is_active);
+  // Combine boarding + vet services for plan inclusion
+  const allServices = useMemo(() => [...boardingServices, ...vetServices], [boardingServices, vetServices]);
+
+  const activeServices = allServices.filter(s => s.is_active);
   const selectedIds = new Set(value.map(v => v.service_id));
 
   const addService = (serviceId: string) => {
@@ -53,9 +57,11 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
             const display = svc
               ? displayServiceName(svc.name, svc.name_ar, lang)
               : entry.label;
+            const isVet = svc?.service_kind === 'vet';
             return (
-              <Badge key={entry.service_id} variant="secondary" className="gap-1 pe-1">
+              <Badge key={entry.service_id} variant="secondary" className={`gap-1 pe-1 ${isVet ? 'border-emerald-300 dark:border-emerald-700' : ''}`}>
                 {display}
+                {isVet && <span className="text-[10px] text-emerald-600 dark:text-emerald-400">●</span>}
                 <button
                   type="button"
                   onClick={() => removeService(entry.service_id)}
@@ -81,17 +87,34 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
               <CommandInput placeholder={t('housing.plans.searchServices')} />
               <CommandList>
                 <CommandEmpty>{t('housing.plans.noServicesFound')}</CommandEmpty>
-                <CommandGroup>
-                  {availableServices.map(svc => (
-                    <CommandItem
-                      key={svc.id}
-                      value={svc.name}
-                      onSelect={() => addService(svc.id)}
-                    >
-                      {displayServiceName(svc.name, svc.name_ar, lang)}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {/* Boarding services group */}
+                {availableServices.filter(s => s.service_kind !== 'vet').length > 0 && (
+                  <CommandGroup heading={t('housing.plans.boardingServices')}>
+                    {availableServices.filter(s => s.service_kind !== 'vet').map(svc => (
+                      <CommandItem
+                        key={svc.id}
+                        value={svc.name}
+                        onSelect={() => addService(svc.id)}
+                      >
+                        {displayServiceName(svc.name, svc.name_ar, lang)}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {/* Vet services group */}
+                {availableServices.filter(s => s.service_kind === 'vet').length > 0 && (
+                  <CommandGroup heading={t('vet.domain.vet')}>
+                    {availableServices.filter(s => s.service_kind === 'vet').map(svc => (
+                      <CommandItem
+                        key={svc.id}
+                        value={svc.name}
+                        onSelect={() => addService(svc.id)}
+                      >
+                        {displayServiceName(svc.name, svc.name_ar, lang)}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>

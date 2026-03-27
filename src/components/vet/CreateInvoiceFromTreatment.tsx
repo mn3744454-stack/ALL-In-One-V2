@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
+import { useServicesByKind } from "@/hooks/useServices";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
@@ -18,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { displayHorseName, formatStandardDate } from "@/lib/displayHelpers";
+import { displayHorseName, displayServiceName, formatStandardDate } from "@/lib/displayHelpers";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 
 export interface TreatmentForInvoice {
@@ -45,7 +47,19 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const { createInvoice, isCreating } = useInvoices(tenantId);
   const { createLinkAsync } = useBillingLinks("vet_treatment", treatment.id);
   const { clients, loading: clientsLoading } = useClients();
+  const { data: vetServices = [] } = useServicesByKind("vet");
 
+  // Filter active vet services, optionally matching treatment category
+  const relevantServices = useMemo(() => {
+    const active = vetServices.filter(s => s.is_active);
+    if (treatment.category) {
+      const byType = active.filter(s => s.service_type === treatment.category);
+      if (byType.length > 0) return byType;
+    }
+    return active;
+  }, [vetServices, treatment.category]);
+
+  const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientName, setClientName] = useState("");
@@ -53,28 +67,58 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Prefill from treatment context
+  // Prefill from treatment context + auto-select service
   useEffect(() => {
     if (!open) return;
+
+    // Client prefill
     if (treatment.client_id) {
       setSelectedClientId(treatment.client_id);
     }
+
+    // Auto-select matching service and prefill price
+    if (relevantServices.length > 0 && !selectedServiceId) {
+      const match = treatment.category
+        ? relevantServices.find(s => s.service_type === treatment.category)
+        : null;
+      const svc = match || relevantServices[0];
+      setSelectedServiceId(svc.id);
+      if (svc.unit_price != null) {
+        setTotalAmount(svc.unit_price.toString());
+      }
+    }
+
     setNotes(treatment.title || "");
-    setTotalAmount("0");
-  }, [open, treatment]);
+  }, [open, treatment, relevantServices]);
+
+  const handleServiceChange = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const svc = vetServices.find(s => s.id === serviceId);
+    if (svc?.unit_price != null) {
+      setTotalAmount(svc.unit_price.toString());
+    }
+  };
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
   const selectedClient = useMemo(
     () => activeClients.find(c => c.id === selectedClientId),
     [activeClients, selectedClientId]
   );
+  const selectedService = useMemo(
+    () => vetServices.find(s => s.id === selectedServiceId),
+    [vetServices, selectedServiceId]
+  );
 
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    // Treatment title
-    parts.push(treatment.title);
+    // Service name (bilingual)
+    if (selectedService) {
+      parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
+    } else {
+      parts.push(treatment.title);
+    }
     // Horse name
     const horseName = displayHorseName(
       data.horseName || treatment.horse?.name,
@@ -177,6 +221,32 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
               <span className="ms-2 text-primary">({t(`vet.category.${treatment.category}`)})</span>
             )}
           </div>
+
+          {/* Vet service picker */}
+          {relevantServices.length > 0 && (
+            <div>
+              <Label>{t("vet.billing.service")}</Label>
+              <Select value={selectedServiceId} onValueChange={handleServiceChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t("vet.billing.selectService")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {relevantServices.map(svc => (
+                    <SelectItem key={svc.id} value={svc.id}>
+                      <span className="flex items-center justify-between gap-2 w-full">
+                        <span>{displayServiceName(svc.name, svc.name_ar, lang)}</span>
+                        {svc.unit_price != null && (
+                          <span className="text-xs text-muted-foreground">
+                            {svc.unit_price} SAR
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Client picker */}
           <div>

@@ -2286,8 +2286,9 @@ export const en = {
       includedServices: "Included Services",
       addIncludedService: "Add Included Service",
       searchServices: "Search services...",
-      noServicesFound: "No boarding services found",
-      noBoardingServices: "No boarding services defined yet. Create services with kind 'boarding' first.",
+      noServicesFound: "No services found",
+      noBoardingServices: "No services defined yet. Create services first.",
+      boardingServices: "Boarding Services",
       includedService: "Included",
     },
     checkout: {
@@ -2489,6 +2490,8 @@ export const en = {
     },
     billing: {
       createInvoiceTitle: "Create Invoice from Treatment",
+      service: "Service",
+      selectService: "Select service",
       client: "Client",
       selectClient: "Select client",
       searchClients: "Search clients...",
@@ -4899,6 +4902,7 @@ export const en = {
       general: "General",
       boarding: "Boarding",
       breeding: "Breeding",
+      vet: "Veterinary",
     },
     form: {
       addService: "Add Service",

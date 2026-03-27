@@ -2301,8 +2301,9 @@ export const ar = {
       includedServices: "الخدمات المشمولة",
       addIncludedService: "إضافة خدمة مشمولة",
       searchServices: "البحث عن خدمات...",
-      noServicesFound: "لا توجد خدمات إيواء",
-      noBoardingServices: "لم يتم تعريف خدمات إيواء بعد. أنشئ خدمات من نوع 'إيواء' أولاً.",
+      noServicesFound: "لا توجد خدمات",
+      noBoardingServices: "لم يتم تعريف خدمات بعد.",
+      boardingServices: "خدمات الإيواء",
       includedService: "مشمول",
     },
     checkout: {
@@ -2504,6 +2505,8 @@ export const ar = {
     },
     billing: {
       createInvoiceTitle: "إنشاء فاتورة من العلاج",
+      service: "الخدمة",
+      selectService: "اختر الخدمة",
       client: "العميل",
       selectClient: "اختر العميل",
       searchClients: "بحث عن عميل...",
@@ -4875,6 +4878,7 @@ export const ar = {
       general: "عام",
       boarding: "إيواء",
       breeding: "تناسل",
+      vet: "بيطري",
     },
     form: {
       addService: "إضافة خدمة",
