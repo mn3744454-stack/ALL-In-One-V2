@@ -26,7 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
-import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
+import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost, formatBoardingAmount } from "@/lib/boardingUtils";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import {
@@ -277,7 +277,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     {accruedCost !== null && (
                       <span className="flex items-center gap-1">
                         <CreditCard className="h-3 w-3" />
-                        ~{accruedCost.toFixed(0)} {admission.rate_currency}
+                        ~{formatBoardingAmount(accruedCost, 0)} {admission.rate_currency}
                       </span>
                     )}
                   </div>
@@ -357,18 +357,18 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                       <div>
                         <span className="text-muted-foreground block">{t('housing.admissions.financial.accrued')}</span>
-                        <span className="font-medium text-sm">{accruedCost.toFixed(2)} {admission.rate_currency}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block">{t('housing.admissions.financial.invoiced')}</span>
-                        <span className="font-medium text-sm">{totalBilled.toFixed(2)} {admission.rate_currency}</span>
+                         <span className="font-medium text-sm">{formatBoardingAmount(accruedCost)} {admission.rate_currency}</span>
+                       </div>
+                       <div>
+                         <span className="text-muted-foreground block">{t('housing.admissions.financial.invoiced')}</span>
+                         <span className="font-medium text-sm">{formatBoardingAmount(totalBilled)} {admission.rate_currency}</span>
                       </div>
                       {unbilledAmount > 0 && (
                         <div className="col-span-2">
                           <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
                             <FileWarning className="h-3.5 w-3.5 shrink-0" />
                             <span className="text-xs">
-                              {t('housing.admissions.financial.unbilled')}: <strong>{unbilledAmount.toFixed(2)} {admission.rate_currency}</strong>
+                              {t('housing.admissions.financial.unbilled')}: <strong>{formatBoardingAmount(unbilledAmount)} {admission.rate_currency}</strong>
                             </span>
                           </div>
                         </div>

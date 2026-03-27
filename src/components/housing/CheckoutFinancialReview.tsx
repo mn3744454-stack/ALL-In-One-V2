@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, CheckCircle2, CreditCard, Wallet, TrendingDown, FileWarning } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatBoardingAmount } from "@/lib/boardingUtils";
 
 interface CheckoutFinancialReviewProps {
   admissionId: string;
@@ -49,20 +50,20 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.accrued')}</span>
-            <span className="font-medium">{fin.accruedValue.toFixed(2)}</span>
+            <span className="font-medium">{formatBoardingAmount(fin.accruedValue)}</span>
           </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.billed')}</span>
-            <span className="font-medium">{fin.admissionBilled.toFixed(2)}</span>
+            <span className="font-medium">{formatBoardingAmount(fin.admissionBilled)}</span>
           </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.paid')}</span>
-            <span className="font-medium">{fin.admissionPaid.toFixed(2)}</span>
+            <span className="font-medium">{formatBoardingAmount(fin.admissionPaid)}</span>
           </div>
           <div>
             <span className="text-muted-foreground block">{t('housing.checkout.financial.balance')}</span>
             <span className={cn("font-medium", fin.admissionBalance > 0 ? "text-amber-600" : "text-success")}>
-              {fin.admissionBalance.toFixed(2)}
+              {formatBoardingAmount(fin.admissionBalance)}
             </span>
           </div>
         </div>
@@ -72,14 +73,14 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
           <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 bg-amber-100/60 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
             <FileWarning className="h-3.5 w-3.5 shrink-0" />
             <span>
-              {t('housing.checkout.financial.unbilledWarning')}: <strong>{fin.unbilledValue.toFixed(2)}</strong>
+              {t('housing.checkout.financial.unbilledWarning')}: <strong>{formatBoardingAmount(fin.unbilledValue)}</strong>
             </span>
           </div>
         )}
 
         {fin.hasDeposit && (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Badge variant="outline" className="text-xs">{t('housing.checkout.financial.deposit')}: {fin.depositTotal.toFixed(2)}</Badge>
+            <Badge variant="outline" className="text-xs">{t('housing.checkout.financial.deposit')}: {formatBoardingAmount(fin.depositTotal)}</Badge>
           </div>
         )}
       </div>
@@ -105,19 +106,19 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
             <div>
               <span className="text-muted-foreground block">{t('housing.checkout.financial.outstanding')}</span>
               <span className={cn("font-medium", fin.clientLedgerBalance > 0 ? "text-amber-600" : "text-success")}>
-                {fin.clientLedgerBalance.toFixed(2)}
+                {formatBoardingAmount(fin.clientLedgerBalance)}
               </span>
             </div>
             {fin.clientCreditLimit !== null && (
               <>
                 <div>
                   <span className="text-muted-foreground block">{t('housing.checkout.financial.creditLimit')}</span>
-                  <span className="font-medium">{fin.clientCreditLimit.toFixed(2)}</span>
+                  <span className="font-medium">{formatBoardingAmount(fin.clientCreditLimit)}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">{t('housing.checkout.financial.available')}</span>
                   <span className={cn("font-medium", (fin.clientAvailableCredit || 0) < 0 ? "text-destructive" : "text-success")}>
-                    {(fin.clientAvailableCredit || 0).toFixed(2)}
+                    {formatBoardingAmount(fin.clientAvailableCredit || 0)}
                   </span>
                 </div>
               </>
