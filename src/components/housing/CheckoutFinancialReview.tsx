@@ -80,7 +80,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
 
         {fin.hasDeposit && (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Badge variant="outline" className="text-xs">{t('housing.checkout.financial.deposit')}: {fin.depositTotal.toFixed(2)}</Badge>
+            <Badge variant="outline" className="text-xs">{t('housing.checkout.financial.deposit')}: {formatBoardingAmount(fin.depositTotal)}</Badge>
           </div>
         )}
       </div>
