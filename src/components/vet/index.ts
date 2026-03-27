@@ -3,6 +3,7 @@ export * from './VetTreatmentsList';
 export * from './CreateVetTreatmentDialog';
 export * from './TreatmentDetailSheet';
 export * from './ScheduleVaccinationDialog';
+export * from './CreateInvoiceFromVaccination';
 export * from './VetStatusBadge';
 export * from './VetPriorityBadge';
 export * from './VetCategoryBadge';
