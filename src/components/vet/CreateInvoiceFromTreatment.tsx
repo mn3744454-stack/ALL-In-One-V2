@@ -78,9 +78,22 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   useEffect(() => {
     if (!open) return;
 
-    // Client prefill
+    // Client prefill — from treatment or resolve from horse's active admission
     if (treatment.client_id) {
       setSelectedClientId(treatment.client_id);
+    } else if (tenantId && treatment.horse_id) {
+      supabase
+        .from("boarding_admissions")
+        .select("client_id")
+        .eq("tenant_id", tenantId)
+        .eq("horse_id", treatment.horse_id)
+        .eq("status", "active")
+        .maybeSingle()
+        .then(({ data: admission }) => {
+          if (admission?.client_id) {
+            setSelectedClientId(admission.client_id);
+          }
+        });
     }
 
     // Auto-select matching service and prefill price
@@ -96,7 +109,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
     }
 
     setNotes(treatment.title || "");
-  }, [open, treatment, relevantServices]);
+  }, [open, treatment, relevantServices, tenantId]);
 
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
