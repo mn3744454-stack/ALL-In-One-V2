@@ -66,14 +66,16 @@ export function TreatmentDetailSheet({
           <SheetTitle className="text-start">{treatment.title}</SheetTitle>
         </SheetHeader>
 
-        {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
-          <div className="flex justify-end mb-4">
+        {/* Action buttons row */}
+        <div className="flex justify-end gap-2 mb-4">
+          {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onEdit(treatment)}>
               <Edit className="w-3.5 h-3.5" />
               {t("common.edit")}
             </Button>
-          </div>
-        )}
+          )}
+          <BillingActionButton treatment={treatment} onOpenInvoiceDialog={() => setInvoiceDialogOpen(true)} />
+        </div>
 
         <div className="space-y-6">
           {/* Horse Context */}
