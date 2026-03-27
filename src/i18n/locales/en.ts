@@ -2198,6 +2198,8 @@ export const en = {
         outstandingAmount: "Outstanding amount",
         confirmOverride: "Override and Proceed",
         overrideAccepted: "Financial override confirmed",
+        unbilledSuggestion: "There is unbilled boarding value. Consider generating an invoice before checkout.",
+        unbilledAmount: "Unbilled amount",
       },
     },
     careNotes: {
@@ -2270,6 +2272,8 @@ export const en = {
         creditLimit: "Credit Limit",
         available: "Available",
         creditExceeded: "Credit limit exceeded — override required",
+        accrued: "Accrued",
+        unbilledWarning: "Unbilled boarding value",
       },
     },
     dashboard: {

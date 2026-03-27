@@ -2213,6 +2213,8 @@ export const ar = {
         outstandingAmount: "المبلغ المستحق",
         confirmOverride: "تجاوز والمتابعة",
         overrideAccepted: "تم تأكيد تجاوز المالية",
+        unbilledSuggestion: "يوجد مبلغ إيواء غير مفوتر. يُنصح بإنشاء فاتورة قبل الإخراج.",
+        unbilledAmount: "المبلغ غير المفوتر",
       },
     },
     careNotes: {
@@ -2285,6 +2287,8 @@ export const ar = {
         creditLimit: "حد الائتمان",
         available: "المتاح",
         creditExceeded: "تجاوز حد الائتمان — يتطلب تجاوز",
+        accrued: "المستحق",
+        unbilledWarning: "قيمة إيواء غير مفوترة",
       },
     },
     dashboard: {
