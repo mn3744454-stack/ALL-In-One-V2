@@ -22,10 +22,10 @@ import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueri
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { displayHorseName, displayServiceName, formatStandardDate } from "@/lib/displayHelpers";
-import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
+import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
 
-export interface TreatmentForInvoice {
-  treatment: VetTreatment;
+export interface VaccinationForInvoice {
+  vaccination: HorseVaccination;
   horseName?: string;
   horseNameAr?: string;
 }
@@ -33,32 +33,29 @@ export interface TreatmentForInvoice {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: TreatmentForInvoice;
+  data: VaccinationForInvoice;
 }
 
-export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) {
+export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props) {
   const { activeTenant } = useTenant();
   const { user } = useAuth();
   const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
   const queryClient = useQueryClient();
 
-  const { treatment } = data;
+  const { vaccination } = data;
 
   const { createInvoice, isCreating } = useInvoices(tenantId);
-  const { createLinkAsync } = useBillingLinks("vet_treatment", treatment.id);
+  const { createLinkAsync } = useBillingLinks("vaccination", vaccination.id);
   const { clients, loading: clientsLoading } = useClients();
   const { data: vetServices = [] } = useServicesByKind("vet");
 
-  // Filter active vet services, optionally matching treatment category
+  // Find vaccination-type services
   const relevantServices = useMemo(() => {
     const active = vetServices.filter(s => s.is_active);
-    if (treatment.category) {
-      const byType = active.filter(s => s.service_type === treatment.category);
-      if (byType.length > 0) return byType;
-    }
-    return active;
-  }, [vetServices, treatment.category]);
+    const vaccinationServices = active.filter(s => s.service_type === "vaccination");
+    return vaccinationServices.length > 0 ? vaccinationServices : active;
+  }, [vetServices]);
 
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -70,23 +67,36 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
 
   // Package-awareness check
   const { isIncluded, planName } = usePlanInclusionCheck(
-    treatment.horse_id,
+    vaccination.horse_id,
     selectedServiceId || undefined
   );
 
-  // Prefill from treatment context + auto-select service
+  // Prefill: auto-select vaccination service, resolve client from horse's active admission
   useEffect(() => {
     if (!open) return;
 
-    // Client prefill — from treatment or resolve from horse's active admission
-    if (treatment.client_id) {
-      setSelectedClientId(treatment.client_id);
-    } else if (tenantId && treatment.horse_id) {
+    // Auto-select vaccination service
+    if (relevantServices.length > 0 && !selectedServiceId) {
+      const svc = relevantServices[0];
+      setSelectedServiceId(svc.id);
+      if (svc.unit_price != null) {
+        setTotalAmount(svc.unit_price.toString());
+      }
+    }
+
+    // Notes from vaccination
+    const programName = vaccination.program
+      ? displayServiceName(vaccination.program.name, vaccination.program.name_ar, lang)
+      : "";
+    setNotes(programName);
+
+    // Resolve client from horse's active admission
+    if (!selectedClientId && tenantId) {
       supabase
         .from("boarding_admissions")
         .select("client_id")
         .eq("tenant_id", tenantId)
-        .eq("horse_id", treatment.horse_id)
+        .eq("horse_id", vaccination.horse_id)
         .eq("status", "active")
         .maybeSingle()
         .then(({ data: admission }) => {
@@ -95,21 +105,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           }
         });
     }
-
-    // Auto-select matching service and prefill price
-    if (relevantServices.length > 0 && !selectedServiceId) {
-      const match = treatment.category
-        ? relevantServices.find(s => s.service_type === treatment.category)
-        : null;
-      const svc = match || relevantServices[0];
-      setSelectedServiceId(svc.id);
-      if (svc.unit_price != null) {
-        setTotalAmount(svc.unit_price.toString());
-      }
-    }
-
-    setNotes(treatment.title || "");
-  }, [open, treatment, relevantServices, tenantId]);
+  }, [open, vaccination, relevantServices, tenantId]);
 
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -133,26 +129,24 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    // Service name (bilingual)
+    // Service name
     if (selectedService) {
       parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
-    } else {
-      parts.push(treatment.title);
+    }
+    // Vaccine program name
+    if (vaccination.program) {
+      parts.push(displayServiceName(vaccination.program.name, vaccination.program.name_ar, lang));
     }
     // Horse name
     const horseName = displayHorseName(
-      data.horseName || treatment.horse?.name,
-      data.horseNameAr || (treatment.horse as any)?.name_ar,
+      data.horseName || vaccination.horse?.name,
+      data.horseNameAr || (vaccination.horse as any)?.name_ar,
       lang
     );
     if (horseName && horseName !== "—") parts.push(horseName);
-    // Category
-    if (treatment.category) {
-      parts.push(t(`vet.category.${treatment.category}`));
-    }
     // Date
-    if (treatment.requested_at) {
-      parts.push(formatStandardDate(treatment.requested_at));
+    if (vaccination.administered_date || vaccination.due_date) {
+      parts.push(formatStandardDate(vaccination.administered_date || vaccination.due_date));
     }
     return parts.join(" | ");
   };
@@ -186,7 +180,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         return;
       }
 
-      // Create invoice line item with entity_type='vet'
+      // Create invoice line item with entity_type='vet' (vaccination stays in vet domain)
       const lineDescription = buildLineItemDescription();
       const { error: itemError } = await supabase
         .from("invoice_items" as any)
@@ -194,7 +188,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           invoice_id: invoice.id,
           description: lineDescription,
           entity_type: "vet",
-          entity_id: treatment.id,
+          entity_id: vaccination.id,
           quantity: 1,
           unit_price: amount,
           total_price: amount,
@@ -204,10 +198,10 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         console.error("Error creating invoice item:", itemError);
       }
 
-      // Create billing_link with source_type='vet_treatment'
+      // Create billing_link with source_type='vaccination'
       await createLinkAsync({
-        source_type: "vet_treatment",
-        source_id: treatment.id,
+        source_type: "vaccination",
+        source_id: vaccination.id,
         invoice_id: invoice.id,
         link_kind: "final",
         amount,
@@ -219,7 +213,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
       toast.success(t("vet.billing.invoiceCreated"));
       onOpenChange(false);
     } catch (err) {
-      console.error("Error creating invoice:", err);
+      console.error("Error creating vaccination invoice:", err);
       toast.error(t("vet.billing.invoiceFailed"));
     } finally {
       setLoading(false);
@@ -230,15 +224,19 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("vet.billing.createInvoiceTitle")}</DialogTitle>
+          <DialogTitle>{t("vet.billing.createVaccinationInvoiceTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Treatment context badge */}
+          {/* Vaccination context badge */}
           <div className="text-xs text-muted-foreground bg-muted rounded-md p-2">
-            {treatment.title}
-            {treatment.horse?.name && ` — ${displayHorseName(treatment.horse.name, (treatment.horse as any)?.name_ar, lang)}`}
-            {treatment.category && (
-              <span className="ms-2 text-primary">({t(`vet.category.${treatment.category}`)})</span>
+            {vaccination.program && (
+              <span className="font-medium">
+                {displayServiceName(vaccination.program.name, vaccination.program.name_ar, lang)}
+              </span>
+            )}
+            {vaccination.horse?.name && ` — ${displayHorseName(vaccination.horse.name, (vaccination.horse as any)?.name_ar, lang)}`}
+            {vaccination.administered_date && (
+              <span className="ms-2 text-primary">({formatStandardDate(vaccination.administered_date)})</span>
             )}
           </div>
 

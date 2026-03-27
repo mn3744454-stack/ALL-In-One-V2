@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { VetStatusBadge } from "./VetStatusBadge";
+import { CreateInvoiceFromVaccination } from "./CreateInvoiceFromVaccination";
 import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { isPast, isToday, isTomorrow } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +24,7 @@ interface VaccinationsListProps {
   onMarkAdministered?: (id: string) => void;
   onCancel?: (id: string) => void;
   emptyMessage?: string;
+  showBilling?: boolean;
 }
 
 export function VaccinationsList({ 
@@ -29,9 +33,11 @@ export function VaccinationsList({
   onMarkAdministered, 
   onCancel,
   emptyMessage,
+  showBilling = false,
 }: VaccinationsListProps) {
   const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('vet-vaccinations');
+  const [invoiceTarget, setInvoiceTarget] = useState<HorseVaccination | null>(null);
 
   if (loading) {
     return (
@@ -104,21 +110,26 @@ export function VaccinationsList({
                     </span>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground text-sm">{vaccination.administered_date ? formatStandardDate(vaccination.administered_date) : '—'}</TableCell>
-                  <TableCell className="w-[60px]">
-                    {vaccination.status === 'due' && (
-                      <div className="flex gap-1">
-                        {onMarkAdministered && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success hover:bg-success/10" onClick={() => onMarkAdministered(vaccination.id)}>
-                            <CheckCircle className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                        {onCancel && (
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onCancel(vaccination.id)}>
-                            <XCircle className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                  <TableCell className="w-[100px]">
+                    <div className="flex gap-1">
+                      {showBilling && vaccination.status === 'done' && (
+                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                      )}
+                      {vaccination.status === 'due' && (
+                        <>
+                          {onMarkAdministered && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-success hover:text-success hover:bg-success/10" onClick={() => onMarkAdministered(vaccination.id)}>
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                          {onCancel && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => onCancel(vaccination.id)}>
+                              <XCircle className="w-3.5 h-3.5" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -190,30 +201,35 @@ export function VaccinationsList({
                       </div>
                     </div>
 
-                    {vaccination.status === 'due' && (
-                      <div className="flex gap-1 shrink-0">
-                        {onMarkAdministered && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
-                            onClick={() => onMarkAdministered(vaccination.id)}
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {onCancel && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => onCancel(vaccination.id)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex gap-1 shrink-0">
+                      {showBilling && vaccination.status === 'done' && (
+                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                      )}
+                      {vaccination.status === 'due' && (
+                        <>
+                          {onMarkAdministered && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
+                              onClick={() => onMarkAdministered(vaccination.id)}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {onCancel && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => onCancel(vaccination.id)}
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -221,6 +237,43 @@ export function VaccinationsList({
           })}
         </div>
       )}
+
+      {/* Invoice dialog */}
+      {invoiceTarget && (
+        <CreateInvoiceFromVaccination
+          open={!!invoiceTarget}
+          onOpenChange={(open) => { if (!open) setInvoiceTarget(null); }}
+          data={{
+            vaccination: invoiceTarget,
+            horseName: invoiceTarget.horse?.name,
+            horseNameAr: (invoiceTarget.horse as any)?.name_ar,
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+/** Shows billing status + generate invoice button for a vaccination */
+function VaccinationBillingAction({ vaccination, onGenerateInvoice }: { vaccination: HorseVaccination; onGenerateInvoice: () => void }) {
+  const { t } = useI18n();
+  const { links, isLoading } = useBillingLinks("vaccination", vaccination.id);
+  const hasInvoice = links.length > 0;
+
+  if (isLoading) return null;
+
+  if (hasInvoice) {
+    return (
+      <Badge variant="secondary" className="gap-1 text-xs bg-accent text-accent-foreground">
+        <FileText className="w-3 h-3" />
+        {t("vet.billing.invoiced")}
+      </Badge>
+    );
+  }
+
+  return (
+    <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10" onClick={onGenerateInvoice} title={t("vet.billing.generateInvoice")}>
+      <Receipt className="w-3.5 h-3.5" />
+    </Button>
   );
 }

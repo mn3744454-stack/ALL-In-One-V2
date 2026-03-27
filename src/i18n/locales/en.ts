@@ -2490,6 +2490,7 @@ export const en = {
     },
     billing: {
       createInvoiceTitle: "Create Invoice from Treatment",
+      createVaccinationInvoiceTitle: "Create Invoice from Vaccination",
       service: "Service",
       selectService: "Select service",
       client: "Client",
@@ -2505,6 +2506,7 @@ export const en = {
       invoiced: "Invoiced",
       notInvoiced: "Not Invoiced",
       linkedInvoice: "Linked Invoice",
+      serviceIncludedInPlan: "This service is included in the horse's boarding plan",
     },
     domain: {
       vet: "Veterinary",
