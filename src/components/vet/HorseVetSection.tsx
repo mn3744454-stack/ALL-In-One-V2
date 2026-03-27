@@ -21,6 +21,7 @@ import { formatDistanceToNow, isPast, isToday } from "date-fns";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/i18n";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface HorseVetSectionProps {
   horseId: string;
@@ -190,10 +191,14 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             {isOverdue && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
                             <div className="min-w-0">
                               <p className="font-medium truncate">
-                                {vaccination.program?.name || 'Unknown Program'}
+                                <BilingualName
+                                  name={vaccination.program?.name || t('common.unknown')}
+                                  nameAr={(vaccination.program as any)?.name_ar}
+                                  inline
+                                />
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {formatStandardDate(dueDate)}
+                                {t('vet.dueLabel')}: {formatStandardDate(dueDate)}
                               </p>
                             </div>
                           </div>
@@ -243,7 +248,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                                 {t(`vet.followupType.${followup.type}`)}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                Due: {formatStandardDateTime(dueDate)}
+                                {t('vet.dueLabel')}: {formatStandardDateTime(dueDate)}
                               </p>
                             </div>
                           </div>

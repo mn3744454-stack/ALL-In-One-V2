@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -13,27 +12,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useVaccinationPrograms, type CreateProgramData } from "@/hooks/vet/useVaccinationPrograms";
-import { Plus, Pencil, Trash2, Loader2, Lightbulb } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Syringe } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useI18n } from "@/i18n";
 import { tStatus } from "@/i18n/labels";
 
-// Mock vaccination programs for demo
-const mockPrograms = [
-  { id: "prog-1", name: "Tetanus", name_ar: "الكزاز", is_active: true, default_interval_days: 365, age_min_days: 90, notes: "Essential core vaccine for all horses", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "prog-2", name: "Influenza", name_ar: "الانفلونزا", is_active: true, default_interval_days: 180, age_min_days: 120, notes: "Required for competition horses", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "prog-3", name: "Rabies", name_ar: "داء الكلب", is_active: true, default_interval_days: 365, age_min_days: 90, notes: "Recommended in endemic areas", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-  { id: "prog-4", name: "West Nile Virus", name_ar: "فيروس غرب النيل", is_active: false, default_interval_days: 365, age_min_days: 90, notes: "Seasonal vaccination program", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-];
-
 export function VaccinationProgramManager() {
   const { t } = useI18n();
   const { programs, loading, canManage, createProgram, updateProgram, deleteProgram } = useVaccinationPrograms();
   
-  const displayPrograms = programs.length > 0 ? programs : mockPrograms;
-  const isUsingMockData = programs.length === 0 && !loading;
   const [showDialog, setShowDialog] = useState(false);
   const [editingProgram, setEditingProgram] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -86,16 +75,6 @@ export function VaccinationProgramManager() {
 
   return (
     <div className="space-y-4">
-      {isUsingMockData && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <Lightbulb className="w-4 h-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            هذه برامج تطعيم تجريبية للعرض. قم بإنشاء أول برنامج للبدء!
-            <span className="block text-xs mt-1 opacity-75">These are demo vaccination programs. Create your first program to get started!</span>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {canManage && (
         <div className="flex justify-end">
           <Button onClick={handleOpenCreate} className="gap-2">
@@ -105,44 +84,56 @@ export function VaccinationProgramManager() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {displayPrograms.map((program) => (
-          <Card key={program.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BilingualName name={program.name} nameAr={program.name_ar} primaryClassName="font-medium" />
-                    <Badge variant={program.is_active ? "default" : "secondary"}>
-                      {tStatus(program.is_active ? 'active' : 'inactive')}
-                    </Badge>
+      {programs.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Syringe className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>{t("vet.emptyMessages.vaccinations")}</p>
+          {canManage && (
+            <Button variant="outline" size="sm" className="mt-3" onClick={handleOpenCreate}>
+              {t("vet.programs.addVaccine")}
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {programs.map((program) => (
+            <Card key={program.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <BilingualName name={program.name} nameAr={program.name_ar} primaryClassName="font-medium" />
+                      <Badge variant={program.is_active ? "default" : "secondary"}>
+                        {tStatus(program.is_active ? 'active' : 'inactive')}
+                      </Badge>
+                    </div>
+                    {program.default_interval_days && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {t("vet.programs.repeatEvery").replace('{days}', String(program.default_interval_days))}
+                      </p>
+                    )}
+                    {program.age_min_days && (
+                      <p className="text-xs text-muted-foreground">
+                        {t("vet.programs.minAgeLabel").replace('{days}', String(program.age_min_days))}
+                      </p>
+                    )}
                   </div>
-                  {program.default_interval_days && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {t("vet.programs.repeatEvery").replace('{days}', String(program.default_interval_days))}
-                    </p>
-                  )}
-                  {program.age_min_days && (
-                    <p className="text-xs text-muted-foreground">
-                      {t("vet.programs.minAgeLabel").replace('{days}', String(program.age_min_days))}
-                    </p>
+                  {canManage && (
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenEdit(program)}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(program.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
-                {canManage && !isUsingMockData && (
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenEdit(program)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => handleDelete(program.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-lg">

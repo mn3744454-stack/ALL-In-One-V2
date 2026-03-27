@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Stethoscope, Syringe, Calendar, Settings, CalendarCheck } from "lucide-react";
+import { Stethoscope, Syringe, Calendar, ClipboardList, CalendarCheck } from "lucide-react";
 import { useI18n } from "@/i18n";
 
 interface VetBottomNavigationProps {
@@ -24,7 +24,7 @@ export function VetBottomNavigation({
     { id: "vaccinations", icon: Syringe, labelKey: "nav.vaccines" },
     { id: "visits", icon: CalendarCheck, labelKey: "nav.visits", badge: todayVisitsCount },
     { id: "followups", icon: Calendar, labelKey: "nav.followUps", badge: overdueCount },
-    ...(showSettings ? [{ id: "settings", icon: Settings, labelKey: "nav.settings" }] : []),
+    ...(showSettings ? [{ id: "programs", icon: ClipboardList, labelKey: "vet.tabs.programs" }] : []),
   ];
 
   return (

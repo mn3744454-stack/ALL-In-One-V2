@@ -57,17 +57,18 @@ export function TreatmentDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader className="pb-4">
-          <div className="flex items-start justify-between gap-2">
-            <SheetTitle className="text-start">{treatment.title}</SheetTitle>
-            {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
-              <Button variant="outline" size="sm" className="gap-1.5 shrink-0" onClick={() => onEdit(treatment)}>
-                <Edit className="w-3.5 h-3.5" />
-                {t("common.edit")}
-              </Button>
-            )}
-          </div>
+        <SheetHeader className="pb-4 pe-10">
+          <SheetTitle className="text-start">{treatment.title}</SheetTitle>
         </SheetHeader>
+
+        {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
+          <div className="flex justify-end mb-4">
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onEdit(treatment)}>
+              <Edit className="w-3.5 h-3.5" />
+              {t("common.edit")}
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Horse Context */}

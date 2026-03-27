@@ -2395,12 +2395,13 @@ export const en = {
     scheduleVaccination: "Schedule Vaccination",
     filterByHorse: "Filter by horse",
     allHorses: "All Horses",
+    dueLabel: "Due",
     tabs: {
       treatments: "Treatments",
       vaccinations: "Vaccinations",
       visits: "Visits",
       followups: "Follow-ups",
-      settings: "Settings",
+      programs: "Vaccination Programs",
     },
     emptyMessages: {
       treatments: "No treatments yet. Create your first treatment to get started.",

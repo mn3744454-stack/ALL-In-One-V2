@@ -4,9 +4,8 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Stethoscope, Syringe, Calendar, Settings, Lightbulb, CalendarCheck, Filter } from "lucide-react";
+import { Plus, Search, Stethoscope, Syringe, Calendar, CalendarCheck, Filter, ClipboardList } from "lucide-react";
 import { useVetTreatments } from "@/hooks/vet/useVetTreatments";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
 import { useHorseVaccinations } from "@/hooks/vet/useHorseVaccinations";
@@ -23,22 +22,6 @@ import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
-
-// Mock data for demo purposes
-const mockTreatments = [
-  { id: "mock-treat-1", horse: { id: "h1", name: "الأصيل", avatar_url: null }, category: "treatment" as const, title: "Respiratory Infection Treatment", description: "Treatment for mild respiratory infection", status: "in_progress" as const, priority: "high" as const, service_mode: "external" as const, external_provider: { id: "p1", name: "Dr. Ahmed" }, requested_at: new Date(Date.now() - 3 * 86400000).toISOString(), scheduled_for: new Date(Date.now() + 2 * 86400000).toISOString(), created_at: new Date(Date.now() - 3 * 86400000).toISOString(), tenant_id: "t1", created_by: "u1", updated_at: new Date().toISOString(), notes: "Monitoring daily", assigned_to: null, completed_at: null },
-  { id: "mock-treat-2", horse: { id: "h2", name: "الفارس", avatar_url: null }, category: "dental" as const, title: "Annual Dental Float", description: "Routine dental floating", status: "scheduled" as const, priority: "medium" as const, service_mode: "external" as const, external_provider: { id: "p2", name: "Equine Dental" }, requested_at: new Date(Date.now() - 86400000).toISOString(), scheduled_for: new Date(Date.now() + 5 * 86400000).toISOString(), created_at: new Date(Date.now() - 86400000).toISOString(), tenant_id: "t1", created_by: "u1", updated_at: new Date().toISOString(), notes: null, assigned_to: null, completed_at: null },
-];
-
-const mockVaccinations = [
-  { id: "mock-vacc-1", horse: { id: "h1", name: "الفارس", avatar_url: null }, program: { id: "prog-1", name: "Tetanus", name_ar: "الكزاز" }, status: "due" as const, due_date: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0], service_mode: "internal" as const, notes: "Annual booster due", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), administered_date: null, administered_by: null, external_provider: null },
-  { id: "mock-vacc-2", horse: { id: "h2", name: "الريم", avatar_url: null }, program: { id: "prog-2", name: "Influenza", name_ar: "الانفلونزا" }, status: "due" as const, due_date: new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0], service_mode: "external" as const, notes: "5 days overdue", tenant_id: "t1", created_at: new Date().toISOString(), updated_at: new Date().toISOString(), administered_date: null, administered_by: null, external_provider: { id: "p1", name: "Dr. Ahmed" } },
-];
-
-const mockFollowups = [
-  { id: "mock-follow-1", treatment: { id: "t1", title: "Leg Laceration Treatment", horse: { id: "h1", name: "الأمير", avatar_url: null } }, type: "wound_check" as const, status: "open" as const, due_at: new Date(Date.now() + 86400000).toISOString(), notes: "Check wound healing", tenant_id: "t1", created_at: new Date().toISOString(), created_by: "u1", completed_at: null, cancelled_reason: null },
-  { id: "mock-follow-2", treatment: { id: "t2", title: "Post-Surgery Recovery", horse: { id: "h2", name: "النجمة", avatar_url: null } }, type: "suture_removal" as const, status: "open" as const, due_at: new Date(Date.now() - 2 * 86400000).toISOString(), notes: "Remove stitches - overdue", tenant_id: "t1", created_at: new Date().toISOString(), created_by: "u1", completed_at: null, cancelled_reason: null },
-];
 
 const DashboardVet = () => {
   const { t } = useI18n();
@@ -57,7 +40,7 @@ const DashboardVet = () => {
 
   const availableTabs = useMemo(() => {
     const tabs = ['treatments', 'vaccinations', 'visits', 'followups'];
-    if (isOwnerOrManager) tabs.push('settings');
+    if (isOwnerOrManager) tabs.push('programs');
     return tabs;
   }, [isOwnerOrManager]);
 
@@ -80,33 +63,12 @@ const DashboardVet = () => {
   const { vaccinations, loading: vaccinationsLoading, markAsAdministered, skipVaccination, refresh: refreshVaccinations } = useHorseVaccinations({ horse_id: horseFilterId });
   const { visits, todayVisits, loading: visitsLoading, createVisit, confirmVisit, startVisit, completeVisit, cancelVisit } = useVetVisits({ search: searchQuery });
 
-  const displayTreatments = treatments.length > 0 ? treatments : mockTreatments;
-  const displayVaccinations = vaccinations.length > 0 ? vaccinations : mockVaccinations;
-  const displayFollowups = followups.length > 0 ? followups : mockFollowups;
-
-  const isUsingMockTreatments = treatments.length === 0 && !treatmentsLoading;
-  const isUsingMockVaccinations = vaccinations.length === 0 && !vaccinationsLoading;
-  const isUsingMockFollowups = followups.length === 0 && !followupsLoading;
-
   const handleViewTreatment = (treatment: VetTreatment) => setSelectedTreatment(treatment);
   const handleEditTreatment = (treatment: VetTreatment) => { setEditingTreatment(treatment); setShowCreateDialog(true); };
   const handleCreateSuccess = () => { refreshTreatments(); setEditingTreatment(null); };
 
-  const headerRight = canManage ? (
-    <div className="flex gap-2">
-      <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
-        <CalendarCheck className="w-4 h-4" />
-        <span className="hidden sm:inline">{t("vetVisits.scheduleVisit")}</span>
-      </Button>
-      <Button onClick={() => { setEditingTreatment(null); setShowCreateDialog(true); }} className="gap-2">
-        <Plus className="w-4 h-4" />
-        <span className="hidden sm:inline">{t("vet.newTreatment")}</span>
-      </Button>
-    </div>
-  ) : undefined;
-
   return (
-    <DashboardShell headerRight={headerRight}>
+    <DashboardShell>
       <MobilePageHeader title={t("sidebar.vetHealth")} />
 
       <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">
@@ -136,9 +98,9 @@ const DashboardVet = () => {
                 )}
               </TabsTrigger>
               {isOwnerOrManager && (
-                <TabsTrigger value="settings" className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("vet.tabs.settings")}</span>
+                <TabsTrigger value="programs" className="gap-2">
+                  <ClipboardList className="w-4 h-4" />
+                  <span className="hidden sm:inline">{t("vet.tabs.programs")}</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -167,19 +129,17 @@ const DashboardVet = () => {
             </div>
           </div>
 
-          {/* Vaccination schedule CTA for vaccinations tab */}
           <TabsContent value="treatments">
-            {isUsingMockTreatments && (
-              <Alert className="bg-amber-50 border-amber-200 mb-4">
-                <Lightbulb className="w-4 h-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
-                  هذه بيانات تجريبية للعرض. قم بإنشاء أول علاج للبدء!
-                  <span className="block text-xs mt-1 opacity-75">These are demo treatments. Create your first treatment to get started!</span>
-                </AlertDescription>
-              </Alert>
+            {canManage && (
+              <div className="flex justify-end mb-4">
+                <Button onClick={() => { setEditingTreatment(null); setShowCreateDialog(true); }} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  {t("vet.newTreatment")}
+                </Button>
+              </div>
             )}
             <VetTreatmentsList
-              treatments={displayTreatments as any}
+              treatments={treatments}
               loading={treatmentsLoading}
               emptyMessage={t("vet.emptyMessages.treatments")}
               onView={handleViewTreatment}
@@ -196,43 +156,33 @@ const DashboardVet = () => {
                 </Button>
               </div>
             )}
-            {isUsingMockVaccinations && (
-              <Alert className="bg-amber-50 border-amber-200 mb-4">
-                <Lightbulb className="w-4 h-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
-                  هذه بيانات تجريبية للعرض. قم بجدولة أول تطعيم للبدء!
-                  <span className="block text-xs mt-1 opacity-75">These are demo vaccinations. Schedule your first vaccination to get started!</span>
-                </AlertDescription>
-              </Alert>
-            )}
             <VaccinationsList
-              vaccinations={displayVaccinations as any}
+              vaccinations={vaccinations}
               loading={vaccinationsLoading}
-              onMarkAdministered={!isUsingMockVaccinations && canManage ? markAsAdministered : undefined}
-              onCancel={!isUsingMockVaccinations && canManage ? skipVaccination : undefined}
+              onMarkAdministered={canManage ? markAsAdministered : undefined}
+              onCancel={canManage ? skipVaccination : undefined}
               emptyMessage={t("vet.emptyMessages.vaccinations")}
             />
           </TabsContent>
 
           <TabsContent value="visits">
+            {canManage && (
+              <div className="flex justify-end mb-4">
+                <Button variant="outline" onClick={() => setShowVisitDialog(true)} className="gap-2">
+                  <CalendarCheck className="w-4 h-4" />
+                  {t("vetVisits.scheduleVisit")}
+                </Button>
+              </div>
+            )}
             <VetVisitsList visits={visits} horses={horses} loading={visitsLoading} emptyMessage={t("vet.emptyMessages.visits")} onConfirm={canManage ? confirmVisit : undefined} onStart={canManage ? startVisit : undefined} onComplete={canManage ? completeVisit : undefined} onCancel={canManage ? cancelVisit : undefined} />
           </TabsContent>
 
           <TabsContent value="followups">
-            {isUsingMockFollowups && (
-              <Alert className="bg-amber-50 border-amber-200 mb-4">
-                <Lightbulb className="w-4 h-4 text-amber-600" />
-                <AlertDescription className="text-amber-800">
-                  هذه بيانات تجريبية للعرض. المتابعات تُنشأ تلقائياً من العلاجات.
-                  <span className="block text-xs mt-1 opacity-75">These are demo follow-ups. Follow-ups are created automatically from treatments!</span>
-                </AlertDescription>
-              </Alert>
-            )}
-            <VetFollowupsList followups={displayFollowups as any} loading={followupsLoading} onMarkDone={!isUsingMockFollowups && canManage ? markAsDone : undefined} onCancel={!isUsingMockFollowups && canManage ? markAsCancelled : undefined} emptyMessage={t("vet.emptyMessages.followups")} />
+            <VetFollowupsList followups={followups} loading={followupsLoading} onMarkDone={canManage ? markAsDone : undefined} onCancel={canManage ? markAsCancelled : undefined} emptyMessage={t("vet.emptyMessages.followups")} />
           </TabsContent>
 
           {isOwnerOrManager && (
-            <TabsContent value="settings">
+            <TabsContent value="programs">
               <div className="space-y-6">
                 <div>
                   <h2 className="font-display text-lg font-semibold mb-4">{t("vet.vaccinationPrograms")}</h2>
