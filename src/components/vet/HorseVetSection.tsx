@@ -240,7 +240,7 @@ export function HorseVetSection({ horseId, horseName }: HorseVetSectionProps) {
                             {isOverdue && <AlertCircle className="w-4 h-4 text-destructive shrink-0" />}
                             <div className="min-w-0">
                               <p className="font-medium truncate capitalize">
-                                {followup.type.replace(/_/g, ' ')}
+                                {t(`vet.followupType.${followup.type}`)}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 Due: {formatStandardDateTime(dueDate)}
