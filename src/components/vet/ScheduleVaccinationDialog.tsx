@@ -92,7 +92,7 @@ export function ScheduleVaccinationDialog({
               <SelectContent className="z-[200]">
                 {horses.map(h => (
                   <SelectItem key={h.id} value={h.id}>
-                    <BilingualName name={h.name} nameAr={(h as any).name_ar} layout="inline" />
+                    <BilingualName name={h.name} nameAr={(h as any).name_ar} inline />
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -109,7 +109,7 @@ export function ScheduleVaccinationDialog({
               <SelectContent className="z-[200]">
                 {programs.filter(p => p.is_active).map(p => (
                   <SelectItem key={p.id} value={p.id}>
-                    <BilingualName name={p.name} nameAr={p.name_ar} layout="inline" />
+                    <BilingualName name={p.name} nameAr={p.name_ar} inline />
                   </SelectItem>
                 ))}
               </SelectContent>

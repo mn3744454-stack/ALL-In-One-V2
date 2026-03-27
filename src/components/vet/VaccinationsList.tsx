@@ -89,11 +89,11 @@ export function VaccinationsList({
                         <AvatarImage src={vaccination.horse?.avatar_url || undefined} />
                         <AvatarFallback className="text-xs">{vaccination.horse?.name?.[0] || '?'}</AvatarFallback>
                       </Avatar>
-                      <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} layout="inline" primaryClassName="text-sm truncate max-w-[120px]" />
+                      <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} inline primaryClassName="text-sm truncate max-w-[120px]" />
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} layout="inline" primaryClassName="text-sm" />
+                    <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} inline primaryClassName="text-sm" />
                   </TableCell>
                   <TableCell><Badge variant="outline" className="text-xs">{tScope(vaccination.service_mode)}</Badge></TableCell>
                   <TableCell><VetStatusBadge status={vaccination.status} /></TableCell>
@@ -148,13 +148,13 @@ export function VaccinationsList({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium text-foreground truncate">
-                            <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} layout="inline" />
+                            <BilingualName name={vaccination.program?.name} nameAr={vaccination.program?.name_ar} inline />
                           </h4>
                           <VetStatusBadge status={vaccination.status} />
                         </div>
                         
                         <p className="text-sm text-muted-foreground mb-2">
-                          <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} layout="inline" />
+                          <BilingualName name={vaccination.horse?.name} nameAr={(vaccination.horse as any)?.name_ar} inline />
                         </p>
 
                         <div className="flex flex-wrap items-center gap-2">

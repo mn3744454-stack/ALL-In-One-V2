@@ -147,7 +147,7 @@ export function CreateVetTreatmentDialog({
                   <SelectContent className="z-[200]">
                     {horses.map((horse) => (
                       <SelectItem key={horse.id} value={horse.id}>
-                        <BilingualName name={horse.name} nameAr={(horse as any).name_ar} layout="inline" />
+                        <BilingualName name={horse.name} nameAr={(horse as any).name_ar} inline />
                       </SelectItem>
                     ))}
                   </SelectContent>
