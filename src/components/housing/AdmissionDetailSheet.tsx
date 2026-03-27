@@ -368,7 +368,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                           <div className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/30 rounded px-2 py-1.5 mt-1">
                             <FileWarning className="h-3.5 w-3.5 shrink-0" />
                             <span className="text-xs">
-                              {t('housing.admissions.financial.unbilled')}: <strong>{unbilledAmount.toFixed(2)} {admission.rate_currency}</strong>
+                              {t('housing.admissions.financial.unbilled')}: <strong>{formatBoardingAmount(unbilledAmount)} {admission.rate_currency}</strong>
                             </span>
                           </div>
                         </div>
