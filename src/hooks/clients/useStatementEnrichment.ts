@@ -8,8 +8,8 @@ export interface EnrichedHorse {
   horseName: string;
   samples: Array<{ sampleLabel: string }>;
   items: string[];
-  /** Source domain: lab | boarding | breeding */
-  source?: "lab" | "boarding" | "breeding";
+  /** Source domain: lab | boarding | breeding | vet */
+  source?: "lab" | "boarding" | "breeding" | "vet";
 }
 
 export interface EnrichedStatementData {
@@ -95,6 +95,15 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         ...new Set(
           typedItems
             .filter((i) => i.entity_type === "breeding" && i.entity_id)
+            .map((i) => i.entity_id!)
+        ),
+      ];
+
+      // 3d. Collect all vet entity_ids
+      const vetIds = [
+        ...new Set(
+          typedItems
+            .filter((i) => i.entity_type === "vet" && i.entity_id)
             .map((i) => i.entity_id!)
         ),
       ];
@@ -193,8 +202,45 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         }
       }
 
-      // 4c. Breeding resolution — uses description from invoice_items directly (no extra fetch needed since breeding line items contain the horse/event info in their description)
+      // 4c. Breeding resolution — uses description from invoice_items directly
       // Breeding items will be resolved from their description string at display time
+
+      // 4d. Batch fetch vet treatments + stable horses for vet entity type
+      const vetToHorse = new Map<string, { horseId: string; horseName: string }>();
+
+      if (vetIds.length > 0) {
+        const { data: treatments } = await supabase
+          .from("vet_treatments")
+          .select("id, horse_id")
+          .in("id", vetIds);
+
+        if (treatments && treatments.length > 0) {
+          const vetHorseIds = [...new Set((treatments as any[]).map((t) => t.horse_id).filter(Boolean))];
+
+          const vetHorseNameMap = new Map<string, { name: string; nameAr: string }>();
+          if (vetHorseIds.length > 0) {
+            const { data: horses } = await supabase
+              .from("horses")
+              .select("id, name, name_ar")
+              .in("id", vetHorseIds);
+
+            horses?.forEach((h: any) => {
+              vetHorseNameMap.set(h.id, { name: h.name || "", nameAr: h.name_ar || "" });
+            });
+          }
+
+          (treatments as any[]).forEach((tr) => {
+            const horseData = tr.horse_id ? vetHorseNameMap.get(tr.horse_id) : null;
+            const displayName = horseData
+              ? (lang === "ar" ? (horseData.nameAr || horseData.name) : (horseData.name || horseData.nameAr))
+              : "";
+            vetToHorse.set(tr.id, {
+              horseId: tr.horse_id || "",
+              horseName: displayName,
+            });
+          });
+        }
+      }
 
       // 5. Build enriched data per entry
       for (const entry of entries) {
@@ -255,6 +301,23 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
             };
             if (item.description) existing.items.push(item.description);
             horseGroupMap.set(key, existing);
+          } else if (item.entity_type === "vet" && item.entity_id) {
+            // Resolve vet treatment -> horse
+            const resolved = vetToHorse.get(item.entity_id);
+            if (resolved && resolved.horseId) {
+              const key = `vet_${resolved.horseId}`;
+              const existing = horseGroupMap.get(key) || {
+                horseId: resolved.horseId,
+                horseName: resolved.horseName,
+                samples: [],
+                items: [],
+                source: "vet" as const,
+              };
+              if (item.description) existing.items.push(item.description);
+              horseGroupMap.set(key, existing);
+            } else {
+              if (item.description) noHorseItems.push(item.description);
+            }
           } else {
             if (item.description) noHorseItems.push(item.description);
           }

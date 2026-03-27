@@ -15,9 +15,11 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { CreateInvoiceFromTreatment } from "./CreateInvoiceFromTreatment";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { useVetMedications } from "@/hooks/vet/useVetMedications";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
 import { isPast } from "date-fns";
 import { useI18n } from "@/i18n";
@@ -34,6 +36,8 @@ import {
   CheckCircle,
   Plus,
   Loader2,
+  Receipt,
+  FileText,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -51,24 +55,28 @@ export function TreatmentDetailSheet({
   onEdit,
 }: TreatmentDetailSheetProps) {
   const { t } = useI18n();
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
 
   if (!treatment) return null;
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4 pe-10">
           <SheetTitle className="text-start">{treatment.title}</SheetTitle>
         </SheetHeader>
 
-        {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
-          <div className="flex justify-end mb-4">
+        {/* Action buttons row */}
+        <div className="flex justify-end gap-2 mb-4">
+          {onEdit && treatment.status !== 'completed' && treatment.status !== 'cancelled' && (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => onEdit(treatment)}>
               <Edit className="w-3.5 h-3.5" />
               {t("common.edit")}
             </Button>
-          </div>
-        )}
+          )}
+          <BillingActionButton treatment={treatment} onOpenInvoiceDialog={() => setInvoiceDialogOpen(true)} />
+        </div>
 
         <div className="space-y-6">
           {/* Horse Context */}
@@ -143,6 +151,42 @@ export function TreatmentDetailSheet({
         </div>
       </SheetContent>
     </Sheet>
+
+    <CreateInvoiceFromTreatment
+      open={invoiceDialogOpen}
+      onOpenChange={setInvoiceDialogOpen}
+      data={{
+        treatment,
+        horseName: treatment.horse?.name,
+        horseNameAr: (treatment.horse as any)?.name_ar,
+      }}
+    />
+  </>
+  );
+}
+
+/** Shows billing status + generate invoice button */
+function BillingActionButton({ treatment, onOpenInvoiceDialog }: { treatment: VetTreatment; onOpenInvoiceDialog: () => void }) {
+  const { t } = useI18n();
+  const { links, isLoading } = useBillingLinks("vet_treatment", treatment.id);
+  const hasInvoice = links.length > 0;
+
+  if (isLoading) return null;
+
+  if (hasInvoice) {
+    return (
+      <Badge variant="secondary" className="gap-1 text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+        <FileText className="w-3 h-3" />
+        {t("vet.billing.invoiced")}
+      </Badge>
+    );
+  }
+
+  return (
+    <Button variant="outline" size="sm" className="gap-1.5" onClick={onOpenInvoiceDialog}>
+      <Receipt className="w-3.5 h-3.5" />
+      {t("vet.billing.generateInvoice")}
+    </Button>
   );
 }
 
