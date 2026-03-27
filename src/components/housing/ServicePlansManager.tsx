@@ -122,8 +122,8 @@ export function ServicePlansManager() {
                     ) : null;
                   })()}
                   <Badge variant="outline">{plan.base_price} {plan.currency}</Badge>
-                  <Badge variant="outline" className="capitalize">{plan.billing_cycle}</Badge>
-                  <Badge variant="outline" className="capitalize">{plan.plan_type}</Badge>
+                  <Badge variant="outline">{t(`services.billingCycles.${plan.billing_cycle}` as any) || plan.billing_cycle}</Badge>
+                  <Badge variant="outline">{t(`housing.plans.types.${plan.plan_type}` as any) || plan.plan_type}</Badge>
                 </div>
               </CardContent>
             </Card>
