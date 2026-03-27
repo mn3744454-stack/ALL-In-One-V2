@@ -106,7 +106,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
             <div>
               <span className="text-muted-foreground block">{t('housing.checkout.financial.outstanding')}</span>
               <span className={cn("font-medium", fin.clientLedgerBalance > 0 ? "text-amber-600" : "text-success")}>
-                {fin.clientLedgerBalance.toFixed(2)}
+                {formatBoardingAmount(fin.clientLedgerBalance)}
               </span>
             </div>
             {fin.clientCreditLimit !== null && (
