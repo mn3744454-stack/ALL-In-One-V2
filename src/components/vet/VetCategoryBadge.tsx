@@ -10,7 +10,9 @@ import {
   Footprints, 
   Bandage, 
   Baby, 
-  FlaskConical 
+  FlaskConical,
+  Wind,
+  Bone,
 } from "lucide-react";
 
 interface VetCategoryBadgeProps {
@@ -18,7 +20,7 @@ interface VetCategoryBadgeProps {
   className?: string;
 }
 
-const categoryConfig: Record<VetTreatmentCategory, { icon: React.ElementType; color: string }> = {
+const categoryConfig: Record<string, { icon: React.ElementType; color: string }> = {
   treatment: { icon: Stethoscope, color: "bg-blue-500/10 text-blue-600" },
   procedure: { icon: Scissors, color: "bg-purple-500/10 text-purple-600" },
   checkup: { icon: Activity, color: "bg-green-500/10 text-green-600" },
@@ -28,10 +30,14 @@ const categoryConfig: Record<VetTreatmentCategory, { icon: React.ElementType; co
   surgery: { icon: Scissors, color: "bg-rose-500/10 text-rose-600" },
   reproductive: { icon: Baby, color: "bg-pink-500/10 text-pink-600" },
   lab: { icon: FlaskConical, color: "bg-indigo-500/10 text-indigo-600" },
+  respiratory: { icon: Wind, color: "bg-teal-500/10 text-teal-600" },
+  musculoskeletal: { icon: Bone, color: "bg-orange-500/10 text-orange-600" },
 };
 
+const defaultConfig = { icon: Stethoscope, color: "bg-muted text-muted-foreground" };
+
 export function VetCategoryBadge({ category, className }: VetCategoryBadgeProps) {
-  const config = categoryConfig[category];
+  const config = categoryConfig[category] || defaultConfig;
   const Icon = config.icon;
 
   return (

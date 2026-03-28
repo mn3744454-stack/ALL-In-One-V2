@@ -9,7 +9,8 @@ import type { Json } from "@/integrations/supabase/types";
 
 export type VetTreatmentCategory = 
   | 'treatment' | 'procedure' | 'checkup' | 'dental' 
-  | 'hoof' | 'injury' | 'surgery' | 'reproductive' | 'lab';
+  | 'hoof' | 'injury' | 'surgery' | 'reproductive' | 'lab'
+  | 'respiratory' | 'musculoskeletal';
 
 export type VetTreatmentStatus = 'draft' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 export type VetTreatmentPriority = 'low' | 'medium' | 'high' | 'urgent';
