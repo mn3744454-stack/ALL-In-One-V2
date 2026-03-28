@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
+import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
