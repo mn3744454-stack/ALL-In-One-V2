@@ -219,6 +219,8 @@ export function InvoiceFormDialog({
               total_price: item.total_price,
               entity_type: item.entity_type,
               entity_id: item.entity_id,
+              horse_id: item.horse_id || null,
+              domain: item.domain || null,
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
