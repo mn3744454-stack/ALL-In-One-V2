@@ -629,6 +629,11 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       )}
                     </Badge>
                   )}
+                  {scopeConfig.domainFilter !== "all" && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t(`clients.statement.domain.${scopeConfig.domainFilter}`) || scopeConfig.domainFilter}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <Button
