@@ -6,20 +6,24 @@ import { CreateInvoiceFromVaccination } from "./CreateInvoiceFromVaccination";
 import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
+import { useSupplierPayableForSource } from "@/hooks/billing/useSupplierPayableForSource";
 import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
 import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { isPast, isToday, isTomorrow } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText, Landmark, Loader2 } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
+import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText, Landmark, Loader2, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { useI18n } from "@/i18n";
 import { tScope } from "@/i18n/labels";
 
@@ -206,6 +210,11 @@ export function VaccinationsList({
                             {vaccination.notes}
                           </p>
                         )}
+
+                        {/* Financial Status — inline for done vaccinations */}
+                        {vaccination.status === 'done' && showBilling && (
+                          <VaccinationFinancialStatus vaccinationId={vaccination.id} />
+                        )}
                       </div>
                     </div>
 
@@ -262,6 +271,70 @@ export function VaccinationsList({
         />
       )}
     </div>
+  );
+}
+
+/** Compact inline financial status for a vaccination record */
+function VaccinationFinancialStatus({ vaccinationId }: { vaccinationId: string }) {
+  const { t } = useI18n();
+  const { links } = useBillingLinks("vaccination", vaccinationId);
+  const { entries } = useFinancialEntries("vaccination", vaccinationId);
+  const { payable } = useSupplierPayableForSource("vaccination", vaccinationId);
+  const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
+
+  const hasInvoice = links.length > 0;
+  const invoiceLink = links[0];
+  const hasCostEntry = entries.some((e) => !e.is_income);
+  const costEntry = entries.find((e) => !e.is_income);
+  const hasPayable = !!payable;
+
+  if (!hasInvoice && !hasCostEntry && !hasPayable) return null;
+
+  return (
+    <>
+      <Separator className="my-2" />
+      <div className="space-y-1">
+        {hasInvoice && (
+          <button
+            type="button"
+            className="flex items-center gap-1.5 text-xs rounded px-1.5 py-0.5 hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); setViewInvoiceId(invoiceLink.invoice_id); }}
+          >
+            <FileText className="h-3 w-3 text-emerald-600 shrink-0" />
+            <span className="text-emerald-700 dark:text-emerald-400 font-medium">{t("finance.traceability.invoiced")}</span>
+            {invoiceLink.amount != null && invoiceLink.amount > 0 && (
+              <span className="font-mono tabular-nums text-muted-foreground ms-auto" dir="ltr">{formatCurrency(invoiceLink.amount)}</span>
+            )}
+            {invoiceLink.amount === 0 && (
+              <Badge variant="outline" className="text-[10px] ms-auto px-1 py-0">{t("finance.traceability.zeroCharge")}</Badge>
+            )}
+          </button>
+        )}
+        {hasCostEntry && (
+          <div className="flex items-center gap-1.5 text-xs px-1.5 py-0.5">
+            <Landmark className="h-3 w-3 text-amber-600 shrink-0" />
+            <span className="text-amber-700 dark:text-amber-400 font-medium">{t("finance.traceability.stableCostRecorded")}</span>
+            {costEntry && costEntry.actual_cost != null && costEntry.actual_cost > 0 && (
+              <span className="font-mono tabular-nums text-muted-foreground ms-auto" dir="ltr">{formatCurrency(costEntry.actual_cost, costEntry.currency)}</span>
+            )}
+          </div>
+        )}
+        {hasPayable && (
+          <div className="flex items-center gap-1.5 text-xs px-1.5 py-0.5">
+            <Truck className="h-3 w-3 text-blue-600 shrink-0" />
+            <span className="text-blue-700 dark:text-blue-400 font-medium">{t("finance.traceability.payableCreated")}</span>
+            {payable.amount != null && payable.amount > 0 && (
+              <span className="font-mono tabular-nums text-muted-foreground ms-auto" dir="ltr">{formatCurrency(payable.amount)}</span>
+            )}
+          </div>
+        )}
+      </div>
+      <InvoiceDetailsSheet
+        open={!!viewInvoiceId}
+        onOpenChange={(open) => !open && setViewInvoiceId(null)}
+        invoiceId={viewInvoiceId}
+      />
+    </>
   );
 }
 

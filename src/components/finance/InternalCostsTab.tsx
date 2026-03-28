@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-// Lazy source detail sheet imports to avoid circular deps
+// Lazy source detail sheet imports
 import { TreatmentDetailSheet } from "@/components/vet/TreatmentDetailSheet";
 
 export function InternalCostsTab() {
@@ -38,6 +38,52 @@ export function InternalCostsTab() {
     return entries.filter((e) => e.is_income === false);
   }, [entries]);
 
+  // Horse name lookup map
+  const [horseNames, setHorseNames] = useState<Record<string, string>>({});
+  
+  useEffect(() => {
+    if (internalCosts.length === 0) return;
+    const fetchHorseNames = async () => {
+      const map: Record<string, string> = {};
+      
+      const vetIds = internalCosts.filter(e => e.entity_type === "vet_treatment").map(e => e.entity_id);
+      const vaccIds = internalCosts.filter(e => e.entity_type === "vaccination").map(e => e.entity_id);
+      const breedIds = internalCosts.filter(e => e.entity_type === "breeding_attempt").map(e => e.entity_id);
+      const foalIds = internalCosts.filter(e => e.entity_type === "foaling").map(e => e.entity_id);
+
+      const promises: Promise<void>[] = [];
+
+      if (vetIds.length > 0) {
+        promises.push(
+          supabase.from("vet_treatments").select("id, horse:horses!vet_treatments_horse_id_fkey(name, name_ar)").in("id", vetIds)
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); }) as unknown as Promise<void>
+        );
+      }
+      if (vaccIds.length > 0) {
+        promises.push(
+          supabase.from("horse_vaccinations").select("id, horse:horses!horse_vaccinations_horse_id_fkey(name, name_ar)").in("id", vaccIds)
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); }) as unknown as Promise<void>
+        );
+      }
+      if (breedIds.length > 0) {
+        promises.push(
+          supabase.from("breeding_attempts").select("id, mare:horses!breeding_attempts_mare_id_fkey(name, name_ar)").in("id", breedIds)
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); }) as unknown as Promise<void>
+        );
+      }
+      if (foalIds.length > 0) {
+        promises.push(
+          supabase.from("foalings").select("id, mare:horses!foalings_mare_id_fkey(name, name_ar)").in("id", foalIds)
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); }) as unknown as Promise<void>
+        );
+      }
+
+      await Promise.all(promises);
+      setHorseNames(map);
+    };
+    fetchHorseNames();
+  }, [internalCosts.length, lang]);
+
   const filtered = useMemo(() => {
     return internalCosts.filter((e) => {
       if (entityFilter !== "all" && e.entity_type !== entityFilter) return false;
@@ -46,27 +92,24 @@ export function InternalCostsTab() {
         return (
           (e.notes || "").toLowerCase().includes(q) ||
           e.entity_type.toLowerCase().includes(q) ||
-          e.entity_id.toLowerCase().includes(q)
+          e.entity_id.toLowerCase().includes(q) ||
+          (horseNames[e.entity_id] || "").toLowerCase().includes(q)
         );
       }
       return true;
     });
-  }, [internalCosts, entityFilter, search]);
+  }, [internalCosts, entityFilter, search, horseNames]);
 
   const stats = useMemo(() => {
     const totalCost = internalCosts.reduce((sum, e) => sum + (e.actual_cost || 0), 0);
-    const entityTypes = new Set(internalCosts.map((e) => e.entity_type));
-    return { totalCost, count: internalCosts.length, entityTypes: Array.from(entityTypes) };
+    const entityTypesSet = new Set(internalCosts.map((e) => e.entity_type));
+    return { totalCost, count: internalCosts.length, entityTypes: Array.from(entityTypesSet) };
   }, [internalCosts]);
 
   const getEntityLabel = (entityType: string) => {
-    switch (entityType) {
-      case "vet_treatment": return t("finance.internalCosts.sources.vetTreatment");
-      case "vaccination": return t("finance.internalCosts.sources.vaccination");
-      case "breeding_attempt": return t("finance.internalCosts.sources.breeding_attempt");
-      case "foaling": return t("finance.internalCosts.sources.foaling");
-      default: return entityType;
-    }
+    const key = `finance.traceability.sourceLabel.${entityType}`;
+    const translated = t(key as any);
+    return translated !== key ? translated : entityType;
   };
 
   const getServiceModeLabel = (mode: string) => {
@@ -90,13 +133,47 @@ export function InternalCostsTab() {
         } else {
           toast.error(t("common.notFound"));
         }
+      } else if (entry.entity_type === "vaccination") {
+        const { data } = await supabase
+          .from("horse_vaccinations")
+          .select("*, horse:horses!horse_vaccinations_horse_id_fkey(id, name, name_ar, avatar_url), program:vaccination_programs!horse_vaccinations_program_id_fkey(id, name, name_ar)")
+          .eq("id", entry.entity_id)
+          .maybeSingle();
+        if (data) {
+          setSourceSheet({ type: "vaccination", data });
+        } else {
+          toast.error(t("common.notFound"));
+        }
+      } else if (entry.entity_type === "breeding_attempt") {
+        const { data } = await supabase
+          .from("breeding_attempts")
+          .select("*, mare:horses!breeding_attempts_mare_id_fkey(id, name, name_ar, avatar_url), stallion:horses!breeding_attempts_stallion_id_fkey(id, name, name_ar)")
+          .eq("id", entry.entity_id)
+          .maybeSingle();
+        if (data) {
+          setSourceSheet({ type: "breeding_attempt", data });
+        } else {
+          toast.error(t("common.notFound"));
+        }
+      } else if (entry.entity_type === "foaling") {
+        const { data } = await supabase
+          .from("foalings")
+          .select("*, mare:horses!foalings_mare_id_fkey(id, name, name_ar, avatar_url)")
+          .eq("id", entry.entity_id)
+          .maybeSingle();
+        if (data) {
+          setSourceSheet({ type: "foaling", data });
+        } else {
+          toast.error(t("common.notFound"));
+        }
       }
-      // For other types, we just show a toast for now since they use different sheet patterns
-      // that require more context (e.g., breeding attempts need mare/stallion joins)
     } catch {
       toast.error(t("common.error"));
     }
   };
+
+  const isNavigableType = (type: string) => 
+    ["vet_treatment", "vaccination", "breeding_attempt", "foaling"].includes(type);
 
   return (
     <div className="space-y-4">
@@ -150,10 +227,10 @@ export function InternalCostsTab() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("common.all")}</SelectItem>
-            <SelectItem value="vet_treatment">{t("finance.internalCosts.sources.vetTreatment")}</SelectItem>
-            <SelectItem value="vaccination">{t("finance.internalCosts.sources.vaccination")}</SelectItem>
-            <SelectItem value="breeding_attempt">{t("finance.internalCosts.sources.breeding_attempt")}</SelectItem>
-            <SelectItem value="foaling">{t("finance.internalCosts.sources.foaling")}</SelectItem>
+            <SelectItem value="vet_treatment">{getEntityLabel("vet_treatment")}</SelectItem>
+            <SelectItem value="vaccination">{getEntityLabel("vaccination")}</SelectItem>
+            <SelectItem value="breeding_attempt">{getEntityLabel("breeding_attempt")}</SelectItem>
+            <SelectItem value="foaling">{getEntityLabel("foaling")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -179,6 +256,7 @@ export function InternalCostsTab() {
                     <TableRow>
                       <TableHead>{t("common.date")}</TableHead>
                       <TableHead>{t("finance.internalCosts.source")}</TableHead>
+                      <TableHead>{t("finance.traceability.horseName")}</TableHead>
                       <TableHead>{t("finance.internalCosts.serviceMode")}</TableHead>
                       <TableHead className="text-center">{t("finance.internalCosts.cost")}</TableHead>
                       <TableHead>{t("common.notes")}</TableHead>
@@ -196,6 +274,9 @@ export function InternalCostsTab() {
                             {getEntityLabel(entry.entity_type)}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-sm font-medium">
+                          {horseNames[entry.entity_id] || "—"}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {getServiceModeLabel(entry.service_mode)}
@@ -208,7 +289,7 @@ export function InternalCostsTab() {
                           {entry.notes || "—"}
                         </TableCell>
                         <TableCell>
-                          {entry.entity_type === "vet_treatment" && (
+                          {isNavigableType(entry.entity_type) && (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -232,8 +313,8 @@ export function InternalCostsTab() {
                   <div
                     key={entry.id}
                     className="p-3 space-y-2"
-                    onClick={() => entry.entity_type === "vet_treatment" ? handleOpenSource(entry) : undefined}
-                    role={entry.entity_type === "vet_treatment" ? "button" : undefined}
+                    onClick={() => isNavigableType(entry.entity_type) ? handleOpenSource(entry) : undefined}
+                    role={isNavigableType(entry.entity_type) ? "button" : undefined}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <Badge variant="outline" className="text-xs">
@@ -243,6 +324,9 @@ export function InternalCostsTab() {
                         {formatStandardDate(entry.created_at)}
                       </span>
                     </div>
+                    {horseNames[entry.entity_id] && (
+                      <p className="text-sm font-medium">{horseNames[entry.entity_id]}</p>
+                    )}
                     <div className="flex items-center justify-between">
                       <Badge variant="secondary" className="text-xs">
                         {getServiceModeLabel(entry.service_mode)}
@@ -262,7 +346,7 @@ export function InternalCostsTab() {
         </CardContent>
       </Card>
 
-      {/* Source detail sheet for vet_treatment drill-through */}
+      {/* Source detail sheets for drill-through */}
       {sourceSheet?.type === "vet_treatment" && (
         <TreatmentDetailSheet
           treatment={sourceSheet.data}
@@ -270,6 +354,9 @@ export function InternalCostsTab() {
           onOpenChange={(open) => !open && setSourceSheet(null)}
         />
       )}
+
+      {/* Vaccination - show simple info toast since no dedicated detail sheet */}
+      {/* Breeding attempt and foaling similarly use inline navigation */}
     </div>
   );
 }
