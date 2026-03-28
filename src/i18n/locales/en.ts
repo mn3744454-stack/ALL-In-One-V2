@@ -2921,6 +2921,13 @@ export const en = {
       subtotal: "Subtotal",
       tax: "Tax",
       discount: "Discount",
+      selectHorse: "Select horse (optional)",
+      searchHorse: "Search horse...",
+      noHorse: "No horse (client-level)",
+      domain: {
+        select: "Category (optional)",
+        general: "General",
+      },
       empty: "No invoices yet",
       emptyDesc: "Create your first invoice to get started",
       pending: "Pending",
