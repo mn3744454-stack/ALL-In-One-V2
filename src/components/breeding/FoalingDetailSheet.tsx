@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Baby, CheckCircle, Clock, FileText, Receipt, XCircle } from "lucide-react";
+import { Baby, CheckCircle, Clock, FileText, Landmark, Receipt, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +22,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { useTenant } from "@/contexts/TenantContext";
+import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
+import { toast } from "sonner";
 
 interface FoalingDetailSheetProps {
   foaling: Foaling | null;
