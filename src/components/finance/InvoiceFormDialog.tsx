@@ -286,7 +286,12 @@ export function InvoiceFormDialog({
             {/* Line Items */}
             <div className="space-y-2">
               <Label>{t("finance.invoices.lineItems")}</Label>
-              <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} currency="SAR" />
+              <InvoiceLineItemsEditor
+                items={lineItems}
+                onChange={setLineItems}
+                currency="SAR"
+                horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+              />
             </div>
 
             {/* Tax and Discount */}
