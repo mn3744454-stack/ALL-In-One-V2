@@ -189,7 +189,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-navy font-medium">
-                      {t('createProfile.nameLabel')} {tenantTitle} *
+                      {t('createProfile.nameLabel')} {tenantTitle} ({t('createProfile.englishName')}) *
                     </Label>
                     <div className="relative">
                       <Icon className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -200,6 +200,23 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                         onChange={(e) => updateField("name", e.target.value)}
                         className="ps-10"
                         required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="name_ar" className="text-navy font-medium">
+                      {t('createProfile.nameLabel')} {tenantTitle} ({t('createProfile.arabicName')})
+                    </Label>
+                    <div className="relative">
+                      <Icon className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="name_ar"
+                        placeholder={t('createProfile.enterArabicName')}
+                        value={formData.name_ar}
+                        onChange={(e) => updateField("name_ar", e.target.value)}
+                        className="ps-10"
+                        dir="rtl"
                       />
                     </div>
                   </div>
