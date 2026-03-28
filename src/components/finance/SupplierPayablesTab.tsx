@@ -327,15 +327,24 @@ export function SupplierPayablesTab() {
                           <div>
                             <p className="font-medium text-sm">{p.supplier_name}</p>
                             {p.description && <p className="text-xs text-muted-foreground">{p.description}</p>}
-                            {p.source_reference && <p className="text-xs text-muted-foreground font-mono" dir="ltr">{p.source_reference}</p>}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {p.source_type && (
-                            <Badge variant="outline" className="text-xs">
-                              {t(`finance.payables.sources.${p.source_type}`) || p.source_type}
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {p.source_type && (
+                              <Badge variant="outline" className="text-xs w-fit">
+                                {t(`finance.payables.sources.${p.source_type}`) || p.source_type}
+                              </Badge>
+                            )}
+                            {p.source_reference && (invoicedSourceRefs as Set<string>).has(p.source_reference) ? (
+                              <Badge variant="secondary" className="text-[10px] w-fit gap-1">
+                                <FileText className="h-2.5 w-2.5" />
+                                {t("finance.traceability.clientInvoiced")}
+                              </Badge>
+                            ) : p.source_reference ? (
+                              <span className="text-[10px] text-muted-foreground">{t("finance.traceability.notInvoiced")}</span>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                           {formatCurrency(p.amount)}
