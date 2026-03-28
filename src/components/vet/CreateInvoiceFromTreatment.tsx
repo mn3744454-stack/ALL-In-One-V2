@@ -214,6 +214,8 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           description: lineDescription,
           entity_type: "vet",
           entity_id: treatment.id,
+          horse_id: treatment.horse_id || null,
+          domain: "vet",
           quantity: 1,
           unit_price: amount,
           total_price: amount,

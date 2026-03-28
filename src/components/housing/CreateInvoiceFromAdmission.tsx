@@ -142,12 +142,19 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
       // Step 2: Create invoice_items with entity_type='boarding'
       const lineDescription = buildLineItemDescription();
+      const fromDate = new Date(admission.admitted_at);
+      const toDate = admission.checked_out_at ? new Date(admission.checked_out_at) : new Date();
+
       const items: any[] = [
         {
           invoice_id: invoice.id,
           description: lineDescription,
           entity_type: "boarding",
           entity_id: admission.id,
+          horse_id: admission.horse_id || null,
+          domain: "boarding",
+          period_start: format(fromDate, "yyyy-MM-dd"),
+          period_end: format(toDate, "yyyy-MM-dd"),
           quantity: days,
           unit_price: admission.billing_cycle === "daily"
             ? (admission.daily_rate || amount)
@@ -165,6 +172,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           description: `${t('housing.plans.includedService')}: ${label}`,
           entity_type: "boarding",
           entity_id: admission.id,
+          horse_id: admission.horse_id || null,
+          domain: "boarding",
           quantity: 1,
           unit_price: 0,
           total_price: 0,

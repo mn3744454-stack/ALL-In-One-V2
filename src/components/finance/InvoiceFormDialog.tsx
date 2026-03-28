@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
+import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
@@ -47,6 +48,7 @@ export function InvoiceFormDialog({
   const { activeTenant } = useTenant();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
+  const { horses = [] } = useHorses();
   const queryClient = useQueryClient();
 
   const isEditMode = mode === "edit" && invoice;
@@ -181,6 +183,8 @@ export function InvoiceFormDialog({
             total_price: item.total_price,
             entity_type: item.entity_type,
             entity_id: item.entity_id,
+            horse_id: item.horse_id || null,
+            domain: item.domain || null,
           });
         }
 
@@ -215,6 +219,8 @@ export function InvoiceFormDialog({
               total_price: item.total_price,
               entity_type: item.entity_type,
               entity_id: item.entity_id,
+              horse_id: item.horse_id || null,
+              domain: item.domain || null,
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
@@ -284,7 +290,12 @@ export function InvoiceFormDialog({
             {/* Line Items */}
             <div className="space-y-2">
               <Label>{t("finance.invoices.lineItems")}</Label>
-              <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} currency="SAR" />
+              <InvoiceLineItemsEditor
+                items={lineItems}
+                onChange={setLineItems}
+                currency="SAR"
+                horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+              />
             </div>
 
             {/* Tax and Discount */}
