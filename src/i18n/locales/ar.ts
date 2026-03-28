@@ -2703,6 +2703,11 @@ export const ar = {
   finance: {
     title: "المالية",
     subtitle: "الفواتير والمصروفات والحسابات",
+    tax: {
+      exclTax: "قبل الضريبة",
+      inclTax: "شامل الضريبة",
+      estimated: "تقديري",
+    },
     overview: "نظرة عامة",
     customerBalances: {
       title: "أرصدة العملاء",
