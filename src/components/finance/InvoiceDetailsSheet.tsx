@@ -226,7 +226,7 @@ export function InvoiceDetailsSheet({
 
       setItems(enrichedItems as unknown as InvoiceItem[]);
 
-      // Resolve horse/sample context from lab_sample items
+      // Resolve horse/sample context from items
       try {
         if (labSampleIds.length > 0) {
           const { data: samplesWithHorse } = await supabase
@@ -256,7 +256,16 @@ export function InvoiceDetailsSheet({
             setInvoiceContext(null);
           }
         } else {
-          setInvoiceContext(null);
+          // Try to extract horse context from stable-origin entities
+          const stableEntityIds = Object.keys(stableEntityMap);
+          if (stableEntityIds.length > 0) {
+            // Use first enriched entity's horse name from the map
+            const firstEnriched = stableEntityMap[stableEntityIds[0]];
+            // The map values contain "description — horseName", extract horse context
+            setInvoiceContext({ horseName: firstEnriched || undefined });
+          } else {
+            setInvoiceContext(null);
+          }
         }
       } catch {
         setInvoiceContext(null);
