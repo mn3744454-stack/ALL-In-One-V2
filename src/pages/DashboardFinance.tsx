@@ -48,6 +48,7 @@ import {
   Printer,
   Download,
   CreditCard,
+  Landmark,
 } from "lucide-react";
 import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
 import { InternalCostsTab } from "@/components/finance/InternalCostsTab";
