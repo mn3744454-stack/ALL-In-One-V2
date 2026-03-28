@@ -63,6 +63,7 @@ const DashboardMyProfile = () => {
   const handleSave = () => {
     updateProfile.mutate({
       full_name: formData.full_name || undefined,
+      phone: formData.phone || undefined,
       bio: formData.bio || undefined,
       location: formData.location || undefined,
       website: formData.website || undefined,
