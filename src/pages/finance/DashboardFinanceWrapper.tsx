@@ -15,7 +15,7 @@ export default function DashboardFinanceWrapper() {
   const navigate = useNavigate();
 
   // Validate tab parameter
-  const validTabs: FinanceTab[] = ["invoices", "expenses", "ledger", "payments"];
+  const validTabs: FinanceTab[] = ["invoices", "expenses", "payables", "internalCosts", "ledger", "payments"];
   const isValidTab = tab && validTabs.includes(tab as FinanceTab);
 
   useEffect(() => {
