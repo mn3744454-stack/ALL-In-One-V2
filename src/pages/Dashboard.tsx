@@ -37,6 +37,7 @@ import {
   CreditCard,
   ShoppingCart,
   Star,
+  UserCircle,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/ui/language-selector";
 
@@ -55,6 +56,9 @@ const Dashboard = () => {
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
   const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
   const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
+  
+  // Check if personal profile needs completion - ONLY in personal mode
+  const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !(profile as any).bio && !(profile as any).location;
 
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
@@ -63,8 +67,8 @@ const Dashboard = () => {
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
 
-  // Header right slot: AddHorseDialog for desktop
-  const headerRight = activeTenant ? <AddHorseDialog /> : undefined;
+  // Header right slot: AddHorseDialog for desktop - only in org mode
+  const headerRight = activeTenant && workspaceMode === "organization" ? <AddHorseDialog /> : undefined;
 
   return (
     <DashboardShell headerRight={headerRight}>
@@ -85,7 +89,7 @@ const Dashboard = () => {
               <TenantSwitcher />
               <RoleSwitcher />
             </div>
-            {activeTenant && <AddHorseDialog />}
+            {activeTenant && workspaceMode === "organization" && <AddHorseDialog />}
           </div>
         )}
       </header>
@@ -137,6 +141,19 @@ const Dashboard = () => {
                 {t("dashboard.quickActions")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <Link to="/dashboard/my-profile" className="block">
+                  <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
+                    <CardContent className="p-6 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                        <UserCircle className="w-6 h-6 text-gold" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-navy">{t("sidebar.myProfile")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("dashboard.myProfileDesc")}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
                 <Link to="/community" className="block">
                   <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
                     <CardContent className="p-6 flex items-center gap-4">
@@ -193,23 +210,6 @@ const Dashboard = () => {
                     </CardContent>
                   </Card>
                 </button>
-                {/* My Purchases - Coming Soon */}
-                <button
-                  onClick={() => toast.info(t("common.comingSoon"))}
-                  className="block text-left w-full"
-                >
-                  <Card variant="elevated" className="hover:border-muted-foreground/30 transition-all cursor-pointer h-full opacity-75">
-                    <CardContent className="p-6 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                        <ShoppingCart className="w-6 h-6 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-navy">{t("sidebar.myPurchases")}</h3>
-                        <p className="text-sm text-muted-foreground">{t("common.comingSoon")}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </button>
               </div>
             </div>
           )}
@@ -246,7 +246,36 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* Public Profile Setup Reminder */}
+          {/* Personal Profile Completion CTA - personal mode only */}
+          {needsPersonalProfileSetup && (
+            <Card variant="elevated" className="mb-8 border-gold/30 bg-gradient-to-r from-gold/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
+                    <UserCircle className="w-7 h-7 text-gold" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                      {t("dashboard.completePersonalProfile")}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {t("dashboard.completePersonalProfileDesc")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="gold"
+                    onClick={() => navigate("/dashboard/my-profile")}
+                    className="gap-2"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    {t("dashboard.completeNow")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Public Profile Setup Reminder - org mode only */}
           {needsPublicProfileSetup && (
             <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
               <CardContent className="p-6">
@@ -361,7 +390,8 @@ const Dashboard = () => {
             </>
           )}
 
-          {/* Content Grid */}
+          {/* Content Grid - Only in organization mode */}
+          {workspaceMode === "organization" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Horses List - Only show for horse-owning tenant types */}
             {activeTenant && isHorseOwningTenant ? (
@@ -478,6 +508,7 @@ const Dashboard = () => {
               </Card>
             </div>
           </div>
+          )}
         </div>
       </div>
       
