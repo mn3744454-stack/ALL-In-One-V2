@@ -67,8 +67,8 @@ const Dashboard = () => {
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
 
-  // Header right slot: AddHorseDialog for desktop
-  const headerRight = activeTenant ? <AddHorseDialog /> : undefined;
+  // Header right slot: AddHorseDialog for desktop - only in org mode
+  const headerRight = activeTenant && workspaceMode === "organization" ? <AddHorseDialog /> : undefined;
 
   return (
     <DashboardShell headerRight={headerRight}>
