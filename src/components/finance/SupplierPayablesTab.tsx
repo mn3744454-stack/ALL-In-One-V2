@@ -338,6 +338,7 @@ export function SupplierPayablesTab() {
                   <TableRow>
                     <TableHead>{t("finance.payables.supplierName")}</TableHead>
                     <TableHead>{t("finance.payables.sourceType")}</TableHead>
+                    <TableHead>{t("finance.traceability.horseName")}</TableHead>
                     <TableHead className="text-center">{t("finance.payables.amount")}</TableHead>
                     <TableHead className="text-center">{t("finance.payables.paid")}</TableHead>
                     <TableHead className="text-center">{t("finance.payables.remaining")}</TableHead>
