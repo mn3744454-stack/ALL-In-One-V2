@@ -2707,6 +2707,9 @@ export const ar = {
       exclTax: "قبل الضريبة",
       inclTax: "شامل الضريبة",
       estimated: "تقديري",
+      exclusive: "قبل الضريبة",
+      inclusive: "شامل الضريبة",
+      label: "الضريبة",
     },
     overview: "نظرة عامة",
     customerBalances: {

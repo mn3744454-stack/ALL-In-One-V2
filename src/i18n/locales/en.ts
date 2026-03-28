@@ -2692,6 +2692,9 @@ export const en = {
       exclTax: "excl. tax",
       inclTax: "incl. tax",
       estimated: "estimated",
+      exclusive: "excl. tax",
+      inclusive: "incl. tax",
+      label: "Tax",
     },
     overview: "Overview",
     customerBalances: {
