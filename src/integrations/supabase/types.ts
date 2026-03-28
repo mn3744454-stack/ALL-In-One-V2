@@ -4807,10 +4807,14 @@ export type Database = {
         Row: {
           created_at: string | null
           description: string
+          domain: string | null
           entity_id: string | null
           entity_type: string | null
+          horse_id: string | null
           id: string
           invoice_id: string
+          period_end: string | null
+          period_start: string | null
           quantity: number
           total_price: number
           unit_price: number
@@ -4818,10 +4822,14 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description: string
+          domain?: string | null
           entity_id?: string | null
           entity_type?: string | null
+          horse_id?: string | null
           id?: string
           invoice_id: string
+          period_end?: string | null
+          period_start?: string | null
           quantity?: number
           total_price: number
           unit_price: number
@@ -4829,15 +4837,26 @@ export type Database = {
         Update: {
           created_at?: string | null
           description?: string
+          domain?: string | null
           entity_id?: string | null
           entity_type?: string | null
+          horse_id?: string | null
           id?: string
           invoice_id?: string
+          period_end?: string | null
+          period_start?: string | null
           quantity?: number
           total_price?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_items_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoice_items_invoice_id_fkey"
             columns: ["invoice_id"]
@@ -8893,6 +8912,7 @@ export type Database = {
           address: string | null
           cover_url: string | null
           created_at: string
+          default_tax_rate: number | null
           description: string | null
           description_ar: string | null
           email: string | null
@@ -8920,6 +8940,7 @@ export type Database = {
           address?: string | null
           cover_url?: string | null
           created_at?: string
+          default_tax_rate?: number | null
           description?: string | null
           description_ar?: string | null
           email?: string | null
@@ -8947,6 +8968,7 @@ export type Database = {
           address?: string | null
           cover_url?: string | null
           created_at?: string
+          default_tax_rate?: number | null
           description?: string | null
           description_ar?: string | null
           email?: string | null
