@@ -82,6 +82,7 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (updates: {
       full_name?: string;
+      phone?: string;
       bio?: string;
       location?: string;
       website?: string;
