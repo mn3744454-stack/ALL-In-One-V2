@@ -150,33 +150,19 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
               </>
             )}
 
-            {/* Actions */}
-            {canManage && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => setInvoiceDialogOpen(true)}
-                  >
-                    <Receipt className="h-4 w-4" />
-                    {t("breeding.billing.generateInvoice")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={handleRecordStableCost}
-                    disabled={stableCostLoading}
-                  >
-                    <Landmark className="h-4 w-4" />
-                    {t("vet.billing.recordStableCost")}
-                  </Button>
-                </div>
-              </>
-            )}
+            {/* Financial Status Section */}
+            <FinancialStatusSection sourceType="breeding_attempt" sourceId={attempt.id} />
+
+            {/* Actions — only show buttons when not yet invoiced/recorded */}
+            <BreedingActionsSection
+              canManage={canManage}
+              sourceType="breeding_attempt"
+              sourceId={attempt.id}
+              onInvoice={() => setInvoiceDialogOpen(true)}
+              onStableCost={handleRecordStableCost}
+              stableCostLoading={stableCostLoading}
+              t={t}
+            />
           </div>
         </SheetContent>
       </Sheet>
