@@ -103,6 +103,9 @@ export function InvoiceFormDialog({
           total_price: item.total_price,
           entity_type: item.entity_type,
           entity_id: item.entity_id,
+          horse_id: (item as any).horse_id ?? null,
+          domain: (item as any).domain ?? null,
+          service_id: (item as any).service_id ?? null,
         })));
       }
     } else {
@@ -121,14 +124,29 @@ export function InvoiceFormDialog({
     }
   }, [open]);
 
+  const pricesTaxInclusive = Boolean((activeTenant?.tenant as any)?.prices_tax_inclusive);
+
   const calculations = useMemo(() => {
-    const subtotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
+    const lineTotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
     const taxRate = parseFloat(formData.tax_rate) || 0;
-    const taxAmount = subtotal * (taxRate / 100);
     const discountAmount = parseFloat(formData.discount_amount) || 0;
+
+    let subtotal: number;
+    let taxAmount: number;
+
+    if (pricesTaxInclusive) {
+      // Line prices include tax — back-calculate
+      taxAmount = taxRate > 0 ? Math.round(lineTotal * taxRate / (100 + taxRate) * 100) / 100 : 0;
+      subtotal = Math.round((lineTotal - taxAmount) * 100) / 100;
+    } else {
+      // Line prices are tax-exclusive — add tax on top
+      subtotal = lineTotal;
+      taxAmount = Math.round(subtotal * taxRate / 100 * 100) / 100;
+    }
+
     const totalAmount = subtotal + taxAmount - discountAmount;
     return { subtotal, taxAmount, discountAmount, totalAmount };
-  }, [lineItems, formData.tax_rate, formData.discount_amount]);
+  }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive]);
 
   const generateInvoiceNumber = () => {
     const prefix = activeTenant?.tenant.name?.substring(0, 3).toUpperCase() || "INV";
@@ -309,7 +327,12 @@ export function InvoiceFormDialog({
             {/* Tax and Discount */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>{t("finance.invoices.taxRate")} (%)</Label>
+                <Label>
+                  {t("finance.invoices.taxRate")} (%)
+                  <span className="text-xs text-muted-foreground ms-1">
+                    — {pricesTaxInclusive ? t("finance.tax.inclTax") : t("finance.tax.exclTax")}
+                  </span>
+                </Label>
                 <Input
                   type="number"
                   min="0"

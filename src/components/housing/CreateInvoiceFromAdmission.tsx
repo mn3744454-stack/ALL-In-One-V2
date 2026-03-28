@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, AlertTriangle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
@@ -20,17 +20,26 @@ import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { useServicesByKind } from "@/hooks/useServices";
 import { normalizeIncludes } from "@/lib/planIncludes";
 import { getTenantTaxConfig, computeTax } from "@/lib/taxUtils";
+import { useQuery } from "@tanstack/react-query";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { toast } from "sonner";
-import { differenceInDays, format, startOfMonth, endOfMonth, addMonths } from "date-fns";
+import { differenceInDays, format, startOfMonth, endOfMonth, parseISO, isWithinInterval, areIntervalsOverlapping } from "date-fns";
+import { computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   admission: BoardingAdmission;
+}
+
+interface BilledPeriod {
+  period_start: string;
+  period_end: string;
+  total_price: number;
+  invoice_number?: string;
 }
 
 export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Props) {
@@ -49,17 +58,81 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   // Tax config from tenant
   const taxConfig = getTenantTaxConfig(activeTenant?.tenant);
 
+  // Fetch already-billed periods for this admission
+  const { data: billedPeriods = [] } = useQuery({
+    queryKey: ['boarding-billed-periods', tenantId, admission.id],
+    queryFn: async (): Promise<BilledPeriod[]> => {
+      if (!tenantId) return [];
+      // Get invoice items linked to this admission via billing_links
+      const { data: links } = await supabase
+        .from('billing_links')
+        .select('invoice_id')
+        .eq('tenant_id', tenantId)
+        .eq('source_type', 'boarding')
+        .eq('source_id', admission.id);
+
+      if (!links || links.length === 0) return [];
+
+      const invoiceIds = links.map(l => l.invoice_id);
+      // Fetch invoice items with period data — only from financially active invoices
+      const ACTIVE_STATUSES = ['approved', 'shared', 'paid', 'overdue', 'partial', 'issued', 'draft', 'reviewed'];
+      const { data: items } = await (supabase as any)
+        .from('invoice_items')
+        .select('period_start, period_end, total_price, invoice_id')
+        .in('invoice_id', invoiceIds)
+        .eq('entity_type', 'boarding')
+        .not('period_start', 'is', null);
+
+      if (!items || items.length === 0) return [];
+
+      // Filter to only active invoices
+      const { data: invoices } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, status')
+        .in('id', invoiceIds)
+        .in('status', ACTIVE_STATUSES);
+
+      const activeInvoiceMap = new Map((invoices || []).map(inv => [inv.id, inv.invoice_number]));
+
+      return items
+        .filter((item: any) => activeInvoiceMap.has(item.invoice_id))
+        .map((item: any) => ({
+          period_start: item.period_start,
+          period_end: item.period_end,
+          total_price: item.total_price || 0,
+          invoice_number: activeInvoiceMap.get(item.invoice_id) || undefined,
+        }));
+    },
+    enabled: !!tenantId && open,
+  });
+
+  // Compute total accrued value (pre-tax) for the whole admission
+  const totalAccrued = useMemo(() => {
+    const days = computeStayDays(admission.admitted_at, admission.checked_out_at);
+    return computeAccruedCost(days, admission.daily_rate, admission.monthly_rate, admission.billing_cycle) || 0;
+  }, [admission]);
+
+  // Sum of already-billed pre-tax amounts
+  const totalBilledPreTax = useMemo(() => {
+    const rawBilled = billedPeriods.reduce((sum, p) => sum + p.total_price, 0);
+    // Back-calculate pre-tax if tax-exclusive (billed includes tax)
+    if (taxConfig.taxRate > 0 && !taxConfig.pricesTaxInclusive) {
+      return Math.round(rawBilled / (1 + taxConfig.taxRate / 100) * 100) / 100;
+    }
+    return rawBilled;
+  }, [billedPeriods, taxConfig]);
+
+  const remainingBillable = Math.max(totalAccrued - totalBilledPreTax, 0);
+
   // Resolve plan and its included services
   const admissionPlan = admission.plan_id ? plans.find(p => p.id === admission.plan_id) : null;
   const planIncludes = admissionPlan ? normalizeIncludes(admissionPlan.includes) : [];
 
   // Resolve a boarding service_id from plan or catalog
   const boardingServiceId = useMemo(() => {
-    // First check if plan links to a service
     if (admissionPlan && (admissionPlan as any).service_id) {
       return (admissionPlan as any).service_id as string;
     }
-    // Otherwise find a matching boarding service in catalog
     const match = boardingServices.find(s => s.is_active && s.service_kind === 'boarding');
     return match?.id || null;
   }, [admissionPlan, boardingServices]);
@@ -88,6 +161,31 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const estimatedCost = admission.billing_cycle === "daily"
     ? (admission.daily_rate || 0) * periodDays
     : (admission.monthly_rate || 0) * Math.max(Math.ceil(periodDays / 30), 1);
+
+  // Check for overlap with already-billed periods
+  const overlapWarning = useMemo(() => {
+    if (billedPeriods.length === 0) return null;
+    const newStart = parseISO(periodStart);
+    const newEnd = parseISO(periodEnd);
+    for (const bp of billedPeriods) {
+      if (!bp.period_start || !bp.period_end) continue;
+      const bpStart = parseISO(bp.period_start);
+      const bpEnd = parseISO(bp.period_end);
+      try {
+        if (areIntervalsOverlapping(
+          { start: newStart, end: newEnd },
+          { start: bpStart, end: bpEnd }
+        )) {
+          return bp.invoice_number
+            ? `${t("housing.admissions.billing.overlapWarning")} (${bp.invoice_number}: ${bp.period_start} → ${bp.period_end})`
+            : `${t("housing.admissions.billing.overlapWarning")} (${bp.period_start} → ${bp.period_end})`;
+        }
+      } catch {
+        // invalid interval, skip
+      }
+    }
+    return null;
+  }, [periodStart, periodEnd, billedPeriods, t]);
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(admission.client_id || null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
@@ -142,6 +240,12 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tenantId || !user?.id) return;
+
+    // Block submission on overlap
+    if (overlapWarning) {
+      toast.error(t("housing.admissions.billing.overlapBlock"));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -232,6 +336,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
       invalidateFinanceQueries(queryClient, tenantId);
       queryClient.invalidateQueries({ queryKey: ["billing-links"] });
+      queryClient.invalidateQueries({ queryKey: ["boarding-billed-periods"] });
 
       toast.success(t("housing.admissions.billing.invoiceCreated"));
       onOpenChange(false);
@@ -244,13 +349,48 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   };
 
   const taxPreview = computeTax(parseFloat(totalAmount) || 0, taxConfig);
+  const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("housing.admissions.billing.createInvoiceTitle")}</DialogTitle>
         </DialogHeader>
+
+        {/* Already-billed periods summary */}
+        {billedPeriods.length > 0 && (
+          <div className="rounded-md border border-border bg-muted/50 p-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Info className="w-4 h-4 text-muted-foreground" />
+              {t("housing.admissions.billing.billedPeriods")}
+            </div>
+            <div className="space-y-1">
+              {billedPeriods.map((bp, i) => (
+                <div key={i} className="text-xs text-muted-foreground flex justify-between">
+                  <span>{bp.period_start} → {bp.period_end} {bp.invoice_number && `(${bp.invoice_number})`}</span>
+                  <span className="font-mono">{bp.total_price.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between text-xs pt-1 border-t border-border">
+              <span className="font-medium">{t("housing.admissions.billing.remainingBillable")}</span>
+              <span className={cn("font-mono font-medium", remainingBillable <= 0 ? "text-destructive" : "text-foreground")}>
+                {remainingBillable.toFixed(2)} {admission.rate_currency || "SAR"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {fullyBilled && (
+          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+            <span className="text-sm text-destructive">
+              {t("housing.admissions.billing.fullyBilled")}
+            </span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>{t("doctor.client")}</Label>
@@ -321,6 +461,14 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
             </div>
           </div>
 
+          {/* Overlap warning */}
+          {overlapWarning && (
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+              <span className="text-sm text-destructive">{overlapWarning}</span>
+            </div>
+          )}
+
           <div>
             <Label>
               {t("doctor.totalAmount")} ({admission.rate_currency || "SAR"})
@@ -350,7 +498,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
-            <Button type="submit" disabled={loading || isCreating}>
+            <Button type="submit" disabled={loading || isCreating || !!overlapWarning}>
               {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
             </Button>
           </div>
