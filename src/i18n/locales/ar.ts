@@ -139,6 +139,7 @@ export const ar = {
     pos: "نقطة البيع",
     collapse: "طيّ الشريط الجانبي",
     expand: "توسيع الشريط الجانبي",
+    myProfile: "ملفي الشخصي",
   },
   pushNotifications: {
     settingsTitle: "إعدادات الإشعارات",
