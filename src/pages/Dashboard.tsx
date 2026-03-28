@@ -37,6 +37,7 @@ import {
   CreditCard,
   ShoppingCart,
   Star,
+  UserCircle,
 } from "lucide-react";
 import { LanguageSelector } from "@/components/ui/language-selector";
 
