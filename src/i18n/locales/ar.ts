@@ -2818,8 +2818,28 @@ export const ar = {
       invoices: "الفواتير",
       expenses: "المصروفات",
       payables: "المستحقات",
+      internalCosts: "تكاليف الإسطبل",
       payments: "المدفوعات",
       ledger: "دفتر الحسابات",
+    },
+    internalCosts: {
+      title: "تكاليف الإسطبل الداخلية",
+      noRecords: "لا توجد تكاليف داخلية مسجلة بعد",
+      searchPlaceholder: "بحث في التكاليف...",
+      source: "المصدر",
+      serviceMode: "نوع الخدمة",
+      cost: "التكلفة",
+      modeInternal: "داخلي",
+      modeExternal: "مزود خارجي",
+      sources: {
+        vetTreatment: "علاج بيطري",
+        vaccination: "تطعيم",
+      },
+      stats: {
+        totalRecords: "إجمالي السجلات",
+        totalCost: "إجمالي التكلفة",
+        categories: "الفئات",
+      },
     },
     payables: {
       title: "مستحقات الموردين",

@@ -2691,8 +2691,28 @@ export const en = {
       invoices: "Invoices",
       expenses: "Expenses",
       payables: "Payables",
+      internalCosts: "Stable Costs",
       ledger: "Ledger",
       payments: "Payments",
+    },
+    internalCosts: {
+      title: "Internal Stable Costs",
+      noRecords: "No internal cost records yet",
+      searchPlaceholder: "Search costs...",
+      source: "Source",
+      serviceMode: "Service Mode",
+      cost: "Cost",
+      modeInternal: "Internal",
+      modeExternal: "External Provider",
+      sources: {
+        vetTreatment: "Vet Treatment",
+        vaccination: "Vaccination",
+      },
+      stats: {
+        totalRecords: "Total Records",
+        totalCost: "Total Cost",
+        categories: "Categories",
+      },
     },
     payables: {
       title: "Supplier Payables",
