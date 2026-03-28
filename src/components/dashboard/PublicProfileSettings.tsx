@@ -187,18 +187,130 @@ export const PublicProfileSettings = () => {
         <div className="lg:col-span-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Visibility Card */}
-              <Card variant="elevated">
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-gold" />
-                    {t("publicProfile.visibility")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="is_public"
+              {/* Visibility + URL Slug — side by side on desktop */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Visibility Card */}
+                <Card variant="elevated">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-gold" />
+                      {t("publicProfile.visibility")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="is_public"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center justify-between rounded-xl border border-border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base font-medium">
+                              {t("publicProfile.makePublic")}
+                            </FormLabel>
+                            <FormDescription>
+                              {t("publicProfile.makePublicDesc")}
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    {isPublic && (
+                      <FormField
+                        control={form.control}
+                        name="is_listed"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-xl border border-border p-4 bg-muted/30">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base font-medium flex items-center gap-2">
+                                {field.value ? (
+                                  <Eye className="w-4 h-4 text-success" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4 text-muted-foreground" />
+                                )}
+                                {t("publicProfile.listInDirectory")}
+                              </FormLabel>
+                              <FormDescription>
+                                {field.value ? t("publicProfile.listedDesc") : t("publicProfile.unlistedDesc")}
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* URL Slug Card */}
+                <Card variant="elevated">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{t("publicProfile.publicUrl")}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="slug"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("publicProfile.urlSlug")}</FormLabel>
+                          <div className="flex gap-2">
+                            <div className="flex-1 relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                /t/
+                              </span>
+                              <FormControl>
+                                <Input
+                                  placeholder={t("publicProfile.slugPlaceholder")}
+                                  {...field}
+                                  className="pl-10"
+                                />
+                              </FormControl>
+                              {slugStatus === "checking" && (
+                                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                              )}
+                              {slugStatus === "available" && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success">
+                                  {t("publicProfile.available")}
+                                </span>
+                              )}
+                              {slugStatus === "taken" && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-destructive">
+                                  {t("publicProfile.taken")}
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              type="button" variant="outline" size="icon"
+                              onClick={handleGenerateSlug}
+                              disabled={generateSlug.isPending}
+                            >
+                              <Sparkles className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <FormDescription>
+                            {currentSlug && isPublic && (
+                              <Link
+                                to={`/t/${currentSlug}`} target="_blank"
+                                className="inline-flex items-center gap-1 text-gold hover:underline"
+                              >
+                                {t("publicProfile.preview")}: /t/{currentSlug}
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            )}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
                     render={({ field }) => (
                       <FormItem className="flex items-center justify-between rounded-xl border border-border p-4">
                         <div className="space-y-0.5">
