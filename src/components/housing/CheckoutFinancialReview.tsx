@@ -77,6 +77,7 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
             <FileWarning className="h-3.5 w-3.5 shrink-0" />
             <span>
               {t('housing.checkout.financial.unbilledWarning')}: <strong>{formatBoardingAmount(fin.unbilledValue)}</strong>
+              <span className="opacity-70 ms-1">({t('finance.tax.exclTax')})</span>
             </span>
           </div>
         )}
