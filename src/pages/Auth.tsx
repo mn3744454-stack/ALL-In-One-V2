@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import heroImage from "@/assets/hero-horse.jpg";
 import { BuildStamp } from "@/components/BuildStamp";
 
