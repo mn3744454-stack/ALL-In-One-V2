@@ -78,7 +78,7 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
         await createSupplierPayableForExternal({
           tenantId,
           sourceType: "breeding_attempt",
-          sourceReference: attempt.id,
+          sourceId: attempt.id,
           supplierName: attempt.external_provider_name,
           amount: 0,
           currency: "SAR",
