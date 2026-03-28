@@ -223,15 +223,30 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="description" className="text-navy font-medium">
-                      {t('createProfile.description')}
+                      {t('createProfile.description')} ({t('createProfile.englishName')})
                     </Label>
                     <Textarea
                       id="description"
                       placeholder={`${t('createProfile.descriptionPlaceholder')} ${tenantTitle}...`}
                       value={formData.description}
                       onChange={(e) => updateField("description", e.target.value)}
-                      rows={4}
+                      rows={3}
                       className="resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description_ar" className="text-navy font-medium">
+                      {t('createProfile.description')} ({t('createProfile.arabicName')})
+                    </Label>
+                    <Textarea
+                      id="description_ar"
+                      placeholder={t('createProfile.descriptionPlaceholderAr')}
+                      value={formData.description_ar}
+                      onChange={(e) => updateField("description_ar", e.target.value)}
+                      rows={3}
+                      className="resize-none"
+                      dir="rtl"
                     />
                   </div>
 
