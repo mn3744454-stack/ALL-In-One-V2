@@ -7,12 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useClients } from "@/hooks/useClients";
 import { useServicesByKind } from "@/hooks/useServices";
+import { usePlanInclusionCheck } from "@/hooks/billing/usePlanInclusionCheck";
+import { useSupplierPayableForSource } from "@/hooks/billing/useSupplierPayableForSource";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
@@ -21,12 +23,14 @@ import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueri
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { displayHorseName, displayServiceName, formatBreedingDate } from "@/lib/displayHelpers";
+import { ProviderMarkupHelper } from "@/components/vet/ProviderMarkupHelper";
 
 export type BreedingSourceType = "breeding_attempt" | "pregnancy_check" | "foaling" | "embryo_transfer";
 
 export interface BreedingEventForInvoice {
   sourceType: BreedingSourceType;
   sourceId: string;
+  horseId?: string; // mare_id for inclusion check
   mareName?: string;
   mareNameAr?: string;
   stallionName?: string;
@@ -44,6 +48,9 @@ export interface BreedingEventForInvoice {
   contractUnitPrice?: number | null;
   contractClientId?: string | null;
   contractClientName?: string | null;
+  // External provider info
+  sourceMode?: string;
+  externalProviderName?: string | null;
 }
 
 interface Props {
@@ -75,12 +82,23 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientName, setClientName] = useState("");
   const [totalAmount, setTotalAmount] = useState("0");
+  const [amountManuallyOverridden, setAmountManuallyOverridden] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Package-awareness check
+  const { isIncluded, planName } = usePlanInclusionCheck(
+    event.horseId,
+    selectedServiceId || undefined
+  );
+
+  // Provider cost reference
+  const { payable: linkedPayable } = useSupplierPayableForSource(event.sourceType, event.sourceId);
 
   // Contract-aware prefill: contract > service > event fallback
   useEffect(() => {
     if (!open) return;
+    setAmountManuallyOverridden(false);
 
     // 1. Contract prefill (highest priority)
     if (event.contractId) {
@@ -116,14 +134,43 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
     if (event.clientName && !clientName) setClientName(event.clientName);
     if (event.suggestedAmount && totalAmount === "0") setTotalAmount(event.suggestedAmount.toString());
     if (event.description && !notes) setNotes(event.description);
+
+    // 4. Client from active admission (if horse boarded)
+    if (!selectedClientId && !event.clientId && tenantId && event.horseId) {
+      supabase
+        .from("boarding_admissions")
+        .select("client_id")
+        .eq("tenant_id", tenantId)
+        .eq("horse_id", event.horseId)
+        .eq("status", "active")
+        .maybeSingle()
+        .then(({ data: admission }) => {
+          if (admission?.client_id) {
+            setSelectedClientId(admission.client_id);
+          }
+        });
+    }
   }, [open, event, relevantServices]);
+
+  // Auto-zero when included
+  useEffect(() => {
+    if (isIncluded && !amountManuallyOverridden) {
+      setTotalAmount("0");
+    }
+  }, [isIncluded, amountManuallyOverridden]);
 
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
+    setAmountManuallyOverridden(false);
     const svc = breedingServices.find(s => s.id === serviceId);
     if (svc?.unit_price != null) {
       setTotalAmount(svc.unit_price.toString());
     }
+  };
+
+  const handleAmountChange = (value: string) => {
+    setTotalAmount(value);
+    setAmountManuallyOverridden(true);
   };
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
@@ -136,13 +183,14 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
     [breedingServices, selectedServiceId]
   );
 
+  const isZeroCharge = (parseFloat(totalAmount) || 0) === 0;
+
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
   const sourceTypeLabel = t(`breeding.billing.sourceTypes.${event.sourceType}`);
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    // Service name (bilingual)
     if (selectedService) {
       parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
     } else {
@@ -242,6 +290,37 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
             )}
           </div>
 
+          {/* Package-awareness banner */}
+          {isIncluded && planName && (
+            <div className="flex items-start gap-2 p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+              <div className="space-y-1">
+                <p className="font-medium text-emerald-800 dark:text-emerald-300">
+                  {t("vet.billing.includedInPlanTitle")}
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                  {t("vet.billing.includedInPlanDescription").replace("{{planName}}", planName || "")}
+                </p>
+                {amountManuallyOverridden && parseFloat(totalAmount) > 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    {t("vet.billing.includedOverrideWarning")}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Provider cost with markup helper */}
+          {linkedPayable && linkedPayable.amount > 0 && (
+            <ProviderMarkupHelper
+              providerCost={linkedPayable.amount}
+              currency={linkedPayable.currency || "SAR"}
+              supplierName={linkedPayable.supplier_name}
+              currentAmount={totalAmount}
+              onApplyAmount={handleAmountChange}
+            />
+          )}
+
           {/* Breeding service picker */}
           {relevantServices.length > 0 && (
             <div>
@@ -320,7 +399,12 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
 
           <div>
             <Label>{t("breeding.billing.totalAmount")} ({event.currency || "SAR"})</Label>
-            <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+            <Input type="number" step="0.01" value={totalAmount} onChange={e => handleAmountChange(e.target.value)} />
+            {isZeroCharge && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {isIncluded ? t("vet.billing.zeroChargeIncluded") : t("vet.billing.zeroChargeIncluded")}
+              </p>
+            )}
           </div>
           <div>
             <Label>{t("common.notes")}</Label>
@@ -329,7 +413,7 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
             <Button type="submit" disabled={loading || isCreating}>
-              {loading ? t("common.loading") : t("breeding.billing.createInvoice")}
+              {loading ? t("common.loading") : isZeroCharge ? t("vet.billing.createZeroInvoice") : t("breeding.billing.createInvoice")}
             </Button>
           </div>
         </form>
