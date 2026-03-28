@@ -127,6 +127,7 @@ export const en = {
     pos: "Point of Sale",
     collapse: "Collapse sidebar",
     expand: "Expand sidebar",
+    myProfile: "My Profile",
   },
   pushNotifications: {
     settingsTitle: "Notification Settings",
