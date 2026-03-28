@@ -19,12 +19,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { useServicesByKind } from "@/hooks/useServices";
 import { normalizeIncludes } from "@/lib/planIncludes";
+import { getTenantTaxConfig, computeTax } from "@/lib/taxUtils";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import type { BoardingAdmission } from "@/hooks/housing/useBoardingAdmissions";
 import { toast } from "sonner";
-import { differenceInDays, format } from "date-fns";
+import { differenceInDays, format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 
 interface Props {
   open: boolean;
@@ -45,28 +46,76 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const { plans } = useStableServicePlans();
   const { data: boardingServices = [] } = useServicesByKind('boarding');
 
+  // Tax config from tenant
+  const taxConfig = getTenantTaxConfig(activeTenant?.tenant);
+
   // Resolve plan and its included services
   const admissionPlan = admission.plan_id ? plans.find(p => p.id === admission.plan_id) : null;
   const planIncludes = admissionPlan ? normalizeIncludes(admissionPlan.includes) : [];
 
-  // Compute estimated cost
-  const days = differenceInDays(
-    admission.checked_out_at ? new Date(admission.checked_out_at) : new Date(),
-    new Date(admission.admitted_at)
-  ) || 1;
+  // Resolve a boarding service_id from plan or catalog
+  const boardingServiceId = useMemo(() => {
+    // First check if plan links to a service
+    if (admissionPlan && (admissionPlan as any).service_id) {
+      return (admissionPlan as any).service_id as string;
+    }
+    // Otherwise find a matching boarding service in catalog
+    const match = boardingServices.find(s => s.is_active && s.service_kind === 'boarding');
+    return match?.id || null;
+  }, [admissionPlan, boardingServices]);
+
+  // Period selection — default to current month or admission period
+  const admittedDate = new Date(admission.admitted_at);
+  const today = new Date();
+  const defaultPeriodStart = format(
+    admittedDate > startOfMonth(today) ? admittedDate : startOfMonth(today),
+    "yyyy-MM-dd"
+  );
+  const defaultPeriodEnd = format(
+    admission.checked_out_at ? new Date(admission.checked_out_at) : endOfMonth(today),
+    "yyyy-MM-dd"
+  );
+
+  const [periodStart, setPeriodStart] = useState(defaultPeriodStart);
+  const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd);
+
+  // Compute days and estimated cost from the selected period
+  const periodDays = Math.max(
+    differenceInDays(new Date(periodEnd), new Date(periodStart)) + 1,
+    1
+  );
 
   const estimatedCost = admission.billing_cycle === "daily"
-    ? (admission.daily_rate || 0) * days
-    : (admission.monthly_rate || 0) * Math.max(Math.ceil(days / 30), 1);
+    ? (admission.daily_rate || 0) * periodDays
+    : (admission.monthly_rate || 0) * Math.max(Math.ceil(periodDays / 30), 1);
 
   const [selectedClientId, setSelectedClientId] = useState<string | null>(admission.client_id || null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
   const [clientName, setClientName] = useState(admission.client?.name || "");
   const [totalAmount, setTotalAmount] = useState(estimatedCost.toString());
   const [notes, setNotes] = useState(
-    `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${days} ${t("housing.admissions.detail.days")})`
+    `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${periodDays} ${t("housing.admissions.detail.days")})`
   );
   const [loading, setLoading] = useState(false);
+
+  // Recalculate when period changes
+  const handlePeriodChange = (field: "start" | "end", value: string) => {
+    if (field === "start") setPeriodStart(value);
+    else setPeriodEnd(value);
+
+    const newStart = field === "start" ? value : periodStart;
+    const newEnd = field === "end" ? value : periodEnd;
+    const days = Math.max(differenceInDays(new Date(newEnd), new Date(newStart)) + 1, 1);
+
+    const cost = admission.billing_cycle === "daily"
+      ? (admission.daily_rate || 0) * days
+      : (admission.monthly_rate || 0) * Math.max(Math.ceil(days / 30), 1);
+
+    setTotalAmount(cost.toString());
+    setNotes(
+      `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${days} ${t("housing.admissions.detail.days")})`
+    );
+  };
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
   const selectedClient = useMemo(
@@ -76,37 +125,17 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
-  /**
-   * Build a human-readable line item description for the boarding charge.
-   */
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    
-    // Horse name
-    if (admission.horse?.name) {
-      parts.push(admission.horse.name);
-    }
-    
-    // Branch
-    if (admission.branch?.name) {
-      parts.push(admission.branch.name);
-    }
-    
-    // Period
-    const fromDate = format(new Date(admission.admitted_at), "yyyy-MM-dd");
-    const toDate = admission.checked_out_at
-      ? format(new Date(admission.checked_out_at), "yyyy-MM-dd")
-      : format(new Date(), "yyyy-MM-dd");
-    parts.push(`${fromDate} → ${toDate}`);
-    
-    // Rate context
+    if (admission.horse?.name) parts.push(admission.horse.name);
+    if (admission.branch?.name) parts.push(admission.branch.name);
+    parts.push(`${periodStart} → ${periodEnd}`);
     if (admission.billing_cycle === "daily" && admission.daily_rate) {
-      parts.push(`${days}d × ${admission.daily_rate}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
+      parts.push(`${periodDays}d × ${admission.daily_rate}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
     } else if (admission.monthly_rate) {
-      const months = Math.max(Math.ceil(days / 30), 1);
+      const months = Math.max(Math.ceil(periodDays / 30), 1);
       parts.push(`${months}mo × ${admission.monthly_rate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
     }
-    
     return parts.join(" | ");
   };
 
@@ -119,6 +148,9 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
 
+      // Compute tax using tenant config
+      const { subtotal, taxAmount, totalAmount: total } = computeTax(amount, taxConfig);
+
       // Step 1: Create invoice header
       const invoice = await createInvoice({
         tenant_id: tenantId,
@@ -127,10 +159,10 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         client_name: displayName,
         status: "draft",
         issue_date: new Date().toISOString().split("T")[0],
-        subtotal: amount,
-        tax_amount: 0,
+        subtotal,
+        tax_amount: taxAmount,
         discount_amount: 0,
-        total_amount: amount,
+        total_amount: total,
         currency: admission.rate_currency || "SAR",
         notes: notes || undefined,
       });
@@ -142,8 +174,6 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
       // Step 2: Create invoice_items with entity_type='boarding'
       const lineDescription = buildLineItemDescription();
-      const fromDate = new Date(admission.admitted_at);
-      const toDate = admission.checked_out_at ? new Date(admission.checked_out_at) : new Date();
 
       const items: any[] = [
         {
@@ -153,9 +183,10 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           entity_id: admission.id,
           horse_id: admission.horse_id || null,
           domain: "boarding",
-          period_start: format(fromDate, "yyyy-MM-dd"),
-          period_end: format(toDate, "yyyy-MM-dd"),
-          quantity: days,
+          service_id: boardingServiceId || null,
+          period_start: periodStart,
+          period_end: periodEnd,
+          quantity: periodDays,
           unit_price: admission.billing_cycle === "daily"
             ? (admission.daily_rate || amount)
             : (admission.monthly_rate || amount),
@@ -174,6 +205,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           entity_id: admission.id,
           horse_id: admission.horse_id || null,
           domain: "boarding",
+          service_id: entry.service_id || null,
           quantity: 1,
           unit_price: 0,
           total_price: 0,
@@ -198,10 +230,6 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         amount,
       });
 
-      // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
-      // NOT at creation time. Draft invoices have zero financial impact.
-
-      // Step 5: Invalidate all finance queries for consistency
       invalidateFinanceQueries(queryClient, tenantId);
       queryClient.invalidateQueries({ queryKey: ["billing-links"] });
 
@@ -214,6 +242,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       setLoading(false);
     }
   };
+
+  const taxPreview = computeTax(parseFloat(totalAmount) || 0, taxConfig);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -271,16 +301,48 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
             </div>
           )}
 
+          {/* Period selection */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>{t("finance.invoices.periodStart") || "Period Start"}</Label>
+              <Input
+                type="date"
+                value={periodStart}
+                onChange={e => handlePeriodChange("start", e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>{t("finance.invoices.periodEnd") || "Period End"}</Label>
+              <Input
+                type="date"
+                value={periodEnd}
+                onChange={e => handlePeriodChange("end", e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
-            <Label>{t("doctor.totalAmount")} ({admission.rate_currency || "SAR"})</Label>
+            <Label>
+              {t("doctor.totalAmount")} ({admission.rate_currency || "SAR"})
+              {taxConfig.pricesTaxInclusive
+                ? <span className="text-xs text-muted-foreground ms-1">({t("finance.tax.inclusive")})</span>
+                : <span className="text-xs text-muted-foreground ms-1">({t("finance.tax.exclusive")})</span>
+              }
+            </Label>
             <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
             <p className="text-xs text-muted-foreground mt-1">
               {t("housing.admissions.billing.estimatedHint")
-                .replace("{{days}}", days.toString())
+                .replace("{{days}}", periodDays.toString())
                 .replace("{{rate}}", admission.billing_cycle === "daily"
                   ? `${admission.daily_rate || 0}/day`
                   : `${admission.monthly_rate || 0}/month`)}
             </p>
+            {taxConfig.taxRate > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {t("finance.tax.label") || "Tax"}: {taxConfig.taxRate}% → {taxPreview.taxAmount.toFixed(2)} {admission.rate_currency || "SAR"}
+                {" | "}{t("finance.invoices.totalAmount")}: {taxPreview.totalAmount.toFixed(2)}
+              </p>
+            )}
           </div>
           <div>
             <Label>{t("common.notes")}</Label>
