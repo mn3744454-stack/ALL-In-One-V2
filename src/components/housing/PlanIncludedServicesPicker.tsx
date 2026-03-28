@@ -116,6 +116,20 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
                     ))}
                   </CommandGroup>
                 )}
+                {/* Breeding services group */}
+                {availableServices.filter(s => s.service_kind === 'breeding').length > 0 && (
+                  <CommandGroup heading={t('breeding.title')}>
+                    {availableServices.filter(s => s.service_kind === 'breeding').map(svc => (
+                      <CommandItem
+                        key={svc.id}
+                        value={svc.name}
+                        onSelect={() => addService(svc.id)}
+                      >
+                        {displayServiceName(svc.name, svc.name_ar, lang)}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
