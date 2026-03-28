@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Globe, Eye, EyeOff, Sparkles, ExternalLink, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useI18n } from "@/i18n";
 import {
   useTenantPublicSettings,
   useUpdatePublicSettings,
@@ -62,26 +63,14 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const SUGGESTED_TAGS = [
-  "boarding",
-  "training",
-  "lessons",
-  "arabian",
-  "veterinary",
-  "emergency",
-  "dental",
-  "reproduction",
-  "diagnostics",
-  "dna-testing",
-  "medications",
-  "supplements",
-  "transport",
-  "domestic",
-  "international",
-  "dressage",
-  "jumping",
+  "boarding", "training", "lessons", "arabian", "veterinary",
+  "emergency", "dental", "reproduction", "diagnostics", "dna-testing",
+  "medications", "supplements", "transport", "domestic", "international",
+  "dressage", "jumping",
 ];
 
 export const PublicProfileSettings = () => {
+  const { t } = useI18n();
   const { data: settings, isLoading } = useTenantPublicSettings();
   const updateSettings = useUpdatePublicSettings();
   const checkSlug = useCheckSlugAvailability();
@@ -93,21 +82,12 @@ export const PublicProfileSettings = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      is_public: false,
-      is_listed: true,
-      slug: "",
-      public_name: "",
-      public_description: "",
-      public_phone: "",
-      public_email: "",
-      public_website: "",
-      public_location_text: "",
-      region: "",
-      tags: [],
+      is_public: false, is_listed: true, slug: "", public_name: "",
+      public_description: "", public_phone: "", public_email: "",
+      public_website: "", public_location_text: "", region: "", tags: [],
     },
   });
 
-  // Reset form when settings load
   useEffect(() => {
     if (settings) {
       form.reset({
@@ -129,52 +109,39 @@ export const PublicProfileSettings = () => {
   const isPublic = form.watch("is_public");
   const currentSlug = form.watch("slug");
   const currentTags = form.watch("tags") || [];
+  const isDirty = form.formState.isDirty;
 
-  // Check slug availability with debounce
   useEffect(() => {
-    if (!currentSlug || currentSlug.length < 3) {
-      setSlugStatus("idle");
-      return;
-    }
-
+    if (!currentSlug || currentSlug.length < 3) { setSlugStatus("idle"); return; }
     const timer = setTimeout(async () => {
       setSlugStatus("checking");
       try {
         const available = await checkSlug.mutateAsync(currentSlug);
         setSlugStatus(available ? "available" : "taken");
-      } catch {
-        setSlugStatus("idle");
-      }
+      } catch { setSlugStatus("idle"); }
     }, 500);
-
     return () => clearTimeout(timer);
   }, [currentSlug]);
 
   const handleGenerateSlug = async () => {
     const name = settings?.name;
     if (!name) return;
-
     try {
       const slug = await generateSlug.mutateAsync(name);
-      form.setValue("slug", slug);
-    } catch (error) {
-      console.error("Failed to generate slug:", error);
-    }
+      form.setValue("slug", slug, { shouldDirty: true });
+    } catch (error) { console.error("Failed to generate slug:", error); }
   };
 
   const addTag = (tag: string) => {
     const trimmedTag = tag.toLowerCase().trim();
     if (trimmedTag && !currentTags.includes(trimmedTag)) {
-      form.setValue("tags", [...currentTags, trimmedTag]);
+      form.setValue("tags", [...currentTags, trimmedTag], { shouldDirty: true });
     }
     setNewTag("");
   };
 
   const removeTag = (tagToRemove: string) => {
-    form.setValue(
-      "tags",
-      currentTags.filter((t) => t !== tagToRemove)
-    );
+    form.setValue("tags", currentTags.filter((t) => t !== tagToRemove), { shouldDirty: true });
   };
 
   const onSubmit = (values: FormValues) => {
@@ -208,10 +175,10 @@ export const PublicProfileSettings = () => {
       {/* Header */}
       <div>
         <h2 className="font-display text-xl font-semibold text-navy mb-1">
-          Public Profile & Directory
+          {t("publicProfile.title")}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Control how your business appears in the public directory
+          {t("publicProfile.subtitle")}
         </p>
       </div>
 
@@ -225,7 +192,7 @@ export const PublicProfileSettings = () => {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Globe className="w-5 h-5 text-gold" />
-                    Visibility Settings
+                    {t("publicProfile.visibility")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -236,17 +203,14 @@ export const PublicProfileSettings = () => {
                       <FormItem className="flex items-center justify-between rounded-xl border border-border p-4">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base font-medium">
-                            Make Profile Public
+                            {t("publicProfile.makePublic")}
                           </FormLabel>
                           <FormDescription>
-                            Allow anyone to view your business profile page
+                            {t("publicProfile.makePublicDesc")}
                           </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -265,19 +229,14 @@ export const PublicProfileSettings = () => {
                               ) : (
                                 <EyeOff className="w-4 h-4 text-muted-foreground" />
                               )}
-                              List in Directory
+                              {t("publicProfile.listInDirectory")}
                             </FormLabel>
                             <FormDescription>
-                              {field.value
-                                ? "Your business appears in the public directory"
-                                : "Hidden from directory, but accessible via direct link"}
+                              {field.value ? t("publicProfile.listedDesc") : t("publicProfile.unlistedDesc")}
                             </FormDescription>
                           </div>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Switch checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -289,7 +248,7 @@ export const PublicProfileSettings = () => {
               {/* URL Slug */}
               <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="text-lg">Public URL</CardTitle>
+                  <CardTitle className="text-lg">{t("publicProfile.publicUrl")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -297,7 +256,7 @@ export const PublicProfileSettings = () => {
                     name="slug"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Unique URL Slug</FormLabel>
+                        <FormLabel>{t("publicProfile.urlSlug")}</FormLabel>
                         <div className="flex gap-2">
                           <div className="flex-1 relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -305,30 +264,27 @@ export const PublicProfileSettings = () => {
                             </span>
                             <FormControl>
                               <Input
-                                placeholder="your-business-name"
+                                placeholder={t("publicProfile.slugPlaceholder")}
                                 {...field}
                                 className="pl-10"
                               />
                             </FormControl>
-                            {/* Status indicator */}
                             {slugStatus === "checking" && (
                               <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
                             )}
                             {slugStatus === "available" && (
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-success">
-                                Available
+                                {t("publicProfile.available")}
                               </span>
                             )}
                             {slugStatus === "taken" && (
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-destructive">
-                                Taken
+                                {t("publicProfile.taken")}
                               </span>
                             )}
                           </div>
                           <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
+                            type="button" variant="outline" size="icon"
                             onClick={handleGenerateSlug}
                             disabled={generateSlug.isPending}
                           >
@@ -338,11 +294,10 @@ export const PublicProfileSettings = () => {
                         <FormDescription>
                           {currentSlug && isPublic && (
                             <Link
-                              to={`/t/${currentSlug}`}
-                              target="_blank"
+                              to={`/t/${currentSlug}`} target="_blank"
                               className="inline-flex items-center gap-1 text-gold hover:underline"
                             >
-                              Preview: /t/{currentSlug}
+                              {t("publicProfile.preview")}: /t/{currentSlug}
                               <ExternalLink className="w-3 h-3" />
                             </Link>
                           )}
@@ -357,7 +312,7 @@ export const PublicProfileSettings = () => {
               {/* Public Info */}
               <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="text-lg">Public Information</CardTitle>
+                  <CardTitle className="text-lg">{t("publicProfile.publicInfo")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -365,16 +320,14 @@ export const PublicProfileSettings = () => {
                     name="public_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Display Name</FormLabel>
+                        <FormLabel>{t("publicProfile.displayName")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={settings?.name || "Business name"}
+                            placeholder={settings?.name || t("publicProfile.displayNamePlaceholder")}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>
-                          Leave empty to use your organization name
-                        </FormDescription>
+                        <FormDescription>{t("publicProfile.displayNameDesc")}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -385,10 +338,10 @@ export const PublicProfileSettings = () => {
                     name="public_description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>{t("publicProfile.description")}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Tell visitors about your business..."
+                            placeholder={t("publicProfile.descriptionPlaceholder")}
                             rows={4}
                             {...field}
                           />
@@ -404,14 +357,11 @@ export const PublicProfileSettings = () => {
                       name="region"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Region</FormLabel>
-                          <Select
-                            value={field.value || ""}
-                            onValueChange={field.onChange}
-                          >
+                          <FormLabel>{t("publicProfile.region")}</FormLabel>
+                          <Select value={field.value || ""} onValueChange={field.onChange}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select region" />
+                                <SelectValue placeholder={t("publicProfile.selectRegion")} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -432,9 +382,9 @@ export const PublicProfileSettings = () => {
                       name="public_location_text"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Location Details</FormLabel>
+                          <FormLabel>{t("publicProfile.locationDetails")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., North Riyadh" {...field} />
+                            <Input placeholder={t("publicProfile.locationPlaceholder")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -447,7 +397,7 @@ export const PublicProfileSettings = () => {
               {/* Contact Info */}
               <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="text-lg">Contact Information</CardTitle>
+                  <CardTitle className="text-lg">{t("publicProfile.contactInfo")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -456,13 +406,9 @@ export const PublicProfileSettings = () => {
                       name="public_phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                          <FormLabel>{t("publicProfile.phoneNumber")}</FormLabel>
                           <FormControl>
-                            <Input
-                              type="tel"
-                              placeholder="+966 XX XXX XXXX"
-                              {...field}
-                            />
+                            <Input type="tel" placeholder="+966 XX XXX XXXX" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -474,13 +420,9 @@ export const PublicProfileSettings = () => {
                       name="public_email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel>{t("publicProfile.emailAddress")}</FormLabel>
                           <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="contact@example.com"
-                              {...field}
-                            />
+                            <Input type="email" placeholder="contact@example.com" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -493,7 +435,7 @@ export const PublicProfileSettings = () => {
                     name="public_website"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Website</FormLabel>
+                        <FormLabel>{t("publicProfile.website")}</FormLabel>
                         <FormControl>
                           <Input placeholder="https://example.com" {...field} />
                         </FormControl>
@@ -507,22 +449,16 @@ export const PublicProfileSettings = () => {
               {/* Tags */}
               <Card variant="elevated">
                 <CardHeader>
-                  <CardTitle className="text-lg">Tags & Categories</CardTitle>
+                  <CardTitle className="text-lg">{t("publicProfile.tagsCategories")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Current tags */}
                   {currentTags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {currentTags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="gap-1 pr-1"
-                        >
+                        <Badge key={tag} variant="secondary" className="gap-1 pr-1">
                           {tag}
                           <button
-                            type="button"
-                            onClick={() => removeTag(tag)}
+                            type="button" onClick={() => removeTag(tag)}
                             className="ml-1 rounded-full hover:bg-muted p-0.5"
                           >
                             <X className="w-3 h-3" />
@@ -532,50 +468,32 @@ export const PublicProfileSettings = () => {
                     </div>
                   )}
 
-                  {/* Add new tag */}
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Add a tag..."
+                      placeholder={t("publicProfile.addTag")}
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addTag(newTag);
-                        }
+                        if (e.key === "Enter") { e.preventDefault(); addTag(newTag); }
                       }}
                       className="flex-1"
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => addTag(newTag)}
-                      disabled={!newTag.trim()}
-                    >
-                      Add
+                    <Button type="button" variant="outline" onClick={() => addTag(newTag)} disabled={!newTag.trim()}>
+                      {t("common.add")}
                     </Button>
                   </div>
 
-                  {/* Suggested tags */}
                   <div>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Suggested tags:
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-2">{t("publicProfile.suggestedTags")}</p>
                     <div className="flex flex-wrap gap-1">
-                      {SUGGESTED_TAGS.filter(
-                        (tag) => !currentTags.includes(tag)
-                      )
-                        .slice(0, 10)
-                        .map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => addTag(tag)}
-                            className="px-2 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
-                          >
-                            + {tag}
-                          </button>
-                        ))}
+                      {SUGGESTED_TAGS.filter((tag) => !currentTags.includes(tag)).slice(0, 10).map((tag) => (
+                        <button
+                          key={tag} type="button" onClick={() => addTag(tag)}
+                          className="px-2 py-1 text-xs rounded-full bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+                        >
+                          + {tag}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </CardContent>
@@ -583,19 +501,16 @@ export const PublicProfileSettings = () => {
 
               {/* Submit */}
               <Button
-                type="submit"
-                variant="gold"
-                size="lg"
-                className="w-full"
+                type="submit" variant="gold" size="lg" className="w-full"
                 disabled={updateSettings.isPending}
               >
                 {updateSettings.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    {t("publicProfile.saving")}
                   </>
                 ) : (
-                  "Save Changes"
+                  t("publicProfile.saveChanges")
                 )}
               </Button>
             </form>
@@ -606,26 +521,42 @@ export const PublicProfileSettings = () => {
         <div className="space-y-6">
           <ProfileCompleteness settings={settings} percentage={completeness} />
 
-          {/* Preview Link */}
           {isPublic && currentSlug && (
             <Card variant="elevated" className="p-4">
               <h4 className="font-medium text-sm text-navy mb-2">
-                Your Public Page
+                {t("publicProfile.yourPublicPage")}
               </h4>
               <Link
-                to={`/t/${currentSlug}`}
-                target="_blank"
+                to={`/t/${currentSlug}`} target="_blank"
                 className="flex items-center justify-between p-3 rounded-lg bg-gold/10 hover:bg-gold/20 transition-colors group"
               >
-                <span className="text-sm font-medium text-gold truncate">
-                  /t/{currentSlug}
-                </span>
+                <span className="text-sm font-medium text-gold truncate">/t/{currentSlug}</span>
                 <ExternalLink className="w-4 h-4 text-gold shrink-0 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </Link>
             </Card>
           )}
         </div>
       </div>
+
+      {/* Sticky save bar */}
+      {isDirty && (
+        <div className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur-sm border-t border-border p-3 z-50 lg:ps-64">
+          <div className="container mx-auto max-w-4xl flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">{t("myProfile.unsavedChanges")}</p>
+            <Button
+              variant="gold" size="sm"
+              onClick={form.handleSubmit(onSubmit)}
+              disabled={updateSettings.isPending}
+            >
+              {updateSettings.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t("publicProfile.saveChanges")
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
