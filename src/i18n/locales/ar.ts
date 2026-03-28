@@ -2841,10 +2841,6 @@ export const ar = {
       cost: "التكلفة",
       modeInternal: "داخلي",
       modeExternal: "مزود خارجي",
-      sources: {
-        vetTreatment: "علاج بيطري",
-        vaccination: "تطعيم",
-      },
       stats: {
         totalRecords: "إجمالي السجلات",
         totalCost: "إجمالي التكلفة",

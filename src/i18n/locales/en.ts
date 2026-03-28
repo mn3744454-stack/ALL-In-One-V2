@@ -2714,10 +2714,6 @@ export const en = {
       cost: "Cost",
       modeInternal: "Internal",
       modeExternal: "External Provider",
-      sources: {
-        vetTreatment: "Vet Treatment",
-        vaccination: "Vaccination",
-      },
       stats: {
         totalRecords: "Total Records",
         totalCost: "Total Cost",
