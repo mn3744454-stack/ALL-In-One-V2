@@ -48,6 +48,7 @@ export function InvoiceFormDialog({
   const { activeTenant } = useTenant();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
+  const { horses = [] } = useHorses();
   const queryClient = useQueryClient();
 
   const isEditMode = mode === "edit" && invoice;
