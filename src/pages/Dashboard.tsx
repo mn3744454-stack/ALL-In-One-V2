@@ -56,6 +56,9 @@ const Dashboard = () => {
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
   const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
   const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
+  
+  // Check if personal profile needs completion - ONLY in personal mode
+  const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !profile.bio && !profile.location;
 
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
