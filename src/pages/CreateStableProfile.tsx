@@ -44,7 +44,9 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    name_ar: "",
     description: "",
+    description_ar: "",
     address: "",
     city: "",
     country: t('createProfile.saudiArabia'),
