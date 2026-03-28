@@ -2515,6 +2515,16 @@ export const en = {
       providerCostRef: "Provider Cost",
       recordStableCost: "Record as Stable Cost",
       stableCostRecorded: "Internal cost recorded successfully",
+      markupHelper: {
+        title: "Provider Cost Comparison",
+        providerCost: "Provider Cost",
+        billedAmount: "Billed to Client",
+        exact: "Exact",
+        passThrough: "Pass-through",
+        withMarkup: "With Markup",
+        belowCost: "Below Cost",
+        applyPassThrough: "Apply Exact Pass-Through",
+      },
     },
     domain: {
       vet: "Veterinary",
