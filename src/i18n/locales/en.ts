@@ -2723,6 +2723,22 @@ export const en = {
         totalCost: "Total Cost",
         categories: "Categories",
       },
+      sources: {
+        vetTreatment: "Vet Treatment",
+        vaccination: "Vaccination",
+        breeding_attempt: "Breeding Attempt",
+        foaling: "Foaling",
+      },
+    },
+    traceability: {
+      financialStatus: "Financial Status",
+      invoiced: "Invoiced",
+      stableCostRecorded: "Stable Cost Recorded",
+      payableCreated: "Supplier Payable Created",
+      zeroCharge: "Zero-Charge",
+      clientInvoiced: "Client Invoiced",
+      notInvoiced: "Not Invoiced",
+      viewSource: "View Source",
     },
     payables: {
       title: "Supplier Payables",
