@@ -141,6 +141,19 @@ const Dashboard = () => {
                 {t("dashboard.quickActions")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <Link to="/dashboard/my-profile" className="block">
+                  <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
+                    <CardContent className="p-6 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center shrink-0">
+                        <UserCircle className="w-6 h-6 text-gold" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-navy">{t("sidebar.myProfile")}</h3>
+                        <p className="text-sm text-muted-foreground">{t("dashboard.myProfileDesc")}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
                 <Link to="/community" className="block">
                   <Card variant="elevated" className="hover:border-gold/50 hover:shadow-lg transition-all cursor-pointer h-full">
                     <CardContent className="p-6 flex items-center gap-4">
@@ -192,23 +205,6 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-navy">{t("sidebar.favorites")}</h3>
-                        <p className="text-sm text-muted-foreground">{t("common.comingSoon")}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </button>
-                {/* My Purchases - Coming Soon */}
-                <button
-                  onClick={() => toast.info(t("common.comingSoon"))}
-                  className="block text-left w-full"
-                >
-                  <Card variant="elevated" className="hover:border-muted-foreground/30 transition-all cursor-pointer h-full opacity-75">
-                    <CardContent className="p-6 flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                        <ShoppingCart className="w-6 h-6 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-navy">{t("sidebar.myPurchases")}</h3>
                         <p className="text-sm text-muted-foreground">{t("common.comingSoon")}</p>
                       </div>
                     </CardContent>
