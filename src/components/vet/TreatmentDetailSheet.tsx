@@ -16,6 +16,7 @@ import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { CreateInvoiceFromTreatment } from "./CreateInvoiceFromTreatment";
+import { FinancialStatusSection } from "@/components/finance/FinancialStatusSection";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { useVetMedications } from "@/hooks/vet/useVetMedications";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
@@ -42,7 +43,6 @@ import {
   Plus,
   Loader2,
   Receipt,
-  FileText,
   Landmark,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -145,6 +145,9 @@ export function TreatmentDetailSheet({
               )}
             </div>
           )}
+
+          {/* Financial Status Section */}
+          <FinancialStatusSection sourceType="vet_treatment" sourceId={treatment.id} />
 
           <Separator />
 
