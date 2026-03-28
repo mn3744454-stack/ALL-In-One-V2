@@ -239,33 +239,18 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
             </>
           )}
 
-          {/* Actions */}
-          {canManage && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2"
-                  onClick={() => setInvoiceDialogOpen(true)}
-                >
-                  <Receipt className="h-4 w-4" />
-                  {t("breeding.billing.generateInvoice")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2"
-                  onClick={handleRecordStableCost}
-                  disabled={stableCostLoading}
-                >
-                  <Landmark className="h-4 w-4" />
-                  {t("vet.billing.recordStableCost")}
-                </Button>
-              </div>
-            </>
-          )}
+          {/* Financial Status Section */}
+          <FinancialStatusSection sourceType="foaling" sourceId={foaling.id} />
+
+          {/* Actions — only show when not yet invoiced/recorded */}
+          <FoalingActionsSection
+            canManage={canManage}
+            sourceId={foaling.id}
+            onInvoice={() => setInvoiceDialogOpen(true)}
+            onStableCost={handleRecordStableCost}
+            stableCostLoading={stableCostLoading}
+            t={t}
+          />
         </div>
       </SheetContent>
     </Sheet>
