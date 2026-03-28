@@ -845,7 +845,7 @@ function PaymentsTab() {
   );
 }
 
-type FinanceTab = "invoices" | "expenses" | "payables" | "payments" | "ledger";
+type FinanceTab = "invoices" | "expenses" | "payables" | "internalCosts" | "payments" | "ledger";
 
 interface DashboardFinanceProps {
   initialTab?: FinanceTab;
