@@ -958,6 +958,10 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
             <SupplierPayablesTab />
           </TabsContent>
 
+          <TabsContent value="internalCosts">
+            <InternalCostsTab />
+          </TabsContent>
+
           <TabsContent value="payments">
             <PaymentsTab />
           </TabsContent>
