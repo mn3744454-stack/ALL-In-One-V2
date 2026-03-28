@@ -286,7 +286,9 @@ const AppRoutes = () => {
         path="/dashboard/my-profile"
         element={
           <ProtectedRoute>
-            <DashboardMyProfile />
+            <WorkspaceRouteGuard requiredMode="personal">
+              <DashboardMyProfile />
+            </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
       />
