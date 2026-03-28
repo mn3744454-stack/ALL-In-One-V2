@@ -54,7 +54,13 @@ function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding" |
 }
 
 /** Determine the primary domain source from enriched data */
-function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | "breeding" | "vet" | undefined {
+function getPrimarySource(enriched?: EnrichedStatementData): "lab" | "boarding" | "breeding" | "vet" | "general" | undefined {
+  // Prefer direct domain from invoice_items.domain
+  if (enriched?.directDomain) {
+    const d = enriched.directDomain;
+    if (d === "vet" || d === "breeding" || d === "boarding" || d === "lab" || d === "general") return d;
+  }
+  // Fallback to legacy horse-source resolution
   if (!enriched || enriched.horses.length === 0) return undefined;
   const sources = enriched.horses.map(h => h.source).filter(Boolean);
   if (sources.includes("vet")) return "vet";
