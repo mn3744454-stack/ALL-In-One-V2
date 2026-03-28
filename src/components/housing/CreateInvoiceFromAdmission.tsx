@@ -463,9 +463,9 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
           {/* Overlap warning */}
           {overlapWarning && (
-            <div className="rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
-              <span className="text-sm text-yellow-700 dark:text-yellow-400">{overlapWarning}</span>
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+              <span className="text-sm text-destructive">{overlapWarning}</span>
             </div>
           )}
 
