@@ -49,7 +49,10 @@ export function CheckoutFinancialReview({ admissionId, clientId }: CheckoutFinan
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
           <div>
-            <span className="text-muted-foreground block">{t('housing.checkout.financial.accrued')}</span>
+            <span className="text-muted-foreground block">
+              {t('housing.checkout.financial.accrued')}
+              <span className="text-[10px] ms-1 opacity-70">({t('finance.tax.exclTax')})</span>
+            </span>
             <span className="font-medium">{formatBoardingAmount(fin.accruedValue)}</span>
           </div>
           <div>
