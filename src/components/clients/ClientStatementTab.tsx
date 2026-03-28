@@ -507,23 +507,42 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
   const entries = useMemo(() => {
     if (!statement) return [];
-    if (horseFilteredEntryIds === null) return statement.entries;
-    return statement.entries.filter((e) => horseFilteredEntryIds.has(e.id));
+    let filtered = statement.entries;
+    if (horseFilteredEntryIds !== null) {
+      filtered = filtered.filter((e) => horseFilteredEntryIds.has(e.id));
+    }
+    return filtered;
   }, [statement, horseFilteredEntryIds]);
 
   // Enrichment
   const { enrichment, isEnriching } = useStatementEnrichment(entries);
 
+  // Apply domain filter post-enrichment
+  const domainFilteredEntries = useMemo(() => {
+    if (scopeConfig.domainFilter === "all") return entries;
+    return entries.filter((e) => {
+      const enriched = enrichment.get(e.id);
+      const domain = enriched?.directDomain || getPrimarySource(enriched);
+      if (!domain) return scopeConfig.domainFilter === "general"; // unattributed = general
+      return domain === scopeConfig.domainFilter;
+    });
+  }, [entries, enrichment, scopeConfig.domainFilter]);
+
+  const openingBalance = useMemo(() => {
+    if (!statement) return 0;
+    return statement.openingBalance;
+  }, [statement]);
+
   const summary = useMemo(() => {
     let totalDebit = 0;
     let totalCredit = 0;
-    entries.forEach((e) => {
+    domainFilteredEntries.forEach((e) => {
       totalDebit += e.debit;
       totalCredit += e.credit;
     });
-    const closingBalance = entries.length > 0 ? entries[entries.length - 1].balance : 0;
+    const closingBalance = domainFilteredEntries.length > 0 ? domainFilteredEntries[domainFilteredEntries.length - 1].balance : openingBalance;
     return { totalDebit, totalCredit, closingBalance };
-  }, [entries]);
+  }, [domainFilteredEntries, openingBalance]);
 
   const handleGenerate = (config: StatementScopeConfig) => {
     setScopeConfig(config);
