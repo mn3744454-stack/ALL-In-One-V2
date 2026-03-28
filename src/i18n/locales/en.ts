@@ -2211,6 +2211,11 @@ export const en = {
         billed: "Billed",
         notBilled: "Not Billed",
         totalBilled: "Total Billed",
+        billedPeriods: "Already Billed Periods",
+        remainingBillable: "Remaining Billable (pre-tax)",
+        fullyBilled: "This admission has been fully billed. No remaining amount to invoice.",
+        overlapWarning: "Selected period overlaps with an already-billed period",
+        overlapBlock: "Cannot create invoice — selected period overlaps with an already-billed period",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",
