@@ -336,6 +336,7 @@ function VaccinationFinancialStatus({ vaccinationId }: { vaccinationId: string }
       />
     </>
   );
+}
 
 /** Shows billing status + generate invoice button for a vaccination */
 function VaccinationBillingAction({ vaccination, onGenerateInvoice }: { vaccination: HorseVaccination; onGenerateInvoice: () => void }) {
