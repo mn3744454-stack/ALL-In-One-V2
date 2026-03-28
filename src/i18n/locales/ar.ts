@@ -4007,6 +4007,8 @@ export const ar = {
     emergency: "طوارئ",
     routine: "روتيني",
     preventive: "وقائي",
+    respiratory: "تنفسي",
+    musculoskeletal: "عضلي هيكلي",
     other: "أخرى",
   },
   // Navigation labels
