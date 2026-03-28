@@ -327,7 +327,12 @@ export function InvoiceFormDialog({
             {/* Tax and Discount */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>{t("finance.invoices.taxRate")} (%)</Label>
+                <Label>
+                  {t("finance.invoices.taxRate")} (%)
+                  <span className="text-xs text-muted-foreground ms-1">
+                    — {pricesTaxInclusive ? t("finance.tax.inclTax") : t("finance.tax.exclTax")}
+                  </span>
+                </Label>
                 <Input
                   type="number"
                   min="0"

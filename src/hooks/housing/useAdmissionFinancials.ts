@@ -115,7 +115,18 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
           }
         }
         result.admissionBalance = result.admissionBilled - result.admissionPaid;
-        result.unbilledValue = Math.max(result.accruedValue - result.admissionBilled, 0);
+
+        // Compare accrued (pre-tax) against billed on the same pre-tax basis.
+        // admissionBilled may include tax, so back-calculate the pre-tax billed portion.
+        const tenantTaxRate = Number((activeTenant?.tenant as any)?.default_tax_rate ?? 15);
+        const isTaxInclusive = Boolean((activeTenant?.tenant as any)?.prices_tax_inclusive);
+        let billedPreTax = result.admissionBilled;
+        if (tenantTaxRate > 0 && !isTaxInclusive) {
+          // Source-generated invoices add tax on top, so billed = subtotal + tax
+          // We need to extract the pre-tax subtotal from billed totals
+          billedPreTax = Math.round(result.admissionBilled / (1 + tenantTaxRate / 100) * 100) / 100;
+        }
+        result.unbilledValue = Math.max(result.accruedValue - billedPreTax, 0);
       }
 
       // 2. Client-level ledger balance + credit limit
