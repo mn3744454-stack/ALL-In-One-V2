@@ -162,12 +162,38 @@ function CreatePayableDialog({
 
 export function SupplierPayablesTab() {
   const { t, dir } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const { payables, isLoading, stats, updatePayableStatus, recordPayablePayment, deletePayable } = useSupplierPayables();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<SupplierPayable | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
+
+  // Batch-check which source references have billing links (invoiced indicator)
+  const sourceRefs = useMemo(() => 
+    payables
+      .filter((p) => p.source_type && p.source_reference)
+      .map((p) => ({ type: p.source_type!, ref: p.source_reference! })),
+    [payables]
+  );
+
+  const { data: invoicedSourceRefs = new Set<string>() } = useQuery({
+    queryKey: ["payable-invoice-check", tenantId, sourceRefs.map(s => s.ref).join(",")],
+    queryFn: async () => {
+      if (!tenantId || sourceRefs.length === 0) return new Set<string>();
+      const refs = sourceRefs.map((s) => s.ref);
+      const { data } = await supabase
+        .from("billing_links")
+        .select("source_id")
+        .eq("tenant_id", tenantId)
+        .in("source_id", refs);
+      return new Set((data || []).map((d: any) => d.source_id));
+    },
+    enabled: !!tenantId && sourceRefs.length > 0,
+    staleTime: 30_000,
+  });
 
   const filtered = payables.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
