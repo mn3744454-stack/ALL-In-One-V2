@@ -7714,6 +7714,7 @@ export type Database = {
           created_at: string
           email: string
           full_name: string | null
+          full_name_ar: string | null
           id: string
           location: string | null
           phone: string | null
@@ -7727,6 +7728,7 @@ export type Database = {
           created_at?: string
           email: string
           full_name?: string | null
+          full_name_ar?: string | null
           id: string
           location?: string | null
           phone?: string | null
@@ -7740,6 +7742,7 @@ export type Database = {
           created_at?: string
           email?: string
           full_name?: string | null
+          full_name_ar?: string | null
           id?: string
           location?: string | null
           phone?: string | null
