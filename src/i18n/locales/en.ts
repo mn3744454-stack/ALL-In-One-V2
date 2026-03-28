@@ -4013,6 +4013,8 @@ export const en = {
     emergency: "Emergency",
     routine: "Routine",
     preventive: "Preventive",
+    respiratory: "Respiratory",
+    musculoskeletal: "Musculoskeletal",
     other: "Other",
   },
   // Navigation labels

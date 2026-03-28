@@ -9,15 +9,17 @@ interface VetPriorityBadgeProps {
   className?: string;
 }
 
-const priorityConfig: Record<VetTreatmentPriority, { className: string; icon: React.ElementType }> = {
+const priorityConfig: Record<string, { className: string; icon: React.ElementType }> = {
   low: { className: "bg-slate-500/10 text-slate-600 border-slate-500/20", icon: ArrowDown },
   medium: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: Minus },
   high: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: ArrowUp },
   urgent: { className: "bg-destructive/10 text-destructive border-destructive/20", icon: AlertTriangle },
 };
 
+const defaultConfig = { className: "bg-muted text-muted-foreground", icon: Minus };
+
 export function VetPriorityBadge({ priority, className }: VetPriorityBadgeProps) {
-  const config = priorityConfig[priority];
+  const config = priorityConfig[priority] || defaultConfig;
   const Icon = config.icon;
 
   return (

@@ -5,9 +5,14 @@ import { VetStatusBadge } from "./VetStatusBadge";
 import { CreateInvoiceFromVaccination } from "./CreateInvoiceFromVaccination";
 import type { HorseVaccination } from "@/hooks/vet/useHorseVaccinations";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
+import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
+import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
+import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
+import { useTenant } from "@/contexts/TenantContext";
+import { toast } from "sonner";
 import { isPast, isToday, isTomorrow } from "date-fns";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, Syringe, AlertTriangle, Receipt, FileText, Landmark, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,7 +118,10 @@ export function VaccinationsList({
                   <TableCell className="w-[100px]">
                     <div className="flex gap-1">
                       {showBilling && vaccination.status === 'done' && (
-                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                        <>
+                          <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                          <VaccinationStableCostAction vaccination={vaccination} />
+                        </>
                       )}
                       {vaccination.status === 'due' && (
                         <>
@@ -203,7 +211,10 @@ export function VaccinationsList({
 
                     <div className="flex gap-1 shrink-0">
                       {showBilling && vaccination.status === 'done' && (
-                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                        <>
+                          <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                          <VaccinationStableCostAction vaccination={vaccination} />
+                        </>
                       )}
                       {vaccination.status === 'due' && (
                         <>
@@ -274,6 +285,63 @@ function VaccinationBillingAction({ vaccination, onGenerateInvoice }: { vaccinat
   return (
     <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:text-primary hover:bg-primary/10" onClick={onGenerateInvoice} title={t("vet.billing.generateInvoice")}>
       <Receipt className="w-3.5 h-3.5" />
+    </Button>
+  );
+}
+
+/** S3: Record as Stable Cost for vaccination */
+function VaccinationStableCostAction({ vaccination }: { vaccination: HorseVaccination }) {
+  const { t } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+  const { entries, loading: entriesLoading } = useFinancialEntries("vaccination", vaccination.id);
+  const { links } = useBillingLinks("vaccination", vaccination.id);
+  const [recording, setRecording] = useState(false);
+
+  const hasCostEntry = entries.some(e => !e.is_income);
+  const hasInvoice = links.length > 0;
+
+  if (hasInvoice || hasCostEntry || entriesLoading) return null;
+
+  const handleRecordCost = async () => {
+    if (!tenantId) return;
+    setRecording(true);
+    try {
+      if (vaccination.service_mode === 'external' && vaccination.provider?.name) {
+        await createSupplierPayableForExternal({
+          tenantId,
+          sourceType: "vaccination",
+          sourceId: vaccination.id,
+          supplierName: vaccination.provider.name,
+          supplierId: vaccination.external_provider_id,
+          description: vaccination.program?.name || "Vaccination",
+        });
+      }
+
+      const success = await recordAsStableCost({
+        tenantId,
+        entityType: "vaccination",
+        entityId: vaccination.id,
+        amount: 0,
+        serviceMode: vaccination.service_mode,
+        description: vaccination.program?.name || "Vaccination",
+      });
+
+      if (success) {
+        toast.success(t("vet.billing.stableCostRecorded"));
+      } else {
+        toast.error(t("common.error"));
+      }
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setRecording(false);
+    }
+  };
+
+  return (
+    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-muted-foreground hover:bg-muted/50" onClick={handleRecordCost} disabled={recording} title={t("vet.billing.recordStableCost")}>
+      {recording ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Landmark className="w-3.5 h-3.5" />}
     </Button>
   );
 }

@@ -43,7 +43,7 @@ interface CreateVetTreatmentDialogProps {
 }
 
 const categoryValues: VetTreatmentCategory[] = [
-  'treatment', 'procedure', 'checkup', 'dental', 'hoof', 'injury', 'surgery', 'reproductive', 'lab',
+  'treatment', 'procedure', 'checkup', 'dental', 'hoof', 'injury', 'surgery', 'reproductive', 'lab', 'respiratory', 'musculoskeletal',
 ];
 
 const priorityValues: VetTreatmentPriority[] = ['low', 'medium', 'high', 'urgent'];
