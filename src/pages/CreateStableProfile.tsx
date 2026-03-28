@@ -79,12 +79,14 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     
     const { error } = await createTenant({
       name: formData.name,
+      name_ar: formData.name_ar || undefined,
       type: tenantType,
       description: formData.description,
+      description_ar: formData.description_ar || undefined,
       address: `${formData.address}, ${formData.city}, ${formData.country}`,
       phone: formData.phone,
       email: formData.email,
-    });
+    } as any);
     
     if (error) {
       // Build detailed error message from structured error
