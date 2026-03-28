@@ -50,6 +50,7 @@ export function InvoiceFormDialog({
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
   const { horses = [] } = useHorses();
+  const { data: allServices = [] } = useServices();
   const queryClient = useQueryClient();
 
   const isEditMode = mode === "edit" && invoice;
