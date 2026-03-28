@@ -2530,6 +2530,16 @@ export const ar = {
       providerCostRef: "تكلفة المزود",
       recordStableCost: "تسجيل كتكلفة إسطبل",
       stableCostRecorded: "تم تسجيل التكلفة الداخلية بنجاح",
+      markupHelper: {
+        title: "مقارنة تكلفة المزود",
+        providerCost: "تكلفة المزود",
+        billedAmount: "المبلغ للعميل",
+        exact: "مطابق",
+        passThrough: "تمرير مباشر",
+        withMarkup: "مع هامش ربح",
+        belowCost: "أقل من التكلفة",
+        applyPassThrough: "تطبيق التمرير المباشر",
+      },
     },
     domain: {
       vet: "بيطري",
