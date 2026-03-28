@@ -15,9 +15,12 @@ import { Pregnancy } from "@/hooks/breeding/usePregnancies";
 import { BreedingStatusBadge } from "./BreedingStatusBadge";
 import { PregnancyExamsPanel } from "./PregnancyExamsPanel";
 import { CreateInvoiceFromBreedingEvent, type BreedingEventForInvoice } from "./CreateInvoiceFromBreedingEvent";
+import { FinancialStatusSection } from "@/components/finance/FinancialStatusSection";
 import { useI18n } from "@/i18n";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
+import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
 import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
 import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
 import { toast } from "sonner";
@@ -147,33 +150,19 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
               </>
             )}
 
-            {/* Actions */}
-            {canManage && (
-              <>
-                <Separator />
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => setInvoiceDialogOpen(true)}
-                  >
-                    <Receipt className="h-4 w-4" />
-                    {t("breeding.billing.generateInvoice")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={handleRecordStableCost}
-                    disabled={stableCostLoading}
-                  >
-                    <Landmark className="h-4 w-4" />
-                    {t("vet.billing.recordStableCost")}
-                  </Button>
-                </div>
-              </>
-            )}
+            {/* Financial Status Section */}
+            <FinancialStatusSection sourceType="breeding_attempt" sourceId={attempt.id} />
+
+            {/* Actions — only show buttons when not yet invoiced/recorded */}
+            <BreedingActionsSection
+              canManage={canManage}
+              sourceType="breeding_attempt"
+              sourceId={attempt.id}
+              onInvoice={() => setInvoiceDialogOpen(true)}
+              onStableCost={handleRecordStableCost}
+              stableCostLoading={stableCostLoading}
+              t={t}
+            />
           </div>
         </SheetContent>
       </Sheet>
@@ -271,5 +260,52 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium text-end">{value || "—"}</span>
     </div>
+  );
+}
+
+// ── Actions section that hides buttons when already invoiced/recorded ──
+
+function BreedingActionsSection({
+  canManage,
+  sourceType,
+  sourceId,
+  onInvoice,
+  onStableCost,
+  stableCostLoading,
+  t,
+}: {
+  canManage?: boolean;
+  sourceType: string;
+  sourceId: string;
+  onInvoice: () => void;
+  onStableCost: () => void;
+  stableCostLoading: boolean;
+  t: (key: string) => string;
+}) {
+  const { links } = useBillingLinks(sourceType, sourceId);
+  const { entries } = useFinancialEntries(sourceType, sourceId);
+  const hasInvoice = links.length > 0;
+  const hasCost = entries.some((e) => !e.is_income);
+
+  if (!canManage || (hasInvoice && hasCost)) return null;
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-2">
+        {!hasInvoice && (
+          <Button variant="outline" size="sm" className="w-full gap-2" onClick={onInvoice}>
+            <Receipt className="h-4 w-4" />
+            {t("breeding.billing.generateInvoice")}
+          </Button>
+        )}
+        {!hasCost && !hasInvoice && (
+          <Button variant="outline" size="sm" className="w-full gap-2" onClick={onStableCost} disabled={stableCostLoading}>
+            <Landmark className="h-4 w-4" />
+            {t("vet.billing.recordStableCost")}
+          </Button>
+        )}
+      </div>
+    </>
   );
 }

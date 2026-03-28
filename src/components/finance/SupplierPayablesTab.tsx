@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/i18n";
 import { useSupplierPayables, type PayableStatus, type SupplierPayable } from "@/hooks/finance/useSupplierPayables";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -39,6 +43,7 @@ import {
   CheckCircle,
   Clock,
   Search,
+  FileText,
 } from "lucide-react";
 
 function PayableStatusBadge({ status }: { status: PayableStatus }) {
@@ -157,12 +162,38 @@ function CreatePayableDialog({
 
 export function SupplierPayablesTab() {
   const { t, dir } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const { payables, isLoading, stats, updatePayableStatus, recordPayablePayment, deletePayable } = useSupplierPayables();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<SupplierPayable | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
+
+  // Batch-check which source references have billing links (invoiced indicator)
+  const sourceRefs = useMemo(() => 
+    payables
+      .filter((p) => p.source_type && p.source_reference)
+      .map((p) => ({ type: p.source_type!, ref: p.source_reference! })),
+    [payables]
+  );
+
+  const { data: invoicedSourceRefs = new Set<string>() } = useQuery({
+    queryKey: ["payable-invoice-check", tenantId, sourceRefs.map(s => s.ref).join(",")],
+    queryFn: async () => {
+      if (!tenantId || sourceRefs.length === 0) return new Set<string>();
+      const refs = sourceRefs.map((s) => s.ref);
+      const { data } = await supabase
+        .from("billing_links")
+        .select("source_id")
+        .eq("tenant_id", tenantId)
+        .in("source_id", refs);
+      return new Set((data || []).map((d: any) => d.source_id));
+    },
+    enabled: !!tenantId && sourceRefs.length > 0,
+    staleTime: 30_000,
+  });
 
   const filtered = payables.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
@@ -296,15 +327,24 @@ export function SupplierPayablesTab() {
                           <div>
                             <p className="font-medium text-sm">{p.supplier_name}</p>
                             {p.description && <p className="text-xs text-muted-foreground">{p.description}</p>}
-                            {p.source_reference && <p className="text-xs text-muted-foreground font-mono" dir="ltr">{p.source_reference}</p>}
                           </div>
                         </TableCell>
                         <TableCell>
-                          {p.source_type && (
-                            <Badge variant="outline" className="text-xs">
-                              {t(`finance.payables.sources.${p.source_type}`) || p.source_type}
-                            </Badge>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            {p.source_type && (
+                              <Badge variant="outline" className="text-xs w-fit">
+                                {t(`finance.payables.sources.${p.source_type}`) || p.source_type}
+                              </Badge>
+                            )}
+                            {p.source_reference && (invoicedSourceRefs as Set<string>).has(p.source_reference) ? (
+                              <Badge variant="secondary" className="text-[10px] w-fit gap-1">
+                                <FileText className="h-2.5 w-2.5" />
+                                {t("finance.traceability.clientInvoiced")}
+                              </Badge>
+                            ) : p.source_reference ? (
+                              <span className="text-[10px] text-muted-foreground">{t("finance.traceability.notInvoiced")}</span>
+                            ) : null}
+                          </div>
                         </TableCell>
                         <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                           {formatCurrency(p.amount)}

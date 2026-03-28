@@ -2841,15 +2841,27 @@ export const ar = {
       cost: "التكلفة",
       modeInternal: "داخلي",
       modeExternal: "مزود خارجي",
-      sources: {
-        vetTreatment: "علاج بيطري",
-        vaccination: "تطعيم",
-      },
       stats: {
         totalRecords: "إجمالي السجلات",
         totalCost: "إجمالي التكلفة",
         categories: "الفئات",
       },
+      sources: {
+        vetTreatment: "علاج بيطري",
+        vaccination: "تطعيم",
+        breeding_attempt: "محاولة تلقيح",
+        foaling: "ولادة",
+      },
+    },
+    traceability: {
+      financialStatus: "الحالة المالية",
+      invoiced: "تمت الفوترة",
+      stableCostRecorded: "تم تسجيل تكلفة الإسطبل",
+      payableCreated: "تم إنشاء مستحق المورد",
+      zeroCharge: "بدون رسوم",
+      clientInvoiced: "تمت فوترة العميل",
+      notInvoiced: "لم تتم الفوترة",
+      viewSource: "عرض المصدر",
     },
     payables: {
       title: "مستحقات الموردين",

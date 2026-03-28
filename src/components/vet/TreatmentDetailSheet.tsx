@@ -16,6 +16,7 @@ import { VetPriorityBadge } from "./VetPriorityBadge";
 import { VetCategoryBadge } from "./VetCategoryBadge";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { CreateInvoiceFromTreatment } from "./CreateInvoiceFromTreatment";
+import { FinancialStatusSection } from "@/components/finance/FinancialStatusSection";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 import { useVetMedications } from "@/hooks/vet/useVetMedications";
 import { useVetFollowups } from "@/hooks/vet/useVetFollowups";
@@ -146,6 +147,9 @@ export function TreatmentDetailSheet({
             </div>
           )}
 
+          {/* Financial Status Section */}
+          <FinancialStatusSection sourceType="vet_treatment" sourceId={treatment.id} />
+
           <Separator />
 
           {/* Medications Section */}
@@ -197,7 +201,7 @@ function BillingActionButton({ treatment, onOpenInvoiceDialog }: { treatment: Ve
   );
 }
 
-/** S3: Record as Stable Cost button */
+/** S3: Record as Stable Cost button — only shows when no invoice and no cost recorded */
 function StableCostButton({ treatment }: { treatment: VetTreatment }) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
@@ -205,20 +209,17 @@ function StableCostButton({ treatment }: { treatment: VetTreatment }) {
   const { entries, loading: entriesLoading } = useFinancialEntries("vet_treatment", treatment.id);
   const [recording, setRecording] = useState(false);
 
-  // Check if already recorded as cost
   const hasCostEntry = entries.some(e => !e.is_income);
-  // Also check if already invoiced
   const { links } = useBillingLinks("vet_treatment", treatment.id);
   const hasInvoice = links.length > 0;
 
-  // Don't show if already invoiced or already recorded
+  // Don't show if already invoiced, already recorded, or loading
   if (hasInvoice || hasCostEntry || entriesLoading) return null;
 
   const handleRecordCost = async () => {
     if (!tenantId) return;
     setRecording(true);
     try {
-      // If external, also create supplier payable
       if (treatment.service_mode === 'external' && (treatment.provider?.name || treatment.external_provider_name)) {
         await createSupplierPayableForExternal({
           tenantId,
@@ -234,7 +235,7 @@ function StableCostButton({ treatment }: { treatment: VetTreatment }) {
         tenantId,
         entityType: "vet_treatment",
         entityId: treatment.id,
-        amount: 0, // actual cost can be entered later
+        amount: 0,
         serviceMode: treatment.service_mode,
         externalProviderId: treatment.external_provider_id,
         description: treatment.title,

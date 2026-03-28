@@ -10,21 +10,28 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/i18n";
-import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
+import { useFinancialEntries, type FinancialEntry } from "@/hooks/finance/useFinancialEntries";
 import { formatCurrency } from "@/lib/formatters";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Landmark, Search, TrendingDown, DollarSign } from "lucide-react";
+import { Landmark, Search, TrendingDown, DollarSign, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
-const SOURCE_TYPE_ICONS: Record<string, string> = {
-  vet_treatment: "vet",
-  vaccination: "vet",
-};
+// Lazy source detail sheet imports to avoid circular deps
+import { TreatmentDetailSheet } from "@/components/vet/TreatmentDetailSheet";
 
 export function InternalCostsTab() {
   const { t, lang } = useI18n();
   const { entries, loading } = useFinancialEntries();
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState<string>("all");
+
+  // Source drill-through state
+  const [sourceSheet, setSourceSheet] = useState<{
+    type: string;
+    data: any;
+  } | null>(null);
 
   // Filter to internal (non-income) cost entries only
   const internalCosts = useMemo(() => {
@@ -56,6 +63,8 @@ export function InternalCostsTab() {
     switch (entityType) {
       case "vet_treatment": return t("finance.internalCosts.sources.vetTreatment");
       case "vaccination": return t("finance.internalCosts.sources.vaccination");
+      case "breeding_attempt": return t("finance.internalCosts.sources.breeding_attempt");
+      case "foaling": return t("finance.internalCosts.sources.foaling");
       default: return entityType;
     }
   };
@@ -65,6 +74,27 @@ export function InternalCostsTab() {
       case "internal": return t("finance.internalCosts.modeInternal");
       case "external": return t("finance.internalCosts.modeExternal");
       default: return mode;
+    }
+  };
+
+  const handleOpenSource = async (entry: FinancialEntry) => {
+    try {
+      if (entry.entity_type === "vet_treatment") {
+        const { data } = await supabase
+          .from("vet_treatments")
+          .select("*, horse:horses!vet_treatments_horse_id_fkey(id, name, name_ar, avatar_url), assignee:profiles!vet_treatments_assigned_to_fkey(id, full_name), provider:service_providers!vet_treatments_external_provider_id_fkey(id, name, name_ar)")
+          .eq("id", entry.entity_id)
+          .maybeSingle();
+        if (data) {
+          setSourceSheet({ type: "vet_treatment", data });
+        } else {
+          toast.error(t("common.notFound"));
+        }
+      }
+      // For other types, we just show a toast for now since they use different sheet patterns
+      // that require more context (e.g., breeding attempts need mare/stallion joins)
+    } catch {
+      toast.error(t("common.error"));
     }
   };
 
@@ -122,6 +152,8 @@ export function InternalCostsTab() {
             <SelectItem value="all">{t("common.all")}</SelectItem>
             <SelectItem value="vet_treatment">{t("finance.internalCosts.sources.vetTreatment")}</SelectItem>
             <SelectItem value="vaccination">{t("finance.internalCosts.sources.vaccination")}</SelectItem>
+            <SelectItem value="breeding_attempt">{t("finance.internalCosts.sources.breeding_attempt")}</SelectItem>
+            <SelectItem value="foaling">{t("finance.internalCosts.sources.foaling")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -150,11 +182,12 @@ export function InternalCostsTab() {
                       <TableHead>{t("finance.internalCosts.serviceMode")}</TableHead>
                       <TableHead className="text-center">{t("finance.internalCosts.cost")}</TableHead>
                       <TableHead>{t("common.notes")}</TableHead>
+                      <TableHead className="w-[40px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filtered.map((entry) => (
-                      <TableRow key={entry.id}>
+                      <TableRow key={entry.id} className="group">
                         <TableCell className="font-mono text-sm" dir="ltr">
                           {formatStandardDate(entry.created_at)}
                         </TableCell>
@@ -174,6 +207,19 @@ export function InternalCostsTab() {
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                           {entry.notes || "—"}
                         </TableCell>
+                        <TableCell>
+                          {entry.entity_type === "vet_treatment" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => handleOpenSource(entry)}
+                              title={t("finance.traceability.viewSource")}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -183,7 +229,12 @@ export function InternalCostsTab() {
               {/* Mobile cards */}
               <div className="sm:hidden divide-y border rounded-md">
                 {filtered.map((entry) => (
-                  <div key={entry.id} className="p-3 space-y-2">
+                  <div
+                    key={entry.id}
+                    className="p-3 space-y-2"
+                    onClick={() => entry.entity_type === "vet_treatment" ? handleOpenSource(entry) : undefined}
+                    role={entry.entity_type === "vet_treatment" ? "button" : undefined}
+                  >
                     <div className="flex items-center justify-between gap-2">
                       <Badge variant="outline" className="text-xs">
                         {getEntityLabel(entry.entity_type)}
@@ -210,6 +261,15 @@ export function InternalCostsTab() {
           )}
         </CardContent>
       </Card>
+
+      {/* Source detail sheet for vet_treatment drill-through */}
+      {sourceSheet?.type === "vet_treatment" && (
+        <TreatmentDetailSheet
+          treatment={sourceSheet.data}
+          open={true}
+          onOpenChange={(open) => !open && setSourceSheet(null)}
+        />
+      )}
     </div>
   );
 }
