@@ -561,7 +561,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
   // Build enriched descriptions map for print/CSV
   const enrichedDescriptions = new Map<string, string>();
-  entries.forEach((e) => {
+  domainFilteredEntries.forEach((e) => {
     enrichedDescriptions.set(e.id, enrichedToString(e, enrichment.get(e.id), lang));
   });
 
@@ -569,7 +569,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     clientName: clientName || clientId,
     dateFrom: scopeConfig.dateFrom,
     dateTo: scopeConfig.dateTo,
-    entries,
+    entries: domainFilteredEntries,
     enrichedDescriptions,
     totalDebits: summary.totalDebit,
     totalCredits: summary.totalCredit,
