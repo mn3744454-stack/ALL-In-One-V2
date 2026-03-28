@@ -283,6 +283,14 @@ const AppRoutes = () => {
       />
       {/* Personal workspace routes */}
       <Route
+        path="/dashboard/my-profile"
+        element={
+          <ProtectedRoute>
+            <DashboardMyProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/my-bookings"
         element={
           <ProtectedRoute>
