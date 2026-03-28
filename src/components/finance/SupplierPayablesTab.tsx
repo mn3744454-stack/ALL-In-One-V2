@@ -44,7 +44,6 @@ import {
   Clock,
   Search,
   FileText,
-  Horse,
 } from "lucide-react";
 
 function PayableStatusBadge({ status }: { status: PayableStatus }) {

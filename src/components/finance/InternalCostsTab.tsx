@@ -38,19 +38,14 @@ export function InternalCostsTab() {
     return entries.filter((e) => e.is_income === false);
   }, [entries]);
 
-  // Batch-fetch horse names for all entries
-  const entityIds = useMemo(() => internalCosts.map(e => e.entity_id), [internalCosts]);
-  const entityTypes = useMemo(() => internalCosts.map(e => e.entity_type), [internalCosts]);
-
   // Horse name lookup map
   const [horseNames, setHorseNames] = useState<Record<string, string>>({});
   
-  useMemo(() => {
+  useEffect(() => {
     if (internalCosts.length === 0) return;
     const fetchHorseNames = async () => {
       const map: Record<string, string> = {};
       
-      // Group entity IDs by type for efficient queries
       const vetIds = internalCosts.filter(e => e.entity_type === "vet_treatment").map(e => e.entity_id);
       const vaccIds = internalCosts.filter(e => e.entity_type === "vaccination").map(e => e.entity_id);
       const breedIds = internalCosts.filter(e => e.entity_type === "breeding_attempt").map(e => e.entity_id);
@@ -61,25 +56,25 @@ export function InternalCostsTab() {
       if (vetIds.length > 0) {
         promises.push(
           supabase.from("vet_treatments").select("id, horse:horses!vet_treatments_horse_id_fkey(name, name_ar)").in("id", vetIds)
-            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); })
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); }) as unknown as Promise<void>
         );
       }
       if (vaccIds.length > 0) {
         promises.push(
           supabase.from("horse_vaccinations").select("id, horse:horses!horse_vaccinations_horse_id_fkey(name, name_ar)").in("id", vaccIds)
-            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); })
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.horse) map[d.id] = lang === "ar" ? (d.horse.name_ar || d.horse.name) : d.horse.name; }); }) as unknown as Promise<void>
         );
       }
       if (breedIds.length > 0) {
         promises.push(
           supabase.from("breeding_attempts").select("id, mare:horses!breeding_attempts_mare_id_fkey(name, name_ar)").in("id", breedIds)
-            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); })
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); }) as unknown as Promise<void>
         );
       }
       if (foalIds.length > 0) {
         promises.push(
           supabase.from("foalings").select("id, mare:horses!foalings_mare_id_fkey(name, name_ar)").in("id", foalIds)
-            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); })
+            .then(({ data }) => { (data || []).forEach((d: any) => { if (d.mare) map[d.id] = lang === "ar" ? (d.mare.name_ar || d.mare.name) : d.mare.name; }); }) as unknown as Promise<void>
         );
       }
 
