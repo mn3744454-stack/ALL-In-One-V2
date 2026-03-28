@@ -23,10 +23,11 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
   const { t, lang } = useI18n();
   const { data: boardingServices = [] } = useServicesByKind('boarding');
   const { data: vetServices = [] } = useServicesByKind('vet');
+  const { data: breedingServices = [] } = useServicesByKind('breeding');
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Combine boarding + vet services for plan inclusion
-  const allServices = useMemo(() => [...boardingServices, ...vetServices], [boardingServices, vetServices]);
+  // Combine boarding + vet + breeding services for plan inclusion
+  const allServices = useMemo(() => [...boardingServices, ...vetServices, ...breedingServices], [boardingServices, vetServices, breedingServices]);
 
   const activeServices = allServices.filter(s => s.is_active);
   const selectedIds = new Set(value.map(v => v.service_id));
