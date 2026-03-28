@@ -307,12 +307,13 @@ function VaccinationStableCostAction({ vaccination }: { vaccination: HorseVaccin
     if (!tenantId) return;
     setRecording(true);
     try {
-      if (vaccination.service_mode === 'external' && vaccination.external_provider_name) {
+      if (vaccination.service_mode === 'external' && vaccination.provider?.name) {
         await createSupplierPayableForExternal({
           tenantId,
           sourceType: "vaccination",
           sourceId: vaccination.id,
-          supplierName: vaccination.external_provider_name,
+          supplierName: vaccination.provider.name,
+          supplierId: vaccination.external_provider_id,
           description: vaccination.program?.name || "Vaccination",
         });
       }
