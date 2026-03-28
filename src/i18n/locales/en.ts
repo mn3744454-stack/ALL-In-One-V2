@@ -2688,6 +2688,11 @@ export const en = {
   finance: {
     title: "Finance",
     subtitle: "Invoices, expenses, and ledger",
+    tax: {
+      exclTax: "excl. tax",
+      inclTax: "incl. tax",
+      estimated: "estimated",
+    },
     overview: "Overview",
     customerBalances: {
       title: "Customer Balances",
@@ -4273,6 +4278,9 @@ export const en = {
         summary: "Selected summary",
         horsesSelected: "{count} horses selected",
         servicesSelected: "{count} services selected",
+        domainLabel: "Category",
+        domainGeneral: "General / Other",
+        horseScope: "Horse Scope",
       },
     },
   },

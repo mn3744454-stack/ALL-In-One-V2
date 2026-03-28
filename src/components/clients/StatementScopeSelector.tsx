@@ -17,6 +17,7 @@ import { format, subMonths } from "date-fns";
 import { Search, X } from "lucide-react";
 
 export type ScopeMode = "all" | "horses" | "services";
+export type DomainFilter = "all" | "boarding" | "vet" | "breeding" | "lab" | "general";
 
 export interface ScopeHorse {
   id: string;
@@ -29,6 +30,7 @@ export interface StatementScopeConfig {
   dateTo: string;
   mode: ScopeMode;
   selectedHorseIds: string[];
+  domainFilter: DomainFilter;
 }
 
 interface StatementScopeSelectorProps {
@@ -58,6 +60,7 @@ export function StatementScopeSelector({
     new Set(initialConfig.selectedHorseIds)
   );
   const [horseSearch, setHorseSearch] = useState("");
+  const [domainFilter, setDomainFilter] = useState<DomainFilter>(initialConfig.domainFilter || "all");
 
   const filteredHorses = useMemo(() => {
     if (!horseSearch.trim()) return horses;
@@ -97,6 +100,7 @@ export function StatementScopeSelector({
       dateTo,
       mode,
       selectedHorseIds: Array.from(selectedHorseIds),
+      domainFilter,
     });
     onOpenChange(false);
   };
@@ -104,6 +108,15 @@ export function StatementScopeSelector({
   const scopePills: { value: ScopeMode; label: string }[] = [
     { value: "all", label: t("clients.statement.scope.all") },
     { value: "horses", label: t("clients.statement.scope.selectHorses") },
+  ];
+
+  const domainPills: { value: DomainFilter; label: string }[] = [
+    { value: "all", label: t("clients.statement.scope.all") },
+    { value: "boarding", label: t("clients.statement.domain.boarding") },
+    { value: "vet", label: t("clients.statement.domain.vet") || "Vet" },
+    { value: "breeding", label: t("clients.statement.domain.breeding") },
+    { value: "lab", label: t("clients.statement.domain.lab") },
+    { value: "general", label: t("clients.statement.scope.domainGeneral") },
   ];
 
   return (
@@ -144,19 +157,44 @@ export function StatementScopeSelector({
             </div>
           </div>
 
+          {/* Domain filter */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("clients.statement.scope.domainLabel")}
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {domainPills.map((pill) => (
+                <Button
+                  key={pill.value}
+                  variant={domainFilter === pill.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDomainFilter(pill.value)}
+                  className="text-xs h-7"
+                >
+                  {pill.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Scope pills */}
-          <div className="flex gap-2">
-            {scopePills.map((pill) => (
-              <Button
-                key={pill.value}
-                variant={mode === pill.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setMode(pill.value)}
-                className="flex-1"
-              >
-                {pill.label}
-              </Button>
-            ))}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {t("clients.statement.scope.horseScope")}
+            </label>
+            <div className="flex gap-2">
+              {scopePills.map((pill) => (
+                <Button
+                  key={pill.value}
+                  variant={mode === pill.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMode(pill.value)}
+                  className="flex-1"
+                >
+                  {pill.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Horse selection */}

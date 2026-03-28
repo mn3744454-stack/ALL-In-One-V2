@@ -2703,6 +2703,11 @@ export const ar = {
   finance: {
     title: "المالية",
     subtitle: "الفواتير والمصروفات والحسابات",
+    tax: {
+      exclTax: "قبل الضريبة",
+      inclTax: "شامل الضريبة",
+      estimated: "تقديري",
+    },
     overview: "نظرة عامة",
     customerBalances: {
       title: "أرصدة العملاء",
@@ -4267,6 +4272,9 @@ export const ar = {
         summary: "ملخص التحديد",
         horsesSelected: "تم تحديد {count} خيل",
         servicesSelected: "تم تحديد {count} خدمة",
+        domainLabel: "التصنيف",
+        domainGeneral: "عام / أخرى",
+        horseScope: "نطاق الخيول",
       },
     },
   },

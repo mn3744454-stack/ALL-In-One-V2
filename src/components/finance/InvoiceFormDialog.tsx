@@ -53,12 +53,15 @@ export function InvoiceFormDialog({
 
   const isEditMode = mode === "edit" && invoice;
 
+  // Use tenant default tax rate (fallback to "15" if not set)
+  const defaultTaxRate = String((activeTenant?.tenant as any)?.default_tax_rate ?? 15);
+
   const [formData, setFormData] = useState({
     client_id: "",
     client_name: "",
     issue_date: format(new Date(), "yyyy-MM-dd"),
     due_date: format(addDays(new Date(), 30), "yyyy-MM-dd"),
-    tax_rate: "15",
+    tax_rate: defaultTaxRate,
     discount_amount: "0",
     notes: "",
   });
@@ -84,7 +87,7 @@ export function InvoiceFormDialog({
         due_date: invoice.due_date ? format(new Date(invoice.due_date), "yyyy-MM-dd") : format(addDays(new Date(), 30), "yyyy-MM-dd"),
         tax_rate: invoice.tax_amount > 0 && invoice.subtotal > 0 
           ? String(Math.round((invoice.tax_amount / invoice.subtotal) * 100)) 
-          : "15",
+          : defaultTaxRate,
         discount_amount: String(invoice.discount_amount || 0),
         notes: invoice.notes || "",
       });
@@ -106,7 +109,7 @@ export function InvoiceFormDialog({
         client_name: "",
         issue_date: format(new Date(), "yyyy-MM-dd"),
         due_date: format(addDays(new Date(), 30), "yyyy-MM-dd"),
-        tax_rate: "15",
+        tax_rate: defaultTaxRate,
         discount_amount: "0",
         notes: "",
       });
