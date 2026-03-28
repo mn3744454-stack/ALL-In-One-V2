@@ -35,8 +35,11 @@ interface FoalingDetailSheetProps {
 
 export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: FoalingDetailSheetProps) {
   const { t, lang } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const { updateFoaling } = useFoalings();
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [stableCostLoading, setStableCostLoading] = useState(false);
 
   if (!foaling) return null;
 
@@ -51,9 +54,29 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
     await updateFoaling(foaling.id, { foal_alive: !foaling.foal_alive } as Partial<Foaling>);
   };
 
+  const handleRecordStableCost = async () => {
+    if (!tenantId) return;
+    setStableCostLoading(true);
+    try {
+      const ok = await recordAsStableCost({
+        tenantId,
+        entityType: "foaling",
+        entityId: foaling.id,
+        amount: 0,
+        description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
+      });
+      if (ok) toast.success(t("vet.billing.stableCostRecorded"));
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setStableCostLoading(false);
+    }
+  };
+
   const invoiceEvent: BreedingEventForInvoice = {
     sourceType: "foaling",
     sourceId: foaling.id,
+    horseId: foaling.mare_id,
     mareName: foaling.mare?.name,
     mareNameAr: foaling.mare?.name_ar,
     stallionName: foaling.stallion?.name,
