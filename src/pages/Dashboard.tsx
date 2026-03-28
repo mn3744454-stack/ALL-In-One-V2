@@ -390,7 +390,8 @@ const Dashboard = () => {
             </>
           )}
 
-          {/* Content Grid */}
+          {/* Content Grid - Only in organization mode */}
+          {workspaceMode === "organization" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Horses List - Only show for horse-owning tenant types */}
             {activeTenant && isHorseOwningTenant ? (
@@ -507,6 +508,7 @@ const Dashboard = () => {
               </Card>
             </div>
           </div>
+          )}
         </div>
       </div>
       
