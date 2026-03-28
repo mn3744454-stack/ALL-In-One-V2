@@ -2936,6 +2936,13 @@ export const ar = {
       subtotal: "المجموع الفرعي",
       tax: "الضريبة",
       discount: "الخصم",
+      selectHorse: "اختر الخيل (اختياري)",
+      searchHorse: "ابحث عن خيل...",
+      noHorse: "بدون خيل (على مستوى العميل)",
+      domain: {
+        select: "الفئة (اختياري)",
+        general: "عام",
+      },
       empty: "لا توجد فواتير",
       emptyDesc: "أنشئ أول فاتورة للبدء",
       pending: "معلقة",
