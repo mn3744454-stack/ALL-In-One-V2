@@ -190,6 +190,7 @@ export function InvoiceFormDialog({
             entity_id: item.entity_id,
             horse_id: item.horse_id || null,
             domain: item.domain || null,
+            service_id: item.service_id || null,
           });
         }
 
