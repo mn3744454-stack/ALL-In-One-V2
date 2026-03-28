@@ -281,6 +281,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     dateTo: format(new Date(), "yyyy-MM-dd"),
     mode: "all",
     selectedHorseIds: [],
+    domainFilter: "all",
   });
   const [hasGenerated, setHasGenerated] = useState(false);
 
