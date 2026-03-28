@@ -4816,6 +4816,7 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           quantity: number
+          service_id: string | null
           total_price: number
           unit_price: number
         }
@@ -4831,6 +4832,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           quantity?: number
+          service_id?: string | null
           total_price: number
           unit_price: number
         }
@@ -4846,6 +4848,7 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           quantity?: number
+          service_id?: string | null
           total_price?: number
           unit_price?: number
         }
@@ -4862,6 +4865,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "tenant_services"
             referencedColumns: ["id"]
           },
         ]
@@ -8924,6 +8934,7 @@ export type Database = {
           name_ar: string | null
           owner_id: string
           phone: string | null
+          prices_tax_inclusive: boolean
           public_description: string | null
           public_email: string | null
           public_location_text: string | null
@@ -8952,6 +8963,7 @@ export type Database = {
           name_ar?: string | null
           owner_id: string
           phone?: string | null
+          prices_tax_inclusive?: boolean
           public_description?: string | null
           public_email?: string | null
           public_location_text?: string | null
@@ -8980,6 +8992,7 @@ export type Database = {
           name_ar?: string | null
           owner_id?: string
           phone?: string | null
+          prices_tax_inclusive?: boolean
           public_description?: string | null
           public_email?: string | null
           public_location_text?: string | null

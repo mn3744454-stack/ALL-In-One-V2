@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { useHorses } from "@/hooks/useHorses";
+import { useServices } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
@@ -49,6 +50,7 @@ export function InvoiceFormDialog({
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
   const { horses = [] } = useHorses();
+  const { data: allServices = [] } = useServices();
   const queryClient = useQueryClient();
 
   const isEditMode = mode === "edit" && invoice;
@@ -188,6 +190,7 @@ export function InvoiceFormDialog({
             entity_id: item.entity_id,
             horse_id: item.horse_id || null,
             domain: item.domain || null,
+            service_id: item.service_id || null,
           });
         }
 
@@ -224,6 +227,7 @@ export function InvoiceFormDialog({
               entity_id: item.entity_id,
               horse_id: item.horse_id || null,
               domain: item.domain || null,
+              service_id: item.service_id || null,
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
@@ -298,6 +302,7 @@ export function InvoiceFormDialog({
                 onChange={setLineItems}
                 currency="SAR"
                 horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+                services={allServices}
               />
             </div>
 

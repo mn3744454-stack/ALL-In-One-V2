@@ -14,6 +14,7 @@ import { useClients } from "@/hooks/useClients";
 import { useTenant } from "@/contexts/TenantContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
+import { getTenantTaxConfig, computeTax } from "@/lib/taxUtils";
 import type { DoctorConsultation } from "@/hooks/doctor/useConsultations";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
   const { user } = useAuth();
   const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
+  const taxConfig = getTenantTaxConfig(activeTenant?.tenant);
 
   const { createInvoice, isCreating } = useInvoices(tenantId);
   const { createLinkAsync } = useBillingLinks("doctor_consultation", consultation.id);
@@ -57,6 +59,7 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
     try {
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
+      const { subtotal, taxAmount, totalAmount: total } = computeTax(amount, taxConfig);
 
       const invoice = await createInvoice({
         tenant_id: tenantId,
@@ -65,10 +68,10 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
         client_name: displayName,
         status: "draft",
         issue_date: new Date().toISOString().split("T")[0],
-        subtotal: amount,
-        tax_amount: 0,
+        subtotal,
+        tax_amount: taxAmount,
         discount_amount: 0,
-        total_amount: amount,
+        total_amount: total,
         currency: consultation.currency || "SAR",
         notes: notes || undefined,
       });
@@ -104,12 +107,7 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
             <Label>{t('doctor.client')}</Label>
             <Popover open={clientPickerOpen} onOpenChange={setClientPickerOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={clientPickerOpen}
-                  className="w-full justify-between font-normal"
-                >
+                <Button variant="outline" role="combobox" aria-expanded={clientPickerOpen} className="w-full justify-between font-normal">
                   {selectedClient ? selectedClient.name : t('doctor.selectClient')}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -121,15 +119,7 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
                     <CommandEmpty>{t('doctor.noClientsFound')}</CommandEmpty>
                     <CommandGroup>
                       {activeClients.map(client => (
-                        <CommandItem
-                          key={client.id}
-                          value={client.name}
-                          onSelect={() => {
-                            setSelectedClientId(client.id);
-                            setClientName(client.name);
-                            setClientPickerOpen(false);
-                          }}
-                        >
+                        <CommandItem key={client.id} value={client.name} onSelect={() => { setSelectedClientId(client.id); setClientName(client.name); setClientPickerOpen(false); }}>
                           <Check className={cn("mr-2 h-4 w-4", selectedClientId === client.id ? "opacity-100" : "opacity-0")} />
                           <span>{client.name}</span>
                           {client.phone && <span className="ml-auto text-xs text-muted-foreground">{client.phone}</span>}

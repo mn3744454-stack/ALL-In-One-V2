@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -6,8 +6,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Check, ChevronsUpDown, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TenantService } from "@/hooks/useServices";
 
 export interface LineItem {
   id: string;
@@ -19,6 +20,7 @@ export interface LineItem {
   entity_id?: string;
   horse_id?: string | null;
   domain?: string | null;
+  service_id?: string | null;
 }
 
 export interface HorseOption {
@@ -35,12 +37,21 @@ const DOMAIN_OPTIONS = [
   { value: "lab", labelKey: "clients.statement.domain.lab" },
 ] as const;
 
+// Map service_kind to domain
+const SERVICE_KIND_TO_DOMAIN: Record<string, string> = {
+  boarding: "boarding",
+  vet: "vet",
+  breeding: "breeding",
+  service: "general",
+};
+
 interface InvoiceLineItemsEditorProps {
   items: LineItem[];
   onChange: (items: LineItem[]) => void;
   currency?: string;
   horses?: HorseOption[];
   showAttribution?: boolean;
+  services?: TenantService[];
 }
 
 export function InvoiceLineItemsEditor({
@@ -49,11 +60,20 @@ export function InvoiceLineItemsEditor({
   currency = "SAR",
   horses = [],
   showAttribution = true,
+  services = [],
 }: InvoiceLineItemsEditorProps) {
   const { t, dir, lang } = useI18n();
 
+  const activeServices = useMemo(
+    () => services.filter(s => s.is_active),
+    [services]
+  );
+
   const getHorseName = (h: HorseOption) =>
     lang === "ar" ? (h.name_ar || h.name) : (h.name || h.name_ar || "");
+
+  const getServiceName = (s: TenantService) =>
+    lang === "ar" ? (s.name_ar || s.name) : (s.name || s.name_ar || "");
 
   const addItem = () => {
     const newItem: LineItem = {
@@ -64,6 +84,21 @@ export function InvoiceLineItemsEditor({
       total_price: 0,
       horse_id: null,
       domain: null,
+      service_id: null,
+    };
+    onChange([...items, newItem]);
+  };
+
+  const addItemFromService = (service: TenantService) => {
+    const newItem: LineItem = {
+      id: crypto.randomUUID(),
+      description: getServiceName(service),
+      quantity: 1,
+      unit_price: service.unit_price || 0,
+      total_price: service.unit_price || 0,
+      horse_id: null,
+      domain: SERVICE_KIND_TO_DOMAIN[service.service_kind] || "general",
+      service_id: service.id,
     };
     onChange([...items, newItem]);
   };
@@ -170,7 +205,15 @@ export function InvoiceLineItemsEditor({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="col-span-3" />
+                {item.service_id && (
+                  <div className="col-span-3 flex items-center">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Package className="w-3 h-3" />
+                      {t("finance.invoices.catalogLinked")}
+                    </span>
+                  </div>
+                )}
+                {!item.service_id && <div className="col-span-3" />}
               </div>
             )}
           </div>
@@ -186,17 +229,28 @@ export function InvoiceLineItemsEditor({
         <div className="col-span-1"></div>
       </div>
 
-      {/* Add Item Button */}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={addItem}
-        className="gap-2"
-      >
-        <Plus className="w-4 h-4" />
-        {t("finance.invoices.addItem")}
-      </Button>
+      {/* Add Item Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addItem}
+          className="gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t("finance.invoices.addItem")}
+        </Button>
+
+        {activeServices.length > 0 && (
+          <ServicePicker
+            services={activeServices}
+            onSelect={addItemFromService}
+            getServiceName={getServiceName}
+            t={t}
+          />
+        )}
+      </div>
 
       {/* Subtotal */}
       <div className="flex justify-end border-t pt-4">
@@ -267,6 +321,67 @@ function HorsePicker({
                 >
                   <Check className={cn("me-2 h-3 w-3", selectedId === horse.id ? "opacity-100" : "opacity-0")} />
                   {getHorseName(horse)}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Service catalog picker — adds a new line item from the catalog */
+function ServicePicker({
+  services,
+  onSelect,
+  getServiceName,
+  t,
+}: {
+  services: TenantService[];
+  onSelect: (service: TenantService) => void;
+  getServiceName: (s: TenantService) => string;
+  t: (key: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <Package className="w-4 h-4" />
+          {t("finance.invoices.addFromCatalog")}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder={t("finance.invoices.searchService")} className="h-9" />
+          <CommandList>
+            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
+            <CommandGroup>
+              {services.map((svc) => (
+                <CommandItem
+                  key={svc.id}
+                  value={svc.name}
+                  onSelect={() => {
+                    onSelect(svc);
+                    setOpen(false);
+                  }}
+                  className="text-sm"
+                >
+                  <div className="flex items-center justify-between w-full gap-2">
+                    <span className="truncate">{getServiceName(svc)}</span>
+                    {svc.unit_price != null && (
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {svc.unit_price}
+                      </span>
+                    )}
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>

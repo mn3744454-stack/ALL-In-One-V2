@@ -24,6 +24,7 @@ import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueri
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { displayHorseName, displayServiceName, formatStandardDate } from "@/lib/displayHelpers";
+import { getTenantTaxConfig, computeTax } from "@/lib/taxUtils";
 import type { VetTreatment } from "@/hooks/vet/useVetTreatments";
 
 export interface TreatmentForInvoice {
@@ -44,6 +45,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
   const queryClient = useQueryClient();
+  const taxConfig = getTenantTaxConfig(activeTenant?.tenant);
 
   const { treatment } = data;
 
@@ -52,7 +54,6 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const { clients, loading: clientsLoading } = useClients();
   const { data: vetServices = [] } = useServicesByKind("vet");
 
-  // Filter active vet services, optionally matching treatment category
   const relevantServices = useMemo(() => {
     const active = vetServices.filter(s => s.is_active);
     if (treatment.category) {
@@ -71,21 +72,17 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Package-awareness check
   const { isIncluded, planName } = usePlanInclusionCheck(
     treatment.horse_id,
     selectedServiceId || undefined
   );
 
-  // Provider cost reference (S2)
   const { payable: linkedPayable } = useSupplierPayableForSource("vet_treatment", treatment.id);
 
-  // Prefill from treatment context + auto-select service
   useEffect(() => {
     if (!open) return;
     setAmountManuallyOverridden(false);
 
-    // Client prefill — from treatment or resolve from horse's active admission
     if (treatment.client_id) {
       setSelectedClientId(treatment.client_id);
     } else if (tenantId && treatment.horse_id) {
@@ -97,43 +94,31 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         .eq("status", "active")
         .maybeSingle()
         .then(({ data: admission }) => {
-          if (admission?.client_id) {
-            setSelectedClientId(admission.client_id);
-          }
+          if (admission?.client_id) setSelectedClientId(admission.client_id);
         });
     }
 
-    // Auto-select matching service and prefill price
     if (relevantServices.length > 0 && !selectedServiceId) {
       const match = treatment.category
         ? relevantServices.find(s => s.service_type === treatment.category)
         : null;
       const svc = match || relevantServices[0];
       setSelectedServiceId(svc.id);
-      // Price will be set by the isIncluded effect or by catalog price
-      if (svc.unit_price != null) {
-        setTotalAmount(svc.unit_price.toString());
-      }
+      if (svc.unit_price != null) setTotalAmount(svc.unit_price.toString());
     }
 
     setNotes(treatment.title || "");
   }, [open, treatment, relevantServices, tenantId]);
 
-  // S1: Auto-zero when included
   useEffect(() => {
-    if (isIncluded && !amountManuallyOverridden) {
-      setTotalAmount("0");
-    }
+    if (isIncluded && !amountManuallyOverridden) setTotalAmount("0");
   }, [isIncluded, amountManuallyOverridden]);
 
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
     setAmountManuallyOverridden(false);
     const svc = vetServices.find(s => s.id === serviceId);
-    if (svc?.unit_price != null) {
-      // Will be overridden to 0 by inclusion effect if applicable
-      setTotalAmount(svc.unit_price.toString());
-    }
+    if (svc?.unit_price != null) setTotalAmount(svc.unit_price.toString());
   };
 
   const handleAmountChange = (value: string) => {
@@ -142,38 +127,20 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
   };
 
   const activeClients = useMemo(() => clients.filter(c => c.status === "active"), [clients]);
-  const selectedClient = useMemo(
-    () => activeClients.find(c => c.id === selectedClientId),
-    [activeClients, selectedClientId]
-  );
-  const selectedService = useMemo(
-    () => vetServices.find(s => s.id === selectedServiceId),
-    [vetServices, selectedServiceId]
-  );
+  const selectedClient = useMemo(() => activeClients.find(c => c.id === selectedClientId), [activeClients, selectedClientId]);
+  const selectedService = useMemo(() => vetServices.find(s => s.id === selectedServiceId), [vetServices, selectedServiceId]);
 
   const isZeroCharge = (parseFloat(totalAmount) || 0) === 0;
-
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
   const buildLineItemDescription = (): string => {
     const parts: string[] = [];
-    if (selectedService) {
-      parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
-    } else {
-      parts.push(treatment.title);
-    }
-    const horseName = displayHorseName(
-      data.horseName || treatment.horse?.name,
-      data.horseNameAr || (treatment.horse as any)?.name_ar,
-      lang
-    );
+    if (selectedService) parts.push(displayServiceName(selectedService.name, selectedService.name_ar, lang));
+    else parts.push(treatment.title);
+    const horseName = displayHorseName(data.horseName || treatment.horse?.name, data.horseNameAr || (treatment.horse as any)?.name_ar, lang);
     if (horseName && horseName !== "—") parts.push(horseName);
-    if (treatment.category) {
-      parts.push(t(`vet.category.${treatment.category}`));
-    }
-    if (treatment.requested_at) {
-      parts.push(formatStandardDate(treatment.requested_at));
-    }
+    if (treatment.category) parts.push(t(`vet.category.${treatment.category}`));
+    if (treatment.requested_at) parts.push(formatStandardDate(treatment.requested_at));
     return parts.join(" | ");
   };
 
@@ -186,6 +153,9 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
 
+      // Compute tax using tenant config
+      const { subtotal, taxAmount, totalAmount: total } = computeTax(amount, taxConfig);
+
       const invoice = await createInvoice({
         tenant_id: tenantId,
         invoice_number: generateInvoiceNumber(),
@@ -193,10 +163,10 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
         client_name: displayName,
         status: "draft",
         issue_date: new Date().toISOString().split("T")[0],
-        subtotal: amount,
-        tax_amount: 0,
+        subtotal,
+        tax_amount: taxAmount,
         discount_amount: 0,
-        total_amount: amount,
+        total_amount: total,
         currency: "SAR",
         notes: notes || undefined,
       });
@@ -216,14 +186,13 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           entity_id: treatment.id,
           horse_id: treatment.horse_id || null,
           domain: "vet",
+          service_id: selectedServiceId || null,
           quantity: 1,
           unit_price: amount,
           total_price: amount,
         });
 
-      if (itemError) {
-        console.error("Error creating invoice item:", itemError);
-      }
+      if (itemError) console.error("Error creating invoice item:", itemError);
 
       await createLinkAsync({
         source_type: "vet_treatment",
@@ -253,7 +222,6 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
           <DialogTitle>{t("vet.billing.createInvoiceTitle")}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Treatment context badge */}
           <div className="text-xs text-muted-foreground bg-muted rounded-md p-2">
             {treatment.title}
             {treatment.horse?.name && ` — ${displayHorseName(treatment.horse.name, (treatment.horse as any)?.name_ar, lang)}`}
@@ -262,55 +230,34 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
             )}
           </div>
 
-          {/* S1: Enhanced package-awareness banner */}
           {isIncluded && planName && (
             <div className="flex items-start gap-2 p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-sm">
               <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
               <div className="space-y-1">
-                <p className="font-medium text-emerald-800 dark:text-emerald-300">
-                  {t("vet.billing.includedInPlanTitle")}
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                  {t("vet.billing.includedInPlanDescription").replace("{{planName}}", planName || "")}
-                </p>
+                <p className="font-medium text-emerald-800 dark:text-emerald-300">{t("vet.billing.includedInPlanTitle")}</p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-400">{t("vet.billing.includedInPlanDescription").replace("{{planName}}", planName || "")}</p>
                 {amountManuallyOverridden && parseFloat(totalAmount) > 0 && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                    {t("vet.billing.includedOverrideWarning")}
-                  </p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">{t("vet.billing.includedOverrideWarning")}</p>
                 )}
               </div>
             </div>
           )}
 
-          {/* S2: Provider cost with markup helper */}
           {linkedPayable && linkedPayable.amount > 0 && (
-            <ProviderMarkupHelper
-              providerCost={linkedPayable.amount}
-              currency={linkedPayable.currency || "SAR"}
-              supplierName={linkedPayable.supplier_name}
-              currentAmount={totalAmount}
-              onApplyAmount={handleAmountChange}
-            />
+            <ProviderMarkupHelper providerCost={linkedPayable.amount} currency={linkedPayable.currency || "SAR"} supplierName={linkedPayable.supplier_name} currentAmount={totalAmount} onApplyAmount={handleAmountChange} />
           )}
 
-          {/* Vet service picker */}
           {relevantServices.length > 0 && (
             <div>
               <Label>{t("vet.billing.service")}</Label>
               <Select value={selectedServiceId} onValueChange={handleServiceChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("vet.billing.selectService")} />
-                </SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue placeholder={t("vet.billing.selectService")} /></SelectTrigger>
                 <SelectContent>
                   {relevantServices.map(svc => (
                     <SelectItem key={svc.id} value={svc.id}>
                       <span className="flex items-center justify-between gap-2 w-full">
                         <span>{displayServiceName(svc.name, svc.name_ar, lang)}</span>
-                        {svc.unit_price != null && (
-                          <span className="text-xs text-muted-foreground">
-                            {svc.unit_price} SAR
-                          </span>
-                        )}
+                        {svc.unit_price != null && <span className="text-xs text-muted-foreground">{svc.unit_price} SAR</span>}
                       </span>
                     </SelectItem>
                   ))}
@@ -319,17 +266,11 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
             </div>
           )}
 
-          {/* Client picker */}
           <div>
             <Label>{t("vet.billing.client")}</Label>
             <Popover open={clientPickerOpen} onOpenChange={setClientPickerOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={clientPickerOpen}
-                  className="w-full justify-between font-normal"
-                >
+                <Button variant="outline" role="combobox" aria-expanded={clientPickerOpen} className="w-full justify-between font-normal">
                   {selectedClient ? selectedClient.name : t("vet.billing.selectClient")}
                   <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -341,15 +282,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
                     <CommandEmpty>{t("vet.billing.noClientsFound")}</CommandEmpty>
                     <CommandGroup>
                       {activeClients.map(client => (
-                        <CommandItem
-                          key={client.id}
-                          value={client.name}
-                          onSelect={() => {
-                            setSelectedClientId(client.id);
-                            setClientName(client.name);
-                            setClientPickerOpen(false);
-                          }}
-                        >
+                        <CommandItem key={client.id} value={client.name} onSelect={() => { setSelectedClientId(client.id); setClientName(client.name); setClientPickerOpen(false); }}>
                           <Check className={cn("me-2 h-4 w-4", selectedClientId === client.id ? "opacity-100" : "opacity-0")} />
                           <span>{client.name}</span>
                           {client.phone && <span className="ms-auto text-xs text-muted-foreground">{client.phone}</span>}
@@ -373,9 +306,7 @@ export function CreateInvoiceFromTreatment({ open, onOpenChange, data }: Props) 
             <Label>{t("vet.billing.totalAmount")} (SAR)</Label>
             <Input type="number" step="0.01" value={totalAmount} onChange={e => handleAmountChange(e.target.value)} />
             {isIncluded && isZeroCharge && !amountManuallyOverridden && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                {t("vet.billing.zeroChargeIncluded")}
-              </p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">{t("vet.billing.zeroChargeIncluded")}</p>
             )}
           </div>
           <div>
