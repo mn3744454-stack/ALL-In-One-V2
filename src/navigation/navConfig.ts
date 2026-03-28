@@ -71,6 +71,13 @@ export const NAV_MODULES: NavModule[] = [
     visibleIn: "both",
   },
   {
+    key: "myProfile",
+    icon: UserCircle,
+    labelKey: "sidebar.myProfile",
+    route: "/dashboard/my-profile",
+    visibleIn: "personal",
+  },
+  {
     key: "community",
     icon: MessageSquare,
     labelKey: "sidebar.community",
