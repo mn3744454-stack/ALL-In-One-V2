@@ -156,6 +156,52 @@ export function InvoiceDetailsSheet({
         }
       }
 
+      // Enrich stable-origin entities (vet_treatment, vaccination, breeding_attempt, foaling)
+      const stableEntityMap: Record<string, string> = {};
+      const stableTypes: Record<string, { table: string; fk: string; nameField: string }> = {
+        vet_treatment: { table: "vet_treatments", fk: "vet_treatments_horse_id_fkey", nameField: "title" },
+        vaccination: { table: "horse_vaccinations", fk: "horse_vaccinations_horse_id_fkey", nameField: "" },
+        breeding_attempt: { table: "breeding_attempts", fk: "breeding_attempts_mare_id_fkey", nameField: "" },
+        foaling: { table: "foalings", fk: "foalings_mare_id_fkey", nameField: "" },
+      };
+      
+      for (const [entityType, cfg] of Object.entries(stableTypes)) {
+        const ids = (itemsData || [])
+          .filter((item: any) => item.entity_type === entityType && item.entity_id)
+          .map((item: any) => item.entity_id);
+        if (ids.length === 0) continue;
+
+        const horseAlias = entityType === "breeding_attempt" || entityType === "foaling" ? "mare" : "horse";
+        
+        if (entityType === "vet_treatment") {
+          const { data } = await supabase.from("vet_treatments" as any).select(`id, title, horse:horses!vet_treatments_horse_id_fkey(name, name_ar)`).in("id", ids);
+          (data || []).forEach((d: any) => {
+            const horseName = dir === "rtl" ? (d.horse?.name_ar || d.horse?.name) : (d.horse?.name || d.horse?.name_ar);
+            stableEntityMap[d.id] = [d.title, horseName].filter(Boolean).join(" — ");
+          });
+        } else if (entityType === "vaccination") {
+          const { data } = await supabase.from("horse_vaccinations" as any).select(`id, horse:horses!horse_vaccinations_horse_id_fkey(name, name_ar), program:vaccination_programs!horse_vaccinations_program_id_fkey(name, name_ar)`).in("id", ids);
+          (data || []).forEach((d: any) => {
+            const progName = dir === "rtl" ? (d.program?.name_ar || d.program?.name) : (d.program?.name || d.program?.name_ar);
+            const horseName = dir === "rtl" ? (d.horse?.name_ar || d.horse?.name) : (d.horse?.name || d.horse?.name_ar);
+            stableEntityMap[d.id] = [progName, horseName].filter(Boolean).join(" — ");
+          });
+        } else if (entityType === "breeding_attempt") {
+          const { data } = await supabase.from("breeding_attempts" as any).select(`id, attempt_type, mare:horses!breeding_attempts_mare_id_fkey(name, name_ar), stallion:horses!breeding_attempts_stallion_id_fkey(name, name_ar)`).in("id", ids);
+          (data || []).forEach((d: any) => {
+            const mareName = dir === "rtl" ? (d.mare?.name_ar || d.mare?.name) : (d.mare?.name || d.mare?.name_ar);
+            const stallionName = dir === "rtl" ? (d.stallion?.name_ar || d.stallion?.name) : (d.stallion?.name || d.stallion?.name_ar);
+            stableEntityMap[d.id] = [d.attempt_type, mareName, stallionName].filter(Boolean).join(" — ");
+          });
+        } else if (entityType === "foaling") {
+          const { data } = await supabase.from("foalings" as any).select(`id, foal_name, mare:horses!foalings_mare_id_fkey(name, name_ar)`).in("id", ids);
+          (data || []).forEach((d: any) => {
+            const mareName = dir === "rtl" ? (d.mare?.name_ar || d.mare?.name) : (d.mare?.name || d.mare?.name_ar);
+            stableEntityMap[d.id] = [d.foal_name, mareName].filter(Boolean).join(" — ");
+          });
+        }
+      }
+
       // Enrich items with better labels
       const enrichedItems = (itemsData || []).map((item: any) => {
         if (item.entity_type === 'lab_sample' && item.entity_id && sampleMap[item.entity_id]) {
@@ -166,6 +212,13 @@ export function InvoiceDetailsSheet({
           return {
             ...item,
             enrichedDescription: label ? `${item.description} - ${label}` : item.description,
+          };
+        }
+        // Stable-origin enrichment
+        if (item.entity_id && stableEntityMap[item.entity_id]) {
+          return {
+            ...item,
+            enrichedDescription: `${item.description} — ${stableEntityMap[item.entity_id]}`,
           };
         }
         return { ...item, enrichedDescription: item.description };
