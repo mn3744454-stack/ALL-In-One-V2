@@ -5095,8 +5095,4 @@ export const en = {
     checklistCover: "Cover image",
     checklistTags: "Tags/Categories",
   },
-  sidebar: {
-    ...undefined,
-    myProfile: "My Profile",
-  },
 };
