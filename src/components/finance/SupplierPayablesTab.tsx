@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n } from "@/i18n";
 import { useSupplierPayables, type PayableStatus, type SupplierPayable } from "@/hooks/finance/useSupplierPayables";
+import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
+import { useTenant } from "@/contexts/TenantContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -39,6 +43,7 @@ import {
   CheckCircle,
   Clock,
   Search,
+  FileText,
 } from "lucide-react";
 
 function PayableStatusBadge({ status }: { status: PayableStatus }) {
