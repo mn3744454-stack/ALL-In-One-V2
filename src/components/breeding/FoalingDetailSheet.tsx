@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Baby, CheckCircle, Clock, FileText, Receipt, XCircle } from "lucide-react";
+import { Baby, CheckCircle, Clock, FileText, Landmark, Receipt, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +22,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { useTenant } from "@/contexts/TenantContext";
+import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
+import { toast } from "sonner";
 
 interface FoalingDetailSheetProps {
   foaling: Foaling | null;
@@ -32,8 +35,11 @@ interface FoalingDetailSheetProps {
 
 export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: FoalingDetailSheetProps) {
   const { t, lang } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const { updateFoaling } = useFoalings();
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [stableCostLoading, setStableCostLoading] = useState(false);
 
   if (!foaling) return null;
 
@@ -48,9 +54,29 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
     await updateFoaling(foaling.id, { foal_alive: !foaling.foal_alive } as Partial<Foaling>);
   };
 
+  const handleRecordStableCost = async () => {
+    if (!tenantId) return;
+    setStableCostLoading(true);
+    try {
+      const ok = await recordAsStableCost({
+        tenantId,
+        entityType: "foaling",
+        entityId: foaling.id,
+        amount: 0,
+        description: `${t("breeding.billing.sourceTypes.foaling")} — ${displayHorseName(foaling.mare?.name, foaling.mare?.name_ar, lang)}`,
+      });
+      if (ok) toast.success(t("vet.billing.stableCostRecorded"));
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setStableCostLoading(false);
+    }
+  };
+
   const invoiceEvent: BreedingEventForInvoice = {
     sourceType: "foaling",
     sourceId: foaling.id,
+    horseId: foaling.mare_id,
     mareName: foaling.mare?.name,
     mareNameAr: foaling.mare?.name_ar,
     stallionName: foaling.stallion?.name,
@@ -210,19 +236,31 @@ export function FoalingDetailSheet({ foaling, open, onOpenChange, canManage }: F
             </>
           )}
 
-          {/* Generate Invoice action */}
+          {/* Actions */}
           {canManage && (
             <>
               <Separator />
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-2"
-                onClick={() => setInvoiceDialogOpen(true)}
-              >
-                <Receipt className="h-4 w-4" />
-                {t("breeding.billing.generateInvoice")}
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={() => setInvoiceDialogOpen(true)}
+                >
+                  <Receipt className="h-4 w-4" />
+                  {t("breeding.billing.generateInvoice")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={handleRecordStableCost}
+                  disabled={stableCostLoading}
+                >
+                  <Landmark className="h-4 w-4" />
+                  {t("vet.billing.recordStableCost")}
+                </Button>
+              </div>
             </>
           )}
         </div>

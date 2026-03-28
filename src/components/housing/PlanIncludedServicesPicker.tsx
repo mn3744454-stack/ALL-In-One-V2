@@ -23,10 +23,11 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
   const { t, lang } = useI18n();
   const { data: boardingServices = [] } = useServicesByKind('boarding');
   const { data: vetServices = [] } = useServicesByKind('vet');
+  const { data: breedingServices = [] } = useServicesByKind('breeding');
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Combine boarding + vet services for plan inclusion
-  const allServices = useMemo(() => [...boardingServices, ...vetServices], [boardingServices, vetServices]);
+  // Combine boarding + vet + breeding services for plan inclusion
+  const allServices = useMemo(() => [...boardingServices, ...vetServices, ...breedingServices], [boardingServices, vetServices, breedingServices]);
 
   const activeServices = allServices.filter(s => s.is_active);
   const selectedIds = new Set(value.map(v => v.service_id));
@@ -105,6 +106,20 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
                 {availableServices.filter(s => s.service_kind === 'vet').length > 0 && (
                   <CommandGroup heading={t('vet.domain.vet')}>
                     {availableServices.filter(s => s.service_kind === 'vet').map(svc => (
+                      <CommandItem
+                        key={svc.id}
+                        value={svc.name}
+                        onSelect={() => addService(svc.id)}
+                      >
+                        {displayServiceName(svc.name, svc.name_ar, lang)}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {/* Breeding services group */}
+                {availableServices.filter(s => s.service_kind === 'breeding').length > 0 && (
+                  <CommandGroup heading={t('breeding.title')}>
+                    {availableServices.filter(s => s.service_kind === 'breeding').map(svc => (
                       <CommandItem
                         key={svc.id}
                         value={svc.name}

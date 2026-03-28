@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { differenceInDays } from "date-fns";
-import { Globe, Receipt } from "lucide-react";
+import { Globe, Receipt, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,10 @@ import { PregnancyExamsPanel } from "./PregnancyExamsPanel";
 import { CreateInvoiceFromBreedingEvent, type BreedingEventForInvoice } from "./CreateInvoiceFromBreedingEvent";
 import { useI18n } from "@/i18n";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
+import { useTenant } from "@/contexts/TenantContext";
+import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
+import { createSupplierPayableForExternal } from "@/lib/finance/createSupplierPayableForExternal";
+import { toast } from "sonner";
 
 // ── Breeding Record Detail Sheet ──
 
@@ -29,18 +33,25 @@ interface BreedingRecordDetailSheetProps {
 
 export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canManage }: BreedingRecordDetailSheetProps) {
   const { t, lang } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [stableCostLoading, setStableCostLoading] = useState(false);
+
   if (!attempt) return null;
 
   const invoiceEvent: BreedingEventForInvoice = {
     sourceType: "breeding_attempt",
     sourceId: attempt.id,
+    horseId: attempt.mare_id,
     mareName: attempt.mare?.name,
     mareNameAr: attempt.mare?.name_ar,
     stallionName: attempt.stallion?.name || attempt.external_stallion_name || undefined,
     stallionNameAr: attempt.stallion?.name_ar,
     eventDate: attempt.attempt_date,
     description: `${t("breeding.billing.sourceTypes.breeding_attempt")} — ${displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)}`,
+    sourceMode: attempt.source_mode,
+    externalProviderName: attempt.external_provider_name,
     // Contract-aware prefill
     contractId: attempt.contract?.id,
     contractNumber: attempt.contract?.contract_number,
@@ -48,6 +59,39 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
     contractUnitPrice: attempt.contract?.unit_price,
     contractClientId: attempt.contract?.client_id,
     contractClientName: attempt.contract?.client_name,
+  };
+
+  const handleRecordStableCost = async () => {
+    if (!tenantId) return;
+    setStableCostLoading(true);
+    try {
+      const ok = await recordAsStableCost({
+        tenantId,
+        entityType: "breeding_attempt",
+        entityId: attempt.id,
+        amount: 0,
+        description: `${t("breeding.billing.sourceTypes.breeding_attempt")} — ${displayHorseName(attempt.mare?.name, attempt.mare?.name_ar, lang)}`,
+        serviceMode: attempt.source_mode === "external" ? "external" : "internal",
+        externalProviderId: null,
+      });
+      if (attempt.source_mode === "external" && attempt.external_provider_name) {
+        await createSupplierPayableForExternal({
+          tenantId,
+          sourceType: "breeding_attempt",
+          sourceId: attempt.id,
+          supplierName: attempt.external_provider_name,
+          amount: 0,
+          currency: "SAR",
+        });
+      }
+      if (ok) {
+        toast.success(t("vet.billing.stableCostRecorded"));
+      }
+    } catch {
+      toast.error(t("common.error"));
+    } finally {
+      setStableCostLoading(false);
+    }
   };
 
   return (
@@ -103,19 +147,31 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
               </>
             )}
 
-            {/* Generate Invoice action */}
+            {/* Actions */}
             {canManage && (
               <>
                 <Separator />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-2"
-                  onClick={() => setInvoiceDialogOpen(true)}
-                >
-                  <Receipt className="h-4 w-4" />
-                  {t("breeding.billing.generateInvoice")}
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => setInvoiceDialogOpen(true)}
+                  >
+                    <Receipt className="h-4 w-4" />
+                    {t("breeding.billing.generateInvoice")}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={handleRecordStableCost}
+                    disabled={stableCostLoading}
+                  >
+                    <Landmark className="h-4 w-4" />
+                    {t("vet.billing.recordStableCost")}
+                  </Button>
+                </div>
               </>
             )}
           </div>
