@@ -133,7 +133,10 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-cream">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Logo className="mb-8" />
+            <div className="flex items-center justify-between mb-8">
+              <Logo />
+              <LanguageSelector />
+            </div>
             <h1 className="font-display text-3xl font-bold text-navy mb-2">
               {mode === "signup" ? t('auth.createAccount') : t('auth.welcomeBackTitle')}
             </h1>
