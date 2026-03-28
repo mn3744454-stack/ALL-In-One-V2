@@ -246,7 +246,36 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* Public Profile Setup Reminder */}
+          {/* Personal Profile Completion CTA - personal mode only */}
+          {needsPersonalProfileSetup && (
+            <Card variant="elevated" className="mb-8 border-gold/30 bg-gradient-to-r from-gold/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
+                    <UserCircle className="w-7 h-7 text-gold" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                      {t("dashboard.completePersonalProfile")}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {t("dashboard.completePersonalProfileDesc")}
+                    </p>
+                  </div>
+                  <Button
+                    variant="gold"
+                    onClick={() => navigate("/dashboard/my-profile")}
+                    className="gap-2"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    {t("dashboard.completeNow")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Public Profile Setup Reminder - org mode only */}
           {needsPublicProfileSetup && (
             <Card variant="elevated" className="mb-8 border-orange-500/30 bg-gradient-to-r from-orange-500/5 to-transparent">
               <CardContent className="p-6">
