@@ -2735,6 +2735,14 @@ export const en = {
       clientInvoiced: "Client Invoiced",
       notInvoiced: "Not Invoiced",
       viewSource: "View Source",
+      horseName: "Horse",
+      sourceLabel: {
+        vet_treatment: "Vet Treatment",
+        vaccination: "Vaccination",
+        breeding_attempt: "Breeding Attempt",
+        foaling: "Foaling",
+        boarding: "Boarding",
+      },
     },
     payables: {
       title: "Supplier Payables",

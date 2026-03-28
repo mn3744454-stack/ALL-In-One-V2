@@ -2862,6 +2862,14 @@ export const ar = {
       clientInvoiced: "تمت فوترة العميل",
       notInvoiced: "لم تتم الفوترة",
       viewSource: "عرض المصدر",
+      horseName: "الحصان",
+      sourceLabel: {
+        vet_treatment: "علاج بيطري",
+        vaccination: "تطعيم",
+        breeding_attempt: "محاولة تلقيح",
+        foaling: "ولادة",
+        boarding: "إيواء",
+      },
     },
     payables: {
       title: "مستحقات الموردين",
