@@ -109,7 +109,7 @@ export function InvoiceFormDialog({
         client_name: "",
         issue_date: format(new Date(), "yyyy-MM-dd"),
         due_date: format(addDays(new Date(), 30), "yyyy-MM-dd"),
-        tax_rate: "15",
+        tax_rate: defaultTaxRate,
         discount_amount: "0",
         notes: "",
       });
