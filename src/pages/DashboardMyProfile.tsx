@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
 import { useUpdateProfile } from "@/hooks/usePublicProfile";
+import { BilingualName } from "@/components/ui/BilingualName";
+import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, User, Phone, MapPin, Globe, FileText, Save } from "lucide-react";
+import { Loader2, User, Phone, MapPin, Globe, Save } from "lucide-react";
 
 const DashboardMyProfile = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const { t } = useI18n();
+  const navigate = useNavigate();
   const updateProfile = useUpdateProfile();
 
   const [formData, setFormData] = useState({
     full_name: "",
+    full_name_ar: "",
     phone: "",
     bio: "",
     location: "",
@@ -32,6 +36,7 @@ const DashboardMyProfile = () => {
     if (profile) {
       setFormData({
         full_name: profile.full_name || "",
+        full_name_ar: (profile as any).full_name_ar || "",
         phone: profile.phone || "",
         bio: (profile as any).bio || "",
         location: (profile as any).location || "",
@@ -63,6 +68,7 @@ const DashboardMyProfile = () => {
   const handleSave = () => {
     updateProfile.mutate({
       full_name: formData.full_name || undefined,
+      full_name_ar: formData.full_name_ar || undefined,
       phone: formData.phone || undefined,
       bio: formData.bio || undefined,
       location: formData.location || undefined,
@@ -72,8 +78,9 @@ const DashboardMyProfile = () => {
     });
   };
 
-  const initials = formData.full_name
-    ? formData.full_name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
+  const displayName = formData.full_name_ar || formData.full_name;
+  const initials = displayName
+    ? displayName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
     : "?";
 
   return (
@@ -81,6 +88,11 @@ const DashboardMyProfile = () => {
       <MobilePageHeader title={t("myProfile.title")} backTo="/dashboard" />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* Desktop back button */}
+        <div className="hidden lg:block mb-4">
+          <BackButton onClick={() => navigate("/dashboard")} />
+        </div>
+
         {/* Header */}
         <div className="mb-6">
           <h2 className="font-display text-xl font-semibold text-navy mb-1">
@@ -102,10 +114,13 @@ const DashboardMyProfile = () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-display text-lg font-semibold text-navy truncate">
-                  {formData.full_name || t("myProfile.unnamed")}
-                </h3>
-                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                <BilingualName
+                  name={formData.full_name}
+                  nameAr={formData.full_name_ar}
+                  primaryClassName="text-lg text-navy"
+                  secondaryClassName="text-xs text-muted-foreground"
+                />
+                <p className="text-sm text-muted-foreground truncate mt-1">{user.email}</p>
               </div>
             </div>
           </CardContent>
@@ -120,16 +135,32 @@ const DashboardMyProfile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="full_name" className="text-navy font-medium">
-                {t("myProfile.fullName")}
-              </Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={e => updateField("full_name", e.target.value)}
-                placeholder={t("myProfile.fullNamePlaceholder")}
-              />
+            {/* Bilingual name fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="full_name_ar" className="text-navy font-medium">
+                  {t("myProfile.fullNameAr")}
+                </Label>
+                <Input
+                  id="full_name_ar"
+                  value={formData.full_name_ar}
+                  onChange={e => updateField("full_name_ar", e.target.value)}
+                  placeholder={t("myProfile.fullNameArPlaceholder")}
+                  dir="rtl"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="full_name" className="text-navy font-medium">
+                  {t("myProfile.fullNameEn")}
+                </Label>
+                <Input
+                  id="full_name"
+                  value={formData.full_name}
+                  onChange={e => updateField("full_name", e.target.value)}
+                  placeholder={t("myProfile.fullNameEnPlaceholder")}
+                  dir="ltr"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
