@@ -702,7 +702,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Skeleton key={i} className="h-10 w-full" />
                   ))}
                 </div>
-              ) : entries.length === 0 ? (
+              ) : domainFilteredEntries.length === 0 ? (
                 <div className="py-12 text-center text-muted-foreground">
                   {t("clients.statement.noEntries")}
                 </div>
@@ -721,7 +721,25 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {entries.map((entry) => (
+                        {/* Opening balance row */}
+                        {openingBalance !== 0 && (
+                          <TableRow className="bg-muted/30">
+                            <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
+                              {scopeConfig.dateFrom}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-sm font-medium text-muted-foreground italic">
+                                {t("clients.statement.openingBalance")}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell className="text-center">-</TableCell>
+                            <TableCell className="text-center font-mono font-medium tabular-nums" dir="ltr">
+                              {formatCurrency(openingBalance)}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        {domainFilteredEntries.map((entry) => (
                           <TableRow key={entry.id} className="align-top">
                             <TableCell className="text-center font-mono text-sm tabular-nums whitespace-nowrap" dir="ltr">
                               {formatDateTime12h(entry.date, lang)}
@@ -755,7 +773,17 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
 
                   {/* Mobile stacked rows */}
                   <div className="sm:hidden divide-y">
-                    {entries.map((entry) => (
+                    {/* Opening balance - mobile */}
+                    {openingBalance !== 0 && (
+                      <div className="p-3 space-y-1 bg-muted/30">
+                        <span className="text-xs text-muted-foreground font-mono" dir="ltr">{scopeConfig.dateFrom}</span>
+                        <p className="text-sm font-medium text-muted-foreground italic">{t("clients.statement.openingBalance")}</p>
+                        <div className="flex justify-end">
+                          <span className="font-mono font-medium text-sm" dir="ltr">{formatCurrency(openingBalance)}</span>
+                        </div>
+                      </div>
+                    )}
+                    {domainFilteredEntries.map((entry) => (
                       <div key={entry.id} className="p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-mono text-xs text-muted-foreground" dir="ltr">
