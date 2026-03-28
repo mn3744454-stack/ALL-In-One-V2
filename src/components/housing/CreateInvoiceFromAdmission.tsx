@@ -172,6 +172,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           description: `${t('housing.plans.includedService')}: ${label}`,
           entity_type: "boarding",
           entity_id: admission.id,
+          horse_id: admission.horse_id || null,
+          domain: "boarding",
           quantity: 1,
           unit_price: 0,
           total_price: 0,

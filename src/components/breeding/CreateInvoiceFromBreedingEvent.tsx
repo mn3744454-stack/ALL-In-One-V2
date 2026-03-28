@@ -244,6 +244,8 @@ export function CreateInvoiceFromBreedingEvent({ open, onOpenChange, event }: Pr
           description: lineDescription,
           entity_type: "breeding",
           entity_id: event.sourceId,
+          horse_id: event.horseId || null,
+          domain: "breeding",
           quantity: 1,
           unit_price: amount,
           total_price: amount,
