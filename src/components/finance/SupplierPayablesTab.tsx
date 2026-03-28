@@ -375,6 +375,9 @@ export function SupplierPayablesTab() {
                             ) : null}
                           </div>
                         </TableCell>
+                        <TableCell className="text-sm font-medium">
+                          {p.source_reference && horseNames[p.source_reference] ? horseNames[p.source_reference] : "—"}
+                        </TableCell>
                         <TableCell className="text-center font-mono tabular-nums" dir="ltr">
                           {formatCurrency(p.amount)}
                         </TableCell>
