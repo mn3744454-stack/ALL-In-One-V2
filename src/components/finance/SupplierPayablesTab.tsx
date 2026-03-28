@@ -161,7 +161,7 @@ function CreatePayableDialog({
 }
 
 export function SupplierPayablesTab() {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { payables, isLoading, stats, updatePayableStatus, recordPayablePayment, deletePayable } = useSupplierPayables();
@@ -194,6 +194,34 @@ export function SupplierPayablesTab() {
     enabled: !!tenantId && sourceRefs.length > 0,
     staleTime: 30_000,
   });
+
+  // Batch-fetch horse names for payable source references
+  const [horseNames, setHorseNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (payables.length === 0) return;
+    const fetchHorseNames = async () => {
+      const map: Record<string, string> = {};
+      const stableTypes: Record<string, { table: string; fk: string }> = {
+        vet_treatment: { table: "vet_treatments", fk: "vet_treatments_horse_id_fkey" },
+        vaccination: { table: "horse_vaccinations", fk: "horse_vaccinations_horse_id_fkey" },
+        breeding_attempt: { table: "breeding_attempts", fk: "breeding_attempts_mare_id_fkey" },
+        foaling: { table: "foalings", fk: "foalings_mare_id_fkey" },
+      };
+      const promises: Promise<void>[] = [];
+      for (const [srcType, cfg] of Object.entries(stableTypes)) {
+        const ids = payables.filter(p => p.source_type === srcType && p.source_reference).map(p => p.source_reference!);
+        if (ids.length === 0) continue;
+        const horseAlias = srcType === "breeding_attempt" || srcType === "foaling" ? "mare" : "horse";
+        promises.push(
+          supabase.from(cfg.table as any).select(`id, ${horseAlias}:horses!${cfg.fk}(name, name_ar)`).in("id", ids)
+            .then(({ data }) => { (data || []).forEach((d: any) => { const h = d[horseAlias]; if (h) map[d.id] = lang === "ar" ? (h.name_ar || h.name) : h.name; }); }) as unknown as Promise<void>
+        );
+      }
+      await Promise.all(promises);
+      setHorseNames(map);
+    };
+    fetchHorseNames();
+  }, [payables.length, lang]);
 
   const filtered = payables.filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
