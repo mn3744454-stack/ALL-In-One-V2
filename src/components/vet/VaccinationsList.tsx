@@ -118,7 +118,10 @@ export function VaccinationsList({
                   <TableCell className="w-[100px]">
                     <div className="flex gap-1">
                       {showBilling && vaccination.status === 'done' && (
-                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                        <>
+                          <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                          <VaccinationStableCostAction vaccination={vaccination} />
+                        </>
                       )}
                       {vaccination.status === 'due' && (
                         <>
