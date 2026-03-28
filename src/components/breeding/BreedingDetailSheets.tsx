@@ -262,3 +262,50 @@ function DetailRow({ label, value }: { label: string; value?: string | null }) {
     </div>
   );
 }
+
+// ── Actions section that hides buttons when already invoiced/recorded ──
+
+function BreedingActionsSection({
+  canManage,
+  sourceType,
+  sourceId,
+  onInvoice,
+  onStableCost,
+  stableCostLoading,
+  t,
+}: {
+  canManage?: boolean;
+  sourceType: string;
+  sourceId: string;
+  onInvoice: () => void;
+  onStableCost: () => void;
+  stableCostLoading: boolean;
+  t: (key: string) => string;
+}) {
+  const { links } = useBillingLinks(sourceType, sourceId);
+  const { entries } = useFinancialEntries(sourceType, sourceId);
+  const hasInvoice = links.length > 0;
+  const hasCost = entries.some((e) => !e.is_income);
+
+  if (!canManage || (hasInvoice && hasCost)) return null;
+
+  return (
+    <>
+      <Separator />
+      <div className="space-y-2">
+        {!hasInvoice && (
+          <Button variant="outline" size="sm" className="w-full gap-2" onClick={onInvoice}>
+            <Receipt className="h-4 w-4" />
+            {t("breeding.billing.generateInvoice")}
+          </Button>
+        )}
+        {!hasCost && !hasInvoice && (
+          <Button variant="outline" size="sm" className="w-full gap-2" onClick={onStableCost} disabled={stableCostLoading}>
+            <Landmark className="h-4 w-4" />
+            {t("vet.billing.recordStableCost")}
+          </Button>
+        )}
+      </div>
+    </>
+  );
+}

@@ -43,6 +43,7 @@ import {
   Plus,
   Loader2,
   Receipt,
+  FileText,
   Landmark,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
