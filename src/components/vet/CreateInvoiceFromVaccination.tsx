@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, ShieldCheck, Building2 } from "lucide-react";
+import { Check, ChevronsUpDown, ShieldCheck } from "lucide-react";
+import { ProviderMarkupHelper } from "./ProviderMarkupHelper";
 import { cn } from "@/lib/utils";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
@@ -271,19 +272,15 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
             </div>
           )}
 
-          {/* S2: Provider cost reference */}
-          {linkedPayable && (
-            <div className="flex items-start gap-2 p-2.5 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs">
-              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-              <div>
-                <span className="text-blue-800 dark:text-blue-300">
-                  {t("vet.billing.providerCostRef")}: {linkedPayable.amount} {linkedPayable.currency}
-                </span>
-                <span className="text-blue-600 dark:text-blue-400 ms-1">
-                  ({linkedPayable.supplier_name})
-                </span>
-              </div>
-            </div>
+          {/* S2: Provider cost with markup helper */}
+          {linkedPayable && linkedPayable.amount > 0 && (
+            <ProviderMarkupHelper
+              providerCost={linkedPayable.amount}
+              currency={linkedPayable.currency || "SAR"}
+              supplierName={linkedPayable.supplier_name}
+              currentAmount={totalAmount}
+              onApplyAmount={handleAmountChange}
+            />
           )}
 
           {/* Vet service picker */}

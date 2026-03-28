@@ -48,8 +48,10 @@ import {
   Printer,
   Download,
   CreditCard,
+  Landmark,
 } from "lucide-react";
 import { SupplierPayablesTab } from "@/components/finance/SupplierPayablesTab";
+import { InternalCostsTab } from "@/components/finance/InternalCostsTab";
 
 interface InvoicesTabProps {
   selectedInvoiceId: string | null;
@@ -844,7 +846,7 @@ function PaymentsTab() {
   );
 }
 
-type FinanceTab = "invoices" | "expenses" | "payables" | "payments" | "ledger";
+type FinanceTab = "invoices" | "expenses" | "payables" | "internalCosts" | "payments" | "ledger";
 
 interface DashboardFinanceProps {
   initialTab?: FinanceTab;
@@ -915,26 +917,30 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as FinanceTab)}>
-          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-5 h-auto p-1">
-            <TabsTrigger value="invoices" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
-              <FileText className="w-5 h-5" />
-              <span>{t("finance.tabs.invoices")}</span>
+          <TabsList className="mb-4 lg:mb-6 w-full grid grid-cols-6 h-auto p-1">
+            <TabsTrigger value="invoices" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.invoices")}</span>
             </TabsTrigger>
-            <TabsTrigger value="expenses" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
-              <Receipt className="w-5 h-5" />
-              <span>{t("finance.tabs.expenses")}</span>
+            <TabsTrigger value="expenses" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.expenses")}</span>
             </TabsTrigger>
-            <TabsTrigger value="payables" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
-              <TrendingDown className="w-5 h-5" />
-              <span>{t("finance.tabs.payables")}</span>
+            <TabsTrigger value="payables" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.payables")}</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
-              <CreditCard className="w-5 h-5" />
-              <span>{t("finance.tabs.payments")}</span>
+            <TabsTrigger value="internalCosts" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.internalCosts")}</span>
             </TabsTrigger>
-            <TabsTrigger value="ledger" className="gap-2 px-3 py-2.5 text-xs sm:text-sm">
-              <Wallet className="w-5 h-5" />
-              <span>{t("finance.tabs.ledger")}</span>
+            <TabsTrigger value="payments" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.payments")}</span>
+            </TabsTrigger>
+            <TabsTrigger value="ledger" className="gap-1.5 px-2 py-2.5 text-xs sm:text-sm">
+              <Wallet className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{t("finance.tabs.ledger")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -951,6 +957,10 @@ export default function DashboardFinance({ initialTab }: DashboardFinanceProps =
 
           <TabsContent value="payables">
             <SupplierPayablesTab />
+          </TabsContent>
+
+          <TabsContent value="internalCosts">
+            <InternalCostsTab />
           </TabsContent>
 
           <TabsContent value="payments">
