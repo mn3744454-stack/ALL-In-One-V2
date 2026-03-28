@@ -103,6 +103,9 @@ export function InvoiceFormDialog({
           total_price: item.total_price,
           entity_type: item.entity_type,
           entity_id: item.entity_id,
+          horse_id: (item as any).horse_id ?? null,
+          domain: (item as any).domain ?? null,
+          service_id: (item as any).service_id ?? null,
         })));
       }
     } else {
