@@ -58,7 +58,7 @@ const Dashboard = () => {
   const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
   
   // Check if personal profile needs completion - ONLY in personal mode
-  const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !profile.bio && !profile.location;
+  const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !(profile as any).bio && !(profile as any).location;
 
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
