@@ -311,12 +311,8 @@ export const PublicProfileSettings = () => {
                   </CardContent>
                 </Card>
               </div>
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-xl border border-border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base font-medium">
-                            {t("publicProfile.makePublic")}
-                          </FormLabel>
+
+
                           <FormDescription>
                             {t("publicProfile.makePublicDesc")}
                           </FormDescription>
