@@ -34,8 +34,8 @@ interface ClientStatementTabProps {
 
 /** Renders the multi-line "story" description for a statement entry */
 /** Domain source badge for statement rows */
-function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding" | "vet"; t: (k: string) => string }) {
-  if (!source) return null;
+function DomainBadge({ source, t }: { source?: "lab" | "boarding" | "breeding" | "vet" | "general"; t: (k: string) => string }) {
+  if (!source || source === "general") return null;
   const labelMap: Record<string, string> = {
     boarding: t("clients.statement.domain.boarding"),
     breeding: t("clients.statement.domain.breeding"),
