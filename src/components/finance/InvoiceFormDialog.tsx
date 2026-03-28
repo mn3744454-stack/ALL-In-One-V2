@@ -302,6 +302,7 @@ export function InvoiceFormDialog({
                 onChange={setLineItems}
                 currency="SAR"
                 horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
+                services={allServices}
               />
             </div>
 
