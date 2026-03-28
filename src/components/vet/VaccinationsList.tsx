@@ -211,7 +211,10 @@ export function VaccinationsList({
 
                     <div className="flex gap-1 shrink-0">
                       {showBilling && vaccination.status === 'done' && (
-                        <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                        <>
+                          <VaccinationBillingAction vaccination={vaccination} onGenerateInvoice={() => setInvoiceTarget(vaccination)} />
+                          <VaccinationStableCostAction vaccination={vaccination} />
+                        </>
                       )}
                       {vaccination.status === 'due' && (
                         <>
