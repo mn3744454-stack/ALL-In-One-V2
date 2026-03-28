@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n/I18nContext";
+import { LanguageSelector } from "@/components/ui/language-selector";
 import heroImage from "@/assets/hero-horse.jpg";
 import { BuildStamp } from "@/components/BuildStamp";
 
@@ -58,6 +59,7 @@ const Auth = () => {
     const email = formData.email.trim();
     const password = formData.password;
     const name = formData.name.trim();
+    const phone = formData.phone.trim();
 
     try {
       if (mode === "signup") {
@@ -75,7 +77,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(email, password, name);
+        const { error } = await signUp(email, password, name, phone || undefined);
         
         if (error) {
           console.error("Sign up error:", error);
@@ -132,7 +134,10 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center p-8 bg-cream">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Logo className="mb-8" />
+            <div className="flex items-center justify-between mb-8">
+              <Logo />
+              <LanguageSelector />
+            </div>
             <h1 className="font-display text-3xl font-bold text-navy mb-2">
               {mode === "signup" ? t('auth.createAccount') : t('auth.welcomeBackTitle')}
             </h1>

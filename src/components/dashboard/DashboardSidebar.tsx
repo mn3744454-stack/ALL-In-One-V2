@@ -386,6 +386,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
             {workspaceMode === "personal" && (
               <>
                 <NavItem
+                  icon={UserCircle}
+                  label={t('sidebar.myProfile')}
+                  href="/dashboard/my-profile"
+                  active={isActive("/dashboard/my-profile")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                <NavItem
                   icon={MessageSquare}
                   label={t('sidebar.community')}
                   href="/community"

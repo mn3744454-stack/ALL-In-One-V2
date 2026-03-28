@@ -20,6 +20,7 @@ import CreateStableProfile from "./pages/CreateStableProfile";
 import Dashboard from "./pages/Dashboard";
 import DashboardMobileModule from "./pages/DashboardMobileModule";
 import DashboardPublicProfile from "./pages/DashboardPublicProfile";
+import DashboardMyProfile from "./pages/DashboardMyProfile";
 import DashboardServices from "./pages/DashboardServices";
 import DashboardMyBookings from "./pages/DashboardMyBookings";
 import DashboardAcademySessions from "./pages/DashboardAcademySessions";
@@ -281,6 +282,14 @@ const AppRoutes = () => {
         }
       />
       {/* Personal workspace routes */}
+      <Route
+        path="/dashboard/my-profile"
+        element={
+          <ProtectedRoute>
+            <DashboardMyProfile />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard/my-bookings"
         element={

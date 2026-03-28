@@ -52,9 +52,9 @@ const Dashboard = () => {
   const { horses, loading: horsesLoading } = useHorses();
   const { t } = useI18n();
 
-  // Check if public profile needs setup (owner with no slug)
-  const needsPublicProfileSetup = activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
-  const hasPublicProfile = activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
+  // Check if public profile needs setup (owner with no slug) - ONLY in org mode
+  const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
+  const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
 
   // Check if user has no tenants - show welcome section in dashboard instead
   const hasNoTenants = !tenantsLoading && tenants.length === 0;

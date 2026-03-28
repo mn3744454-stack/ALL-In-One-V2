@@ -8891,12 +8891,14 @@ export type Database = {
           cover_url: string | null
           created_at: string
           description: string | null
+          description_ar: string | null
           email: string | null
           id: string
           is_listed: boolean | null
           is_public: boolean | null
           logo_url: string | null
           name: string
+          name_ar: string | null
           owner_id: string
           phone: string | null
           public_description: string | null
@@ -8916,12 +8918,14 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          description_ar?: string | null
           email?: string | null
           id?: string
           is_listed?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name: string
+          name_ar?: string | null
           owner_id: string
           phone?: string | null
           public_description?: string | null
@@ -8941,12 +8945,14 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          description_ar?: string | null
           email?: string | null
           id?: string
           is_listed?: boolean | null
           is_public?: boolean | null
           logo_url?: string | null
           name?: string
+          name_ar?: string | null
           owner_id?: string
           phone?: string | null
           public_description?: string | null

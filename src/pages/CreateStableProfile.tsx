@@ -44,7 +44,9 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    name_ar: "",
     description: "",
+    description_ar: "",
     address: "",
     city: "",
     country: t('createProfile.saudiArabia'),
@@ -77,12 +79,14 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
     
     const { error } = await createTenant({
       name: formData.name,
+      name_ar: formData.name_ar || undefined,
       type: tenantType,
       description: formData.description,
+      description_ar: formData.description_ar || undefined,
       address: `${formData.address}, ${formData.city}, ${formData.country}`,
       phone: formData.phone,
       email: formData.email,
-    });
+    } as any);
     
     if (error) {
       // Build detailed error message from structured error
@@ -185,7 +189,7 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
 
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-navy font-medium">
-                      {t('createProfile.nameLabel')} {tenantTitle} *
+                      {t('createProfile.nameLabel')} {tenantTitle} ({t('createProfile.englishName')}) *
                     </Label>
                     <div className="relative">
                       <Icon className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -201,16 +205,48 @@ const CreateStableProfile = ({ tenantType = "stable" }: CreateStableProfileProps
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="name_ar" className="text-navy font-medium">
+                      {t('createProfile.nameLabel')} {tenantTitle} ({t('createProfile.arabicName')})
+                    </Label>
+                    <div className="relative">
+                      <Icon className="absolute start-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <Input
+                        id="name_ar"
+                        placeholder={t('createProfile.enterArabicName')}
+                        value={formData.name_ar}
+                        onChange={(e) => updateField("name_ar", e.target.value)}
+                        className="ps-10"
+                        dir="rtl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="description" className="text-navy font-medium">
-                      {t('createProfile.description')}
+                      {t('createProfile.description')} ({t('createProfile.englishName')})
                     </Label>
                     <Textarea
                       id="description"
                       placeholder={`${t('createProfile.descriptionPlaceholder')} ${tenantTitle}...`}
                       value={formData.description}
                       onChange={(e) => updateField("description", e.target.value)}
-                      rows={4}
+                      rows={3}
                       className="resize-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description_ar" className="text-navy font-medium">
+                      {t('createProfile.description')} ({t('createProfile.arabicName')})
+                    </Label>
+                    <Textarea
+                      id="description_ar"
+                      placeholder={t('createProfile.descriptionPlaceholderAr')}
+                      value={formData.description_ar}
+                      onChange={(e) => updateField("description_ar", e.target.value)}
+                      rows={3}
+                      className="resize-none"
+                      dir="rtl"
                     />
                   </div>
 
