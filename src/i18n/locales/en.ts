@@ -2688,6 +2688,11 @@ export const en = {
   finance: {
     title: "Finance",
     subtitle: "Invoices, expenses, and ledger",
+    tax: {
+      exclTax: "excl. tax",
+      inclTax: "incl. tax",
+      estimated: "estimated",
+    },
     overview: "Overview",
     customerBalances: {
       title: "Customer Balances",
