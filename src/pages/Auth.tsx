@@ -59,6 +59,7 @@ const Auth = () => {
     const email = formData.email.trim();
     const password = formData.password;
     const name = formData.name.trim();
+    const phone = formData.phone.trim();
 
     try {
       if (mode === "signup") {
@@ -76,7 +77,7 @@ const Auth = () => {
           return;
         }
 
-        const { error } = await signUp(email, password, name);
+        const { error } = await signUp(email, password, name, phone || undefined);
         
         if (error) {
           console.error("Sign up error:", error);
