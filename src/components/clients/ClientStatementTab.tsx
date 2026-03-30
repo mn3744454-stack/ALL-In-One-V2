@@ -874,7 +874,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {isScoped ? t("clients.statement.scopedCredit") : t("clients.statement.totalCredit")}
                 </p>
                 <p className="text-lg font-bold text-primary font-mono tabular-nums" dir="ltr">
-                  {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalCredit)}
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalCredit)}
                 </p>
               </CardContent>
             </Card>
