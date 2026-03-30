@@ -1,8 +1,8 @@
-import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
-interface StatementPrintData {
+export interface StatementPrintData {
   clientName: string;
   dateFrom: string;
   dateTo: string;
@@ -11,8 +11,22 @@ interface StatementPrintData {
   totalDebits: number;
   totalCredits: number;
   closingBalance: number;
+  /** Client-wide outstanding (only present when scoped) */
+  clientWideOutstanding?: number;
+  /** Scope context: horse names or "All Horses" */
+  scopeHorses?: string;
+  /** Scope context: category label or "All Categories" */
+  scopeCategory?: string;
+  /** Whether the view is filtered/scoped */
+  isScoped?: boolean;
   isRTL?: boolean;
   lang?: string;
+}
+
+function formatDateForPrint(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '-';
+  return format(d, 'dd-MM-yyyy');
 }
 
 function formatTimeForPrint(dateStr: string, lang: string = 'en'): string {
@@ -26,7 +40,6 @@ function formatTimeForPrint(dateStr: string, lang: string = 'en'): string {
   return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
 }
 
-// Terminology labels
 function getLabels(isRTL?: boolean) {
   if (isRTL) {
     return {
@@ -39,6 +52,12 @@ function getLabels(isRTL?: boolean) {
       totalDebit: "إجمالي المبلغ المطلوب",
       totalCredit: "إجمالي المبلغ المسدد",
       closingBalance: "الرصيد الختامي",
+      scopedDebit: "الفواتير (مفلتر)",
+      scopedCredit: "المسدد (مفلتر)",
+      scopedBalance: "المستحق (مفلتر)",
+      clientWide: "إجمالي رصيد العميل",
+      horses: "الخيول",
+      category: "التصنيف",
     };
   }
   return {
@@ -51,37 +70,61 @@ function getLabels(isRTL?: boolean) {
     totalDebit: "Total Amount Due",
     totalCredit: "Total Amount Paid",
     closingBalance: "Closing Balance",
+    scopedDebit: "Invoices (Filtered)",
+    scopedCredit: "Paid (Filtered)",
+    scopedBalance: "Due (Filtered)",
+    clientWide: "Total Client Balance",
+    horses: "Horses",
+    category: "Category",
   };
 }
 
 /**
- * Open a clean print window with just the statement content
+ * Open a clean print window with the statement content.
+ * Includes scope context and dual totals when filtered.
  */
 export function printStatement(data: StatementPrintData) {
   const dir = data.isRTL ? "rtl" : "ltr";
   const textAlign = data.isRTL ? "right" : "left";
   const lang = data.lang || (data.isRTL ? 'ar' : 'en');
   const labels = getLabels(data.isRTL);
-  
+
   const rows = data.entries
-    .map(
-      (e) => {
-        const desc = data.enrichedDescriptions?.get(e.id) || e.description || "-";
-        // Convert pipe-separated enriched descriptions to multi-line for print
-        const descHtml = desc.includes(" | ")
-          ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${part}</strong>` : `<span style="color:#666;font-size:12px">${part}</span>`).join("<br>")
-          : desc;
-        return `
+    .map((e) => {
+      const desc = data.enrichedDescriptions?.get(e.id) || e.description || "-";
+      const descHtml = desc.includes(" | ")
+        ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${part}</strong>` : `<span style="color:#666;font-size:12px">${part}</span>`).join("<br>")
+        : desc;
+      return `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${formatTimeForPrint(e.date, lang)}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${formatDateForPrint(e.date)}</td>
       <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
       <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${formatCurrency(e.balance)}</td>
     </tr>`;
-      }
-    )
+    })
     .join("");
+
+  // Scope context meta line
+  const metaParts: string[] = [data.clientName];
+  if (data.scopeHorses) metaParts.push(`${labels.horses}: ${data.scopeHorses}`);
+  if (data.scopeCategory) metaParts.push(`${labels.category}: ${data.scopeCategory}`);
+  const metaLine = metaParts.join(" &nbsp;|&nbsp; ");
+
+  // Summary cards
+  const debitLabel = data.isScoped ? labels.scopedDebit : labels.totalDebit;
+  const creditLabel = data.isScoped ? labels.scopedCredit : labels.totalCredit;
+  const balanceLabel = data.isScoped ? labels.scopedBalance : labels.closingBalance;
+
+  let clientWideSummaryHtml = "";
+  if (data.isScoped && data.clientWideOutstanding !== undefined) {
+    clientWideSummaryHtml = `
+  <div class="summary-card" style="border:2px dashed #ccc">
+    <div class="label">${labels.clientWide}</div>
+    <div class="value" dir="ltr">${formatCurrency(data.clientWideOutstanding)}</div>
+  </div>`;
+  }
 
   const html = `<!DOCTYPE html>
 <html dir="${dir}">
@@ -91,7 +134,8 @@ export function printStatement(data: StatementPrintData) {
 <style>
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   h1 { font-size: 20px; margin-bottom: 4px; }
-  .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 6px; }
+  .date-range { color: #666; font-size: 12px; margin-bottom: 16px; }
   .summary { display: flex; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
   .summary-card { background: #f5f5f5; padding: 12px 16px; border-radius: 8px; min-width: 140px; }
   .summary-card .label { font-size: 12px; color: #666; }
@@ -104,21 +148,23 @@ export function printStatement(data: StatementPrintData) {
 </head>
 <body>
 <h1>${labels.title}</h1>
-<div class="meta">${data.clientName} &nbsp;|&nbsp; <span dir="ltr">${data.dateFrom} → ${data.dateTo}</span></div>
+<div class="meta">${metaLine}</div>
+<div class="date-range"><span dir="ltr">${formatDateForPrint(data.dateFrom)} → ${formatDateForPrint(data.dateTo)}</span></div>
 
 <div class="summary">
   <div class="summary-card">
-    <div class="label">${labels.totalDebit}</div>
+    <div class="label">${debitLabel}</div>
     <div class="value" dir="ltr">${formatCurrency(data.totalDebits)}</div>
   </div>
   <div class="summary-card">
-    <div class="label">${labels.totalCredit}</div>
+    <div class="label">${creditLabel}</div>
     <div class="value" dir="ltr">${formatCurrency(data.totalCredits)}</div>
   </div>
   <div class="summary-card">
-    <div class="label">${labels.closingBalance}</div>
+    <div class="label">${balanceLabel}</div>
     <div class="value" dir="ltr">${formatCurrency(data.closingBalance)}</div>
   </div>
+  ${clientWideSummaryHtml}
 </div>
 
 <table>
@@ -152,16 +198,20 @@ export function exportCSV(data: StatementPrintData) {
   const labels = getLabels(data.isRTL);
   const headers = [labels.date, labels.description, labels.debit, labels.credit, labels.balance];
   const rows = data.entries.map((e) => [
-    formatTimeForPrint(e.date, lang),
+    formatDateForPrint(e.date),
     `"${(data.enrichedDescriptions?.get(e.id) || e.description || "").replace(/"/g, '""')}"`,
     e.debit > 0 ? e.debit.toFixed(2) : "",
     e.credit > 0 ? e.credit.toFixed(2) : "",
     e.balance.toFixed(2),
   ]);
 
-  // Add summary row
+  const balanceLabel = data.isScoped ? labels.scopedBalance : labels.closingBalance;
   rows.push([]);
-  rows.push(["", `"${labels.closingBalance}"`, data.totalDebits.toFixed(2), data.totalCredits.toFixed(2), data.closingBalance.toFixed(2)]);
+  rows.push(["", `"${balanceLabel}"`, data.totalDebits.toFixed(2), data.totalCredits.toFixed(2), data.closingBalance.toFixed(2)]);
+
+  if (data.isScoped && data.clientWideOutstanding !== undefined) {
+    rows.push(["", `"${labels.clientWide}"`, "", "", data.clientWideOutstanding.toFixed(2)]);
+  }
 
   const csv = [headers.join(","), ...rows.map((r) => (r as string[]).join(","))].join("\n");
   const BOM = "\uFEFF";
