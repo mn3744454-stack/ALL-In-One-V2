@@ -813,7 +813,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {/* Scope context line */}
                   <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                     <Badge variant="outline" className="font-mono text-xs" dir="ltr">
-                      {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} → {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
+                      {t("clients.statement.scope.dateFrom")}: {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} — {t("clients.statement.scope.dateTo")}: {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
                       {t("clients.statement.scopeContext.horses")}: {scopeContextHorses}
