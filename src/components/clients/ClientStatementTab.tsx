@@ -748,7 +748,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     totalDebits: scopedSummary.totalDebit,
     totalCredits: scopedSummary.totalCredit,
     closingBalance: scopedSummary.scopedOutstanding,
-    clientWideOutstanding: isScoped ? clientWideOutstanding : undefined,
+    clientWideOutstanding: isScoped ? clientWideTotalInvoices : undefined,
     scopeHorses: scopeContextHorses,
     scopeCategory: scopeContextCategory,
     isScoped,
