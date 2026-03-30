@@ -4242,7 +4242,7 @@ export const ar = {
     statement: {
       title: "كشف الحساب",
       view: "كشف الحساب",
-      noEntries: "لا توجد معاملات لهذه الفترة",
+      noEntries: "لا توجد حركات مالية في هذه الفترة",
       totalDebit: "إجمالي الفواتير",
       totalCredit: "إجمالي المبلغ المسدد",
       closingBalance: "إجمالي المبلغ المستحق",
@@ -4257,6 +4257,17 @@ export const ar = {
       moreItems: "+{count} إضافي",
       showDetails: "عرض التفاصيل",
       hideDetails: "إخفاء التفاصيل",
+      scopedDebit: "الفواتير (مفلتر)",
+      scopedCredit: "المسدد (مفلتر)",
+      scopedBalance: "المستحق (مفلتر)",
+      clientWideOutstanding: "إجمالي رصيد العميل",
+      scopeContext: {
+        allHorses: "جميع الخيول",
+        allCategories: "جميع التصنيفات",
+        horse: "حصان",
+        horses: "خيول",
+        category: "التصنيف",
+      },
       domain: {
         lab: "مختبر",
         boarding: "إيواء",

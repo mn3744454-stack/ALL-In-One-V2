@@ -4263,6 +4263,17 @@ export const en = {
       moreItems: "+{count} more",
       showDetails: "Show details",
       hideDetails: "Hide details",
+      scopedDebit: "Invoices (Filtered)",
+      scopedCredit: "Paid (Filtered)",
+      scopedBalance: "Due (Filtered)",
+      clientWideOutstanding: "Total Client Balance",
+      scopeContext: {
+        allHorses: "All Horses",
+        allCategories: "All Categories",
+        horse: "Horse",
+        horses: "Horses",
+        category: "Category",
+      },
       domain: {
         lab: "Laboratory",
         boarding: "Boarding",
