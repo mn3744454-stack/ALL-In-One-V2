@@ -444,7 +444,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
               <div className="space-y-1">
                 {billedPeriods.map((bp, i) => (
                   <div key={i} className="text-xs text-muted-foreground flex justify-between">
-                    <span>{bp.period_start} → {bp.period_end} {bp.invoice_number && `(${bp.invoice_number})`}</span>
+                    <span dir="ltr">{formatDate(bp.period_start, 'dd-MM-yyyy')} → {formatDate(bp.period_end, 'dd-MM-yyyy')} {bp.invoice_number && `(${bp.invoice_number})`}</span>
                     <span className="font-mono">{bp.total_price.toFixed(2)}</span>
                   </div>
                 ))}
