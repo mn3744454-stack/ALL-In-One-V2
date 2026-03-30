@@ -744,7 +744,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
         credit: 0,
-        balance: isScoped ? (scopedRunningBalances.get(row.key) || 0) : row.entry.balance,
+        balance: runningBalances.get(row.key) || 0,
         payment_method: null,
       };
     }
