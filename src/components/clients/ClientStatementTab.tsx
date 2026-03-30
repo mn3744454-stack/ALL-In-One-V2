@@ -16,7 +16,7 @@ import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
 import { useStatementEnrichment, type EnrichedStatementData, type EnrichedHorse } from "@/hooks/clients/useStatementEnrichment";
 import { usePermissions } from "@/hooks/usePermissions";
-import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { formatCurrency, formatDateTime12h, formatDate } from "@/lib/formatters";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
