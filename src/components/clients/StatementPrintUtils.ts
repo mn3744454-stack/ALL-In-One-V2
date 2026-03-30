@@ -52,12 +52,14 @@ function getLabels(isRTL?: boolean) {
       totalDebit: "إجمالي المبلغ المطلوب",
       totalCredit: "إجمالي المبلغ المسدد",
       closingBalance: "الرصيد الختامي",
-      scopedDebit: "الفواتير (مفلتر)",
-      scopedCredit: "المسدد (مفلتر)",
-      scopedBalance: "المستحق (مفلتر)",
-      clientWide: "إجمالي رصيد العميل",
+      scopedDebit: "إجمالي الفواتير ضمن النطاق",
+      scopedCredit: "إجمالي المسدد ضمن النطاق",
+      scopedBalance: "إجمالي المستحق ضمن النطاق",
+      clientWide: "إجمالي فواتير العميل",
       horses: "الخيول",
       category: "التصنيف",
+      from: "من",
+      to: "إلى",
     };
   }
   return {
@@ -70,12 +72,14 @@ function getLabels(isRTL?: boolean) {
     totalDebit: "Total Amount Due",
     totalCredit: "Total Amount Paid",
     closingBalance: "Closing Balance",
-    scopedDebit: "Invoices (Filtered)",
-    scopedCredit: "Paid (Filtered)",
-    scopedBalance: "Due (Filtered)",
-    clientWide: "Total Client Balance",
+    scopedDebit: "Total Invoices (Scope)",
+    scopedCredit: "Total Paid (Scope)",
+    scopedBalance: "Total Due (Scope)",
+    clientWide: "Total All Client Invoices",
     horses: "Horses",
     category: "Category",
+    from: "From",
+    to: "To",
   };
 }
 
@@ -149,7 +153,7 @@ export function printStatement(data: StatementPrintData) {
 <body>
 <h1>${labels.title}</h1>
 <div class="meta">${metaLine}</div>
-<div class="date-range"><span dir="ltr">${formatDateForPrint(data.dateFrom)} → ${formatDateForPrint(data.dateTo)}</span></div>
+<div class="date-range"><span dir="ltr">${labels.from}: ${formatDateForPrint(data.dateFrom)} — ${labels.to}: ${formatDateForPrint(data.dateTo)}</span></div>
 
 <div class="summary">
   <div class="summary-card">

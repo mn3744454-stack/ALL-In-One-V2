@@ -21,7 +21,7 @@ import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
-import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info } from "lucide-react";
+import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown } from "lucide-react";
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
@@ -102,14 +102,16 @@ function RowDescription({
 
   // Boarding segment sub-row — compact description
   if (isSegment && segment) {
+    const fromLabel = isRTL ? "من" : "From";
+    const toLabel = isRTL ? "إلى" : "To";
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <DomainBadge source="boarding" t={t} />
         {segment.horseName && (
           <span className="text-xs font-medium">🐴 {segment.horseName}</span>
         )}
-        <span className="text-xs text-muted-foreground font-mono" dir="ltr">
-          {formatDate(segment.periodStart, 'dd-MM-yyyy')} → {formatDate(segment.periodEnd, 'dd-MM-yyyy')}
+        <span className="text-xs text-muted-foreground" dir="ltr">
+          {fromLabel} {formatDate(segment.periodStart, 'dd-MM-yyyy')} {toLabel} {formatDate(segment.periodEnd, 'dd-MM-yyyy')}
         </span>
         <span className="text-xs text-muted-foreground">({segment.days}d)</span>
       </div>
@@ -276,11 +278,13 @@ export function enrichedToString(
 }
 
 /** Build a flat description string for a boarding segment row (for print) */
-function segmentToString(seg: FlatStatementRow["segment"], horseName?: string): string {
+function segmentToString(seg: FlatStatementRow["segment"], horseName?: string, isRTL?: boolean): string {
   if (!seg) return "-";
   const parts: string[] = [];
   if (horseName) parts.push(horseName);
-  parts.push(`${seg.periodStart} → ${seg.periodEnd} (${seg.days}d)`);
+  const from = isRTL ? "من" : "From";
+  const to = isRTL ? "إلى" : "To";
+  parts.push(`${from} ${seg.periodStart} ${to} ${seg.periodEnd} (${seg.days}d)`);
   return parts.join(" | ");
 }
 
@@ -305,20 +309,25 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   });
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Client-wide outstanding balance
-  const [clientWideOutstanding, setClientWideOutstanding] = useState<number>(0);
+  // Client-wide total invoices (all invoice debits across all time)
+  const [clientWideTotalInvoices, setClientWideTotalInvoices] = useState<number>(0);
   useEffect(() => {
-    async function fetchBalance() {
-      if (!clientId) return;
+    async function fetchTotalInvoices() {
+      if (!clientId || !activeTenant?.tenant?.id) return;
       const { data } = await supabase
-        .from("clients")
-        .select("outstanding_balance")
-        .eq("id", clientId)
-        .single();
-      setClientWideOutstanding(data?.outstanding_balance || 0);
+        .from("ledger_entries")
+        .select("amount")
+        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("client_id", clientId)
+        .eq("entry_type", "invoice");
+      const total = (data || []).reduce((sum: number, row: any) => sum + Math.max(0, Number(row.amount || 0)), 0);
+      setClientWideTotalInvoices(total);
     }
-    fetchBalance();
-  }, [clientId]);
+    fetchTotalInvoices();
+  }, [clientId, activeTenant?.tenant?.id]);
+
+  // Sort order state
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Fetch horses for this client
   const [clientHorses, setClientHorses] = useState<ScopeHorse[]>([]);
@@ -638,8 +647,18 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         });
       }
     }
+    // Sort rows by effective date
+    const getRowDate = (row: FlatStatementRow): string => {
+      if (row.isSegment && row.segment) return row.segment.periodEnd;
+      return row.entry.date;
+    };
+    rows.sort((a, b) => {
+      const da = new Date(getRowDate(a)).getTime();
+      const db = new Date(getRowDate(b)).getTime();
+      return sortOrder === "asc" ? da - db : db - da;
+    });
     return rows;
-  }, [domainFilteredEntries, enrichment]);
+  }, [domainFilteredEntries, enrichment, sortOrder]);
 
   // Scoped running balance: recompute from scoped entries
   const scopedRunningBalances = useMemo(() => {
@@ -706,7 +725,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const printEnrichedDescriptions = new Map<string, string>();
   flatRows.forEach(row => {
     if (row.isSegment) {
-      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName));
+      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName, isRTL));
     } else {
       printEnrichedDescriptions.set(row.key, enrichedToString(row.entry, row.enriched, lang));
     }
@@ -717,9 +736,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     if (row.isSegment && row.segment) {
       return {
         id: row.key,
-        date: row.entry.date,
+        date: row.segment.periodEnd,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
-        description: segmentToString(row.segment, row.segment.horseName),
+        description: segmentToString(row.segment, row.segment.horseName, isRTL),
         reference_type: row.entry.reference_type,
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
@@ -743,7 +762,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     totalDebits: scopedSummary.totalDebit,
     totalCredits: scopedSummary.totalCredit,
     closingBalance: scopedSummary.scopedOutstanding,
-    clientWideOutstanding: isScoped ? clientWideOutstanding : undefined,
+    clientWideOutstanding: isScoped ? clientWideTotalInvoices : undefined,
     scopeHorses: scopeContextHorses,
     scopeCategory: scopeContextCategory,
     isScoped,
@@ -794,7 +813,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {/* Scope context line */}
                   <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
                     <Badge variant="outline" className="font-mono text-xs" dir="ltr">
-                      {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} → {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
+                      {t("clients.statement.scope.dateFrom")}: {formatDate(scopeConfig.dateFrom, 'dd-MM-yyyy')} — {t("clients.statement.scope.dateTo")}: {formatDate(scopeConfig.dateTo, 'dd-MM-yyyy')}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
                       {t("clients.statement.scopeContext.horses")}: {scopeContextHorses}
@@ -805,6 +824,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}>
+                    <ArrowUpDown className="h-4 w-4 me-1" />
+                    <span className="hidden sm:inline">{sortOrder === "asc" ? t("clients.statement.sortOldestFirst") : t("clients.statement.sortNewestFirst")}</span>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setScopeOpen(true)}>
                     <Filter className="h-4 w-4 me-1" />
                     {t("common.filter")}
@@ -869,8 +892,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Info className="h-3 w-3" />
                     {t("clients.statement.clientWideOutstanding")}
                   </p>
-                  <p className={cn("text-lg font-bold font-mono tabular-nums", clientWideOutstanding > 0 && "text-destructive")} dir="ltr">
-                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideOutstanding)}
+                  <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
+                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
                   </p>
                 </CardContent>
               </Card>
@@ -914,7 +937,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                             return (
                               <TableRow key={row.key} className="align-top bg-muted/20">
                                 <TableCell className="text-center font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
-                                  {formatDate(row.segment.periodStart, 'dd-MM-yyyy')}
+                                  {formatDate(row.segment.periodEnd, 'dd-MM-yyyy')}
                                 </TableCell>
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
@@ -969,7 +992,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                         return (
                           <div key={row.key} className="p-3 space-y-1 bg-muted/20">
                             <span className="font-mono text-xs text-muted-foreground" dir="ltr">
-                              {formatDate(row.segment.periodStart, 'dd-MM-yyyy')}
+                              {formatDate(row.segment.periodEnd, 'dd-MM-yyyy')}
                             </span>
                             <RowDescription row={row} isRTL={isRTL} t={t} />
                             <div className="flex items-center justify-between text-sm font-mono tabular-nums" dir="ltr">
