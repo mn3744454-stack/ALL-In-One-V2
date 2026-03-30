@@ -937,7 +937,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                             return (
                               <TableRow key={row.key} className="align-top bg-muted/20">
                                 <TableCell className="text-center font-mono text-xs tabular-nums whitespace-nowrap text-muted-foreground" dir="ltr">
-                                  {formatDate(row.segment.periodStart, 'dd-MM-yyyy')}
+                                  {formatDate(row.segment.periodEnd, 'dd-MM-yyyy')}
                                 </TableCell>
                                 <TableCell>
                                   <RowDescription row={row} isRTL={isRTL} t={t} />
