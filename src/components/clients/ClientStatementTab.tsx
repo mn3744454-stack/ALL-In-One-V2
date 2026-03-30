@@ -725,7 +725,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const printEnrichedDescriptions = new Map<string, string>();
   flatRows.forEach(row => {
     if (row.isSegment) {
-      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName));
+      printEnrichedDescriptions.set(row.key, segmentToString(row.segment, row.segment?.horseName, isRTL));
     } else {
       printEnrichedDescriptions.set(row.key, enrichedToString(row.entry, row.enriched, lang));
     }
