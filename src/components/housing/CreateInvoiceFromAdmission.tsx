@@ -109,7 +109,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   // Compute total accrued value (pre-tax) for the whole admission
   const totalAccrued = useMemo(() => {
     const days = computeStayDays(admission.admitted_at, admission.checked_out_at);
-    return computeAccruedCost(days, admission.daily_rate, admission.monthly_rate, admission.billing_cycle) || 0;
+    return computeAccruedCost(days, admission.daily_rate, admission.monthly_rate, admission.billing_cycle, admission.admitted_at, admission.checked_out_at) || 0;
   }, [admission]);
 
   // Sum of already-billed pre-tax amounts

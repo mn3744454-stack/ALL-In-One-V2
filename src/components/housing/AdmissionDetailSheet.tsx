@@ -213,7 +213,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
 
   // Calculate stay duration and accrued cost
   const stayDuration = admission ? computeStayDays(admission.admitted_at, admission.checked_out_at) : 0;
-  const accruedCost = admission ? computeAccruedCost(stayDuration, admission.daily_rate, admission.monthly_rate, admission.billing_cycle) : null;
+  const accruedCost = admission ? computeAccruedCost(stayDuration, admission.daily_rate, admission.monthly_rate, admission.billing_cycle, admission.admitted_at, admission.checked_out_at) : null;
   const unbilledAmount = accruedCost !== null ? Math.max(accruedCost - totalBilled, 0) : 0;
 
   const branchUnits = admission ? units.filter(u => u.branch_id === admission.branch_id && u.is_active) : [];
