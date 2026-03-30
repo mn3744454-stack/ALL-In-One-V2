@@ -608,7 +608,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const isScoped = scopeConfig.mode === "horses" || scopeConfig.domainFilter !== "all";
 
   // Build flat rows: explode boarding invoices into segment rows
+  // Guard: return empty while enrichment is loading to prevent stale/misleading intermediate state
   const flatRows = useMemo((): FlatStatementRow[] => {
+    if (isEnriching) return [];
     const rows: FlatStatementRow[] = [];
     for (const entry of domainFilteredEntries) {
       const enriched = enrichment.get(entry.id);
@@ -658,7 +660,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       return sortOrder === "asc" ? da - db : db - da;
     });
     return rows;
-  }, [domainFilteredEntries, enrichment, sortOrder]);
+  }, [domainFilteredEntries, enrichment, isEnriching, sortOrder]);
 
   // Running balance: ALWAYS recompute from visible rows regardless of scope
   // This ensures exploded boarding segments accumulate correctly in all views
@@ -835,15 +837,15 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   </Button>
                   {canExport && (
                     <>
-                      <Button variant="outline" size="sm" onClick={handlePrint}>
+                      <Button variant="outline" size="sm" onClick={handlePrint} disabled={isLoading || isEnriching}>
                         <Printer className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">{t("clients.statement.print")}</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportCSV}>
+                      <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading || isEnriching}>
                         <Download className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">CSV</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                      <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isLoading || isEnriching}>
                         <FileDown className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">PDF</span>
                       </Button>
@@ -862,7 +864,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {isScoped ? t("clients.statement.scopedDebit") : t("clients.statement.totalDebit")}
                 </p>
                 <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
-                  {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalDebit)}
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalDebit)}
                 </p>
               </CardContent>
             </Card>
@@ -872,7 +874,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {isScoped ? t("clients.statement.scopedCredit") : t("clients.statement.totalCredit")}
                 </p>
                 <p className="text-lg font-bold text-primary font-mono tabular-nums" dir="ltr">
-                  {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalCredit)}
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.totalCredit)}
                 </p>
               </CardContent>
             </Card>
@@ -882,7 +884,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {isScoped ? t("clients.statement.scopedBalance") : t("clients.statement.closingBalance")}
                 </p>
                 <p className={cn("text-lg font-bold font-mono tabular-nums", scopedSummary.scopedOutstanding > 0 && "text-destructive")} dir="ltr">
-                  {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.scopedOutstanding)}
+                  {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(scopedSummary.scopedOutstanding)}
                 </p>
               </CardContent>
             </Card>
@@ -894,7 +896,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     {t("clients.statement.clientWideOutstanding")}
                   </p>
                   <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
-                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
+                    {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
                   </p>
                 </CardContent>
               </Card>
