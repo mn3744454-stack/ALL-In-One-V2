@@ -278,11 +278,13 @@ export function enrichedToString(
 }
 
 /** Build a flat description string for a boarding segment row (for print) */
-function segmentToString(seg: FlatStatementRow["segment"], horseName?: string): string {
+function segmentToString(seg: FlatStatementRow["segment"], horseName?: string, isRTL?: boolean): string {
   if (!seg) return "-";
   const parts: string[] = [];
   if (horseName) parts.push(horseName);
-  parts.push(`${seg.periodStart} → ${seg.periodEnd} (${seg.days}d)`);
+  const from = isRTL ? "من" : "From";
+  const to = isRTL ? "إلى" : "To";
+  parts.push(`${from} ${seg.periodStart} ${to} ${seg.periodEnd} (${seg.days}d)`);
   return parts.join(" | ");
 }
 
