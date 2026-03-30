@@ -930,9 +930,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       </TableHeader>
                       <TableBody>
                         {flatRows.map(row => {
-                          const runningBal = isScoped
-                            ? (scopedRunningBalances.get(row.key) || 0)
-                            : row.entry.balance;
+                          const runningBal = runningBalances.get(row.key) || 0;
 
                           if (row.isSegment && row.segment) {
                             return (
