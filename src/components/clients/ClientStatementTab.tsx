@@ -129,6 +129,36 @@ function EntryDescription({
     );
   }
 
+  // Boarding invoice with decomposed segments — show each segment explicitly
+  if (entry.entry_type === "invoice" && enriched?.boardingSegments && enriched.boardingSegments.length > 0) {
+    return (
+      <div className="space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          {typeBadge}
+          {domainBadge}
+          {enriched.invoiceNumber && (
+            <span className="text-sm font-semibold font-mono" dir="ltr">
+              {enriched.invoiceNumber}
+            </span>
+          )}
+        </div>
+        {enriched.horses.length > 0 && (
+          <p className="text-xs text-muted-foreground ps-1">
+            🐴 {enriched.horses.map(h => h.horseName).filter(Boolean).join(", ")}
+          </p>
+        )}
+        <div className="ps-1 space-y-0.5 mt-0.5">
+          {enriched.boardingSegments.map((seg, i) => (
+            <div key={i} className="text-xs text-muted-foreground" dir="ltr">
+              {formatDate(seg.periodStart, 'dd-MM-yyyy')} → {formatDate(seg.periodEnd, 'dd-MM-yyyy')}
+              <span className="opacity-70 ms-1">({seg.days}d)</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   // Invoice row
   if (entry.entry_type === "invoice") {
     const hasHorses = enriched.horses.length > 0;
