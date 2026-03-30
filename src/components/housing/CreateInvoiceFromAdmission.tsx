@@ -237,17 +237,27 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
   const generateInvoiceNumber = () => `INV-${Date.now().toString(36).toUpperCase()}`;
 
-  const buildLineItemDescription = (): string => {
+  /** Build a description for a single decomposed billing segment */
+  const buildSegmentDescription = (seg: BoardingBillingSegment): string => {
+    const parts: string[] = [];
+    if (admission.horse?.name) parts.push(admission.horse.name);
+    if (admission.branch?.name) parts.push(admission.branch.name);
+    parts.push(`${seg.periodStart} → ${seg.periodEnd}`);
+    if (seg.isFullMonth) {
+      parts.push(`${seg.monthlyRate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
+    } else {
+      parts.push(`${seg.chargedDays}d × ${seg.dailyRate.toFixed(2)}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
+    }
+    return parts.join(" | ");
+  };
+
+  /** Build a simple description for daily-rate billing */
+  const buildDailyDescription = (): string => {
     const parts: string[] = [];
     if (admission.horse?.name) parts.push(admission.horse.name);
     if (admission.branch?.name) parts.push(admission.branch.name);
     parts.push(`${periodStart} → ${periodEnd}`);
-    if (admission.billing_cycle === "daily" && admission.daily_rate) {
-      parts.push(`${periodDays}d × ${admission.daily_rate}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
-    } else if (admission.monthly_rate) {
-      const months = Math.max(Math.ceil(periodDays / 30), 1);
-      parts.push(`${months}mo × ${admission.monthly_rate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
-    }
+    parts.push(`${periodDays}d × ${admission.daily_rate || 0}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
     return parts.join(" | ");
   };
 
@@ -290,13 +300,14 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         return;
       }
 
-      // Step 2: Create invoice_items with entity_type='boarding'
-      const lineDescription = buildLineItemDescription();
+      // Step 2: Create decomposed invoice_items with entity_type='boarding'
+      const items: any[] = [];
 
-      const items: any[] = [
-        {
+      if (admission.billing_cycle === "daily" || billingSegments.length === 0) {
+        // Daily billing: single line item
+        items.push({
           invoice_id: invoice.id,
-          description: lineDescription,
+          description: buildDailyDescription(),
           entity_type: "boarding",
           entity_id: admission.id,
           horse_id: admission.horse_id || null,
@@ -305,12 +316,28 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           period_start: periodStart,
           period_end: periodEnd,
           quantity: periodDays,
-          unit_price: admission.billing_cycle === "daily"
-            ? (admission.daily_rate || amount)
-            : (admission.monthly_rate || amount),
+          unit_price: admission.daily_rate || amount,
           total_price: amount,
-        },
-      ];
+        });
+      } else {
+        // Monthly billing: one line item per decomposed calendar segment
+        for (const seg of billingSegments) {
+          items.push({
+            invoice_id: invoice.id,
+            description: buildSegmentDescription(seg),
+            entity_type: "boarding",
+            entity_id: admission.id,
+            horse_id: admission.horse_id || null,
+            domain: "boarding",
+            service_id: boardingServiceId || null,
+            period_start: seg.periodStart,
+            period_end: seg.periodEnd,
+            quantity: seg.chargedDays,
+            unit_price: seg.dailyRate,
+            total_price: seg.amount,
+          });
+        }
+      }
 
       // Add informational included-service line items (zero-cost, descriptive only)
       for (const entry of planIncludes) {
