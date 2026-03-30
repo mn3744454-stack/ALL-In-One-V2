@@ -54,14 +54,16 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
           .eq('tenant_id', tenantId)
           .maybeSingle();
 
-        // Compute accrued value
+        // Compute accrued value using calendar-aware decomposition
         if (admissionData) {
           const days = computeStayDays(admissionData.admitted_at, admissionData.checked_out_at);
           const accrued = computeAccruedCost(
             days,
             admissionData.daily_rate,
             admissionData.monthly_rate,
-            admissionData.billing_cycle
+            admissionData.billing_cycle,
+            admissionData.admitted_at,
+            admissionData.checked_out_at,
           );
           result.accruedValue = accrued || 0;
         }
