@@ -308,14 +308,17 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         const horses = Array.from(horseGroupMap.values());
 
         // Collect structured boarding segments for explicit statement display
+        // Apply tax multiplier so segment amounts are post-tax (matching ledger/cards)
+        const taxMultiplier = invoiceTaxMultiplierMap.get(entry.reference_id!) || 1;
         const boardingSegments: EnrichedStatementData["boardingSegments"] = [];
         for (const item of items) {
           if ((item.domain === 'boarding' || item.entity_type === 'boarding') && item.period_start && item.period_end && (item.total_price || 0) > 0) {
+            const preTaxAmount = item.total_price || 0;
             boardingSegments.push({
               periodStart: item.period_start,
               periodEnd: item.period_end,
               days: item.quantity || 0,
-              amount: item.total_price || 0,
+              amount: Math.round(preTaxAmount * taxMultiplier * 100) / 100,
             });
           }
         }
