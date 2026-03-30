@@ -660,17 +660,18 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     return rows;
   }, [domainFilteredEntries, enrichment, sortOrder]);
 
-  // Scoped running balance: recompute from scoped entries
-  const scopedRunningBalances = useMemo(() => {
+  // Running balance: ALWAYS recompute from visible rows regardless of scope
+  // This ensures exploded boarding segments accumulate correctly in all views
+  const runningBalances = useMemo(() => {
     const balances = new Map<string, number>();
-    let runningBalance = 0;
+    let balance = 0;
     for (const row of flatRows) {
       if (row.isSegment && row.segment) {
-        runningBalance += row.segment.amount;
+        balance += row.segment.amount;
       } else if (!row.isSegment) {
-        runningBalance += row.entry.debit - row.entry.credit;
+        balance += row.entry.debit - row.entry.credit;
       }
-      balances.set(row.key, runningBalance);
+      balances.set(row.key, balance);
     }
     return balances;
   }, [flatRows]);
@@ -743,13 +744,13 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
         credit: 0,
-        balance: isScoped ? (scopedRunningBalances.get(row.key) || 0) : row.entry.balance,
+        balance: runningBalances.get(row.key) || 0,
         payment_method: null,
       };
     }
     return {
       ...row.entry,
-      balance: isScoped ? (scopedRunningBalances.get(row.key) || 0) : row.entry.balance,
+      balance: runningBalances.get(row.key) || 0,
     };
   });
 
@@ -929,9 +930,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                       </TableHeader>
                       <TableBody>
                         {flatRows.map(row => {
-                          const runningBal = isScoped
-                            ? (scopedRunningBalances.get(row.key) || 0)
-                            : row.entry.balance;
+                          const runningBal = runningBalances.get(row.key) || 0;
 
                           if (row.isSegment && row.segment) {
                             return (
@@ -984,9 +983,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {/* Mobile stacked rows */}
                   <div className="sm:hidden divide-y">
                     {flatRows.map(row => {
-                      const runningBal = isScoped
-                        ? (scopedRunningBalances.get(row.key) || 0)
-                        : row.entry.balance;
+                      const runningBal = runningBalances.get(row.key) || 0;
 
                       if (row.isSegment && row.segment) {
                         return (
