@@ -276,7 +276,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     const parts: string[] = [];
     if (admission.horse?.name) parts.push(admission.horse.name);
     if (admission.branch?.name) parts.push(admission.branch.name);
-    parts.push(`${seg.periodStart} → ${seg.periodEnd}`);
+    parts.push(`${formatDate(seg.periodStart, 'dd-MM-yyyy')} → ${formatDate(seg.periodEnd, 'dd-MM-yyyy')}`);
     if (seg.isFullMonth) {
       parts.push(`${seg.monthlyRate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
     } else {
@@ -290,7 +290,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     const parts: string[] = [];
     if (admission.horse?.name) parts.push(admission.horse.name);
     if (admission.branch?.name) parts.push(admission.branch.name);
-    parts.push(`${periodStart} → ${periodEnd}`);
+    parts.push(`${formatDate(periodStart, 'dd-MM-yyyy')} → ${formatDate(periodEnd, 'dd-MM-yyyy')}`);
     parts.push(`${periodDays}d × ${admission.daily_rate || 0}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
     return parts.join(" | ");
   };
