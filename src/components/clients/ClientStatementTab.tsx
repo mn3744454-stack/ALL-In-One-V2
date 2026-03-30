@@ -896,7 +896,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     {t("clients.statement.clientWideOutstanding")}
                   </p>
                   <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
-                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
+                    {(isLoading || isEnriching) ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
                   </p>
                 </CardContent>
               </Card>
