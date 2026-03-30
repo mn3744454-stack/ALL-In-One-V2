@@ -736,9 +736,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     if (row.isSegment && row.segment) {
       return {
         id: row.key,
-        date: row.entry.date,
+        date: row.segment.periodEnd,
         entry_type: row.entry.entry_type as StatementEntry["entry_type"],
-        description: segmentToString(row.segment, row.segment.horseName),
+        description: segmentToString(row.segment, row.segment.horseName, isRTL),
         reference_type: row.entry.reference_type,
         reference_id: row.entry.reference_id,
         debit: row.segment.amount,
