@@ -153,6 +153,13 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const [periodStart, setPeriodStart] = useState(defaultPeriodStart);
   const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd);
 
+  // Decompose selected period into calendar-month segments
+  const billingSegments = useMemo(() => {
+    if (admission.billing_cycle === "daily") return [];
+    if (!admission.monthly_rate) return [];
+    return decomposeStay(periodStart, periodEnd, admission.monthly_rate);
+  }, [periodStart, periodEnd, admission.monthly_rate, admission.billing_cycle]);
+
   // Compute days and estimated cost from the selected period
   const periodDays = Math.max(
     differenceInDays(new Date(periodEnd), new Date(periodStart)) + 1,
@@ -161,7 +168,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
   const estimatedCost = admission.billing_cycle === "daily"
     ? (admission.daily_rate || 0) * periodDays
-    : (admission.monthly_rate || 0) * Math.max(Math.ceil(periodDays / 30), 1);
+    : sumSegments(billingSegments);
 
   // Check for overlap with already-billed periods
   const overlapWarning = useMemo(() => {
