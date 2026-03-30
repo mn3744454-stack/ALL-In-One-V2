@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { differenceInDays, format, startOfMonth, endOfMonth, parseISO, isWithinInterval, areIntervalsOverlapping } from "date-fns";
 import { computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
 import { decomposeStay, sumSegments, type BoardingBillingSegment } from "@/lib/boardingPeriodEngine";
+import { formatDate } from "@/lib/formatters";
 
 interface Props {
   open: boolean;
@@ -138,19 +139,16 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     return match?.id || null;
   }, [admissionPlan, boardingServices]);
 
-  // Period selection — default to current month or admission period
+  // Period selection — default to admission start (smart default applied after billed periods load)
   const admittedDate = new Date(admission.admitted_at);
   const today = new Date();
-  const defaultPeriodStart = format(
-    admittedDate > startOfMonth(today) ? admittedDate : startOfMonth(today),
-    "yyyy-MM-dd"
-  );
+  const admissionStartDate = format(admittedDate, "yyyy-MM-dd");
   const defaultPeriodEnd = format(
     admission.checked_out_at ? new Date(admission.checked_out_at) : endOfMonth(today),
     "yyyy-MM-dd"
   );
 
-  const [periodStart, setPeriodStart] = useState(defaultPeriodStart);
+  const [periodStart, setPeriodStart] = useState(admissionStartDate);
   const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd);
 
   // Decompose selected period into calendar-month segments
@@ -185,8 +183,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           { start: bpStart, end: bpEnd }
         )) {
           return bp.invoice_number
-            ? `${t("housing.admissions.billing.overlapWarning")} (${bp.invoice_number}: ${bp.period_start} → ${bp.period_end})`
-            : `${t("housing.admissions.billing.overlapWarning")} (${bp.period_start} → ${bp.period_end})`;
+            ? `${t("housing.admissions.billing.overlapWarning")} (${bp.invoice_number}: ${formatDate(bp.period_start, 'dd-MM-yyyy')} → ${formatDate(bp.period_end, 'dd-MM-yyyy')})`
+            : `${t("housing.admissions.billing.overlapWarning")} (${formatDate(bp.period_start, 'dd-MM-yyyy')} → ${formatDate(bp.period_end, 'dd-MM-yyyy')})`;
         }
       } catch {
         // invalid interval, skip
@@ -203,6 +201,42 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${periodDays} ${t("housing.admissions.detail.days")})`
   );
   const [loading, setLoading] = useState(false);
+
+  // Smart default: set billing start to first unbilled date after billed periods load
+  const hasSetSmartDefault = useRef(false);
+  useEffect(() => {
+    if (hasSetSmartDefault.current || billedPeriods.length === 0) return;
+    hasSetSmartDefault.current = true;
+
+    let latestEnd = '';
+    for (const bp of billedPeriods) {
+      if (bp.period_end && bp.period_end > latestEnd) latestEnd = bp.period_end;
+    }
+    if (!latestEnd) return;
+
+    const nextDay = new Date(latestEnd);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const smartStart = format(nextDay, 'yyyy-MM-dd');
+    const newStart = smartStart > admissionStartDate ? smartStart : admissionStartDate;
+
+    setPeriodStart(newStart);
+
+    // Recalculate cost for the smart default period
+    const endDate = defaultPeriodEnd;
+    const days = Math.max(differenceInDays(new Date(endDate), new Date(newStart)) + 1, 1);
+    let cost: number;
+    if (admission.billing_cycle === "daily") {
+      cost = (admission.daily_rate || 0) * days;
+    } else if (admission.monthly_rate) {
+      cost = sumSegments(decomposeStay(newStart, endDate, admission.monthly_rate));
+    } else {
+      cost = 0;
+    }
+    setTotalAmount(cost.toString());
+    setNotes(
+      `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${days} ${t("housing.admissions.detail.days")})`
+    );
+  }, [billedPeriods]);
 
   // Recalculate when period changes
   const handlePeriodChange = (field: "start" | "end", value: string) => {
@@ -242,7 +276,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     const parts: string[] = [];
     if (admission.horse?.name) parts.push(admission.horse.name);
     if (admission.branch?.name) parts.push(admission.branch.name);
-    parts.push(`${seg.periodStart} → ${seg.periodEnd}`);
+    parts.push(`${formatDate(seg.periodStart, 'dd-MM-yyyy')} → ${formatDate(seg.periodEnd, 'dd-MM-yyyy')}`);
     if (seg.isFullMonth) {
       parts.push(`${seg.monthlyRate}/${t("housing.admissions.wizard.cycleMonthly").toLowerCase()}`);
     } else {
@@ -256,7 +290,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     const parts: string[] = [];
     if (admission.horse?.name) parts.push(admission.horse.name);
     if (admission.branch?.name) parts.push(admission.branch.name);
-    parts.push(`${periodStart} → ${periodEnd}`);
+    parts.push(`${formatDate(periodStart, 'dd-MM-yyyy')} → ${formatDate(periodEnd, 'dd-MM-yyyy')}`);
     parts.push(`${periodDays}d × ${admission.daily_rate || 0}/${t("housing.admissions.wizard.cycleDaily").toLowerCase()}`);
     return parts.join(" | ");
   };
@@ -410,7 +444,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
               <div className="space-y-1">
                 {billedPeriods.map((bp, i) => (
                   <div key={i} className="text-xs text-muted-foreground flex justify-between">
-                    <span>{bp.period_start} → {bp.period_end} {bp.invoice_number && `(${bp.invoice_number})`}</span>
+                    <span dir="ltr">{formatDate(bp.period_start, 'dd-MM-yyyy')} → {formatDate(bp.period_end, 'dd-MM-yyyy')} {bp.invoice_number && `(${bp.invoice_number})`}</span>
                     <span className="font-mono">{bp.total_price.toFixed(2)}</span>
                   </div>
                 ))}
@@ -501,6 +535,35 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
               />
             </div>
           </div>
+
+          {/* Decomposed segments preview */}
+          {billingSegments.length > 0 && (
+            <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5" />
+                {t("housing.admissions.billing.segmentsBreakdown") || "Billing Breakdown"}
+              </p>
+              {billingSegments.map((seg, i) => (
+                <div key={i} className="flex items-center justify-between text-xs gap-2">
+                  <span className="text-muted-foreground" dir="ltr">
+                    {formatDate(seg.periodStart, 'dd-MM-yyyy')} → {formatDate(seg.periodEnd, 'dd-MM-yyyy')}
+                    <span className="ms-1 opacity-70">
+                      ({seg.chargedDays}d{seg.isFullMonth ? ` — ${t("housing.admissions.billing.fullMonth") || "full month"}` : ''})
+                    </span>
+                  </span>
+                  <span className="font-mono text-foreground shrink-0" dir="ltr">
+                    {seg.amount.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              {billingSegments.length > 1 && (
+                <div className="flex justify-between text-xs font-medium pt-1.5 border-t border-border">
+                  <span>{t("common.total")}</span>
+                  <span className="font-mono" dir="ltr">{estimatedCost.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Overlap warning */}
           {overlapWarning && (

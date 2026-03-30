@@ -20,6 +20,13 @@ export interface EnrichedStatementData {
   isMultiHorse: boolean;
   /** Direct domain from invoice_items.domain (first non-null) */
   directDomain?: string;
+  /** Structured boarding segment info for explicit statement display */
+  boardingSegments?: Array<{
+    periodStart: string;
+    periodEnd: string;
+    days: number;
+    amount: number;
+  }>;
 }
 
 /**
@@ -56,7 +63,7 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
       // 2. Batch fetch invoice_items — now including horse_id, domain, period_start, period_end
       const { data: allItems } = await supabase
         .from("invoice_items" as any)
-        .select("invoice_id, description, entity_type, entity_id, horse_id, domain, period_start, period_end")
+        .select("invoice_id, description, entity_type, entity_id, horse_id, domain, period_start, period_end, total_price, quantity")
         .in("invoice_id", referenceIds);
 
       const typedItems = (allItems || []) as unknown as Array<{
@@ -68,6 +75,8 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
         domain: string | null;
         period_start: string | null;
         period_end: string | null;
+        total_price: number | null;
+        quantity: number | null;
       }>;
 
       // Group items by invoice_id
@@ -288,6 +297,19 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
 
         const horses = Array.from(horseGroupMap.values());
 
+        // Collect structured boarding segments for explicit statement display
+        const boardingSegments: EnrichedStatementData["boardingSegments"] = [];
+        for (const item of items) {
+          if ((item.domain === 'boarding' || item.entity_type === 'boarding') && item.period_start && item.period_end && (item.total_price || 0) > 0) {
+            boardingSegments.push({
+              periodStart: item.period_start,
+              periodEnd: item.period_end,
+              days: item.quantity || 0,
+              amount: item.total_price || 0,
+            });
+          }
+        }
+
         // Build items summary
         const allItemNames = items.map((i) => i.description).filter(Boolean);
         let itemsSummary = "";
@@ -304,6 +326,7 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
           itemsSummary,
           isMultiHorse: horses.length > 1,
           directDomain,
+          boardingSegments: boardingSegments.length > 0 ? boardingSegments : undefined,
         });
       }
 

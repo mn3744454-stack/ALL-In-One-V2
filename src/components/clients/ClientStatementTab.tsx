@@ -16,7 +16,7 @@ import { useI18n } from "@/i18n";
 import { useClientStatement } from "@/hooks/clients/useClientStatement";
 import { useStatementEnrichment, type EnrichedStatementData, type EnrichedHorse } from "@/hooks/clients/useStatementEnrichment";
 import { usePermissions } from "@/hooks/usePermissions";
-import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { formatCurrency, formatDateTime12h, formatDate } from "@/lib/formatters";
 import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
@@ -125,6 +125,36 @@ function EntryDescription({
             {enriched.horses.map((h) => h.horseName).filter(Boolean).join(", ")}
           </p>
         )}
+      </div>
+    );
+  }
+
+  // Boarding invoice with decomposed segments — show each segment explicitly
+  if (entry.entry_type === "invoice" && enriched?.boardingSegments && enriched.boardingSegments.length > 0) {
+    return (
+      <div className="space-y-0.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          {typeBadge}
+          {domainBadge}
+          {enriched.invoiceNumber && (
+            <span className="text-sm font-semibold font-mono" dir="ltr">
+              {enriched.invoiceNumber}
+            </span>
+          )}
+        </div>
+        {enriched.horses.length > 0 && (
+          <p className="text-xs text-muted-foreground ps-1">
+            🐴 {enriched.horses.map(h => h.horseName).filter(Boolean).join(", ")}
+          </p>
+        )}
+        <div className="ps-1 space-y-0.5 mt-0.5">
+          {enriched.boardingSegments.map((seg, i) => (
+            <div key={i} className="text-xs text-muted-foreground" dir="ltr">
+              {formatDate(seg.periodStart, 'dd-MM-yyyy')} → {formatDate(seg.periodEnd, 'dd-MM-yyyy')}
+              <span className="opacity-70 ms-1">({seg.days}d)</span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -256,7 +286,14 @@ export function enrichedToString(
         if (samples) parts.push(samples);
       }
     }
-    if (enriched.itemsSummary) parts.push(enriched.itemsSummary);
+    // Boarding segments: list each period explicitly instead of truncated itemsSummary
+    if (enriched.boardingSegments && enriched.boardingSegments.length > 0) {
+      enriched.boardingSegments.forEach(seg => {
+        parts.push(`${seg.periodStart} → ${seg.periodEnd} (${seg.days}d)`);
+      });
+    } else if (enriched.itemsSummary) {
+      parts.push(enriched.itemsSummary);
+    }
   } else {
     return entry.description || "-";
   }
