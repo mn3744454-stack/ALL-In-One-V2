@@ -286,7 +286,14 @@ export function enrichedToString(
         if (samples) parts.push(samples);
       }
     }
-    if (enriched.itemsSummary) parts.push(enriched.itemsSummary);
+    // Boarding segments: list each period explicitly instead of truncated itemsSummary
+    if (enriched.boardingSegments && enriched.boardingSegments.length > 0) {
+      enriched.boardingSegments.forEach(seg => {
+        parts.push(`${seg.periodStart} → ${seg.periodEnd} (${seg.days}d)`);
+      });
+    } else if (enriched.itemsSummary) {
+      parts.push(enriched.itemsSummary);
+    }
   } else {
     return entry.description || "-";
   }

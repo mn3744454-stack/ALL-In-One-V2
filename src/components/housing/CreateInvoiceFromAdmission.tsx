@@ -536,6 +536,35 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
             </div>
           </div>
 
+          {/* Decomposed segments preview */}
+          {billingSegments.length > 0 && (
+            <div className="rounded-md border border-border bg-muted/30 p-3 space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5" />
+                {t("housing.admissions.billing.segmentsBreakdown") || "Billing Breakdown"}
+              </p>
+              {billingSegments.map((seg, i) => (
+                <div key={i} className="flex items-center justify-between text-xs gap-2">
+                  <span className="text-muted-foreground" dir="ltr">
+                    {formatDate(seg.periodStart, 'dd-MM-yyyy')} → {formatDate(seg.periodEnd, 'dd-MM-yyyy')}
+                    <span className="ms-1 opacity-70">
+                      ({seg.chargedDays}d{seg.isFullMonth ? ` — ${t("housing.admissions.billing.fullMonth") || "full month"}` : ''})
+                    </span>
+                  </span>
+                  <span className="font-mono text-foreground shrink-0" dir="ltr">
+                    {seg.amount.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              {billingSegments.length > 1 && (
+                <div className="flex justify-between text-xs font-medium pt-1.5 border-t border-border">
+                  <span>{t("common.total")}</span>
+                  <span className="font-mono" dir="ltr">{estimatedCost.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Overlap warning */}
           {overlapWarning && (
             <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 flex items-start gap-2">

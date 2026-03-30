@@ -297,6 +297,19 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
 
         const horses = Array.from(horseGroupMap.values());
 
+        // Collect structured boarding segments for explicit statement display
+        const boardingSegments: EnrichedStatementData["boardingSegments"] = [];
+        for (const item of items) {
+          if ((item.domain === 'boarding' || item.entity_type === 'boarding') && item.period_start && item.period_end && (item.total_price || 0) > 0) {
+            boardingSegments.push({
+              periodStart: item.period_start,
+              periodEnd: item.period_end,
+              days: item.quantity || 0,
+              amount: item.total_price || 0,
+            });
+          }
+        }
+
         // Build items summary
         const allItemNames = items.map((i) => i.description).filter(Boolean);
         let itemsSummary = "";
@@ -313,6 +326,7 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
           itemsSummary,
           isMultiHorse: horses.length > 1,
           directDomain,
+          boardingSegments: boardingSegments.length > 0 ? boardingSegments : undefined,
         });
       }
 
