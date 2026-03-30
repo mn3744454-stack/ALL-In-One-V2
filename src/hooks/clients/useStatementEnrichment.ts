@@ -51,14 +51,24 @@ export function useStatementEnrichment(entries: StatementEntry[]) {
       const result = new Map<string, EnrichedStatementData>();
       if (referenceIds.length === 0) return result;
 
-      // 1. Batch fetch invoices
+      // 1. Batch fetch invoices (include subtotal + total_amount for tax proportioning)
       const { data: invoices } = await supabase
         .from("invoices")
-        .select("id, invoice_number")
+        .select("id, invoice_number, subtotal, total_amount")
         .in("id", referenceIds);
 
       const invoiceNumberMap = new Map<string, string>();
-      invoices?.forEach((inv: any) => invoiceNumberMap.set(inv.id, inv.invoice_number));
+      const invoiceTaxMultiplierMap = new Map<string, number>();
+      invoices?.forEach((inv: any) => {
+        invoiceNumberMap.set(inv.id, inv.invoice_number);
+        // Compute tax multiplier: total_amount / subtotal
+        // This lets us proportionally allocate tax to each boarding segment
+        const subtotal = Number(inv.subtotal || 0);
+        const total = Number(inv.total_amount || 0);
+        if (subtotal > 0 && total > 0) {
+          invoiceTaxMultiplierMap.set(inv.id, total / subtotal);
+        }
+      });
 
       // 2. Batch fetch invoice_items — now including horse_id, domain, period_start, period_end
       const { data: allItems } = await supabase
