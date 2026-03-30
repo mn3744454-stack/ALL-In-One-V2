@@ -21,7 +21,7 @@ import { getCurrentLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { format, subMonths } from "date-fns";
-import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info } from "lucide-react";
+import { Download, Printer, FileText, Filter, FileDown, ChevronDown, Info, ArrowUpDown } from "lucide-react";
 import { StatementScopeSelector, type StatementScopeConfig, type ScopeHorse } from "./StatementScopeSelector";
 import { printStatement, exportCSV, exportPDF } from "./StatementPrintUtils";
 import { cn } from "@/lib/utils";
