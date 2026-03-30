@@ -153,7 +153,7 @@ export function printStatement(data: StatementPrintData) {
 <body>
 <h1>${labels.title}</h1>
 <div class="meta">${metaLine}</div>
-<div class="date-range"><span dir="ltr">${formatDateForPrint(data.dateFrom)} → ${formatDateForPrint(data.dateTo)}</span></div>
+<div class="date-range"><span dir="ltr">${labels.from}: ${formatDateForPrint(data.dateFrom)} — ${labels.to}: ${formatDateForPrint(data.dateTo)}</span></div>
 
 <div class="summary">
   <div class="summary-card">
