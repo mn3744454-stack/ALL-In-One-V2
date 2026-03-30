@@ -213,9 +213,15 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     const newEnd = field === "end" ? value : periodEnd;
     const days = Math.max(differenceInDays(new Date(newEnd), new Date(newStart)) + 1, 1);
 
-    const cost = admission.billing_cycle === "daily"
-      ? (admission.daily_rate || 0) * days
-      : (admission.monthly_rate || 0) * Math.max(Math.ceil(days / 30), 1);
+    let cost: number;
+    if (admission.billing_cycle === "daily") {
+      cost = (admission.daily_rate || 0) * days;
+    } else if (admission.monthly_rate) {
+      const segs = decomposeStay(newStart, newEnd, admission.monthly_rate);
+      cost = sumSegments(segs);
+    } else {
+      cost = 0;
+    }
 
     setTotalAmount(cost.toString());
     setNotes(
