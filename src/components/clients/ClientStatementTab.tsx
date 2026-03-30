@@ -647,8 +647,18 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
         });
       }
     }
+    // Sort rows by effective date
+    const getRowDate = (row: FlatStatementRow): string => {
+      if (row.isSegment && row.segment) return row.segment.periodEnd;
+      return row.entry.date;
+    };
+    rows.sort((a, b) => {
+      const da = new Date(getRowDate(a)).getTime();
+      const db = new Date(getRowDate(b)).getTime();
+      return sortOrder === "asc" ? da - db : db - da;
+    });
     return rows;
-  }, [domainFilteredEntries, enrichment]);
+  }, [domainFilteredEntries, enrichment, sortOrder]);
 
   // Scoped running balance: recompute from scoped entries
   const scopedRunningBalances = useMemo(() => {
