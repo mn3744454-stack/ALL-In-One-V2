@@ -983,9 +983,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   {/* Mobile stacked rows */}
                   <div className="sm:hidden divide-y">
                     {flatRows.map(row => {
-                      const runningBal = isScoped
-                        ? (scopedRunningBalances.get(row.key) || 0)
-                        : row.entry.balance;
+                      const runningBal = runningBalances.get(row.key) || 0;
 
                       if (row.isSegment && row.segment) {
                         return (
