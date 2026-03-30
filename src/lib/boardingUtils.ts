@@ -1,5 +1,6 @@
 import { differenceInDays } from 'date-fns';
 import { getCurrentLanguage } from '@/i18n';
+import { computeAccruedCostDecomposed } from './boardingPeriodEngine';
 
 /** Format a number with commas, always using English numerals. */
 export function formatBoardingAmount(value: number, decimals = 2): string {
@@ -20,25 +21,37 @@ export function computeStayDays(admittedAt: string, checkedOutAt?: string | null
 }
 
 /**
- * Calculate accrued boarding cost based on rate and days.
- * Uses daily proration for monthly rates.
+ * Calculate accrued boarding cost using the calendar-aware decomposition engine.
+ * Replaces the old flat /30 logic.
+ *
+ * When admittedAt is provided and billing is monthly, uses true calendar proration.
+ * Falls back to daily rate × days when admission dates are unavailable.
  */
 export function computeAccruedCost(
   days: number,
   dailyRate: number | null,
   monthlyRate: number | null,
-  billingCycle?: string
+  billingCycle?: string,
+  admittedAt?: string,
+  checkedOutAt?: string | null,
 ): number | null {
   if (days <= 0) return null;
+
+  // Daily billing: simple multiplication
   if (billingCycle === 'daily' && dailyRate) {
     return dailyRate * days;
   }
-  if (monthlyRate) {
-    return Math.round((monthlyRate / 30) * days * 100) / 100;
+
+  // Monthly billing with admission dates: use decomposition engine
+  if (monthlyRate && admittedAt) {
+    return computeAccruedCostDecomposed(admittedAt, checkedOutAt || null, dailyRate, monthlyRate, billingCycle);
   }
+
+  // Fallback to daily rate
   if (dailyRate) {
     return dailyRate * days;
   }
+
   return null;
 }
 

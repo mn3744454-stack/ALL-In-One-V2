@@ -4102,6 +4102,7 @@ export const ar = {
     visits: "الزيارات",
     followUps: "المتابعات",
     back: "رجوع",
+    services: "الخدمات",
   },
   // Global billing keys (for components using billing.collectFinal etc)
   billing: {
