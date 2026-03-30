@@ -305,20 +305,25 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   });
   const [hasGenerated, setHasGenerated] = useState(false);
 
-  // Client-wide outstanding balance
-  const [clientWideOutstanding, setClientWideOutstanding] = useState<number>(0);
+  // Client-wide total invoices (all invoice debits across all time)
+  const [clientWideTotalInvoices, setClientWideTotalInvoices] = useState<number>(0);
   useEffect(() => {
-    async function fetchBalance() {
-      if (!clientId) return;
+    async function fetchTotalInvoices() {
+      if (!clientId || !activeTenant?.tenant?.id) return;
       const { data } = await supabase
-        .from("clients")
-        .select("outstanding_balance")
-        .eq("id", clientId)
-        .single();
-      setClientWideOutstanding(data?.outstanding_balance || 0);
+        .from("ledger_entries")
+        .select("amount")
+        .eq("tenant_id", activeTenant.tenant.id)
+        .eq("client_id", clientId)
+        .eq("entry_type", "invoice");
+      const total = (data || []).reduce((sum: number, row: any) => sum + Math.max(0, Number(row.amount || 0)), 0);
+      setClientWideTotalInvoices(total);
     }
-    fetchBalance();
-  }, [clientId]);
+    fetchTotalInvoices();
+  }, [clientId, activeTenant?.tenant?.id]);
+
+  // Sort order state
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Fetch horses for this client
   const [clientHorses, setClientHorses] = useState<ScopeHorse[]>([]);
