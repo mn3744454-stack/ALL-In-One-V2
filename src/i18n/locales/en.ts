@@ -4108,6 +4108,7 @@ export const en = {
     visits: "Visits",
     followUps: "Follow-ups",
     back: "Back",
+    services: "Services",
   },
   // Global billing keys (for components using billing.collectFinal etc)
   billing: {
