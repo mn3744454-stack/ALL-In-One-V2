@@ -874,8 +874,8 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                     <Info className="h-3 w-3" />
                     {t("clients.statement.clientWideOutstanding")}
                   </p>
-                  <p className={cn("text-lg font-bold font-mono tabular-nums", clientWideOutstanding > 0 && "text-destructive")} dir="ltr">
-                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideOutstanding)}
+                  <p className="text-lg font-bold font-mono tabular-nums" dir="ltr">
+                    {isLoading ? <Skeleton className="h-6 w-20" /> : formatCurrency(clientWideTotalInvoices)}
                   </p>
                 </CardContent>
               </Card>
