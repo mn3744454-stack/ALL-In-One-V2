@@ -837,15 +837,15 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   </Button>
                   {canExport && (
                     <>
-                      <Button variant="outline" size="sm" onClick={handlePrint}>
+                      <Button variant="outline" size="sm" onClick={handlePrint} disabled={isLoading || isEnriching}>
                         <Printer className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">{t("clients.statement.print")}</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportCSV}>
+                      <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading || isEnriching}>
                         <Download className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">CSV</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={handleExportPDF}>
+                      <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={isLoading || isEnriching}>
                         <FileDown className="h-4 w-4 me-1" />
                         <span className="hidden sm:inline">PDF</span>
                       </Button>
