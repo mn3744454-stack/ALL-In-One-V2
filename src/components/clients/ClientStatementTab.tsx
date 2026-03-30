@@ -750,7 +750,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
     }
     return {
       ...row.entry,
-      balance: isScoped ? (scopedRunningBalances.get(row.key) || 0) : row.entry.balance,
+      balance: runningBalances.get(row.key) || 0,
     };
   });
 
