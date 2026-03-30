@@ -608,7 +608,9 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
   const isScoped = scopeConfig.mode === "horses" || scopeConfig.domainFilter !== "all";
 
   // Build flat rows: explode boarding invoices into segment rows
+  // Guard: return empty while enrichment is loading to prevent stale/misleading intermediate state
   const flatRows = useMemo((): FlatStatementRow[] => {
+    if (isEnriching) return [];
     const rows: FlatStatementRow[] = [];
     for (const entry of domainFilteredEntries) {
       const enriched = enrichment.get(entry.id);
@@ -658,7 +660,7 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
       return sortOrder === "asc" ? da - db : db - da;
     });
     return rows;
-  }, [domainFilteredEntries, enrichment, sortOrder]);
+  }, [domainFilteredEntries, enrichment, isEnriching, sortOrder]);
 
   // Running balance: ALWAYS recompute from visible rows regardless of scope
   // This ensures exploded boarding segments accumulate correctly in all views
