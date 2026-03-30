@@ -20,6 +20,13 @@ export interface EnrichedStatementData {
   isMultiHorse: boolean;
   /** Direct domain from invoice_items.domain (first non-null) */
   directDomain?: string;
+  /** Structured boarding segment info for explicit statement display */
+  boardingSegments?: Array<{
+    periodStart: string;
+    periodEnd: string;
+    days: number;
+    amount: number;
+  }>;
 }
 
 /**
