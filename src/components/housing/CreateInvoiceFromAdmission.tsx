@@ -139,19 +139,16 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     return match?.id || null;
   }, [admissionPlan, boardingServices]);
 
-  // Period selection — default to current month or admission period
+  // Period selection — default to admission start (smart default applied after billed periods load)
   const admittedDate = new Date(admission.admitted_at);
   const today = new Date();
-  const defaultPeriodStart = format(
-    admittedDate > startOfMonth(today) ? admittedDate : startOfMonth(today),
-    "yyyy-MM-dd"
-  );
+  const admissionStartDate = format(admittedDate, "yyyy-MM-dd");
   const defaultPeriodEnd = format(
     admission.checked_out_at ? new Date(admission.checked_out_at) : endOfMonth(today),
     "yyyy-MM-dd"
   );
 
-  const [periodStart, setPeriodStart] = useState(defaultPeriodStart);
+  const [periodStart, setPeriodStart] = useState(admissionStartDate);
   const [periodEnd, setPeriodEnd] = useState(defaultPeriodEnd);
 
   // Decompose selected period into calendar-month segments
@@ -186,8 +183,8 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
           { start: bpStart, end: bpEnd }
         )) {
           return bp.invoice_number
-            ? `${t("housing.admissions.billing.overlapWarning")} (${bp.invoice_number}: ${bp.period_start} → ${bp.period_end})`
-            : `${t("housing.admissions.billing.overlapWarning")} (${bp.period_start} → ${bp.period_end})`;
+            ? `${t("housing.admissions.billing.overlapWarning")} (${bp.invoice_number}: ${formatDate(bp.period_start, 'dd-MM-yyyy')} → ${formatDate(bp.period_end, 'dd-MM-yyyy')})`
+            : `${t("housing.admissions.billing.overlapWarning")} (${formatDate(bp.period_start, 'dd-MM-yyyy')} → ${formatDate(bp.period_end, 'dd-MM-yyyy')})`;
         }
       } catch {
         // invalid interval, skip
@@ -204,6 +201,42 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${periodDays} ${t("housing.admissions.detail.days")})`
   );
   const [loading, setLoading] = useState(false);
+
+  // Smart default: set billing start to first unbilled date after billed periods load
+  const hasSetSmartDefault = useRef(false);
+  useEffect(() => {
+    if (hasSetSmartDefault.current || billedPeriods.length === 0) return;
+    hasSetSmartDefault.current = true;
+
+    let latestEnd = '';
+    for (const bp of billedPeriods) {
+      if (bp.period_end && bp.period_end > latestEnd) latestEnd = bp.period_end;
+    }
+    if (!latestEnd) return;
+
+    const nextDay = new Date(latestEnd);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const smartStart = format(nextDay, 'yyyy-MM-dd');
+    const newStart = smartStart > admissionStartDate ? smartStart : admissionStartDate;
+
+    setPeriodStart(newStart);
+
+    // Recalculate cost for the smart default period
+    const endDate = defaultPeriodEnd;
+    const days = Math.max(differenceInDays(new Date(endDate), new Date(newStart)) + 1, 1);
+    let cost: number;
+    if (admission.billing_cycle === "daily") {
+      cost = (admission.daily_rate || 0) * days;
+    } else if (admission.monthly_rate) {
+      cost = sumSegments(decomposeStay(newStart, endDate, admission.monthly_rate));
+    } else {
+      cost = 0;
+    }
+    setTotalAmount(cost.toString());
+    setNotes(
+      `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${days} ${t("housing.admissions.detail.days")})`
+    );
+  }, [billedPeriods]);
 
   // Recalculate when period changes
   const handlePeriodChange = (field: "start" | "end", value: string) => {
