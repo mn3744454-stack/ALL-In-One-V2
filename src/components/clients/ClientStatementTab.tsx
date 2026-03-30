@@ -102,14 +102,16 @@ function RowDescription({
 
   // Boarding segment sub-row — compact description
   if (isSegment && segment) {
+    const fromLabel = isRTL ? "من" : "From";
+    const toLabel = isRTL ? "إلى" : "To";
     return (
       <div className="flex items-center gap-2 flex-wrap">
         <DomainBadge source="boarding" t={t} />
         {segment.horseName && (
           <span className="text-xs font-medium">🐴 {segment.horseName}</span>
         )}
-        <span className="text-xs text-muted-foreground font-mono" dir="ltr">
-          {formatDate(segment.periodStart, 'dd-MM-yyyy')} → {formatDate(segment.periodEnd, 'dd-MM-yyyy')}
+        <span className="text-xs text-muted-foreground" dir="ltr">
+          {fromLabel} {formatDate(segment.periodStart, 'dd-MM-yyyy')} {toLabel} {formatDate(segment.periodEnd, 'dd-MM-yyyy')}
         </span>
         <span className="text-xs text-muted-foreground">({segment.days}d)</span>
       </div>
