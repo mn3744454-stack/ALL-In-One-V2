@@ -353,45 +353,45 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{t("housing.admissions.billing.createInvoiceTitle")}</DialogTitle>
         </DialogHeader>
 
-        {/* Already-billed periods summary */}
-        {billedPeriods.length > 0 && (
-          <div className="rounded-md border border-border bg-muted/50 p-3 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <Info className="w-4 h-4 text-muted-foreground" />
-              {t("housing.admissions.billing.billedPeriods")}
+        <div className="flex-1 overflow-y-auto space-y-4 pe-1">
+          {/* Already-billed periods summary */}
+          {billedPeriods.length > 0 && (
+            <div className="rounded-md border border-border bg-muted/50 p-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Info className="w-4 h-4 text-muted-foreground" />
+                {t("housing.admissions.billing.billedPeriods")}
+              </div>
+              <div className="space-y-1">
+                {billedPeriods.map((bp, i) => (
+                  <div key={i} className="text-xs text-muted-foreground flex justify-between">
+                    <span>{bp.period_start} → {bp.period_end} {bp.invoice_number && `(${bp.invoice_number})`}</span>
+                    <span className="font-mono">{bp.total_price.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-xs pt-1 border-t border-border">
+                <span className="font-medium">{t("housing.admissions.billing.remainingBillable")}</span>
+                <span className={cn("font-mono font-medium", remainingBillable <= 0 ? "text-destructive" : "text-foreground")}>
+                  {remainingBillable.toFixed(2)} {admission.rate_currency || "SAR"}
+                </span>
+              </div>
             </div>
-            <div className="space-y-1">
-              {billedPeriods.map((bp, i) => (
-                <div key={i} className="text-xs text-muted-foreground flex justify-between">
-                  <span>{bp.period_start} → {bp.period_end} {bp.invoice_number && `(${bp.invoice_number})`}</span>
-                  <span className="font-mono">{bp.total_price.toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between text-xs pt-1 border-t border-border">
-              <span className="font-medium">{t("housing.admissions.billing.remainingBillable")}</span>
-              <span className={cn("font-mono font-medium", remainingBillable <= 0 ? "text-destructive" : "text-foreground")}>
-                {remainingBillable.toFixed(2)} {admission.rate_currency || "SAR"}
+          )}
+
+          {fullyBilled && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
+              <span className="text-sm text-destructive">
+                {t("housing.admissions.billing.fullyBilled")}
               </span>
             </div>
-          </div>
-        )}
+          )}
 
-        {fullyBilled && (
-          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
-            <span className="text-sm text-destructive">
-              {t("housing.admissions.billing.fullyBilled")}
-            </span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>{t("doctor.client")}</Label>
             <Popover open={clientPickerOpen} onOpenChange={setClientPickerOpen}>
@@ -496,13 +496,14 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
             <Label>{t("common.notes")}</Label>
             <Textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
-            <Button type="submit" disabled={loading || isCreating || !!overlapWarning}>
-              {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
-            </Button>
-          </div>
-        </form>
+        </div>
+
+        <div className="shrink-0 flex justify-end gap-2 pt-4 border-t border-border">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+          <Button onClick={handleSubmit} disabled={loading || isCreating || !!overlapWarning}>
+            {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
