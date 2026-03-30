@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { differenceInDays, format, startOfMonth, endOfMonth, parseISO, isWithinInterval, areIntervalsOverlapping } from "date-fns";
 import { computeStayDays, computeAccruedCost } from "@/lib/boardingUtils";
 import { decomposeStay, sumSegments, type BoardingBillingSegment } from "@/lib/boardingPeriodEngine";
+import { formatDate } from "@/lib/formatters";
 
 interface Props {
   open: boolean;
