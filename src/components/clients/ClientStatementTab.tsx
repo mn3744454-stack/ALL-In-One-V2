@@ -824,6 +824,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
                   </div>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}>
+                    <ArrowUpDown className="h-4 w-4 me-1" />
+                    <span className="hidden sm:inline">{sortOrder === "asc" ? t("clients.statement.sortOldestFirst") : t("clients.statement.sortNewestFirst")}</span>
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => setScopeOpen(true)}>
                     <Filter className="h-4 w-4 me-1" />
                     {t("common.filter")}
