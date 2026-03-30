@@ -67,10 +67,11 @@ export function decomposeStay(
     const chargedDays = differenceInDays(segEnd, segStart) + 1;
 
     // Full-month check: segment covers the entire calendar month
+    // Compare by date only (ignoring time) since endOfMonth returns 23:59:59.999
     const monthStart = startOfMonth(cursor);
     const isFullMonth =
-      segStart.getTime() === monthStart.getTime() &&
-      segEnd.getTime() === monthEnd.getTime();
+      format(segStart, 'yyyy-MM-dd') === format(monthStart, 'yyyy-MM-dd') &&
+      chargedDays === monthDays;
 
     // For a full month, amount = exactly monthlyRate (avoids floating-point drift)
     const dailyRate = monthlyRate / monthDays;
