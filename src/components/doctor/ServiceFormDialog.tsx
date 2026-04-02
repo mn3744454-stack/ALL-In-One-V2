@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDoctorServices, type DoctorService } from "@/hooks/doctor/useDoctorServices";
 import { useI18n } from "@/i18n";
@@ -24,6 +25,7 @@ export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDi
   const [description, setDescription] = useState(service?.description || "");
   const [basePrice, setBasePrice] = useState(service?.base_price?.toString() || "0");
   const [category, setCategory] = useState(service?.category || "");
+  const [isTaxable, setIsTaxable] = useState(service?.is_taxable ?? true);
 
   const resetForm = () => {
     setName(service?.name || "");
@@ -31,6 +33,7 @@ export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDi
     setDescription(service?.description || "");
     setBasePrice(service?.base_price?.toString() || "0");
     setCategory(service?.category || "");
+    setIsTaxable(service?.is_taxable ?? true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +46,7 @@ export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDi
       description: description || undefined,
       base_price: parseFloat(basePrice) || 0,
       category: category || undefined,
+      is_taxable: isTaxable,
     };
 
     try {
@@ -92,6 +96,13 @@ export function ServiceFormDialog({ open, onOpenChange, service }: ServiceFormDi
           <div>
             <Label>{t('common.description')}</Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="space-y-0.5">
+              <Label className="text-sm">{t('services.form.taxable')}</Label>
+              <p className="text-xs text-muted-foreground">{t('services.form.taxableDesc')}</p>
+            </div>
+            <Switch checked={isTaxable} onCheckedChange={setIsTaxable} />
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
