@@ -5085,6 +5085,8 @@ export const en = {
       priceDisplayDesc: "How the price appears publicly",
       activeDesc: "Service is available",
       publicDesc: "Visible on profile",
+      taxable: "Taxable",
+      taxableDesc: "When off, no tax is calculated for this service on invoices",
     },
   },
   pwa: {

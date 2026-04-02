@@ -5061,6 +5061,8 @@ export const ar = {
       priceDisplayDesc: "كيف يظهر السعر للعملاء",
       activeDesc: "الخدمة متاحة",
       publicDesc: "مرئية في الملف الشخصي",
+      taxable: "خاضع للضريبة",
+      taxableDesc: "عند التعطيل، لن تُحسب ضريبة على هذه الخدمة في الفواتير",
     },
   },
   pwa: {
