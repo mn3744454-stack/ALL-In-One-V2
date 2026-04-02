@@ -25,6 +25,7 @@ import {
   ExpenseFormDialog,
 } from "@/components/finance";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
 import { isThisMonth, format } from "date-fns";
