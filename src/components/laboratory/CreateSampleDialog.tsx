@@ -1031,7 +1031,7 @@ export function CreateSampleDialog({
           const basePrice = pricing && typeof pricing.base_price === "number" 
             ? pricing.base_price 
             : null;
-          const currency = (pricing?.currency as string) || "SAR";
+          const currency = (pricing?.currency as string) || tenantCurrency;
           
           return (
             <div
