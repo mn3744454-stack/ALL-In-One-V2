@@ -28,6 +28,7 @@ export interface CreateServiceData {
   currency?: string;
   category?: string;
   is_active?: boolean;
+  is_taxable?: boolean;
 }
 
 export interface UpdateServiceData extends Partial<CreateServiceData> {}

@@ -125,6 +125,7 @@ export const useCreateService = () => {
           price_display: input.price_display || null,
           is_active: input.is_active ?? true,
           is_public: input.is_public ?? true,
+          is_taxable: input.is_taxable ?? true,
         })
         .select()
         .single();
