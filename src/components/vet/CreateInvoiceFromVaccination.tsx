@@ -42,6 +42,7 @@ interface Props {
 
 export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props) {
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const { user } = useAuth();
   const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
