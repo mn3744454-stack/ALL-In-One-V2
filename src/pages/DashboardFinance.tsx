@@ -198,7 +198,8 @@ function ExpensesTab() {
     };
   }, [expenses]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   return (
     <div className="space-y-6">
