@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { FileText, DollarSign, ListChecks, TestTubes } from "lucide-react";
 // Simple template type for dialog display
 interface SimpleTemplate {
