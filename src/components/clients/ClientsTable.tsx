@@ -97,7 +97,7 @@ export function ClientsTable({
                   "text-center font-mono tabular-nums",
                   hasBalance && "text-destructive"
                 )} dir="ltr">
-                  {formatCurrency(outstanding, "SAR")}
+                  {formatCurrency(outstanding, tenantCurrency)}
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
                   {creditLimit > 0 ? formatCurrency(available, "SAR") : "-"}
