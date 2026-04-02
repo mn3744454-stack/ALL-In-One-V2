@@ -103,6 +103,19 @@ function RowDescription({
 
   // Boarding segment sub-row — compact description
   if (isSegment && segment) {
+    // "Other charges" remainder row for non-boarding items on a boarding invoice
+    if (segment.isOtherCharges) {
+      const label = isRTL ? "رسوم أخرى" : "Other charges";
+      return (
+        <div className="flex items-center gap-2 flex-wrap">
+          <DomainBadge source="boarding" t={t} />
+          {segment.horseName && (
+            <span className="text-xs font-medium">🐴 {segment.horseName}</span>
+          )}
+          <span className="text-xs text-muted-foreground">{label}</span>
+        </div>
+      );
+    }
     const fromLabel = isRTL ? "من" : "From";
     const toLabel = isRTL ? "إلى" : "To";
     return (
