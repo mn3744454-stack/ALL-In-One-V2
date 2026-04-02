@@ -38,6 +38,7 @@ const serviceSchema = z.object({
   price_display: z.string().optional(),
   is_active: z.boolean().default(true),
   is_public: z.boolean().default(true),
+  is_taxable: z.boolean().default(true),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
@@ -75,6 +76,7 @@ export const ServiceFormDialog = ({
       price_display: service?.price_display || "",
       is_active: service?.is_active ?? true,
       is_public: service?.is_public ?? true,
+      is_taxable: service?.is_taxable ?? true,
     },
   });
 
@@ -90,6 +92,7 @@ export const ServiceFormDialog = ({
         price_display: service.price_display || "",
         is_active: service.is_active,
         is_public: service.is_public,
+        is_taxable: service.is_taxable ?? true,
       });
     }
   }, [service, form, effectiveKind]);
@@ -105,6 +108,7 @@ export const ServiceFormDialog = ({
       price_display: values.price_display,
       is_active: values.is_active,
       is_public: values.is_public,
+      is_taxable: values.is_taxable,
     });
     setOpen(false);
     if (!isEdit) {
@@ -271,7 +275,7 @@ export const ServiceFormDialog = ({
               )}
             />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               <FormField
                 control={form.control}
                 name="is_active"
@@ -302,6 +306,27 @@ export const ServiceFormDialog = ({
                       <FormLabel className="text-sm">{t("services.public")}</FormLabel>
                       <FormDescription className="text-xs">
                         {t("services.form.publicDesc")}
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="is_taxable"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm">{t("services.form.taxable")}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {t("services.form.taxableDesc")}
                       </FormDescription>
                     </div>
                     <FormControl>

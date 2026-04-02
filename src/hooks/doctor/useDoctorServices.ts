@@ -14,6 +14,7 @@ export interface DoctorService {
   currency: string;
   category: string | null;
   is_active: boolean;
+  is_taxable: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,7 @@ export interface CreateServiceData {
   currency?: string;
   category?: string;
   is_active?: boolean;
+  is_taxable?: boolean;
 }
 
 export interface UpdateServiceData extends Partial<CreateServiceData> {}

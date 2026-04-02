@@ -142,7 +142,12 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
     try {
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
-      const { subtotal, taxAmount, totalAmount: total } = computeTax(amount, taxConfig);
+      // Compute tax — skip if selected service is non-taxable
+      const selectedService = vetServices.find(s => s.id === selectedServiceId);
+      const isTaxable = selectedService?.is_taxable !== false;
+      const { subtotal, taxAmount, totalAmount: total } = isTaxable
+        ? computeTax(amount, taxConfig)
+        : { subtotal: amount, taxAmount: 0, totalAmount: amount };
 
       const invoice = await createInvoice({
         tenant_id: tenantId,

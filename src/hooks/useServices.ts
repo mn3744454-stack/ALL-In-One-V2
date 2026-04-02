@@ -15,6 +15,7 @@ export interface TenantService {
   price_display: string | null;
   is_active: boolean;
   is_public: boolean;
+  is_taxable: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +30,7 @@ export interface CreateServiceInput {
   price_display?: string;
   is_active?: boolean;
   is_public?: boolean;
+  is_taxable?: boolean;
 }
 
 export interface UpdateServiceInput extends Partial<CreateServiceInput> {
@@ -123,6 +125,7 @@ export const useCreateService = () => {
           price_display: input.price_display || null,
           is_active: input.is_active ?? true,
           is_public: input.is_public ?? true,
+          is_taxable: input.is_taxable ?? true,
         })
         .select()
         .single();

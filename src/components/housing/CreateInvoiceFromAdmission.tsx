@@ -310,8 +310,12 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       const amount = parseFloat(totalAmount) || 0;
       const displayName = selectedClient?.name || clientName || undefined;
 
-      // Compute tax using tenant config
-      const { subtotal, taxAmount, totalAmount: total } = computeTax(amount, taxConfig);
+      // Compute tax — skip if boarding service is non-taxable
+      const boardingService = boardingServices.find(s => s.id === boardingServiceId);
+      const isTaxable = boardingService?.is_taxable !== false;
+      const { subtotal, taxAmount, totalAmount: total } = isTaxable
+        ? computeTax(amount, taxConfig)
+        : { subtotal: amount, taxAmount: 0, totalAmount: amount };
 
       // Step 1: Create invoice header
       const invoice = await createInvoice({
@@ -423,7 +427,11 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     }
   };
 
-  const taxPreview = computeTax(parseFloat(totalAmount) || 0, taxConfig);
+  const boardingServiceForPreview = boardingServices.find(s => s.id === boardingServiceId);
+  const previewTaxable = boardingServiceForPreview?.is_taxable !== false;
+  const taxPreview = previewTaxable
+    ? computeTax(parseFloat(totalAmount) || 0, taxConfig)
+    : { subtotal: parseFloat(totalAmount) || 0, taxAmount: 0, totalAmount: parseFloat(totalAmount) || 0 };
   const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (

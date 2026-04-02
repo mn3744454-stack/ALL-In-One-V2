@@ -1,0 +1,1 @@
+ALTER TABLE public.tenant_services ADD COLUMN is_taxable BOOLEAN NOT NULL DEFAULT true;
