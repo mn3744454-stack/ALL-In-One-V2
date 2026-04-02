@@ -17,6 +17,7 @@ import { useServices } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { formatCurrency } from "@/lib/formatters";
