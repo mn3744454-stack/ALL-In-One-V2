@@ -51,6 +51,7 @@ export function InvoiceCard({
 }: InvoiceCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission } = usePermissions();
+  const tenantCurrency = useTenantCurrency();
 
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");
@@ -58,8 +59,8 @@ export function InvoiceCard({
   const canSend = hasPermission("finance.invoice.send");
   const canPrint = hasPermission("finance.invoice.print");
 
-  const formatAmount = (amount: number, currency: string = "SAR") => {
-    return formatCurrency(amount, currency);
+  const formatAmount = (amount: number, currency?: string) => {
+    return formatCurrency(amount, currency || tenantCurrency);
   };
 
   return (

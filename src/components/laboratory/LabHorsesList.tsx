@@ -165,7 +165,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
   };
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   // Check if we have a horseId param for profile view
   const selectedHorseId = searchParams.get("horseId");

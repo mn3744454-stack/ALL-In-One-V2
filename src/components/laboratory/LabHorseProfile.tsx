@@ -103,7 +103,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   };
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const handleSampleClick = (sample: LabSample) => {
     onSampleClick?.(sample.id);

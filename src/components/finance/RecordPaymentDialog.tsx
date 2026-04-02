@@ -74,7 +74,7 @@ export function RecordPaymentDialog({
   open,
   onOpenChange,
   invoiceId,
-  currency = "SAR",
+  currency,
   onSuccess,
 }: RecordPaymentDialogProps) {
   const { t, dir } = useI18n();

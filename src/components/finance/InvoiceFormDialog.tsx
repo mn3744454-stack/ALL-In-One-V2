@@ -337,7 +337,7 @@ export function InvoiceFormDialog({
               <InvoiceLineItemsEditor
                 items={lineItems}
                 onChange={setLineItems}
-                currency="SAR"
+                currency={invoice?.currency || tenantCurrency}
                 horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
                 services={allServices}
               />

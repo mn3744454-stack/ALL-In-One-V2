@@ -42,7 +42,7 @@ export function TemplateDetailsDialog({
   // Get pricing info
   const pricing = (template as any).pricing as { base_price?: number; currency?: string } | undefined;
   const basePrice = pricing?.base_price;
-  const currency = pricing?.currency || "SAR";
+  const currency = pricing?.currency || tenantCurrency;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
