@@ -48,6 +48,7 @@ import { useInvoicePaymentsBatch } from "@/hooks/finance/useInvoicePaymentsBatch
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Search,
   FileText,

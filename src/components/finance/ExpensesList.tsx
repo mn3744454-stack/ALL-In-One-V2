@@ -41,6 +41,7 @@ import { EXPENSE_CATEGORIES, type Expense } from "@/hooks/finance/useExpenses";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Search,
   Receipt,
