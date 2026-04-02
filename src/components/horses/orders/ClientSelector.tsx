@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { Check, ChevronsUpDown, User, Building, Warehouse, Stethoscope, AlertCircle, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
