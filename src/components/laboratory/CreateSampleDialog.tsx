@@ -45,6 +45,7 @@ import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
