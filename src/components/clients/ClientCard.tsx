@@ -114,7 +114,7 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
 
         {client.credit_limit && (
           <div className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
-            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, "SAR")}
+            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, tenantCurrency)}
           </div>
         )}
       </CardContent>

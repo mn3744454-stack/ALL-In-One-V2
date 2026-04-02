@@ -52,6 +52,7 @@ export function ClientsTable({
   onViewStatement,
 }: ClientsTableProps) {
   const { t, dir, lang } = useI18n();
+  const tenantCurrency = useTenantCurrency();
 
 
   return (
