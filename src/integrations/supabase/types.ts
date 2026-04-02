@@ -8861,6 +8861,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_public: boolean
+          is_taxable: boolean
           name: string
           name_ar: string | null
           price_display: string | null
@@ -8876,6 +8877,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_public?: boolean
+          is_taxable?: boolean
           name: string
           name_ar?: string | null
           price_display?: string | null
@@ -8891,6 +8893,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_public?: boolean
+          is_taxable?: boolean
           name?: string
           name_ar?: string | null
           price_display?: string | null
