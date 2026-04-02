@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Stethoscope, Warehouse, ArrowLeftRight, Baby, FlaskConical, Shield, ChevronRight, Key, Link2, BellRing } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
+import { TaxPricingCard } from "@/components/settings/TaxPricingCard";
 import { useTenant } from "@/contexts/TenantContext";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
@@ -174,6 +175,9 @@ const DashboardOrganizationSettings = () => {
               </CardHeader>
             </Card>
           )}
+
+          {/* Tax & Pricing Card */}
+          <TaxPricingCard canManage={canManage} />
 
           <Card>
             <CardHeader>

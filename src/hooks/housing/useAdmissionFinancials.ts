@@ -120,8 +120,8 @@ export function useAdmissionFinancials(admissionId: string | null, clientId: str
 
         // Compare accrued (pre-tax) against billed on the same pre-tax basis.
         // admissionBilled may include tax, so back-calculate the pre-tax billed portion.
-        const tenantTaxRate = Number((activeTenant?.tenant as any)?.default_tax_rate ?? 15);
-        const isTaxInclusive = Boolean((activeTenant?.tenant as any)?.prices_tax_inclusive);
+        const tenantTaxRate = Number(activeTenant?.tenant?.default_tax_rate ?? 15);
+        const isTaxInclusive = Boolean(activeTenant?.tenant?.prices_tax_inclusive);
         let billedPreTax = result.admissionBilled;
         if (tenantTaxRate > 0 && !isTaxInclusive) {
           // Source-generated invoices add tax on top, so billed = subtotal + tax
