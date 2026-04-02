@@ -38,9 +38,10 @@ export interface ServicePricingResult {
 export async function computeServicePrice(
   serviceId: string,
   tenantId: string,
-  service: ServicePricingFields
+  service: ServicePricingFields,
+  fallbackCurrency = "SAR"
 ): Promise<ServicePricingResult> {
-  const currency = service.currency || "SAR";
+  const currency = service.currency || fallbackCurrency;
   let baseValue: number | null = null;
   let sumTemplatesValue: number | null = null;
 

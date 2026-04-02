@@ -6,5 +6,5 @@ import { useTenant } from "@/contexts/TenantContext";
  */
 export function useTenantCurrency(): string {
   const { activeTenant } = useTenant();
-  return (activeTenant?.tenant as any)?.currency || "SAR";
+  return activeTenant?.tenant?.currency || "SAR";
 }
