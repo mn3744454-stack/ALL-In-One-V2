@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices } from "@/hooks/finance/useInvoices";
 import { useExpenses } from "@/hooks/finance/useExpenses";
 import { useI18n } from "@/i18n";
