@@ -91,7 +91,7 @@ export function ClientsTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums" dir="ltr">
-                  {creditLimit > 0 ? formatCurrency(creditLimit, "SAR") : "-"}
+                  {creditLimit > 0 ? formatCurrency(creditLimit, tenantCurrency) : "-"}
                 </TableCell>
                 <TableCell className={cn(
                   "text-center font-mono tabular-nums",
