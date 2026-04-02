@@ -161,7 +161,7 @@ export function RecordPaymentDialog({
     }
   };
 
-  const formatAmount = (amount: number) => formatCurrency(amount, currency);
+  const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
