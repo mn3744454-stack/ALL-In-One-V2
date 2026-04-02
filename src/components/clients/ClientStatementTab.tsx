@@ -82,6 +82,7 @@ interface FlatStatementRow {
     days: number;
     amount: number;
     horseName?: string;
+    isOtherCharges?: boolean;
   };
   /** enriched data for the parent entry */
   enriched?: EnrichedStatementData;
@@ -102,6 +103,19 @@ function RowDescription({
 
   // Boarding segment sub-row — compact description
   if (isSegment && segment) {
+    // "Other charges" remainder row for non-boarding items on a boarding invoice
+    if (segment.isOtherCharges) {
+      const label = isRTL ? "رسوم أخرى" : "Other charges";
+      return (
+        <div className="flex items-center gap-2 flex-wrap">
+          <DomainBadge source="boarding" t={t} />
+          {segment.horseName && (
+            <span className="text-xs font-medium">🐴 {segment.horseName}</span>
+          )}
+          <span className="text-xs text-muted-foreground">{label}</span>
+        </div>
+      );
+    }
     const fromLabel = isRTL ? "من" : "From";
     const toLabel = isRTL ? "إلى" : "To";
     return (
@@ -280,6 +294,10 @@ export function enrichedToString(
 /** Build a flat description string for a boarding segment row (for print) */
 function segmentToString(seg: FlatStatementRow["segment"], horseName?: string, isRTL?: boolean): string {
   if (!seg) return "-";
+  if (seg.isOtherCharges) {
+    const label = isRTL ? "رسوم أخرى" : "Other charges";
+    return horseName ? `${horseName} | ${label}` : label;
+  }
   const parts: string[] = [];
   if (horseName) parts.push(horseName);
   const from = isRTL ? "من" : "From";
@@ -623,8 +641,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
           : undefined;
 
         // Render each segment as its own row
+        let segmentTotal = 0;
         for (let i = 0; i < enriched.boardingSegments.length; i++) {
           const seg = enriched.boardingSegments[i];
+          segmentTotal += seg.amount;
           rows.push({
             key: `${entry.id}_seg_${i}`,
             entry,
@@ -635,6 +655,26 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
               days: seg.days,
               amount: seg.amount,
               horseName,
+            },
+            enriched,
+          });
+        }
+
+        // If the invoice total exceeds the sum of boarding segments,
+        // add a remainder row for non-boarding items on the same invoice
+        const remainder = entry.debit - segmentTotal;
+        if (remainder > 0.01) {
+          rows.push({
+            key: `${entry.id}_other`,
+            entry,
+            isSegment: true,
+            segment: {
+              periodStart: "",
+              periodEnd: entry.date,
+              days: 0,
+              amount: remainder,
+              horseName,
+              isOtherCharges: true,
             },
             enriched,
           });
