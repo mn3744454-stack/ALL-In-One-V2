@@ -82,7 +82,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
     return { total: invoices.length, paid, pending, overdue };
   }, [invoices]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   return (
     <div className="space-y-6">

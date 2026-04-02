@@ -42,10 +42,12 @@ export function FinancialSummaryWidget() {
     return { revenue, expenses: expenseTotal, outstanding };
   }, [invoices, expenses]);
 
+  const tenantCurrency = useTenantCurrency();
+
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-US", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "SAR",
+      currency: tenantCurrency,
       maximumFractionDigits: 0,
     }).format(amount);
   };
