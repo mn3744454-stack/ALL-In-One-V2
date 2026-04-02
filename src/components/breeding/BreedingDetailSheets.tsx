@@ -38,6 +38,7 @@ interface BreedingRecordDetailSheetProps {
 export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canManage }: BreedingRecordDetailSheetProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const tenantId = activeTenant?.tenant?.id;
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [stableCostLoading, setStableCostLoading] = useState(false);
