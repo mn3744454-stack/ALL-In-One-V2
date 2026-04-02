@@ -427,7 +427,11 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     }
   };
 
-  const taxPreview = computeTax(parseFloat(totalAmount) || 0, taxConfig);
+  const boardingServiceForPreview = boardingServices.find(s => s.id === boardingServiceId);
+  const previewTaxable = boardingServiceForPreview?.is_taxable !== false;
+  const taxPreview = previewTaxable
+    ? computeTax(parseFloat(totalAmount) || 0, taxConfig)
+    : { subtotal: parseFloat(totalAmount) || 0, taxAmount: 0, totalAmount: parseFloat(totalAmount) || 0 };
   const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (
