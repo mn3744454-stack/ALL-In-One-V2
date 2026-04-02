@@ -17,6 +17,7 @@ import { useServicesByKind } from "@/hooks/useServices";
 import { usePlanInclusionCheck } from "@/hooks/billing/usePlanInclusionCheck";
 import { useSupplierPayableForSource } from "@/hooks/billing/useSupplierPayableForSource";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
