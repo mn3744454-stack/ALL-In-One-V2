@@ -56,7 +56,7 @@ export function InvoiceFormDialog({
   const isEditMode = mode === "edit" && invoice;
 
   // Use tenant default tax rate (fallback to "15" if not set)
-  const defaultTaxRate = String((activeTenant?.tenant as any)?.default_tax_rate ?? 15);
+  const defaultTaxRate = String(activeTenant?.tenant?.default_tax_rate ?? 15);
 
   const [formData, setFormData] = useState({
     client_id: "",
