@@ -38,6 +38,7 @@ const serviceSchema = z.object({
   price_display: z.string().optional(),
   is_active: z.boolean().default(true),
   is_public: z.boolean().default(true),
+  is_taxable: z.boolean().default(true),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
