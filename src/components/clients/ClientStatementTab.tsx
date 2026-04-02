@@ -294,6 +294,10 @@ export function enrichedToString(
 /** Build a flat description string for a boarding segment row (for print) */
 function segmentToString(seg: FlatStatementRow["segment"], horseName?: string, isRTL?: boolean): string {
   if (!seg) return "-";
+  if (seg.isOtherCharges) {
+    const label = isRTL ? "رسوم أخرى" : "Other charges";
+    return horseName ? `${horseName} | ${label}` : label;
+  }
   const parts: string[] = [];
   if (horseName) parts.push(horseName);
   const from = isRTL ? "من" : "From";
