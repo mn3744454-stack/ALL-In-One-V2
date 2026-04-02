@@ -176,6 +176,9 @@ const DashboardOrganizationSettings = () => {
             </Card>
           )}
 
+          {/* Tax & Pricing Card */}
+          <TaxPricingCard canManage={canManage} />
+
           <Card>
             <CardHeader>
               <CardTitle>{t("organizationSettings.modules")}</CardTitle>
