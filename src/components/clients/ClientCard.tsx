@@ -107,7 +107,7 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
             <span className="text-sm text-amber-700 font-medium font-mono tabular-nums" dir="ltr">
-              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, "SAR")}
+              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, tenantCurrency)}
             </span>
           </div>
         )}
