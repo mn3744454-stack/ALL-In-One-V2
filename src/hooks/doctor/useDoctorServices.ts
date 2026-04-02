@@ -14,6 +14,7 @@ export interface DoctorService {
   currency: string;
   category: string | null;
   is_active: boolean;
+  is_taxable: boolean;
   created_at: string;
   updated_at: string;
 }
