@@ -15,6 +15,7 @@ export interface TenantService {
   price_display: string | null;
   is_active: boolean;
   is_public: boolean;
+  is_taxable: boolean;
   created_at: string;
   updated_at: string;
 }
