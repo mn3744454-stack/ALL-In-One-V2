@@ -162,7 +162,7 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
         tax_amount: taxAmount,
         discount_amount: 0,
         total_amount: total,
-        currency: "SAR",
+        currency: tenantCurrency,
         notes: notes || undefined,
       });
 
