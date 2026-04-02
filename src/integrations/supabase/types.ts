@@ -8925,6 +8925,7 @@ export type Database = {
           address: string | null
           cover_url: string | null
           created_at: string
+          currency: string
           default_tax_rate: number | null
           description: string | null
           description_ar: string | null
@@ -8954,6 +8955,7 @@ export type Database = {
           address?: string | null
           cover_url?: string | null
           created_at?: string
+          currency?: string
           default_tax_rate?: number | null
           description?: string | null
           description_ar?: string | null
@@ -8983,6 +8985,7 @@ export type Database = {
           address?: string | null
           cover_url?: string | null
           created_at?: string
+          currency?: string
           default_tax_rate?: number | null
           description?: string | null
           description_ar?: string | null
