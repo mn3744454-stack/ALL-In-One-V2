@@ -30,6 +30,7 @@ export interface CreateServiceInput {
   price_display?: string;
   is_active?: boolean;
   is_public?: boolean;
+  is_taxable?: boolean;
 }
 
 export interface UpdateServiceInput extends Partial<CreateServiceInput> {
