@@ -44,6 +44,7 @@ interface LabHorseProfileProps {
 export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick, onEdit }: LabHorseProfileProps) {
   const { t, lang, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
+  const tenantCurrency = useTenantCurrency();
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);

@@ -79,6 +79,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
 
   // View preference
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-horses');
+  const tenantCurrency = useTenantCurrency();
 
   // Use aggregated hook for metrics
   const { data: labHorses = [], isLoading: loading } = useLabHorsesWithMetrics({
