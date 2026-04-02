@@ -86,7 +86,7 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
           sourceId: attempt.id,
           supplierName: attempt.external_provider_name,
           amount: 0,
-          currency: "SAR",
+          currency: tenantCurrency,
         });
       }
       if (ok) {
