@@ -19,6 +19,7 @@ import { FinancialStatusSection } from "@/components/finance/FinancialStatusSect
 import { useI18n } from "@/i18n";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
 import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
