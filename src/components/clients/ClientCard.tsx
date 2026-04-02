@@ -28,6 +28,7 @@ interface ClientCardProps {
 
 export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManage = false }: ClientCardProps) {
   const { t, lang } = useI18n();
+  const tenantCurrency = useTenantCurrency();
   const Icon = getClientTypeIcon(client.type);
 
   const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
