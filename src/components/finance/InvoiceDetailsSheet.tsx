@@ -35,6 +35,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { getCurrentLanguage } from "@/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

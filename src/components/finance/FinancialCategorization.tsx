@@ -23,6 +23,7 @@ import {
 import { useCustomFinancialCategories } from "@/hooks/useCustomFinancialCategories";
 import { AddCategoryDialog } from "@/components/horses/orders/AddCategoryDialog";
 import { useI18n } from "@/i18n";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 
 interface FinancialCategorizationProps {
   orderCategory: OrderCategory;
