@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, FileText, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import type { Client, ClientStatus, ClientType } from "@/hooks/useClients";
 

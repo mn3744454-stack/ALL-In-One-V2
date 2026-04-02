@@ -15,6 +15,7 @@ import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileTex
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import type { Client } from "@/hooks/useClients";
 
 interface ClientCardProps {
