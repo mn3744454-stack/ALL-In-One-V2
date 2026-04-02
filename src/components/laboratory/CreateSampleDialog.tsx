@@ -170,6 +170,7 @@ export function CreateSampleDialog({
   const { hasPermission, isOwner } = usePermissions();
   const { isLabTenant, labMode } = useModuleAccess();
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const { user } = useAuth();
   
   // Lab tenants with full mode use lab_horses instead of stable horses
