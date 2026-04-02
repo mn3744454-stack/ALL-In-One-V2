@@ -26,6 +26,7 @@ export function TemplateDetailsDialog({
   onOpenChange 
 }: TemplateDetailsDialogProps) {
   const { t, dir } = useI18n();
+  const tenantCurrency = useTenantCurrency();
   const isArabic = dir === "rtl";
 
   if (!template) return null;
