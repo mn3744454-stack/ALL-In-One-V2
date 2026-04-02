@@ -124,7 +124,7 @@ export function InvoiceFormDialog({
     }
   }, [open]);
 
-  const pricesTaxInclusive = Boolean((activeTenant?.tenant as any)?.prices_tax_inclusive);
+  const pricesTaxInclusive = Boolean(activeTenant?.tenant?.prices_tax_inclusive);
 
   const calculations = useMemo(() => {
     const lineTotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
