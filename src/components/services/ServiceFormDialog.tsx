@@ -76,6 +76,7 @@ export const ServiceFormDialog = ({
       price_display: service?.price_display || "",
       is_active: service?.is_active ?? true,
       is_public: service?.is_public ?? true,
+      is_taxable: service?.is_taxable ?? true,
     },
   });
 
