@@ -35,6 +35,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { RecordPaymentDialog } from "./RecordPaymentDialog";
 import { downloadInvoicePDF, printInvoice } from "./InvoicePDFGenerator";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { getCurrentLanguage } from "@/i18n";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -279,7 +280,8 @@ export function InvoiceDetailsSheet({
   };
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => formatCurrency(amount, invoice?.currency || "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, invoice?.currency || tenantCurrency);
 
   // Invalidate all dependent queries after actions
   const invalidateQueries = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant?.id);

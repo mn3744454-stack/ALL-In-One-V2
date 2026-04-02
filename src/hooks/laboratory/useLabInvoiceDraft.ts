@@ -249,7 +249,7 @@ export function useLabInvoiceDraft() {
         tax_amount: taxAmount,
         discount_amount: discountAmount,
         total_amount: totalAmount,
-        currency: "SAR",
+        currency: activeTenant?.tenant?.currency || "SAR",
         notes: input.notes || input.sourceName, // Clean notes without technical IDs
       });
 

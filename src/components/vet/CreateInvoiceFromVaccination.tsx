@@ -17,6 +17,7 @@ import { useServicesByKind } from "@/hooks/useServices";
 import { usePlanInclusionCheck } from "@/hooks/billing/usePlanInclusionCheck";
 import { useSupplierPayableForSource } from "@/hooks/billing/useSupplierPayableForSource";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ interface Props {
 
 export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props) {
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const { user } = useAuth();
   const { t, lang } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
@@ -160,7 +162,7 @@ export function CreateInvoiceFromVaccination({ open, onOpenChange, data }: Props
         tax_amount: taxAmount,
         discount_amount: 0,
         total_amount: total,
-        currency: "SAR",
+        currency: tenantCurrency,
         notes: notes || undefined,
       });
 

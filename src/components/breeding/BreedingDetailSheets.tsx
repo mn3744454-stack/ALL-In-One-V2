@@ -19,6 +19,7 @@ import { FinancialStatusSection } from "@/components/finance/FinancialStatusSect
 import { useI18n } from "@/i18n";
 import { displayHorseName, formatBreedingDate } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useBillingLinks } from "@/hooks/billing/useBillingLinks";
 import { useFinancialEntries } from "@/hooks/finance/useFinancialEntries";
 import { recordAsStableCost } from "@/lib/finance/recordAsStableCost";
@@ -37,6 +38,7 @@ interface BreedingRecordDetailSheetProps {
 export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canManage }: BreedingRecordDetailSheetProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const tenantId = activeTenant?.tenant?.id;
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [stableCostLoading, setStableCostLoading] = useState(false);
@@ -84,7 +86,7 @@ export function BreedingRecordDetailSheet({ attempt, open, onOpenChange, canMana
           sourceId: attempt.id,
           supplierName: attempt.external_provider_name,
           amount: 0,
-          currency: "SAR",
+          currency: tenantCurrency,
         });
       }
       if (ok) {

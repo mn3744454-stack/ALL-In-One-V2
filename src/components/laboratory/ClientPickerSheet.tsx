@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { Check, Search, User, Building, Warehouse, Stethoscope, AlertCircle, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -80,10 +81,11 @@ export function ClientPickerSheet({
     return null;
   };
 
+  const tenantCurrency = useTenantCurrency();
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-SA", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "SAR",
+      currency: tenantCurrency,
       maximumFractionDigits: 0,
     }).format(amount);
   };

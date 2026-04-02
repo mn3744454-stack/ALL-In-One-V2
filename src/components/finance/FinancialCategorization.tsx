@@ -23,6 +23,7 @@ import {
 import { useCustomFinancialCategories } from "@/hooks/useCustomFinancialCategories";
 import { AddCategoryDialog } from "@/components/horses/orders/AddCategoryDialog";
 import { useI18n } from "@/i18n";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 
 interface FinancialCategorizationProps {
   orderCategory: OrderCategory;
@@ -106,10 +107,11 @@ export function FinancialCategorization({
     return calculateTotal(estimatedCost, categorization.taxCategory);
   }, [estimatedCost, categorization.taxCategory, calculateTotal]);
 
+  const tenantCurrency = useTenantCurrency();
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-SA", {
       style: "currency",
-      currency: "SAR",
+      currency: tenantCurrency,
       maximumFractionDigits: 2,
     }).format(amount);
   };

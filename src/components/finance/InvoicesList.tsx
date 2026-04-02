@@ -48,6 +48,7 @@ import { useInvoicePaymentsBatch } from "@/hooks/finance/useInvoicePaymentsBatch
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Search,
   FileText,
@@ -91,7 +92,8 @@ export function InvoicesList({
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
   const invoiceIds = useMemo(() => invoices.map(i => i.id), [invoices]);
   const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, FileText, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import type { Client, ClientStatus, ClientType } from "@/hooks/useClients";
 
@@ -51,6 +52,7 @@ export function ClientsTable({
   onViewStatement,
 }: ClientsTableProps) {
   const { t, dir, lang } = useI18n();
+  const tenantCurrency = useTenantCurrency();
 
 
   return (
@@ -89,16 +91,16 @@ export function ClientsTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums" dir="ltr">
-                  {creditLimit > 0 ? formatCurrency(creditLimit, "SAR") : "-"}
+                  {creditLimit > 0 ? formatCurrency(creditLimit, tenantCurrency) : "-"}
                 </TableCell>
                 <TableCell className={cn(
                   "text-center font-mono tabular-nums",
                   hasBalance && "text-destructive"
                 )} dir="ltr">
-                  {formatCurrency(outstanding, "SAR")}
+                  {formatCurrency(outstanding, tenantCurrency)}
                 </TableCell>
                 <TableCell className="text-center font-mono tabular-nums text-primary" dir="ltr">
-                  {creditLimit > 0 ? formatCurrency(available, "SAR") : "-"}
+                  {creditLimit > 0 ? formatCurrency(available, tenantCurrency) : "-"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge

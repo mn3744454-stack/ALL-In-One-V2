@@ -41,6 +41,7 @@ import { EXPENSE_CATEGORIES, type Expense } from "@/hooks/finance/useExpenses";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Search,
   Receipt,
@@ -78,7 +79,8 @@ export function ExpensesList({
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-expenses');
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {

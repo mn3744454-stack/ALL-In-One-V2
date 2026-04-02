@@ -25,6 +25,7 @@ import {
   ExpenseFormDialog,
 } from "@/components/finance";
 import { formatCurrency, formatDateTime12h } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import { MobilePageHeader } from "@/components/navigation";
 import { isThisMonth, format } from "date-fns";
@@ -81,7 +82,8 @@ function InvoicesTab({ selectedInvoiceId, onInvoiceClick }: InvoicesTabProps) {
     return { total: invoices.length, paid, pending, overdue };
   }, [invoices]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   return (
     <div className="space-y-6">
@@ -196,7 +198,8 @@ function ExpensesTab() {
     };
   }, [expenses]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   return (
     <div className="space-y-6">
@@ -339,7 +342,8 @@ function LedgerTab() {
   };
   const getEnrichment = (entry: any) => enrichedDescs.get(entry.id);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const filteredEntries = useMemo(() => {
     return entries.filter((e) => {
@@ -635,7 +639,8 @@ function PaymentsTab() {
     return { total, count: paymentEntries.length, methods: [...methods] };
   }, [paymentEntries]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const uniqueMethods = useMemo(() => {
     const methods = new Set(entries.filter(e => e.entry_type === 'payment').map(e => e.payment_method).filter(Boolean));

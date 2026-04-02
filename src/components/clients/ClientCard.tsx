@@ -15,6 +15,7 @@ import { MoreVertical, Phone, Mail, MapPin, AlertCircle, Pencil, Trash2, FileTex
 import { ClientStatusBadge } from "./ClientStatusBadge";
 import { ClientTypeBadge, getClientTypeIcon } from "./ClientTypeBadge";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import type { Client } from "@/hooks/useClients";
 
 interface ClientCardProps {
@@ -27,6 +28,7 @@ interface ClientCardProps {
 
 export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManage = false }: ClientCardProps) {
   const { t, lang } = useI18n();
+  const tenantCurrency = useTenantCurrency();
   const Icon = getClientTypeIcon(client.type);
 
   const hasOutstandingBalance = (client.outstanding_balance || 0) > 0;
@@ -105,14 +107,14 @@ export function ClientCard({ client, onEdit, onDelete, onViewStatement, canManag
           <div className="flex items-center gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
             <span className="text-sm text-amber-700 font-medium font-mono tabular-nums" dir="ltr">
-              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, "SAR")}
+              {t("clients.outstandingBalance")}: {formatCurrency(client.outstanding_balance || 0, tenantCurrency)}
             </span>
           </div>
         )}
 
         {client.credit_limit && (
           <div className="text-xs text-muted-foreground font-mono tabular-nums" dir="ltr">
-            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, "SAR")}
+            {t("clients.form.creditLimit")}: {formatCurrency(client.credit_limit, tenantCurrency)}
           </div>
         )}
       </CardContent>

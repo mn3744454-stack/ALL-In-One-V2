@@ -4,11 +4,24 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
+
+const CURRENCY_OPTIONS = [
+  { value: "SAR", label: "SAR – Saudi Riyal" },
+  { value: "AED", label: "AED – UAE Dirham" },
+  { value: "QAR", label: "QAR – Qatari Riyal" },
+  { value: "KWD", label: "KWD – Kuwaiti Dinar" },
+  { value: "BHD", label: "BHD – Bahraini Dinar" },
+  { value: "OMR", label: "OMR – Omani Rial" },
+  { value: "USD", label: "USD – US Dollar" },
+  { value: "EUR", label: "EUR – Euro" },
+  { value: "GBP", label: "GBP – British Pound" },
+];
 
 interface TaxPricingCardProps {
   canManage: boolean;
@@ -19,6 +32,7 @@ export const TaxPricingCard = ({ canManage }: TaxPricingCardProps) => {
   const { t } = useI18n();
 
   const tenant = activeTenant?.tenant;
+  const [currency, setCurrency] = useState("SAR");
   const [taxRate, setTaxRate] = useState("");
   const [inclusive, setInclusive] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -27,13 +41,13 @@ export const TaxPricingCard = ({ canManage }: TaxPricingCardProps) => {
   // Hydrate from tenant
   useEffect(() => {
     if (!tenant) return;
+    setCurrency(tenant.currency || "SAR");
     setTaxRate(String(tenant.default_tax_rate ?? 15));
     setInclusive(tenant.prices_tax_inclusive ?? false);
     setDirty(false);
   }, [tenant]);
 
   const handleTaxRateChange = (val: string) => {
-    // Allow empty, digits, and one decimal point
     if (val === "" || /^\d*\.?\d{0,2}$/.test(val)) {
       setTaxRate(val);
       setDirty(true);
@@ -42,6 +56,11 @@ export const TaxPricingCard = ({ canManage }: TaxPricingCardProps) => {
 
   const handleInclusiveChange = (value: string) => {
     setInclusive(value === "inclusive");
+    setDirty(true);
+  };
+
+  const handleCurrencyChange = (value: string) => {
+    setCurrency(value);
     setDirty(true);
   };
 
@@ -56,6 +75,7 @@ export const TaxPricingCard = ({ canManage }: TaxPricingCardProps) => {
       const { error } = await supabase
         .from("tenants")
         .update({
+          currency,
           default_tax_rate: rate,
           prices_tax_inclusive: inclusive,
         })
@@ -92,6 +112,30 @@ export const TaxPricingCard = ({ canManage }: TaxPricingCardProps) => {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Currency */}
+        <div className="space-y-2">
+          <Label htmlFor="currency">{t("organizationSettings.taxPricing.currency")}</Label>
+          <Select
+            value={currency}
+            onValueChange={handleCurrencyChange}
+            disabled={!canManage || saving}
+          >
+            <SelectTrigger className="max-w-[280px]" id="currency">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CURRENCY_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">
+            {t("organizationSettings.taxPricing.currencyHint")}
+          </p>
+        </div>
+
         {/* Tax Rate */}
         <div className="space-y-2">
           <Label htmlFor="tax-rate">{t("organizationSettings.taxPricing.taxRate")}</Label>

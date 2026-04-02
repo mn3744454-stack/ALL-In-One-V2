@@ -23,6 +23,7 @@ interface Tenant {
   is_public: boolean | null;
   default_tax_rate: number | null;
   prices_tax_inclusive: boolean;
+  currency: string;
 }
 
 interface TenantMembership {
