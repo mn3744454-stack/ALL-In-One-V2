@@ -78,7 +78,8 @@ export function ExpensesList({
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-expenses');
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {

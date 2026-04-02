@@ -639,7 +639,8 @@ function PaymentsTab() {
     return { total, count: paymentEntries.length, methods: [...methods] };
   }, [paymentEntries]);
 
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const uniqueMethods = useMemo(() => {
     const methods = new Set(entries.filter(e => e.entry_type === 'payment').map(e => e.payment_method).filter(Boolean));

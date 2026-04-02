@@ -91,7 +91,8 @@ export function InvoicesList({
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('finance-invoices');
   const invoiceIds = useMemo(() => invoices.map(i => i.id), [invoices]);
   const { getPaidAmount } = useInvoicePaymentsBatch(invoiceIds);
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const tenantCurrency = useTenantCurrency();
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const canEdit = hasPermission("finance.invoice.edit");
   const canDelete = hasPermission("finance.invoice.delete");
