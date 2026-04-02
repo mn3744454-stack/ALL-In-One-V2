@@ -108,6 +108,7 @@ export const ServiceFormDialog = ({
       price_display: values.price_display,
       is_active: values.is_active,
       is_public: values.is_public,
+      is_taxable: values.is_taxable,
     });
     setOpen(false);
     if (!isEdit) {
