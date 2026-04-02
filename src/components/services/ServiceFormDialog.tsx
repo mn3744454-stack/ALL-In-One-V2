@@ -92,6 +92,7 @@ export const ServiceFormDialog = ({
         price_display: service.price_display || "",
         is_active: service.is_active,
         is_public: service.is_public,
+        is_taxable: service.is_taxable ?? true,
       });
     }
   }, [service, form, effectiveKind]);
