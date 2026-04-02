@@ -80,6 +80,8 @@ export function RecordPaymentDialog({
 }: RecordPaymentDialogProps) {
   const { t, dir } = useI18n();
   const { hasPermission } = usePermissions();
+  const tenantCurrency = useTenantCurrency();
+  const effectiveCurrency = currency || tenantCurrency;
   const { summary, isLoading, recordPayment, isRecording } = useInvoicePayments(invoiceId);
   const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
