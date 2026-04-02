@@ -82,6 +82,7 @@ interface FlatStatementRow {
     days: number;
     amount: number;
     horseName?: string;
+    isOtherCharges?: boolean;
   };
   /** enriched data for the parent entry */
   enriched?: EnrichedStatementData;
