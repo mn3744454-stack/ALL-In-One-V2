@@ -1,18 +1,40 @@
 
 
-## Fix: Boarding Invoice Dialog Overflow
+## تحليل السبب الجذري: فجوة الـ 1,150 ريال
 
-**Problem**: The `CreateInvoiceFromAdmission` dialog content exceeds viewport height when billed periods, overlap warnings, and form fields are all visible — content spills outside the dialog with no scroll.
+### المشكلة
 
-**Solution**: Apply the same layout containment pattern already established for `CheckoutDialog` (per the boarding-checkout-layout-standard memory):
+- **بطاقة الملخص** (إجمالي الفواتير ضمن النطاق) = **143,625 ريال**
+- **آخر رصيد متراكم** في آخر صف بالجدول = **142,475 ريال**
+- **الفرق** = **1,150 ريال**
 
-1. **`CreateInvoiceFromAdmission.tsx`** — restructure the dialog content:
-   - Add `max-h-[85vh] flex flex-col` to `DialogContent`
-   - Keep `DialogHeader` as `shrink-0` (sticky top)
-   - Wrap the middle content (billed periods summary, warnings, form fields) in a `flex-1 overflow-y-auto` scroll region
-   - Keep the action buttons (`Cancel` / `Create`) as `shrink-0` pinned at the bottom outside the scroll area
+### السبب
 
-2. **No changes** to `dialog.tsx` (shared component), statement UI, or any other files.
+عندك فاتورة إيواء فيها بنود مختلطة — يعني فيها بنود إيواء (لها تاريخ بداية ونهاية) وفيها بند أو أكثر **مش إيواء** (مثلاً رسوم خدمة، استشارة، أو أي شيء ثاني).
 
-**Files changed**: `src/components/housing/CreateInvoiceFromAdmission.tsx` only.
+اللي يصير في الكود:
+
+1. **بطاقة الملخص** تحسب المبلغ الكامل للفاتورة من دفتر الأستاذ (كل البنود مع بعض) = صح ✅
+2. **صفوف الجدول** لما تلاقي إن الفاتورة فيها بنود إيواء، تعرض **بس** بنود الإيواء كصفوف منفصلة، وتتجاهل أي بند ثاني على نفس الفاتورة = **هنا المشكلة** ❌
+
+يعني البند اللي قيمته 1,000 ريال + 150 ريال ضريبة (15%) = 1,150 ريال — موجود في حساب البطاقة بس **ما له صف في الجدول**.
+
+### الحل المقترح
+
+في ملف `ClientStatementTab.tsx`، في المكان اللي يبني فيه صفوف الجدول:
+
+- بعد ما يعرض كل بنود الإيواء، يحسب: **هل مجموع البنود المعروضة = إجمالي الفاتورة؟**
+- لو في فرق، يضيف **صف إضافي** باسم "رسوم أخرى" / "Other charges" بقيمة الفرق
+- كذا الرصيد المتراكم يوصل لنفس رقم البطاقة بالضبط
+
+### الملفات اللي تتغير
+
+- `src/components/clients/ClientStatementTab.tsx` — منطق بناء الصفوف فقط
+
+### اللي ما يتغير
+
+- لا تغيير في قاعدة البيانات
+- لا تغيير في منطق الإثراء (enrichment)
+- لا تغيير في البطاقات أو الملخصات
+- لا تغيير في الطباعة/PDF (لأنها تاخذ من نفس الصفوف)
 
