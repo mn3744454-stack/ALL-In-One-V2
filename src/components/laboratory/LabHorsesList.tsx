@@ -39,6 +39,7 @@ import { useLabHorses, type LabHorse, type CreateLabHorseData } from "@/hooks/la
 import { useLabHorsesWithMetrics, type LabHorseWithMetrics } from "@/hooks/laboratory/useLabHorsesWithMetrics";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 

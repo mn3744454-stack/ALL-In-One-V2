@@ -28,6 +28,7 @@ import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { OwnerQuickViewPopover } from "./OwnerQuickViewPopover";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
