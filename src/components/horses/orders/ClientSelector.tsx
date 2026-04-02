@@ -88,10 +88,11 @@ export function ClientSelector({
     return null;
   };
 
+  const tenantCurrency = useTenantCurrency();
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat(dir === "rtl" ? "ar-SA" : "en-SA", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "SAR",
+      currency: tenantCurrency,
       maximumFractionDigits: 0,
     }).format(amount);
   };
