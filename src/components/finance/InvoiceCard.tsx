@@ -4,6 +4,7 @@ import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import {
   DropdownMenu,
