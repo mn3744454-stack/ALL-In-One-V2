@@ -641,8 +641,10 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
           : undefined;
 
         // Render each segment as its own row
+        let segmentTotal = 0;
         for (let i = 0; i < enriched.boardingSegments.length; i++) {
           const seg = enriched.boardingSegments[i];
+          segmentTotal += seg.amount;
           rows.push({
             key: `${entry.id}_seg_${i}`,
             entry,
@@ -653,6 +655,26 @@ export function ClientStatementTab({ clientId, clientName }: ClientStatementTabP
               days: seg.days,
               amount: seg.amount,
               horseName,
+            },
+            enriched,
+          });
+        }
+
+        // If the invoice total exceeds the sum of boarding segments,
+        // add a remainder row for non-boarding items on the same invoice
+        const remainder = entry.debit - segmentTotal;
+        if (remainder > 0.01) {
+          rows.push({
+            key: `${entry.id}_other`,
+            entry,
+            isSegment: true,
+            segment: {
+              periodStart: "",
+              periodEnd: entry.date,
+              days: 0,
+              amount: remainder,
+              horseName,
+              isOtherCharges: true,
             },
             enriched,
           });
