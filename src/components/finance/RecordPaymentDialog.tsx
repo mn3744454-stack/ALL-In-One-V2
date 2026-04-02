@@ -31,6 +31,7 @@ import { useInvoicePayments, type InvoicePaymentSummary } from "@/hooks/finance/
 import { useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { 
   Plus, 
   Trash2, 
