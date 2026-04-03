@@ -146,28 +146,41 @@ export default function DashboardHRPayroll() {
     setShowAddDialog(false);
   };
 
-  const addPaymentCTA = canManage ? (
-    <Button onClick={() => setShowAddDialog(true)} className="gap-2" size="sm">
-      <Plus className="h-4 w-4" />
-      <span className="hidden sm:inline">{t('hr.payroll.addPayment')}</span>
-    </Button>
-  ) : undefined;
-
   return (
     <>
       <Helmet>
         <title>{t('hr.payroll.title')} | Dayli Horse</title>
       </Helmet>
 
-      <DashboardShell headerRight={addPaymentCTA}>
+      <DashboardShell>
         {/* Mobile Header */}
         <MobilePageHeader 
           title={t('hr.payroll.title')} 
           backTo="/dashboard/hr"
+          rightElement={canManage ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAddDialog(true)}
+              className="shrink-0"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          ) : undefined}
         />
 
           {/* Content */}
           <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+            {/* Desktop page-level Add Payment action */}
+            {canManage && (
+              <div className="hidden lg:flex justify-end">
+                <Button onClick={() => setShowAddDialog(true)} className="gap-2" size="sm">
+                  <Plus className="h-4 w-4" />
+                  {t('hr.payroll.addPayment')}
+                </Button>
+              </div>
+            )}
+
             {/* Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
