@@ -52,7 +52,7 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
   const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
