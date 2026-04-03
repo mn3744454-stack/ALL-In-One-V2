@@ -49,6 +49,7 @@ import SharedLabResult from "./pages/SharedLabResult";
 import SharedMedia from "./pages/SharedMedia";
 import SharedHorseReport from "./pages/SharedHorseReport";
 import InviteLandingPage from "./pages/InviteLandingPage";
+import DashboardTeamPartners from "./pages/DashboardTeamPartners";
 import HorseProfile from "./pages/HorseProfile";
 import CommunityFeed from "./pages/CommunityFeed";
 import PublicProfile from "./pages/PublicProfile";
