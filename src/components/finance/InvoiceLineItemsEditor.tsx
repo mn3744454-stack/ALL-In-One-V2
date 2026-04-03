@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Check, ChevronsUpDown, Package } from "lucide-react";
+import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
 
@@ -48,7 +49,7 @@ const SERVICE_KIND_TO_DOMAIN: Record<string, string> = {
 interface InvoiceLineItemsEditorProps {
   items: LineItem[];
   onChange: (items: LineItem[]) => void;
-  currency?: string;
+  currency: string;
   horses?: HorseOption[];
   showAttribution?: boolean;
   services?: TenantService[];
@@ -57,7 +58,7 @@ interface InvoiceLineItemsEditorProps {
 export function InvoiceLineItemsEditor({
   items,
   onChange,
-  currency = "SAR",
+  currency,
   horses = [],
   showAttribution = true,
   services = [],
@@ -68,6 +69,15 @@ export function InvoiceLineItemsEditor({
     () => services.filter(s => s.is_active),
     [services]
   );
+
+  // Build a lookup for service taxability
+  const serviceTaxMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (const s of services) {
+      map.set(s.id, s.is_taxable !== false);
+    }
+    return map;
+  }, [services]);
 
   const getHorseName = (h: HorseOption) =>
     lang === "ar" ? (h.name_ar || h.name) : (h.name || h.name_ar || "");
@@ -125,108 +135,158 @@ export function InvoiceLineItemsEditor({
 
   const subtotal = items.reduce((sum, item) => sum + item.total_price, 0);
 
+  /** Determine tax status for a line item */
+  const getLineTaxStatus = (item: LineItem): "taxable" | "exempt" => {
+    if (item.service_id) {
+      return serviceTaxMap.get(item.service_id) !== false ? "taxable" : "exempt";
+    }
+    // Free-text lines are taxable by default
+    return "taxable";
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Column headers — ABOVE items */}
+      {items.length > 0 && (
+        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
+          <div className="col-span-5">{t("finance.invoices.description")}</div>
+          <div className="col-span-2 text-center">{t("finance.invoices.quantity")}</div>
+          <div className="col-span-2 text-center">{t("finance.invoices.unitPrice")}</div>
+          <div className="col-span-2 text-end">{t("finance.invoices.total")}</div>
+          <div className="col-span-1"></div>
+        </div>
+      )}
+
       {/* Items */}
       <div className="space-y-3">
-        {items.map((item) => (
-          <div key={item.id} className="border border-border/50 rounded-lg p-3 space-y-2">
-            {/* Row 1: Description + Qty + Price + Total + Delete */}
-            <div className="grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-5">
-                <Input
-                  value={item.description}
-                  onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                  placeholder={t("finance.invoices.itemDescription")}
-                  className="text-sm"
-                />
-              </div>
-              <div className="col-span-2">
-                <Input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
-                  className="text-center text-sm"
-                />
-              </div>
-              <div className="col-span-2">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.unit_price}
-                  onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
-                  className="text-center text-sm"
-                />
-              </div>
-              <div className="col-span-2 text-end font-medium text-sm px-2">
-                {formatCurrency(item.total_price)}
-              </div>
-              <div className="col-span-1 flex justify-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeItem(item.id)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+        {items.length === 0 && (
+          <div className="border border-dashed border-border rounded-lg p-6 text-center">
+            <p className="text-sm text-muted-foreground mb-1">
+              {t("finance.invoices.emptyLineItems")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("finance.invoices.emptyLineItemsHint")}
+            </p>
+          </div>
+        )}
 
-            {/* Row 2: Optional horse + domain attribution (only for manual invoices) */}
-            {showAttribution && !item.entity_type && (
+        {items.map((item) => {
+          const taxStatus = getLineTaxStatus(item);
+          const isFromCatalog = !!item.service_id;
+
+          return (
+            <div key={item.id} className="border border-border/50 rounded-lg p-3 space-y-2">
+              {/* Row 1: Description + Qty + Price + Total + Delete */}
               <div className="grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-5">
-                  <HorsePicker
-                    horses={horses}
-                    selectedId={item.horse_id || null}
-                    onSelect={(id) => updateItem(item.id, "horse_id", id)}
-                    getHorseName={getHorseName}
-                    t={t}
+                  <Input
+                    value={item.description}
+                    onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                    placeholder={t("finance.invoices.itemDescription")}
+                    className="text-sm"
                   />
                 </div>
-                <div className="col-span-4">
-                  <Select
-                    value={item.domain || ""}
-                    onValueChange={(v) => updateItem(item.id, "domain", v || null)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder={t("finance.invoices.domain.select")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DOMAIN_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                          {t(opt.labelKey)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="col-span-2">
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
+                    className="text-center text-sm"
+                  />
                 </div>
-                {item.service_id && (
-                  <div className="col-span-3 flex items-center">
+                <div className="col-span-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.unit_price}
+                    onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
+                    className="text-center text-sm"
+                  />
+                </div>
+                <div className="col-span-2 text-end font-medium text-sm px-2">
+                  {formatCurrency(item.total_price)}
+                </div>
+                <div className="col-span-1 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeItem(item.id)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Row 2: Attribution + tax badge + source indicator */}
+              <div className="grid grid-cols-12 gap-2 items-center">
+                {showAttribution && !item.entity_type ? (
+                  <>
+                    <div className="col-span-5">
+                      <HorsePicker
+                        horses={horses}
+                        selectedId={item.horse_id || null}
+                        onSelect={(id) => updateItem(item.id, "horse_id", id)}
+                        getHorseName={getHorseName}
+                        t={t}
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <Select
+                        value={item.domain || ""}
+                        onValueChange={(v) => updateItem(item.id, "domain", v || null)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder={t("finance.invoices.domain.select")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DOMAIN_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                              {t(opt.labelKey)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : (
+                  <div className="col-span-9" />
+                )}
+                <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
+                  {/* Source indicator */}
+                  {isFromCatalog ? (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Package className="w-3 h-3" />
                       {t("finance.invoices.catalogLinked")}
                     </span>
-                  </div>
-                )}
-                {!item.service_id && <div className="col-span-3" />}
+                  ) : (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileText className="w-3 h-3" />
+                      {t("finance.invoices.manualEntry")}
+                    </span>
+                  )}
+                  {/* Tax badge */}
+                  <Badge
+                    variant={taxStatus === "taxable" ? "default" : "secondary"}
+                    className={cn(
+                      "text-[10px] px-1.5 py-0",
+                      taxStatus === "taxable"
+                        ? "bg-primary/15 text-primary border-primary/30"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {taxStatus === "taxable"
+                      ? t("finance.invoices.taxBadgeTaxable")
+                      : t("finance.invoices.taxBadgeExempt")}
+                  </Badge>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Header labels */}
-      <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-        <div className="col-span-5">{t("finance.invoices.description")}</div>
-        <div className="col-span-2 text-center">{t("finance.invoices.quantity")}</div>
-        <div className="col-span-2 text-center">{t("finance.invoices.unitPrice")}</div>
-        <div className="col-span-2 text-end">{t("finance.invoices.total")}</div>
-        <div className="col-span-1"></div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Add Item Buttons */}
@@ -239,7 +299,7 @@ export function InvoiceLineItemsEditor({
           className="gap-2"
         >
           <Plus className="w-4 h-4" />
-          {t("finance.invoices.addItem")}
+          {t("finance.invoices.addManualItem")}
         </Button>
 
         {activeServices.length > 0 && (
@@ -253,14 +313,16 @@ export function InvoiceLineItemsEditor({
       </div>
 
       {/* Subtotal */}
-      <div className="flex justify-end border-t pt-4">
-        <div className="text-end">
-          <span className="text-sm text-muted-foreground me-4">
-            {t("finance.invoices.subtotal")}:
-          </span>
-          <span className="text-lg font-bold">{formatCurrency(subtotal)}</span>
+      {items.length > 0 && (
+        <div className="flex justify-end border-t pt-3">
+          <div className="text-end">
+            <span className="text-sm text-muted-foreground me-4">
+              {t("finance.invoices.subtotal")}:
+            </span>
+            <span className="text-lg font-bold">{formatCurrency(subtotal)}</span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -376,11 +438,18 @@ function ServicePicker({
                 >
                   <div className="flex items-center justify-between w-full gap-2">
                     <span className="truncate">{getServiceName(svc)}</span>
-                    {svc.unit_price != null && (
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {svc.unit_price}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {svc.is_taxable === false && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
+                          {t("finance.invoices.taxBadgeExempt")}
+                        </Badge>
+                      )}
+                      {svc.unit_price != null && (
+                        <span className="text-xs text-muted-foreground">
+                          {svc.unit_price}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </CommandItem>
               ))}
