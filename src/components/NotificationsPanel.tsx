@@ -47,6 +47,8 @@ import {
   X,
   Loader2,
   Send,
+  Truck,
+  Home,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -64,7 +66,9 @@ import { useInvitations } from "@/hooks/useInvitations";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
+import { tStatus } from "@/i18n/labels";
 import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -76,6 +80,8 @@ function getNotificationIcon(eventType: string) {
   if (eventType.startsWith("connection.")) return Link2;
   if (eventType.startsWith("lab_request.message")) return MessageSquare;
   if (eventType.startsWith("lab_request.")) return FlaskConical;
+  if (eventType.startsWith("boarding.")) return Home;
+  if (eventType.startsWith("movement.")) return Truck;
   return Bell;
 }
 
@@ -94,7 +100,30 @@ function getNotificationRoute(notification: AppNotification): string {
     return `/dashboard/laboratory?tab=requests&requestId=${entity_id}`;
   }
 
-  return "/dashboard/laboratory?tab=requests";
+  if (event_type.startsWith("boarding.")) {
+    return "/dashboard/housing?tab=admissions";
+  }
+
+  if (event_type.startsWith("movement.")) {
+    return "/dashboard/housing?tab=movements";
+  }
+
+  return "/dashboard";
+}
+
+/**
+ * Interpolate i18n template with notification metadata.
+ * Replaces {{key}} placeholders with values from metadata.
+ */
+function interpolateTemplate(template: string, notification: AppNotification): string {
+  const meta = notification.metadata || {};
+  return template
+    .replace(/\{\{actorTenantName\}\}/g, meta.actor_tenant_name || '')
+    .replace(/\{\{entityLabel\}\}/g, meta.entity_label || '')
+    .replace(/\{\{horseName\}\}/g, meta.horse_name || '')
+    .replace(/\{\{messagePreview\}\}/g, meta.message_preview || notification.body || '')
+    .replace(/\{\{statusLabel\}\}/g, meta.status ? tStatus(meta.status) : '')
+    .trim();
 }
 
 // ─── Notification card ────────────────────────────────────
