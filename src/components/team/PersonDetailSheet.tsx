@@ -13,11 +13,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
   Users, Save, Loader2, ExternalLink, Shield, Briefcase,
-  UserPlus, Monitor, FileText,
+  UserPlus, Monitor, FileText, Building2, UserCheck,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useHorses } from "@/hooks/useHorses";
 import { useMemberRoleAssignment } from "@/hooks/roles/useMemberRoleAssignment";
+import { useEmploymentKind, type EmploymentKind } from "@/hooks/hr/useEmploymentKind";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
@@ -39,12 +40,14 @@ export function PersonDetailSheet({ open, onOpenChange, person, onInviteToPlatfo
   const navigate = useNavigate();
   const { horses } = useHorses();
   const { updateMemberRole } = useMemberRoleAssignment();
+  const { updateEmploymentKind, isUpdating: isUpdatingKind } = useEmploymentKind();
   const { activeTenant } = useTenant();
 
   const [role, setRole] = useState<TenantRole>((person.role as TenantRole) || "employee");
   const [selectedHorses, setSelectedHorses] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [loadingAccess, setLoadingAccess] = useState(false);
+  const [employmentKind, setEmploymentKind] = useState<EmploymentKind>(person.employmentKind || "external");
 
   // Load current horse access
   useEffect(() => {
@@ -63,7 +66,8 @@ export function PersonDetailSheet({ open, onOpenChange, person, onInviteToPlatfo
 
   useEffect(() => {
     setRole((person.role as TenantRole) || "employee");
-  }, [person.role]);
+    setEmploymentKind(person.employmentKind || "external");
+  }, [person.role, person.employmentKind]);
 
   const handleSave = async () => {
     if (!person.memberId) return;
@@ -86,6 +90,20 @@ export function PersonDetailSheet({ open, onOpenChange, person, onInviteToPlatfo
     }
     setSaving(false);
     onOpenChange(false);
+  };
+
+  const handleEmploymentKindChange = async (newKind: EmploymentKind) => {
+    if (!person.hrEmployeeId || newKind === employmentKind) return;
+    try {
+      await updateEmploymentKind({
+        employeeId: person.hrEmployeeId,
+        employmentKind: newKind,
+        previousKind: employmentKind,
+      });
+      setEmploymentKind(newKind);
+    } catch {
+      // Error toast handled by the hook
+    }
   };
 
   const toggleHorse = (horseId: string) => {
@@ -119,9 +137,9 @@ export function PersonDetailSheet({ open, onOpenChange, person, onInviteToPlatfo
                 <p className="font-medium truncate">{person.fullName || t("teamPartners.unnamed")}</p>
                 <div className="flex flex-wrap items-center gap-1.5 mt-1">
                   {statusBadge()}
-                  {person.employmentKind && (
+                  {employmentKind && (
                     <Badge variant="outline" className="text-[10px]">
-                      {person.employmentKind === "internal"
+                      {employmentKind === "internal"
                         ? t("teamPartners.classification.internal")
                         : t("teamPartners.classification.external")}
                     </Badge>
@@ -166,6 +184,45 @@ export function PersonDetailSheet({ open, onOpenChange, person, onInviteToPlatfo
                 <UserPlus className="w-4 h-4" />
                 {t("teamPartners.personDetail.inviteToPlatform")}
               </Button>
+            )}
+
+            {/* Employment classification - for people with HR records */}
+            {person.hasHrRecord && (
+              <>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5" />
+                    {t("teamPartners.personDetail.employmentClassification")}
+                  </Label>
+                  <Select
+                    value={employmentKind}
+                    onValueChange={(v) => handleEmploymentKindChange(v as EmploymentKind)}
+                    disabled={isUpdatingKind}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="internal">
+                        <span className="flex items-center gap-1.5">
+                          <UserCheck className="w-3.5 h-3.5" />
+                          {t("teamPartners.classification.internal")}
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="external">
+                        <span className="flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" />
+                          {t("teamPartners.classification.external")}
+                        </span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {t("teamPartners.personDetail.classificationHint")}
+                  </p>
+                </div>
+              </>
             )}
 
             {/* Role section - only for platform members */}
