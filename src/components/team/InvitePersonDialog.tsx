@@ -28,11 +28,16 @@ export function InvitePersonDialog({ open, onOpenChange, prefilledEmail = "" }: 
   const { activeTenant } = useTenant();
   const { createInvitation } = useInvitations();
 
-  const [mode, setMode] = useState<"email" | "phone">("email");
-  const [email, setEmail] = useState("");
+  const [mode, setMode] = useState<"email" | "phone">(prefilledEmail ? "email" : "email");
+  const [email, setEmail] = useState(prefilledEmail);
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<TenantRole>("employee");
   const [sending, setSending] = useState(false);
+
+  // Update email when prefilled changes
+  useState(() => {
+    if (prefilledEmail) setEmail(prefilledEmail);
+  });
 
   const resetForm = () => {
     setEmail("");
