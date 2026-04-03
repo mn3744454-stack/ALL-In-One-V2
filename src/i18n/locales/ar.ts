@@ -4955,6 +4955,8 @@ export const ar = {
       platformAccess: "وصول المنصة",
       hrRecord: "سجل الموارد البشرية",
       inviteToPlatform: "دعوة للمنصة",
+      employmentClassification: "تصنيف التوظيف",
+      classificationHint: "الموظفون الداخليون على كشف الرواتب. المتعاونون الخارجيون يعملون بدون إدارة رواتب داخلية.",
     },
     partnerConfig: {
       title: "إعداد الشريك",
@@ -4966,6 +4968,8 @@ export const ar = {
       readOnly: "قراءة فقط",
       readWrite: "قراءة وكتابة",
       save: "حفظ الوصول",
+      accessSaved: "تم تحديث وصول الخيول بنجاح",
+      accessSaveFailed: "فشل في تحديث وصول الخيول",
       serviceInfo: "يمكن لهذا الشريك إرسال واستقبال الطلبات عبر المنصة. لا حاجة لإعداد وصول خيول إضافي.",
     },
   },

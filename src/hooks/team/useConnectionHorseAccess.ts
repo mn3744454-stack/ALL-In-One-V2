@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 export interface ConnectionHorseAccess {
@@ -16,6 +17,7 @@ export interface ConnectionHorseAccess {
 
 export function useConnectionHorseAccess(connectionId: string | null) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
 
   const { data: horseAccess = [], isLoading } = useQuery({
@@ -80,10 +82,10 @@ export function useConnectionHorseAccess(connectionId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["connection-horse-access", connectionId] });
-      toast.success("Horse access updated");
+      toast.success(t("teamPartners.partnerConfig.accessSaved"));
     },
     onError: (err: any) => {
-      toast.error(err.message || "Failed to update horse access");
+      toast.error(err.message || t("teamPartners.partnerConfig.accessSaveFailed"));
     },
   });
 
