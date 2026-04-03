@@ -248,8 +248,9 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     return items;
   }, [horses.length, breedingEnabled, vetEnabled, labMode, movementEnabled, t]);
 
-  // Build HR nav items
+  // Build HR nav items (now includes Team & Partners)
   const hrNavItems = useMemo(() => [
+    { icon: Users, label: t('teamPartners.title') || 'Team & Partners', href: "/dashboard/team" },
     { icon: Users, label: t('hr.title'), href: "/dashboard/hr" },
     { icon: Wallet, label: t('hr.payroll.title'), href: "/dashboard/hr/payroll" },
   ], [t]);
