@@ -6766,6 +6766,7 @@ export type Database = {
           event_type: string
           id: string
           is_read: boolean
+          metadata: Json | null
           read_at: string | null
           tenant_id: string | null
           title: string
@@ -6779,6 +6780,7 @@ export type Database = {
           event_type: string
           id?: string
           is_read?: boolean
+          metadata?: Json | null
           read_at?: string | null
           tenant_id?: string | null
           title: string
@@ -6792,6 +6794,7 @@ export type Database = {
           event_type?: string
           id?: string
           is_read?: boolean
+          metadata?: Json | null
           read_at?: string | null
           tenant_id?: string | null
           title?: string
@@ -9665,18 +9668,32 @@ export type Database = {
     }
     Functions: {
       _get_app_setting: { Args: { p_key: string }; Returns: string }
-      _notify_tenant_members: {
-        Args: {
-          _body: string
-          _entity_id: string
-          _entity_type: string
-          _event_type: string
-          _exclude_user_id?: string
-          _tenant_id: string
-          _title: string
-        }
-        Returns: undefined
-      }
+      _notify_tenant_members:
+        | {
+            Args: {
+              _body: string
+              _entity_id: string
+              _entity_type: string
+              _event_type: string
+              _exclude_user_id?: string
+              _tenant_id: string
+              _title: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _body: string
+              _entity_id: string
+              _entity_type: string
+              _event_type: string
+              _exclude_user_id?: string
+              _metadata?: Json
+              _tenant_id: string
+              _title: string
+            }
+            Returns: undefined
+          }
       accept_connection: { Args: { _token: string }; Returns: string }
       apply_link_preset: {
         Args: { _connection_id: string; _preset_name: string }

@@ -47,6 +47,8 @@ import {
   X,
   Loader2,
   Send,
+  Truck,
+  Home,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -64,7 +66,9 @@ import { useInvitations } from "@/hooks/useInvitations";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
+import { tStatus } from "@/i18n/labels";
 import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale/ar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -76,6 +80,8 @@ function getNotificationIcon(eventType: string) {
   if (eventType.startsWith("connection.")) return Link2;
   if (eventType.startsWith("lab_request.message")) return MessageSquare;
   if (eventType.startsWith("lab_request.")) return FlaskConical;
+  if (eventType.startsWith("boarding.")) return Home;
+  if (eventType.startsWith("movement.")) return Truck;
   return Bell;
 }
 
@@ -94,7 +100,30 @@ function getNotificationRoute(notification: AppNotification): string {
     return `/dashboard/laboratory?tab=requests&requestId=${entity_id}`;
   }
 
-  return "/dashboard/laboratory?tab=requests";
+  if (event_type.startsWith("boarding.")) {
+    return "/dashboard/housing?tab=admissions";
+  }
+
+  if (event_type.startsWith("movement.")) {
+    return "/dashboard/housing?tab=movements";
+  }
+
+  return "/dashboard";
+}
+
+/**
+ * Interpolate i18n template with notification metadata.
+ * Replaces {{key}} placeholders with values from metadata.
+ */
+function interpolateTemplate(template: string, notification: AppNotification): string {
+  const meta = notification.metadata || {};
+  return template
+    .replace(/\{\{actorTenantName\}\}/g, meta.actor_tenant_name || '')
+    .replace(/\{\{entityLabel\}\}/g, meta.entity_label || '')
+    .replace(/\{\{horseName\}\}/g, meta.horse_name || '')
+    .replace(/\{\{messagePreview\}\}/g, meta.message_preview || notification.body || '')
+    .replace(/\{\{statusLabel\}\}/g, meta.status ? tStatus(meta.status) : '')
+    .trim();
 }
 
 // ─── Notification card ────────────────────────────────────
@@ -110,8 +139,30 @@ function NotificationCard({
   onDelete: () => void;
   onClick: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const Icon = getNotificationIcon(notification.event_type);
+
+  // Resolve title: i18n key with interpolation → fallback to DB title
+  const titleKey = `notifications.events.${notification.event_type}.title`;
+  const titleRaw = t(titleKey);
+  const hasI18nTitle = titleRaw !== titleKey;
+  const displayTitle = hasI18nTitle
+    ? interpolateTemplate(titleRaw, notification)
+    : notification.title;
+
+  // Resolve body: i18n key with interpolation → fallback to DB body
+  const bodyKey = `notifications.events.${notification.event_type}.body`;
+  const bodyRaw = t(bodyKey);
+  const hasI18nBody = bodyRaw !== bodyKey;
+  const displayBody = hasI18nBody
+    ? interpolateTemplate(bodyRaw, notification)
+    : notification.body;
+
+  // Localized relative time
+  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
+    addSuffix: true,
+    ...(lang === 'ar' ? { locale: ar } : {}),
+  });
 
   return (
     <Card
@@ -143,22 +194,16 @@ function NotificationCard({
                 !notification.is_read ? "font-semibold" : "font-medium"
               )}
             >
-              {t(`notifications.events.${notification.event_type}.title`) !== `notifications.events.${notification.event_type}.title`
-                ? t(`notifications.events.${notification.event_type}.title`)
-                : notification.title}
+              {displayTitle}
             </p>
-            {notification.body && (
+            {displayBody && (
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {t(`notifications.events.${notification.event_type}.body`) !== `notifications.events.${notification.event_type}.body`
-                  ? t(`notifications.events.${notification.event_type}.body`)
-                  : notification.body}
+                {displayBody}
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               <Clock className="w-3 h-3 inline me-1" />
-              {formatDistanceToNow(new Date(notification.created_at), {
-                addSuffix: true,
-              })}
+              {timeAgo}
             </p>
           </div>
           <div className="flex flex-col gap-1 shrink-0">
@@ -307,7 +352,7 @@ function NotificationsTabContent() {
 
 function InvitationsTabContent() {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const {
     receivedInvitations,
     sentInvitations,
@@ -432,7 +477,7 @@ function InvitationsTabContent() {
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Clock className="w-3 h-3" />
-                          {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
+                          {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, ...(lang === 'ar' ? { locale: ar } : {}) })}
                         </div>
                       </div>
 
@@ -534,7 +579,7 @@ function InvitationsTabContent() {
 
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                         <Clock className="w-3 h-3" />
-                        {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, ...(lang === 'ar' ? { locale: ar } : {}) })}
                       </div>
 
                       {(inv.status === "pending" || inv.status === "preaccepted") && (
@@ -746,7 +791,7 @@ export function NotificationsPanel() {
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-[95vw] sm:w-[400px]">
+        <SheetContent className="w-[95vw] sm:w-[440px] lg:w-[480px]">
           <SheetHeader>
             <SheetTitle>{t('notifications.title')}</SheetTitle>
             <SheetDescription>

@@ -9,6 +9,16 @@ import { useAuth } from "@/contexts/AuthContext";
  * If revisiting realtime issues, validate service worker caching + RLS + event delivery.
  */
 
+export interface NotificationMetadata {
+  actor_tenant_id?: string;
+  actor_tenant_name?: string;
+  status?: string;
+  entity_label?: string;
+  horse_name?: string;
+  actor_user_name?: string;
+  message_preview?: string;
+}
+
 export interface AppNotification {
   id: string;
   user_id: string;
@@ -21,6 +31,7 @@ export interface AppNotification {
   is_read: boolean;
   read_at: string | null;
   created_at: string;
+  metadata: NotificationMetadata;
 }
 
 export function useNotifications() {
