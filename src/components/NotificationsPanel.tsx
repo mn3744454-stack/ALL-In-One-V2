@@ -142,8 +142,11 @@ function NotificationCard({
   const { t, lang } = useI18n();
   const Icon = getNotificationIcon(notification.event_type);
 
+  // Normalize dotted event_type for i18n key lookup (e.g. "connection.accepted" → "connection_accepted")
+  const safeEventType = notification.event_type.replace(/\./g, '_');
+
   // Resolve title: i18n key with interpolation → fallback to DB title
-  const titleKey = `notifications.events.${notification.event_type}.title`;
+  const titleKey = `notifications.events.${safeEventType}.title`;
   const titleRaw = t(titleKey);
   const hasI18nTitle = titleRaw !== titleKey;
   const displayTitle = hasI18nTitle
@@ -151,11 +154,13 @@ function NotificationCard({
     : notification.title;
 
   // Resolve body: i18n key with interpolation → fallback to DB body
-  const bodyKey = `notifications.events.${notification.event_type}.body`;
+  const bodyKey = `notifications.events.${safeEventType}.body`;
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
-  const displayBody = hasI18nBody
-    ? interpolateTemplate(bodyRaw, notification)
+  // Only use interpolated body if it produces meaningful content (not just empty placeholders)
+  const interpolatedBody = hasI18nBody ? interpolateTemplate(bodyRaw, notification) : '';
+  const displayBody = hasI18nBody && interpolatedBody.replace(/·/g, '').trim()
+    ? interpolatedBody
     : notification.body;
 
   // Localized relative time
