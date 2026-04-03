@@ -508,16 +508,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/dashboard/settings/connections"
-        element={
-          <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
-              <DashboardConnectionsSettings />
-            </WorkspaceRouteGuard>
-          </ProtectedRoute>
-        }
-      />
+      {/* Legacy connections settings removed — functionality migrated to Team & Partners */}
       <Route
         path="/dashboard/settings/notifications"
         element={
