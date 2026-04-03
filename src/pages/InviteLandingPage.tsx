@@ -10,31 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Building2, CheckCircle, Loader2, UserPlus } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
 
 type TenantType = "stable" | "clinic" | "lab" | "academy" | "pharmacy" | "transport" | "auction" | "horse_owner" | "trainer" | "doctor";
-
-const tenantTypeLabels: Record<TenantType, string> = {
-  stable: "Stable",
-  clinic: "Veterinary Clinic",
-  lab: "Laboratory",
-  academy: "Riding Academy",
-  pharmacy: "Pharmacy",
-  transport: "Transport Company",
-  auction: "Auction House",
-  horse_owner: "Horse Owner",
-  trainer: "Independent Trainer",
-  doctor: "Independent Doctor",
-};
-
-const roleLabels: Record<string, string> = {
-  owner: "Owner",
-  admin: "Administrator",
-  manager: "Manager",
-  foreman: "Foreman",
-  vet: "Veterinarian",
-  trainer: "Trainer",
-  employee: "Employee",
-};
 
 interface PreacceptResult {
   success: boolean;
@@ -62,6 +40,7 @@ export default function InviteLandingPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { setActiveTenant, refreshTenants } = useTenant();
+  const { t } = useI18n();
 
   const [loading, setLoading] = useState(true);
   const [finalizing, setFinalizing] = useState(false);
@@ -69,38 +48,31 @@ export default function InviteLandingPage() {
   const [invitationData, setInvitationData] = useState<PreacceptResult | null>(null);
   const [success, setSuccess] = useState(false);
 
-  // Preaccept flow (for anonymous/logged-out users)
   const preacceptInvitation = async () => {
     if (!token) {
-      setError("Invalid invitation link");
+      setError(t("inviteLanding.invalidLink"));
       setLoading(false);
       return;
     }
 
     try {
-      const { data, error: rpcError } = await supabase.rpc("preaccept_invitation", {
-        _token: token,
-      });
+      const { data, error: rpcError } = await supabase.rpc("preaccept_invitation", { _token: token });
 
       if (rpcError) {
         console.error("Preaccept RPC error:", rpcError);
-        setError("Failed to load invitation details. Please try again.");
+        setError(t("inviteLanding.loadFailed"));
         setLoading(false);
         return;
       }
 
       const result = data as unknown as PreacceptResult;
       if (!result.success) {
-        // Map specific error codes to user-friendly messages
-        let errorMessage = "Invitation not found or has already been processed";
-        if (result.error === "expired") {
-          errorMessage = "This invitation has expired";
-        } else if (result.error === "revoked") {
-          errorMessage = "This invitation has been revoked";
-        } else if (result.error === "already_processed") {
-          errorMessage = "This invitation has already been processed";
-        }
-        setError(errorMessage);
+        const errorMap: Record<string, string> = {
+          expired: t("inviteLanding.errors.expired"),
+          revoked: t("inviteLanding.errors.revoked"),
+          already_processed: t("inviteLanding.errors.alreadyProcessed"),
+        };
+        setError(errorMap[result.error || ""] || t("inviteLanding.errors.notFound"));
         setLoading(false);
         return;
       }
@@ -109,162 +81,113 @@ export default function InviteLandingPage() {
       setLoading(false);
     } catch (err) {
       console.error("Preaccept error:", err);
-      setError("An unexpected error occurred");
+      setError(t("inviteLanding.errors.unexpected"));
       setLoading(false);
     }
   };
 
-  // Finalize flow (for authenticated users)
   const finalizeInvitation = async () => {
-    if (!token) {
-      setError("Invalid invitation link");
-      return;
-    }
-
+    if (!token) { setError(t("inviteLanding.invalidLink")); return; }
     setFinalizing(true);
 
     try {
-      const { data, error: rpcError } = await supabase.rpc("finalize_invitation_acceptance", {
-        _token: token,
-      });
+      const { data, error: rpcError } = await supabase.rpc("finalize_invitation_acceptance", { _token: token });
 
       if (rpcError) {
         console.error("Finalize RPC error:", rpcError);
-        setError("Failed to accept invitation. Please try again.");
+        setError(t("inviteLanding.acceptFailed"));
         setFinalizing(false);
         return;
       }
 
       const result = data as unknown as FinalizeResult;
       if (!result.success) {
-        // Map specific error codes to user-friendly messages
-        let errorMessage = "Failed to accept invitation";
-        if (result.error === "expired") {
-          errorMessage = "This invitation has expired";
-        } else if (result.error === "revoked") {
-          errorMessage = "This invitation has been revoked";
-        } else if (result.error === "rejected") {
-          errorMessage = "This invitation was already declined";
-        } else if (result.error === "email_mismatch") {
-          errorMessage = "This invitation was sent to a different email address";
-        } else if (result.error === "email_unavailable") {
-          errorMessage = "Unable to verify your email. Please update your profile.";
-        }
-        setError(errorMessage);
+        const errorMap: Record<string, string> = {
+          expired: t("inviteLanding.errors.expired"),
+          revoked: t("inviteLanding.errors.revoked"),
+          rejected: t("inviteLanding.errors.alreadyDeclined"),
+          email_mismatch: t("inviteLanding.errors.emailMismatch"),
+          email_unavailable: t("inviteLanding.errors.emailUnavailable"),
+        };
+        setError(errorMap[result.error || ""] || t("inviteLanding.acceptFailed"));
         setFinalizing(false);
         return;
       }
 
-      // Success! Refresh tenants and switch to the new tenant
       setSuccess(true);
-      toast.success("Invitation accepted successfully!");
-
-      // Refresh tenant list to include the new membership
+      toast.success(t("inviteLanding.acceptedSuccess"));
       await refreshTenants();
-
-      // Set the active tenant to the invited one
-      if (result.tenant_id) {
-        setActiveTenant(result.tenant_id);
-      }
-
-      // Brief delay to show success state, then navigate
-      setTimeout(() => {
-        navigate("/dashboard", { replace: true });
-      }, 1500);
+      if (result.tenant_id) setActiveTenant(result.tenant_id);
+      setTimeout(() => navigate("/dashboard", { replace: true }), 1500);
     } catch (err) {
       console.error("Finalize error:", err);
-      setError("An unexpected error occurred");
+      setError(t("inviteLanding.errors.unexpected"));
       setFinalizing(false);
     }
   };
 
   useEffect(() => {
-    // Wait for auth state to settle
     if (authLoading) return;
-
-    if (user) {
-      // User is authenticated - finalize immediately
-      finalizeInvitation();
-    } else {
-      // User is not authenticated - preaccept to show invitation details
-      preacceptInvitation();
-    }
+    if (user) finalizeInvitation();
+    else preacceptInvitation();
   }, [token, user, authLoading]);
 
-  // Loading state
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Helmet>
-          <title>Loading Invitation | Dayli Horse</title>
-        </Helmet>
+        <Helmet><title>{t("inviteLanding.loadingTitle")}</title></Helmet>
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading invitation details...</p>
+          <p className="text-muted-foreground">{t("inviteLanding.loadingDetails")}</p>
         </div>
       </div>
     );
   }
 
-  // Finalizing state (authenticated user processing)
   if (finalizing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Helmet>
-          <title>Accepting Invitation | Dayli Horse</title>
-        </Helmet>
+        <Helmet><title>{t("inviteLanding.acceptingTitle")}</title></Helmet>
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Accepting invitation...</p>
+          <p className="text-muted-foreground">{t("inviteLanding.acceptingDetails")}</p>
         </div>
       </div>
     );
   }
 
-  // Success state
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Helmet>
-          <title>Invitation Accepted | Dayli Horse</title>
-        </Helmet>
+        <Helmet><title>{t("inviteLanding.successTitle")}</title></Helmet>
         <div className="text-center">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Welcome!</h1>
-          <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t("inviteLanding.welcome")}</h1>
+          <p className="text-muted-foreground">{t("inviteLanding.redirecting")}</p>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Helmet>
-          <title>Invitation Error | Dayli Horse</title>
-        </Helmet>
+        <Helmet><title>{t("inviteLanding.errorTitle")}</title></Helmet>
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
-            <CardTitle>Invitation Error</CardTitle>
+            <CardTitle>{t("inviteLanding.errorHeading")}</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Unable to process invitation</AlertTitle>
-              <AlertDescription>
-                This invitation may have expired, been revoked, or already been accepted.
-              </AlertDescription>
+              <AlertTitle>{t("inviteLanding.unableToProcess")}</AlertTitle>
+              <AlertDescription>{t("inviteLanding.errorExplanation")}</AlertDescription>
             </Alert>
             <div className="flex flex-col gap-2">
-              <Button asChild>
-                <Link to="/auth">Sign In</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/">Go to Homepage</Link>
-              </Button>
+              <Button asChild><Link to="/auth">{t("inviteLanding.signIn")}</Link></Button>
+              <Button variant="outline" asChild><Link to="/">{t("inviteLanding.goHome")}</Link></Button>
             </div>
           </CardContent>
         </Card>
@@ -272,53 +195,44 @@ export default function InviteLandingPage() {
     );
   }
 
-  // Preaccept success - show invitation details (for logged-out users)
   if (invitationData) {
-    const tenantType = invitationData.tenant_type as TenantType;
-    const tenantTypeLabel = tenantTypeLabels[tenantType] || tenantType;
-    const roleLabel = roleLabels[invitationData.proposed_role || ""] || invitationData.proposed_role;
+    const roleLabel = t(`notifications.roles.${invitationData.proposed_role || ""}`) || invitationData.proposed_role;
+    const tenantTypeLabel = t(`onboarding.tenantTypes.${invitationData.tenant_type || ""}`) || invitationData.tenant_type;
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Helmet>
-          <title>Join {invitationData.tenant_name} | Dayli Horse</title>
-        </Helmet>
+        <Helmet><title>{t("inviteLanding.joinTitle")} {invitationData.tenant_name}</title></Helmet>
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
               <Building2 className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">You're Invited!</CardTitle>
-            <CardDescription>
-              You've been invited to join an organization
-            </CardDescription>
+            <CardTitle className="text-2xl">{t("inviteLanding.youreInvited")}</CardTitle>
+            <CardDescription>{t("inviteLanding.invitedToJoin")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-muted/50 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Organization</span>
+                <span className="text-sm text-muted-foreground">{t("inviteLanding.organization")}</span>
                 <span className="font-semibold">{invitationData.tenant_name}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Type</span>
+                <span className="text-sm text-muted-foreground">{t("inviteLanding.type")}</span>
                 <Badge variant="secondary">{tenantTypeLabel}</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Your Role</span>
+                <span className="text-sm text-muted-foreground">{t("inviteLanding.yourRole")}</span>
                 <Badge variant="outline">{roleLabel}</Badge>
               </div>
             </div>
-
             <div className="space-y-3">
               <Button className="w-full" size="lg" asChild>
                 <Link to={`/auth?next=/invite/${token}`}>
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Continue to Sign In / Sign Up
+                  <UserPlus className="h-4 w-4 me-2" />
+                  {t("inviteLanding.continueToSignIn")}
                 </Link>
               </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                You'll need to sign in or create an account to accept this invitation.
-              </p>
+              <p className="text-xs text-center text-muted-foreground">{t("inviteLanding.signInHint")}</p>
             </div>
           </CardContent>
         </Card>
@@ -326,6 +240,5 @@ export default function InviteLandingPage() {
     );
   }
 
-  // Fallback - shouldn't reach here
   return null;
 }
