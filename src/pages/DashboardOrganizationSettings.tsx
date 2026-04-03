@@ -165,7 +165,7 @@ const DashboardOrganizationSettings = () => {
                     </div>
                   </div>
                   <Button
-                    onClick={() => navigate("/dashboard/settings/connections")}
+                    onClick={() => navigate("/dashboard/team")}
                     className="gap-2"
                   >
                     {t("settings.permissionsRoles.open")}
