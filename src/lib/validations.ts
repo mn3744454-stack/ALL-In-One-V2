@@ -30,12 +30,16 @@ export const horseSchema = horseSchemaBase
 
 export type HorseFormData = z.infer<typeof horseSchema>;
 
-// Invitation validation schema
+// Invitation validation schema (email or phone, at least one required)
 export const invitationSchema = z.object({
-  invitee_email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  invitee_email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters").optional().or(z.literal("")),
+  invitee_phone: z.string().trim().max(30, "Phone must be less than 30 characters").optional(),
   proposed_role: z.enum(["owner", "manager", "foreman", "vet", "trainer", "employee"], { required_error: "Role is required" }),
   assigned_horse_ids: z.array(z.string().uuid("Invalid horse ID")).optional().default([]),
-});
+}).refine(
+  (data) => (data.invitee_email && data.invitee_email.length > 0) || (data.invitee_phone && data.invitee_phone.length > 0),
+  { message: "Email or phone is required", path: ["invitee_email"] }
+);
 
 export type InvitationFormData = z.infer<typeof invitationSchema>;
 
