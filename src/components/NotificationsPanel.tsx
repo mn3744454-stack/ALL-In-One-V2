@@ -139,8 +139,30 @@ function NotificationCard({
   onDelete: () => void;
   onClick: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const Icon = getNotificationIcon(notification.event_type);
+
+  // Resolve title: i18n key with interpolation → fallback to DB title
+  const titleKey = `notifications.events.${notification.event_type}.title`;
+  const titleRaw = t(titleKey);
+  const hasI18nTitle = titleRaw !== titleKey;
+  const displayTitle = hasI18nTitle
+    ? interpolateTemplate(titleRaw, notification)
+    : notification.title;
+
+  // Resolve body: i18n key with interpolation → fallback to DB body
+  const bodyKey = `notifications.events.${notification.event_type}.body`;
+  const bodyRaw = t(bodyKey);
+  const hasI18nBody = bodyRaw !== bodyKey;
+  const displayBody = hasI18nBody
+    ? interpolateTemplate(bodyRaw, notification)
+    : notification.body;
+
+  // Localized relative time
+  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
+    addSuffix: true,
+    ...(lang === 'ar' ? { locale: ar } : {}),
+  });
 
   return (
     <Card
@@ -172,22 +194,16 @@ function NotificationCard({
                 !notification.is_read ? "font-semibold" : "font-medium"
               )}
             >
-              {t(`notifications.events.${notification.event_type}.title`) !== `notifications.events.${notification.event_type}.title`
-                ? t(`notifications.events.${notification.event_type}.title`)
-                : notification.title}
+              {displayTitle}
             </p>
-            {notification.body && (
+            {displayBody && (
               <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                {t(`notifications.events.${notification.event_type}.body`) !== `notifications.events.${notification.event_type}.body`
-                  ? t(`notifications.events.${notification.event_type}.body`)
-                  : notification.body}
+                {displayBody}
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
               <Clock className="w-3 h-3 inline me-1" />
-              {formatDistanceToNow(new Date(notification.created_at), {
-                addSuffix: true,
-              })}
+              {timeAgo}
             </p>
           </div>
           <div className="flex flex-col gap-1 shrink-0">
