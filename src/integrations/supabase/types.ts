@@ -4716,8 +4716,9 @@ export type Database = {
           expires_at: string
           horses_accepted: boolean | null
           id: string
-          invitee_email: string
+          invitee_email: string | null
           invitee_id: string | null
+          invitee_phone: string | null
           preaccepted_at: string | null
           proposed_role: Database["public"]["Enums"]["tenant_role"]
           rejection_reason: string | null
@@ -4737,8 +4738,9 @@ export type Database = {
           expires_at?: string
           horses_accepted?: boolean | null
           id?: string
-          invitee_email: string
+          invitee_email?: string | null
           invitee_id?: string | null
+          invitee_phone?: string | null
           preaccepted_at?: string | null
           proposed_role: Database["public"]["Enums"]["tenant_role"]
           rejection_reason?: string | null
@@ -4758,8 +4760,9 @@ export type Database = {
           expires_at?: string
           horses_accepted?: boolean | null
           id?: string
-          invitee_email?: string
+          invitee_email?: string | null
           invitee_id?: string | null
+          invitee_phone?: string | null
           preaccepted_at?: string | null
           proposed_role?: Database["public"]["Enums"]["tenant_role"]
           rejection_reason?: string | null
