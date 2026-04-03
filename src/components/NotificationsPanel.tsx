@@ -659,16 +659,10 @@ export function NotificationsPanel() {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const [inviteOpen, setInviteOpen] = useState(false);
   const { unreadCount } = useNotifications();
   const { receivedInvitations } = useInvitations();
-  const { activeTenant } = useTenant();
 
   const totalUnread = unreadCount + receivedInvitations.length;
-  const canInvite = activeTenant?.can_invite || activeTenant?.role === "owner";
-
-  // Lazy-import the dialog to keep this file lean
-  const InvitePersonDialog = React.lazy(() => import("@/components/team/InvitePersonDialog").then(m => ({ default: m.InvitePersonDialog })));
 
   return (
     <div className="flex items-center gap-2">
@@ -685,19 +679,6 @@ export function NotificationsPanel() {
           </span>
         )}
       </Button>
-
-      {/* Invite Button */}
-      {canInvite && (
-        <>
-          <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 sm:gap-2" onClick={() => setInviteOpen(true)}>
-            <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('notifications.invite')}</span>
-          </Button>
-          <React.Suspense fallback={null}>
-            <InvitePersonDialog open={inviteOpen} onOpenChange={setInviteOpen} />
-          </React.Suspense>
-        </>
-      )}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="w-[95vw] sm:w-[480px] lg:w-[520px]">
