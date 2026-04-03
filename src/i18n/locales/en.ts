@@ -4961,6 +4961,8 @@ export const en = {
       platformAccess: "Platform Access",
       hrRecord: "HR Record",
       inviteToPlatform: "Invite to Platform",
+      employmentClassification: "Employment Classification",
+      classificationHint: "Internal staff are on payroll. External collaborators work without internal payroll tracking.",
     },
     partnerConfig: {
       title: "Partner Configuration",
@@ -4972,6 +4974,8 @@ export const en = {
       readOnly: "Read Only",
       readWrite: "Read & Write",
       save: "Save Access",
+      accessSaved: "Horse access updated successfully",
+      accessSaveFailed: "Failed to update horse access",
       serviceInfo: "This service partner can send and receive requests through the platform. No additional horse-level configuration is needed.",
     },
   },
