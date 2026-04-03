@@ -791,7 +791,7 @@ export function NotificationsPanel() {
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="w-[95vw] sm:w-[400px]">
+        <SheetContent className="w-[95vw] sm:w-[440px] lg:w-[480px]">
           <SheetHeader>
             <SheetTitle>{t('notifications.title')}</SheetTitle>
             <SheetDescription>
