@@ -46,7 +46,7 @@ const AcceptConnectionPage = () => {
         title: t("common.success"),
         description: t("connections.accepted"),
       });
-      navigate("/dashboard/settings/connections");
+      navigate("/dashboard/team");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error 
         ? error.message 
