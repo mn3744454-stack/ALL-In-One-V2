@@ -579,7 +579,7 @@ function InvitationsTabContent() {
 
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                         <Clock className="w-3 h-3" />
-                        {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, ...(lang === 'ar' ? { locale: ar } : {}) })}
                       </div>
 
                       {(inv.status === "pending" || inv.status === "preaccepted") && (
