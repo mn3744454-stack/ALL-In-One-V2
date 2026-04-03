@@ -108,7 +108,7 @@ const Dashboard = () => {
                       : (profile?.full_name || (profile as any)?.full_name_ar);
                     const firstName = rawName ? rawName.split(" ")[0] : null;
                     return firstName
-                      ? t("dashboard.welcomeName", { name: firstName })
+                      ? t("dashboard.welcomeName").replace("{{name}}", firstName)
                       : t("dashboard.welcome");
                   })()}
                 </h1>
