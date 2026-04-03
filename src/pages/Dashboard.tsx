@@ -103,7 +103,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
                   {(() => {
-                    const isAr = t("_locale") === "ar";
+                    const isAr = lang === "ar";
                     const rawName = isAr
                       ? ((profile as any)?.full_name_ar || profile?.full_name)
                       : (profile?.full_name || (profile as any)?.full_name_ar);
