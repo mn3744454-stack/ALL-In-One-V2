@@ -63,7 +63,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 import { useInvitations } from "@/hooks/useInvitations";
-import { useTenant } from "@/contexts/TenantContext";
+import { useHorses } from "@/hooks/useHorses";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { tStatus } from "@/i18n/labels";
