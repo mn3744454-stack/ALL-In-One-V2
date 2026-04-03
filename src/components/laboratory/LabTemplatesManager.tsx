@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CURRENCY_OPTIONS } from "@/lib/currencyOptions";
 import {
   Collapsible,
   CollapsibleContent,

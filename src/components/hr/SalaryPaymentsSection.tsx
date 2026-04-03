@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CURRENCY_OPTIONS } from "@/lib/currencyOptions";
 import { Switch } from '@/components/ui/switch';
 import { DollarSign, Plus, Calendar, FileText, Link } from 'lucide-react';
 import { formatStandardDate } from '@/lib/displayHelpers';
