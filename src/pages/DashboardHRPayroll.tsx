@@ -146,24 +146,27 @@ export default function DashboardHRPayroll() {
     setShowAddDialog(false);
   };
 
-  const addPaymentCTA = canManage ? (
-    <Button onClick={() => setShowAddDialog(true)} className="gap-2" size="sm">
-      <Plus className="h-4 w-4" />
-      <span className="hidden sm:inline">{t('hr.payroll.addPayment')}</span>
-    </Button>
-  ) : undefined;
-
   return (
     <>
       <Helmet>
         <title>{t('hr.payroll.title')} | Dayli Horse</title>
       </Helmet>
 
-      <DashboardShell headerRight={addPaymentCTA}>
+      <DashboardShell>
         {/* Mobile Header */}
         <MobilePageHeader 
           title={t('hr.payroll.title')} 
           backTo="/dashboard/hr"
+          rightElement={canManage ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowAddDialog(true)}
+              className="shrink-0"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          ) : undefined}
         />
 
           {/* Content */}

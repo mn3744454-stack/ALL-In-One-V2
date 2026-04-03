@@ -35,19 +35,7 @@ export default function DashboardHR() {
         <title>{t('hr.title')} | Dayli Horse</title>
       </Helmet>
 
-      <DashboardShell
-        headerRight={canManage ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/dashboard/hr/settings')}
-            className="gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            {t('hr.settings.title')}
-          </Button>
-        ) : undefined}
-      >
+      <DashboardShell>
         {/* Mobile Header */}
         <MobilePageHeader 
           title={t('hr.title')} 
@@ -66,6 +54,21 @@ export default function DashboardHR() {
 
         {/* Content */}
         <div className="p-4 sm:p-6 lg:p-8">
+          {/* Page-level toolbar with settings action */}
+          {canManage && (
+            <div className="hidden lg:flex justify-end mb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/dashboard/hr/settings')}
+                className="gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                {t('hr.settings.title')}
+              </Button>
+            </div>
+          )}
+
           <EmployeesList
             employees={employees}
             isLoading={isLoading}
