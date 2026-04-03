@@ -4937,7 +4937,7 @@ export const en = {
     noComplaintRecorded: "No complaint recorded",
     // Consultation detail
     consultationDetail: "Consultation Detail",
-    createInvoice: "Create Invoice",
+    
     updateStatus: "Update Status",
     linkedInvoices: "Linked Invoices",
     consultationNotFound: "Consultation not found.",
@@ -5014,6 +5014,8 @@ export const en = {
     followupCancelled: "cancelled",
     // Invoice dialog
     createInvoiceTitle: "Create Invoice from Consultation",
+    service: "Service",
+    selectService: "Select a service…",
     client: "Client",
     selectClient: "Select a client…",
     searchClients: "Search clients…",
@@ -5023,6 +5025,7 @@ export const en = {
     clientNamePlaceholder: "Client or stable name",
     totalAmount: "Total Amount",
     creating: "Creating...",
+    createInvoice: "Create Invoice",
     invoiceCreated: "Invoice created and linked to consultation",
     invoiceFailed: "Failed to create invoice",
   },
