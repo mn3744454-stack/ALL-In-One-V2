@@ -20,6 +20,7 @@ type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" 
 interface InvitePersonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledEmail?: string;
 }
 
 export function InvitePersonDialog({ open, onOpenChange }: InvitePersonDialogProps) {
