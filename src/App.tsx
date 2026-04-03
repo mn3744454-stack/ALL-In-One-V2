@@ -39,7 +39,7 @@ import DashboardHRPayroll from "./pages/DashboardHRPayroll";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
 import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
-import DashboardConnectionsSettings from "./pages/DashboardConnectionsSettings";
+
 import DashboardSchedule from "./pages/DashboardSchedule";
 import DashboardRecords from "./pages/DashboardRecords";
 import DashboardFileManager from "./pages/DashboardFileManager";
@@ -508,16 +508,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/dashboard/settings/connections"
-        element={
-          <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
-              <DashboardConnectionsSettings />
-            </WorkspaceRouteGuard>
-          </ProtectedRoute>
-        }
-      />
+      {/* Legacy connections settings removed — functionality migrated to Team & Partners */}
       <Route
         path="/dashboard/settings/notifications"
         element={

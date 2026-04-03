@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,25 +14,28 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useConnectionsWithDetails } from "@/hooks/connections";
 import { useUnifiedTeam } from "@/hooks/team/useUnifiedTeam";
+import { useConnections } from "@/hooks/connections";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { InvitePersonDialog } from "@/components/team/InvitePersonDialog";
 import { AddPartnerDialog } from "@/components/connections/AddPartnerDialog";
 import { PersonDetailSheet } from "@/components/team/PersonDetailSheet";
 import { PartnerConfigSheet } from "@/components/team/PartnerConfigSheet";
-import { useConnections } from "@/hooks/connections";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import type { UnifiedPerson } from "@/hooks/team/useUnifiedTeam";
 import type { ConnectionWithDetails } from "@/hooks/connections/useConnectionsWithDetails";
 
 const DashboardTeamPartners = () => {
   const { t, lang } = useI18n();
   const { activeTenant, activeRole } = useTenant();
+  const { toast: uiToast } = useToast();
   const canManage = activeRole === "owner" || activeRole === "manager";
 
   const { sentInvitations, receivedInvitations, respondToInvitation } = useInvitations();
-  const { connections: connectionsWithDetails, isLoading: connectionsLoading } = useConnectionsWithDetails();
-  const { createConnection } = useConnections();
+  const { connections: connectionsWithDetails, isLoading: connectionsLoading, refetch: refetchConnections } = useConnectionsWithDetails();
+  const { createConnection, acceptConnection, rejectConnection } = useConnections();
   const { people, counts, isLoading: teamLoading } = useUnifiedTeam();
 
   const [invitePersonOpen, setInvitePersonOpen] = useState(false);
@@ -55,7 +58,46 @@ const DashboardTeamPartners = () => {
     setInvitePersonOpen(true);
   };
 
-  // Status icon for person cards
+  const handleAcceptPartner = useCallback(async (conn: ConnectionWithDetails) => {
+    try {
+      await acceptConnection.mutateAsync(conn.token);
+
+      // Apply link preset after acceptance
+      setTimeout(async () => {
+        const refetched = await refetchConnections();
+        const acceptedConn = refetched.data?.find(
+          (c) => c.token === conn.token && c.status === "accepted"
+        );
+        if (acceptedConn?.recipient_tenant_id && acceptedConn?.initiator_tenant_id) {
+          const types = [
+            acceptedConn.initiator_tenant_type,
+            acceptedConn.recipient_tenant_type,
+          ].sort();
+          let preset: string | null = null;
+          if (types.includes("laboratory") && types.includes("stable")) preset = "requests_and_results";
+          else if (types.includes("clinic") && types.includes("stable")) preset = "appointments_and_records";
+          else if (types.includes("clinic") && types.includes("laboratory")) preset = "referrals_and_results";
+
+          if (preset) {
+            try {
+              await supabase.rpc("apply_link_preset", {
+                _connection_id: acceptedConn.id,
+                _preset_name: preset,
+              });
+              uiToast({ title: t("common.success"), description: t("connections.presetApplied") });
+            } catch { /* preset failed silently */ }
+          }
+        }
+      }, 500);
+    } catch { /* error handled by hook */ }
+  }, [acceptConnection, refetchConnections, uiToast, t]);
+
+  const handleRejectPartner = useCallback(async (conn: ConnectionWithDetails) => {
+    try {
+      await rejectConnection.mutateAsync(conn.token);
+    } catch { /* error handled by hook */ }
+  }, [rejectConnection]);
+
   const personStatusIcon = (p: UnifiedPerson) => {
     if (p.status === "hr_only") return <Briefcase className="w-4 h-4 text-muted-foreground" />;
     return <Users className="w-4 h-4 text-primary" />;
@@ -240,7 +282,7 @@ const DashboardTeamPartners = () => {
                 )}
               </div>
 
-              {/* Received invitations for current user */}
+              {/* Received invitations */}
               {receivedInvitations.length > 0 && (
                 <div className="space-y-2">
                   <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
@@ -324,9 +366,10 @@ const DashboardTeamPartners = () => {
                   const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
                   const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
                   const isOperational = ["doctor", "trainer", "vet_clinic"].includes(partnerType || "");
+                  const isPendingInbound = conn.status === "pending" && !isMine;
 
                   return (
-                    <Card key={conn.id} className="overflow-hidden">
+                    <Card key={conn.id} className={`overflow-hidden ${isPendingInbound ? "border-primary/30" : ""}`}>
                       <CardContent className="p-3">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
@@ -347,18 +390,47 @@ const DashboardTeamPartners = () => {
                                   : t("teamPartners.partnerTypes.service")}
                               </Badge>
                             </div>
+                            {isPendingInbound && (
+                              <p className="text-[10px] text-primary mt-0.5">
+                                {t("teamPartners.partnerDetail.pendingInbound")}
+                              </p>
+                            )}
                           </div>
-                          {canManage && conn.status === "accepted" && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="shrink-0 h-8 w-8"
-                              onClick={() => setSelectedPartner(conn)}
-                              title={t("teamPartners.configure")}
-                            >
-                              <Settings2 className="w-4 h-4" />
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-1 shrink-0">
+                            {/* Accept/Reject for pending inbound */}
+                            {isPendingInbound && canManage && (
+                              <>
+                                <Button
+                                  variant="gold" size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleAcceptPartner(conn)}
+                                  disabled={acceptConnection.isPending}
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="outline" size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => handleRejectPartner(conn)}
+                                  disabled={rejectConnection.isPending}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            {/* Config button for accepted or own pending */}
+                            {(conn.status === "accepted" || (conn.status === "pending" && isMine)) && canManage && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setSelectedPartner(conn)}
+                                title={t("teamPartners.configure")}
+                              >
+                                <Settings2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
