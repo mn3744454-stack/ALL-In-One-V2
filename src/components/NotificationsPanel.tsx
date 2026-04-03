@@ -105,7 +105,7 @@ function getNotificationRoute(notification: AppNotification): string {
   }
 
   if (event_type.startsWith("movement.")) {
-    return "/dashboard/housing?tab=movements";
+    return "/dashboard/housing?tab=arrivalsAndDepartures";
   }
 
   return "/dashboard";

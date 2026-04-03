@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { Link, useNavigate } from "react-router-dom";
 import { useTenantRealtimeSync } from "@/hooks/useTenantRealtimeSync";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
@@ -9,7 +10,7 @@ import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PushPermissionBanner } from "@/components/push/PushPermissionBanner";
-import { AddHorseDialog } from "@/components/AddHorseDialog";
+
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
@@ -51,7 +52,7 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
   const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
@@ -67,11 +68,8 @@ const Dashboard = () => {
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
 
-  // Header right slot: AddHorseDialog for desktop - only in org mode
-  const headerRight = activeTenant && workspaceMode === "organization" ? <AddHorseDialog /> : undefined;
-
   return (
-    <DashboardShell headerRight={headerRight}>
+    <DashboardShell>
       {/* Mobile Header - Dashboard-specific with workspace toggle */}
       <header className="shrink-0 z-30 bg-cream/80 backdrop-blur-xl border-b border-border/50 lg:hidden">
         {/* Row 1: Workspace toggle (wider area) + actions */}
@@ -89,7 +87,6 @@ const Dashboard = () => {
               <TenantSwitcher />
               <RoleSwitcher />
             </div>
-            {activeTenant && workspaceMode === "organization" && <AddHorseDialog />}
           </div>
         )}
       </header>
@@ -105,7 +102,16 @@ const Dashboard = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
-                  {t("dashboard.welcome")}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+                  {(() => {
+                    const isAr = lang === "ar";
+                    const rawName = isAr
+                      ? ((profile as any)?.full_name_ar || profile?.full_name)
+                      : (profile?.full_name || (profile as any)?.full_name_ar);
+                    const firstName = rawName ? rawName.split(" ")[0] : null;
+                    return firstName
+                      ? t("dashboard.welcomeName").replace("{{name}}", firstName)
+                      : t("dashboard.welcome");
+                  })()}
                 </h1>
                 {/* Mobile notifications bell - moved here from top row */}
                 <div className="lg:hidden mb-1">
