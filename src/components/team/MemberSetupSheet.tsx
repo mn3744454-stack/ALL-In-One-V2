@@ -68,23 +68,21 @@ export function MemberSetupSheet({ open, onOpenChange, member }: MemberSetupShee
 
     // Update horse access
     try {
-      // Clear existing access
+    // Clear existing access
       await supabase
         .from("member_horse_access")
         .delete()
-        .eq("member_id", member.id);
+        .eq("tenant_member_id", member.id);
 
       // Insert new access
       if (selectedHorses.length > 0) {
+        const rows = selectedHorses.map(horseId => ({
+          tenant_member_id: member.id,
+          horse_id: horseId,
+        }));
         await supabase
           .from("member_horse_access")
-          .insert(
-            selectedHorses.map(horseId => ({
-              member_id: member.id,
-              horse_id: horseId,
-              tenant_id: activeTenant!.tenant_id,
-            }))
-          );
+          .insert(rows);
       }
 
       toast.success(t("teamPartners.setup.saved"));

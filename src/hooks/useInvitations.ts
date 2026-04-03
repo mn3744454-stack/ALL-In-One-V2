@@ -53,7 +53,8 @@ interface ReceivedInvitation {
 }
 
 interface CreateInvitationData {
-  invitee_email: string;
+  invitee_email?: string;
+  invitee_phone?: string;
   proposed_role: TenantRole;
   assigned_horse_ids?: string[];
 }
