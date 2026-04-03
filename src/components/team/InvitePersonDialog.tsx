@@ -23,7 +23,7 @@ interface InvitePersonDialogProps {
   prefilledEmail?: string;
 }
 
-export function InvitePersonDialog({ open, onOpenChange }: InvitePersonDialogProps) {
+export function InvitePersonDialog({ open, onOpenChange, prefilledEmail = "" }: InvitePersonDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { createInvitation } = useInvitations();
