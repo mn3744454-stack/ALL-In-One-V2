@@ -270,7 +270,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     { icon: Settings, label: t('sidebar.settings'), href: "/dashboard/settings" },
     { icon: Shield, label: t('settings.roles.title') || 'Roles', href: "/dashboard/settings/roles" },
     { icon: Shield, label: t('settings.permissions.title') || 'Permissions', href: "/dashboard/settings/permissions" },
-    { icon: Link2, label: t('settings.connections') || 'Connections', href: "/dashboard/settings/connections" },
+    
     { icon: BellRing, label: t('sidebar.notificationSettings'), href: "/dashboard/settings/notifications" },
   ], [t]);
 
