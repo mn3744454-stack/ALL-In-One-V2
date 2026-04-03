@@ -1096,6 +1096,48 @@ export type Database = {
           },
         ]
       }
+      connection_horse_access: {
+        Row: {
+          access_level: string
+          connection_id: string
+          created_at: string
+          granted_by: string | null
+          horse_id: string
+          id: string
+        }
+        Insert: {
+          access_level?: string
+          connection_id: string
+          created_at?: string
+          granted_by?: string | null
+          horse_id: string
+          id?: string
+        }
+        Update: {
+          access_level?: string
+          connection_id?: string
+          created_at?: string
+          granted_by?: string | null
+          horse_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_horse_access_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connection_horse_access_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connection_messages: {
         Row: {
           body: string
