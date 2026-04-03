@@ -47,7 +47,6 @@ import {
   X,
   Loader2,
   Truck,
-  Truck,
   Home,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
