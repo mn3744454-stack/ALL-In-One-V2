@@ -46,7 +46,7 @@ import {
   Copy,
   X,
   Loader2,
-  Send,
+  Truck,
   Truck,
   Home,
 } from "lucide-react";
