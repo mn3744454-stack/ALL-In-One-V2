@@ -4924,7 +4924,6 @@ export const ar = {
     noConsultations: "لم يتم العثور على استشارات.",
     noComplaintRecorded: "لم تُسجل شكوى",
     consultationDetail: "تفاصيل الاستشارة",
-    createInvoice: "إنشاء فاتورة",
     updateStatus: "تحديث الحالة",
     linkedInvoices: "الفواتير المرتبطة",
     consultationNotFound: "الاستشارة غير موجودة.",

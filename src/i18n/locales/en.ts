@@ -4937,7 +4937,7 @@ export const en = {
     noComplaintRecorded: "No complaint recorded",
     // Consultation detail
     consultationDetail: "Consultation Detail",
-    generateInvoice: "Create Invoice",
+    
     updateStatus: "Update Status",
     linkedInvoices: "Linked Invoices",
     consultationNotFound: "Consultation not found.",
