@@ -661,36 +661,14 @@ export function NotificationsPanel() {
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const { unreadCount } = useNotifications();
-  const { receivedInvitations, createInvitation } = useInvitations();
+  const { receivedInvitations } = useInvitations();
   const { activeTenant } = useTenant();
-  const { horses } = useHorses();
-  const [inviteData, setInviteData] = useState({
-    email: "",
-    role: "employee" as TenantRole,
-    selectedHorses: [] as string[],
-  });
 
   const totalUnread = unreadCount + receivedInvitations.length;
   const canInvite = activeTenant?.can_invite || activeTenant?.role === "owner";
 
-  const handleSendInvite = async () => {
-    if (!inviteData.email) {
-      toast.error(t('notifications.enterEmail'));
-      return;
-    }
-    const { error } = await createInvitation({
-      invitee_email: inviteData.email,
-      proposed_role: inviteData.role,
-      assigned_horse_ids: inviteData.selectedHorses,
-    });
-    if (error) {
-      toast.error(t('notifications.inviteFailed'));
-    } else {
-      toast.success(t('notifications.inviteSent'));
-      setInviteOpen(false);
-      setInviteData({ email: "", role: "employee", selectedHorses: [] });
-    }
-  };
+  // Lazy-import the dialog to keep this file lean
+  const InvitePersonDialog = React.lazy(() => import("@/components/team/InvitePersonDialog").then(m => ({ default: m.InvitePersonDialog })));
 
   return (
     <div className="flex items-center gap-2">
@@ -710,89 +688,15 @@ export function NotificationsPanel() {
 
       {/* Invite Button */}
       {canInvite && (
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 sm:gap-2">
-              <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('notifications.invite')}</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{t('notifications.inviteTitle')}</DialogTitle>
-              <DialogDescription>
-                {t('notifications.inviteDescription')} {activeTenant?.tenant.name}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="invite-email">{t('notifications.emailAddress')}</Label>
-                <div className="relative">
-                  <Mail className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    placeholder="colleague@example.com"
-                    value={inviteData.email}
-                    onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                    className="ps-10"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t('notifications.role')}</Label>
-                <Select
-                  value={inviteData.role}
-                  onValueChange={(value) => setInviteData({ ...inviteData, role: value as TenantRole })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('notifications.selectRole')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="manager">{t('notifications.roles.manager')}</SelectItem>
-                    <SelectItem value="foreman">{t('notifications.roles.foreman')}</SelectItem>
-                    <SelectItem value="vet">{t('notifications.roles.vet')}</SelectItem>
-                    <SelectItem value="trainer">{t('notifications.roles.trainer')}</SelectItem>
-                    <SelectItem value="employee">{t('notifications.roles.employee')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {horses.length > 0 && (
-                <div className="space-y-2">
-                  <Label>{t('notifications.assignHorses')}</Label>
-                  <div className="max-h-[150px] overflow-y-auto border rounded-lg p-2 space-y-2">
-                    {horses.map((horse) => (
-                      <div key={horse.id} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`invite-horse-${horse.id}`}
-                          checked={inviteData.selectedHorses.includes(horse.id)}
-                          onCheckedChange={(checked) => {
-                            setInviteData({
-                              ...inviteData,
-                              selectedHorses: checked
-                                ? [...inviteData.selectedHorses, horse.id]
-                                : inviteData.selectedHorses.filter((id) => id !== horse.id),
-                            });
-                          }}
-                        />
-                        <label htmlFor={`invite-horse-${horse.id}`} className="text-sm cursor-pointer">
-                          {horse.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <Button variant="gold" className="w-full" onClick={handleSendInvite}>
-                <Send className="w-4 h-4 me-2" />
-                {t('notifications.sendInvitation')}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <>
+          <Button variant="outline" size="icon" className="sm:w-auto sm:px-3 sm:gap-2" onClick={() => setInviteOpen(true)}>
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('notifications.invite')}</span>
+          </Button>
+          <React.Suspense fallback={null}>
+            <InvitePersonDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+          </React.Suspense>
+        </>
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>
