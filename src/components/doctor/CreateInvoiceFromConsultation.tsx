@@ -70,7 +70,7 @@ export function CreateInvoiceFromConsultation({ open, onOpenChange, consultation
       .eq("id", consultation.patient_id)
       .eq("tenant_id", tenantId)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         if (data?.linked_horse_id) setPatientHorseId(data.linked_horse_id as string);
       });
   }, [open, consultation.patient_id, tenantId]);
