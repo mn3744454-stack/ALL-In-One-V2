@@ -86,7 +86,6 @@ const Dashboard = () => {
               <TenantSwitcher />
               <RoleSwitcher />
             </div>
-            {activeTenant && workspaceMode === "organization" && <AddHorseDialog />}
           </div>
         )}
       </header>
