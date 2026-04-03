@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -69,9 +70,8 @@ export function InvoiceFormDialog({
     discount_amount: "0",
     notes: "",
   });
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0, total_price: 0 },
-  ]);
+  // Phase 7: Start with no line items — operator explicitly adds via buttons
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
 
   // Populate form once per dialog open — ref prevents re-init on every render
   const initializedRef = useRef(false);
@@ -120,9 +120,8 @@ export function InvoiceFormDialog({
         discount_amount: "0",
         notes: "",
       });
-      setLineItems([
-        { id: crypto.randomUUID(), description: "", quantity: 1, unit_price: 0, total_price: 0 },
-      ]);
+      // Phase 7: Empty start — no starter row
+      setLineItems([]);
     }
   }, [open]);
 
@@ -165,7 +164,7 @@ export function InvoiceFormDialog({
     }
 
     const totalAmount = subtotal + taxAmount - discountAmount;
-    return { subtotal, taxAmount, discountAmount, totalAmount };
+    return { subtotal, taxAmount, discountAmount, totalAmount, taxableTotal, nonTaxableTotal };
   }, [lineItems, formData.tax_rate, formData.discount_amount, pricesTaxInclusive, allServices]);
 
   const generateInvoiceNumber = () => {
@@ -344,47 +343,56 @@ export function InvoiceFormDialog({
               />
             </div>
 
-            {/* Tax and Discount */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label>
-                  {t("finance.invoices.taxRate")} (%)
-                  <span className="text-xs text-muted-foreground ms-1">
-                    — {pricesTaxInclusive ? t("finance.tax.inclTax") : t("finance.tax.exclTax")}
-                  </span>
-                </Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
-                  value={formData.tax_rate}
-                  onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
-                />
+            {/* Financial Summary Card */}
+            <div className="border border-border rounded-lg p-4 space-y-3 bg-muted/30">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold">{t("finance.invoices.financialSummary")}</Label>
+                <Badge
+                  variant="outline"
+                  className="text-xs"
+                >
+                  {pricesTaxInclusive ? t("finance.tax.inclTax") : t("finance.tax.exclTax")}
+                </Badge>
               </div>
 
-              <div className="space-y-2">
-                <Label>{t("finance.invoices.discount")}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.discount_amount}
-                  onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-muted-foreground">{t("finance.invoices.tax")}</Label>
-                <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium font-mono tabular-nums" dir="ltr">
-                  {formatCurrency(calculations.taxAmount)}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    {t("finance.invoices.taxRate")} (%)
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.tax_rate}
+                    onChange={(e) => setFormData({ ...formData, tax_rate: e.target.value })}
+                  />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-gold font-bold">{t("finance.invoices.totalAmount")}</Label>
-                <div className="h-10 flex items-center px-3 bg-gold/10 rounded-md font-bold text-navy font-mono tabular-nums" dir="ltr">
-                  {formatCurrency(calculations.totalAmount)}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t("finance.invoices.discount")}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.discount_amount}
+                    onChange={(e) => setFormData({ ...formData, discount_amount: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">{t("finance.invoices.tax")}</Label>
+                  <div className="h-10 flex items-center px-3 bg-background border border-border rounded-md font-medium font-mono tabular-nums text-sm" dir="ltr">
+                    {formatCurrency(calculations.taxAmount)}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-primary">{t("finance.invoices.totalAmount")}</Label>
+                  <div className="h-10 flex items-center px-3 bg-primary/10 border border-primary/20 rounded-md font-bold font-mono tabular-nums text-sm" dir="ltr">
+                    {formatCurrency(calculations.totalAmount)}
+                  </div>
                 </div>
               </div>
             </div>
