@@ -231,11 +231,13 @@ export function useLabInvoiceDraft() {
     setIsGenerating(true);
 
     try {
-      // Calculate totals
+      // Calculate totals with tenant tax config
       const subtotal = input.lineItems.reduce((sum, item) => sum + item.total, 0);
-      const taxAmount = 0; // Can be extended later
+      const tenantTaxConfig = getTenantTaxConfig(activeTenant?.tenant);
+      const taxResult = computeTax(subtotal, tenantTaxConfig);
+      const taxAmount = taxResult.taxAmount;
       const discountAmount = 0;
-      const totalAmount = subtotal + taxAmount - discountAmount;
+      const totalAmount = taxResult.totalAmount - discountAmount;
 
       // Create the invoice
       const invoice = await createInvoice({
