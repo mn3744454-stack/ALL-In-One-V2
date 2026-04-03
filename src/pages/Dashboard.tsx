@@ -9,7 +9,7 @@ import { TenantSwitcher } from "@/components/TenantSwitcher";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
 import { PushPermissionBanner } from "@/components/push/PushPermissionBanner";
-import { AddHorseDialog } from "@/components/AddHorseDialog";
+
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { UpcomingScheduleWidget } from "@/components/dashboard/UpcomingScheduleWidget";
 import { RecentActivityWidget } from "@/components/dashboard/RecentActivityWidget";
