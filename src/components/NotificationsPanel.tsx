@@ -63,7 +63,6 @@ import {
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
-import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { tStatus } from "@/i18n/labels";
 import { formatDistanceToNow } from "date-fns";
