@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { FileText, DollarSign, ListChecks, TestTubes } from "lucide-react";
 // Simple template type for dialog display
 interface SimpleTemplate {
@@ -25,6 +26,7 @@ export function TemplateDetailsDialog({
   onOpenChange 
 }: TemplateDetailsDialogProps) {
   const { t, dir } = useI18n();
+  const tenantCurrency = useTenantCurrency();
   const isArabic = dir === "rtl";
 
   if (!template) return null;
@@ -40,7 +42,7 @@ export function TemplateDetailsDialog({
   // Get pricing info
   const pricing = (template as any).pricing as { base_price?: number; currency?: string } | undefined;
   const basePrice = pricing?.base_price;
-  const currency = pricing?.currency || "SAR";
+  const currency = pricing?.currency || tenantCurrency;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

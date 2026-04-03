@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CURRENCY_OPTIONS } from "@/lib/currencyOptions";
 import { Switch } from '@/components/ui/switch';
 import { DollarSign, Plus, Calendar, FileText, Link } from 'lucide-react';
 import { formatStandardDate } from '@/lib/displayHelpers';
@@ -184,11 +185,11 @@ export function SalaryPaymentsSection({
                   <SelectTrigger className="w-24">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SAR">SAR</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                  </SelectContent>
+                    <SelectContent>
+                      {CURRENCY_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
                 </Select>
               </div>
             </div>

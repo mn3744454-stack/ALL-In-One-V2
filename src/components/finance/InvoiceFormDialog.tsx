@@ -17,6 +17,7 @@ import { useServices } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
 import { useClients } from "@/hooks/useClients";
 import { formatCurrency } from "@/lib/formatters";
@@ -47,6 +48,7 @@ export function InvoiceFormDialog({
 }: InvoiceFormDialogProps) {
   const { t, dir, lang } = useI18n();
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
   const { clients } = useClients();
   const { horses = [] } = useHorses();
@@ -336,7 +338,7 @@ export function InvoiceFormDialog({
               <InvoiceLineItemsEditor
                 items={lineItems}
                 onChange={setLineItems}
-                currency="SAR"
+                currency={invoice?.currency || tenantCurrency}
                 horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
                 services={allServices}
               />

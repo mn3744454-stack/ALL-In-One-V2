@@ -31,6 +31,7 @@ import { useInvoicePayments, type InvoicePaymentSummary } from "@/hooks/finance/
 import { useInvoiceItems } from "@/hooks/finance/useInvoices";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { 
   Plus, 
   Trash2, 
@@ -74,11 +75,13 @@ export function RecordPaymentDialog({
   open,
   onOpenChange,
   invoiceId,
-  currency = "SAR",
+  currency,
   onSuccess,
 }: RecordPaymentDialogProps) {
   const { t, dir } = useI18n();
   const { hasPermission } = usePermissions();
+  const tenantCurrency = useTenantCurrency();
+  const effectiveCurrency = currency || tenantCurrency;
   const { summary, isLoading, recordPayment, isRecording } = useInvoicePayments(invoiceId);
   const { items: invoiceItems, isLoading: itemsLoading } = useInvoiceItems(invoiceId || undefined);
 
@@ -158,7 +161,7 @@ export function RecordPaymentDialog({
     }
   };
 
-  const formatAmount = (amount: number) => formatCurrency(amount, currency);
+  const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

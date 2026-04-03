@@ -45,6 +45,7 @@ import { useTenantCapabilities } from "@/hooks/useTenantCapabilities";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useTenant } from "@/contexts/TenantContext";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useAuth } from "@/contexts/AuthContext";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
@@ -169,6 +170,7 @@ export function CreateSampleDialog({
   const { hasPermission, isOwner } = usePermissions();
   const { isLabTenant, labMode } = useModuleAccess();
   const { activeTenant } = useTenant();
+  const tenantCurrency = useTenantCurrency();
   const { user } = useAuth();
   
   // Lab tenants with full mode use lab_horses instead of stable horses
@@ -1030,7 +1032,7 @@ export function CreateSampleDialog({
           const basePrice = pricing && typeof pricing.base_price === "number" 
             ? pricing.base_price 
             : null;
-          const currency = (pricing?.currency as string) || "SAR";
+          const currency = (pricing?.currency as string) || tenantCurrency;
           
           return (
             <div

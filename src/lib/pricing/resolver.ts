@@ -5,6 +5,9 @@
  * - lab_templates (pricing JSONB)
  * - tenant_services (unit_price)
  * - products (selling_price)
+ *
+ * All resolve functions accept `fallbackCurrency` so callers can pass the
+ * tenant-configured currency instead of assuming SAR.
  */
 
 import { supabase } from "@/integrations/supabase/client";
@@ -30,12 +33,12 @@ export function getLabTemplatePrice(pricing: Record<string, unknown> | null): nu
 /**
  * Get currency from lab template's pricing JSONB
  */
-export function getLabTemplateCurrency(pricing: Record<string, unknown> | null): string {
-  if (!pricing) return "SAR";
+export function getLabTemplateCurrency(pricing: Record<string, unknown> | null, fallbackCurrency = "SAR"): string {
+  if (!pricing) return fallbackCurrency;
   if (typeof pricing.currency === "string") {
     return pricing.currency;
   }
-  return "SAR";
+  return fallbackCurrency;
 }
 
 /**
@@ -43,7 +46,8 @@ export function getLabTemplateCurrency(pricing: Record<string, unknown> | null):
  */
 export async function resolveLabTemplatePrice(
   templateId: string,
-  tenantId: string
+  tenantId: string,
+  fallbackCurrency = "SAR"
 ): Promise<PriceResult> {
   const { data, error } = await supabase
     .from("lab_templates")
@@ -53,13 +57,13 @@ export async function resolveLabTemplatePrice(
     .single();
 
   if (error || !data) {
-    return { unitPrice: null, currency: "SAR", source: "lab_template", sourceId: templateId };
+    return { unitPrice: null, currency: fallbackCurrency, source: "lab_template", sourceId: templateId };
   }
 
   const pricing = data.pricing as Record<string, unknown> | null;
   return {
     unitPrice: getLabTemplatePrice(pricing),
-    currency: getLabTemplateCurrency(pricing),
+    currency: getLabTemplateCurrency(pricing, fallbackCurrency),
     source: "lab_template",
     sourceId: templateId,
   };
@@ -70,7 +74,8 @@ export async function resolveLabTemplatePrice(
  */
 export async function resolveServicePrice(
   serviceId: string,
-  tenantId: string
+  tenantId: string,
+  fallbackCurrency = "SAR"
 ): Promise<PriceResult> {
   const { data, error } = await supabase
     .from("tenant_services")
@@ -80,12 +85,12 @@ export async function resolveServicePrice(
     .single();
 
   if (error || !data) {
-    return { unitPrice: null, currency: "SAR", source: "tenant_service", sourceId: serviceId };
+    return { unitPrice: null, currency: fallbackCurrency, source: "tenant_service", sourceId: serviceId };
   }
 
   return {
     unitPrice: data.unit_price,
-    currency: "SAR",
+    currency: fallbackCurrency,
     source: "tenant_service",
     sourceId: serviceId,
   };
@@ -96,7 +101,8 @@ export async function resolveServicePrice(
  */
 export async function resolveProductPrice(
   productId: string,
-  tenantId: string
+  tenantId: string,
+  fallbackCurrency = "SAR"
 ): Promise<PriceResult> {
   const { data, error } = await supabase
     .from("products")
@@ -106,12 +112,12 @@ export async function resolveProductPrice(
     .single();
 
   if (error || !data) {
-    return { unitPrice: null, currency: "SAR", source: "product", sourceId: productId };
+    return { unitPrice: null, currency: fallbackCurrency, source: "product", sourceId: productId };
   }
 
   return {
     unitPrice: data.selling_price,
-    currency: data.currency || "SAR",
+    currency: data.currency || fallbackCurrency,
     source: "product",
     sourceId: productId,
   };

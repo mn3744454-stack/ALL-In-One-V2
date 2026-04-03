@@ -39,6 +39,7 @@ import { useLabHorses, type LabHorse, type CreateLabHorseData } from "@/hooks/la
 import { useLabHorsesWithMetrics, type LabHorseWithMetrics } from "@/hooks/laboratory/useLabHorsesWithMetrics";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -78,6 +79,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
 
   // View preference
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-horses');
+  const tenantCurrency = useTenantCurrency();
 
   // Use aggregated hook for metrics
   const { data: labHorses = [], isLoading: loading } = useLabHorsesWithMetrics({
@@ -165,7 +167,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
   };
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   // Check if we have a horseId param for profile view
   const selectedHorseId = searchParams.get("horseId");

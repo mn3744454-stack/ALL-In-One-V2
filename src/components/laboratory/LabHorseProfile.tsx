@@ -28,6 +28,7 @@ import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
 import { OwnerQuickViewPopover } from "./OwnerQuickViewPopover";
 import { formatCurrency } from "@/lib/formatters";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ interface LabHorseProfileProps {
 export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick, onEdit }: LabHorseProfileProps) {
   const { t, lang, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
+  const tenantCurrency = useTenantCurrency();
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   };
 
   // Use centralized formatter for EN digits
-  const formatAmount = (amount: number) => formatCurrency(amount, "SAR");
+  const formatAmount = (amount: number) => formatCurrency(amount, tenantCurrency);
 
   const handleSampleClick = (sample: LabSample) => {
     onSampleClick?.(sample.id);
