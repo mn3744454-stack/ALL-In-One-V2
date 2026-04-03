@@ -352,7 +352,7 @@ function NotificationsTabContent() {
 
 function InvitationsTabContent() {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const {
     receivedInvitations,
     sentInvitations,
