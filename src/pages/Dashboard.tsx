@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AddHorseDialog } from "@/components/AddHorseDialog";
 import { Link, useNavigate } from "react-router-dom";
 import { useTenantRealtimeSync } from "@/hooks/useTenantRealtimeSync";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
