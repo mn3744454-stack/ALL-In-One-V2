@@ -5,41 +5,44 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Users, Building2, UserPlus, Send, Clock, Check, X,
-  Mail, Phone, Loader2, Settings2, AlertCircle, Link2,
+  Mail, Loader2, Settings2, Monitor, FileText, Briefcase,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useConnectionsWithDetails } from "@/hooks/connections";
-import { useMemberRoleAssignment } from "@/hooks/roles/useMemberRoleAssignment";
+import { useUnifiedTeam } from "@/hooks/team/useUnifiedTeam";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { InvitePersonDialog } from "@/components/team/InvitePersonDialog";
 import { AddPartnerDialog } from "@/components/connections/AddPartnerDialog";
-import { MemberSetupSheet } from "@/components/team/MemberSetupSheet";
+import { PersonDetailSheet } from "@/components/team/PersonDetailSheet";
+import { PartnerConfigSheet } from "@/components/team/PartnerConfigSheet";
 import { useConnections } from "@/hooks/connections";
 import { toast } from "sonner";
+import type { UnifiedPerson } from "@/hooks/team/useUnifiedTeam";
+import type { ConnectionWithDetails } from "@/hooks/connections/useConnectionsWithDetails";
 
 const DashboardTeamPartners = () => {
   const { t, lang } = useI18n();
   const { activeTenant, activeRole } = useTenant();
   const canManage = activeRole === "owner" || activeRole === "manager";
 
-  const { sentInvitations, receivedInvitations, respondToInvitation, revokeInvitation } = useInvitations();
+  const { sentInvitations, receivedInvitations, respondToInvitation } = useInvitations();
   const { connections: connectionsWithDetails, isLoading: connectionsLoading } = useConnectionsWithDetails();
   const { createConnection } = useConnections();
-  const { members, isLoading: membersLoading } = useMemberRoleAssignment();
+  const { people, counts, isLoading: teamLoading } = useUnifiedTeam();
 
   const [invitePersonOpen, setInvitePersonOpen] = useState(false);
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
-  const [setupMember, setSetupMember] = useState<string | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<UnifiedPerson | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<ConnectionWithDetails | null>(null);
+  const [invitePrefilledEmail, setInvitePrefilledEmail] = useState("");
 
-  // Determine which members need setup (accepted but missing horse assignments or still 'external' default)
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
-  const acceptedMembers = members.filter(m => m.role !== "owner");
+  const nonOwnerPeople = people.filter(p => p.role !== "owner");
 
   const handleAddPartner = async (recipientTenantId: string) => {
     await createConnection.mutateAsync({ connectionType: "b2b", recipientTenantId });
@@ -47,7 +50,16 @@ const DashboardTeamPartners = () => {
     toast.success(t("teamPartners.partnerRequestSent"));
   };
 
-  const selectedMember = setupMember ? members.find(m => m.id === setupMember) : null;
+  const handleInviteToPlatform = (person: UnifiedPerson) => {
+    setInvitePrefilledEmail(person.email || "");
+    setInvitePersonOpen(true);
+  };
+
+  // Status icon for person cards
+  const personStatusIcon = (p: UnifiedPerson) => {
+    if (p.status === "hr_only") return <Briefcase className="w-4 h-4 text-muted-foreground" />;
+    return <Users className="w-4 h-4 text-primary" />;
+  };
 
   return (
     <DashboardShell>
@@ -63,7 +75,7 @@ const DashboardTeamPartners = () => {
             </div>
             {canManage && (
               <div className="flex gap-2">
-                <Button variant="gold" size="sm" onClick={() => setInvitePersonOpen(true)} className="gap-2">
+                <Button variant="gold" size="sm" onClick={() => { setInvitePrefilledEmail(""); setInvitePersonOpen(true); }} className="gap-2">
                   <UserPlus className="w-4 h-4" />
                   <span>{t("teamPartners.invitePerson")}</span>
                 </Button>
@@ -75,14 +87,30 @@ const DashboardTeamPartners = () => {
             )}
           </div>
 
+          {/* Summary counters */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="text-center p-2 rounded-lg border bg-card">
+              <p className="text-lg font-bold text-foreground">{counts.total}</p>
+              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.total")}</p>
+            </div>
+            <div className="text-center p-2 rounded-lg border bg-card">
+              <p className="text-lg font-bold text-foreground">{counts.active}</p>
+              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.withAccess")}</p>
+            </div>
+            <div className="text-center p-2 rounded-lg border bg-card">
+              <p className="text-lg font-bold text-foreground">{counts.hrOnly}</p>
+              <p className="text-[10px] text-muted-foreground">{t("teamPartners.counts.hrOnly")}</p>
+            </div>
+          </div>
+
           <Tabs defaultValue="people" className="space-y-4">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
                 <Users className="w-4 h-4" />
                 {t("teamPartners.tabs.people")}
-                {(pendingInvitations.length + acceptedMembers.length) > 0 && (
+                {nonOwnerPeople.length > 0 && (
                   <Badge variant="secondary" className="text-[10px] h-4 min-w-[16px] p-0 flex items-center justify-center">
-                    {pendingInvitations.length + acceptedMembers.length}
+                    {nonOwnerPeople.length + pendingInvitations.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -119,7 +147,7 @@ const DashboardTeamPartners = () => {
                             </p>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Badge variant="outline" className="text-[10px]">
-                                {t("teamPartners.status.pending")}
+                                {t("teamPartners.personStatus.pending")}
                               </Badge>
                               <Badge variant="secondary" className="text-[10px]">
                                 {t(`notifications.roles.${inv.proposed_role}`) || inv.proposed_role}
@@ -127,7 +155,7 @@ const DashboardTeamPartners = () => {
                             </div>
                           </div>
                           <span className="text-xs text-muted-foreground shrink-0">
-                            {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, ...(lang === 'ar' ? { locale: ar } : {}) })}
+                            {formatDistanceToNow(new Date(inv.created_at), { addSuffix: true, ...(lang === "ar" ? { locale: ar } : {}) })}
                           </span>
                         </div>
                       </CardContent>
@@ -136,17 +164,17 @@ const DashboardTeamPartners = () => {
                 </div>
               )}
 
-              {/* Active team members */}
+              {/* Unified team list */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5" />
-                  {t("teamPartners.activeMembers")} ({acceptedMembers.length})
+                  {t("teamPartners.teamMembers")} ({nonOwnerPeople.length})
                 </h3>
-                {membersLoading ? (
+                {teamLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
                   </div>
-                ) : acceptedMembers.length === 0 ? (
+                ) : nonOwnerPeople.length === 0 ? (
                   <Card>
                     <CardContent className="p-6 text-center text-muted-foreground">
                       <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -154,21 +182,44 @@ const DashboardTeamPartners = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  acceptedMembers.map((member) => (
-                    <Card key={member.id} className="overflow-hidden">
+                  nonOwnerPeople.map((person) => (
+                    <Card key={person.id} className="overflow-hidden">
                       <CardContent className="p-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <Users className="w-4 h-4 text-primary" />
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
+                            person.hasPlatformAccess ? "bg-primary/10" : "bg-muted"
+                          }`}>
+                            {personStatusIcon(person)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
-                              {member.profile?.full_name || t("teamPartners.unnamed")}
+                              {person.fullName || t("teamPartners.unnamed")}
                             </p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <Badge variant="default" className="text-[10px]">
-                                {t(`notifications.roles.${member.role}`) || member.role}
-                              </Badge>
+                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                              {person.role && (
+                                <Badge variant="default" className="text-[10px]">
+                                  {t(`notifications.roles.${person.role}`) || person.role}
+                                </Badge>
+                              )}
+                              {person.hasPlatformAccess && (
+                                <Badge variant="outline" className="text-[10px] gap-0.5">
+                                  <Monitor className="w-2.5 h-2.5" />
+                                  {t("teamPartners.personStatus.active")}
+                                </Badge>
+                              )}
+                              {!person.hasPlatformAccess && person.hasHrRecord && (
+                                <Badge variant="secondary" className="text-[10px] gap-0.5">
+                                  <FileText className="w-2.5 h-2.5" />
+                                  {t("teamPartners.personStatus.hrOnly")}
+                                </Badge>
+                              )}
+                              {person.employmentKind && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  {person.employmentKind === "internal"
+                                    ? t("teamPartners.classification.internal")
+                                    : t("teamPartners.classification.external")}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                           {canManage && (
@@ -176,7 +227,7 @@ const DashboardTeamPartners = () => {
                               variant="ghost"
                               size="icon"
                               className="shrink-0 h-8 w-8"
-                              onClick={() => setSetupMember(member.id)}
+                              onClick={() => setSelectedPerson(person)}
                               title={t("teamPartners.configure")}
                             >
                               <Settings2 className="w-4 h-4" />
@@ -272,6 +323,7 @@ const DashboardTeamPartners = () => {
                   const isMine = conn.initiator_tenant_id === activeTenant?.tenant_id;
                   const partnerName = isMine ? conn.recipient_tenant_name : conn.initiator_tenant_name;
                   const partnerType = isMine ? conn.recipient_tenant_type : conn.initiator_tenant_type;
+                  const isOperational = ["doctor", "trainer", "vet_clinic"].includes(partnerType || "");
 
                   return (
                     <Card key={conn.id} className="overflow-hidden">
@@ -289,14 +341,24 @@ const DashboardTeamPartners = () => {
                               >
                                 {t(`teamPartners.connectionStatus.${conn.status}`) || conn.status}
                               </Badge>
-                              {partnerType && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  {t(`onboarding.tenantTypes.${partnerType}`) || partnerType}
-                                </Badge>
-                              )}
+                              <Badge variant="secondary" className="text-[10px]">
+                                {isOperational
+                                  ? t("teamPartners.partnerTypes.operational")
+                                  : t("teamPartners.partnerTypes.service")}
+                              </Badge>
                             </div>
                           </div>
-                          <Link2 className="w-4 h-4 text-muted-foreground shrink-0" />
+                          {canManage && conn.status === "accepted" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 h-8 w-8"
+                              onClick={() => setSelectedPartner(conn)}
+                              title={t("teamPartners.configure")}
+                            >
+                              <Settings2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -308,16 +370,38 @@ const DashboardTeamPartners = () => {
         </div>
       </div>
 
-      {/* Dialogs */}
-      <InvitePersonDialog open={invitePersonOpen} onOpenChange={setInvitePersonOpen} />
+      {/* Dialogs & Sheets */}
+      <InvitePersonDialog
+        open={invitePersonOpen}
+        onOpenChange={setInvitePersonOpen}
+        prefilledEmail={invitePrefilledEmail}
+      />
       <AddPartnerDialog open={addPartnerOpen} onOpenChange={setAddPartnerOpen} onSubmit={handleAddPartner} isLoading={createConnection.isPending} />
-      {selectedMember && (
-        <MemberSetupSheet
-          open={!!setupMember}
-          onOpenChange={(open) => !open && setSetupMember(null)}
-          member={selectedMember}
+
+      {selectedPerson && (
+        <PersonDetailSheet
+          open={!!selectedPerson}
+          onOpenChange={(open) => !open && setSelectedPerson(null)}
+          person={selectedPerson}
+          onInviteToPlatform={canManage ? handleInviteToPlatform : undefined}
         />
       )}
+
+      {selectedPartner && (() => {
+        const isMine = selectedPartner.initiator_tenant_id === activeTenant?.tenant_id;
+        const partnerName = isMine ? selectedPartner.recipient_tenant_name : selectedPartner.initiator_tenant_name;
+        const partnerType = isMine ? selectedPartner.recipient_tenant_type : selectedPartner.initiator_tenant_type;
+        return (
+          <PartnerConfigSheet
+            open={!!selectedPartner}
+            onOpenChange={(open) => !open && setSelectedPartner(null)}
+            connection={selectedPartner}
+            isMine={isMine}
+            partnerName={partnerName || ""}
+            partnerType={partnerType}
+          />
+        );
+      })()}
     </DashboardShell>
   );
 };

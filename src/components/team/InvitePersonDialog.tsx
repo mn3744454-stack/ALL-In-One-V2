@@ -20,18 +20,24 @@ type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" 
 interface InvitePersonDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledEmail?: string;
 }
 
-export function InvitePersonDialog({ open, onOpenChange }: InvitePersonDialogProps) {
+export function InvitePersonDialog({ open, onOpenChange, prefilledEmail = "" }: InvitePersonDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { createInvitation } = useInvitations();
 
-  const [mode, setMode] = useState<"email" | "phone">("email");
-  const [email, setEmail] = useState("");
+  const [mode, setMode] = useState<"email" | "phone">(prefilledEmail ? "email" : "email");
+  const [email, setEmail] = useState(prefilledEmail);
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<TenantRole>("employee");
   const [sending, setSending] = useState(false);
+
+  // Update email when prefilled changes
+  useState(() => {
+    if (prefilledEmail) setEmail(prefilledEmail);
+  });
 
   const resetForm = () => {
     setEmail("");
