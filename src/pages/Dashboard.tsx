@@ -101,7 +101,16 @@ const Dashboard = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-navy mb-1">
-                  {t("dashboard.welcome")}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+                  {(() => {
+                    const isAr = t("_locale") === "ar";
+                    const rawName = isAr
+                      ? ((profile as any)?.full_name_ar || profile?.full_name)
+                      : (profile?.full_name || (profile as any)?.full_name_ar);
+                    const firstName = rawName ? rawName.split(" ")[0] : null;
+                    return firstName
+                      ? t("dashboard.welcomeName", { name: firstName })
+                      : t("dashboard.welcome");
+                  })()}
                 </h1>
                 {/* Mobile notifications bell - moved here from top row */}
                 <div className="lg:hidden mb-1">
