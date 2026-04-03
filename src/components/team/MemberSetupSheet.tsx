@@ -48,7 +48,7 @@ export function MemberSetupSheet({ open, onOpenChange, member }: MemberSetupShee
       const { data } = await supabase
         .from("member_horse_access")
         .select("horse_id")
-        .eq("member_id", member.id);
+        .eq("tenant_member_id", member.id);
       
       if (data) {
         setSelectedHorses(data.map(d => d.horse_id));
