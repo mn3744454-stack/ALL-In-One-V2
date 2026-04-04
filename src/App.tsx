@@ -276,7 +276,7 @@ const AppRoutes = () => {
         path="/dashboard/services"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="services.view">
               <DashboardServices />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -356,7 +356,7 @@ const AppRoutes = () => {
         path="/dashboard/breeding"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="breeding.view">
               <ModuleGuard module="breeding">
                 <DashboardBreeding />
               </ModuleGuard>
@@ -392,7 +392,7 @@ const AppRoutes = () => {
         path="/dashboard/team"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.members.manage">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="team.view">
               <DashboardTeamPartners />
             </WorkspaceRouteGuard>
           </ProtectedRoute>

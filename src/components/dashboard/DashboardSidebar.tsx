@@ -505,8 +505,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   {...navProps}
                 />
                 
-                {/* HR / Team NavGroup - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* HR / Team NavGroup - requires team or hr permission */}
+                {(hasPermission('team.view') || hasPermission('hr.view')) && (
                   <NavGroup
                     icon={Users}
                     label={t('sidebar.hr')}
@@ -516,8 +516,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
-                {/* Housing - for owners and managers AND if housing is enabled */}
-                {housingEnabled && ["owner", "manager"].includes(activeRole || "") && (
+                {/* Housing - requires housing permission AND if housing is enabled */}
+                {housingEnabled && hasPermission('housing.view') && (
                   <NavGroup
                     icon={Warehouse}
                     label={t('sidebar.housing')}
@@ -533,8 +533,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Services - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Services - requires services permission */}
+                {hasPermission('services.view') && (
                   <NavItem
                     icon={Package}
                     label={t('sidebar.services')}
@@ -545,8 +545,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
-                {/* Clients - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Clients - requires clients permission */}
+                {hasPermission('clients.view') && (
                   <NavItem
                     icon={UserCircle}
                     label={t('clients.title')}
@@ -557,8 +557,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Finance NavGroup - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Finance NavGroup - requires finance permission */}
+                {hasPermission('finance.invoice.view') && (
                   <NavGroup
                     icon={Wallet}
                     label={t('finance.title')}
@@ -568,8 +568,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Files - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Files - requires files permission */}
+                {hasPermission('files.assets.manage') && (
                   <NavItem
                     icon={FolderOpen}
                     label={t('files.title')}
@@ -580,8 +580,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Doctor-specific nav items */}
-                {activeTenant?.tenant.type === "doctor" && (
+                {/* Doctor-specific nav items - requires doctor permission */}
+                {hasPermission('doctor.patients.read') && activeTenant?.tenant.type === "doctor" && (
                   <>
                     <NavItem
                       icon={Activity}
@@ -619,7 +619,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 )}
 
                 {/* Academy sessions & bookings - for academy owners/managers */}
-                {["owner", "manager"].includes(activeRole || "") &&
+                {hasPermission('bookings.manage') &&
                   activeTenant?.tenant.type === "academy" && (
                     <>
                       <NavItem
@@ -656,7 +656,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
                 {/* Settings section */}
                 <div className={cn("pt-4 mt-4 border-t border-border/50 space-y-1")}>
-                  {activeRole === "owner" ? (
+                  {hasPermission('admin.members.manage') ? (
                     <NavGroup
                       icon={Settings}
                       label={t('sidebar.settings')}
@@ -665,7 +665,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       {...navProps}
                     />
                   ) : (
-                    /* Non-owners only see notification settings */
+                    /* Members without admin permission only see notification settings */
                     <NavItem 
                       icon={BellRing} 
                       label={t('sidebar.notificationSettings')} 
