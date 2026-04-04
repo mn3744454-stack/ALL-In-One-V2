@@ -492,7 +492,7 @@ const AppRoutes = () => {
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.members.manage">
               <DashboardOrganizationSettings />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -502,7 +502,7 @@ const AppRoutes = () => {
         path="/dashboard/settings/permissions"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.permissions.delegate">
               <DashboardPermissionsSettings />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
