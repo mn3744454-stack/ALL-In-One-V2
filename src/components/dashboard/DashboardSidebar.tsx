@@ -516,8 +516,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
-                {/* Housing - for owners and managers AND if housing is enabled */}
-                {housingEnabled && ["owner", "manager"].includes(activeRole || "") && (
+                {/* Housing - requires housing permission AND if housing is enabled */}
+                {housingEnabled && hasPermission('housing.view') && (
                   <NavGroup
                     icon={Warehouse}
                     label={t('sidebar.housing')}
