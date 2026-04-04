@@ -533,8 +533,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Services - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Services - requires services permission */}
+                {hasPermission('services.view') && (
                   <NavItem
                     icon={Package}
                     label={t('sidebar.services')}
