@@ -276,7 +276,7 @@ const AppRoutes = () => {
         path="/dashboard/services"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardServices />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -392,7 +392,7 @@ const AppRoutes = () => {
         path="/dashboard/team"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.members.manage">
               <DashboardTeamPartners />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -462,17 +462,17 @@ const AppRoutes = () => {
         }
       />
       {/* Doctor module routes - org only */}
-      <Route path="/dashboard/doctor" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorOverview /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/patients" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorPatients /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultations /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations/new" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations/:id" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/services" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorServices /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.patients.read"><DashboardDoctorOverview /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/patients" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.patients.read"><DashboardDoctorPatients /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.read"><DashboardDoctorConsultations /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/new" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.write"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/:id" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.read"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/services" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.services.write"><DashboardDoctorServices /></WorkspaceRouteGuard></ProtectedRoute>} />
       <Route
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="clients.view">
               <DashboardClients />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -482,7 +482,7 @@ const AppRoutes = () => {
         path="/dashboard/clients/:clientId/statement"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="clients.view">
               <DashboardClientStatement />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -492,7 +492,7 @@ const AppRoutes = () => {
         path="/dashboard/settings"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.members.manage">
               <DashboardOrganizationSettings />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -502,7 +502,7 @@ const AppRoutes = () => {
         path="/dashboard/settings/permissions"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.permissions.delegate">
               <DashboardPermissionsSettings />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -552,7 +552,7 @@ const AppRoutes = () => {
         path="/dashboard/finance"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinance />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -562,7 +562,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/invoices"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinance initialTab="invoices" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -572,7 +572,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/expenses"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.expenses.manage">
               <DashboardFinance initialTab="expenses" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -582,7 +582,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/ledger"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.ledger.view">
               <DashboardFinance initialTab="ledger" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -592,7 +592,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/payments"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.payment.view">
               <DashboardFinance initialTab="payments" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -602,7 +602,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/revenue"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardRevenue />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -612,7 +612,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/pos"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinancePOS />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -622,7 +622,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/categories"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinanceCategories />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -632,7 +632,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/customer-balances"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <FinanceCustomerBalances />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
