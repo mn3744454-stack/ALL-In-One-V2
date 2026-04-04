@@ -656,7 +656,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
                 {/* Settings section */}
                 <div className={cn("pt-4 mt-4 border-t border-border/50 space-y-1")}>
-                  {activeRole === "owner" ? (
+                  {hasPermission('admin.members.manage') ? (
                     <NavGroup
                       icon={Settings}
                       label={t('sidebar.settings')}
@@ -665,7 +665,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       {...navProps}
                     />
                   ) : (
-                    /* Non-owners only see notification settings */
+                    /* Members without admin permission only see notification settings */
                     <NavItem 
                       icon={BellRing} 
                       label={t('sidebar.notificationSettings')} 
