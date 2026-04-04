@@ -545,8 +545,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
-                {/* Clients - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Clients - requires clients permission */}
+                {hasPermission('clients.view') && (
                   <NavItem
                     icon={UserCircle}
                     label={t('clients.title')}
