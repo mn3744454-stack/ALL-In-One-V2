@@ -580,8 +580,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Doctor-specific nav items */}
-                {activeTenant?.tenant.type === "doctor" && (
+                {/* Doctor-specific nav items - requires doctor permission */}
+                {hasPermission('doctor.patients.read') && activeTenant?.tenant.type === "doctor" && (
                   <>
                     <NavItem
                       icon={Activity}
