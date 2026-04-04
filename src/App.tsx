@@ -472,7 +472,7 @@ const AppRoutes = () => {
         path="/dashboard/clients"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="clients.view">
               <DashboardClients />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -482,7 +482,7 @@ const AppRoutes = () => {
         path="/dashboard/clients/:clientId/statement"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="clients.view">
               <DashboardClientStatement />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
