@@ -462,12 +462,12 @@ const AppRoutes = () => {
         }
       />
       {/* Doctor module routes - org only */}
-      <Route path="/dashboard/doctor" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorOverview /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/patients" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorPatients /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultations /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations/new" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/consultations/:id" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
-      <Route path="/dashboard/doctor/services" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization"><DashboardDoctorServices /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.patients.read"><DashboardDoctorOverview /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/patients" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.patients.read"><DashboardDoctorPatients /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.read"><DashboardDoctorConsultations /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/new" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.write"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/consultations/:id" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.consultations.read"><DashboardDoctorConsultationDetail /></WorkspaceRouteGuard></ProtectedRoute>} />
+      <Route path="/dashboard/doctor/services" element={<ProtectedRoute><WorkspaceRouteGuard requiredMode="organization" requiredPermission="doctor.services.write"><DashboardDoctorServices /></WorkspaceRouteGuard></ProtectedRoute>} />
       <Route
         path="/dashboard/clients"
         element={
