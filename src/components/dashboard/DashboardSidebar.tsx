@@ -557,8 +557,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Finance NavGroup - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Finance NavGroup - requires finance permission */}
+                {hasPermission('finance.invoice.view') && (
                   <NavGroup
                     icon={Wallet}
                     label={t('finance.title')}
