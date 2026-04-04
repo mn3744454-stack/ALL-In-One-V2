@@ -568,8 +568,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Files - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* Files - requires files permission */}
+                {hasPermission('files.assets.manage') && (
                   <NavItem
                     icon={FolderOpen}
                     label={t('files.title')}
