@@ -619,7 +619,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 )}
 
                 {/* Academy sessions & bookings - for academy owners/managers */}
-                {["owner", "manager"].includes(activeRole || "") &&
+                {hasPermission('bookings.manage') &&
                   activeTenant?.tenant.type === "academy" && (
                     <>
                       <NavItem
