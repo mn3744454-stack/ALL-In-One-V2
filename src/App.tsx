@@ -392,7 +392,7 @@ const AppRoutes = () => {
         path="/dashboard/team"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="admin.members.manage">
               <DashboardTeamPartners />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
