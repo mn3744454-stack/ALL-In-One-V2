@@ -276,7 +276,7 @@ const AppRoutes = () => {
         path="/dashboard/services"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardServices />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
