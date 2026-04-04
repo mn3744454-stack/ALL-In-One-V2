@@ -552,7 +552,7 @@ const AppRoutes = () => {
         path="/dashboard/finance"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinance />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -562,7 +562,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/invoices"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinance initialTab="invoices" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -572,7 +572,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/expenses"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.expenses.manage">
               <DashboardFinance initialTab="expenses" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -582,7 +582,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/ledger"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.ledger.view">
               <DashboardFinance initialTab="ledger" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -592,7 +592,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/payments"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.payment.view">
               <DashboardFinance initialTab="payments" />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -602,7 +602,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/revenue"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardRevenue />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -612,7 +612,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/pos"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinancePOS />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -622,7 +622,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/categories"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <DashboardFinanceCategories />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
@@ -632,7 +632,7 @@ const AppRoutes = () => {
         path="/dashboard/finance/customer-balances"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="finance.invoice.view">
               <FinanceCustomerBalances />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
