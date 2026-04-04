@@ -505,8 +505,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   {...navProps}
                 />
                 
-                {/* HR / Team NavGroup - for owners and managers */}
-                {["owner", "manager"].includes(activeRole || "") && (
+                {/* HR / Team NavGroup - requires team or hr permission */}
+                {(hasPermission('team.view') || hasPermission('hr.view')) && (
                   <NavGroup
                     icon={Users}
                     label={t('sidebar.hr')}
