@@ -356,7 +356,7 @@ const AppRoutes = () => {
         path="/dashboard/breeding"
         element={
           <ProtectedRoute>
-            <WorkspaceRouteGuard requiredMode="organization">
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="breeding.view">
               <ModuleGuard module="breeding">
                 <DashboardBreeding />
               </ModuleGuard>
