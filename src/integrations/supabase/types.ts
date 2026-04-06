@@ -445,6 +445,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_archived: boolean
           is_demo: boolean
           name: string
           name_ar: string | null
@@ -457,6 +458,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           is_demo?: boolean
           name: string
           name_ar?: string | null
@@ -469,6 +471,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           is_demo?: boolean
           name?: string
           name_ar?: string | null
@@ -2396,6 +2399,7 @@ export type Database = {
           has_water: boolean | null
           id: string
           is_active: boolean | null
+          is_archived: boolean
           is_demo: boolean | null
           metadata: Json | null
           name: string
@@ -2414,6 +2418,7 @@ export type Database = {
           has_water?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_archived?: boolean
           is_demo?: boolean | null
           metadata?: Json | null
           name: string
@@ -2432,6 +2437,7 @@ export type Database = {
           has_water?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_archived?: boolean
           is_demo?: boolean | null
           metadata?: Json | null
           name?: string
@@ -4123,6 +4129,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          is_archived: boolean
           is_demo: boolean | null
           name: string | null
           name_ar: string | null
@@ -4142,6 +4149,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          is_archived?: boolean
           is_demo?: boolean | null
           name?: string | null
           name_ar?: string | null
@@ -4161,6 +4169,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          is_archived?: boolean
           is_demo?: boolean | null
           name?: string | null
           name_ar?: string | null
