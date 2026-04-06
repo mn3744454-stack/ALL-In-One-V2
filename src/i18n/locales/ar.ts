@@ -2042,6 +2042,8 @@ export const ar = {
         hasHistory: "لديه سجل إشغال أو إيواء",
         hasInvoices: "مرتبط بفواتير",
       },
+      noArchived: "لا توجد عناصر مؤرشفة في هذا العرض",
+      noDeactivated: "لا توجد عناصر معطلة في هذا العرض",
     },
     vacancy: {
       vacant: "شاغر",

@@ -2027,6 +2027,8 @@ export const en = {
         hasHistory: "Has occupancy or admission history",
         hasInvoices: "Has linked invoices",
       },
+      noArchived: "No archived items in this view",
+      noDeactivated: "No deactivated items in this view",
     },
     vacancy: {
       vacant: "vacant",

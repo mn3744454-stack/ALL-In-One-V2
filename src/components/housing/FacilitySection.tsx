@@ -8,11 +8,12 @@ import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import { OpenAreaContent } from "./OpenAreaContent";
 import { ActivityContent } from "./ActivityContent";
+import { LifecycleActionMenu, LifecycleStateBadge } from "./LifecycleActionMenu";
 import { unitMatchesSearch, type OccupancyFilter } from "./FacilitiesManager";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, Power, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Users, Plus } from "lucide-react";
+import { Building2, Edit, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Plus } from "lucide-react";
 import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
@@ -25,6 +26,9 @@ interface FacilitySectionProps {
   canManage: boolean;
   onEdit: (facilityId: string) => void;
   onToggleActive: (params: { id: string; isActive: boolean }) => void;
+  onArchive: (id: string) => Promise<void>;
+  onRestore: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
   searchQuery?: string;
   activeFilter?: OccupancyFilter;
 }
@@ -76,6 +80,9 @@ export function FacilitySection({
   canManage,
   onEdit,
   onToggleActive,
+  onArchive,
+  onRestore,
+  onDelete,
   searchQuery = '',
   activeFilter = 'all',
 }: FacilitySectionProps) {
@@ -174,14 +181,23 @@ export function FacilitySection({
     setDetailsOpen(true);
   };
 
+  // Lifecycle action handlers
+  const deleteBlockers = useMemo(() => {
+    const blockers: { reason: string; count?: number }[] = [];
+    if (totalCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasUnits' as any).replace('{n}', String(totalCount)), count: totalCount });
+    }
+    if (occupiedCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any) });
+    }
+    return blockers;
+  }, [totalCount, occupiedCount, t]);
+
   if (!hasVisibleContent) return null;
 
   return (
     <>
-      <div className={cn(
-        "rounded-xl border bg-card",
-        !facility.is_active && "opacity-60"
-      )}>
+      <div className="rounded-xl border bg-card">
         {/* Facility Summary Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b bg-muted/30 rounded-t-xl">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -199,9 +215,7 @@ export function FacilitySection({
               <Badge variant="outline" className="text-[10px] capitalize shrink-0">
                 {getTypeLabel()}
               </Badge>
-              {!facility.is_active && (
-                <Badge variant="secondary" className="text-[10px] shrink-0">{t('common.inactive')}</Badge>
-              )}
+              <LifecycleStateBadge isActive={facility.is_active} isArchived={facility.is_archived} />
             </div>
             {facility.code && (
               <span className="text-xs text-muted-foreground">{facility.code}</span>
@@ -236,7 +250,7 @@ export function FacilitySection({
             {/* Management actions */}
             {canManage && (
               <div className="flex items-center gap-1">
-                {isHousingType && facility.is_active && (
+                {isHousingType && facility.is_active && !facility.is_archived && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAddUnitsOpen(true)}>
@@ -246,27 +260,28 @@ export function FacilitySection({
                     <TooltipContent>{t('housing.create.addUnitsTooltip')}</TooltipContent>
                   </Tooltip>
                 )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(facility.id)}>
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{t('housing.facilities.editTooltip')}</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn("h-7 w-7", facility.is_active ? "text-destructive" : "text-emerald-600")}
-                      onClick={() => onToggleActive({ id: facility.id, isActive: !facility.is_active })}
-                    >
-                      <Power className="w-3.5 h-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{t('housing.facilities.toggleTooltip')}</TooltipContent>
-                </Tooltip>
+                {!facility.is_archived && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(facility.id)}>
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('housing.facilities.editTooltip')}</TooltipContent>
+                  </Tooltip>
+                )}
+                <LifecycleActionMenu
+                  entityType="facility"
+                  isActive={facility.is_active}
+                  isArchived={facility.is_archived}
+                  canDelete={deleteBlockers.length === 0}
+                  deleteBlockers={deleteBlockers}
+                  onDelete={async () => { await onDelete(facility.id); }}
+                  onArchive={async () => { await onArchive(facility.id); }}
+                  onDeactivate={async () => { await onToggleActive({ id: facility.id, isActive: false }); }}
+                  onReactivate={async () => { await onToggleActive({ id: facility.id, isActive: true }); }}
+                  onRestore={async () => { await onRestore(facility.id); }}
+                />
               </div>
             )}
 
@@ -292,7 +307,7 @@ export function FacilitySection({
                 <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
                   <LayoutGrid className="w-8 h-8 mb-2 opacity-40" />
                   <p className="text-sm">{t('housing.units.noUnits')}</p>
-                  {canManage && facility.is_active && (
+                  {canManage && facility.is_active && !facility.is_archived && (
                     <Button variant="link" size="sm" className="mt-1" onClick={() => setAddUnitsOpen(true)}>
                       <Plus className="w-3 h-3 me-1" />
                       {t('housing.create.addUnitsSubmit')}
@@ -346,4 +361,3 @@ function NonHousingContent({ facilityType }: { facilityType: FacilityType }) {
     </div>
   );
 }
-
