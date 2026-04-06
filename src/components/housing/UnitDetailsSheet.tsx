@@ -54,6 +54,8 @@ interface UnitDetailsSheetProps {
 
 export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetProps) {
   const { t, dir, lang: language } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [vacateTarget, setVacateTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
   
@@ -75,7 +77,48 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     isVacating 
   } = useUnitOccupants(unit?.id);
 
-  const { updateUnit, setUnitStatus } = useHousingUnits();
+  const { updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
+
+  // Unit lifecycle blocker queries
+  const { data: unitBlockerData } = useQuery({
+    queryKey: ['unit-lifecycle-blockers', unit?.id, tenantId],
+    queryFn: async () => {
+      if (!unit?.id || !tenantId) return { historyCount: 0, admissionCount: 0 };
+      const [historyRes, admissionRes] = await Promise.all([
+        supabase
+          .from('housing_unit_occupants')
+          .select('id', { count: 'exact', head: true })
+          .eq('unit_id', unit.id)
+          .eq('tenant_id', tenantId),
+        supabase
+          .from('boarding_admissions')
+          .select('id', { count: 'exact', head: true })
+          .eq('unit_id', unit.id)
+          .eq('tenant_id', tenantId),
+      ]);
+      return {
+        historyCount: historyRes.count || 0,
+        admissionCount: admissionRes.count || 0,
+      };
+    },
+    enabled: !!unit?.id && !!tenantId,
+  });
+
+  const deleteBlockers = useMemo((): LifecycleBlocker[] => {
+    if (!unit) return [];
+    const blockers: LifecycleBlocker[] = [];
+    const currentOcc = unit.current_occupants || 0;
+    if (currentOcc > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any), count: currentOcc });
+    }
+    if (unitBlockerData && unitBlockerData.historyCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasHistory' as any), count: unitBlockerData.historyCount });
+    }
+    if (unitBlockerData && unitBlockerData.admissionCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasAdmissions' as any), count: unitBlockerData.admissionCount });
+    }
+    return blockers;
+  }, [unit, unitBlockerData, t]);
 
   if (!unit) return null;
 
