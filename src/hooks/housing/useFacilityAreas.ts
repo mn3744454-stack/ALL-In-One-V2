@@ -5,15 +5,9 @@ import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
 export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage';
-
 export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage'];
 
-export interface SubdivisionConfig {
-  label: string;
-  labelAr: string;
-  types: string[];
-  supportsChildren: boolean;
-}
+export interface SubdivisionConfig { label: string; labelAr: string; types: string[]; supportsChildren: boolean; }
 
 export const SUBDIVISION_CONFIG: Record<FacilityType, SubdivisionConfig> = {
   barn: { label: 'Stall', labelAr: 'إسطبل', types: ['stall', 'box', 'room'], supportsChildren: true },
@@ -40,13 +34,11 @@ export interface FacilityArea {
   has_water: boolean | null;
   metadata: Record<string, unknown> | null;
   is_active: boolean;
+  is_archived: boolean;
   is_demo: boolean;
   created_at: string;
   updated_at: string;
-  branch?: {
-    id: string;
-    name: string;
-  };
+  branch?: { id: string; name: string };
 }
 
 export interface CreateAreaData {
@@ -66,29 +58,15 @@ export function useFacilityAreas(branchId?: string) {
   const { activeTenant, activeRole } = useTenant();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
-
   const canManage = activeRole === 'owner' || activeRole === 'manager';
 
-  const {
-    data: areas = [],
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: areas = [], isLoading, error } = useQuery({
     queryKey: ['facility-areas', tenantId, branchId],
     queryFn: async () => {
       if (!tenantId) return [];
-
-      let query = supabase
-        .from('facility_areas')
-        .select('*, branch:branches(id, name)')
-        .eq('tenant_id', tenantId)
-        .order('is_active', { ascending: false })
-        .order('name');
-
-      if (branchId) {
-        query = query.eq('branch_id', branchId);
-      }
-
+      let query = supabase.from('facility_areas').select('*, branch:branches(id, name)')
+        .eq('tenant_id', tenantId).order('is_active', { ascending: false }).order('name');
+      if (branchId) query = query.eq('branch_id', branchId);
       const { data, error } = await query;
       if (error) throw error;
       return data as FacilityArea[];
@@ -96,50 +74,36 @@ export function useFacilityAreas(branchId?: string) {
     enabled: !!tenantId,
   });
 
-  const activeAreas = areas.filter(a => a.is_active);
+  const activeAreas = areas.filter(a => a.is_active && !a.is_archived);
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateAreaData) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
-
       const insertPayload: Record<string, unknown> = {
-        tenant_id: tenantId,
-        branch_id: data.branch_id,
-        name: data.name,
-        name_ar: data.name_ar || null,
-        code: data.code || null,
-        facility_type: data.facility_type || 'barn',
-        capacity: data.capacity || null,
-        area_size: data.area_size || null,
-        shade: data.shade || 'none',
-        has_water: data.has_water || false,
-        metadata: data.metadata || {},
-        is_active: true,
-        is_demo: false,
+        tenant_id: tenantId, branch_id: data.branch_id, name: data.name,
+        name_ar: data.name_ar || null, code: data.code || null,
+        facility_type: data.facility_type || 'barn', capacity: data.capacity || null,
+        area_size: data.area_size || null, shade: data.shade || 'none',
+        has_water: data.has_water || false, metadata: data.metadata || {},
+        is_active: true, is_demo: false,
       };
-
-      const { data: newArea, error } = await supabase
-        .from('facility_areas')
-        .insert(insertPayload as any)
-        .select()
-        .single();
-
+      const { data: newArea, error } = await supabase.from('facility_areas')
+        .insert(insertPayload as any).select().single();
       if (error) throw error;
       return newArea;
     },
-    onSuccess: () => {
-      toast.success(tGlobal('housing.areas.created'));
-      queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onSuccess: () => { toast.success(tGlobal('housing.areas.created')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string } & Partial<CreateAreaData>) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
-
       const updatePayload: Record<string, unknown> = {};
       if (data.name !== undefined) updatePayload.name = data.name;
       if (data.name_ar !== undefined) updatePayload.name_ar = data.name_ar;
@@ -150,57 +114,78 @@ export function useFacilityAreas(branchId?: string) {
       if (data.shade !== undefined) updatePayload.shade = data.shade;
       if (data.has_water !== undefined) updatePayload.has_water = data.has_water;
       if (data.metadata !== undefined) updatePayload.metadata = data.metadata;
-
-      const { data: updated, error } = await supabase
-        .from('facility_areas')
-        .update(updatePayload)
-        .eq('id', id)
-        .eq('tenant_id', tenantId)
-        .select()
-        .single();
-
+      const { data: updated, error } = await supabase.from('facility_areas')
+        .update(updatePayload).eq('id', id).eq('tenant_id', tenantId).select().single();
       if (error) throw error;
       return updated;
     },
-    onSuccess: () => {
-      toast.success(tGlobal('housing.areas.updated'));
-      queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onSuccess: () => { toast.success(tGlobal('housing.areas.updated')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
   });
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      const { error } = await supabase.from('facility_areas')
+        .update({ is_active: isActive }).eq('id', id).eq('tenant_id', tenantId);
+      if (error) throw error;
+      // Cascade deactivation to child units
+      if (!isActive) {
+        await supabase.from('housing_units')
+          .update({ is_active: false }).eq('area_id', id).eq('tenant_id', tenantId);
+      }
+    },
+    onSuccess: () => { toast.success(tGlobal('housing.areas.updated')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
+  });
 
-      const { error } = await supabase
-        .from('facility_areas')
-        .update({ is_active: isActive })
-        .eq('id', id)
-        .eq('tenant_id', tenantId);
+  const archiveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      const { error } = await supabase.from('facility_areas')
+        .update({ is_archived: true, is_active: false } as any)
+        .eq('id', id).eq('tenant_id', tenantId);
+      if (error) throw error;
+      // Cascade to child units
+      await supabase.from('housing_units')
+        .update({ is_archived: true, is_active: false } as any)
+        .eq('area_id', id).eq('tenant_id', tenantId);
+    },
+    onSuccess: () => { toast.success(tGlobal('housing.lifecycle.archivedBadge')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
+  });
 
+  const restoreMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      const { error } = await supabase.from('facility_areas')
+        .update({ is_archived: false, is_active: true } as any)
+        .eq('id', id).eq('tenant_id', tenantId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success(tGlobal('housing.areas.updated'));
-      queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
+    onSuccess: () => { toast.success(tGlobal('housing.areas.updated')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      const { error } = await supabase.from('facility_areas')
+        .delete().eq('id', id).eq('tenant_id', tenantId);
+      if (error) throw error;
     },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onSuccess: () => { toast.success(tGlobal('common.delete')); invalidateAll(); },
+    onError: (error) => { toast.error(error.message); },
   });
 
   return {
-    areas,
-    activeAreas,
-    isLoading,
-    error,
-    canManage,
+    areas, activeAreas, isLoading, error, canManage,
     createArea: createMutation.mutateAsync,
     updateArea: updateMutation.mutateAsync,
     toggleAreaActive: toggleActiveMutation.mutateAsync,
+    archiveArea: archiveMutation.mutateAsync,
+    restoreArea: restoreMutation.mutateAsync,
+    deleteArea: deleteMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
   };
