@@ -147,13 +147,13 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   const deleteBlockers: { reason: string; count?: number }[] = [];
   if (data) {
     if (data.totalHorses > 0)
-      deleteBlockers.push({ reason: t('housing.branchActions.blockHorses'), count: data.totalHorses });
+      deleteBlockers.push({ reason: t('housing.lifecycle.blockers.hasHorses' as any).replace('{n}', String(data.totalHorses)), count: data.totalHorses });
     if (data.facilities.length > 0)
-      deleteBlockers.push({ reason: t('housing.branchActions.blockFacilities'), count: data.facilities.length });
+      deleteBlockers.push({ reason: t('housing.lifecycle.blockers.hasFacilities' as any).replace('{n}', String(data.facilities.length)), count: data.facilities.length });
     if (data.hasActiveAdmissions)
-      deleteBlockers.push({ reason: t('housing.branchActions.blockAdmissions') });
+      deleteBlockers.push({ reason: t('housing.lifecycle.blockers.hasAdmissions' as any) });
     if (data.hasInvoices)
-      deleteBlockers.push({ reason: t('housing.lifecycle.blockerHasInvoices') });
+      deleteBlockers.push({ reason: t('housing.lifecycle.blockers.hasInvoices' as any) });
   }
   const canDelete = deleteBlockers.length === 0;
 

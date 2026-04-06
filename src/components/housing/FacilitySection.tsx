@@ -185,10 +185,10 @@ export function FacilitySection({
   const deleteBlockers = useMemo(() => {
     const blockers: { reason: string; count?: number }[] = [];
     if (totalCount > 0) {
-      blockers.push({ reason: t('housing.lifecycle.blockerHasUnits'), count: totalCount });
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasUnits' as any).replace('{n}', String(totalCount)), count: totalCount });
     }
     if (occupiedCount > 0) {
-      blockers.push({ reason: t('housing.lifecycle.blockerOccupied'), count: occupiedCount });
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any) });
     }
     return blockers;
   }, [totalCount, occupiedCount, t]);
