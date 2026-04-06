@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { FacilitySection } from "./FacilitySection";
 import { CreateFacilityDialog, FACILITY_CATEGORY } from "./CreateFacilityDialog";
+import { LifecycleFilterChips, type LifecycleFilter } from "./LifecycleFilterChips";
 import { useFacilityAreas, SUBDIVISION_CONFIG, type FacilityType } from "@/hooks/housing/useFacilityAreas";
 import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
@@ -57,6 +58,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const [editingArea, setEditingArea] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<OccupancyFilter>('all');
+  const [lifecycleFilter, setLifecycleFilter] = useState<LifecycleFilter>('active');
   const [editFormData, setEditFormData] = useState({
     name: '',
     name_ar: '',
@@ -78,10 +80,32 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     canManage,
     updateArea,
     toggleAreaActive,
+    archiveArea,
+    restoreArea,
+    deleteArea,
     isUpdating,
   } = useFacilityAreas(effectiveBranchId || undefined);
 
-  const facilityIds = useMemo(() => areas.filter(a => a.is_active).map(a => a.id), [areas]);
+  // Filter areas by lifecycle state
+  const lifecycleFilteredAreas = useMemo(() => {
+    switch (lifecycleFilter) {
+      case 'active': return areas.filter(a => a.is_active && !a.is_archived);
+      case 'deactivated': return areas.filter(a => !a.is_active && !a.is_archived);
+      case 'archived': return areas.filter(a => a.is_archived);
+      case 'all': return areas;
+      default: return areas.filter(a => a.is_active && !a.is_archived);
+    }
+  }, [areas, lifecycleFilter]);
+
+  // Lifecycle counts
+  const lifecycleCounts = useMemo(() => ({
+    active: areas.filter(a => a.is_active && !a.is_archived).length,
+    deactivated: areas.filter(a => !a.is_active && !a.is_archived).length,
+    archived: areas.filter(a => a.is_archived).length,
+    all: areas.length,
+  }), [areas]);
+
+  const facilityIds = useMemo(() => lifecycleFilteredAreas.map(a => a.id), [lifecycleFilteredAreas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
 
   // Aggregate stats across all visible facilities
@@ -202,8 +226,18 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         )}
       </div>
 
-      {/* Search + Filter bar */}
+      {/* Lifecycle filter chips */}
       {areas.length > 0 && (
+        <LifecycleFilterChips
+          value={lifecycleFilter}
+          onChange={setLifecycleFilter}
+          counts={lifecycleCounts}
+          context="facilities"
+        />
+      )}
+
+      {/* Search + Occupancy Filter bar */}
+      {lifecycleFilteredAreas.length > 0 && lifecycleFilter !== 'archived' && (
         <div className="space-y-3">
           {/* Search input */}
           <div className="relative">
@@ -270,12 +304,21 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
-      ) : areas.length === 0 ? (
+      ) : lifecycleFilteredAreas.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Building2 className="w-12 h-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">{t('housing.facilities.noFacilities')}</p>
-            {canManage && (
+            <p className="text-muted-foreground">
+              {lifecycleFilter === 'active' && areas.length === 0
+                ? t('housing.facilities.noFacilities')
+                : lifecycleFilter === 'archived'
+                  ? t('housing.lifecycle.noArchived')
+                  : lifecycleFilter === 'deactivated'
+                    ? t('housing.lifecycle.noDeactivated')
+                    : t('housing.facilities.noFacilities')
+              }
+            </p>
+            {canManage && lifecycleFilter === 'active' && areas.length === 0 && (
               <Button variant="link" onClick={() => setCreateDialogOpen(true)}>
                 {t('housing.facilities.addFirst')}
               </Button>
@@ -284,7 +327,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
         </Card>
       ) : (
         <div className="space-y-4">
-          {areas.map((area) => (
+          {lifecycleFilteredAreas.map((area) => (
             <FacilitySection
               key={area.id}
               facility={area}
@@ -293,12 +336,15 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               canManage={canManage}
               onEdit={handleOpenEdit}
               onToggleActive={toggleAreaActive}
+              onArchive={archiveArea}
+              onRestore={restoreArea}
+              onDelete={deleteArea}
               searchQuery={normalizedQuery}
               activeFilter={activeFilter}
             />
           ))}
           {/* No results state for search/filter */}
-          {normalizedQuery && areas.every(area => {
+          {normalizedQuery && lifecycleFilteredAreas.every(area => {
             const fd = facilityUnitsMap[area.id];
             if (!fd) return true;
             return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery));

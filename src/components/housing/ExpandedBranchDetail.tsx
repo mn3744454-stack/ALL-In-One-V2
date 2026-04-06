@@ -3,15 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Heart, DoorOpen, BarChart3, MapPin, Plus, Loader2, MoreVertical,
-  Pencil, Trash2, AlertTriangle,
+  Heart, DoorOpen, BarChart3, MapPin, Plus, Loader2, Pencil,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,9 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { EditBranchDialog } from "./EditBranchDialog";
+import { LifecycleActionMenu, LifecycleStateBadge } from "./LifecycleActionMenu";
+import {
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 interface Branch {
   id: string;
@@ -29,6 +24,8 @@ interface Branch {
   name_ar?: string | null;
   city: string | null;
   address: string | null;
+  is_active?: boolean;
+  is_archived?: boolean;
 }
 
 interface FacilityWithHorses {
@@ -50,25 +47,22 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
-  const { toggleLocationActive } = useLocations();
+  const { toggleLocationActive, archiveLocation, restoreLocation, deleteLocation } = useLocations();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['expanded-branch-detail', tenantId, branch.id],
     queryFn: async () => {
       if (!tenantId) return null;
 
-      const [facilitiesRes, unitsRes, occupantsRes, horsesRes, admissionsRes] = await Promise.all([
+      const [facilitiesRes, unitsRes, occupantsRes, horsesRes, admissionsRes, invoicesRes] = await Promise.all([
         supabase
           .from('facility_areas')
           .select('id, name, name_ar, facility_type')
           .eq('tenant_id', tenantId)
           .eq('branch_id', branch.id)
-          .eq('is_active', true)
-          .order('name'),
+          .eq('is_active', true),
         supabase
           .from('housing_units')
           .select('id, area_id, branch_id')
@@ -90,7 +84,12 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           .select('id')
           .eq('tenant_id', tenantId)
           .eq('branch_id', branch.id)
-          .eq('status', 'active')
+          .limit(1),
+        supabase
+          .from('invoices')
+          .select('id')
+          .eq('tenant_id', tenantId)
+          .eq('branch_id', branch.id)
           .limit(1),
       ]);
 
@@ -138,38 +137,30 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         occupiedUnits,
         unassignedHorses,
         hasActiveAdmissions: (admissionsRes.data || []).length > 0,
+        hasInvoices: (invoicesRes.data || []).length > 0,
       };
     },
     enabled: !!tenantId,
   });
 
-
-  // Deletion safety
-  const deletionBlockers: string[] = [];
+  // Deletion blockers — strict eligibility
+  const deleteBlockers: { reason: string; count?: number }[] = [];
   if (data) {
     if (data.totalHorses > 0)
-      deletionBlockers.push(t('housing.branchActions.blockHorses').replace('{n}', String(data.totalHorses)));
+      deleteBlockers.push({ reason: t('housing.branchActions.blockHorses'), count: data.totalHorses });
     if (data.facilities.length > 0)
-      deletionBlockers.push(t('housing.branchActions.blockFacilities').replace('{n}', String(data.facilities.length)));
+      deleteBlockers.push({ reason: t('housing.branchActions.blockFacilities'), count: data.facilities.length });
     if (data.hasActiveAdmissions)
-      deletionBlockers.push(t('housing.branchActions.blockAdmissions'));
+      deleteBlockers.push({ reason: t('housing.branchActions.blockAdmissions') });
+    if (data.hasInvoices)
+      deleteBlockers.push({ reason: t('housing.lifecycle.blockerHasInvoices') });
   }
-  const canDelete = deletionBlockers.length === 0;
+  const canDelete = deleteBlockers.length === 0;
 
-  const handleDelete = async () => {
-    if (!canDelete) return;
-    setIsDeleting(true);
-    try {
-      await toggleLocationActive({ id: branch.id, isActive: false });
-      queryClient.invalidateQueries({ queryKey: ['locations'] });
-      queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-      toast.success(t('housing.branchActions.deleted'));
-      setDeleteDialogOpen(false);
-    } catch (e: any) {
-      toast.error(e.message);
-    } finally {
-      setIsDeleting(false);
-    }
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['locations'] });
+    queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['expanded-branch-detail'] });
   };
 
   if (isLoading) {
@@ -185,11 +176,17 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   const occupancyPct = data.totalUnits > 0 ? Math.round((data.occupiedUnits / data.totalUnits) * 100) : 0;
   const vacantUnits = data.totalUnits - data.occupiedUnits;
 
+  const isActive = branch.is_active !== false;
+  const isArchived = branch.is_archived === true;
+
   return (
     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
       {/* ── Branch metadata + actions ── */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <LifecycleStateBadge isActive={isActive} isArchived={isArchived} />
+          </div>
           {(branch.city || branch.address) && (
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <MapPin className="h-3 w-3 shrink-0" />
@@ -198,32 +195,32 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
           )}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          {onNavigateToTab && (
+          {onNavigateToTab && isActive && !isArchived && (
             <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => onNavigateToTab('facilities')}>
               <Plus className="h-3.5 w-3.5" />
               {t('housing.facilities.addFacility')}
             </Button>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setEditOpen(true)}>
-                <Pencil className="h-3.5 w-3.5 me-2" />
-                {t('housing.branchActions.edit')}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5 me-2" />
-                {t('housing.branchActions.delete')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <LifecycleActionMenu
+            entityType="branch"
+            isActive={isActive}
+            isArchived={isArchived}
+            canDelete={canDelete}
+            deleteBlockers={deleteBlockers}
+            onDelete={async () => { await deleteLocation(branch.id); invalidateAll(); }}
+            onArchive={async () => { await archiveLocation(branch.id); invalidateAll(); }}
+            onDeactivate={async () => { await toggleLocationActive({ id: branch.id, isActive: false }); invalidateAll(); }}
+            onReactivate={async () => { await toggleLocationActive({ id: branch.id, isActive: true }); invalidateAll(); }}
+            onRestore={async () => { await restoreLocation(branch.id); invalidateAll(); }}
+            extraItems={
+              !isArchived ? (
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <Pencil className="h-3.5 w-3.5 me-2" />
+                  {t('housing.branchActions.edit')}
+                </DropdownMenuItem>
+              ) : undefined
+            }
+          />
         </div>
       </div>
 
@@ -344,48 +341,6 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
 
       {/* ── Edit Dialog ── */}
       <EditBranchDialog branch={branch} open={editOpen} onOpenChange={setEditOpen} />
-
-      {/* ── Delete Dialog ── */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              {!canDelete && <AlertTriangle className="h-5 w-5 text-destructive" />}
-              {t('housing.branchActions.deleteTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                {canDelete ? (
-                  <p>{t('housing.branchActions.deleteConfirm').replace('{name}', branch.name)}</p>
-                ) : (
-                  <>
-                    <p>{t('housing.branchActions.cannotDelete')}</p>
-                    <ul className="list-disc ps-5 space-y-1 text-sm">
-                      {deletionBlockers.map((b, i) => (
-                        <li key={i}>{b}</li>
-                      ))}
-                    </ul>
-                    <p className="text-xs text-muted-foreground">{t('housing.branchActions.resolveFirst')}</p>
-                  </>
-                )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            {canDelete && (
-              <AlertDialogAction
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                {isDeleting && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-                {t('housing.branchActions.delete')}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
