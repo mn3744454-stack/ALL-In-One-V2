@@ -19,22 +19,23 @@ import {
   GraduationCap,
   User
 } from "lucide-react";
+import { useI18n } from "@/i18n";
 
-// Note: "admin" is kept for backward compatibility with existing database records but is not used in UI
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
-const roleConfig: Record<TenantRole, { label: string; icon: React.ElementType; color: string }> = {
-  owner: { label: "Owner", icon: Crown, color: "text-gold" },
-  admin: { label: "Administrator", icon: UserCog, color: "text-purple-500" }, // Legacy - not assignable
-  manager: { label: "Manager", icon: UserCog, color: "text-indigo-500" },
-  foreman: { label: "Foreman", icon: Hammer, color: "text-orange-500" },
-  vet: { label: "Veterinarian", icon: Stethoscope, color: "text-emerald-500" },
-  trainer: { label: "Trainer", icon: GraduationCap, color: "text-blue-500" },
-  employee: { label: "Employee", icon: User, color: "text-slate-500" },
+const roleConfig: Record<TenantRole, { en: string; ar: string; icon: React.ElementType; color: string }> = {
+  owner: { en: "Owner", ar: "مالك", icon: Crown, color: "text-gold" },
+  admin: { en: "Administrator", ar: "مدير", icon: UserCog, color: "text-purple-500" },
+  manager: { en: "Manager", ar: "مدير عام", icon: UserCog, color: "text-indigo-500" },
+  foreman: { en: "Foreman", ar: "مشرف", icon: Hammer, color: "text-orange-500" },
+  vet: { en: "Veterinarian", ar: "طبيب بيطري", icon: Stethoscope, color: "text-emerald-500" },
+  trainer: { en: "Trainer", ar: "مدرب", icon: GraduationCap, color: "text-blue-500" },
+  employee: { en: "Employee", ar: "موظف", icon: User, color: "text-slate-500" },
 };
 
 export const RoleSwitcher = () => {
   const { activeTenant, activeRole, setActiveRole } = useTenant();
+  const { lang } = useI18n();
 
   if (!activeTenant || !activeRole) {
     return null;
@@ -42,8 +43,8 @@ export const RoleSwitcher = () => {
 
   const currentRole = roleConfig[activeRole];
   const RoleIcon = currentRole?.icon || Shield;
+  const label = currentRole ? currentRole[lang] || currentRole.en : activeRole;
 
-  // For now, users have one role per tenant - but the UI supports switching
   const availableRoles: TenantRole[] = [activeTenant.role];
 
   return (
@@ -51,12 +52,12 @@ export const RoleSwitcher = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="gap-2">
           <RoleIcon className={`w-4 h-4 ${currentRole?.color}`} />
-          <span className="text-sm">{currentRole?.label}</span>
+          <span className="text-sm">{label}</span>
           <ChevronDown className="w-3 h-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[180px]">
-        <DropdownMenuLabel>Active Role</DropdownMenuLabel>
+        <DropdownMenuLabel>{lang === 'ar' ? 'الدور الحالي' : 'Active Role'}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRoles.map((role) => {
           const config = roleConfig[role];
@@ -68,7 +69,7 @@ export const RoleSwitcher = () => {
               className="gap-2 cursor-pointer"
             >
               <Icon className={`w-4 h-4 ${config.color}`} />
-              <span className="flex-1">{config.label}</span>
+              <span className="flex-1">{config[lang] || config.en}</span>
               {activeRole === role && <Check className="w-4 h-4 text-gold" />}
             </DropdownMenuItem>
           );
