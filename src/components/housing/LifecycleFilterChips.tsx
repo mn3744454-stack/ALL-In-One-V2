@@ -26,7 +26,7 @@ export function LifecycleFilterChips({ value, onChange, counts, context }: Lifec
       {LIFECYCLE_STATES.map((state) => {
         const isActive = value === state;
         const count = counts?.[state];
-        const showCount = count !== undefined && count > 0 && state !== 'all';
+        const showCount = count !== undefined && count > 0;
         return (
           <button
             key={state}
