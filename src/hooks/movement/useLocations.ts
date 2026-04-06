@@ -85,6 +85,15 @@ export function useLocations() {
       if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
       const { error } = await supabase.from('branches').update({ is_active: isActive }).eq('id', id).eq('tenant_id', tenantId);
       if (error) throw error;
+      // Cascade deactivation to child facilities and units
+      if (!isActive) {
+        await supabase.from('facility_areas')
+          .update({ is_active: false } as any)
+          .eq('branch_id', id).eq('tenant_id', tenantId);
+        await supabase.from('housing_units')
+          .update({ is_active: false } as any)
+          .eq('branch_id', id).eq('tenant_id', tenantId);
+      }
     },
     onSuccess: () => { toast.success(tGlobal('movement.toasts.locationUpdated')); invalidateAll(); },
     onError: (error) => { toast.error(error.message); },

@@ -1,17 +1,17 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
-export type LifecycleFilter = 'active' | 'deactivated' | 'archived' | 'all';
+export type LifecycleFilter = 'active' | 'deactivated' | 'archived';
 
 interface LifecycleFilterChipsProps {
   value: LifecycleFilter;
   onChange: (value: LifecycleFilter) => void;
-  counts?: { active?: number; deactivated?: number; archived?: number; all?: number };
+  counts?: { active?: number; deactivated?: number; archived?: number };
   /** Context label suffix — e.g. "Branches", "Facilities", "Units" */
   context: 'branches' | 'facilities' | 'units';
 }
 
-const LIFECYCLE_STATES: LifecycleFilter[] = ['active', 'deactivated', 'archived', 'all'];
+const LIFECYCLE_STATES: LifecycleFilter[] = ['active', 'deactivated', 'archived'];
 
 export function LifecycleFilterChips({ value, onChange, counts, context }: LifecycleFilterChipsProps) {
   const { t } = useI18n();
@@ -26,7 +26,7 @@ export function LifecycleFilterChips({ value, onChange, counts, context }: Lifec
       {LIFECYCLE_STATES.map((state) => {
         const isActive = value === state;
         const count = counts?.[state];
-        const showCount = count !== undefined && count > 0 && state !== 'all';
+        const showCount = count !== undefined && count > 0;
         return (
           <button
             key={state}

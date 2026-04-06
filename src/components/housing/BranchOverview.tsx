@@ -41,7 +41,6 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
       case 'active': return allBranches.filter(b => b.is_active && !b.is_archived);
       case 'deactivated': return allBranches.filter(b => !b.is_active && !b.is_archived);
       case 'archived': return allBranches.filter(b => b.is_archived);
-      case 'all': return allBranches;
       default: return allBranches.filter(b => b.is_active && !b.is_archived);
     }
   }, [allBranches, lifecycleFilter]);
@@ -50,7 +49,6 @@ export function BranchOverview({ onNavigateToTab, selectedBranchId }: BranchOver
     active: allBranches.filter(b => b.is_active && !b.is_archived).length,
     deactivated: allBranches.filter(b => !b.is_active && !b.is_archived).length,
     archived: allBranches.filter(b => b.is_archived).length,
-    all: allBranches.length,
   }), [allBranches]);
 
   const { data: branchStats = {} } = useQuery({

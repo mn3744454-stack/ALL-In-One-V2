@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -34,9 +34,13 @@ import { BilingualName } from "@/components/ui/BilingualName";
 import { UnitTypeBadge } from "./UnitTypeBadge";
 import { OccupancyBadge } from "./OccupancyBadge";
 import { AssignHorseDialog } from "./AssignHorseDialog";
+import { LifecycleActionMenu, LifecycleStateBadge, type LifecycleBlocker } from "./LifecycleActionMenu";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useI18n } from "@/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { Plus, LogOut, Home, Trees, BedDouble, Loader2, Pencil, Check, X, Wrench, Ban, CircleCheck, MoreVertical } from "lucide-react";
@@ -50,6 +54,8 @@ interface UnitDetailsSheetProps {
 
 export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetProps) {
   const { t, dir, lang: language } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [vacateTarget, setVacateTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
   
@@ -71,7 +77,48 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     isVacating 
   } = useUnitOccupants(unit?.id);
 
-  const { updateUnit, setUnitStatus } = useHousingUnits();
+  const { updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
+
+  // Unit lifecycle blocker queries
+  const { data: unitBlockerData } = useQuery({
+    queryKey: ['unit-lifecycle-blockers', unit?.id, tenantId],
+    queryFn: async () => {
+      if (!unit?.id || !tenantId) return { historyCount: 0, admissionCount: 0 };
+      const [historyRes, admissionRes] = await Promise.all([
+        supabase
+          .from('housing_unit_occupants')
+          .select('id', { count: 'exact', head: true })
+          .eq('unit_id', unit.id)
+          .eq('tenant_id', tenantId),
+        supabase
+          .from('boarding_admissions')
+          .select('id', { count: 'exact', head: true })
+          .eq('unit_id', unit.id)
+          .eq('tenant_id', tenantId),
+      ]);
+      return {
+        historyCount: historyRes.count || 0,
+        admissionCount: admissionRes.count || 0,
+      };
+    },
+    enabled: !!unit?.id && !!tenantId,
+  });
+
+  const deleteBlockers = useMemo((): LifecycleBlocker[] => {
+    if (!unit) return [];
+    const blockers: LifecycleBlocker[] = [];
+    const currentOcc = unit.current_occupants || 0;
+    if (currentOcc > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any), count: currentOcc });
+    }
+    if (unitBlockerData && unitBlockerData.historyCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasHistory' as any), count: unitBlockerData.historyCount });
+    }
+    if (unitBlockerData && unitBlockerData.admissionCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasAdmissions' as any), count: unitBlockerData.admissionCount });
+    }
+    return blockers;
+  }, [unit, unitBlockerData, t]);
 
   if (!unit) return null;
 
@@ -203,39 +250,46 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                   </Tooltip>
                 )}
                 {canManage && !isEditing && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {unit.status !== 'available' && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
-                          <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
-                          {t('housing.units.setAvailable')}
-                        </DropdownMenuItem>
-                      )}
-                      {unit.status !== 'maintenance' && !isOccupied && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                          status: 'maintenance',
-                          warning: t('housing.units.maintenanceWarning'),
-                        })}>
-                          <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
-                          {t('housing.units.setMaintenance')}
-                        </DropdownMenuItem>
-                      )}
-                      {unit.status !== 'out_of_service' && !isOccupied && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                          status: 'out_of_service',
-                          warning: t('housing.units.outOfServiceWarning'),
-                        })}>
-                          <Ban className="w-4 h-4 me-2 text-destructive" />
-                          {t('housing.units.setOutOfService')}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <LifecycleActionMenu
+                    entityType="unit"
+                    isActive={unit.is_active}
+                    isArchived={unit.is_archived}
+                    canDelete={deleteBlockers.length === 0}
+                    deleteBlockers={deleteBlockers}
+                    onDelete={async () => { await deleteUnit(unit.id); onOpenChange(false); }}
+                    onArchive={async () => { await archiveUnit(unit.id); onOpenChange(false); }}
+                    onDeactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: false }); onOpenChange(false); }}
+                    onReactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: true }); }}
+                    onRestore={async () => { await restoreUnit(unit.id); }}
+                    extraItems={
+                      <>
+                        {unit.status !== 'available' && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
+                            <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
+                            {t('housing.units.setAvailable')}
+                          </DropdownMenuItem>
+                        )}
+                        {unit.status !== 'maintenance' && !isOccupied && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                            status: 'maintenance',
+                            warning: t('housing.units.maintenanceWarning'),
+                          })}>
+                            <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
+                            {t('housing.units.setMaintenance')}
+                          </DropdownMenuItem>
+                        )}
+                        {unit.status !== 'out_of_service' && !isOccupied && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                            status: 'out_of_service',
+                            warning: t('housing.units.outOfServiceWarning'),
+                          })}>
+                            <Ban className="w-4 h-4 me-2 text-destructive" />
+                            {t('housing.units.setOutOfService')}
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    }
+                  />
                 )}
               </div>
             </div>

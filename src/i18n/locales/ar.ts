@@ -2026,6 +2026,7 @@ export const ar = {
       deleteConfirmMsg: "هل أنت متأكد أنك تريد حذف هذا {entity} نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
       cannotDeleteMsg: "لا يمكن حذف هذا {entity} نهائياً لوجود سجل عمليات:",
       suggestArchive: "استخدم الأرشفة بدلاً من ذلك لإخفائه من العرض النشط مع الحفاظ على البيانات التاريخية.",
+      suggestDeactivate: "استخدم التعطيل للإيقاف المؤقت — يمكنك إعادة التفعيل لاحقاً.",
       archivedBadge: "مؤرشف",
       deactivatedBadge: "معطل",
       entity: {

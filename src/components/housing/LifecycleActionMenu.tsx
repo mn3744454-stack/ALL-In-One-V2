@@ -153,6 +153,10 @@ export function LifecycleActionMenu({
                         <Archive className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span>{t('housing.lifecycle.suggestArchive')}</span>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <Power className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span>{t('housing.lifecycle.suggestDeactivate' as any)}</span>
+                      </div>
                     </div>
                   </>
                 )}
