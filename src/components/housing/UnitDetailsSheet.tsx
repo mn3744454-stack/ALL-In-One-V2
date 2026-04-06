@@ -250,39 +250,46 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                   </Tooltip>
                 )}
                 {canManage && !isEditing && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {unit.status !== 'available' && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
-                          <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
-                          {t('housing.units.setAvailable')}
-                        </DropdownMenuItem>
-                      )}
-                      {unit.status !== 'maintenance' && !isOccupied && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                          status: 'maintenance',
-                          warning: t('housing.units.maintenanceWarning'),
-                        })}>
-                          <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
-                          {t('housing.units.setMaintenance')}
-                        </DropdownMenuItem>
-                      )}
-                      {unit.status !== 'out_of_service' && !isOccupied && (
-                        <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                          status: 'out_of_service',
-                          warning: t('housing.units.outOfServiceWarning'),
-                        })}>
-                          <Ban className="w-4 h-4 me-2 text-destructive" />
-                          {t('housing.units.setOutOfService')}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <LifecycleActionMenu
+                    entityType="unit"
+                    isActive={unit.is_active}
+                    isArchived={unit.is_archived}
+                    canDelete={deleteBlockers.length === 0}
+                    deleteBlockers={deleteBlockers}
+                    onDelete={async () => { await deleteUnit(unit.id); onOpenChange(false); }}
+                    onArchive={async () => { await archiveUnit(unit.id); onOpenChange(false); }}
+                    onDeactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: false }); onOpenChange(false); }}
+                    onReactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: true }); }}
+                    onRestore={async () => { await restoreUnit(unit.id); }}
+                    extraItems={
+                      <>
+                        {unit.status !== 'available' && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
+                            <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
+                            {t('housing.units.setAvailable')}
+                          </DropdownMenuItem>
+                        )}
+                        {unit.status !== 'maintenance' && !isOccupied && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                            status: 'maintenance',
+                            warning: t('housing.units.maintenanceWarning'),
+                          })}>
+                            <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
+                            {t('housing.units.setMaintenance')}
+                          </DropdownMenuItem>
+                        )}
+                        {unit.status !== 'out_of_service' && !isOccupied && (
+                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
+                            status: 'out_of_service',
+                            warning: t('housing.units.outOfServiceWarning'),
+                          })}>
+                            <Ban className="w-4 h-4 me-2 text-destructive" />
+                            {t('housing.units.setOutOfService')}
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    }
+                  />
                 )}
               </div>
             </div>
