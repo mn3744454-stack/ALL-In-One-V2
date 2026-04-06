@@ -2011,6 +2011,7 @@ export const en = {
       deleteConfirmMsg: "Are you sure you want to permanently delete this {entity}? This action cannot be undone.",
       cannotDeleteMsg: "This {entity} cannot be permanently deleted because it has operational history:",
       suggestArchive: "Use Archive instead to retire this from active views while preserving all historical data.",
+      suggestDeactivate: "Use Deactivate for temporary suspension — you can reactivate later.",
       archivedBadge: "Archived",
       deactivatedBadge: "Deactivated",
       entity: {
