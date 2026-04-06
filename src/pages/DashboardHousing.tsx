@@ -139,17 +139,10 @@ export default function DashboardHousing() {
           </TabsList>
 
           <TabsContent value="branches" className="mt-0">
-            {selectedBranchId === '__all__' ? (
-              <BranchOverview
-                branches={activeLocations}
-                onNavigateToTab={handleTabChange}
-              />
-            ) : (
-              <BranchOverview
-                branches={activeLocations.filter(l => l.id === selectedBranchId)}
-                onNavigateToTab={handleTabChange}
-              />
-            )}
+            <BranchOverview
+              selectedBranchId={selectedBranchId}
+              onNavigateToTab={handleTabChange}
+            />
           </TabsContent>
 
           <TabsContent value="admissions" className="mt-0">
