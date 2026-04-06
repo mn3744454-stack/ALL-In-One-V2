@@ -182,6 +182,20 @@ export function FacilitySection({
   };
 
   // Lifecycle action handlers
+  // Query admission count for this facility
+  const { data: facilityAdmissionCount = 0 } = useQuery({
+    queryKey: ['facility-admission-count', facility.id, facility.tenant_id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('boarding_admissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('area_id', facility.id)
+        .eq('tenant_id', facility.tenant_id);
+      return count || 0;
+    },
+    enabled: !!facility.id,
+  });
+
   const deleteBlockers = useMemo(() => {
     const blockers: { reason: string; count?: number }[] = [];
     if (totalCount > 0) {
@@ -190,8 +204,11 @@ export function FacilitySection({
     if (occupiedCount > 0) {
       blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any) });
     }
+    if (facilityAdmissionCount > 0) {
+      blockers.push({ reason: t('housing.lifecycle.blockers.hasAdmissions' as any), count: facilityAdmissionCount });
+    }
     return blockers;
-  }, [totalCount, occupiedCount, t]);
+  }, [totalCount, occupiedCount, facilityAdmissionCount, t]);
 
   if (!hasVisibleContent) return null;
 
