@@ -1,17 +1,17 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 
-export type LifecycleFilter = 'active' | 'deactivated' | 'archived' | 'all';
+export type LifecycleFilter = 'active' | 'deactivated' | 'archived';
 
 interface LifecycleFilterChipsProps {
   value: LifecycleFilter;
   onChange: (value: LifecycleFilter) => void;
-  counts?: { active?: number; deactivated?: number; archived?: number; all?: number };
+  counts?: { active?: number; deactivated?: number; archived?: number };
   /** Context label suffix — e.g. "Branches", "Facilities", "Units" */
   context: 'branches' | 'facilities' | 'units';
 }
 
-const LIFECYCLE_STATES: LifecycleFilter[] = ['active', 'deactivated', 'archived', 'all'];
+const LIFECYCLE_STATES: LifecycleFilter[] = ['active', 'deactivated', 'archived'];
 
 export function LifecycleFilterChips({ value, onChange, counts, context }: LifecycleFilterChipsProps) {
   const { t } = useI18n();
