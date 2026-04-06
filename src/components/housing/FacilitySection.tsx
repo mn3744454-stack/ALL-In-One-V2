@@ -162,6 +162,7 @@ export function FacilitySection({
       capacity: inlineUnit.capacity,
       status: inlineUnit.status,
       is_active: inlineUnit.is_active,
+      is_archived: false,
       is_demo: false,
       notes: null,
       created_at: '',

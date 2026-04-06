@@ -105,10 +105,13 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    try {
-      const defaultUnitType = facility.facility_type === 'isolation' ? 'isolation_room' : 'stall';
-      for (const room of previewRooms) {
-        const unitType = room.fn === 'default' ? defaultUnitType : room.fn;
+    const defaultUnitType = facility.facility_type === 'isolation' ? 'isolation_room' : 'stall';
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const room of previewRooms) {
+      const unitType = room.fn === 'default' ? defaultUnitType : room.fn;
+      try {
         await createUnit({
           branch_id: facility.branch_id,
           area_id: facility.id,
@@ -118,14 +121,24 @@ export function AddUnitsDialog({ open, onOpenChange, facility, existingUnitCount
           occupancy: 'single',
           capacity: 1,
         });
+        successCount++;
+      } catch {
+        failCount++;
+        // Skip duplicates or errors, continue with remaining units
       }
-      onOpenChange(false);
-      setRoomSetup([]);
-    } catch {
-      // handled by mutation
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
+
+    if (failCount > 0 && successCount > 0) {
+      toast.info(`${successCount} units created, ${failCount} skipped (may already exist)`);
+    } else if (failCount > 0 && successCount === 0) {
+      toast.error(t('housing.create.allUnitsFailed' as any) || 'All units failed — they may already exist');
+    }
+
+    // Always close and reset after attempt — grid will refresh via invalidation
+    onOpenChange(false);
+    setRoomSetup([]);
   };
 
   const RoomCell = ({ room }: { room: RoomSetup }) => (
