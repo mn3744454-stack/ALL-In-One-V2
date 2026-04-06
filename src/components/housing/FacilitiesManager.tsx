@@ -92,7 +92,6 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
       case 'active': return areas.filter(a => a.is_active && !a.is_archived);
       case 'deactivated': return areas.filter(a => !a.is_active && !a.is_archived);
       case 'archived': return areas.filter(a => a.is_archived);
-      case 'all': return areas;
       default: return areas.filter(a => a.is_active && !a.is_archived);
     }
   }, [areas, lifecycleFilter]);
@@ -102,7 +101,6 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     active: areas.filter(a => a.is_active && !a.is_archived).length,
     deactivated: areas.filter(a => !a.is_active && !a.is_archived).length,
     archived: areas.filter(a => a.is_archived).length,
-    all: areas.length,
   }), [areas]);
 
   const facilityIds = useMemo(() => lifecycleFilteredAreas.map(a => a.id), [lifecycleFilteredAreas]);
