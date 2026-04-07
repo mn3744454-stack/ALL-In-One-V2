@@ -102,8 +102,8 @@ export function CreateFacilityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-3xl max-h-[85vh] p-0 gap-0">
-        {/* Fixed header — shrink-0, never scrolls */}
+      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-5xl max-h-[90vh] p-0 gap-0">
+        {/* Fixed header */}
         <div className="shrink-0 border-b px-6 py-4">
           <DialogHeader>
             <DialogTitle>{t('housing.create.title')}</DialogTitle>
@@ -111,7 +111,7 @@ export function CreateFacilityDialog({
           </DialogHeader>
         </div>
 
-        {/* Scrollable body — flex-1 min-h-0, only region that scrolls */}
+        {/* Scrollable body */}
         <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           <FacilityCreationForm
             lockedBranchId={lockedBranchId}
@@ -121,7 +121,7 @@ export function CreateFacilityDialog({
           />
         </div>
 
-        {/* Fixed footer — shrink-0, never scrolls */}
+        {/* Fixed footer */}
         <div className="shrink-0 border-t px-6 py-3 flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
@@ -144,4 +144,5 @@ export function CreateFacilityDialog({
 
 // Re-export helpers used by other components
 export { FACILITY_CATEGORY, FACILITY_ICONS } from "./FacilityCreationForm";
-export type { FacilityCategory, RoomFunction, LayoutMode, StartSide } from "./FacilityCreationForm";
+export type { FacilityCategory } from "./FacilityCreationForm";
+export type { RoomFunction, LayoutMode, StartSide } from "./RoomLayoutSetup";
