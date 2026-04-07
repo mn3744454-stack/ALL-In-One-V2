@@ -102,17 +102,17 @@ export function CreateFacilityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
-        {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-3xl max-h-[85vh] p-0 gap-0">
+        {/* Fixed header — shrink-0, never scrolls */}
+        <div className="shrink-0 border-b px-6 py-4">
           <DialogHeader>
             <DialogTitle>{t('housing.create.title')}</DialogTitle>
             <DialogDescription>{t('housing.create.description')}</DialogDescription>
           </DialogHeader>
         </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        {/* Scrollable body — flex-1 min-h-0, only region that scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           <FacilityCreationForm
             lockedBranchId={lockedBranchId}
             defaultBranchId={effectiveBranchId}
@@ -121,8 +121,8 @@ export function CreateFacilityDialog({
           />
         </div>
 
-        {/* Sticky footer */}
-        <div className="sticky bottom-0 z-10 bg-background border-t px-6 py-3 flex justify-end gap-2">
+        {/* Fixed footer — shrink-0, never scrolls */}
+        <div className="shrink-0 border-t px-6 py-3 flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
