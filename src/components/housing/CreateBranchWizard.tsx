@@ -167,12 +167,9 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className={cn(
-        "max-h-[85vh] flex flex-col p-0 gap-0",
-        step === 1 ? "sm:max-w-lg" : "sm:max-w-2xl"
-      )}>
-        {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col max-h-[85vh] sm:max-w-3xl p-0 gap-0">
+        {/* Fixed header — shrink-0, never scrolls */}
+        <div className="shrink-0 border-b px-6 py-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
@@ -213,8 +210,8 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
           )}
         </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        {/* Scrollable body — flex-1 min-h-0, only region that scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
           {step === 1 && (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -265,8 +262,8 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
           )}
         </div>
 
-        {/* Sticky footer */}
-        <div className="sticky bottom-0 z-10 bg-background border-t px-6 py-3 flex items-center justify-between">
+        {/* Fixed footer — shrink-0, never scrolls */}
+        <div className="shrink-0 border-t px-6 py-3 flex items-center justify-between">
           {step === 2 ? (
             <Button variant="ghost" size="sm" onClick={() => setStep(1)} disabled={isSubmitting}>
               <BackIcon className="h-4 w-4" />

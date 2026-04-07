@@ -176,7 +176,11 @@ export function LifecycleActionMenu({
               </AlertDialogAction>
             ) : (
               <AlertDialogAction
-                onClick={() => { setDialogType(null); setDialogType('archive'); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDialogType(null);
+                  setTimeout(() => setDialogType('archive'), 150);
+                }}
                 className="bg-primary"
               >
                 <Archive className="h-4 w-4 me-2" />
