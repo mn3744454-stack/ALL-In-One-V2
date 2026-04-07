@@ -4,18 +4,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UnitCell } from "./UnitCell";
 import { UnitDetailsSheet } from "./UnitDetailsSheet";
 import { AddUnitsDialog } from "./AddUnitsDialog";
 import { OpenAreaContent } from "./OpenAreaContent";
 import { ActivityContent } from "./ActivityContent";
-import { LifecycleActionMenu, LifecycleStateBadge } from "./LifecycleActionMenu";
+import { LifecycleStateBadge } from "./LifecycleActionMenu";
 import { unitMatchesSearch, type OccupancyFilter } from "./FacilitiesManager";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
-import { Building2, Edit, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets, Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Plus } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Building2, Edit, ChevronDown, ChevronUp, LayoutGrid, Dumbbell, Droplets,
+  Warehouse, CircleDot, Fence, TreePine, ShieldAlert, Home, Plus,
+  MoreVertical, Trash2, Archive, Power, RotateCcw, AlertTriangle, Loader2,
+} from "lucide-react";
 import { SUBDIVISION_CONFIG } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityArea, FacilityType } from "@/hooks/housing/useFacilityAreas";
 import type { FacilityWithUnits, InlineUnit } from "@/hooks/housing/useInlineFacilityUnits";
@@ -97,6 +107,8 @@ export function FacilitySection({
   const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [addUnitsOpen, setAddUnitsOpen] = useState(false);
+  const [dialogType, setDialogType] = useState<'delete' | 'archive' | 'deactivate' | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const units = facilityData?.units || [];
   const occupants = facilityData?.occupants || [];
@@ -112,9 +124,7 @@ export function FacilitySection({
   const filteredUnits = useMemo(() => {
     if (!isHousingType) return units;
     return units.filter(unit => {
-      // Search matching
       if (searchQuery && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery)) return false;
-      // Filter matching
       if (activeFilter === 'all') return true;
       const unitOccupants = occupants.filter(o => o.unit_id === unit.id);
       const isOcc = unitOccupants.length > 0;
@@ -183,7 +193,23 @@ export function FacilitySection({
     setDetailsOpen(true);
   };
 
-  // Lifecycle action handlers
+  // ─── Delete blocker: query ALL units including archived ───
+  const { data: allUnitsCount = 0 } = useQuery({
+    queryKey: ['facility-all-units-count', facility.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from('housing_units')
+        .select('id', { count: 'exact', head: true })
+        .eq('area_id', facility.id)
+        .eq('tenant_id', facility.tenant_id);
+      return count || 0;
+    },
+    enabled: !!facility.id,
+  });
+
+  // Count archived units specifically for blocker messaging
+  const archivedUnitsCount = Math.max(0, allUnitsCount - totalCount);
+
   // Query admission count for this facility
   const { data: facilityAdmissionCount = 0 } = useQuery({
     queryKey: ['facility-admission-count', facility.id, facility.tenant_id],
@@ -200,8 +226,19 @@ export function FacilitySection({
 
   const deleteBlockers = useMemo(() => {
     const blockers: { reason: string; count?: number }[] = [];
+    // Active units
     if (totalCount > 0) {
-      blockers.push({ reason: t('housing.lifecycle.blockers.hasUnits' as any).replace('{n}', String(totalCount)), count: totalCount });
+      blockers.push({
+        reason: (t('housing.lifecycle.blockers.hasUnits' as any) || 'Active rooms: {n}').replace('{n}', String(totalCount)),
+        count: totalCount,
+      });
+    }
+    // Archived units (hidden from normal view but still in DB)
+    if (archivedUnitsCount > 0) {
+      blockers.push({
+        reason: (t('housing.lifecycle.blockers.hasArchivedUnits' as any) || 'Archived rooms: {n}').replace('{n}', String(archivedUnitsCount)),
+        count: archivedUnitsCount,
+      });
     }
     if (occupiedCount > 0) {
       blockers.push({ reason: t('housing.lifecycle.blockers.hasOccupants' as any) });
@@ -210,7 +247,22 @@ export function FacilitySection({
       blockers.push({ reason: t('housing.lifecycle.blockers.hasAdmissions' as any), count: facilityAdmissionCount });
     }
     return blockers;
-  }, [totalCount, occupiedCount, facilityAdmissionCount, t]);
+  }, [totalCount, archivedUnitsCount, occupiedCount, facilityAdmissionCount, t]);
+
+  const canDelete = deleteBlockers.length === 0;
+  const entityLabel = t(`housing.lifecycle.entity.facility` as any);
+
+  const handleLifecycleAction = async (action: () => Promise<void>) => {
+    setIsActionLoading(true);
+    try {
+      await action();
+      setDialogType(null);
+    } catch {
+      // handled by caller
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
   if (!hasVisibleContent) return null;
 
@@ -266,47 +318,81 @@ export function FacilitySection({
               </div>
             )}
 
-            {/* Management actions */}
+            {/* ─── Direct Action Buttons ─── */}
             {canManage && (
               <div className="flex items-center gap-1">
-                {isHousingType && facility.is_active && !facility.is_archived && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAddUnitsOpen(true)}>
-                        <Plus className="w-3.5 h-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t('housing.create.addUnitsTooltip')}</TooltipContent>
-                  </Tooltip>
-                )}
+                {/* Edit — visible when not archived */}
                 {!facility.is_archived && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(facility.id)}>
-                        <Edit className="w-3.5 h-3.5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{t('housing.facilities.editTooltip')}</TooltipContent>
-                  </Tooltip>
+                  <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs px-2" onClick={() => onEdit(facility.id)}>
+                    <Edit className="w-3.5 h-3.5" />
+                    {t('common.edit')}
+                  </Button>
                 )}
-                <LifecycleActionMenu
-                  entityType="facility"
-                  isActive={facility.is_active}
-                  isArchived={facility.is_archived}
-                  canDelete={deleteBlockers.length === 0}
-                  deleteBlockers={deleteBlockers}
-                  onDelete={async () => { await onDelete(facility.id); }}
-                  onArchive={async () => { await onArchive(facility.id); }}
-                  onDeactivate={async () => { await onToggleActive({ id: facility.id, isActive: false }); }}
-                  onReactivate={async () => { await onToggleActive({ id: facility.id, isActive: true }); }}
-                  onRestore={async () => { await onRestore(facility.id); }}
-                />
+
+                {/* Add Units — housing, active, not archived */}
+                {isHousingType && facility.is_active && !facility.is_archived && (
+                  <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs px-2" onClick={() => setAddUnitsOpen(true)}>
+                    <Plus className="w-3.5 h-3.5" />
+                    {t('housing.create.addUnitsSubmit')}
+                  </Button>
+                )}
+
+                {/* State-dependent lifecycle actions — directly visible */}
+                {facility.is_archived ? (
+                  /* Archived: Restore */
+                  <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2" onClick={() => handleLifecycleAction(async () => { await onRestore(facility.id); })}>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {t('housing.lifecycle.restore')}
+                  </Button>
+                ) : facility.is_active ? (
+                  /* Active: Archive + Deactivate visible */
+                  <>
+                    <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2 text-muted-foreground" onClick={() => setDialogType('archive')}>
+                      <Archive className="w-3.5 h-3.5" />
+                      {t('housing.lifecycle.archive')}
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2 text-muted-foreground" onClick={() => setDialogType('deactivate')}>
+                      <Power className="w-3.5 h-3.5" />
+                      {t('housing.lifecycle.deactivate')}
+                    </Button>
+                  </>
+                ) : (
+                  /* Deactivated: Reactivate visible */
+                  <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs px-2" onClick={() => handleLifecycleAction(async () => { await onToggleActive({ id: facility.id, isActive: true }); })}>
+                    <Power className="w-3.5 h-3.5 text-emerald-600" />
+                    {t('housing.lifecycle.reactivate')}
+                  </Button>
+                )}
+
+                {/* Overflow: only Delete Permanently */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[200px]">
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setDialogType('delete')}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 me-2" />
+                      {t('housing.lifecycle.deletePermanently')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCollapsed(!collapsed)}>
+                  {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                </Button>
               </div>
             )}
 
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCollapsed(!collapsed)}>
-              {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-            </Button>
+            {!canManage && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setCollapsed(!collapsed)}>
+                {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -362,6 +448,110 @@ export function FacilitySection({
       {isHousingType && (
         <AddUnitsDialog open={addUnitsOpen} onOpenChange={setAddUnitsOpen} facility={facility} existingUnitCount={totalCount} />
       )}
+
+      {/* ─── Confirmation Dialogs ─── */}
+      {/* Delete */}
+      <AlertDialog open={dialogType === 'delete'} onOpenChange={(open) => !open && setDialogType(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {!canDelete && <AlertTriangle className="h-5 w-5 text-destructive" />}
+              {t('housing.lifecycle.deleteTitle').replace('{entity}', entityLabel)}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                {canDelete ? (
+                  <p>{t('housing.lifecycle.deleteConfirmMsg').replace('{entity}', entityLabel)}</p>
+                ) : (
+                  <>
+                    <p>{t('housing.lifecycle.cannotDeleteMsg').replace('{entity}', entityLabel)}</p>
+                    <ul className="list-disc ps-5 space-y-1 text-sm">
+                      {deleteBlockers.map((b, i) => (
+                        <li key={i}>{b.reason}{b.count !== undefined ? ` (${b.count})` : ''}</li>
+                      ))}
+                    </ul>
+                    <div className="flex flex-col gap-2 p-3 bg-muted/50 rounded-lg border text-sm">
+                      <div className="flex items-center gap-2">
+                        <Archive className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span>{t('housing.lifecycle.suggestArchive')}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Power className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span>{t('housing.lifecycle.suggestDeactivate' as any)}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            {canDelete ? (
+              <AlertDialogAction
+                onClick={() => handleLifecycleAction(async () => { await onDelete(facility.id); })}
+                disabled={isActionLoading}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isActionLoading && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+                {t('housing.lifecycle.deletePermanently')}
+              </AlertDialogAction>
+            ) : (
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  setDialogType(null);
+                  setTimeout(() => setDialogType('archive'), 150);
+                }}
+                className="bg-primary"
+              >
+                <Archive className="h-4 w-4 me-2" />
+                {t('housing.lifecycle.archiveInstead')}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Archive */}
+      <AlertDialog open={dialogType === 'archive'} onOpenChange={(open) => !open && setDialogType(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('housing.lifecycle.archiveTitle').replace('{entity}', entityLabel)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('housing.lifecycle.archiveMsg').replace('{entity}', entityLabel)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleLifecycleAction(async () => { await onArchive(facility.id); })} disabled={isActionLoading}>
+              {isActionLoading && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              <Archive className="h-4 w-4 me-2" />
+              {t('housing.lifecycle.archive')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Deactivate */}
+      <AlertDialog open={dialogType === 'deactivate'} onOpenChange={(open) => !open && setDialogType(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('housing.lifecycle.deactivateTitle').replace('{entity}', entityLabel)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('housing.lifecycle.deactivateMsg').replace('{entity}', entityLabel)}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleLifecycleAction(async () => { await onToggleActive({ id: facility.id, isActive: false }); })} disabled={isActionLoading}>
+              {isActionLoading && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+              <Power className="h-4 w-4 me-2" />
+              {t('housing.lifecycle.deactivate')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

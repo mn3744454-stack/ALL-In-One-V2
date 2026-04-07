@@ -79,6 +79,7 @@ export function useFacilityAreas(branchId?: string) {
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
     queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
+    queryClient.invalidateQueries({ queryKey: ['facility-all-units-count'] });
   };
 
   const createMutation = useMutation({
@@ -158,10 +159,15 @@ export function useFacilityAreas(branchId?: string) {
   const restoreMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      // Restore the facility itself
       const { error } = await supabase.from('facility_areas')
         .update({ is_archived: false, is_active: true } as any)
         .eq('id', id).eq('tenant_id', tenantId);
       if (error) throw error;
+      // Cascade restore to child units — symmetric with archive
+      await supabase.from('housing_units')
+        .update({ is_archived: false, is_active: true } as any)
+        .eq('area_id', id).eq('tenant_id', tenantId);
     },
     onSuccess: () => { toast.success(tGlobal('housing.areas.updated')); invalidateAll(); },
     onError: (error) => { toast.error(error.message); },
@@ -175,7 +181,15 @@ export function useFacilityAreas(branchId?: string) {
       if (error) throw error;
     },
     onSuccess: () => { toast.success(tGlobal('common.delete')); invalidateAll(); },
-    onError: (error) => { toast.error(error.message); },
+    onError: (error) => {
+      // Humanize FK constraint errors
+      const msg = error.message || '';
+      if (msg.includes('foreign key constraint') || msg.includes('violates foreign key')) {
+        toast.error(tGlobal('housing.lifecycle.deleteBlockedByDependencies' as any) || 'Cannot delete: this facility still has associated rooms or data. Please remove or archive them first.');
+      } else {
+        toast.error(msg);
+      }
+    },
   });
 
   return {

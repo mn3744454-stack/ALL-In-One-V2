@@ -167,7 +167,7 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col max-h-[85vh] sm:max-w-3xl p-0 gap-0">
+      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col max-h-[90vh] sm:max-w-5xl p-0 gap-0">
         {/* Fixed header — shrink-0, never scrolls */}
         <div className="shrink-0 border-b px-6 py-4">
           <DialogHeader>
