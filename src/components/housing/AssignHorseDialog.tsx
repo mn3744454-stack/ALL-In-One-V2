@@ -75,7 +75,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
   } | null>(null);
   const [checkingAdmission, setCheckingAdmission] = useState(false);
 
-  const { horses, loading: horsesLoading, fetchHorses } = useHorses();
+  const { horses, loading: horsesLoading, refresh: refreshHorses } = useHorses();
   const { occupants } = useUnitOccupants(unit?.id);
   const { moveHorse, isMoving } = useInternalMove();
 
