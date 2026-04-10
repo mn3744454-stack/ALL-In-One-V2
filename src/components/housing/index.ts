@@ -14,7 +14,7 @@ export * from './AdmissionDetailSheet';
 export * from './CheckoutDialog';
 export * from './CareNotesList';
 export * from './CheckoutFinancialReview';
-export * from './ServicePlansManager';
+// ServicePlansManager moved to src/components/services/
 export * from './BoardingDashboardWidgets';
 export * from './HorseAdmissionCard';
 export * from './HorseProfileCareNotes';

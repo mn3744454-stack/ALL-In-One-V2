@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
-import { ServicePlansManager } from "@/components/housing/ServicePlansManager";
+import { ServicePlansManager } from "@/components/services/ServicePlansManager";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import {
@@ -15,16 +15,19 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
-import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useStableServicePlans } from "@/hooks/useStableServicePlans";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { Building2, Package, ArrowLeft, Store, Layers } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
+import { toast } from "sonner";
 
 const DashboardServices = () => {
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { labMode } = useModuleAccess();
 
   const { data: services = [], isLoading } = useServices();
   const { plans } = useStableServicePlans();
@@ -49,6 +52,19 @@ const DashboardServices = () => {
     return 'catalog';
   }, [searchParams]);
 
+  const canManage = activeRole === "owner" || activeRole === "manager";
+  const isLabBlocked = labMode === 'full';
+
+  // Route-level Lab guard: full-mode Lab tenants should not access this page
+  useEffect(() => {
+    if (isLabBlocked) {
+      toast.error(t('common.accessRestricted'));
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isLabBlocked, navigate, t]);
+
+  if (isLabBlocked) return null;
+
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
@@ -70,8 +86,6 @@ const DashboardServices = () => {
   const handleToggleActive = async (id: string, is_active: boolean) => {
     await toggleActive.mutateAsync({ id, is_active });
   };
-
-  const canManage = activeRole === "owner" || activeRole === "manager";
 
   if (!activeTenant) {
     return (

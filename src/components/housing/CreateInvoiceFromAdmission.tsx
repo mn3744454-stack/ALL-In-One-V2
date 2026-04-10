@@ -383,7 +383,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         const label = svc?.name || entry.label;
         items.push({
           invoice_id: invoice.id,
-          description: `${t('housing.plans.includedService')}: ${label}`,
+          description: `${t('services.packages.includedService')}: ${label}`,
           entity_type: "boarding",
           entity_id: admission.id,
           horse_id: admission.horse_id || null,

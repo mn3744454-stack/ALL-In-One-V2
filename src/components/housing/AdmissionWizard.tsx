@@ -215,7 +215,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     horse: t('housing.admissions.wizard.stepHorse'),
     client: t('housing.admissions.wizard.stepClient'),
     housing: t('housing.admissions.wizard.stepHousing'),
-    plan: t('housing.plans.title'),
+    plan: t('services.packages.title'),
     rates: t('housing.admissions.wizard.stepRates'),
     details: t('housing.admissions.wizard.stepDetails'),
     review: t('housing.admissions.wizard.stepReview'),
@@ -407,7 +407,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       case 'plan':
         return (
           <div className="space-y-3">
-            <Label>{t('housing.plans.selectPlan')}</Label>
+            <Label>{t('services.packages.selectPackage')}</Label>
             {/* No plan option */}
             <button
               type="button"
@@ -417,7 +417,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 !form.planId ? "border-primary bg-primary/5" : "border-border"
               )}
             >
-              <span className="text-sm text-muted-foreground">{t('housing.plans.noPlan')}</span>
+              <span className="text-sm text-muted-foreground">{t('services.packages.noPackage')}</span>
             </button>
             <div className="grid gap-2 max-h-56 overflow-y-auto">
               {activePlans.map(plan => (
@@ -443,7 +443,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 </button>
               ))}
               {activePlans.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-3">{t('housing.plans.empty')}</p>
+                <p className="text-xs text-muted-foreground text-center py-3">{t('services.packages.empty')}</p>
               )}
             </div>
           </div>
@@ -454,7 +454,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             {selectedPlan && (
               <div className="flex items-center gap-2 p-2 rounded bg-muted/50 text-xs text-muted-foreground">
                 <Package className="h-3.5 w-3.5" />
-                {t('housing.plans.title')}: <span className="font-medium text-foreground">{selectedPlan ? displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang) : ''}</span>
+                {t('services.packages.title')}: <span className="font-medium text-foreground">{selectedPlan ? displayServiceName(selectedPlan.name, selectedPlan.name_ar, lang) : ''}</span>
                 <span className="ms-auto text-xs">{t('housing.admissions.wizard.overrideHint')}</span>
               </div>
             )}

@@ -483,7 +483,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     const planLabel = plan ? displayServiceName(plan.name, plan.name_ar) : admission.plan_id;
                     return (
                       <>
-                        <DetailRow icon={Package} label={t('housing.plans.title')} value={<span className="font-medium">{planLabel}</span>} />
+                        <DetailRow icon={Package} label={t('services.packages.title')} value={<span className="font-medium">{planLabel}</span>} />
                         {plan && <PlanIncludedServicesDisplay includes={plan.includes} />}
                       </>
                     );

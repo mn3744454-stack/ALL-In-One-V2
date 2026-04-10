@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
-import type { StableServicePlan } from "@/hooks/housing/useStableServicePlans";
+import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
 
 export interface LineItem {
@@ -24,6 +24,8 @@ export interface LineItem {
   horse_id?: string | null;
   domain?: string | null;
   service_id?: string | null;
+  /** Tracks how the line was added: 'manual', 'catalog', or 'package' */
+  source?: 'manual' | 'catalog' | 'package';
 }
 
 export interface HorseOption {
@@ -117,6 +119,7 @@ export function InvoiceLineItemsEditor({
       horse_id: null,
       domain: null,
       service_id: null,
+      source: 'manual',
     };
     onChange([...items, newItem]);
   };
@@ -131,6 +134,7 @@ export function InvoiceLineItemsEditor({
       horse_id: null,
       domain: SERVICE_KIND_TO_DOMAIN[service.service_kind] || "general",
       service_id: service.id,
+      source: 'catalog',
     };
     onChange([...items, newItem]);
   };
@@ -152,6 +156,7 @@ export function InvoiceLineItemsEditor({
         horse_id: null,
         domain: SERVICE_KIND_TO_DOMAIN[svc.service_kind] || "general",
         service_id: svc.id,
+        source: 'package',
       });
     }
     if (newItems.length > 0) {
@@ -218,7 +223,7 @@ export function InvoiceLineItemsEditor({
 
         {items.map((item) => {
           const taxStatus = getLineTaxStatus(item);
-          const isFromCatalog = !!item.service_id;
+          const itemSource = item.source || (item.service_id ? 'catalog' : 'manual');
 
           return (
             <div key={item.id} className="border border-border/50 rounded-lg p-3 space-y-2">
@@ -303,7 +308,12 @@ export function InvoiceLineItemsEditor({
                 )}
                 <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
                   {/* Source indicator */}
-                  {isFromCatalog ? (
+                  {itemSource === 'package' ? (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Layers className="w-3 h-3" />
+                      {t("finance.invoices.packageSource")}
+                    </span>
+                  ) : itemSource === 'catalog' ? (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Package className="w-3 h-3" />
                       {t("finance.invoices.catalogLinked")}
