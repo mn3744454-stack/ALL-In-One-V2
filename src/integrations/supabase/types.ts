@@ -10136,74 +10136,30 @@ export type Database = {
             }
             Returns: Json
           }
-      record_horse_movement_with_housing:
-        | {
-            Args: {
-              p_clear_housing?: boolean
-              p_from_area_id?: string
-              p_from_location_id?: string
-              p_from_unit_id?: string
-              p_horse_id: string
-              p_internal_location_note?: string
-              p_is_demo?: boolean
-              p_movement_at?: string
-              p_movement_type: string
-              p_notes?: string
-              p_reason?: string
-              p_tenant_id: string
-              p_to_area_id?: string
-              p_to_location_id?: string
-              p_to_unit_id?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_clear_housing?: boolean
-              p_destination_type?: string
-              p_from_area_id?: string
-              p_from_external_location_id?: string
-              p_from_location_id?: string
-              p_from_unit_id?: string
-              p_horse_id: string
-              p_internal_location_note?: string
-              p_is_demo?: boolean
-              p_movement_at?: string
-              p_movement_type: string
-              p_notes?: string
-              p_reason?: string
-              p_tenant_id: string
-              p_to_area_id?: string
-              p_to_external_location_id?: string
-              p_to_location_id?: string
-              p_to_unit_id?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_clear_housing?: boolean
-              p_destination_type?: string
-              p_from_area_id?: string
-              p_from_external_location_id?: string
-              p_from_location_id?: string
-              p_from_unit_id?: string
-              p_horse_id: string
-              p_internal_location_note?: string
-              p_is_demo?: boolean
-              p_movement_at?: string
-              p_movement_status?: string
-              p_movement_type: string
-              p_notes?: string
-              p_reason?: string
-              p_tenant_id: string
-              p_to_area_id?: string
-              p_to_external_location_id?: string
-              p_to_location_id?: string
-              p_to_unit_id?: string
-            }
-            Returns: Json
-          }
+      record_horse_movement_with_housing: {
+        Args: {
+          p_clear_housing?: boolean
+          p_destination_type?: string
+          p_from_area_id?: string
+          p_from_external_location_id?: string
+          p_from_location_id?: string
+          p_from_unit_id?: string
+          p_horse_id: string
+          p_internal_location_note?: string
+          p_is_demo?: boolean
+          p_movement_at?: string
+          p_movement_status?: string
+          p_movement_type: string
+          p_notes?: string
+          p_reason?: string
+          p_tenant_id: string
+          p_to_area_id?: string
+          p_to_external_location_id?: string
+          p_to_location_id?: string
+          p_to_unit_id?: string
+        }
+        Returns: Json
+      }
       reject_connection: { Args: { _token: string }; Returns: string }
       reject_invitation: {
         Args: { _invitation_id: string; _reason?: string }

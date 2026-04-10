@@ -34,7 +34,7 @@ export function useInternalMove() {
         {
           p_tenant_id: tenantId,
           p_horse_id: params.horseId,
-          p_movement_type: 'internal',
+          p_movement_type: 'transfer',
           p_from_location_id: params.toBranchId,
           p_to_location_id: params.toBranchId,
           p_from_area_id: params.fromAreaId || null,
@@ -47,6 +47,10 @@ export function useInternalMove() {
           p_internal_location_note: null,
           p_is_demo: false,
           p_clear_housing: false,
+          p_destination_type: 'internal',
+          p_from_external_location_id: null,
+          p_to_external_location_id: null,
+          p_movement_status: 'completed',
         }
       );
 
