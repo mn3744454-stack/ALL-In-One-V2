@@ -370,9 +370,9 @@ export function RecordMovementDialog({
   };
 
   const content = (
-    <div className="space-y-6">
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center gap-2">
+    <div className="flex flex-col min-h-0 flex-1">
+      {/* Sticky progress indicator */}
+      <div className="shrink-0 flex items-center justify-center gap-2 pb-4">
         {effectiveSteps.map((s, i) => (
           <div
             key={s}
@@ -384,8 +384,9 @@ export function RecordMovementDialog({
         ))}
       </div>
 
-      {/* Step Content */}
-      <div className="min-h-[300px]">
+      {/* Scrollable step content */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-1">
+        <div className="min-h-[200px]">
         {/* === STEP: TYPE === */}
         {step === "type" && (
           <div className="space-y-4">
