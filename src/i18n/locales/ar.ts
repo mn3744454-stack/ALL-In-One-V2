@@ -3053,6 +3053,8 @@ export const ar = {
       domain: {
         select: "الفئة (اختياري)",
         general: "عام",
+        training: "تدريب",
+        transport: "نقل",
       },
       empty: "لا توجد فواتير",
       emptyDesc: "أنشئ أول فاتورة للبدء",
