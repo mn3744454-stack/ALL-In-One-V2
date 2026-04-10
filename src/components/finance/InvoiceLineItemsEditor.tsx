@@ -24,6 +24,8 @@ export interface LineItem {
   horse_id?: string | null;
   domain?: string | null;
   service_id?: string | null;
+  /** Tracks how the line was added: 'manual', 'catalog', or 'package' */
+  source?: 'manual' | 'catalog' | 'package';
 }
 
 export interface HorseOption {
