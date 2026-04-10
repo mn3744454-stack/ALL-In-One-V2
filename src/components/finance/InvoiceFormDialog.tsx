@@ -15,6 +15,7 @@ import {
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { useHorses } from "@/hooks/useHorses";
 import { useServices } from "@/hooks/useServices";
+import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
@@ -54,6 +55,7 @@ export function InvoiceFormDialog({
   const { clients } = useClients();
   const { horses = [] } = useHorses();
   const { data: allServices = [] } = useServices();
+  const { plans: allPlans = [] } = useStableServicePlans();
   const queryClient = useQueryClient();
 
   const isEditMode = mode === "edit" && invoice;
@@ -340,6 +342,7 @@ export function InvoiceFormDialog({
                 currency={invoice?.currency || tenantCurrency}
                 horses={horses.map(h => ({ id: h.id, name: h.name, name_ar: h.name_ar }))}
                 services={allServices}
+                plans={allPlans}
               />
             </div>
 

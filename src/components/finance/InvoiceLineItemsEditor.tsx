@@ -7,9 +7,11 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText } from "lucide-react";
+import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
+import type { StableServicePlan } from "@/hooks/housing/useStableServicePlans";
+import { normalizeIncludes } from "@/lib/planIncludes";
 
 export interface LineItem {
   id: string;
@@ -35,6 +37,8 @@ const DOMAIN_OPTIONS = [
   { value: "boarding", labelKey: "clients.statement.domain.boarding" },
   { value: "vet", labelKey: "clients.statement.domain.vet" },
   { value: "breeding", labelKey: "clients.statement.domain.breeding" },
+  { value: "training", labelKey: "finance.invoices.domain.training" },
+  { value: "transport", labelKey: "finance.invoices.domain.transport" },
   { value: "lab", labelKey: "clients.statement.domain.lab" },
 ] as const;
 
@@ -43,6 +47,8 @@ const SERVICE_KIND_TO_DOMAIN: Record<string, string> = {
   boarding: "boarding",
   vet: "vet",
   breeding: "breeding",
+  training: "training",
+  transport: "transport",
   service: "general",
 };
 
@@ -53,6 +59,7 @@ interface InvoiceLineItemsEditorProps {
   horses?: HorseOption[];
   showAttribution?: boolean;
   services?: TenantService[];
+  plans?: StableServicePlan[];
 }
 
 export function InvoiceLineItemsEditor({
@@ -62,6 +69,7 @@ export function InvoiceLineItemsEditor({
   horses = [],
   showAttribution = true,
   services = [],
+  plans = [],
 }: InvoiceLineItemsEditorProps) {
   const { t, dir, lang } = useI18n();
 
@@ -70,11 +78,25 @@ export function InvoiceLineItemsEditor({
     [services]
   );
 
+  const activePlans = useMemo(
+    () => plans.filter(p => p.is_active),
+    [plans]
+  );
+
   // Build a lookup for service taxability
   const serviceTaxMap = useMemo(() => {
     const map = new Map<string, boolean>();
     for (const s of services) {
       map.set(s.id, s.is_taxable !== false);
+    }
+    return map;
+  }, [services]);
+
+  // Service lookup by id
+  const serviceById = useMemo(() => {
+    const map = new Map<string, TenantService>();
+    for (const s of services) {
+      map.set(s.id, s);
     }
     return map;
   }, [services]);
@@ -111,6 +133,30 @@ export function InvoiceLineItemsEditor({
       service_id: service.id,
     };
     onChange([...items, newItem]);
+  };
+
+  const addItemsFromPackage = (plan: StableServicePlan) => {
+    const includes = normalizeIncludes(plan.includes);
+    if (includes.length === 0) return;
+
+    const newItems: LineItem[] = [];
+    for (const entry of includes) {
+      const svc = serviceById.get(entry.service_id);
+      if (!svc) continue;
+      newItems.push({
+        id: crypto.randomUUID(),
+        description: getServiceName(svc),
+        quantity: 1,
+        unit_price: svc.unit_price || 0,
+        total_price: svc.unit_price || 0,
+        horse_id: null,
+        domain: SERVICE_KIND_TO_DOMAIN[svc.service_kind] || "general",
+        service_id: svc.id,
+      });
+    }
+    if (newItems.length > 0) {
+      onChange([...items, ...newItems]);
+    }
   };
 
   const updateItem = (id: string, field: keyof LineItem, value: string | number | null) => {
@@ -310,6 +356,15 @@ export function InvoiceLineItemsEditor({
             t={t}
           />
         )}
+
+        {activePlans.length > 0 && (
+          <PackagePicker
+            plans={activePlans}
+            onSelect={addItemsFromPackage}
+            lang={lang}
+            t={t}
+          />
+        )}
       </div>
 
       {/* Subtotal */}
@@ -453,6 +508,80 @@ function ServicePicker({
                   </div>
                 </CommandItem>
               ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Package picker — expands a package into multiple attributed service line items */
+function PackagePicker({
+  plans,
+  onSelect,
+  lang,
+  t,
+}: {
+  plans: StableServicePlan[];
+  onSelect: (plan: StableServicePlan) => void;
+  lang: string;
+  t: (key: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const getPlanName = (p: StableServicePlan) =>
+    lang === "ar" ? (p.name_ar || p.name) : p.name;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <Layers className="w-4 h-4" />
+          {t("finance.invoices.addFromPackage")}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder={t("finance.invoices.searchPackage")} className="h-9" />
+          <CommandList>
+            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
+            <CommandGroup>
+              {plans.map((plan) => {
+                const includes = normalizeIncludes(plan.includes);
+                return (
+                  <CommandItem
+                    key={plan.id}
+                    value={plan.name}
+                    onSelect={() => {
+                      onSelect(plan);
+                      setOpen(false);
+                    }}
+                    className="text-sm"
+                  >
+                    <div className="flex items-center justify-between w-full gap-2">
+                      <div className="min-w-0">
+                        <span className="truncate block">{getPlanName(plan)}</span>
+                        {includes.length > 0 && (
+                          <span className="text-[10px] text-muted-foreground">
+                            {includes.length} {t("finance.invoices.servicesIncluded")}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-xs text-muted-foreground">
+                          {plan.base_price} {plan.currency}
+                        </span>
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>
