@@ -1085,10 +1085,11 @@ export function RecordMovementDialog({
             </div>
           </div>
         )}
+        </div>
       </div>
 
-      {/* Navigation buttons */}
-      <div className="flex items-center justify-between gap-4">
+      {/* Sticky navigation buttons */}
+      <div className="shrink-0 flex items-center justify-between gap-4 pt-4 border-t">
         <Button
           variant="outline"
           onClick={handleBack}
