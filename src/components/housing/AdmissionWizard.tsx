@@ -740,6 +740,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         </DialogContent>
       </Dialog>
       {quickCreateDialog}
+      {clientDialog}
     </>
   );
 }
