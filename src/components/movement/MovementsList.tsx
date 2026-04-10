@@ -5,7 +5,8 @@ import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
 import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { useI18n } from "@/i18n";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseActiveAdmission } from "@/hooks/housing/useHorseActiveAdmission";
@@ -68,42 +69,57 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   }
 
   return (
-    <div className="space-y-4">
-      {/* Only show full filters if no external filter is applied */}
+    <div className="space-y-3">
+      {/* Row 1: Search + Primary Action */}
+      <div className="flex items-center gap-2">
+        {!typeFilter && !statusFilter && (
+          <div className="relative flex-1">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("movement.filters.searchPlaceholder")}
+              value={filters.search || ""}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              className="ps-9"
+            />
+          </div>
+        )}
+        {!typeFilter && !statusFilter && !canManage && <div className="flex-1" />}
+        {canManage && (
+          <Button onClick={onRecordMovement} className="shrink-0">
+            <Plus className="h-4 w-4 me-2" />
+            {t("movement.form.recordMovement")}
+          </Button>
+        )}
+      </div>
+
+      {/* Row 2: Date chips + Dropdown filters + View Switcher */}
       {!typeFilter && !statusFilter && (
         <MovementFilters
           filters={filters}
           onFiltersChange={setFilters}
           locations={locations}
+          viewSwitcher={
+            <div className="hidden md:block shrink-0">
+              <ViewSwitcher
+                viewMode={viewMode}
+                gridColumns={gridColumns}
+                onViewModeChange={setViewMode}
+                onGridColumnsChange={setGridColumns}
+                showTable={false}
+              />
+            </div>
+          }
         />
       )}
-
-      <div className="flex items-center justify-between">
-        {canManage && (
-          <Button onClick={onRecordMovement} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 me-2" />
-            {t("movement.form.recordMovement")}
-          </Button>
-        )}
-        <div className="hidden md:block ms-auto">
-          <ViewSwitcher
-            viewMode={viewMode}
-            gridColumns={gridColumns}
-            onViewModeChange={setViewMode}
-            onGridColumnsChange={setGridColumns}
-            showTable={false}
-          />
-        </div>
-      </div>
 
       {movements.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Package className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium mb-1">{t("movement.empty.noMovements")}</h3>
+          <h3 className="text-lg font-medium mb-1">{t("movement.list.noMovements")}</h3>
           <p className="text-muted-foreground text-sm mb-4">
-            {t("movement.empty.addFirst")}
+            {t("movement.list.recordFirst")}
           </p>
           {canManage && (
             <Button onClick={onRecordMovement}>

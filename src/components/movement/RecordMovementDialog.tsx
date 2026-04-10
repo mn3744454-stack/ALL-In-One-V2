@@ -370,9 +370,9 @@ export function RecordMovementDialog({
   };
 
   const content = (
-    <div className="space-y-6">
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center gap-2">
+    <div className="flex flex-col min-h-0 flex-1">
+      {/* Sticky progress indicator */}
+      <div className="shrink-0 flex items-center justify-center gap-2 pb-4">
         {effectiveSteps.map((s, i) => (
           <div
             key={s}
@@ -384,8 +384,9 @@ export function RecordMovementDialog({
         ))}
       </div>
 
-      {/* Step Content */}
-      <div className="min-h-[300px]">
+      {/* Scrollable step content */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-1">
+        <div className="min-h-[200px]">
         {/* === STEP: TYPE === */}
         {step === "type" && (
           <div className="space-y-4">
@@ -543,11 +544,11 @@ export function RecordMovementDialog({
             <div className="space-y-3 max-h-[350px] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>{t("horses.wizard.horseName")} *</Label>
+                  <Label>{t("horses.wizard.name")} *</Label>
                   <Input
                     value={newHorse.name}
                     onChange={(e) => setNewHorse({ ...newHorse, name: e.target.value })}
-                    placeholder={t("horses.wizard.horseName")}
+                    placeholder={t("horses.wizard.name")}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -1084,10 +1085,11 @@ export function RecordMovementDialog({
             </div>
           </div>
         )}
+        </div>
       </div>
 
-      {/* Navigation buttons */}
-      <div className="flex items-center justify-between gap-4">
+      {/* Sticky navigation buttons */}
+      <div className="shrink-0 flex items-center justify-between gap-4 pt-4 border-t">
         <Button
           variant="outline"
           onClick={handleBack}
@@ -1157,8 +1159,8 @@ export function RecordMovementDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
           </DialogHeader>
           {content}
