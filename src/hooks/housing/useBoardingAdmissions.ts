@@ -265,9 +265,13 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     },
     onError: (error: Error) => {
       const msg = error.message || 'Failed to create admission';
-      // Catch PostgREST function-signature dumps and humanize
-      if (msg.includes('Could not choose') || msg.includes('candidate function')) {
-        toast.error('Admission creation failed due to a backend configuration issue. Please contact support.');
+      if (
+        msg.includes('Could not choose') ||
+        msg.includes('candidate function') ||
+        msg.includes('invalid input syntax') ||
+        msg.length > 300
+      ) {
+        toast.error('Admission creation failed due to a backend issue. Please try again or contact support.');
       } else {
         toast.error(msg);
       }
