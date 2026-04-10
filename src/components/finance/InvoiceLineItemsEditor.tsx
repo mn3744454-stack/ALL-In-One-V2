@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/formatters";
 import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
-import type { StableServicePlan } from "@/hooks/housing/useStableServicePlans";
+import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
 
 export interface LineItem {

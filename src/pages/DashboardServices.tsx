@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ServicesList, ServiceFormDialog } from "@/components/services";
-import { ServicePlansManager } from "@/components/housing/ServicePlansManager";
+import { ServicePlansManager } from "@/components/services/ServicePlansManager";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { useTenant } from "@/contexts/TenantContext";
 import {
@@ -15,7 +15,7 @@ import {
   useToggleServiceActive,
   CreateServiceInput,
 } from "@/hooks/useServices";
-import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { Building2, Package, ArrowLeft, Store, Layers } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";

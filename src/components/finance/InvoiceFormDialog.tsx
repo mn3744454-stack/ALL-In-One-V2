@@ -15,7 +15,7 @@ import {
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
 import { useHorses } from "@/hooks/useHorses";
 import { useServices } from "@/hooks/useServices";
-import { useStableServicePlans } from "@/hooks/housing/useStableServicePlans";
+import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
 import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
