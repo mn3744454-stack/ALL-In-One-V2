@@ -3038,6 +3038,7 @@ export const ar = {
       searchPackage: "ابحث عن باقة...",
       servicesIncluded: "خدمات",
       catalogLinked: "كتالوج",
+      packageSource: "باقة",
       periodStart: "بداية الفترة",
       periodEnd: "نهاية الفترة",
       description: "الوصف",
