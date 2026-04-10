@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { formatStandardDate, formatStandardDateTime, displayServiceName } from "@/lib/displayHelpers";
 import { formatStayDuration, formatBoardingRate, computeStayDays, computeAccruedCost, formatBoardingAmount } from "@/lib/boardingUtils";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
+import { PlanIncludedServicesDisplay } from "@/components/services/PlanIncludedServicesDisplay";
 import {
   Heart, User, Building2, DoorOpen, CreditCard, Clock,
   CheckCircle2, AlertTriangle, LogOut, Calendar, FileText,
