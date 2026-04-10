@@ -3023,6 +3023,7 @@ export const en = {
       searchPackage: "Search packages...",
       servicesIncluded: "services",
       catalogLinked: "Catalog",
+      packageSource: "Package",
       periodStart: "Period Start",
       periodEnd: "Period End",
       description: "Description",
