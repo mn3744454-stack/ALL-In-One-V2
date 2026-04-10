@@ -182,7 +182,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       if (error) throw error;
 
       // Step 2: Create check-in movement via RPC
-      const { data: movementId, error: mvError } = await supabase.rpc(
+      const { data: mvData, error: mvError } = await supabase.rpc(
         'record_horse_movement_with_housing',
         {
           p_tenant_id: tenantId,
@@ -216,11 +216,25 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error(`Check-in movement failed: ${mvError.message}`);
       }
 
+      // Extract movement UUID from JSONB response (RPC returns { movement: { id, ... }, ... })
+      const checkinResult = mvData as any;
+      const checkinMovementId: string | null =
+        typeof checkinResult === 'string' ? checkinResult :
+        checkinResult?.movement?.id ?? checkinResult?.id ?? null;
+
+      if (!checkinMovementId || typeof checkinMovementId !== 'string') {
+        await fromTable('boarding_admissions')
+          .delete()
+          .eq('id', admission.id)
+          .eq('tenant_id', tenantId);
+        throw new Error('Check-in movement was created but returned an unexpected format. Please try again or contact support.');
+      }
+
       // Step 3: Promote to active + link movement
       const { error: promoteError } = await fromTable('boarding_admissions')
         .update({
           status: 'active',
-          checkin_movement_id: movementId,
+          checkin_movement_id: checkinMovementId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', admission.id)
@@ -239,7 +253,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         changed_by: user.id,
       });
 
-      return { ...admission, status: 'active', checkin_movement_id: movementId };
+      return { ...admission, status: 'active', checkin_movement_id: checkinMovementId };
     },
     onSuccess: () => {
       toast.success('Admission created successfully');
@@ -317,7 +331,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       }
 
       // Step 1: Create checkout movement via RPC
-      const { data: movementId, error: mvError } = await supabase.rpc(
+      const { data: mvData, error: mvError } = await supabase.rpc(
         'record_horse_movement_with_housing',
         {
           p_tenant_id: tenantId,
@@ -346,6 +360,16 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error(`Checkout movement failed: ${mvError.message}. Admission remains in checkout_pending.`);
       }
 
+      // Extract movement UUID from JSONB response
+      const checkoutResult = mvData as any;
+      const checkoutMovementId: string | null =
+        typeof checkoutResult === 'string' ? checkoutResult :
+        checkoutResult?.movement?.id ?? checkoutResult?.id ?? null;
+
+      if (!checkoutMovementId || typeof checkoutMovementId !== 'string') {
+        throw new Error('Checkout movement was created but returned an unexpected format. Admission remains in checkout_pending.');
+      }
+
       // Step 2: Update admission to checked_out with movement link
       const { error } = await fromTable('boarding_admissions')
         .update({
@@ -353,7 +377,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           checked_out_at: new Date().toISOString(),
           checked_out_by: user.id,
           checkout_notes: checkoutNotes || null,
-          checkout_movement_id: movementId,
+          checkout_movement_id: checkoutMovementId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', admissionId)
