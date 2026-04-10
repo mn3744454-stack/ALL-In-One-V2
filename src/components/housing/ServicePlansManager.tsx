@@ -191,6 +191,8 @@ export function ServicePlansManager() {
                     <SelectItem value="daily">{t('housing.admissions.wizard.cycleDaily')}</SelectItem>
                     <SelectItem value="weekly">{t('housing.admissions.wizard.cycleWeekly')}</SelectItem>
                     <SelectItem value="monthly">{t('housing.admissions.wizard.cycleMonthly')}</SelectItem>
+                    <SelectItem value="yearly">{t('services.billingCycles.yearly')}</SelectItem>
+                    <SelectItem value="one-time">{t('services.billingCycles.oneTime')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -203,6 +205,8 @@ export function ServicePlansManager() {
                     <SelectItem value="training">{t('housing.plans.types.training')}</SelectItem>
                     <SelectItem value="medical">{t('housing.plans.types.medical')}</SelectItem>
                     <SelectItem value="premium">{t('housing.plans.types.premium')}</SelectItem>
+                    <SelectItem value="wellness">{t('housing.plans.types.wellness')}</SelectItem>
+                    <SelectItem value="commercial">{t('housing.plans.types.commercial')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
