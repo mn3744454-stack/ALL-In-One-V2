@@ -2244,6 +2244,7 @@ export const ar = {
         stepDetails: "التفاصيل",
         stepReview: "المراجعة",
         overrideHint: "يمكنك التعديل أدناه",
+        housingPrefilled: "تم تعبئة موقع السكن تلقائياً من الوحدة المحددة.",
         selectHorse: "اختر الخيل",
         arrivalDate: "تاريخ الوصول",
         arrivalDateHint: "اتركه فارغاً لتاريخ اليوم. حدد تاريخاً سابقاً للإيواء التاريخي.",

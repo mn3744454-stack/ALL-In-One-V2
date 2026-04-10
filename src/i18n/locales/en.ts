@@ -2229,6 +2229,7 @@ export const en = {
         stepDetails: "Details",
         stepReview: "Review",
         overrideHint: "You can override below",
+        housingPrefilled: "Housing location has been prefilled from the selected unit.",
         selectHorse: "Select Horse",
         arrivalDate: "Arrival Date",
         arrivalDateHint: "Leave empty for today. Set a past date for historical admissions.",
