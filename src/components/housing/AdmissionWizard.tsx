@@ -95,12 +95,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     });
   }, [open, tenantId]);
 
-  // Pre-select horse from incoming arrival flow
+  // Pre-fill from unit-side context (Scenario A) or incoming arrival flow
   useEffect(() => {
-    if (open && preselectedHorseId) {
-      setForm(f => ({ ...f, horseId: preselectedHorseId }));
+    if (!open) return;
+    setForm(f => ({
+      ...f,
+      horseId: preselectedHorseId || f.horseId,
+      branchId: preselectedBranchId || f.branchId,
+      areaId: preselectedAreaId || f.areaId,
+      unitId: preselectedUnitId || f.unitId,
+    }));
+    // If unit-side context is fully provided, skip to client step
+    if (preselectedHorseId && preselectedBranchId) {
+      setStep('client');
     }
-  }, [open, preselectedHorseId]);
+  }, [open, preselectedHorseId, preselectedBranchId, preselectedAreaId, preselectedUnitId]);
 
   const selectedHorse = horses.find(h => h.id === form.horseId);
   const selectedClient = clients.find((c: any) => c.id === form.clientId);
