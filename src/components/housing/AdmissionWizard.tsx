@@ -711,6 +711,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           </DrawerContent>
         </Drawer>
         {quickCreateDialog}
+        {clientDialog}
       </>
     );
   }
