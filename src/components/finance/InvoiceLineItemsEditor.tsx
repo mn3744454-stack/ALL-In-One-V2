@@ -223,7 +223,7 @@ export function InvoiceLineItemsEditor({
 
         {items.map((item) => {
           const taxStatus = getLineTaxStatus(item);
-          const isFromCatalog = !!item.service_id;
+          const itemSource = item.source || (item.service_id ? 'catalog' : 'manual');
 
           return (
             <div key={item.id} className="border border-border/50 rounded-lg p-3 space-y-2">
