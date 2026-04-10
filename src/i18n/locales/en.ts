@@ -2128,6 +2128,9 @@ export const en = {
       addNewHorse: "+ Add New Horse",
       noHorsesYet: "No horses registered yet",
       noHorsesDesc: "Create a horse to get started with housing.",
+      addNewClient: "+ Add New Client",
+      noClientsYet: "No clients registered yet",
+      noClientsDesc: "Create a client to assign to this admission.",
     },
     admissions: {
       title: "Boarding Admissions",

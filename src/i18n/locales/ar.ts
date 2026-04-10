@@ -2143,6 +2143,9 @@ export const ar = {
       addNewHorse: "+ إضافة خيل جديد",
       noHorsesYet: "لا يوجد خيول مسجلة بعد",
       noHorsesDesc: "أنشئ خيلاً للبدء بالإسكان.",
+      addNewClient: "+ إضافة عميل جديد",
+      noClientsYet: "لا يوجد عملاء مسجلون بعد",
+      noClientsDesc: "أنشئ عميلاً لربطه بهذا الإيواء.",
     },
     admissions: {
       title: "إيواء الخيول",
