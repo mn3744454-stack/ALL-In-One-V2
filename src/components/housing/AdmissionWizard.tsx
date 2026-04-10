@@ -42,12 +42,16 @@ interface AdmissionWizardProps {
   onSuccess?: () => void;
   /** Pre-select a horse (e.g. from incoming arrival confirmation) */
   preselectedHorseId?: string;
+  /** Pre-fill and lock housing context when launched from unit drawer */
+  preselectedBranchId?: string;
+  preselectedAreaId?: string;
+  preselectedUnitId?: string;
 }
 
 const STEPS = ['horse', 'client', 'plan', 'housing', 'rates', 'details', 'review'] as const;
 type Step = typeof STEPS[number];
 
-export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId }: AdmissionWizardProps) {
+export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId, preselectedBranchId, preselectedAreaId, preselectedUnitId }: AdmissionWizardProps) {
   const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
@@ -91,12 +95,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     });
   }, [open, tenantId]);
 
-  // Pre-select horse from incoming arrival flow
+  // Pre-fill from unit-side context (Scenario A) or incoming arrival flow
   useEffect(() => {
-    if (open && preselectedHorseId) {
-      setForm(f => ({ ...f, horseId: preselectedHorseId }));
+    if (!open) return;
+    setForm(f => ({
+      ...f,
+      horseId: preselectedHorseId || f.horseId,
+      branchId: preselectedBranchId || f.branchId,
+      areaId: preselectedAreaId || f.areaId,
+      unitId: preselectedUnitId || f.unitId,
+    }));
+    // If unit-side context is fully provided, skip to client step
+    if (preselectedHorseId && preselectedBranchId) {
+      setStep('client');
     }
-  }, [open, preselectedHorseId]);
+  }, [open, preselectedHorseId, preselectedBranchId, preselectedAreaId, preselectedUnitId]);
 
   const selectedHorse = horses.find(h => h.id === form.horseId);
   const selectedClient = clients.find((c: any) => c.id === form.clientId);
@@ -272,12 +285,18 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             </div>
           </div>
         );
-      case 'housing':
+      case 'housing': {
+        const isLocked = !!preselectedBranchId;
         return (
           <div className="space-y-4">
+            {isLocked && (
+              <div className="text-xs text-muted-foreground p-2 rounded bg-muted/50">
+                {t('housing.admissions.wizard.housingPrefilled')}
+              </div>
+            )}
             <div>
               <Label>{t('housing.admissions.wizard.branch')} *</Label>
-              <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v, areaId: '', unitId: '' }))}>
+              <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v, areaId: '', unitId: '' }))} disabled={isLocked}>
                 <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectBranch')} /></SelectTrigger>
                 <SelectContent>
                   {branches.map((b: any) => (
@@ -289,7 +308,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             {form.branchId && filteredAreas.length > 0 && (
               <div>
                 <Label>{t('housing.admissions.wizard.area')}</Label>
-                <Select value={form.areaId} onValueChange={v => setForm(f => ({ ...f, areaId: v, unitId: '' }))}>
+                <Select value={form.areaId} onValueChange={v => setForm(f => ({ ...f, areaId: v, unitId: '' }))} disabled={isLocked && !!preselectedAreaId}>
                   <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectArea')} /></SelectTrigger>
                   <SelectContent>
                     {filteredAreas.map(a => (
@@ -302,7 +321,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             {form.branchId && filteredUnits.length > 0 && (
               <div>
                 <Label>{t('housing.admissions.wizard.unit')}</Label>
-                <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v }))}>
+                <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v }))} disabled={isLocked && !!preselectedUnitId}>
                   <SelectTrigger><SelectValue placeholder={t('housing.admissions.wizard.selectUnit')} /></SelectTrigger>
                   <SelectContent>
                     {filteredUnits.filter(u => u.is_active).map(u => (
@@ -316,6 +335,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             )}
           </div>
         );
+      }
       case 'plan':
         return (
           <div className="space-y-3">

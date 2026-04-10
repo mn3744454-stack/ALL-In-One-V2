@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -32,36 +32,59 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorses } from "@/hooks/useHorses";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
+import { useInternalMove } from "@/hooks/housing/useInternalMove";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { Check, AlertCircle, Loader2, MapPin, ArrowRightLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
+import { Check, AlertCircle, Loader2, MapPin, ArrowRightLeft, Info } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
 interface AssignHorseDialogProps {
   unit: HousingUnit | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called when Scenario A fires — opens AdmissionWizard with prefilled context */
+  onAdmitHorse?: (horseId: string) => void;
 }
 
-export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialogProps) {
-  const { t, lang: language } = useI18n();
-  const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
-  const [reassignWarning, setReassignWarning] = useState<{ horseName: string; fromUnitCode: string } | null>(null);
-  
-  const { horses, loading: horsesLoading } = useHorses();
-  const { assignHorse, isAssigning, occupants } = useUnitOccupants(unit?.id);
+interface AdmissionInfo {
+  id: string;
+  branch_id: string;
+  area_id: string | null;
+  unit_id: string | null;
+  status: string;
+  branch?: { name: string } | null;
+}
 
-  // Get the branch ID of the target unit for filtering
+export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: AssignHorseDialogProps) {
+  const { t, lang: language } = useI18n();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+  const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
+  const [moveConfirm, setMoveConfirm] = useState<{
+    horseName: string;
+    admission: AdmissionInfo;
+    fromUnitCode: string | null;
+  } | null>(null);
+  const [crossBranchBlock, setCrossBranchBlock] = useState<{
+    horseName: string;
+    branchName: string;
+  } | null>(null);
+  const [checkingAdmission, setCheckingAdmission] = useState(false);
+
+  const { horses, loading: horsesLoading } = useHorses();
+  const { occupants } = useUnitOccupants(unit?.id);
+  const { moveHorse, isMoving } = useInternalMove();
+
   const unitBranchId = unit?.branch_id;
 
   const availableHorses = useMemo(() => {
     if (!unit) return [];
     const occupantHorseIds = new Set(occupants.map(o => o.horse_id));
-    // Filter out horses already in this unit
     return horses.filter(h => !occupantHorseIds.has(h.id));
   }, [horses, occupants, unit]);
 
-  // Separate into same-branch and other-branch horses
   const { sameBranchHorses, otherBranchHorses } = useMemo(() => {
     const same: typeof availableHorses = [];
     const other: typeof availableHorses = [];
@@ -75,12 +98,25 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
     return { sameBranchHorses: same, otherBranchHorses: other };
   }, [availableHorses, unitBranchId]);
 
+  const handleClose = useCallback(() => {
+    setSelectedHorseId(null);
+    setMoveConfirm(null);
+    setCrossBranchBlock(null);
+    onOpenChange(false);
+  }, [onOpenChange]);
+
   if (!unit) return null;
 
   const isFull = (unit.current_occupants || 0) >= unit.capacity;
   const isUnavailable = unit.status === 'maintenance' || unit.status === 'out_of_service';
 
-  const handleSelectAndCheck = (horseId: string) => {
+  /**
+   * After selecting a horse, check admission state to branch into:
+   * - Scenario A: no active admission → open AdmissionWizard
+   * - Scenario B: active admission at same branch → confirm internal move
+   * - Scenario C: active admission at different branch → block
+   */
+  const handleSelectAndCheck = async (horseId: string) => {
     if (selectedHorseId === horseId) {
       setSelectedHorseId(null);
       return;
@@ -88,32 +124,75 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
     setSelectedHorseId(horseId);
   };
 
-  const handleAssign = async () => {
-    if (!selectedHorseId || !unit) return;
+  const handleConfirm = async () => {
+    if (!selectedHorseId || !tenantId || !unit) return;
 
-    // Check if horse is currently in another unit
-    const horse = horses.find(h => h.id === selectedHorseId);
-    if (horse?.housing_unit_id && horse.housing_unit_id !== unit.id) {
-      const horseName = language === 'ar' && horse.name_ar ? horse.name_ar : horse.name;
-      // Try to show the unit code instead of UUID
-      setReassignWarning({
-        horseName,
-        fromUnitCode: t('housing.units.currentUnit'),
-      });
-      return;
+    setCheckingAdmission(true);
+    try {
+      // Check for active admission
+      const { data: admission, error } = await supabase
+        .from('boarding_admissions')
+        .select('id, branch_id, area_id, unit_id, status, branch:branches(name)')
+        .eq('tenant_id', tenantId)
+        .eq('horse_id', selectedHorseId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const horse = horses.find(h => h.id === selectedHorseId);
+      const horseName = language === 'ar' && horse?.name_ar ? horse.name_ar : horse?.name || '';
+
+      if (!admission) {
+        // Scenario A: no active admission → launch AdmissionWizard prefilled
+        handleClose();
+        onAdmitHorse?.(selectedHorseId);
+        return;
+      }
+
+      if (admission.branch_id === unitBranchId) {
+        // Scenario B: same branch → show move confirmation
+        const fromUnit = admission.unit_id;
+        let fromUnitCode: string | null = null;
+        if (fromUnit) {
+          const { data: fromUnitData } = await supabase
+            .from('housing_units')
+            .select('code')
+            .eq('id', fromUnit)
+            .single();
+          fromUnitCode = fromUnitData?.code || null;
+        }
+        setMoveConfirm({
+          horseName,
+          admission: admission as any,
+          fromUnitCode,
+        });
+      } else {
+        // Scenario C: different branch → block
+        const branchName = (admission as any).branch?.name || t('housing.units.differentBranch');
+        setCrossBranchBlock({ horseName, branchName });
+      }
+    } catch (err: any) {
+      console.error('Admission check failed:', err);
+    } finally {
+      setCheckingAdmission(false);
     }
-
-    await performAssign();
   };
 
-  const performAssign = async () => {
-    if (!selectedHorseId || !unit) return;
+  const handleMoveConfirm = async () => {
+    if (!moveConfirm || !selectedHorseId || !unit) return;
     try {
-      await assignHorse({ unitId: unit.id, horseId: selectedHorseId });
-      setSelectedHorseId(null);
-      setReassignWarning(null);
-      onOpenChange(false);
-    } catch (error) {
+      await moveHorse({
+        horseId: selectedHorseId,
+        admissionId: moveConfirm.admission.id,
+        fromUnitId: moveConfirm.admission.unit_id,
+        fromAreaId: moveConfirm.admission.area_id,
+        toUnitId: unit.id,
+        toAreaId: unit.area_id,
+        toBranchId: unit.branch_id,
+      });
+      handleClose();
+    } catch {
       // Error handled by mutation
     }
   };
@@ -121,7 +200,6 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
   const renderHorseItem = (horse: typeof availableHorses[0]) => {
     const isSelected = selectedHorseId === horse.id;
     const hasUnit = !!horse.housing_unit_id;
-    const isSameBranch = unitBranchId && horse.current_location_id === unitBranchId;
     const isDifferentBranch = horse.current_location_id && horse.current_location_id !== unitBranchId;
 
     return (
@@ -169,10 +247,10 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('housing.occupants.assignHorse')}</DialogTitle>
+            <DialogTitle>{t('housing.occupants.admitHorse')}</DialogTitle>
             <DialogDescription>
               {unit.name || unit.code}
             </DialogDescription>
@@ -184,7 +262,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
               <AlertDescription>
                 {isUnavailable
                   ? t('housing.units.unitUnavailable')
-                  : unit.occupancy === 'single' 
+                  : unit.occupancy === 'single'
                     ? t('housing.occupants.alreadyOccupied')
                     : t('housing.occupants.unitFull')}
               </AlertDescription>
@@ -200,13 +278,11 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
                   </div>
                 ) : (
                   <>
-                    {/* Same-branch horses shown first */}
                     {sameBranchHorses.length > 0 && (
                       <CommandGroup heading={t('housing.units.sameBranch')}>
                         {sameBranchHorses.map(renderHorseItem)}
                       </CommandGroup>
                     )}
-                    {/* Other horses in separate group */}
                     {otherBranchHorses.length > 0 && (
                       <CommandGroup heading={sameBranchHorses.length > 0 ? t('housing.units.differentBranch') : undefined}>
                         {otherBranchHorses.map(renderHorseItem)}
@@ -219,14 +295,14 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={handleClose}>
               {t('common.cancel')}
             </Button>
-            <Button 
-              onClick={handleAssign} 
-              disabled={!selectedHorseId || isAssigning || isFull || isUnavailable}
+            <Button
+              onClick={handleConfirm}
+              disabled={!selectedHorseId || checkingAdmission || isFull || isUnavailable}
             >
-              {isAssigning ? (
+              {checkingAdmission ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 t('common.confirm')
@@ -236,22 +312,46 @@ export function AssignHorseDialog({ unit, open, onOpenChange }: AssignHorseDialo
         </DialogContent>
       </Dialog>
 
-      {/* Reassignment Warning Dialog */}
-      <AlertDialog open={!!reassignWarning} onOpenChange={(open) => { if (!open) setReassignWarning(null); }}>
+      {/* Scenario B: Internal Move Confirmation */}
+      <AlertDialog open={!!moveConfirm} onOpenChange={(open) => { if (!open) setMoveConfirm(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('housing.facilities.reassignWarningTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
               {t('housing.facilities.reassignWarningDesc')
-                .replace('{horse}', reassignWarning?.horseName || '')
-                .replace('{fromUnit}', reassignWarning?.fromUnitCode || '')
+                .replace('{horse}', moveConfirm?.horseName || '')
+                .replace('{fromUnit}', moveConfirm?.fromUnitCode || t('housing.occupants.noUnit'))
                 .replace('{toUnit}', unit?.code || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={performAssign}>
-              {t('common.confirm')}
+            <AlertDialogAction onClick={handleMoveConfirm} disabled={isMoving}>
+              {isMoving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Scenario C: Cross-Branch Block */}
+      <AlertDialog open={!!crossBranchBlock} onOpenChange={(open) => { if (!open) setCrossBranchBlock(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <div className="flex items-center gap-2">
+                <Info className="w-5 h-5 text-amber-500" />
+                {t('housing.occupants.crossBranchTitle')}
+              </div>
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('housing.occupants.crossBranchDesc')
+                .replace('{horse}', crossBranchBlock?.horseName || '')
+                .replace('{branch}', crossBranchBlock?.branchName || '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setCrossBranchBlock(null)}>
+              {t('common.understood')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
