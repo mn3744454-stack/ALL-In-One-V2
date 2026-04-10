@@ -9,6 +9,7 @@ export const ar = {
     edit: "تعديل",
     close: "إغلاق",
     confirm: "تأكيد",
+    understood: "فهمت",
     back: "رجوع",
     next: "التالي",
     search: "بحث",
