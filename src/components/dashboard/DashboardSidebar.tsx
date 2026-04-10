@@ -533,8 +533,8 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
 
-                {/* Services - requires services permission */}
-                {hasPermission('services.view') && (
+                {/* Services - requires services permission, hidden for Lab-only tenants */}
+                {hasPermission('services.view') && !(isLabTenant && labMode === 'full') && (
                   <NavItem
                     icon={Package}
                     label={t('sidebar.services')}
