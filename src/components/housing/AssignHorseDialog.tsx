@@ -270,56 +270,58 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
               </AlertDescription>
             </Alert>
           ) : (
-            <Command className="border rounded-lg">
-              <CommandInput placeholder={t('common.search')} />
-              <CommandList>
-                <CommandEmpty>
-                  <div className="flex flex-col items-center gap-2 py-4">
-                    <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noHorsesYet')}</p>
-                    <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noHorsesDesc')}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-1"
-                      onClick={() => setQuickCreateOpen(true)}
-                    >
-                      <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
-                      {t('housing.quickCreate.addNewHorse')}
-                    </Button>
-                  </div>
-                </CommandEmpty>
-                {horsesLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                  </div>
-                ) : (
-                  <>
-                    {sameBranchHorses.length > 0 && (
-                      <CommandGroup heading={t('housing.units.sameBranch')}>
-                        {sameBranchHorses.map(renderHorseItem)}
-                      </CommandGroup>
-                    )}
-                    {otherBranchHorses.length > 0 && (
-                      <CommandGroup heading={sameBranchHorses.length > 0 ? t('housing.units.differentBranch') : undefined}>
-                        {otherBranchHorses.map(renderHorseItem)}
-                      </CommandGroup>
-                    )}
-                  </>
-                )}
-              </CommandList>
-            </Command>
-            {/* Always-visible add-new-horse CTA */}
-            {!horsesLoading && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full mt-2 text-primary"
-                onClick={() => setQuickCreateOpen(true)}
-              >
-                <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
-                {t('housing.quickCreate.addNewHorse')}
-              </Button>
-            )}
+            <>
+              <Command className="border rounded-lg">
+                <CommandInput placeholder={t('common.search')} />
+                <CommandList>
+                  <CommandEmpty>
+                    <div className="flex flex-col items-center gap-2 py-4">
+                      <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noHorsesYet')}</p>
+                      <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noHorsesDesc')}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-1"
+                        onClick={() => setQuickCreateOpen(true)}
+                      >
+                        <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                        {t('housing.quickCreate.addNewHorse')}
+                      </Button>
+                    </div>
+                  </CommandEmpty>
+                  {horsesLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <>
+                      {sameBranchHorses.length > 0 && (
+                        <CommandGroup heading={t('housing.units.sameBranch')}>
+                          {sameBranchHorses.map(renderHorseItem)}
+                        </CommandGroup>
+                      )}
+                      {otherBranchHorses.length > 0 && (
+                        <CommandGroup heading={sameBranchHorses.length > 0 ? t('housing.units.differentBranch') : undefined}>
+                          {otherBranchHorses.map(renderHorseItem)}
+                        </CommandGroup>
+                      )}
+                    </>
+                  )}
+                </CommandList>
+              </Command>
+              {/* Always-visible add-new-horse CTA */}
+              {!horsesLoading && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full mt-2 text-primary"
+                  onClick={() => setQuickCreateOpen(true)}
+                >
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewHorse')}
+                </Button>
+              )}
+            </>
           )}
 
           <DialogFooter>
