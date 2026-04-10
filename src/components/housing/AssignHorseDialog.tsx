@@ -386,6 +386,16 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Quick-create horse sub-dialog */}
+      <QuickCreateHorseDialog
+        open={quickCreateOpen}
+        onOpenChange={setQuickCreateOpen}
+        onCreated={async (horse) => {
+          await refreshHorses();
+          setSelectedHorseId(horse.id);
+        }}
+      />
     </>
   );
 }
