@@ -119,6 +119,7 @@ export function InvoiceLineItemsEditor({
       horse_id: null,
       domain: null,
       service_id: null,
+      source: 'manual',
     };
     onChange([...items, newItem]);
   };
@@ -133,6 +134,7 @@ export function InvoiceLineItemsEditor({
       horse_id: null,
       domain: SERVICE_KIND_TO_DOMAIN[service.service_kind] || "general",
       service_id: service.id,
+      source: 'catalog',
     };
     onChange([...items, newItem]);
   };
@@ -154,6 +156,7 @@ export function InvoiceLineItemsEditor({
         horse_id: null,
         domain: SERVICE_KIND_TO_DOMAIN[svc.service_kind] || "general",
         service_id: svc.id,
+        source: 'package',
       });
     }
     if (newItems.length > 0) {
