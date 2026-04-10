@@ -555,49 +555,52 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     }
   };
 
-  const content = (
-    <div className="space-y-4">
-      {/* Step indicator */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-2">
-        {STEPS.map((s, i) => (
-          <div key={s} className="flex items-center">
-            <div className={cn(
-              "text-xs px-2 py-1 rounded-full whitespace-nowrap",
-              i === stepIndex ? "bg-primary text-primary-foreground" :
-              i < stepIndex ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-            )}>
-              {stepLabels[s]}
-            </div>
-            {i < STEPS.length - 1 && <div className="w-4 h-px bg-border mx-1" />}
+  const stepIndicator = (
+    <div className="flex items-center gap-1 overflow-x-auto">
+      {STEPS.map((s, i) => (
+        <div key={s} className="flex items-center">
+          <div className={cn(
+            "text-xs px-2 py-1 rounded-full whitespace-nowrap",
+            i === stepIndex ? "bg-primary text-primary-foreground" :
+            i < stepIndex ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+          )}>
+            {stepLabels[s]}
           </div>
-        ))}
-      </div>
+          {i < STEPS.length - 1 && <div className="w-4 h-px bg-border mx-1" />}
+        </div>
+      ))}
+    </div>
+  );
 
-      {/* Step content */}
-      {renderStep()}
-
-      {/* Navigation */}
-      <div className="flex justify-between pt-2">
-        <Button
-          variant="outline"
-          onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
-          size="sm"
-        >
-          <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
-          {stepIndex === 0 ? t('common.cancel') : t('common.back')}
+  const navigationFooter = (
+    <div className="flex justify-between">
+      <Button
+        variant="outline"
+        onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
+        size="sm"
+      >
+        <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
+        {stepIndex === 0 ? t('common.cancel') : t('common.back')}
+      </Button>
+      {step === 'review' ? (
+        <Button onClick={handleSubmit} disabled={isCreating} size="sm">
+          {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
+          <Check className="h-4 w-4 ms-1" />
         </Button>
-        {step === 'review' ? (
-          <Button onClick={handleSubmit} disabled={isCreating} size="sm">
-            {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
-            <Check className="h-4 w-4 ms-1" />
-          </Button>
-        ) : (
-          <Button onClick={goNext} disabled={!canGoNext()} size="sm">
-            {t('common.next')}
-            <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
-          </Button>
-        )}
-      </div>
+      ) : (
+        <Button onClick={goNext} disabled={!canGoNext()} size="sm">
+          {t('common.next')}
+          <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+        </Button>
+      )}
+    </div>
+  );
+
+  const mobileContent = (
+    <div className="space-y-4">
+      {stepIndicator}
+      {renderStep()}
+      {navigationFooter}
     </div>
   );
 
@@ -608,7 +611,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           <DrawerHeader>
             <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
           </DrawerHeader>
-          <div className="p-4 pb-8">{content}</div>
+          <div className="p-4 pb-8">{mobileContent}</div>
         </DrawerContent>
       </Drawer>
     );
@@ -616,11 +619,24 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
-        </DialogHeader>
-        {content}
+      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden">
+        {/* Fixed header */}
+        <div className="shrink-0 border-b px-6 py-4">
+          <DialogHeader>
+            <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-3">{stepIndicator}</div>
+        </div>
+
+        {/* Scrollable body — sole scroll owner */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+          {renderStep()}
+        </div>
+
+        {/* Fixed footer */}
+        <div className="shrink-0 border-t px-6 py-3">
+          {navigationFooter}
+        </div>
       </DialogContent>
     </Dialog>
   );
