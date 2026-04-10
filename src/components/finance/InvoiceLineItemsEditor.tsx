@@ -308,7 +308,12 @@ export function InvoiceLineItemsEditor({
                 )}
                 <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
                   {/* Source indicator */}
-                  {isFromCatalog ? (
+                  {itemSource === 'package' ? (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Layers className="w-3 h-3" />
+                      {t("finance.invoices.packageSource")}
+                    </span>
+                  ) : itemSource === 'catalog' ? (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Package className="w-3 h-3" />
                       {t("finance.invoices.catalogLinked")}
