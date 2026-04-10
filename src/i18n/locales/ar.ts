@@ -2370,6 +2370,8 @@ export const ar = {
         training: "تدريب",
         medical: "طبي",
         premium: "مميز",
+        wellness: "عافية",
+        commercial: "تجاري",
       },
       selectPlan: "اختر خطة (اختياري)",
       noPlan: "بدون خطة (أسعار يدوية)",
@@ -5248,13 +5250,15 @@ export const ar = {
     parentServiceHint: "ربط هذه الخطة بخدمة أساسية للتنظيم",
     tabs: {
       catalog: "كتالوج الخدمات",
-      plans: "الخطط والباقات",
+      plans: "الباقات",
     },
     kinds: {
       general: "عام",
       boarding: "إيواء",
       breeding: "تناسل",
       vet: "بيطري",
+      training: "تدريب",
+      transport: "نقل",
     },
     types: {
       emergency: "طوارئ",
@@ -5272,6 +5276,8 @@ export const ar = {
       daily: "يومي",
       weekly: "أسبوعي",
       monthly: "شهري",
+      yearly: "سنوي",
+      oneTime: "مرة واحدة",
     },
     table: {
       type: "النوع",
