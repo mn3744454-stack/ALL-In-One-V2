@@ -34,8 +34,10 @@ import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
+import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { useClients } from "@/hooks/useClients";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -79,6 +81,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
   const { horses, refresh: refreshHorses } = useHorses();
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [clientFormOpen, setClientFormOpen] = useState(false);
+  const { createClient } = useClients();
   const { createAdmission, isCreating } = useBoardingAdmissions();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
@@ -286,6 +290,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         return (
           <div className="space-y-3">
             <Label>{t('housing.admissions.wizard.selectClient')}</Label>
+            {/* No client / assign later option */}
             <button
               type="button"
               onClick={() => setForm(f => ({ ...f, clientId: '' }))}
@@ -296,26 +301,56 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             >
               <span className="text-sm text-muted-foreground">{t('housing.admissions.wizard.noClient')}</span>
             </button>
-            <div className="grid gap-2 max-h-56 overflow-y-auto">
-              {clients.map((client: any) => (
-                <button
-                  key={client.id}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, clientId: client.id }))}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border text-start",
-                    form.clientId === client.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
-                  )}
+            {clients.length === 0 ? (
+              /* Empty state when no clients exist */
+              <div className="flex flex-col items-center gap-2 py-8 text-center border rounded-lg border-dashed">
+                <UserPlus className="w-8 h-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noClientsYet')}</p>
+                <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noClientsDesc')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setClientFormOpen(true)}
                 >
-                  <User className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div className="flex-1">
-                    <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="text-sm" />
-                    {client.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
-                  </div>
-                  {form.clientId === client.id && <Check className="h-4 w-4 text-primary" />}
-                </button>
-              ))}
-            </div>
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewClient')}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-2 max-h-56 overflow-y-auto">
+                  {clients.map((client: any) => (
+                    <button
+                      key={client.id}
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, clientId: client.id }))}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border text-start",
+                        form.clientId === client.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
+                      )}
+                    >
+                      <User className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="flex-1">
+                        <BilingualName name={client.name} nameAr={client.name_ar} primaryClassName="text-sm" />
+                        {client.phone && <p className="text-xs text-muted-foreground">{client.phone}</p>}
+                      </div>
+                      {form.clientId === client.id && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+                {/* Always-visible add-new CTA */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-dashed border-primary/40 text-primary"
+                  onClick={() => setClientFormOpen(true)}
+                >
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewClient')}
+                </Button>
+              </>
+            )}
           </div>
         );
       case 'housing': {
@@ -648,6 +683,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     />
   );
 
+  const clientDialog = (
+    <ClientFormDialog
+      open={clientFormOpen}
+      onOpenChange={setClientFormOpen}
+      onSave={async (data) => {
+        const newClient = await createClient(data);
+        if (newClient) {
+          // Add to local clients list and auto-select
+          setClients(prev => [...prev, newClient]);
+          setForm(f => ({ ...f, clientId: newClient.id }));
+        }
+        return newClient;
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
       <>
@@ -660,6 +711,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           </DrawerContent>
         </Drawer>
         {quickCreateDialog}
+        {clientDialog}
       </>
     );
   }
@@ -688,6 +740,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         </DialogContent>
       </Dialog>
       {quickCreateDialog}
+      {clientDialog}
     </>
   );
 }
