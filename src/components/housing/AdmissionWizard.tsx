@@ -42,12 +42,16 @@ interface AdmissionWizardProps {
   onSuccess?: () => void;
   /** Pre-select a horse (e.g. from incoming arrival confirmation) */
   preselectedHorseId?: string;
+  /** Pre-fill and lock housing context when launched from unit drawer */
+  preselectedBranchId?: string;
+  preselectedAreaId?: string;
+  preselectedUnitId?: string;
 }
 
 const STEPS = ['horse', 'client', 'plan', 'housing', 'rates', 'details', 'review'] as const;
 type Step = typeof STEPS[number];
 
-export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId }: AdmissionWizardProps) {
+export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHorseId, preselectedBranchId, preselectedAreaId, preselectedUnitId }: AdmissionWizardProps) {
   const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { activeTenant } = useTenant();
