@@ -29,6 +29,13 @@ const DashboardServices = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { labMode } = useModuleAccess();
 
+  const { data: services = [], isLoading } = useServices();
+  const { plans } = useStableServicePlans();
+  const createService = useCreateService();
+  const updateService = useUpdateService();
+  const deleteService = useDeleteService();
+  const toggleActive = useToggleServiceActive();
+
   // Route-level Lab guard: full-mode Lab tenants should not access this page
   useEffect(() => {
     if (labMode === 'full') {
@@ -38,13 +45,6 @@ const DashboardServices = () => {
   }, [labMode, navigate, t]);
 
   if (labMode === 'full') return null;
-
-  const { data: services = [], isLoading } = useServices();
-  const { plans } = useStableServicePlans();
-  const createService = useCreateService();
-  const updateService = useUpdateService();
-  const deleteService = useDeleteService();
-  const toggleActive = useToggleServiceActive();
 
   const planCountByServiceId = useMemo(() => {
     const counts: Record<string, number> = {};
