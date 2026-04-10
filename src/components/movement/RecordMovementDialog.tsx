@@ -1159,8 +1159,8 @@ export function RecordMovementDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
           </DialogHeader>
           {content}
