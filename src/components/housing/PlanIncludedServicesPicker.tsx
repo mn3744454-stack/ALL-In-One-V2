@@ -26,8 +26,6 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
 
   // Use all active services — packages can include any service kind
   const activeServices = allServices.filter(s => s.is_active);
-
-  const activeServices = allServices.filter(s => s.is_active);
   const selectedIds = new Set(value.map(v => v.service_id));
 
   const addService = (serviceId: string) => {
