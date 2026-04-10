@@ -543,11 +543,11 @@ export function RecordMovementDialog({
             <div className="space-y-3 max-h-[350px] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>{t("horses.wizard.horseName")} *</Label>
+                  <Label>{t("horses.wizard.name")} *</Label>
                   <Input
                     value={newHorse.name}
                     onChange={(e) => setNewHorse({ ...newHorse, name: e.target.value })}
-                    placeholder={t("horses.wizard.horseName")}
+                    placeholder={t("horses.wizard.name")}
                   />
                 </div>
                 <div className="space-y-1.5">
