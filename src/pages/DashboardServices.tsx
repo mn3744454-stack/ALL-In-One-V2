@@ -62,6 +62,16 @@ const DashboardServices = () => {
     return 'catalog';
   }, [searchParams]);
 
+  // Route-level Lab guard: full-mode Lab tenants should not access this page
+  useEffect(() => {
+    if (labMode === 'full') {
+      toast.error(t('common.accessRestricted'));
+      navigate('/dashboard', { replace: true });
+    }
+  }, [labMode, navigate, t]);
+
+  if (labMode === 'full') return null;
+
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
