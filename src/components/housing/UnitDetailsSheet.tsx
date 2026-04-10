@@ -34,6 +34,7 @@ import { BilingualName } from "@/components/ui/BilingualName";
 import { UnitTypeBadge } from "./UnitTypeBadge";
 import { OccupancyBadge } from "./OccupancyBadge";
 import { AssignHorseDialog } from "./AssignHorseDialog";
+import { AdmissionWizard } from "./AdmissionWizard";
 import { LifecycleActionMenu, LifecycleStateBadge, type LifecycleBlocker } from "./LifecycleActionMenu";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
@@ -43,7 +44,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Plus, LogOut, Home, Trees, BedDouble, Loader2, Pencil, Check, X, Wrench, Ban, CircleCheck, MoreVertical } from "lucide-react";
+import { Plus, Home, Trees, BedDouble, Loader2, Pencil, Check, X, Wrench, Ban, CircleCheck, MoreVertical, AlertTriangle, ArrowRightLeft, LogIn } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
 
 interface UnitDetailsSheetProps {
@@ -57,8 +58,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
-  const [vacateTarget, setVacateTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
-  
+  const [orphanRemoveTarget, setOrphanRemoveTarget] = useState<{ occupantId: string; horseId: string; horseName: string } | null>(null);
+
+  // Admission wizard state for Scenario A
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardHorseId, setWizardHorseId] = useState<string | undefined>();
+
   // Inline editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editCode, setEditCode] = useState('');
@@ -69,15 +74,40 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   // Status change state
   const [statusChangeTarget, setStatusChangeTarget] = useState<{ status: string; warning: string } | null>(null);
 
-  const { 
-    occupants, 
-    isLoading, 
-    canManage, 
-    vacateHorse, 
-    isVacating 
+  const {
+    occupants,
+    isLoading,
+    canManage,
+    removeOrphanOccupant,
+    isRemovingOrphan,
   } = useUnitOccupants(unit?.id);
 
   const { updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
+
+  // Fetch active admissions for all occupant horses to detect orphans
+  const occupantHorseIds = useMemo(() => occupants.map(o => o.horse_id), [occupants]);
+  const { data: occupantAdmissions } = useQuery({
+    queryKey: ['occupant-admissions', tenantId, occupantHorseIds],
+    queryFn: async () => {
+      if (!tenantId || occupantHorseIds.length === 0) return {};
+      const { data, error } = await supabase
+        .from('boarding_admissions')
+        .select('id, horse_id, status, client:clients(name, name_ar)')
+        .eq('tenant_id', tenantId)
+        .eq('status', 'active')
+        .in('horse_id', occupantHorseIds);
+      if (error) return {};
+      const map: Record<string, { id: string; clientName?: string }> = {};
+      for (const a of (data || [])) {
+        map[a.horse_id] = {
+          id: a.id,
+          clientName: (a.client as any)?.name,
+        };
+      }
+      return map;
+    },
+    enabled: !!tenantId && occupantHorseIds.length > 0,
+  });
 
   // Unit lifecycle blocker queries
   const { data: unitBlockerData } = useQuery({
@@ -180,12 +210,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     setShowOccupiedWarning(false);
   };
 
-  const handleVacateConfirm = async () => {
-    if (!vacateTarget) return;
+  const handleOrphanRemoveConfirm = async () => {
+    if (!orphanRemoveTarget) return;
     try {
-      await vacateHorse({ occupantId: vacateTarget.occupantId, horseId: vacateTarget.horseId });
+      await removeOrphanOccupant({ occupantId: orphanRemoveTarget.occupantId, horseId: orphanRemoveTarget.horseId });
     } finally {
-      setVacateTarget(null);
+      setOrphanRemoveTarget(null);
     }
   };
 
@@ -198,7 +228,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     }
   };
 
-  // Status badge for the header area
+  // Scenario A callback: horse selected from picker with no admission
+  const handleAdmitHorse = (horseId: string) => {
+    setWizardHorseId(horseId);
+    setWizardOpen(true);
+  };
+
   const getStatusBadge = () => {
     if (isOutOfService) {
       return (
@@ -321,9 +356,9 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
             {/* Unit Info */}
             <div className="flex flex-wrap gap-2">
               <UnitTypeBadge type={unit.unit_type} />
-              <OccupancyBadge 
-                occupancy={unit.occupancy} 
-                current={unit.current_occupants || 0} 
+              <OccupancyBadge
+                occupancy={unit.occupancy}
+                current={unit.current_occupants || 0}
                 capacity={unit.capacity}
                 status={unit.status}
               />
@@ -366,14 +401,14 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">{t('housing.occupants.title')}</h3>
                 {canManage && canAssign && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="gap-2"
                     onClick={() => setAssignDialogOpen(true)}
                   >
                     <Plus className="w-4 h-4" />
-                    {t('housing.occupants.assignHorse')}
+                    {t('housing.occupants.admitHorse')}
                   </Button>
                 )}
               </div>
@@ -387,12 +422,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                   <Home className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>{t('housing.occupants.noOccupants')}</p>
                   {canManage && canAssign && (
-                    <Button 
-                      variant="link" 
+                    <Button
+                      variant="link"
                       className="mt-2"
                       onClick={() => setAssignDialogOpen(true)}
                     >
-                      {t('housing.occupants.assignFirst')}
+                      {t('housing.occupants.admitFirst')}
                     </Button>
                   )}
                 </div>
@@ -403,51 +438,87 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                       const horseName = language === 'ar' && occupant.horse?.name_ar
                         ? occupant.horse.name_ar
                         : occupant.horse?.name || '—';
+                      const admissionInfo = occupantAdmissions?.[occupant.horse_id];
+                      const isOrphan = !admissionInfo;
 
                       return (
-                        <div 
+                        <div
                           key={occupant.id}
-                          className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                          className={cn(
+                            "p-3 rounded-lg border bg-card",
+                            isOrphan && "border-amber-300/50"
+                          )}
                         >
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage src={occupant.horse?.avatar_url || ''} />
-                              <AvatarFallback>
-                                {occupant.horse?.name?.[0]?.toUpperCase() || 'H'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <BilingualName
-                                name={occupant.horse?.name || '—'}
-                                nameAr={occupant.horse?.name_ar}
-                                primaryClassName="text-sm font-medium"
-                                secondaryClassName="text-xs"
-                                inline
-                              />
-                              <p className="text-xs text-muted-foreground">
-                                {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
-                              </p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={occupant.horse?.avatar_url || ''} />
+                                <AvatarFallback>
+                                  {occupant.horse?.name?.[0]?.toUpperCase() || 'H'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <BilingualName
+                                  name={occupant.horse?.name || '—'}
+                                  nameAr={occupant.horse?.name_ar}
+                                  primaryClassName="text-sm font-medium"
+                                  secondaryClassName="text-xs"
+                                  inline
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  {t('housing.occupants.since')} {formatStandardDate(occupant.since)}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          {canManage && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-destructive hover:text-destructive"
-                                  disabled={isVacating}
-                                  onClick={() => setVacateTarget({
-                                    occupantId: occupant.id,
-                                    horseId: occupant.horse_id,
-                                    horseName,
-                                  })}
-                                >
-                                  <LogOut className="w-4 h-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{t('housing.occupants.vacateTooltip')}</TooltipContent>
-                            </Tooltip>
+
+                          {/* Admission status badge */}
+                          <div className="mt-2 flex items-center gap-2">
+                            {admissionInfo ? (
+                              <Badge variant="outline" className="text-[10px] gap-1 text-emerald-700 border-emerald-300 bg-emerald-50">
+                                <Check className="w-2.5 h-2.5" />
+                                {t('housing.occupants.activeAdmission')}
+                                {admissionInfo.clientName && (
+                                  <span className="text-muted-foreground">· {admissionInfo.clientName}</span>
+                                )}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-[10px] gap-1 text-amber-700 border-amber-300 bg-amber-50">
+                                <AlertTriangle className="w-2.5 h-2.5" />
+                                {t('housing.occupants.noAdmission')}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Orphan repair actions — role-gated, visually distinct */}
+                          {isOrphan && canManage && (
+                            <div className="mt-2 pt-2 border-t border-amber-200 flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1"
+                                onClick={() => {
+                                  handleAdmitHorse(occupant.horse_id);
+                                }}
+                              >
+                                <LogIn className="w-3 h-3" />
+                                {t('housing.occupants.createAdmission')}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1 text-amber-700 border-amber-300 hover:bg-amber-50"
+                                disabled={isRemovingOrphan}
+                                onClick={() => setOrphanRemoveTarget({
+                                  occupantId: occupant.id,
+                                  horseId: occupant.horse_id,
+                                  horseName,
+                                })}
+                              >
+                                <AlertTriangle className="w-3 h-3" />
+                                {t('housing.occupants.removeOrphan')}
+                              </Button>
+                            </div>
                           )}
                         </div>
                       );
@@ -480,24 +551,24 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Vacate Confirmation Dialog */}
-      <AlertDialog open={!!vacateTarget} onOpenChange={(open) => { if (!open) setVacateTarget(null); }}>
+      {/* Orphan Remove Confirmation */}
+      <AlertDialog open={!!orphanRemoveTarget} onOpenChange={(open) => { if (!open) setOrphanRemoveTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('housing.facilities.vacateConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('housing.occupants.removeOrphanTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('housing.facilities.vacateConfirmDesc')
-                .replace('{horse}', vacateTarget?.horseName || '')
+              {t('housing.occupants.removeOrphanDesc')
+                .replace('{horse}', orphanRemoveTarget?.horseName || '')
                 .replace('{unit}', unit?.code || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleVacateConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleOrphanRemoveConfirm}
+              className="bg-amber-600 text-white hover:bg-amber-700"
             >
-              {t('housing.occupants.vacate')}
+              {isRemovingOrphan ? <Loader2 className="w-4 h-4 animate-spin" /> : t('housing.occupants.removeOrphan')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -525,10 +596,22 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Admission-aware horse picker */}
       <AssignHorseDialog
         unit={unit}
         open={assignDialogOpen}
         onOpenChange={setAssignDialogOpen}
+        onAdmitHorse={handleAdmitHorse}
+      />
+
+      {/* AdmissionWizard for Scenario A — prefilled with unit context */}
+      <AdmissionWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        preselectedHorseId={wizardHorseId}
+        preselectedBranchId={unit.branch_id}
+        preselectedAreaId={unit.area_id}
+        preselectedUnitId={unit.id}
       />
     </>
   );
