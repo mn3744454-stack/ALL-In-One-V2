@@ -488,7 +488,7 @@ export function RecordMovementDialog({
               />
             </div>
 
-            <div className="max-h-[260px] overflow-y-auto space-y-2">
+            <div className="space-y-2">
               {filteredHorses.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p className="text-sm">{t("movement.arrival.noEligibleHorses")}</p>
@@ -541,7 +541,7 @@ export function RecordMovementDialog({
             <h3 className="font-medium text-center">{t("movement.arrival.newHorseTitle")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.arrival.newHorseSubtitle")}</p>
             
-            <div className="space-y-3 max-h-[350px] overflow-y-auto">
+            <div className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label>{t("horses.wizard.name")} *</Label>
@@ -854,7 +854,7 @@ export function RecordMovementDialog({
                     )}
                   </div>
                 ) : (
-                  <div className="max-h-[200px] overflow-y-auto space-y-2">
+                  <div className="space-y-2">
                     {connectedDestinations.map((dest) => (
                       <button
                         key={dest.id}
@@ -1159,7 +1159,7 @@ export function RecordMovementDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
           </DialogHeader>
