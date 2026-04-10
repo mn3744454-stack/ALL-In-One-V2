@@ -312,9 +312,9 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
               {/* Always-visible add-new-horse CTA */}
               {!horsesLoading && (
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="w-full mt-2 text-primary"
+                  className="w-full mt-2 border-dashed border-primary/40 text-primary hover:bg-primary/5"
                   onClick={() => setQuickCreateOpen(true)}
                 >
                   <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
