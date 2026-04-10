@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { useServicesByKind } from "@/hooks/useServices";
+import { useServices } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 import { displayServiceName } from "@/lib/displayHelpers";
 import { normalizeIncludes } from "@/lib/planIncludes";
@@ -12,36 +12,47 @@ interface Props {
   compact?: boolean;
 }
 
+const KIND_COLORS: Record<string, string> = {
+  vet: 'text-emerald-500',
+  breeding: 'text-purple-500',
+  training: 'text-blue-500',
+  transport: 'text-amber-500',
+  boarding: 'text-green-500',
+  service: 'text-gray-500',
+};
+
 /**
  * Renders a plan's included services as badges.
  * Gracefully handles empty/legacy includes.
- * Supports both boarding and vet services.
+ * Supports all service kinds (boarding, vet, breeding, training, transport, service).
  */
 export function PlanIncludedServicesDisplay({ includes, compact = false }: Props) {
   const { lang } = useI18n();
   const entries = normalizeIncludes(includes);
-  const { data: boardingServices = [] } = useServicesByKind('boarding');
-  const { data: vetServices = [] } = useServicesByKind('vet');
+  const { data: allServices = [] } = useServices();
 
-  const allServices = useMemo(() => [...boardingServices, ...vetServices], [boardingServices, vetServices]);
+  const serviceMap = useMemo(
+    () => new Map(allServices.map(s => [s.id, s])),
+    [allServices]
+  );
 
   if (entries.length === 0) return null;
 
   return (
     <div className={compact ? "flex flex-wrap gap-1 mt-1" : "flex flex-wrap gap-1.5 mt-2"}>
       {entries.map(entry => {
-        const svc = allServices.find(s => s.id === entry.service_id);
+        const svc = serviceMap.get(entry.service_id);
         const display = svc
           ? displayServiceName(svc.name, svc.name_ar, lang)
           : entry.label;
-        const isVet = svc?.service_kind === 'vet';
+        const colorClass = KIND_COLORS[svc?.service_kind ?? ''] || 'text-green-500';
         return (
           <Badge
             key={entry.service_id}
             variant="outline"
             className={compact ? "text-[10px] gap-0.5 px-1.5 py-0" : "text-xs gap-1"}
           >
-            <CheckCircle2 className={compact ? `h-2.5 w-2.5 ${isVet ? 'text-emerald-500' : 'text-green-500'}` : `h-3 w-3 ${isVet ? 'text-emerald-500' : 'text-green-500'}`} />
+            <CheckCircle2 className={compact ? `h-2.5 w-2.5 ${colorClass}` : `h-3 w-3 ${colorClass}`} />
             {display}
           </Badge>
         );
