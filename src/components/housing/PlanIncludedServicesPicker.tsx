@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useServicesByKind, useServices } from "@/hooks/useServices";
+import { useServices } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 import { displayServiceName } from "@/lib/displayHelpers";
 import type { IncludedServiceEntry } from "@/lib/planIncludes";
@@ -13,6 +13,15 @@ import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { useState, useMemo } from "react";
+
+const SERVICE_KIND_GROUPS = [
+  { kind: 'boarding', labelKey: 'services.kinds.boarding' },
+  { kind: 'vet', labelKey: 'services.kinds.vet' },
+  { kind: 'breeding', labelKey: 'services.kinds.breeding' },
+  { kind: 'training', labelKey: 'services.kinds.training' },
+  { kind: 'transport', labelKey: 'services.kinds.transport' },
+  { kind: 'service', labelKey: 'services.kinds.general' },
+] as const;
 
 interface Props {
   value: IncludedServiceEntry[];
@@ -84,48 +93,23 @@ export function PlanIncludedServicesPicker({ value, onChange }: Props) {
               <CommandInput placeholder={t('housing.plans.searchServices')} />
               <CommandList>
                 <CommandEmpty>{t('housing.plans.noServicesFound')}</CommandEmpty>
-                {/* Boarding services group */}
-                {availableServices.filter(s => s.service_kind !== 'vet').length > 0 && (
-                  <CommandGroup heading={t('housing.plans.boardingServices')}>
-                    {availableServices.filter(s => s.service_kind !== 'vet').map(svc => (
-                      <CommandItem
-                        key={svc.id}
-                        value={svc.name}
-                        onSelect={() => addService(svc.id)}
-                      >
-                        {displayServiceName(svc.name, svc.name_ar, lang)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-                {/* Vet services group */}
-                {availableServices.filter(s => s.service_kind === 'vet').length > 0 && (
-                  <CommandGroup heading={t('vet.domain.vet')}>
-                    {availableServices.filter(s => s.service_kind === 'vet').map(svc => (
-                      <CommandItem
-                        key={svc.id}
-                        value={svc.name}
-                        onSelect={() => addService(svc.id)}
-                      >
-                        {displayServiceName(svc.name, svc.name_ar, lang)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-                {/* Breeding services group */}
-                {availableServices.filter(s => s.service_kind === 'breeding').length > 0 && (
-                  <CommandGroup heading={t('breeding.title')}>
-                    {availableServices.filter(s => s.service_kind === 'breeding').map(svc => (
-                      <CommandItem
-                        key={svc.id}
-                        value={svc.name}
-                        onSelect={() => addService(svc.id)}
-                      >
-                        {displayServiceName(svc.name, svc.name_ar, lang)}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
+                {SERVICE_KIND_GROUPS.map(group => {
+                  const groupServices = availableServices.filter(s => s.service_kind === group.kind);
+                  if (groupServices.length === 0) return null;
+                  return (
+                    <CommandGroup key={group.kind} heading={t(group.labelKey)}>
+                      {groupServices.map(svc => (
+                        <CommandItem
+                          key={svc.id}
+                          value={svc.name}
+                          onSelect={() => addService(svc.id)}
+                        >
+                          {displayServiceName(svc.name, svc.name_ar, lang)}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  );
+                })}
               </CommandList>
             </Command>
           </PopoverContent>
