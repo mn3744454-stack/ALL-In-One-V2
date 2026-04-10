@@ -63,6 +63,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [moveConfirm, setMoveConfirm] = useState<{
     horseName: string;
     admission: AdmissionInfo;
@@ -74,7 +75,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
   } | null>(null);
   const [checkingAdmission, setCheckingAdmission] = useState(false);
 
-  const { horses, loading: horsesLoading } = useHorses();
+  const { horses, loading: horsesLoading, fetchHorses } = useHorses();
   const { occupants } = useUnitOccupants(unit?.id);
   const { moveHorse, isMoving } = useInternalMove();
 
