@@ -36,16 +36,6 @@ const DashboardServices = () => {
   const deleteService = useDeleteService();
   const toggleActive = useToggleServiceActive();
 
-  // Route-level Lab guard: full-mode Lab tenants should not access this page
-  useEffect(() => {
-    if (labMode === 'full') {
-      toast.error(t('common.accessRestricted'));
-      navigate('/dashboard', { replace: true });
-    }
-  }, [labMode, navigate, t]);
-
-  if (labMode === 'full') return null;
-
   const planCountByServiceId = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const plan of plans) {
@@ -62,15 +52,18 @@ const DashboardServices = () => {
     return 'catalog';
   }, [searchParams]);
 
+  const canManage = activeRole === "owner" || activeRole === "manager";
+  const isLabBlocked = labMode === 'full';
+
   // Route-level Lab guard: full-mode Lab tenants should not access this page
   useEffect(() => {
-    if (labMode === 'full') {
+    if (isLabBlocked) {
       toast.error(t('common.accessRestricted'));
       navigate('/dashboard', { replace: true });
     }
-  }, [labMode, navigate, t]);
+  }, [isLabBlocked, navigate, t]);
 
-  if (labMode === 'full') return null;
+  if (isLabBlocked) return null;
 
   const handleTabChange = (tab: string) => {
     const next = new URLSearchParams(searchParams);
@@ -93,8 +86,6 @@ const DashboardServices = () => {
   const handleToggleActive = async (id: string, is_active: boolean) => {
     await toggleActive.mutateAsync({ id, is_active });
   };
-
-  const canManage = activeRole === "owner" || activeRole === "manager";
 
   if (!activeTenant) {
     return (
