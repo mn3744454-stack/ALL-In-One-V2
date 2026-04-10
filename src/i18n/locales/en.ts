@@ -2122,6 +2122,13 @@ export const en = {
       failedToCreate: "Failed to create",
       failedToUpdate: "Failed to update",
     },
+    quickCreate: {
+      desc: "Quickly register a horse for housing. You can complete the full profile later in the Horse Registry.",
+      completeHint: "This creates a draft record. You can add breed, microchip, passport, and other details later from the Horse Registry.",
+      addNewHorse: "+ Add New Horse",
+      noHorsesYet: "No horses registered yet",
+      noHorsesDesc: "Create a horse to get started with housing.",
+    },
     admissions: {
       title: "Boarding Admissions",
       newAdmission: "New Admission",

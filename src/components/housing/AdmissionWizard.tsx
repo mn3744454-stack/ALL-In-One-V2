@@ -34,7 +34,8 @@ import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus } from "lucide-react";
+import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -76,7 +77,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     arrivalDate: '' as string,
   });
 
-  const { horses } = useHorses();
+  const { horses, refresh: refreshHorses } = useHorses();
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const { createAdmission, isCreating } = useBoardingAdmissions();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
@@ -217,38 +219,69 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
   const renderStep = () => {
     switch (step) {
-      case 'horse':
+      case 'horse': {
+        const activeHorses = horses.filter(h => h.status === 'active' || h.status === 'intake_draft');
         return (
           <div className="space-y-3">
             <Label>{t('housing.admissions.wizard.selectHorse')} *</Label>
-            <div className="grid gap-2 max-h-64 overflow-y-auto">
-              {horses.filter(h => h.status === 'active').map(horse => (
-                <button
-                  key={horse.id}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
-                    form.horseId === horse.id
-                      ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-border hover:bg-muted/50"
-                  )}
+            {activeHorses.length === 0 && !form.horseId ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center border rounded-lg border-dashed">
+                <Heart className="w-8 h-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noHorsesYet')}</p>
+                <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noHorsesDesc')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setQuickCreateOpen(true)}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={horse.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {horse.name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
-                  </div>
-                  {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                </button>
-              ))}
-            </div>
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewHorse')}
+                </Button>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {activeHorses.map(horse => (
+                  <button
+                    key={horse.id}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, horseId: horse.id }))}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border text-start transition-all",
+                      form.horseId === horse.id
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "border-border hover:bg-muted/50"
+                    )}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={horse.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {horse.name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <BilingualName name={horse.name} nameAr={horse.name_ar} primaryClassName="text-sm" />
+                    </div>
+                    {form.horseId === horse.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Always-visible add-new CTA when horses exist */}
+            {activeHorses.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-primary"
+                onClick={() => setQuickCreateOpen(true)}
+              >
+                <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                {t('housing.quickCreate.addNewHorse')}
+              </Button>
+            )}
           </div>
         );
+      }
       case 'client':
         return (
           <div className="space-y-3">
@@ -604,40 +637,57 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     </div>
   );
 
+  const quickCreateDialog = (
+    <QuickCreateHorseDialog
+      open={quickCreateOpen}
+      onOpenChange={setQuickCreateOpen}
+      onCreated={async (horse) => {
+        await refreshHorses();
+        setForm(f => ({ ...f, horseId: horse.id }));
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-4 pb-8">{mobileContent}</div>
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 pb-8">{mobileContent}</div>
+          </DrawerContent>
+        </Drawer>
+        {quickCreateDialog}
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden">
-        {/* Fixed header */}
-        <div className="shrink-0 border-b px-6 py-4">
-          <DialogHeader>
-            <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-3">{stepIndicator}</div>
-        </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden">
+          {/* Fixed header */}
+          <div className="shrink-0 border-b px-6 py-4">
+            <DialogHeader>
+              <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
+            </DialogHeader>
+            <div className="mt-3">{stepIndicator}</div>
+          </div>
 
-        {/* Scrollable body — sole scroll owner */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-          {renderStep()}
-        </div>
+          {/* Scrollable body — sole scroll owner */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+            {renderStep()}
+          </div>
 
-        {/* Fixed footer */}
-        <div className="shrink-0 border-t px-6 py-3">
-          {navigationFooter}
-        </div>
-      </DialogContent>
-    </Dialog>
+          {/* Fixed footer */}
+          <div className="shrink-0 border-t px-6 py-3">
+            {navigationFooter}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {quickCreateDialog}
+    </>
   );
 }
