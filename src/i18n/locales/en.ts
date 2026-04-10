@@ -2124,7 +2124,7 @@ export const en = {
     },
     quickCreate: {
       desc: "Quickly register a horse for housing. You can complete the full profile later in the Horse Registry.",
-      completeHint: "This creates a draft record. You can add breed, microchip, passport, and other details later from the Horse Registry.",
+      completeHint: "This creates a draft record. You can add microchip, passport, pedigree, and other details later from the Horse Registry.",
       addNewHorse: "+ Add New Horse",
       noHorsesYet: "No horses registered yet",
       noHorsesDesc: "Create a horse to get started with housing.",

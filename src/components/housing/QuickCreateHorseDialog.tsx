@@ -20,6 +20,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
+import { useHorseMasterData } from "@/hooks/useHorseMasterData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Heart, Info, Loader2 } from "lucide-react";
@@ -27,26 +28,28 @@ import { Heart, Info, Loader2 } from "lucide-react";
 interface QuickCreateHorseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called with the new horse id + name after successful creation */
   onCreated: (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => void;
 }
 
 export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickCreateHorseDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
+  const { colors, breeds } = useHorseMasterData();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     name_ar: "",
     gender: "" as "" | "male" | "female",
     birth_date: "",
+    breed_id: "",
+    color_id: "",
   });
 
   const canSubmit = form.name.trim() && form.gender;
 
   const handleClose = () => {
     if (saving) return;
-    setForm({ name: "", name_ar: "", gender: "", birth_date: "" });
+    setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
     onOpenChange(false);
   };
 
@@ -61,6 +64,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
           name_ar: form.name_ar.trim() || null,
           gender: form.gender,
           birth_date: form.birth_date || null,
+          breed_id: form.breed_id || null,
+          color_id: form.color_id || null,
           status: "intake_draft",
           tenant_id: activeTenant.tenant_id,
         })
@@ -70,7 +75,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
       if (error) throw error;
 
       toast.success(t('horses.addSuccess').replace('{{name}}', data.name));
-      setForm({ name: "", name_ar: "", gender: "", birth_date: "" });
+      setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
       onOpenChange(false);
       onCreated(data);
     } catch (err: any) {
@@ -83,7 +88,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-primary" />
@@ -95,14 +100,14 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          {/* Name fields — 2-column grid */}
+          {/* Row 1: Names */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="qc-name">{t('horses.wizard.name')} *</Label>
               <Input
                 id="qc-name"
                 dir="ltr"
-                placeholder={t('horses.wizard.namePlaceholder')}
+                placeholder="Enter horse name"
                 value={form.name}
                 onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))}
                 autoFocus
@@ -113,14 +118,14 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
               <Input
                 id="qc-name-ar"
                 dir="rtl"
-                placeholder={t('horses.wizard.nameArPlaceholder')}
+                placeholder="أدخل اسم الخيل"
                 value={form.name_ar}
                 onChange={(e) => setForm(f => ({ ...f, name_ar: e.target.value }))}
               />
             </div>
           </div>
 
-          {/* Gender + DOB — 2-column grid */}
+          {/* Row 2: Gender + DOB */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t('horses.wizard.gender')} *</Label>
@@ -129,7 +134,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
                 onValueChange={(v) => setForm(f => ({ ...f, gender: v as "male" | "female" }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={t('horses.wizard.genderPlaceholder')} />
+                  <SelectValue placeholder={t('horses.wizard.gender')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">{t('horses.gender.male')}</SelectItem>
@@ -148,7 +153,47 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
             </div>
           </div>
 
-          {/* Amber hint — complete profile later */}
+          {/* Row 3: Breed + Color */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>{t('horses.wizard.breed')}</Label>
+              <Select
+                value={form.breed_id}
+                onValueChange={(v) => setForm(f => ({ ...f, breed_id: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('horses.wizard.selectBreed')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {breeds.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('horses.wizard.color')}</Label>
+              <Select
+                value={form.color_id}
+                onValueChange={(v) => setForm(f => ({ ...f, color_id: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={t('horses.wizard.selectColor')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {colors.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Amber hint */}
           <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
             <Info className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-700 dark:text-amber-400 text-xs">
