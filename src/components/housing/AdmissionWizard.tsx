@@ -683,6 +683,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     />
   );
 
+  const clientDialog = (
+    <ClientFormDialog
+      open={clientFormOpen}
+      onOpenChange={setClientFormOpen}
+      onSave={async (data) => {
+        const newClient = await createClient(data);
+        if (newClient) {
+          // Add to local clients list and auto-select
+          setClients(prev => [...prev, newClient]);
+          setForm(f => ({ ...f, clientId: newClient.id }));
+        }
+        return newClient;
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
       <>
