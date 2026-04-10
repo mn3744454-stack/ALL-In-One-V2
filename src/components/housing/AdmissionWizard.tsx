@@ -34,7 +34,8 @@ import { PlanIncludedServicesDisplay } from "./PlanIncludedServicesDisplay";
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus } from "lucide-react";
+import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 
 interface AdmissionWizardProps {
   open: boolean;
