@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -8,21 +7,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useI18n } from "@/i18n";
-import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { MovementFilters as FiltersType } from "@/hooks/movement/useHorseMovements";
 import type { Location } from "@/hooks/movement/useLocations";
+import { type ReactNode } from "react";
 
 interface MovementFiltersProps {
   filters: FiltersType;
   onFiltersChange: (filters: FiltersType) => void;
   locations: Location[];
+  viewSwitcher?: ReactNode;
 }
 
 export function MovementFilters({
   filters,
   onFiltersChange,
   locations,
+  viewSwitcher,
 }: MovementFiltersProps) {
   const { t } = useI18n();
 
@@ -48,106 +48,93 @@ export function MovementFilters({
   ];
 
   return (
-    <div className="space-y-3">
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder={t("movement.filters.searchPlaceholder")}
-          value={filters.search || ""}
-          onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="ps-9"
-        />
-      </div>
-
+    <div className="flex items-center gap-2 flex-wrap">
       {/* Date range chips */}
-      <div className="flex gap-2 flex-wrap">
-        {dateRangeOptions.map((option) => (
-          <Button
-            key={option.value}
-            variant={filters.dateRange === option.value || (!filters.dateRange && option.value === "all") ? "default" : "outline"}
-            size="sm"
-            onClick={() =>
-              onFiltersChange({
-                ...filters,
-                dateRange: option.value === "all" ? undefined : option.value as "today" | "week",
-              })
-            }
-          >
-            {option.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Dropdowns */}
-      <div className="flex gap-2 flex-wrap">
-        {/* Location filter */}
-        <Select
-          value={filters.locationId || "all"}
-          onValueChange={(value) =>
+      {dateRangeOptions.map((option) => (
+        <Button
+          key={option.value}
+          variant={filters.dateRange === option.value || (!filters.dateRange && option.value === "all") ? "default" : "outline"}
+          size="sm"
+          onClick={() =>
             onFiltersChange({
               ...filters,
-              locationId: value === "all" ? undefined : value,
+              dateRange: option.value === "all" ? undefined : option.value as "today" | "week",
             })
           }
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={t("movement.filters.allLocations")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("movement.filters.allLocations")}</SelectItem>
-            {locations.filter(l => l.is_active).map((location) => (
-              <SelectItem key={location.id} value={location.id}>
-                {location.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          {option.label}
+        </Button>
+      ))}
 
-        {/* Type filter */}
-        <Select
-          value={filters.movementType || "all"}
-          onValueChange={(value) =>
-            onFiltersChange({
-              ...filters,
-              movementType: value === "all" ? undefined : value as "in" | "out" | "transfer",
-            })
-          }
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder={t("movement.filters.allTypes")} />
-          </SelectTrigger>
-          <SelectContent>
-            {typeOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Location filter */}
+      <Select
+        value={filters.locationId || "all"}
+        onValueChange={(value) =>
+          onFiltersChange({
+            ...filters,
+            locationId: value === "all" ? undefined : value,
+          })
+        }
+      >
+        <SelectTrigger className="flex-1 min-w-[140px]">
+          <SelectValue placeholder={t("movement.filters.allLocations")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("movement.filters.allLocations")}</SelectItem>
+          {locations.filter(l => l.is_active).map((location) => (
+            <SelectItem key={location.id} value={location.id}>
+              {location.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-        {/* Status filter */}
-        <Select
-          value={filters.movementStatus || "all"}
-          onValueChange={(value) =>
-            onFiltersChange({
-              ...filters,
-              movementStatus: value === "all" ? undefined : value as "scheduled" | "dispatched" | "completed" | "cancelled",
-            })
-          }
-        >
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder={t("movement.filters.allStatuses")} />
-          </SelectTrigger>
-          <SelectContent>
-            {statusOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Type filter */}
+      <Select
+        value={filters.movementType || "all"}
+        onValueChange={(value) =>
+          onFiltersChange({
+            ...filters,
+            movementType: value === "all" ? undefined : value as "in" | "out" | "transfer",
+          })
+        }
+      >
+        <SelectTrigger className="flex-1 min-w-[120px]">
+          <SelectValue placeholder={t("movement.filters.allTypes")} />
+        </SelectTrigger>
+        <SelectContent>
+          {typeOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Status filter */}
+      <Select
+        value={filters.movementStatus || "all"}
+        onValueChange={(value) =>
+          onFiltersChange({
+            ...filters,
+            movementStatus: value === "all" ? undefined : value as "scheduled" | "dispatched" | "completed" | "cancelled",
+          })
+        }
+      >
+        <SelectTrigger className="flex-1 min-w-[120px]">
+          <SelectValue placeholder={t("movement.filters.allStatuses")} />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* View switcher at trailing end */}
+      {viewSwitcher}
     </div>
   );
 }
