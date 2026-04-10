@@ -37,8 +37,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import { Check, AlertCircle, Loader2, MapPin, ArrowRightLeft, Info } from "lucide-react";
+import { Check, AlertCircle, Loader2, MapPin, ArrowRightLeft, Info, Plus } from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
+import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 
 interface AssignHorseDialogProps {
   unit: HousingUnit | null;
