@@ -9,6 +9,7 @@ export const en = {
     edit: "Edit",
     close: "Close",
     confirm: "Confirm",
+    understood: "Understood",
     back: "Back",
     next: "Next",
     search: "Search",
