@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,15 +16,28 @@ import {
   CreateServiceInput,
 } from "@/hooks/useServices";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { Building2, Package, ArrowLeft, Store, Layers } from "lucide-react";
 import { MobilePageHeader } from "@/components/navigation";
 import { useI18n } from "@/i18n";
+import { toast } from "sonner";
 
 const DashboardServices = () => {
   const navigate = useNavigate();
   const { activeTenant, activeRole } = useTenant();
   const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { labMode } = useModuleAccess();
+
+  // Route-level Lab guard: full-mode Lab tenants should not access this page
+  useEffect(() => {
+    if (labMode === 'full') {
+      toast.error(t('common.accessRestricted'));
+      navigate('/dashboard', { replace: true });
+    }
+  }, [labMode, navigate, t]);
+
+  if (labMode === 'full') return null;
 
   const { data: services = [], isLoading } = useServices();
   const { plans } = useStableServicePlans();
