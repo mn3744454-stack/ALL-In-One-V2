@@ -336,8 +336,6 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
           </div>
         );
       }
-          </div>
-        );
       case 'plan':
         return (
           <div className="space-y-3">
