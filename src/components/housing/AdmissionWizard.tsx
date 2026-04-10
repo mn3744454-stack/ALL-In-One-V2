@@ -637,40 +637,57 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     </div>
   );
 
+  const quickCreateDialog = (
+    <QuickCreateHorseDialog
+      open={quickCreateOpen}
+      onOpenChange={setQuickCreateOpen}
+      onCreated={async (horse) => {
+        await refreshHorses();
+        setForm(f => ({ ...f, horseId: horse.id }));
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
-          </DrawerHeader>
-          <div className="p-4 pb-8">{mobileContent}</div>
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('housing.admissions.wizard.title')}</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4 pb-8">{mobileContent}</div>
+          </DrawerContent>
+        </Drawer>
+        {quickCreateDialog}
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden">
-        {/* Fixed header */}
-        <div className="shrink-0 border-b px-6 py-4">
-          <DialogHeader>
-            <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-3">{stepIndicator}</div>
-        </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-4xl max-h-[85vh] p-0 gap-0 overflow-hidden">
+          {/* Fixed header */}
+          <div className="shrink-0 border-b px-6 py-4">
+            <DialogHeader>
+              <DialogTitle>{t('housing.admissions.wizard.title')}</DialogTitle>
+            </DialogHeader>
+            <div className="mt-3">{stepIndicator}</div>
+          </div>
 
-        {/* Scrollable body — sole scroll owner */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-          {renderStep()}
-        </div>
+          {/* Scrollable body — sole scroll owner */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+            {renderStep()}
+          </div>
 
-        {/* Fixed footer */}
-        <div className="shrink-0 border-t px-6 py-3">
-          {navigationFooter}
-        </div>
-      </DialogContent>
-    </Dialog>
+          {/* Fixed footer */}
+          <div className="shrink-0 border-t px-6 py-3">
+            {navigationFooter}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {quickCreateDialog}
+    </>
   );
 }
