@@ -200,6 +200,10 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           p_internal_location_note: null,
           p_is_demo: false,
           p_clear_housing: false,
+          p_destination_type: 'internal',
+          p_from_external_location_id: null,
+          p_to_external_location_id: null,
+          p_movement_status: 'completed',
         }
       );
 
@@ -246,7 +250,13 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create admission');
+      const msg = error.message || 'Failed to create admission';
+      // Catch PostgREST function-signature dumps and humanize
+      if (msg.includes('Could not choose') || msg.includes('candidate function')) {
+        toast.error('Admission creation failed due to a backend configuration issue. Please contact support.');
+      } else {
+        toast.error(msg);
+      }
     },
   });
 
@@ -325,6 +335,10 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
           p_internal_location_note: null,
           p_is_demo: false,
           p_clear_housing: true,
+          p_destination_type: 'internal',
+          p_from_external_location_id: null,
+          p_to_external_location_id: null,
+          p_movement_status: 'completed',
         }
       );
 

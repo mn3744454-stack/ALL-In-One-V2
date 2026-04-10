@@ -229,12 +229,8 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         p_destination_type: data.destination_type || 'internal',
         p_from_external_location_id: data.from_external_location_id || null,
         p_to_external_location_id: data.to_external_location_id || null,
+        p_movement_status: data.movement_status || 'completed',
       };
-
-      // Pass movement_status if RPC supports it
-      if (data.movement_status) {
-        rpcParams.p_movement_status = data.movement_status;
-      }
 
       const { data: result, error } = await supabase.rpc('record_horse_movement_with_housing', rpcParams as any);
 
