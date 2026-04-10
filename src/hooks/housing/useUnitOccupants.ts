@@ -54,52 +54,31 @@ export function useUnitOccupants(unitId?: string) {
     enabled: !!tenantId && !!unitId,
   });
 
-  const assignMutation = useMutation({
-    mutationFn: async ({ unitId, horseId }: { unitId: string; horseId: string }) => {
-      if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
-
-      // Close any existing assignment for this horse
-      await supabase
-        .from('housing_unit_occupants')
-        .update({ until: new Date().toISOString() })
-        .eq('horse_id', horseId)
-        .eq('tenant_id', tenantId)
-        .is('until', null);
-
-      // Create new assignment
-      const { data, error } = await supabase
-        .from('housing_unit_occupants')
-        .insert({
-          tenant_id: tenantId,
-          unit_id: unitId,
-          horse_id: horseId,
-          since: new Date().toISOString(),
-          is_demo: false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // horses.housing_unit_id is synced automatically via DB trigger
-      return data;
-    },
-    onSuccess: () => {
-      toast.success(tGlobal('housing.occupants.assigned'));
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const vacateMutation = useMutation({
+  /**
+   * Orphan-only repair mutation.
+   * Pre-validates that the horse has NO active admission before allowing removal.
+   * This is NOT a normal vacate path — it is a constrained safety-net for legacy data.
+   */
+  const removeOrphanOccupantMutation = useMutation({
     mutationFn: async ({ occupantId, horseId }: { occupantId: string; horseId: string }) => {
       if (!tenantId) throw new Error(tGlobal('housing.toasts.noActiveOrganization'));
+      if (!canManage) throw new Error('Insufficient permissions for orphan cleanup');
 
+      // Pre-validate: horse must NOT have an active admission
+      const { data: activeAdmission, error: admErr } = await supabase
+        .from('boarding_admissions')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .eq('horse_id', horseId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (admErr) throw admErr;
+      if (activeAdmission) {
+        throw new Error('Cannot remove: horse has an active admission. Use Move/Checkout instead.');
+      }
+
+      // Safe to close orphan occupancy row
       const { error } = await supabase
         .from('housing_unit_occupants')
         .update({ until: new Date().toISOString() })
@@ -107,11 +86,9 @@ export function useUnitOccupants(unitId?: string) {
         .eq('tenant_id', tenantId);
 
       if (error) throw error;
-
-      // horses.housing_unit_id is cleared automatically via DB trigger
     },
     onSuccess: () => {
-      toast.success(tGlobal('housing.occupants.vacated'));
+      toast.success(tGlobal('housing.occupants.orphanRemoved'));
       queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
@@ -127,9 +104,7 @@ export function useUnitOccupants(unitId?: string) {
     isLoading,
     error,
     canManage,
-    assignHorse: assignMutation.mutateAsync,
-    vacateHorse: vacateMutation.mutateAsync,
-    isAssigning: assignMutation.isPending,
-    isVacating: vacateMutation.isPending,
+    removeOrphanOccupant: removeOrphanOccupantMutation.mutateAsync,
+    isRemovingOrphan: removeOrphanOccupantMutation.isPending,
   };
 }
