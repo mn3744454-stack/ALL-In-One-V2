@@ -168,7 +168,21 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
   const handleAgeCategoryChange = (value: string) => {
     if (value) {
       setUserExplicitlyChoseAge(true);
-      onChange({ age_category: value as AgeCategory });
+      const isNowYoung = value === 'colt' || value === 'filly';
+      const wasAdult = data.age_category === 'horse' || data.age_category === 'mare';
+      if (isNowYoung && wasAdult) {
+        // Switching from adult to young — reset all adult-only dependent fields
+        onChange({
+          age_category: value as AgeCategory,
+          is_gelded: false,
+          breeding_role: '',
+          is_pregnant: false,
+          pregnancy_months: 0,
+          is_pony: false,
+        });
+      } else {
+        onChange({ age_category: value as AgeCategory });
+      }
     }
   };
 
@@ -218,11 +232,14 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
     setBroodmareConfirmOpen(false);
   };
 
-  // Determine conditional visibility
-  const showGelding = data.gender === 'male';
-  const showStallion = data.gender === 'male' && !data.is_gelded;
-  const showBroodmare = data.gender === 'female';
-  const showPregnancy = data.gender === 'female' && data.breeding_role === 'broodmare';
+  // Determine conditional visibility — gated by explicit age-stage selection
+  const isAdultMale = data.gender === 'male' && data.age_category === 'horse';
+  const isAdultFemale = data.gender === 'female' && data.age_category === 'mare';
+  const showGelding = isAdultMale;
+  const showStallion = isAdultMale && !data.is_gelded;
+  const showBroodmare = isAdultFemale;
+  const showPregnancy = isAdultFemale && data.breeding_role === 'broodmare';
+  const showPony = isAdultMale || isAdultFemale;
 
   return (
     <div className="space-y-6">
@@ -546,24 +563,26 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
           </div>
         )}
 
-        {/* Pony Toggle — Always visible after sex selection */}
-        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 flex-1 pe-4">
-              <Label htmlFor="pony" className="text-sm font-medium">
-                {isRTL ? 'هل هذا الخيل من فئة البوني؟' : 'Is this horse a pony?'}
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {isRTL ? 'الخيل التي يقل ارتفاعها عن 148 سم عند الحارك' : 'Horses under 148cm at the withers'}
-              </p>
+        {/* Pony Toggle — visible only for adult-stage selections */}
+        {showPony && (
+          <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 flex-1 pe-4">
+                <Label htmlFor="pony" className="text-sm font-medium">
+                  {isRTL ? 'هل هذا الخيل من فئة البوني؟' : 'Is this horse a pony?'}
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {isRTL ? 'الخيل التي يقل ارتفاعها عن 148 سم عند الحارك' : 'Horses under 148cm at the withers'}
+                </p>
+              </div>
+              <Switch 
+                id="pony" 
+                checked={data.is_pony} 
+                onCheckedChange={(checked) => onChange({ is_pony: checked })} 
+              />
             </div>
-            <Switch 
-              id="pony" 
-              checked={data.is_pony} 
-              onCheckedChange={(checked) => onChange({ is_pony: checked })} 
-            />
           </div>
-        </div>
+        )}
       </div>
 
       {/* ========== CONFIRMATION DIALOGS ========== */}
