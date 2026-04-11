@@ -3834,15 +3834,15 @@ export const en = {
     },
     // Breeding method labels
     methods: {
-      natural: "Natural Cover",
-      ai_fresh: "Insemination (Fresh)",
-      ai_frozen: "Insemination (Frozen)",
+      natural: "Natural Cover (Live Cover)",
+      ai_fresh: "Artificial Insemination (Fresh)",
+      ai_frozen: "Artificial Insemination (Frozen)",
     },
     // Legacy attemptTypes kept for backward compat
     attemptTypes: {
-      natural: "Natural Cover",
-      aiFresh: "Insemination (Fresh)",
-      aiFrozen: "Insemination (Frozen)",
+      natural: "Natural Cover (Live Cover)",
+      aiFresh: "Artificial Insemination (Fresh)",
+      aiFrozen: "Artificial Insemination (Frozen)",
       embryoTransfer: "Embryo Transfer",
     },
     // Outcome labels
@@ -3865,6 +3865,13 @@ export const en = {
     connectedPartner: "Connected Partner",
     // Dialog titles
     addBreedingRecord: "Add Breeding Record",
+    selectMare: "Choose mare",
+    selectStallion: "Choose stallion",
+    selectMethod: "Choose method",
+    noMaresAvailable: "No eligible mares registered yet",
+    noStallionsAvailable: "No eligible stallions registered yet",
+    createMare: "Add new mare",
+    createStallion: "Add new stallion",
     addPregnancy: "Add Pregnancy Record",
     addEmbryoTransfer: "Add Embryo Transfer",
     addSemenBatch: "Add Semen Batch",

@@ -25,13 +25,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Heart, Info, Loader2 } from "lucide-react";
 
+export interface QuickCreateHorseDefaults {
+  gender?: "male" | "female";
+  age_category?: string;
+  breeding_role?: string;
+}
+
 interface QuickCreateHorseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => void;
+  defaults?: QuickCreateHorseDefaults;
 }
 
-export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickCreateHorseDialogProps) {
+export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults }: QuickCreateHorseDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { colors, breeds } = useHorseMasterData();
@@ -39,17 +46,19 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
   const [form, setForm] = useState({
     name: "",
     name_ar: "",
-    gender: "" as "" | "male" | "female",
+    gender: (defaults?.gender || "") as "" | "male" | "female",
     birth_date: "",
     breed_id: "",
     color_id: "",
   });
 
+  const genderLocked = !!defaults?.gender;
+
   const canSubmit = form.name.trim() && form.gender;
 
   const handleClose = () => {
     if (saving) return;
-    setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
+    setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
     onOpenChange(false);
   };
 
@@ -68,6 +77,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
           color_id: form.color_id || null,
           status: "intake_draft",
           tenant_id: activeTenant.tenant_id,
+          ...(defaults?.age_category ? { age_category: defaults.age_category } : {}),
+          ...(defaults?.breeding_role ? { breeding_role: defaults.breeding_role } : {}),
         })
         .select("id, name, name_ar, gender")
         .single();
@@ -75,7 +86,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
       if (error) throw error;
 
       toast.success(t('horses.addSuccess').replace('{{name}}', data.name));
-      setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
+      setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
       onOpenChange(false);
       onCreated(data);
     } catch (err: any) {
@@ -132,6 +143,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
               <Select
                 value={form.gender}
                 onValueChange={(v) => setForm(f => ({ ...f, gender: v as "male" | "female" }))}
+                disabled={genderLocked}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('horses.wizard.gender')} />
