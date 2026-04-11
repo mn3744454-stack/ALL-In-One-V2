@@ -173,6 +173,7 @@ export interface HorseData {
   pregnancy_months?: number | null;
   is_gelded?: boolean;
   breeding_role?: string | null;
+  is_pony?: boolean;
   height?: number | null;
   weight?: number | null;
   mane_marks?: string | null;
