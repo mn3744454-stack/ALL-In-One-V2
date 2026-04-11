@@ -77,6 +77,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
           color_id: form.color_id || null,
           status: "intake_draft",
           tenant_id: activeTenant.tenant_id,
+          ...(defaults?.age_category ? { age_category: defaults.age_category } : {}),
+          ...(defaults?.breeding_role ? { breeding_role: defaults.breeding_role } : {}),
         })
         .select("id, name, name_ar, gender")
         .single();
@@ -141,6 +143,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
               <Select
                 value={form.gender}
                 onValueChange={(v) => setForm(f => ({ ...f, gender: v as "male" | "female" }))}
+                disabled={genderLocked}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t('horses.wizard.gender')} />
