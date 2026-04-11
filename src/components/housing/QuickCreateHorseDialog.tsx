@@ -36,9 +36,11 @@ interface QuickCreateHorseDialogProps {
   onOpenChange: (open: boolean) => void;
   onCreated: (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => void;
   defaults?: QuickCreateHorseDefaults;
+  /** When true, shows only name + gender fields (breed/color/DOB hidden) */
+  minimal?: boolean;
 }
 
-export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults }: QuickCreateHorseDialogProps) {
+export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults, minimal }: QuickCreateHorseDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { colors, breeds } = useHorseMasterData();
@@ -99,7 +101,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className={minimal ? "sm:max-w-lg" : "sm:max-w-2xl"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-primary" />
@@ -136,8 +138,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
             </div>
           </div>
 
-          {/* Row 2: Gender + DOB */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Gender row — always visible */}
+          <div className={minimal ? "" : "grid grid-cols-1 sm:grid-cols-2 gap-4"}>
             <div className="space-y-2">
               <Label>{t('horses.wizard.gender')} *</Label>
               <Select
@@ -154,56 +156,61 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="qc-dob">{t('horses.wizard.birthDate')}</Label>
-              <Input
-                id="qc-dob"
-                type="date"
-                value={form.birth_date}
-                onChange={(e) => setForm(f => ({ ...f, birth_date: e.target.value }))}
-              />
-            </div>
+            {/* DOB — only in full mode */}
+            {!minimal && (
+              <div className="space-y-2">
+                <Label htmlFor="qc-dob">{t('horses.wizard.birthDate')}</Label>
+                <Input
+                  id="qc-dob"
+                  type="date"
+                  value={form.birth_date}
+                  onChange={(e) => setForm(f => ({ ...f, birth_date: e.target.value }))}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Row 3: Breed + Color */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{t('horses.wizard.breed')}</Label>
-              <Select
-                value={form.breed_id}
-                onValueChange={(v) => setForm(f => ({ ...f, breed_id: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('horses.wizard.selectBreed')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {breeds.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Breed + Color — only in full mode */}
+          {!minimal && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('horses.wizard.breed')}</Label>
+                <Select
+                  value={form.breed_id}
+                  onValueChange={(v) => setForm(f => ({ ...f, breed_id: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('horses.wizard.selectBreed')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {breeds.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('horses.wizard.color')}</Label>
+                <Select
+                  value={form.color_id}
+                  onValueChange={(v) => setForm(f => ({ ...f, color_id: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('horses.wizard.selectColor')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colors.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>{t('horses.wizard.color')}</Label>
-              <Select
-                value={form.color_id}
-                onValueChange={(v) => setForm(f => ({ ...f, color_id: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('horses.wizard.selectColor')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {colors.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
 
           {/* Amber hint */}
           <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
