@@ -44,12 +44,19 @@ export interface HorseWizardData {
   isRegistered: boolean;
   existingHorseId?: string;
   
-  // Basic info
+  // Step 2: Identity + Classification (core classification surface)
   name: string;
   name_ar: string;
   gender: "male" | "female";
   birth_date: string;
   birth_at: string; // ISO timestamp with timezone (combines date + time)
+  is_gelded: boolean;
+  breeding_role: 'broodmare' | 'breeding_stallion' | '';
+  is_pony: boolean;
+  is_pregnant: boolean;
+  pregnancy_months: number;
+  
+  // Step 3: Secondary details (breed, color, IDs)
   breed_id: string;
   color_id: string;
   age_category: string;
@@ -57,16 +64,12 @@ export interface HorseWizardData {
   passport_number: string;
   ueln: string;
   
-  // Details
+  // Step 4 (was Details): Location & housing
   branch_id: string;
   stable_id: string;
   housing_unit_id: string;
   housing_notes: string;
   status: "active" | "inactive";
-  is_pregnant: boolean;
-  pregnancy_months: number;
-  is_gelded: boolean;
-  breeding_role: 'broodmare' | '';
   
   // Physical
   height: string;
@@ -109,6 +112,11 @@ const initialData: HorseWizardData = {
   gender: "male",
   birth_date: "",
   birth_at: "",
+  is_gelded: false,
+  breeding_role: "",
+  is_pony: false,
+  is_pregnant: false,
+  pregnancy_months: 0,
   breed_id: "",
   color_id: "",
   age_category: "",
@@ -120,10 +128,6 @@ const initialData: HorseWizardData = {
   housing_unit_id: "",
   housing_notes: "",
   status: "active",
-  is_pregnant: false,
-  pregnancy_months: 0,
-  is_gelded: false,
-  breeding_role: "",
   height: "",
   weight: "",
   mane_marks: "",
@@ -169,6 +173,7 @@ export interface HorseData {
   pregnancy_months?: number | null;
   is_gelded?: boolean;
   breeding_role?: string | null;
+  is_pony?: boolean;
   height?: number | null;
   weight?: number | null;
   mane_marks?: string | null;
@@ -207,6 +212,11 @@ const mapHorseToWizardData = (horse: HorseData): HorseWizardData => ({
   gender: horse.gender as "male" | "female",
   birth_date: horse.birth_date || "",
   birth_at: horse.birth_at || "",
+  is_gelded: horse.is_gelded || false,
+  breeding_role: (horse.breeding_role as "broodmare" | "breeding_stallion" | "") || "",
+  is_pony: horse.is_pony || false,
+  is_pregnant: horse.is_pregnant || false,
+  pregnancy_months: horse.pregnancy_months || 0,
   breed_id: horse.breed_id || "",
   color_id: horse.color_id || "",
   age_category: horse.age_category || "",
@@ -218,10 +228,6 @@ const mapHorseToWizardData = (horse: HorseData): HorseWizardData => ({
   housing_unit_id: horse.housing_unit_id || "",
   housing_notes: horse.housing_notes || "",
   status: (horse.status as "active" | "inactive") || "active",
-  is_pregnant: horse.is_pregnant || false,
-  pregnancy_months: horse.pregnancy_months || 0,
-  is_gelded: horse.is_gelded || false,
-  breeding_role: (horse.breeding_role as "broodmare" | "") || "",
   height: horse.height?.toString() || "",
   weight: horse.weight?.toString() || "",
   mane_marks: horse.mane_marks || "",
@@ -374,6 +380,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         pregnancy_months: data.is_pregnant ? data.pregnancy_months : null,
         is_gelded: data.is_gelded,
         breeding_role: data.breeding_role || null,
+        is_pony: data.is_pony,
         height: data.height ? parseFloat(data.height) : null,
         weight: data.weight ? parseFloat(data.weight) : null,
         mane_marks: data.mane_marks || null,

@@ -2948,6 +2948,64 @@ export type Database = {
           },
         ]
       }
+      horse_classification_changes: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          field_name: string
+          horse_id: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name: string
+          horse_id: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          field_name?: string
+          horse_id?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horse_classification_changes_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_classification_changes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_classification_changes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       horse_colors: {
         Row: {
           created_at: string
@@ -3840,6 +3898,7 @@ export type Database = {
           id: string
           images: string[] | null
           is_gelded: boolean
+          is_pony: boolean
           is_pregnant: boolean
           legs_marks: string | null
           mane_marks: string | null
@@ -3893,6 +3952,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_gelded?: boolean
+          is_pony?: boolean
           is_pregnant?: boolean
           legs_marks?: string | null
           mane_marks?: string | null
@@ -3946,6 +4006,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           is_gelded?: boolean
+          is_pony?: boolean
           is_pregnant?: boolean
           legs_marks?: string | null
           mane_marks?: string | null
