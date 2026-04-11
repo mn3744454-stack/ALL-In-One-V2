@@ -17,11 +17,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -35,8 +36,10 @@ import { UnitTypeBadge } from "./UnitTypeBadge";
 import { OccupancyBadge } from "./OccupancyBadge";
 import { AssignHorseDialog } from "./AssignHorseDialog";
 import { AdmissionWizard } from "./AdmissionWizard";
+import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 import { LifecycleActionMenu, LifecycleStateBadge, type LifecycleBlocker } from "./LifecycleActionMenu";
 import { useUnitOccupants } from "@/hooks/housing/useUnitOccupants";
+import { useUnitHistory } from "@/hooks/housing/useUnitHistory";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { useI18n } from "@/i18n";
 import { useQuery } from "@tanstack/react-query";
@@ -44,8 +47,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { Plus, Home, Trees, BedDouble, Loader2, Pencil, Check, X, Wrench, Ban, CircleCheck, MoreVertical, AlertTriangle, ArrowRightLeft, LogIn } from "lucide-react";
+import {
+  Plus, Home, Trees, BedDouble, Loader2, Pencil, Check, X,
+  Wrench, Ban, CircleCheck, AlertTriangle, LogIn, Clock, Eye,
+  Box, HelpCircle
+} from "lucide-react";
 import type { HousingUnit } from "@/hooks/housing/useHousingUnits";
+
+// Room function types available for reclassification
+const ROOM_FUNCTION_OPTIONS = ['stall', 'storage', 'isolation_room'] as const;
 
 interface UnitDetailsSheetProps {
   unit: HousingUnit | null;
@@ -68,11 +78,19 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   const [isEditing, setIsEditing] = useState(false);
   const [editCode, setEditCode] = useState('');
   const [editName, setEditName] = useState('');
+  const [editUnitType, setEditUnitType] = useState('');
   const [showOccupiedWarning, setShowOccupiedWarning] = useState(false);
-  const [pendingEdit, setPendingEdit] = useState<{ code: string; name: string } | null>(null);
+  const [pendingEdit, setPendingEdit] = useState<{ code: string; name: string; unitType: string } | null>(null);
+
+  // Reclassification guardrail state
+  const [showReclassifyConfirm, setShowReclassifyConfirm] = useState(false);
+  const [pendingReclassify, setPendingReclassify] = useState<{ code: string; name: string; unitType: string } | null>(null);
 
   // Status change state
   const [statusChangeTarget, setStatusChangeTarget] = useState<{ status: string; warning: string } | null>(null);
+
+  // In-place boarding detail drill-down
+  const [boardingDetailAdmissionId, setBoardingDetailAdmissionId] = useState<string | null>(null);
 
   const {
     occupants,
@@ -81,6 +99,8 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     removeOrphanOccupant,
     isRemovingOrphan,
   } = useUnitOccupants(unit?.id);
+
+  const { history, isLoading: historyLoading } = useUnitHistory(unit?.id);
 
   const { updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
 
@@ -92,16 +112,21 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
       if (!tenantId || occupantHorseIds.length === 0) return {};
       const { data, error } = await supabase
         .from('boarding_admissions')
-        .select('id, horse_id, status, client:clients(name, name_ar)')
+        .select('id, horse_id, status, client:clients(name, name_ar), monthly_rate, daily_rate, rate_currency, admitted_at')
         .eq('tenant_id', tenantId)
         .eq('status', 'active')
         .in('horse_id', occupantHorseIds);
       if (error) return {};
-      const map: Record<string, { id: string; clientName?: string }> = {};
+      const map: Record<string, { id: string; clientName?: string; clientNameAr?: string; monthlyRate?: number | null; dailyRate?: number | null; currency?: string; admittedAt?: string }> = {};
       for (const a of (data || [])) {
         map[a.horse_id] = {
           id: a.id,
           clientName: (a.client as any)?.name,
+          clientNameAr: (a.client as any)?.name_ar,
+          monthlyRate: a.monthly_rate,
+          dailyRate: a.daily_rate,
+          currency: a.rate_currency,
+          admittedAt: a.admitted_at,
         };
       }
       return map;
@@ -164,12 +189,15 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     stall: Home,
     paddock: Trees,
     room: BedDouble,
+    storage: Box,
+    isolation_room: HelpCircle,
   };
   const Icon = iconMap[unit.unit_type] || Home;
 
   const handleStartEditing = () => {
     setEditCode(unit.code);
     setEditName(unit.name || unit.code);
+    setEditUnitType(unit.unit_type);
     setIsEditing(true);
   };
 
@@ -177,26 +205,48 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     setIsEditing(false);
     setEditCode('');
     setEditName('');
+    setEditUnitType('');
   };
 
   const handleSaveEdit = () => {
     const codeChanged = editCode !== unit.code;
     const nameChanged = editName !== (unit.name || unit.code);
-    if (!codeChanged && !nameChanged) {
+    const typeChanged = editUnitType !== unit.unit_type;
+
+    if (!codeChanged && !nameChanged && !typeChanged) {
       setIsEditing(false);
       return;
     }
-    if (isOccupied) {
-      setPendingEdit({ code: editCode, name: editName });
+
+    // Guardrail: block storage conversion when occupied
+    if (typeChanged && editUnitType === 'storage' && isOccupied) {
+      return; // blocked — UI already shows tooltip
+    }
+
+    // Guardrail: confirm any other occupied room-function change
+    if (typeChanged && isOccupied) {
+      setPendingReclassify({ code: editCode, name: editName, unitType: editUnitType });
+      setShowReclassifyConfirm(true);
+      return;
+    }
+
+    // Warn about code/name change on occupied room (existing behavior)
+    if ((codeChanged || nameChanged) && isOccupied && !typeChanged) {
+      setPendingEdit({ code: editCode, name: editName, unitType: editUnitType });
       setShowOccupiedWarning(true);
       return;
     }
-    commitEdit(editCode, editName);
+
+    commitEdit(editCode, editName, editUnitType);
   };
 
-  const commitEdit = async (code: string, name: string) => {
+  const commitEdit = async (code: string, name: string, unitType: string) => {
     try {
-      await updateUnit({ id: unit.id, code, name });
+      const updateData: any = { id: unit.id, code, name };
+      if (unitType !== unit.unit_type) {
+        updateData.unit_type = unitType;
+      }
+      await updateUnit(updateData);
       setIsEditing(false);
     } catch {
       // handled by mutation
@@ -205,9 +255,16 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
 
   const handleConfirmOccupiedEdit = async () => {
     if (!pendingEdit) return;
-    await commitEdit(pendingEdit.code, pendingEdit.name);
+    await commitEdit(pendingEdit.code, pendingEdit.name, pendingEdit.unitType);
     setPendingEdit(null);
     setShowOccupiedWarning(false);
+  };
+
+  const handleConfirmReclassify = async () => {
+    if (!pendingReclassify) return;
+    await commitEdit(pendingReclassify.code, pendingReclassify.name, pendingReclassify.unitType);
+    setPendingReclassify(null);
+    setShowReclassifyConfirm(false);
   };
 
   const handleOrphanRemoveConfirm = async () => {
@@ -234,6 +291,15 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     setWizardOpen(true);
   };
 
+  const getUnitTypeLabelForSelect = (type: string) => {
+    const map: Record<string, string> = {
+      stall: t('housing.units.types.stall'),
+      storage: t('housing.create.roomStorage'),
+      isolation_room: t('housing.create.roomIsolation'),
+    };
+    return map[type] || type;
+  };
+
   const getStatusBadge = () => {
     if (isOutOfService) {
       return (
@@ -257,11 +323,12 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
   return (
     <>
       <Sheet open={open} onOpenChange={(o) => { if (!o) handleCancelEditing(); onOpenChange(o); }}>
-        <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-md">
-          <SheetHeader>
+        <SheetContent side={dir === 'rtl' ? 'left' : 'right'} className="w-full sm:max-w-md p-0 flex flex-col">
+          {/* ── Header ── */}
+          <SheetHeader className="p-6 pb-0">
             <div className="flex items-center gap-3">
               <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
+                "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
                 isOutOfService ? "bg-destructive/10" : isMaintenance ? "bg-muted" : "bg-primary/10"
               )}>
                 <Icon className={cn(
@@ -269,15 +336,15 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                   isOutOfService ? "text-destructive" : isMaintenance ? "text-muted-foreground" : "text-primary"
                 )} />
               </div>
-              <div className="flex-1">
-                <SheetTitle>{displayName}</SheetTitle>
+              <div className="flex-1 min-w-0">
+                <SheetTitle className="truncate">{displayName}</SheetTitle>
                 <SheetDescription>{unit.code}</SheetDescription>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 shrink-0">
                 {canManage && !isEditing && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={handleStartEditing}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleStartEditing}>
                         <Pencil className="w-3.5 h-3.5" />
                       </Button>
                     </TooltipTrigger>
@@ -296,143 +363,198 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                     onDeactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: false }); onOpenChange(false); }}
                     onReactivate={async () => { await toggleUnitActive({ id: unit.id, isActive: true }); }}
                     onRestore={async () => { await restoreUnit(unit.id); }}
-                    extraItems={
-                      <>
-                        {unit.status !== 'available' && (
-                          <DropdownMenuItem onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}>
-                            <CircleCheck className="w-4 h-4 me-2 text-emerald-600" />
-                            {t('housing.units.setAvailable')}
-                          </DropdownMenuItem>
-                        )}
-                        {unit.status !== 'maintenance' && !isOccupied && (
-                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                            status: 'maintenance',
-                            warning: t('housing.units.maintenanceWarning'),
-                          })}>
-                            <Wrench className="w-4 h-4 me-2 text-muted-foreground" />
-                            {t('housing.units.setMaintenance')}
-                          </DropdownMenuItem>
-                        )}
-                        {unit.status !== 'out_of_service' && !isOccupied && (
-                          <DropdownMenuItem onClick={() => setStatusChangeTarget({
-                            status: 'out_of_service',
-                            warning: t('housing.units.outOfServiceWarning'),
-                          })}>
-                            <Ban className="w-4 h-4 me-2 text-destructive" />
-                            {t('housing.units.setOutOfService')}
-                          </DropdownMenuItem>
-                        )}
-                      </>
-                    }
                   />
                 )}
               </div>
             </div>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
-            {/* Inline edit fields */}
-            {isEditing && (
-              <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('housing.units.roomCode')}</Label>
-                  <Input value={editCode} onChange={(e) => setEditCode(e.target.value)} className="h-8 text-sm" />
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="p-6 space-y-6">
+
+              {/* ═══════════════════════════════════════════════════════ */}
+              {/* SECTION 1 — Room Information & Controls                */}
+              {/* ═══════════════════════════════════════════════════════ */}
+              <section>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('housing.units.sectionRoomInfo' as any)}
+                </h3>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <UnitTypeBadge type={unit.unit_type} />
+                  <OccupancyBadge
+                    occupancy={unit.occupancy}
+                    current={unit.current_occupants || 0}
+                    capacity={unit.capacity}
+                    status={unit.status}
+                  />
+                  {getStatusBadge()}
+                  {unit.is_demo && <Badge variant="outline">Demo</Badge>}
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">{t('housing.units.roomName')}</Label>
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-sm" />
-                </div>
-                <div className="flex gap-2 justify-end">
-                  <Button variant="ghost" size="sm" onClick={handleCancelEditing}>
-                    <X className="w-3.5 h-3.5 me-1" /> {t('common.cancel')}
-                  </Button>
-                  <Button size="sm" onClick={handleSaveEdit}>
-                    <Check className="w-3.5 h-3.5 me-1" /> {t('common.save')}
-                  </Button>
-                </div>
-              </div>
-            )}
 
-            {/* Unit Info */}
-            <div className="flex flex-wrap gap-2">
-              <UnitTypeBadge type={unit.unit_type} />
-              <OccupancyBadge
-                occupancy={unit.occupancy}
-                current={unit.current_occupants || 0}
-                capacity={unit.capacity}
-                status={unit.status}
-              />
-              {getStatusBadge()}
-              {unit.is_demo && (
-                <Badge variant="outline">Demo</Badge>
-              )}
-            </div>
-
-            {/* Unavailable notice */}
-            {isUnavailable && (
-              <div className={cn(
-                "rounded-lg p-3 text-sm",
-                isOutOfService ? "bg-destructive/5 text-destructive border border-destructive/20" : "bg-muted text-muted-foreground border"
-              )}>
-                {t('housing.units.unitUnavailable')}
-              </div>
-            )}
-
-            {unit.area && (
-              <div>
-                <p className="text-sm text-muted-foreground">{t('housing.areas.title')}</p>
-                <p className="font-medium">
-                  <BilingualName name={unit.area.name} nameAr={null} inline />
-                </p>
-              </div>
-            )}
-
-            {unit.notes && (
-              <div>
-                <p className="text-sm text-muted-foreground">{t('common.notes')}</p>
-                <p className="text-sm">{unit.notes}</p>
-              </div>
-            )}
-
-            <Separator />
-
-            {/* Occupants Section */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">{t('housing.occupants.title')}</h3>
-                {canManage && canAssign && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => setAssignDialogOpen(true)}
-                  >
-                    <Plus className="w-4 h-4" />
-                    {t('housing.occupants.admitHorse')}
-                  </Button>
+                {/* Unavailable notice */}
+                {isUnavailable && (
+                  <div className={cn(
+                    "rounded-lg p-3 text-sm mb-3",
+                    isOutOfService ? "bg-destructive/5 text-destructive border border-destructive/20" : "bg-muted text-muted-foreground border"
+                  )}>
+                    {t('housing.units.unitUnavailable')}
+                  </div>
                 )}
-              </div>
 
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : occupants.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Home className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>{t('housing.occupants.noOccupants')}</p>
+                {/* Area / notes */}
+                {unit.area && (
+                  <div className="mb-2">
+                    <p className="text-sm text-muted-foreground">{t('housing.areas.title')}</p>
+                    <p className="font-medium text-sm">
+                      <BilingualName name={unit.area.name} nameAr={null} inline />
+                    </p>
+                  </div>
+                )}
+                {unit.notes && (
+                  <div className="mb-2">
+                    <p className="text-sm text-muted-foreground">{t('common.notes')}</p>
+                    <p className="text-sm">{unit.notes}</p>
+                  </div>
+                )}
+
+                {/* Inline edit form */}
+                {isEditing && (
+                  <div className="space-y-3 p-3 rounded-lg border bg-muted/30 mt-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.units.roomCode')}</Label>
+                      <Input value={editCode} onChange={(e) => setEditCode(e.target.value)} className="h-8 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.units.roomName')}</Label>
+                      <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-8 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">{t('housing.units.roomFunction' as any)}</Label>
+                      <Select value={editUnitType} onValueChange={setEditUnitType}>
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROOM_FUNCTION_OPTIONS.map((opt) => {
+                            const isBlocked = opt === 'storage' && isOccupied;
+                            return (
+                              <SelectItem key={opt} value={opt} disabled={isBlocked}>
+                                {getUnitTypeLabelForSelect(opt)}
+                                {isBlocked && (
+                                  <span className="text-xs text-muted-foreground ms-1">
+                                    — {t('housing.units.reclassifyBlockedStorage' as any)}
+                                  </span>
+                                )}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="ghost" size="sm" onClick={handleCancelEditing}>
+                        <X className="w-3.5 h-3.5 me-1" /> {t('common.cancel')}
+                      </Button>
+                      <Button size="sm" onClick={handleSaveEdit}>
+                        <Check className="w-3.5 h-3.5 me-1" /> {t('common.save')}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Room status action chips — surfaced directly */}
+                {canManage && !isEditing && (
+                  <div className="mt-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">{t('housing.units.roomStatusActions' as any)}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {unit.status !== 'available' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1.5"
+                          onClick={() => setStatusChangeTarget({ status: 'available', warning: '' })}
+                        >
+                          <CircleCheck className="w-3 h-3 text-emerald-600" />
+                          {t('housing.units.setAvailable')}
+                        </Button>
+                      )}
+                      {unit.status !== 'maintenance' && !isOccupied && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1.5"
+                          onClick={() => setStatusChangeTarget({
+                            status: 'maintenance',
+                            warning: t('housing.units.maintenanceWarning'),
+                          })}
+                        >
+                          <Wrench className="w-3 h-3 text-muted-foreground" />
+                          {t('housing.units.setMaintenance')}
+                        </Button>
+                      )}
+                      {unit.status !== 'out_of_service' && !isOccupied && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1.5"
+                          onClick={() => setStatusChangeTarget({
+                            status: 'out_of_service',
+                            warning: t('housing.units.outOfServiceWarning'),
+                          })}
+                        >
+                          <Ban className="w-3 h-3 text-destructive" />
+                          {t('housing.units.setOutOfService')}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <Separator />
+
+              {/* ═══════════════════════════════════════════════════════ */}
+              {/* SECTION 2 — Current Occupant / Boarding Snapshot       */}
+              {/* ═══════════════════════════════════════════════════════ */}
+              <section>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {t('housing.units.sectionCurrentOccupant' as any)}
+                  </h3>
                   {canManage && canAssign && (
                     <Button
-                      variant="link"
-                      className="mt-2"
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 h-7 text-xs"
                       onClick={() => setAssignDialogOpen(true)}
                     >
-                      {t('housing.occupants.admitFirst')}
+                      <Plus className="w-3 h-3" />
+                      {t('housing.occupants.admitHorse')}
                     </Button>
                   )}
                 </div>
-              ) : (
-                <ScrollArea className="h-[300px]">
+
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : occupants.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Home className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>{t('housing.occupants.noOccupants')}</p>
+                    {canManage && canAssign && (
+                      <Button
+                        variant="link"
+                        className="mt-2"
+                        onClick={() => setAssignDialogOpen(true)}
+                      >
+                        {t('housing.occupants.admitFirst')}
+                      </Button>
+                    )}
+                  </div>
+                ) : (
                   <div className="space-y-3">
                     {occupants.map((occupant) => {
                       const horseName = language === 'ar' && occupant.horse?.name_ar
@@ -472,16 +594,20 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                             </div>
                           </div>
 
-                          {/* Admission status badge */}
-                          <div className="mt-2 flex items-center gap-2">
+                          {/* Admission status badge + client */}
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
                             {admissionInfo ? (
-                              <Badge variant="outline" className="text-[10px] gap-1 text-emerald-700 border-emerald-300 bg-emerald-50">
-                                <Check className="w-2.5 h-2.5" />
-                                {t('housing.occupants.activeAdmission')}
+                              <>
+                                <Badge variant="outline" className="text-[10px] gap-1 text-emerald-700 border-emerald-300 bg-emerald-50">
+                                  <Check className="w-2.5 h-2.5" />
+                                  {t('housing.occupants.activeAdmission')}
+                                </Badge>
                                 {admissionInfo.clientName && (
-                                  <span className="text-muted-foreground">· {admissionInfo.clientName}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    · {language === 'ar' && admissionInfo.clientNameAr ? admissionInfo.clientNameAr : admissionInfo.clientName}
+                                  </span>
                                 )}
-                              </Badge>
+                              </>
                             ) : (
                               <Badge variant="outline" className="text-[10px] gap-1 text-amber-700 border-amber-300 bg-amber-50">
                                 <AlertTriangle className="w-2.5 h-2.5" />
@@ -489,6 +615,31 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                               </Badge>
                             )}
                           </div>
+
+                          {/* Rate snapshot if available */}
+                          {admissionInfo && (admissionInfo.monthlyRate || admissionInfo.dailyRate) && (
+                            <div className="mt-2 text-xs text-muted-foreground">
+                              {admissionInfo.monthlyRate
+                                ? `${admissionInfo.monthlyRate} ${admissionInfo.currency || 'SAR'} / mo`
+                                : `${admissionInfo.dailyRate} ${admissionInfo.currency || 'SAR'} / day`
+                              }
+                            </div>
+                          )}
+
+                          {/* View Boarding Details CTA */}
+                          {admissionInfo && (
+                            <div className="mt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs gap-1.5 w-full"
+                                onClick={() => setBoardingDetailAdmissionId(admissionInfo.id)}
+                              >
+                                <Eye className="w-3 h-3" />
+                                {t('housing.units.viewBoardingDetails' as any)}
+                              </Button>
+                            </div>
+                          )}
 
                           {/* Orphan repair actions — role-gated, visually distinct */}
                           {isOrphan && canManage && (
@@ -524,12 +675,66 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
                       );
                     })}
                   </div>
-                </ScrollArea>
-              )}
+                )}
+              </section>
+
+              <Separator />
+
+              {/* ═══════════════════════════════════════════════════════ */}
+              {/* SECTION 3 — Room History                               */}
+              {/* ═══════════════════════════════════════════════════════ */}
+              <section>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('housing.units.sectionRoomHistory' as any)}
+                </h3>
+
+                {historyLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Clock className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                    <p className="text-sm">{t('housing.units.noHistoryYet' as any)}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {history.map((entry) => {
+                      const hName = language === 'ar' && entry.horse?.name_ar
+                        ? entry.horse.name_ar
+                        : entry.horse?.name || '—';
+                      return (
+                        <div key={entry.id} className="flex items-center gap-3 p-2 rounded-md border bg-card/50">
+                          <Avatar className="w-7 h-7">
+                            <AvatarImage src={entry.horse?.avatar_url || ''} />
+                            <AvatarFallback className="text-[10px]">
+                              {entry.horse?.name?.[0]?.toUpperCase() || 'H'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{hName}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatStandardDate(entry.since)} — {formatStandardDate(entry.until)}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+
             </div>
-          </div>
+          </ScrollArea>
         </SheetContent>
       </Sheet>
+
+      {/* In-place boarding detail drill-down */}
+      <AdmissionDetailSheet
+        admissionId={boardingDetailAdmissionId}
+        open={!!boardingDetailAdmissionId}
+        onOpenChange={(o) => { if (!o) setBoardingDetailAdmissionId(null); }}
+      />
 
       {/* Occupied Room Rename Warning */}
       <AlertDialog open={showOccupiedWarning} onOpenChange={(o) => { if (!o) { setShowOccupiedWarning(false); setPendingEdit(null); } }}>
@@ -546,6 +751,27 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmOccupiedEdit}>
               {t('housing.units.confirmRename')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reclassification Confirmation */}
+      <AlertDialog open={showReclassifyConfirm} onOpenChange={(o) => { if (!o) { setShowReclassifyConfirm(false); setPendingReclassify(null); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('housing.units.reclassifyOccupiedTitle' as any)}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(t('housing.units.reclassifyOccupiedDesc' as any) as string)
+                .replace('{unit}', unit.code)
+                .replace('{count}', String(occupants.length))
+                .replace('{type}', pendingReclassify ? getUnitTypeLabelForSelect(pendingReclassify.unitType) : '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmReclassify}>
+              {t('housing.units.confirmReclassify' as any)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
