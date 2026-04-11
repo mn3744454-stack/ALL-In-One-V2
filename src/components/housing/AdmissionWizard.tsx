@@ -733,7 +733,16 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       open={packageCreateOpen}
       onOpenChange={setPackageCreateOpen}
       onCreated={(newPlan) => {
-        handlePlanSelect(newPlan.id);
+        // Directly set form from the returned plan data since activePlans
+        // query may not have refetched yet
+        setForm(f => ({
+          ...f,
+          planId: newPlan.id,
+          billingCycle: newPlan.billing_cycle,
+          rateCurrency: newPlan.currency,
+          monthlyRate: newPlan.billing_cycle === 'monthly' ? String(newPlan.base_price) : f.monthlyRate,
+          dailyRate: newPlan.billing_cycle === 'daily' ? String(newPlan.base_price) : f.dailyRate,
+        }));
       }}
     />
   );
