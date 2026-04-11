@@ -257,7 +257,7 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
         <div className="space-y-2">
           <Label>{isRTL ? 'الجنس' : 'Sex'} *</Label>
           <Select 
-            value={data.gender || undefined} 
+            value={data.gender || "__neutral__"} 
             onValueChange={handleGenderChange}
            >
             <SelectTrigger>
