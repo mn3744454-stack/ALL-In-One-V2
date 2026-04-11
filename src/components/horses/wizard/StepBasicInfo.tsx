@@ -157,9 +157,6 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
       onChange({ age_category: value as AgeCategory });
     }
   };
-    }
-    onChange(updates);
-  }, [data.breeding_role, onChange]);
 
   // Gelding toggle with Tier 4 confirmation
   const handleGeldingToggle = (checked: boolean) => {
