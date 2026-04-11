@@ -297,11 +297,15 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         
         setData(wizardData);
         setCurrentStep(1); // Skip registration step
+        scrollPositionsRef.current.clear();
+        visitedStepsRef.current.clear();
       } else if (mode === "create" && open) {
         // Regenerate temp UUID for fresh create session
         setMediaTempUUID(crypto.randomUUID());
         setData(initialData);
         setCurrentStep(0);
+        scrollPositionsRef.current.clear();
+        visitedStepsRef.current.clear();
       }
     };
     
