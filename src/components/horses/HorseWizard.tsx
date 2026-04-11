@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +47,7 @@ export interface HorseWizardData {
   // Step 2: Identity + Classification (core classification surface)
   name: string;
   name_ar: string;
-  gender: "male" | "female";
+  gender: "male" | "female" | "";
   age_category: string;
   birth_date: string;
   birth_at: string; // ISO timestamp with timezone (combines date + time)
@@ -109,7 +109,7 @@ const initialData: HorseWizardData = {
   isRegistered: false,
   name: "",
   name_ar: "",
-  gender: "male",
+  gender: "",
   birth_date: "",
   birth_at: "",
   is_gelded: false,
@@ -209,7 +209,7 @@ const mapHorseToWizardData = (horse: HorseData): HorseWizardData => ({
   existingHorseId: horse.id,
   name: horse.name || "",
   name_ar: horse.name_ar || "",
-  gender: horse.gender as "male" | "female",
+  gender: (horse.gender as "male" | "female" | "") || "",
   birth_date: horse.birth_date || "",
   birth_at: horse.birth_at || "",
   is_gelded: horse.is_gelded || false,
@@ -262,6 +262,12 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   // Single source of truth: stable temp UUID for entire wizard session (create mode only)
   // Initialized once on mount, regenerated only when wizard opens fresh in create mode
   const [mediaTempUUID, setMediaTempUUID] = useState<string>(() => crypto.randomUUID());
+  
+  // --- Scroll memory ---
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionsRef = useRef<Map<number, number>>(new Map());
+  const visitedStepsRef = useRef<Set<number>>(new Set());
+  const prevStepRef = useRef<number>(currentStep);
   
   // Translated steps
   const STEPS = useMemo(() => 
@@ -334,17 +340,51 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
     }
   };
 
+  const saveScrollPosition = useCallback(() => {
+    if (scrollContainerRef.current) {
+      scrollPositionsRef.current.set(currentStep, scrollContainerRef.current.scrollTop);
+    }
+  }, [currentStep]);
+
   const goNext = () => {
     if (currentStep < STEPS.length - 1) {
+      saveScrollPosition();
       setCurrentStep((prev) => prev + 1);
     }
   };
 
   const goBack = () => {
     if (currentStep > 0) {
+      saveScrollPosition();
       setCurrentStep((prev) => prev - 1);
     }
   };
+
+  const goToStep = (index: number) => {
+    if (index <= currentStep) {
+      saveScrollPosition();
+      setCurrentStep(index);
+    }
+  };
+
+  // Restore or reset scroll when step changes
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+    const el = scrollContainerRef.current;
+    const isFirstVisit = !visitedStepsRef.current.has(currentStep);
+    
+    if (isFirstVisit) {
+      el.scrollTop = 0;
+      visitedStepsRef.current.add(currentStep);
+    } else {
+      const saved = scrollPositionsRef.current.get(currentStep) || 0;
+      requestAnimationFrame(() => {
+        el.scrollTop = saved;
+      });
+    }
+    prevStepRef.current = currentStep;
+  }, [currentStep]);
+  
 
   const handleSave = async () => {
     if (!activeTenant) {
@@ -561,7 +601,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         {STEPS.map((step, index) => (
           <button
             key={step.id}
-            onClick={() => index <= currentStep && setCurrentStep(index)}
+            onClick={() => goToStep(index)}
             disabled={index > currentStep}
             className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
               index === currentStep
@@ -577,7 +617,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       </div>
 
       {/* Step Content */}
-      <div className="flex-1 overflow-y-auto min-h-0 px-1">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto min-h-0 px-1">
         {renderStep()}
       </div>
 
