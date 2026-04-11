@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -46,6 +47,7 @@ export const ServiceCard = ({
 }: ServiceCardProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { t, lang } = useI18n();
+  const tenantCurrency = useTenantCurrency();
 
   const handleUpdate = async (data: CreateServiceInput) => {
     await onUpdate({ ...data, id: service.id });
@@ -98,7 +100,7 @@ export const ServiceCard = ({
                 )}
                 {service.unit_price != null && (
                   <span className="text-sm font-medium text-gold">
-                    {service.unit_price} SAR
+                    {service.unit_price} {tenantCurrency}
                   </span>
                 )}
                 {service.price_display && !service.unit_price && (
@@ -109,7 +111,7 @@ export const ServiceCard = ({
                 {linkedPlanCount > 0 && (
                   <Badge variant="secondary" className="text-xs gap-1">
                     <Layers className="w-3 h-3" />
-                    {linkedPlanCount} {t('services.table.plans')}
+                    {linkedPlanCount} {t('services.packages.linkedPackages')}
                   </Badge>
                 )}
               </div>

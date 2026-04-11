@@ -128,8 +128,8 @@ export const ServiceFormDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle className="text-navy">
             {isEdit ? t("services.form.editTitle") : t("services.form.addTitle")}
           </DialogTitle>
@@ -141,7 +141,8 @@ export const ServiceFormDialog = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 space-y-4">
             {/* Name EN */}
             <FormField
               control={form.control}
@@ -341,8 +342,10 @@ export const ServiceFormDialog = ({
                 )}
               />
             </div>
+            </div>
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4">
+            {/* Sticky footer */}
+            <div className="shrink-0 border-t border-border px-6 py-4 flex flex-col-reverse sm:flex-row gap-2">
               <Button
                 type="button"
                 variant="outline"

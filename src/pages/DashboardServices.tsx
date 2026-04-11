@@ -48,7 +48,7 @@ const DashboardServices = () => {
 
   const activeTab = useMemo(() => {
     const urlTab = searchParams.get('tab');
-    if (urlTab === 'plans') return 'plans';
+    if (urlTab === 'plans' || urlTab === 'packages') return 'packages';
     return 'catalog';
   }, [searchParams]);
 
@@ -158,7 +158,7 @@ const DashboardServices = () => {
               <Store className="h-4 w-4" />
               {t('services.tabs.catalog')}
             </TabsTrigger>
-            <TabsTrigger value="plans" className="gap-2">
+            <TabsTrigger value="packages" className="gap-2">
               <Layers className="h-4 w-4" />
               {t('services.tabs.plans')}
             </TabsTrigger>
@@ -194,7 +194,7 @@ const DashboardServices = () => {
             />
           </TabsContent>
 
-          <TabsContent value="plans" className="mt-0">
+          <TabsContent value="packages" className="mt-0">
             <ServicePlansManager />
           </TabsContent>
         </Tabs>
