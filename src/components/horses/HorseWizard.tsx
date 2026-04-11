@@ -48,6 +48,7 @@ export interface HorseWizardData {
   name: string;
   name_ar: string;
   gender: "male" | "female";
+  age_category: string;
   birth_date: string;
   birth_at: string; // ISO timestamp with timezone (combines date + time)
   is_gelded: boolean;
@@ -59,7 +60,6 @@ export interface HorseWizardData {
   // Step 3: Secondary details (breed, color, IDs)
   breed_id: string;
   color_id: string;
-  age_category: string;
   microchip_number: string;
   passport_number: string;
   ueln: string;

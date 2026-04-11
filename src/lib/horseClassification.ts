@@ -30,6 +30,8 @@ export interface AgeParts {
   totalMonths: number;
 }
 
+export type AgeCategory = 'colt' | 'horse' | 'filly' | 'mare';
+
 export interface HorseClassificationInput {
   gender: 'male' | 'female' | string;
   birth_date?: string | null;
@@ -37,6 +39,7 @@ export interface HorseClassificationInput {
   is_gelded?: boolean;
   breeding_role?: 'broodmare' | 'breeding_stallion' | string | null;
   is_pony?: boolean;
+  age_category?: AgeCategory | string | null;
 }
 
 // ============= Age Calculation =============
@@ -157,39 +160,50 @@ export function isAdultHorse(horse: HorseClassificationInput): boolean {
 }
 
 /**
- * Determine the horse type/classification based on gender, age, and explicit designations.
- * 
- * Rules (updated — no more auto-stallion):
- * - Male + is_gelded → Gelding (regardless of age or designation)
- * - Male + breeding_role = 'breeding_stallion' → Stallion  
- * - Male + age < 4 years → Colt
- * - Male + age >= 4 years (no breeding designation) → Horse (حصان)
- * - Female + breeding_role = 'broodmare' → Broodmare
- * - Female + age < 4 years → Filly
- * - Female + age >= 4 years (no breeding designation) → Mare
+ * Determine the horse type/classification.
+ * Priority chain:
+ * 1. is_gelded → Gelding
+ * 2. breeding_role → Stallion / Broodmare
+ * 3. age_category (explicit user choice) → colt/horse/filly/mare
+ * 4. birth-date-derived fallback when age_category is empty
  */
 export function getHorseTypeLabel(horse: HorseClassificationInput): HorseType | null {
   if (!horse.gender) return null;
   
-  const ageParts = getCurrentAgeParts(horse);
-  const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
-  
   if (horse.gender === 'male') {
-    // Gelding takes priority — irreversible surgical state
     if (horse.is_gelded) return 'gelding';
-    // Explicit breeding designation
     if (horse.breeding_role === 'breeding_stallion') return 'stallion';
-    // Age-based classification — adult males without designation are "horse" (حصان)
+    // Explicit age_category takes priority over DOB derivation
+    if (horse.age_category === 'colt') return 'colt';
+    if (horse.age_category === 'horse') return 'horse';
+    // Fallback to DOB
+    const ageParts = getCurrentAgeParts(horse);
+    const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
     return isAdult ? 'horse' : 'colt';
   }
   
   if (horse.gender === 'female') {
-    // Explicit breeding designation takes priority for adult females
     if (horse.breeding_role === 'broodmare') return 'broodmare';
-    // Age-based classification
+    if (horse.age_category === 'filly') return 'filly';
+    if (horse.age_category === 'mare') return 'mare';
+    const ageParts = getCurrentAgeParts(horse);
+    const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
     return isAdult ? 'mare' : 'filly';
   }
   
+  return null;
+}
+
+/**
+ * Get the DOB-recommended age_category value for a horse.
+ * Returns the raw AgeCategory string (not the full HorseType with breeding/gelding).
+ */
+export function getRecommendedAgeCategory(horse: HorseClassificationInput): AgeCategory | null {
+  if (!horse.gender) return null;
+  const ageParts = getCurrentAgeParts(horse);
+  const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
+  if (horse.gender === 'male') return isAdult ? 'horse' : 'colt';
+  if (horse.gender === 'female') return isAdult ? 'mare' : 'filly';
   return null;
 }
 
