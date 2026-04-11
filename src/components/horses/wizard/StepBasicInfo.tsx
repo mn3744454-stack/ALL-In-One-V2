@@ -44,35 +44,58 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
   const [broodmareConfirmOpen, setBroodmareConfirmOpen] = useState(false);
   const [learnMoreOpen, setLearnMoreOpen] = useState(false);
 
+  // Auto-fill age_category from DOB when user hasn't explicitly chosen yet
+  const [userExplicitlyChoseAge, setUserExplicitlyChoseAge] = useState(!!data.age_category);
+
   // Calculate live age and classification
+  const classificationInput = useMemo(() => ({
+    gender: data.gender,
+    birth_date: data.birth_date,
+    birth_at: data.birth_at,
+    is_gelded: data.is_gelded,
+    breeding_role: data.breeding_role,
+    is_pony: data.is_pony,
+    age_category: data.age_category,
+  }), [data.gender, data.birth_date, data.birth_at, data.is_gelded, data.breeding_role, data.is_pony, data.age_category]);
+
   const classificationInfo = useMemo(() => {
-    const input = {
-      gender: data.gender,
-      birth_date: data.birth_date,
-      birth_at: data.birth_at,
-      is_gelded: data.is_gelded,
-      breeding_role: data.breeding_role,
-      is_pony: data.is_pony,
-    };
-    const ageParts = getCurrentAgeParts(input);
+    const ageParts = getCurrentAgeParts(classificationInput);
     const formattedAge = formatCurrentAge(ageParts, { includeHours: true });
-    const actualType = getHorseTypeLabel(input);
-    const recommendedType = getRecommendedClassification(input);
+    const actualType = getHorseTypeLabel(classificationInput);
+    const recommendedType = getRecommendedClassification(classificationInput);
+    const recommendedAgeCategory = getRecommendedAgeCategory(classificationInput);
     const actualBadge = getHorseTypeBadgeProps(actualType);
     const recommendedBadge = getHorseTypeBadgeProps(recommendedType);
-    const isAdult = isAdultHorse(input);
+    const isAdult = isAdultHorse(classificationInput);
     
-    // Check if there's a mismatch (breeding designation on a young horse)
-    const hasMismatch = !isAdult && (
+    // Mismatch: user's age_category differs from DOB recommendation
+    const hasAgeMismatch = !!data.birth_date && !!data.age_category && !!recommendedAgeCategory 
+      && data.age_category !== recommendedAgeCategory;
+    
+    // Breeding designation on young horse
+    const hasBreedingMismatch = !isAdult && (
       data.breeding_role === 'breeding_stallion' || 
       data.breeding_role === 'broodmare'
     );
     
+    const hasMismatch = hasAgeMismatch || hasBreedingMismatch;
+    
     return { 
-      formattedAge, actualType, recommendedType, actualBadge, recommendedBadge,
-      hasBirthDate: !!data.birth_date, isAdult, hasMismatch, ageParts 
+      formattedAge, actualType, recommendedType, recommendedAgeCategory,
+      actualBadge, recommendedBadge,
+      hasBirthDate: !!data.birth_date, isAdult, hasMismatch, hasAgeMismatch, hasBreedingMismatch, ageParts 
     };
-  }, [data.gender, data.birth_date, data.birth_at, data.is_gelded, data.breeding_role, data.is_pony]);
+  }, [classificationInput, data.birth_date, data.age_category, data.breeding_role]);
+
+  // Auto-select age_category from DOB when user hasn't explicitly chosen
+  useEffect(() => {
+    if (!userExplicitlyChoseAge && data.birth_date && data.gender) {
+      const recommended = getRecommendedAgeCategory({ gender: data.gender, birth_date: data.birth_date });
+      if (recommended && data.age_category !== recommended) {
+        onChange({ age_category: recommended });
+      }
+    }
+  }, [data.birth_date, data.gender, userExplicitlyChoseAge]);
 
   // Extract time from birth_at for the time input
   const birthTime = useMemo(() => {
