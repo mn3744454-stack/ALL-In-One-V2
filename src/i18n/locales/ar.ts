@@ -3878,7 +3878,7 @@ export const ar = {
     selectStallion: "اختر الفحل",
     selectMethod: "اختر الطريقة",
     noMaresAvailable: "لا توجد أفراس مؤهلة للتربية بعد",
-    noStallionsAvailable: "لا يوجد فحول مؤهلين للتربية بعد",
+    noStallionsAvailable: "لا يوجد فحول مؤهلة للتربية بعد",
     createMare: "إضافة فرس جديدة",
     createStallion: "إضافة فحل جديد",
     addPregnancy: "إضافة سجل حمل",
