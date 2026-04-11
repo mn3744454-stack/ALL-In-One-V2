@@ -144,6 +144,20 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
       updates.is_pregnant = false;
       updates.pregnancy_months = 0;
     }
+    // Reset age_category to DOB-recommended value for new gender
+    const recommended = getRecommendedAgeCategory({ gender: v, birth_date: data.birth_date });
+    updates.age_category = recommended || '';
+    setUserExplicitlyChoseAge(false);
+    onChange(updates);
+  }, [data.breeding_role, data.birth_date, onChange]);
+
+  const handleAgeCategoryChange = (value: string) => {
+    if (value) {
+      setUserExplicitlyChoseAge(true);
+      onChange({ age_category: value as AgeCategory });
+    }
+  };
+    }
     onChange(updates);
   }, [data.breeding_role, onChange]);
 
@@ -244,6 +258,54 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Age-Stage Selector — appears after sex */}
+        {data.gender && (
+          <div className="space-y-2">
+            <Label>{isRTL ? 'المرحلة العمرية' : 'Age Stage'} *</Label>
+            <ToggleGroup
+              type="single"
+              value={data.age_category || ''}
+              onValueChange={handleAgeCategoryChange}
+              className="justify-start gap-0 border rounded-lg p-1 bg-muted/30"
+            >
+              {data.gender === 'male' ? (
+                <>
+                  <ToggleGroupItem
+                    value="colt"
+                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                  >
+                    {isRTL ? 'مهر' : 'Colt'}
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="horse"
+                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                  >
+                    {isRTL ? 'حصان' : 'Horse'}
+                  </ToggleGroupItem>
+                </>
+              ) : (
+                <>
+                  <ToggleGroupItem
+                    value="filly"
+                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                  >
+                    {isRTL ? 'مهرة' : 'Filly'}
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="mare"
+                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                  >
+                    {isRTL ? 'فرس' : 'Mare'}
+                  </ToggleGroupItem>
+                </>
+              )}
+            </ToggleGroup>
+            <p className="text-xs text-muted-foreground">
+              {isRTL ? 'يتم التحديد تلقائياً من تاريخ الميلاد — يمكنك التغيير يدوياً' : 'Auto-selected from birth date — you can change manually'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ========== SECTION B: Age & Stage (العمر والمرحلة) ========== */}
@@ -307,9 +369,22 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
                   )}
                 </div>
               </div>
+
+              {/* Age-stage mismatch warning */}
+              {classificationInfo.hasAgeMismatch && classificationInfo.recommendedAgeCategory && (
+                <div className="flex items-start gap-2 text-amber-700 dark:text-amber-400">
+                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <p className="text-xs">
+                    {isRTL 
+                      ? `وفقاً لتاريخ الميلاد والمعايير العالمية (FEI, WAHO)، التصنيف الموصى به هو "${getHorseTypeBadgeProps(classificationInfo.recommendedAgeCategory).labelAr}". لقد اخترت "${getHorseTypeBadgeProps(data.age_category as any).labelAr}".`
+                      : `Based on birth date and global standards (FEI, WAHO), the recommended classification is "${getHorseTypeBadgeProps(classificationInfo.recommendedAgeCategory).label}". You selected "${getHorseTypeBadgeProps(data.age_category as any).label}".`
+                    }
+                  </p>
+                </div>
+              )}
               
-              {/* Mismatch warning */}
-              {classificationInfo.hasMismatch && (
+              {/* Breeding designation on young horse warning */}
+              {classificationInfo.hasBreedingMismatch && !classificationInfo.hasAgeMismatch && (
                 <div className="flex items-start gap-2 text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                   <p className="text-xs">
