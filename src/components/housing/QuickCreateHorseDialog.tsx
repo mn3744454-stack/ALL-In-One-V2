@@ -25,10 +25,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Heart, Info, Loader2 } from "lucide-react";
 
+export interface QuickCreateHorseDefaults {
+  gender?: "male" | "female";
+  age_category?: string;
+  breeding_role?: string;
+}
+
 interface QuickCreateHorseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => void;
+  defaults?: QuickCreateHorseDefaults;
 }
 
 export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickCreateHorseDialogProps) {
