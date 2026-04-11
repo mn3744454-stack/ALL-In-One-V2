@@ -3463,8 +3463,8 @@ export const en = {
       fatherNameAr: "Father Name (Arabic)",
       // Basic info additional
       selectGender: "Select gender",
-      maleDesc: "Male (Stallion/Colt)",
-      femaleDesc: "Female (Mare/Filly)",
+      maleDesc: "Male",
+      femaleDesc: "Female",
       birthTime: "Birth Time (Optional)",
       currentAge: "Current Age",
       type: "Type",

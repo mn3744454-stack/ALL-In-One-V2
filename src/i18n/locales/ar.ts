@@ -3331,7 +3331,7 @@ export const ar = {
       female: "أنثى",
     },
     breedingRoles: {
-      broodmare: "فرس تربية",
+      broodmare: "فرس تربية (رمكة)",
       breeding_stallion: "فحل تربية",
     },
     status: {
@@ -3458,9 +3458,9 @@ export const ar = {
       ownerNumber: "مالك {{number}}",
       createNewOwner: "إنشاء مالك جديد",
       // Details step additional keys
-      isGelded: "هل مخصي؟",
-      geldedDesc: "حدد إذا كان الخيل مخصياً",
-      broodmareDesc: "حدد إذا كانت الفرس للتربية",
+      isGelded: "هل هو مخصي؟",
+      geldedDesc: "الخصي لا يمكن التراجع عنه وسيستبعد الخيل من التربية",
+      broodmareDesc: "تعيين كفرس تربية (رمكة) — ستظهر في قوائم الأمهات",
       isPregnant: "هل حامل؟",
       // Physical step placeholders
       heightPlaceholder: "مثال: 160",
