@@ -380,6 +380,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         pregnancy_months: data.is_pregnant ? data.pregnancy_months : null,
         is_gelded: data.is_gelded,
         breeding_role: data.breeding_role || null,
+        is_pony: data.is_pony,
         height: data.height ? parseFloat(data.height) : null,
         weight: data.weight ? parseFloat(data.weight) : null,
         mane_marks: data.mane_marks || null,
