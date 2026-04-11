@@ -86,7 +86,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
       if (error) throw error;
 
       toast.success(t('horses.addSuccess').replace('{{name}}', data.name));
-      setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
+      setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
       onOpenChange(false);
       onCreated(data);
     } catch (err: any) {
