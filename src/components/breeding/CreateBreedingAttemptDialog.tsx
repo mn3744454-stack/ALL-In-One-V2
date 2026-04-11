@@ -462,6 +462,7 @@ export function CreateBreedingAttemptDialog({
 
       {/* Contextual Quick-Create Horse Dialog */}
       <QuickCreateHorseDialog
+        key={quickCreateTarget}
         open={quickCreateOpen}
         onOpenChange={setQuickCreateOpen}
         onCreated={handleHorseCreated}
