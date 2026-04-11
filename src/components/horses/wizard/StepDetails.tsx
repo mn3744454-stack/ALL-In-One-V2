@@ -1,12 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { useHorseMasterData } from "@/hooks/useHorseMasterData";
-import { isAdultHorse } from "@/lib/horseClassification";
+import { AddMasterDataDialog, MasterDataType } from "../AddMasterDataDialog";
 import type { HorseWizardData } from "../HorseWizard";
-import { useMemo } from "react";
 import { useI18n } from "@/i18n";
 
 interface StepDetailsProps {
@@ -15,118 +16,159 @@ interface StepDetailsProps {
 }
 
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
-  const { t } = useI18n();
-  const { branches, stables, housingUnits } = useHorseMasterData();
+  const { t, dir } = useI18n();
+  const isRTL = dir === 'rtl';
+  const { colors, breeds, branches, stables, housingUnits, createColor, createBreed } = useHorseMasterData();
+  const [dialogType, setDialogType] = useState<MasterDataType | null>(null);
 
-  // Check if horse is adult for broodmare toggle
-  const isAdult = useMemo(() => {
-    return isAdultHorse({
-      gender: data.gender,
-      birth_date: data.birth_date,
-      birth_at: data.birth_at,
-    });
-  }, [data.gender, data.birth_date, data.birth_at]);
+  const handleCreate = async (formData: Record<string, string>) => {
+    if (dialogType === "color") {
+      return createColor(formData.name, formData.name_ar);
+    } else if (dialogType === "breed") {
+      return createBreed(formData.name, formData.name_ar);
+    }
+    return { data: null, error: new Error("Unknown type") };
+  };
+
+  const handleSuccess = (result: any) => {
+    if (dialogType === "color" && result?.id) {
+      onChange({ color_id: result.id });
+    } else if (dialogType === "breed" && result?.id) {
+      onChange({ breed_id: result.id });
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Breed & Color Section */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          {isRTL ? 'السلالة واللون' : 'Breed & Color'}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>{t('horses.wizard.breed')}</Label>
+            <div className="flex gap-2">
+              <Select value={data.breed_id} onValueChange={(v) => onChange({ breed_id: v })}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectBreed')} /></SelectTrigger>
+                <SelectContent>
+                  {breeds.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button type="button" size="icon" variant="outline" onClick={() => setDialogType("breed")}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>{t('horses.wizard.color')}</Label>
+            <div className="flex gap-2">
+              <Select value={data.color_id} onValueChange={(v) => onChange({ color_id: v })}>
+                <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectColor')} /></SelectTrigger>
+                <SelectContent>
+                  {colors.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button type="button" size="icon" variant="outline" onClick={() => setDialogType("color")}>
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Identification Numbers */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          {isRTL ? 'أرقام التعريف' : 'Identification Numbers'}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="microchip">{t('horses.wizard.microchip')}</Label>
+            <Input id="microchip" value={data.microchip_number} onChange={(e) => onChange({ microchip_number: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="passport">{t('horses.wizard.passport')}</Label>
+            <Input id="passport" value={data.passport_number} onChange={(e) => onChange({ passport_number: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ueln">{t('horses.wizard.ueln')}</Label>
+            <Input id="ueln" value={data.ueln} onChange={(e) => onChange({ ueln: e.target.value })} />
+          </div>
+        </div>
+      </div>
+
+      {/* Location & Housing */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          {isRTL ? 'الموقع والإسكان' : 'Location & Housing'}
+        </h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>{t('horses.wizard.branch')}</Label>
+            <Select value={data.branch_id} onValueChange={(v) => onChange({ branch_id: v })}>
+              <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectBranch')} /></SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>{t('horses.wizard.stable')}</Label>
+            <Select value={data.stable_id} onValueChange={(v) => onChange({ stable_id: v })}>
+              <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectStable')} /></SelectTrigger>
+              <SelectContent>
+                {stables.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="space-y-2">
-          <Label>{t('horses.wizard.branch')}</Label>
-          <Select value={data.branch_id} onValueChange={(v) => onChange({ branch_id: v })}>
-            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectBranch')} /></SelectTrigger>
+          <Label>{t('horses.wizard.housingUnit')}</Label>
+          <Select value={data.housing_unit_id} onValueChange={(v) => onChange({ housing_unit_id: v })}>
+            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectHousingUnit')} /></SelectTrigger>
             <SelectContent>
-              {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+              {housingUnits.filter(u => u.status === 'available').map((u) => (
+                <SelectItem key={u.id} value={u.id}>{u.code} ({u.unit_type})</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
         <div className="space-y-2">
-          <Label>{t('horses.wizard.stable')}</Label>
-          <Select value={data.stable_id} onValueChange={(v) => onChange({ stable_id: v })}>
-            <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectStable')} /></SelectTrigger>
+          <Label>{t('horses.wizard.status')}</Label>
+          <Select value={data.status} onValueChange={(v: "active" | "inactive") => onChange({ status: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {stables.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              <SelectItem value="active">{t('horses.wizard.active')}</SelectItem>
+              <SelectItem value="inactive">{t('horses.wizard.inactive')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label>{t('horses.wizard.housingUnit')}</Label>
-        <Select value={data.housing_unit_id} onValueChange={(v) => onChange({ housing_unit_id: v })}>
-          <SelectTrigger><SelectValue placeholder={t('horses.wizard.selectHousingUnit')} /></SelectTrigger>
-          <SelectContent>
-            {housingUnits.filter(u => u.status === 'available').map((u) => (
-              <SelectItem key={u.id} value={u.id}>{u.code} ({u.unit_type})</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>{t('horses.wizard.status')}</Label>
-        <Select value={data.status} onValueChange={(v: "active" | "inactive") => onChange({ status: v })}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">{t('horses.wizard.active')}</SelectItem>
-            <SelectItem value="inactive">{t('horses.wizard.inactive')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Gelding Toggle - Only for Male Horses */}
-      {data.gender === "male" && (
-        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="gelded" className="text-sm font-medium">{t('horses.wizard.isGelded')}</Label>
-              <p className="text-xs text-muted-foreground">{t('horses.wizard.geldedDesc')}</p>
-            </div>
-            <Switch 
-              id="gelded" 
-              checked={data.is_gelded} 
-              onCheckedChange={(checked) => onChange({ is_gelded: checked })} 
-            />
-          </div>
+        <div className="space-y-2">
+          <Label>{t('horses.wizard.housingNotes')}</Label>
+          <Textarea 
+            value={data.housing_notes} 
+            onChange={(e) => onChange({ housing_notes: e.target.value })} 
+            placeholder={t('horses.wizard.additionalNotesPlaceholder')} 
+          />
         </div>
-      )}
-
-      {/* Broodmare Toggle - Only for Adult Female Horses */}
-      {data.gender === "female" && isAdult && (
-        <div className="p-4 bg-muted/50 rounded-xl border border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="broodmare" className="text-sm font-medium">{t('horses.wizard.breedingRole')}</Label>
-              <p className="text-xs text-muted-foreground">{t('horses.wizard.broodmareDesc')}</p>
-            </div>
-            <Switch 
-              id="broodmare" 
-              checked={data.breeding_role === 'broodmare'} 
-              onCheckedChange={(checked) => onChange({ breeding_role: checked ? 'broodmare' : '' })} 
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Pregnancy Section - Only for Broodmares */}
-      {data.gender === "female" && data.breeding_role === 'broodmare' && (
-        <div className="p-4 bg-muted/50 rounded-xl border border-border/50 space-y-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="pregnant">{t('horses.wizard.isPregnant')}</Label>
-            <Switch id="pregnant" checked={data.is_pregnant} onCheckedChange={(c) => onChange({ is_pregnant: c })} />
-          </div>
-          {data.is_pregnant && (
-            <div className="space-y-2">
-              <Label>{t('horses.wizard.pregnancyMonths')}</Label>
-              <Input type="number" min={1} max={12} value={data.pregnancy_months || ""} onChange={(e) => onChange({ pregnancy_months: parseInt(e.target.value) || 0 })} />
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label>{t('horses.wizard.housingNotes')}</Label>
-        <Textarea value={data.housing_notes} onChange={(e) => onChange({ housing_notes: e.target.value })} placeholder={t('horses.wizard.additionalNotesPlaceholder')} />
       </div>
+
+      {dialogType && (
+        <AddMasterDataDialog
+          open={!!dialogType}
+          onOpenChange={() => setDialogType(null)}
+          type={dialogType}
+          onCreate={handleCreate}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };
