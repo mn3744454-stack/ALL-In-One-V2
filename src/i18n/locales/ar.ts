@@ -5323,6 +5323,7 @@ export const ar = {
       nameArPlaceholder: "مثال: باقة الإيواء المميزة",
       descPlaceholder: "وصف ما تتضمنه هذه الباقة...",
       selectType: "اختر النوع",
+      selectCycle: "اختر الدورة",
       includedServices: "الخدمات المشمولة",
       addIncludedService: "إضافة خدمة مشمولة",
       searchServices: "البحث عن خدمات...",
