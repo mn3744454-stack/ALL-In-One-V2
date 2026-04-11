@@ -5245,7 +5245,7 @@ export const en = {
     private: "Private",
     parentServiceHint: "Link this package to a parent service for grouping",
     tabs: {
-      catalog: "Service Catalog",
+      catalog: "Services",
       plans: "Packages",
     },
     kinds: {
@@ -5348,6 +5348,7 @@ export const en = {
       nameArPlaceholder: "مثال: باقة الإيواء المميزة",
       descPlaceholder: "Describe what this package includes...",
       selectType: "Select type",
+      selectCycle: "Select cycle",
       includedServices: "Included Services",
       addIncludedService: "Add Included Service",
       searchServices: "Search services...",
