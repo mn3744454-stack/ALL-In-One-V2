@@ -3,8 +3,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Clock, AlertTriangle, Info, ExternalLink } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import type { HorseWizardData } from "../HorseWizard";
 import { 
   getCurrentAgeParts, 
@@ -12,11 +13,23 @@ import {
   getHorseTypeLabel, 
   getHorseTypeBadgeProps,
   getRecommendedClassification,
+  getRecommendedAgeCategory,
   isAdultHorse,
   getPonyBadgeProps,
   HORSE_AGE_THRESHOLD_YEARS,
 } from "@/lib/horseClassification";
+import type { AgeCategory } from "@/lib/horseClassification";
 import { useI18n } from "@/i18n";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
