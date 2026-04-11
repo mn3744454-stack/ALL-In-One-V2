@@ -2276,6 +2276,8 @@ export const ar = {
         cycleDaily: "يومي",
         cycleWeekly: "أسبوعي",
         cycleMonthly: "شهري",
+        cycleYearly: "سنوي",
+        cycleOnetime: "مرة واحدة",
         currency: "العملة",
         expectedDeparture: "المغادرة المتوقعة",
         reason: "السبب",
