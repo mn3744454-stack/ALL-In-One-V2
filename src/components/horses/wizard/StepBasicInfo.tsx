@@ -131,7 +131,20 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
   };
 
   const handleGenderChange = useCallback((v: string) => {
-    if (v !== "male" && v !== "female") return;
+    if (v !== "male" && v !== "female" && v !== "__neutral__") return;
+    // Neutral selection: reset gender and all dependent fields
+    if (v === "__neutral__") {
+      onChange({
+        gender: "" as HorseWizardData["gender"],
+        age_category: "" as AgeCategory,
+        is_gelded: false,
+        breeding_role: "",
+        is_pregnant: false,
+        pregnancy_months: 0,
+      });
+      setUserExplicitlyChoseAge(false);
+      return;
+    }
     const updates: Partial<HorseWizardData> = { gender: v };
     if (v === 'female') {
       updates.is_gelded = false;
@@ -246,11 +259,14 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
           <Select 
             value={data.gender || undefined} 
             onValueChange={handleGenderChange}
-          >
+           >
             <SelectTrigger>
               <SelectValue placeholder={t('horses.wizard.selectGender')} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="__neutral__" className="text-muted-foreground">
+                {isRTL ? 'اختر الجنس' : 'Select gender'}
+              </SelectItem>
               <SelectItem value="male">{isRTL ? 'ذكر' : 'Male'}</SelectItem>
               <SelectItem value="female">{isRTL ? 'أنثى' : 'Female'}</SelectItem>
             </SelectContent>
