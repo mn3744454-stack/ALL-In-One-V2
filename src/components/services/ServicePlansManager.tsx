@@ -35,14 +35,14 @@ export function ServicePlansManager() {
   const [includedServices, setIncludedServices] = useState<IncludedServiceEntry[]>([]);
   const [form, setForm] = useState<CreatePlanData>({
     name: '', name_ar: '', description: '', service_id: null, plan_type: '',
-    billing_cycle: 'monthly', base_price: 0, currency: tenantCurrency,
+    billing_cycle: '', base_price: 0, currency: tenantCurrency,
     is_active: true, is_public: false,
   });
 
   const openCreate = () => {
     setEditing(null);
     setIncludedServices([]);
-    setForm({ name: '', name_ar: '', description: '', service_id: null, plan_type: '', billing_cycle: 'monthly', base_price: 0, currency: tenantCurrency, is_active: true, is_public: false });
+    setForm({ name: '', name_ar: '', description: '', service_id: null, plan_type: '', billing_cycle: '', base_price: 0, currency: tenantCurrency, is_active: true, is_public: false });
     setDialogOpen(true);
   };
 
@@ -61,7 +61,7 @@ export function ServicePlansManager() {
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
-    const payload = { ...form, plan_type: form.plan_type || 'boarding', includes: includedServices };
+    const payload = { ...form, includes: includedServices };
     if (editing) {
       await updatePlan({ id: editing.id, ...payload });
     } else {
@@ -247,7 +247,7 @@ export function ServicePlansManager() {
                   <div>
                     <Label>{t('services.packages.billingCycle')}</Label>
                     <Select value={form.billing_cycle} onValueChange={v => setForm(f => ({ ...f, billing_cycle: v }))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder={t('services.packages.selectCycle')} /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="daily">{t('services.billingCycles.daily')}</SelectItem>
                         <SelectItem value="weekly">{t('services.billingCycles.weekly')}</SelectItem>
@@ -297,7 +297,7 @@ export function ServicePlansManager() {
           {/* Sticky footer */}
           <div className="shrink-0 border-t border-border px-6 py-4 flex justify-end gap-2 bg-background">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('common.cancel')}</Button>
-            <Button onClick={handleSave} disabled={isCreating || !form.name.trim()}>
+            <Button onClick={handleSave} disabled={isCreating || !form.name.trim() || !form.plan_type || !form.billing_cycle}>
               {isCreating ? t('common.loading') : editing ? t('common.save') : t('services.packages.addPackage')}
             </Button>
           </div>

@@ -5220,7 +5220,7 @@ export const ar = {
     private: "خاص",
     parentServiceHint: "ربط هذه الباقة بخدمة أساسية للتنظيم",
     tabs: {
-      catalog: "كتالوج الخدمات",
+      catalog: "الخدمات",
       plans: "الباقات",
     },
     kinds: {
