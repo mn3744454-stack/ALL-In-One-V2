@@ -44,12 +44,19 @@ export interface HorseWizardData {
   isRegistered: boolean;
   existingHorseId?: string;
   
-  // Basic info
+  // Step 2: Identity + Classification (core classification surface)
   name: string;
   name_ar: string;
   gender: "male" | "female";
   birth_date: string;
   birth_at: string; // ISO timestamp with timezone (combines date + time)
+  is_gelded: boolean;
+  breeding_role: 'broodmare' | 'breeding_stallion' | '';
+  is_pony: boolean;
+  is_pregnant: boolean;
+  pregnancy_months: number;
+  
+  // Step 3: Secondary details (breed, color, IDs)
   breed_id: string;
   color_id: string;
   age_category: string;
@@ -57,16 +64,12 @@ export interface HorseWizardData {
   passport_number: string;
   ueln: string;
   
-  // Details
+  // Step 4 (was Details): Location & housing
   branch_id: string;
   stable_id: string;
   housing_unit_id: string;
   housing_notes: string;
   status: "active" | "inactive";
-  is_pregnant: boolean;
-  pregnancy_months: number;
-  is_gelded: boolean;
-  breeding_role: 'broodmare' | '';
   
   // Physical
   height: string;
