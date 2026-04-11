@@ -38,7 +38,7 @@ interface QuickCreateHorseDialogProps {
   defaults?: QuickCreateHorseDefaults;
 }
 
-export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickCreateHorseDialogProps) {
+export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults }: QuickCreateHorseDialogProps) {
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { colors, breeds } = useHorseMasterData();
@@ -46,17 +46,19 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated }: QuickC
   const [form, setForm] = useState({
     name: "",
     name_ar: "",
-    gender: "" as "" | "male" | "female",
+    gender: (defaults?.gender || "") as "" | "male" | "female",
     birth_date: "",
     breed_id: "",
     color_id: "",
   });
 
+  const genderLocked = !!defaults?.gender;
+
   const canSubmit = form.name.trim() && form.gender;
 
   const handleClose = () => {
     if (saving) return;
-    setForm({ name: "", name_ar: "", gender: "", birth_date: "", breed_id: "", color_id: "" });
+    setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
     onOpenChange(false);
   };
 
