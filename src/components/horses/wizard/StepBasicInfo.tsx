@@ -130,7 +130,8 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
     }
   };
 
-  const handleGenderChange = useCallback((v: "male" | "female") => {
+  const handleGenderChange = useCallback((v: string) => {
+    if (v !== "male" && v !== "female") return;
     const updates: Partial<HorseWizardData> = { gender: v };
     if (v === 'female') {
       updates.is_gelded = false;
@@ -243,8 +244,8 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
         <div className="space-y-2">
           <Label>{isRTL ? 'الجنس' : 'Sex'} *</Label>
           <Select 
-            value={data.gender} 
-            onValueChange={(v: "male" | "female") => handleGenderChange(v)}
+            value={data.gender || undefined} 
+            onValueChange={handleGenderChange}
           >
             <SelectTrigger>
               <SelectValue placeholder={t('horses.wizard.selectGender')} />
@@ -270,13 +271,13 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
                 <>
                   <ToggleGroupItem
                     value="colt"
-                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                    className="flex-1 rounded-md text-sm px-4 py-2 transition-all data-[state=on]:bg-white data-[state=on]:border data-[state=on]:border-gold data-[state=on]:shadow-sm data-[state=on]:font-medium data-[state=off]:text-muted-foreground"
                   >
                     {isRTL ? 'مهر' : 'Colt'}
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="horse"
-                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                    className="flex-1 rounded-md text-sm px-4 py-2 transition-all data-[state=on]:bg-white data-[state=on]:border data-[state=on]:border-gold data-[state=on]:shadow-sm data-[state=on]:font-medium data-[state=off]:text-muted-foreground"
                   >
                     {isRTL ? 'حصان' : 'Horse'}
                   </ToggleGroupItem>
@@ -285,13 +286,13 @@ export const StepBasicInfo = ({ data, onChange }: StepBasicInfoProps) => {
                 <>
                   <ToggleGroupItem
                     value="filly"
-                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                    className="flex-1 rounded-md text-sm px-4 py-2 transition-all data-[state=on]:bg-white data-[state=on]:border data-[state=on]:border-gold data-[state=on]:shadow-sm data-[state=on]:font-medium data-[state=off]:text-muted-foreground"
                   >
                     {isRTL ? 'مهرة' : 'Filly'}
                   </ToggleGroupItem>
                   <ToggleGroupItem
                     value="mare"
-                    className="flex-1 data-[state=on]:bg-background data-[state=on]:shadow-sm rounded-md text-sm px-4 py-2"
+                    className="flex-1 rounded-md text-sm px-4 py-2 transition-all data-[state=on]:bg-white data-[state=on]:border data-[state=on]:border-gold data-[state=on]:shadow-sm data-[state=on]:font-medium data-[state=off]:text-muted-foreground"
                   >
                     {isRTL ? 'فرس' : 'Mare'}
                   </ToggleGroupItem>
