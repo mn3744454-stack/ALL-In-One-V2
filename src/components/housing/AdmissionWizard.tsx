@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
+import { QuickCreatePackageDialog } from "./QuickCreatePackageDialog";
 import { useClients } from "@/hooks/useClients";
 
 interface AdmissionWizardProps {
@@ -82,6 +83,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const { horses, refresh: refreshHorses } = useHorses();
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
+  const [packageCreateOpen, setPackageCreateOpen] = useState(false);
   const { createClient } = useClients();
   const { createAdmission, isCreating } = useBoardingAdmissions();
   const { areas } = useFacilityAreas();
@@ -408,7 +410,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         return (
           <div className="space-y-3">
             <Label>{t('services.packages.selectPackage')}</Label>
-            {/* No plan option */}
+            {/* No package / manual rates option */}
             <button
               type="button"
               onClick={() => handlePlanSelect('__none__')}
@@ -419,33 +421,60 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
             >
               <span className="text-sm text-muted-foreground">{t('services.packages.noPackage')}</span>
             </button>
-            <div className="grid gap-2 max-h-56 overflow-y-auto">
-              {activePlans.map(plan => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  onClick={() => handlePlanSelect(plan.id)}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border text-start",
-                    form.planId === plan.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
-                  )}
+            {activePlans.length === 0 ? (
+              /* Rich empty state when no packages exist */
+              <div className="flex flex-col items-center gap-2 py-8 text-center border rounded-lg border-dashed">
+                <Package className="w-8 h-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">{t('housing.quickCreate.noPackagesYet')}</p>
+                <p className="text-xs text-muted-foreground">{t('housing.quickCreate.noPackagesDesc')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setPackageCreateOpen(true)}
                 >
-                  <Package className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div className="flex-1">
-                    <BilingualName name={plan.name} nameAr={plan.name_ar} primaryClassName="text-sm" />
-                    <PlanIncludedServicesDisplay includes={plan.includes} compact />
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">{plan.base_price} {plan.currency}</Badge>
-                      <Badge variant="outline" className="text-xs capitalize">{plan.billing_cycle}</Badge>
-                    </div>
-                  </div>
-                  {form.planId === plan.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                </button>
-              ))}
-              {activePlans.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-3">{t('services.packages.empty')}</p>
-              )}
-            </div>
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewPackage')}
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-2 max-h-56 overflow-y-auto">
+                  {activePlans.map(plan => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => handlePlanSelect(plan.id)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg border text-start",
+                        form.planId === plan.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
+                      )}
+                    >
+                      <Package className="h-5 w-5 text-muted-foreground shrink-0" />
+                      <div className="flex-1">
+                        <BilingualName name={plan.name} nameAr={plan.name_ar} primaryClassName="text-sm" />
+                        <PlanIncludedServicesDisplay includes={plan.includes} compact />
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">{plan.base_price} {plan.currency}</Badge>
+                          <Badge variant="outline" className="text-xs capitalize">{plan.billing_cycle}</Badge>
+                        </div>
+                      </div>
+                      {form.planId === plan.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+                {/* Always-visible add-new CTA */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-dashed border-primary/40 text-primary"
+                  onClick={() => setPackageCreateOpen(true)}
+                >
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('housing.quickCreate.addNewPackage')}
+                </Button>
+              </>
+            )}
           </div>
         );
       case 'rates':
@@ -699,6 +728,25 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     />
   );
 
+  const packageDialog = (
+    <QuickCreatePackageDialog
+      open={packageCreateOpen}
+      onOpenChange={setPackageCreateOpen}
+      onCreated={(newPlan) => {
+        // Directly set form from the returned plan data since activePlans
+        // query may not have refetched yet
+        setForm(f => ({
+          ...f,
+          planId: newPlan.id,
+          billingCycle: newPlan.billing_cycle,
+          rateCurrency: newPlan.currency,
+          monthlyRate: newPlan.billing_cycle === 'monthly' ? String(newPlan.base_price) : f.monthlyRate,
+          dailyRate: newPlan.billing_cycle === 'daily' ? String(newPlan.base_price) : f.dailyRate,
+        }));
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
       <>
@@ -712,6 +760,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         </Drawer>
         {quickCreateDialog}
         {clientDialog}
+        {packageDialog}
       </>
     );
   }
@@ -741,6 +790,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       </Dialog>
       {quickCreateDialog}
       {clientDialog}
+      {packageDialog}
     </>
   );
 }
