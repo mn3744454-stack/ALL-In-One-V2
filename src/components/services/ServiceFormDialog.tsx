@@ -128,7 +128,8 @@ export const ServiceFormDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0">
+        <div className="shrink-0 px-6 pt-6 pb-0">
         <DialogHeader>
           <DialogTitle className="text-navy">
             {isEdit ? t("services.form.editTitle") : t("services.form.addTitle")}

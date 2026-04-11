@@ -98,7 +98,7 @@ export const ServiceCard = ({
                 )}
                 {service.unit_price != null && (
                   <span className="text-sm font-medium text-gold">
-                    {service.unit_price} SAR
+                    {service.unit_price} {service.currency || t('common.currency')}
                   </span>
                 )}
                 {service.price_display && !service.unit_price && (
@@ -109,7 +109,7 @@ export const ServiceCard = ({
                 {linkedPlanCount > 0 && (
                   <Badge variant="secondary" className="text-xs gap-1">
                     <Layers className="w-3 h-3" />
-                    {linkedPlanCount} {t('services.table.plans')}
+                    {linkedPlanCount} {t('services.packages.linkedPackages')}
                   </Badge>
                 )}
               </div>
