@@ -1,16 +1,26 @@
 // Horse Age Calculation and Auto-Classification Utility
-// STEP 5B: Current Age + Classification (Stallion/Mare/Broodmare/Gelding/Colt/Filly)
+// Classification engine: separates sex, age-stage, reproductive status, breeding role, and size classification
 
 import { differenceInYears, differenceInMonths, differenceInDays, differenceInHours } from "date-fns";
 
 // ============= Constants =============
 
-/** Age threshold in years for adult classification (Colt→Stallion, Filly→Mare) */
+/** Age threshold in years for adult classification (Colt→Horse, Filly→Mare) */
 export const HORSE_AGE_THRESHOLD_YEARS = 4;
 
 // ============= Types =============
 
-export type HorseType = 'stallion' | 'mare' | 'broodmare' | 'gelding' | 'colt' | 'filly';
+/**
+ * HorseType represents the derived display classification.
+ * 'horse' = generic adult male (not a breeding stallion, not gelded)
+ * 'stallion' = explicitly designated breeding stallion
+ * 'mare' = generic adult female (not designated for breeding)
+ * 'broodmare' = explicitly designated breeding mare
+ * 'gelding' = castrated male
+ * 'colt' = young male (< 4y)
+ * 'filly' = young female (< 4y)
+ */
+export type HorseType = 'stallion' | 'horse' | 'mare' | 'broodmare' | 'gelding' | 'colt' | 'filly';
 
 export interface AgeParts {
   years: number;
@@ -25,7 +35,8 @@ export interface HorseClassificationInput {
   birth_date?: string | null;
   birth_at?: string | null;
   is_gelded?: boolean;
-  breeding_role?: 'broodmare' | string | null;
+  breeding_role?: 'broodmare' | 'breeding_stallion' | string | null;
+  is_pony?: boolean;
 }
 
 // ============= Age Calculation =============
@@ -41,7 +52,6 @@ export function getBirthDateTime(horse: HorseClassificationInput): Date | null {
   }
   
   if (horse.birth_date) {
-    // Use birth_date at 00:00 UTC as fallback
     const date = new Date(horse.birth_date + 'T00:00:00Z');
     if (!isNaN(date.getTime())) return date;
   }
@@ -51,7 +61,6 @@ export function getBirthDateTime(horse: HorseClassificationInput): Date | null {
 
 /**
  * Calculate the current age of a horse in years, months, days, and hours
- * Returns null if birth date is not available
  */
 export function getCurrentAgeParts(horse: HorseClassificationInput): AgeParts | null {
   const birthDate = getBirthDateTime(horse);
@@ -59,21 +68,17 @@ export function getCurrentAgeParts(horse: HorseClassificationInput): AgeParts | 
   
   const now = new Date();
   
-  // Calculate total differences
   const totalMonths = differenceInMonths(now, birthDate);
   const years = differenceInYears(now, birthDate);
   
-  // Calculate remaining months after years
   const afterYears = new Date(birthDate);
   afterYears.setFullYear(afterYears.getFullYear() + years);
   const months = differenceInMonths(now, afterYears);
   
-  // Calculate remaining days after months
   const afterMonths = new Date(afterYears);
   afterMonths.setMonth(afterMonths.getMonth() + months);
   const days = differenceInDays(now, afterMonths);
   
-  // Calculate remaining hours after days
   const afterDays = new Date(afterMonths);
   afterDays.setDate(afterDays.getDate() + days);
   const hours = differenceInHours(now, afterDays);
@@ -89,7 +94,6 @@ export function getCurrentAgeParts(horse: HorseClassificationInput): AgeParts | 
 
 /**
  * Format age parts into a readable string
- * Examples: "3y 2m 15d", "0y 5m 3d", "2y 0m 1d 12h"
  */
 export function formatCurrentAge(ageParts: AgeParts | null, options?: { includeHours?: boolean }): string {
   if (!ageParts) return "Unknown";
@@ -106,7 +110,6 @@ export function formatCurrentAge(ageParts: AgeParts | null, options?: { includeH
     parts.push(`${ageParts.days}d`);
   }
   
-  // Include hours only if explicitly requested and years is 0 (for young foals)
   if (options?.includeHours && ageParts.years === 0 && ageParts.hours > 0) {
     parts.push(`${ageParts.hours}h`);
   }
@@ -116,13 +119,11 @@ export function formatCurrentAge(ageParts: AgeParts | null, options?: { includeH
 
 /**
  * Format age in a compact way for cards
- * Examples: "3y 2m", "8 months", "2 weeks"
  */
 export function formatAgeCompact(ageParts: AgeParts | null): string {
   if (!ageParts) return "Unknown age";
   
   if (ageParts.years >= 1) {
-    // Show years and months for more detail
     if (ageParts.months > 0) {
       return `${ageParts.years}y ${ageParts.months}m`;
     }
@@ -130,7 +131,6 @@ export function formatAgeCompact(ageParts: AgeParts | null): string {
   }
   
   if (ageParts.months >= 1) {
-    // Show months and days for young horses
     if (ageParts.days > 0 && ageParts.months < 6) {
       return `${ageParts.months}m ${ageParts.days}d`;
     }
@@ -157,15 +157,16 @@ export function isAdultHorse(horse: HorseClassificationInput): boolean {
 }
 
 /**
- * Determine the horse type/classification based on gender, age, and flags
+ * Determine the horse type/classification based on gender, age, and explicit designations.
  * 
- * Rules:
- * - Male + is_gelded → Gelding
+ * Rules (updated — no more auto-stallion):
+ * - Male + is_gelded → Gelding (regardless of age or designation)
+ * - Male + breeding_role = 'breeding_stallion' → Stallion  
  * - Male + age < 4 years → Colt
- * - Male + age >= 4 years → Stallion
- * - Female + age < 4 years → Filly
+ * - Male + age >= 4 years (no breeding designation) → Horse (حصان)
  * - Female + breeding_role = 'broodmare' → Broodmare
- * - Female + age >= 4 years → Mare
+ * - Female + age < 4 years → Filly
+ * - Female + age >= 4 years (no breeding designation) → Mare
  */
 export function getHorseTypeLabel(horse: HorseClassificationInput): HorseType | null {
   if (!horse.gender) return null;
@@ -174,21 +175,40 @@ export function getHorseTypeLabel(horse: HorseClassificationInput): HorseType | 
   const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
   
   if (horse.gender === 'male') {
-    // Gelding takes priority (owner choice)
+    // Gelding takes priority — irreversible surgical state
     if (horse.is_gelded) return 'gelding';
-    // Age-based classification
-    return isAdult ? 'stallion' : 'colt';
+    // Explicit breeding designation
+    if (horse.breeding_role === 'breeding_stallion') return 'stallion';
+    // Age-based classification — adult males without designation are "horse" (حصان)
+    return isAdult ? 'horse' : 'colt';
   }
   
   if (horse.gender === 'female') {
-    // Young female is Filly
-    if (!isAdult) return 'filly';
-    // Broodmare takes priority for adult females (owner choice)
+    // Explicit breeding designation takes priority for adult females
     if (horse.breeding_role === 'broodmare') return 'broodmare';
-    // Default adult female is Mare
-    return 'mare';
+    // Age-based classification
+    return isAdult ? 'mare' : 'filly';
   }
   
+  return null;
+}
+
+/**
+ * Get the recommended classification based purely on age+sex (no designation considered).
+ * Used for the recommendation banner in the wizard.
+ */
+export function getRecommendedClassification(horse: HorseClassificationInput): HorseType | null {
+  if (!horse.gender) return null;
+  const ageParts = getCurrentAgeParts(horse);
+  const isAdult = ageParts ? ageParts.years >= HORSE_AGE_THRESHOLD_YEARS : true;
+  
+  if (horse.gender === 'male') {
+    if (horse.is_gelded) return 'gelding';
+    return isAdult ? 'horse' : 'colt';
+  }
+  if (horse.gender === 'female') {
+    return isAdult ? 'mare' : 'filly';
+  }
   return null;
 }
 
@@ -213,6 +233,13 @@ export function getHorseTypeBadgeProps(type: HorseType | null): HorseTypeBadgePr
         variant: 'default',
         className: 'bg-navy text-cream',
       };
+    case 'horse':
+      return {
+        label: 'Horse',
+        labelAr: 'حصان',
+        variant: 'secondary',
+        className: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+      };
     case 'mare':
       return {
         label: 'Mare',
@@ -223,14 +250,14 @@ export function getHorseTypeBadgeProps(type: HorseType | null): HorseTypeBadgePr
     case 'broodmare':
       return {
         label: 'Broodmare',
-        labelAr: 'فرس تربية',
+        labelAr: 'فرس تربية (رمكة)',
         variant: 'secondary',
         className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
       };
     case 'gelding':
       return {
         label: 'Gelding',
-        labelAr: 'حصان مخصي',
+        labelAr: 'مخصي',
         variant: 'outline',
         className: 'border-muted-foreground/50 text-muted-foreground',
       };
@@ -256,4 +283,16 @@ export function getHorseTypeBadgeProps(type: HorseType | null): HorseTypeBadgePr
         className: 'border-muted text-muted-foreground',
       };
   }
+}
+
+/**
+ * Get pony badge props (orthogonal to main classification)
+ */
+export function getPonyBadgeProps(): HorseTypeBadgeProps {
+  return {
+    label: 'Pony',
+    labelAr: 'بوني',
+    variant: 'outline',
+    className: 'border-amber-400 text-amber-700 dark:border-amber-500 dark:text-amber-400',
+  };
 }

@@ -2,11 +2,11 @@
  * Breeding Eligibility Logic
  * 
  * Determines whether a horse is eligible for breeding selection.
- * Does NOT rely solely on sex or age — respects user-controlled breeding_role
- * and classification signals (gelding, colt, filly).
+ * Uses ONLY explicit stored designation (breeding_role) — never derived display labels.
+ * Symmetric gating: both males and females require explicit designation.
  */
 
-import { getHorseTypeLabel, HorseClassificationInput, HorseType } from "./horseClassification";
+import { HorseClassificationInput } from "./horseClassification";
 
 export interface BreedingEligibilityInput extends HorseClassificationInput {
   id?: string;
@@ -20,40 +20,23 @@ export type BreedingRole = 'breeding_stallion' | 'breeding_mare' | 'ineligible';
 /**
  * Determine the breeding role eligibility of a horse.
  * 
- * Rules:
- * - Geldings → always ineligible
- * - Colts (male < 4y) → ineligible (immature)
- * - Fillies (female < 4y) → ineligible (immature) UNLESS breeding_role is explicitly 'broodmare'
- * - Stallions (male >= 4y, not gelded) → breeding_stallion
- * - Mares (female >= 4y) → breeding_mare
- * - Broodmares (explicit breeding_role) → breeding_mare
+ * Rules (symmetric — both sexes require explicit designation):
+ * - Geldings → always ineligible (irreversible)
+ * - breeding_role = 'breeding_stallion' AND not gelded → breeding_stallion
+ * - breeding_role = 'broodmare' → breeding_mare
+ * - Everything else → ineligible (including generic حصان and generic فرس)
  */
 export function getBreedingRole(horse: BreedingEligibilityInput): BreedingRole {
-  const type = getHorseTypeLabel(horse);
-
   // 1. Geldings — always ineligible regardless of any designation
-  if (type === 'gelding') return 'ineligible';
+  if (horse.is_gelded) return 'ineligible';
 
-  // 2. Explicit breeding designation takes priority over age/sex inference
-  if (horse.breeding_role === 'broodmare') return 'breeding_mare';
+  // 2. Explicit breeding designation is the ONLY path to eligibility
   if (horse.breeding_role === 'breeding_stallion') return 'breeding_stallion';
+  if (horse.breeding_role === 'broodmare') return 'breeding_mare';
 
-  // 3. Classification-based defaults (age + sex as supporting signal)
-  if (!type) return 'ineligible';
-
-  switch (type) {
-    case 'stallion':
-      return 'breeding_stallion';
-    case 'mare':
-    case 'broodmare':
-      return 'breeding_mare';
-    case 'colt':
-    case 'filly':
-      // Immature without explicit designation — conservative default
-      return 'ineligible';
-    default:
-      return 'ineligible';
-  }
+  // 3. Everything else — ineligible
+  // This includes: generic horse (حصان), generic mare (فرس), colt (مهر), filly (مهرة)
+  return 'ineligible';
 }
 
 /**
