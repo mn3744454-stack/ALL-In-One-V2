@@ -246,9 +246,10 @@ export function ServicePlansManager() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>{t('services.packages.billingCycle')}</Label>
-                    <Select value={form.billing_cycle} onValueChange={v => setForm(f => ({ ...f, billing_cycle: v }))}>
+                    <Select value={form.billing_cycle || '_none'} onValueChange={v => setForm(f => ({ ...f, billing_cycle: v === '_none' ? '' : v }))}>
                       <SelectTrigger><SelectValue placeholder={t('services.packages.selectCycle')} /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_none">{t('services.packages.noCycleSelected')}</SelectItem>
                         <SelectItem value="daily">{t('services.billingCycles.daily')}</SelectItem>
                         <SelectItem value="weekly">{t('services.billingCycles.weekly')}</SelectItem>
                         <SelectItem value="monthly">{t('services.billingCycles.monthly')}</SelectItem>
@@ -259,9 +260,10 @@ export function ServicePlansManager() {
                   </div>
                   <div>
                     <Label>{t('services.packages.packageType')}</Label>
-                    <Select value={form.plan_type || ''} onValueChange={v => setForm(f => ({ ...f, plan_type: v }))}>
+                    <Select value={form.plan_type || '_none'} onValueChange={v => setForm(f => ({ ...f, plan_type: v === '_none' ? '' : v }))}>
                       <SelectTrigger><SelectValue placeholder={t('services.packages.selectType')} /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="_none">{t('services.packages.noTypeSelected')}</SelectItem>
                         <SelectItem value="boarding">{t('services.packages.types.boarding')}</SelectItem>
                         <SelectItem value="training">{t('services.packages.types.training')}</SelectItem>
                         <SelectItem value="medical">{t('services.packages.types.medical')}</SelectItem>
