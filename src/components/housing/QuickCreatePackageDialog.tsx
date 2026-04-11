@@ -31,7 +31,13 @@ interface QuickCreatePackageDialogProps {
 }
 
 const PLAN_TYPES = ['boarding', 'training', 'medical', 'premium', 'wellness', 'commercial'] as const;
-const BILLING_CYCLES = ['daily', 'weekly', 'monthly', 'yearly', 'one-time'] as const;
+const BILLING_CYCLES = [
+  { value: 'daily', key: 'cycleDaily' },
+  { value: 'weekly', key: 'cycleWeekly' },
+  { value: 'monthly', key: 'cycleMonthly' },
+  { value: 'yearly', key: 'cycleYearly' },
+  { value: 'one-time', key: 'cycleOnetime' },
+] as const;
 
 export function QuickCreatePackageDialog({ open, onOpenChange, onCreated }: QuickCreatePackageDialogProps) {
   const { t } = useI18n();
@@ -152,8 +158,8 @@ export function QuickCreatePackageDialog({ open, onOpenChange, onCreated }: Quic
                 <SelectContent>
                   <SelectItem value="_none">{t('services.packages.noCycleSelected')}</SelectItem>
                   {BILLING_CYCLES.map(cycle => (
-                    <SelectItem key={cycle} value={cycle}>
-                      {t(`housing.admissions.wizard.cycle${cycle.charAt(0).toUpperCase() + cycle.slice(1).replace('-', '')}`)}
+                    <SelectItem key={cycle.value} value={cycle.value}>
+                      {t(`housing.admissions.wizard.${cycle.key}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
