@@ -471,24 +471,95 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                       </Card>
                     )}
 
-                    {/* Catalog Viewer - scroll-constrained */}
-                    <div className="max-h-[40vh] overflow-y-auto">
-                      <LabCatalogViewer
-                        labTenantId={selectedLabTenantId}
-                        labName={selectedLabName}
-                        selectable
-                        selectedIds={selectedServiceIds}
-                        onSelectServices={(ids, names) => {
-                          setSelectedServiceIds(ids);
-                          if (names) setSelectedServiceNames(names);
-                        }}
-                      />
-                    </div>
+                    {/* Test mode toggle — only when multiple horses + lab selected */}
+                    {showTestModeBranch && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">{t('laboratory.requests.testAssignment') || 'Test Assignment'}</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={testMode === 'shared' ? 'default' : 'outline'}
+                            onClick={() => handleTestModeChange('shared')}
+                            className="flex-1 text-xs"
+                          >
+                            {t('laboratory.requests.sameTests') || 'Same tests for all'}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={testMode === 'perHorse' ? 'default' : 'outline'}
+                            onClick={() => handleTestModeChange('perHorse')}
+                            className="flex-1 text-xs"
+                          >
+                            <SlidersHorizontal className="h-3 w-3 me-1" />
+                            {t('laboratory.requests.differentTests') || 'Different per horse'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
-                    {selectedServiceIds.length > 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {selectedServiceIds.length} {t('laboratory.requests.servicesSelected')}
-                      </p>
+                    {/* Shared catalog (default / single horse / shared mode) */}
+                    {(testMode === 'shared' || !showTestModeBranch) && (
+                      <>
+                        <div className="max-h-[40vh] overflow-y-auto">
+                          <LabCatalogViewer
+                            labTenantId={selectedLabTenantId}
+                            labName={selectedLabName}
+                            selectable
+                            selectedIds={selectedServiceIds}
+                            onSelectServices={(ids, names) => {
+                              setSelectedServiceIds(ids);
+                              if (names) setSelectedServiceNames(names);
+                            }}
+                          />
+                        </div>
+                        {selectedServiceIds.length > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            {selectedServiceIds.length} {t('laboratory.requests.servicesSelected')}
+                          </p>
+                        )}
+                      </>
+                    )}
+
+                    {/* Per-horse catalog (different tests mode) */}
+                    {testMode === 'perHorse' && showTestModeBranch && (
+                      <div className="space-y-2 border rounded-md">
+                        {selectedHorses.map((horse) => {
+                          const isExpanded = expandedHorseId === horse.id;
+                          const horseServices = perHorseServiceIds[horse.id] || [];
+                          return (
+                            <div key={horse.id} className="border-b last:border-b-0">
+                              <button
+                                type="button"
+                                className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted/50 transition-colors"
+                                onClick={() => setExpandedHorseId(isExpanded ? null : horse.id)}
+                              >
+                                <span className="font-medium truncate">{horse.name}</span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {horseServices.length > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {horseServices.length}
+                                    </Badge>
+                                  )}
+                                  {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                </div>
+                              </button>
+                              {isExpanded && (
+                                <div className="px-3 pb-3 max-h-[35vh] overflow-y-auto">
+                                  <LabCatalogViewer
+                                    labTenantId={selectedLabTenantId}
+                                    labName={selectedLabName}
+                                    selectable
+                                    selectedIds={horseServices}
+                                    onSelectServices={(ids, names) => handlePerHorseServiceChange(horse.id, ids, names)}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </>
                 ) : pendingLabPartners.length > 0 || pendingPartnerName ? (
