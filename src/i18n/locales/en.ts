@@ -4504,6 +4504,7 @@ export const en = {
         lab_requests: "Lab Requests",
         vet_records: "Vet Records",
         breeding_records: "Breeding Records",
+        connection: "Connection",
       },
       accessLevel: "Access Level",
       accessLevels: {

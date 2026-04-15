@@ -173,8 +173,11 @@ export function PartnerConfigSheet({ open, onOpenChange, connection, isMine, par
 
   const dateLocale = lang === "ar" ? { locale: ar } : {};
 
-  const resourceTypeLabel = (rt: string) =>
-    t(`connections.grants.resourceTypes.${rt}`) || rt;
+  const resourceTypeLabel = (rt: string) => {
+    const key = `connections.grants.resourceTypes.${rt}`;
+    const resolved = t(key);
+    return resolved && resolved !== key ? resolved : rt.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  };
 
   const ResourceIcon = ({ type }: { type: string }) => {
     const Icon = RESOURCE_TYPE_ICONS[type] || FileText;

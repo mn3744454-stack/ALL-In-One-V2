@@ -4498,6 +4498,7 @@ export const ar = {
         lab_requests: "طلبات التحاليل",
         vet_records: "سجلات البيطرة",
         breeding_records: "سجلات التربية",
+        connection: "الشراكة",
       },
       accessLevel: "مستوى الوصول",
       accessLevels: {
