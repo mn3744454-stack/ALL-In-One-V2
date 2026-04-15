@@ -69,7 +69,9 @@ function isInQuietHours(
 // Build route URL from notification data (mirrors client getNotificationRoute)
 function getNotificationRoute(eventType: string, entityId: string | null): string {
   if (eventType.startsWith("connection.")) {
-    return "/dashboard/laboratory?tab=requests";
+    return entityId
+      ? `/dashboard/team?tab=partners&connectionId=${entityId}`
+      : "/dashboard/team?tab=partners";
   }
   if (eventType === "lab_request.message_added" && entityId) {
     return `/dashboard/laboratory?tab=requests&requestId=${entityId}&openThread=true`;
@@ -77,7 +79,12 @@ function getNotificationRoute(eventType: string, entityId: string | null): strin
   if (eventType.startsWith("lab_request.") && entityId) {
     return `/dashboard/laboratory?tab=requests&requestId=${entityId}`;
   }
-  return "/dashboard/laboratory?tab=requests";
+  if (eventType.startsWith("boarding.")) {
+    return entityId
+      ? `/dashboard/housing?tab=admissions&admissionId=${entityId}`
+      : "/dashboard/housing?tab=admissions";
+  }
+  return "/dashboard";
 }
 
 // Minimal web-push implementation using Web Push Protocol

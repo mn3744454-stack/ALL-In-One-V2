@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,11 +39,31 @@ const DashboardTeamPartners = () => {
   const { createConnection, acceptConnection, rejectConnection } = useConnections();
   const { people, counts, isLoading: teamLoading } = useUnifiedTeam();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [invitePersonOpen, setInvitePersonOpen] = useState(false);
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<UnifiedPerson | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ConnectionWithDetails | null>(null);
   const [invitePrefilledEmail, setInvitePrefilledEmail] = useState("");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = new URLSearchParams(window.location.search).get("tab");
+    return tabParam === "partners" ? "partners" : "people";
+  });
+
+  // Deep-link: open specific connection from notification
+  useEffect(() => {
+    const connectionId = searchParams.get('connectionId');
+    if (!connectionId || connectionsLoading || !connectionsWithDetails?.length) return;
+    setActiveTab("partners");
+    const found = connectionsWithDetails.find(c => c.id === connectionId);
+    if (found) {
+      setSelectedPartner(found);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('connectionId');
+    next.delete('tab');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, connectionsLoading, connectionsWithDetails, setSearchParams]);
 
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
@@ -145,7 +166,7 @@ const DashboardTeamPartners = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="people" className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
                 <Users className="w-4 h-4" />

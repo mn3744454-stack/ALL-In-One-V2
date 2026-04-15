@@ -87,7 +87,9 @@ function getNotificationRoute(notification: AppNotification): string {
   const { event_type, entity_id } = notification;
 
   if (event_type.startsWith("connection.")) {
-    return "/dashboard/laboratory?tab=requests";
+    return entity_id
+      ? `/dashboard/team?tab=partners&connectionId=${entity_id}`
+      : "/dashboard/team?tab=partners";
   }
 
   if (event_type === "lab_request.message_added") {
@@ -99,7 +101,9 @@ function getNotificationRoute(notification: AppNotification): string {
   }
 
   if (event_type.startsWith("boarding.")) {
-    return "/dashboard/housing?tab=admissions";
+    return entity_id
+      ? `/dashboard/housing?tab=admissions&admissionId=${entity_id}`
+      : "/dashboard/housing?tab=admissions";
   }
 
   if (event_type.startsWith("movement.")) {
