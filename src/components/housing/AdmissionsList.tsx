@@ -80,6 +80,19 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     search: search || undefined,
   });
 
+  // Deep-link: open specific admission from notification
+  useEffect(() => {
+    const admissionId = searchParams.get('admissionId');
+    if (!admissionId || isLoading || !allAdmissions.length) return;
+    const found = allAdmissions.find(a => a.id === admissionId);
+    if (found) {
+      setSelectedAdmissionId(found.id);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('admissionId');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isLoading, allAdmissions, setSearchParams]);
+
   const branchFiltered = useMemo(() => 
     branchId ? allAdmissions.filter(a => a.branch_id === branchId) : allAdmissions,
     [allAdmissions, branchId]
