@@ -33,6 +33,11 @@ export interface LabResult {
     lab_request_id?: string | null;
     horse?: { id: string; name: string; name_ar?: string | null };
     lab_horse?: { id: string; name: string; name_ar?: string | null };
+    lab_request?: {
+      id: string;
+      submission_id: string | null;
+      initiator_tenant_name_snapshot: string | null;
+    } | null;
   };
   template?: { id: string; name: string; name_ar: string | null };
   creator?: { id: string; full_name: string | null };
