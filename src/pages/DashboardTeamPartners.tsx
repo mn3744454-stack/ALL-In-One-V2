@@ -389,8 +389,12 @@ const DashboardTeamPartners = () => {
                   const isOperational = ["doctor", "trainer", "vet_clinic"].includes(partnerType || "");
                   const isPendingInbound = conn.status === "pending" && !isMine;
 
-                  return (
-                    <Card key={conn.id} className={`overflow-hidden ${isPendingInbound ? "border-primary/30" : ""}`}>
+                    return (
+                    <Card
+                      key={conn.id}
+                      className={`overflow-hidden cursor-pointer transition-colors hover:bg-muted/40 ${isPendingInbound ? "border-primary/30" : ""}`}
+                      onClick={() => setSelectedPartner(conn)}
+                    >
                       <CardContent className="p-3">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
@@ -424,7 +428,7 @@ const DashboardTeamPartners = () => {
                                 <Button
                                   variant="gold" size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => handleAcceptPartner(conn)}
+                                  onClick={(e) => { e.stopPropagation(); handleAcceptPartner(conn); }}
                                   disabled={acceptConnection.isPending}
                                 >
                                   <Check className="w-4 h-4" />
@@ -432,7 +436,7 @@ const DashboardTeamPartners = () => {
                                 <Button
                                   variant="outline" size="icon"
                                   className="h-8 w-8"
-                                  onClick={() => handleRejectPartner(conn)}
+                                  onClick={(e) => { e.stopPropagation(); handleRejectPartner(conn); }}
                                   disabled={rejectConnection.isPending}
                                 >
                                   <X className="w-4 h-4" />
@@ -445,7 +449,7 @@ const DashboardTeamPartners = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => setSelectedPartner(conn)}
+                                onClick={(e) => { e.stopPropagation(); setSelectedPartner(conn); }}
                                 title={t("teamPartners.configure")}
                               >
                                 <Settings2 className="w-4 h-4" />

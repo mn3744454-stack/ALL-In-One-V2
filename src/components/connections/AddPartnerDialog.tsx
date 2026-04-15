@@ -20,6 +20,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 interface TenantResult {
   id: string;
   name: string;
+  name_ar?: string | null;
   type: string;
 }
 
