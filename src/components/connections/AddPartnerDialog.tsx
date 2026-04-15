@@ -87,10 +87,14 @@ export function AddPartnerDialog({
     setSelectedTenant(null);
   };
 
+  const tenantTypeLabelMap: Record<string, Record<string, string>> = {
+    ar: { stable: "الإسطبل", lab: "المختبر", laboratory: "المختبر", doctor: "الطبيب", clinic: "العيادة", vet_clinic: "العيادة البيطرية", trainer: "المدرب", horse_owner: "مالك خيل" },
+    en: { stable: "Stable", lab: "Laboratory", laboratory: "Laboratory", doctor: "Doctor", clinic: "Clinic", vet_clinic: "Vet Clinic", trainer: "Trainer", horse_owner: "Horse Owner" },
+  };
   const getTenantTypeLabel = (type: string) => {
-    const key = `onboarding.tenantTypes.${type}`;
-    const translated = t(key as keyof typeof t);
-    return translated === key ? type.charAt(0).toUpperCase() + type.slice(1) : translated;
+    const { lang } = useI18n();
+    const map = tenantTypeLabelMap[lang] || tenantTypeLabelMap.en;
+    return map[type?.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   return (
