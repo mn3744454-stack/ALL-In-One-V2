@@ -39,11 +39,16 @@ const DashboardTeamPartners = () => {
   const { createConnection, acceptConnection, rejectConnection } = useConnections();
   const { people, counts, isLoading: teamLoading } = useUnifiedTeam();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [invitePersonOpen, setInvitePersonOpen] = useState(false);
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<UnifiedPerson | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ConnectionWithDetails | null>(null);
   const [invitePrefilledEmail, setInvitePrefilledEmail] = useState("");
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = new URLSearchParams(window.location.search).get("tab");
+    return tabParam === "partners" ? "partners" : "people";
+  });
 
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
