@@ -12,13 +12,14 @@ import { cn } from "@/lib/utils";
 
 interface LabRequestThreadProps {
   requestId: string;
+  submissionId?: string | null;
 }
 
-export function LabRequestThread({ requestId }: LabRequestThreadProps) {
+export function LabRequestThread({ requestId, submissionId }: LabRequestThreadProps) {
   const { user } = useAuth();
   const { activeTenant } = useTenant();
   const { t } = useI18n();
-  const { messages, loading, sendMessage, isSending } = useLabRequestMessages(requestId);
+  const { messages, loading, sendMessage, isSending } = useLabRequestMessages(requestId, submissionId);
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 

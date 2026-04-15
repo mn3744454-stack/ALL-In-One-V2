@@ -474,6 +474,13 @@ export const en = {
       createSampleFromRequest: "Create Sample from Request",
       restartRetest: "Restart / Retest",
       sampleCreated: "Sample created",
+      // Priority labels (dedicated lab namespace)
+      priorities: {
+        low: "Low",
+        normal: "Normal",
+        high: "High",
+        urgent: "Urgent",
+      },
     },
     
     // Stable Results Tab
