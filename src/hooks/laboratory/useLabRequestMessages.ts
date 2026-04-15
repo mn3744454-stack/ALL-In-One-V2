@@ -104,7 +104,7 @@ export function useLabRequestMessages(
 
       const { data, error } = await supabase
         .from("lab_request_messages")
-        .insert(insertData)
+        .insert(insertData as any)
         .select()
         .single();
       if (error) throw error;
