@@ -10232,10 +10232,11 @@ export type Database = {
       revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
       search_tenants_for_partnership: {
-        Args: { _exclude_tenant_id?: string; _search?: string }
+        Args: { _exclude_tenant_id?: string; _search: string }
         Returns: {
           id: string
           name: string
+          name_ar: string
           type: string
         }[]
       }
