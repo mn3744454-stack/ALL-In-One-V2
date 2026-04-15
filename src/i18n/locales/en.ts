@@ -445,6 +445,8 @@ export const en = {
       createFailed: "Failed to create lab request",
       updateFailed: "Failed to update lab request",
       deleteFailed: "Failed to delete lab request",
+      order: "order",
+      orders: "orders",
       status: {
         pending: "Pending",
         sent: "Sent",

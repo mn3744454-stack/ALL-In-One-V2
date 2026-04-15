@@ -263,7 +263,7 @@ export function RequestDetailDialog({
                   {formatStandardDate(request.requested_at)}
                 </span>
                 {request.priority && request.priority !== 'normal' && (
-                  <Badge variant="outline" className="text-xs">{t(`common.${request.priority}`) || request.priority}</Badge>
+                  <Badge variant="outline" className="text-xs">{t(`laboratory.requests.priorities.${request.priority}`) || request.priority}</Badge>
                 )}
               </div>
 

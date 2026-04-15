@@ -448,6 +448,8 @@ export const ar = {
       notesPlaceholder: "ملاحظات إضافية...",
       searchPlaceholder: "البحث في الطلبات...",
       noRequests: "لا توجد طلبات تحاليل",
+      order: "طلب",
+      orders: "طلبات",
       noRequestsDesc: "أنشئ أول طلب تحليل",
       viewResult: "عرض النتيجة",
       markReceived: "تحديد كمستلم",
