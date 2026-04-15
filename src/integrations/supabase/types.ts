@@ -5382,6 +5382,7 @@ export type Database = {
           request_id: string
           sender_tenant_id: string | null
           sender_user_id: string
+          submission_id: string | null
         }
         Insert: {
           body: string
@@ -5390,6 +5391,7 @@ export type Database = {
           request_id: string
           sender_tenant_id?: string | null
           sender_user_id: string
+          submission_id?: string | null
         }
         Update: {
           body?: string
@@ -5398,6 +5400,7 @@ export type Database = {
           request_id?: string
           sender_tenant_id?: string | null
           sender_user_id?: string
+          submission_id?: string | null
         }
         Relationships: [
           {
@@ -5419,6 +5422,13 @@ export type Database = {
             columns: ["sender_tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_messages_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "lab_submissions"
             referencedColumns: ["id"]
           },
         ]
@@ -5501,6 +5511,7 @@ export type Database = {
           result_share_token: string | null
           result_url: string | null
           status: string
+          submission_id: string | null
           tenant_id: string
           test_description: string
           updated_at: string | null
@@ -5528,6 +5539,7 @@ export type Database = {
           result_share_token?: string | null
           result_url?: string | null
           status?: string
+          submission_id?: string | null
           tenant_id: string
           test_description: string
           updated_at?: string | null
@@ -5555,6 +5567,7 @@ export type Database = {
           result_share_token?: string | null
           result_url?: string | null
           status?: string
+          submission_id?: string | null
           tenant_id?: string
           test_description?: string
           updated_at?: string | null
@@ -5607,6 +5620,13 @@ export type Database = {
             columns: ["lab_tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "lab_submissions"
             referencedColumns: ["id"]
           },
           {
@@ -6239,6 +6259,106 @@ export type Database = {
           },
           {
             foreignKeyName: "lab_services_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_submissions: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          expected_by: string | null
+          external_lab_name: string | null
+          id: string
+          initiator_tenant_id: string | null
+          initiator_tenant_name_snapshot: string | null
+          is_demo: boolean
+          lab_tenant_id: string | null
+          notes: string | null
+          priority: string
+          requested_at: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          expected_by?: string | null
+          external_lab_name?: string | null
+          id?: string
+          initiator_tenant_id?: string | null
+          initiator_tenant_name_snapshot?: string | null
+          is_demo?: boolean
+          lab_tenant_id?: string | null
+          notes?: string | null
+          priority?: string
+          requested_at?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          expected_by?: string | null
+          external_lab_name?: string | null
+          id?: string
+          initiator_tenant_id?: string | null
+          initiator_tenant_name_snapshot?: string | null
+          is_demo?: boolean
+          lab_tenant_id?: string | null
+          notes?: string | null
+          priority?: string
+          requested_at?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_submissions_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_submissions_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_submissions_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_submissions_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_submissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_submissions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -9994,6 +10114,7 @@ export type Database = {
           last_sender_tenant_id: string
           message_count: number
           request_id: string
+          submission_id: string
           test_description: string
         }[]
       }
