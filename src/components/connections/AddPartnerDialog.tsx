@@ -40,7 +40,7 @@ export function AddPartnerDialog({
   isLoading,
   typeFilter,
 }: AddPartnerDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<TenantResult[]>([]);
@@ -92,7 +92,6 @@ export function AddPartnerDialog({
     en: { stable: "Stable", lab: "Laboratory", laboratory: "Laboratory", doctor: "Doctor", clinic: "Clinic", vet_clinic: "Vet Clinic", trainer: "Trainer", horse_owner: "Horse Owner" },
   };
   const getTenantTypeLabel = (type: string) => {
-    const { lang } = useI18n();
     const map = tenantTypeLabelMap[lang] || tenantTypeLabelMap.en;
     return map[type?.toLowerCase()] || type.charAt(0).toUpperCase() + type.slice(1);
   };
@@ -105,7 +104,7 @@ export function AddPartnerDialog({
         onOpenChange(newOpen);
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{t("connections.addPartner")}</DialogTitle>
           <DialogDescription>
@@ -156,7 +155,23 @@ export function AddPartnerDialog({
                 >
                   <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{tenant.name}</p>
+                    {(() => {
+                      const en = tenant.name?.trim() || null;
+                      const arName = tenant.name_ar?.trim() || null;
+                      const isArabicUI = lang === "ar";
+                      const primary = isArabicUI ? (arName || en) : (en || arName);
+                      const secondary = isArabicUI ? (arName ? en : null) : (en ? arName : null);
+                      return (
+                        <>
+                          <p className="font-medium truncate">{primary}</p>
+                          {secondary && secondary !== primary && (
+                            <p className="text-xs text-muted-foreground truncate" dir={isArabicUI ? undefined : "rtl"}>
+                              ({secondary})
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
                     <Badge variant="outline" className="text-xs mt-0.5">
                       {getTenantTypeLabel(tenant.type)}
                     </Badge>
