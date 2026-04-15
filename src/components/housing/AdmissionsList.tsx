@@ -75,6 +75,14 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     }
   }, [searchParams, canCreate, setSearchParams]);
 
+  // Deep-link: open specific admission from notification
+  useEffect(() => {
+    const admissionId = searchParams.get('admissionId');
+    if (!admissionId || isLoading) return;
+    // We need allAdmissions to be loaded first — handled by isLoading guard above
+    // but allAdmissions isn't available yet at this line, so we use a ref-like approach below
+  }, [searchParams, isLoading]);
+
   const { admissions: allAdmissions, isLoading } = useBoardingAdmissions({
     status: 'all',
     search: search || undefined,
