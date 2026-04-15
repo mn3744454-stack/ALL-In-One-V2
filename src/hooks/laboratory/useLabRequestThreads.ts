@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface LabRequestThread {
-  request_id: string;
+  request_id: string | null;
+  submission_id: string | null;
   horse_name: string;
   horse_name_ar: string | null;
   test_description: string;

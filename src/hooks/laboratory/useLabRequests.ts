@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
@@ -7,16 +6,13 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
-// Pricing snapshots are now populated by DB trigger (fn_populate_lrs_service_snapshots)
 
 export interface LabRequestService {
   service_id: string;
-  // Phase 13 snapshot fields
   template_ids_snapshot: string[] | null;
   unit_price_snapshot: number | null;
   currency_snapshot: string | null;
   pricing_rule_snapshot: Record<string, unknown> | null;
-  // Service identity snapshots (cross-tenant safe)
   service_name_snapshot: string | null;
   service_name_ar_snapshot: string | null;
   service_code_snapshot: string | null;
@@ -51,23 +47,19 @@ export interface LabRequest {
   created_at: string;
   updated_at: string;
   is_demo: boolean;
-  // Dual-tenant model
   initiator_tenant_id: string | null;
   lab_tenant_id: string | null;
-  // Snapshot fields (written by stable at creation time)
+  submission_id: string | null;
   horse_name_snapshot: string | null;
   horse_name_ar_snapshot: string | null;
   horse_snapshot: Record<string, unknown> | null;
   initiator_tenant_name_snapshot: string | null;
-  // Joined data
   horse?: {
     id: string;
     name: string;
     name_ar: string | null;
   };
-  // Services linked via join table
   lab_request_services?: LabRequestService[];
-  // Initiator tenant (joined in lab full mode)
   initiator_tenant?: {
     id: string;
     name: string;
@@ -84,10 +76,29 @@ export interface CreateLabRequestData {
   service_ids?: string[];
   initiator_tenant_id?: string;
   lab_tenant_id?: string;
-  // Snapshot fields (populated by stable at creation time)
   horse_name_snapshot?: string;
   horse_name_ar_snapshot?: string;
   horse_snapshot?: Record<string, unknown>;
+  initiator_tenant_name_snapshot?: string;
+}
+
+/** Data for creating a parent submission + N child requests */
+export interface CreateSubmissionData {
+  horses: Array<{
+    horse_id: string;
+    test_description: string;
+    service_ids?: string[];
+    horse_name_snapshot?: string;
+    horse_name_ar_snapshot?: string | null;
+    horse_snapshot?: Record<string, unknown>;
+  }>;
+  priority?: 'low' | 'normal' | 'high' | 'urgent';
+  notes?: string;
+  description?: string;
+  expected_by?: string;
+  initiator_tenant_id?: string;
+  lab_tenant_id?: string;
+  external_lab_name?: string;
   initiator_tenant_name_snapshot?: string;
 }
 
@@ -113,11 +124,8 @@ export function useLabRequests() {
     queryFn: async () => {
       if (!tenantId) return [];
       
-      // Lab full mode: see incoming requests (lab_tenant_id = us)
-      // Stable/requests mode: see own requests (tenant_id = us)
       const filterColumn = isLabFull ? 'lab_tenant_id' : 'tenant_id';
       
-      // Build select: always include base + horse + services; lab mode also gets initiator tenant name
       const selectStr = isLabFull
         ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
         : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
@@ -134,19 +142,18 @@ export function useLabRequests() {
     enabled: !!tenantId,
   });
 
+  // Legacy single-request creation (kept for backward compatibility)
   const createMutation = useMutation({
     mutationFn: async (data: CreateLabRequestData) => {
       if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
       
       const { service_ids, initiator_tenant_id, lab_tenant_id, horse_name_snapshot, horse_name_ar_snapshot, horse_snapshot, initiator_tenant_name_snapshot, ...requestData } = data;
 
-      // Server-side snapshot resolution: fetch horse and tenant data to guarantee snapshots
       let resolvedHorseName = horse_name_snapshot || null;
       let resolvedHorseNameAr = horse_name_ar_snapshot || null;
       let resolvedHorseSnapshot = horse_snapshot || null;
       let resolvedTenantName = initiator_tenant_name_snapshot || null;
 
-      // Always fetch horse data server-side if snapshots weren't provided or are null
       if (!resolvedHorseName && requestData.horse_id) {
         const { data: horseData } = await supabase
           .from('horses')
@@ -163,7 +170,6 @@ export function useLabRequests() {
         }
       }
 
-      // Always fetch tenant name server-side if snapshot wasn't provided
       const effectiveInitiatorId = initiator_tenant_id || tenantId;
       if (!resolvedTenantName && effectiveInitiatorId) {
         const { data: tenantData } = await supabase
@@ -176,7 +182,6 @@ export function useLabRequests() {
         }
       }
 
-      // Step 1: Create the lab_request row
       const { data: result, error } = await supabase
         .from('lab_requests')
         .insert({
@@ -200,7 +205,6 @@ export function useLabRequests() {
       
       if (error) throw error;
 
-      // Step 2: Insert service links (pricing snapshots are populated by DB trigger)
       if (service_ids && service_ids.length > 0) {
         const serviceRows = service_ids.map(sid => ({
           lab_request_id: result.id,
@@ -212,7 +216,6 @@ export function useLabRequests() {
           .insert(serviceRows as any);
         
         if (linkError) {
-          // Rollback the request if service linking fails
           await supabase.from('lab_requests').delete().eq('id', result.id);
           throw linkError;
         }
@@ -226,6 +229,134 @@ export function useLabRequests() {
     },
     onError: (error) => {
       console.error('Failed to create lab request:', error);
+      toast.error(t('laboratory.requests.createFailed') || 'Failed to create lab request');
+    },
+  });
+
+  /**
+   * Phase 1: Create a parent submission + N child horse requests in one flow.
+   * Creates lab_submissions row first, then lab_requests children with submission_id.
+   */
+  const createSubmissionMutation = useMutation({
+    mutationFn: async (data: CreateSubmissionData) => {
+      if (!tenantId || !user?.id) throw new Error('Missing tenant or user');
+
+      const effectiveInitiatorId = data.initiator_tenant_id || tenantId;
+
+      // Resolve tenant name snapshot if not provided
+      let tenantNameSnapshot = data.initiator_tenant_name_snapshot || null;
+      if (!tenantNameSnapshot && effectiveInitiatorId) {
+        const { data: tenantData } = await supabase
+          .from('tenants')
+          .select('name')
+          .eq('id', effectiveInitiatorId)
+          .single();
+        if (tenantData) tenantNameSnapshot = tenantData.name;
+      }
+
+      // 1) Create parent submission
+      const { data: submission, error: subError } = await supabase
+        .from('lab_submissions')
+        .insert({
+          tenant_id: tenantId,
+          initiator_tenant_id: effectiveInitiatorId,
+          lab_tenant_id: data.lab_tenant_id || null,
+          external_lab_name: data.external_lab_name || null,
+          priority: data.priority || 'normal',
+          notes: data.notes || null,
+          description: data.description || null,
+          status: 'pending',
+          expected_by: data.expected_by || null,
+          created_by: user.id,
+          initiator_tenant_name_snapshot: tenantNameSnapshot,
+        })
+        .select()
+        .single();
+
+      if (subError) throw subError;
+
+      // 2) Create child requests per horse
+      const childResults: any[] = [];
+      for (const horse of data.horses) {
+        // Resolve horse snapshots if not provided
+        let horseName = horse.horse_name_snapshot || null;
+        let horseNameAr = horse.horse_name_ar_snapshot || null;
+        let horseSnapshot = horse.horse_snapshot || null;
+
+        if (!horseName && horse.horse_id) {
+          const { data: horseData } = await supabase
+            .from('horses')
+            .select('name, name_ar, breed, color')
+            .eq('id', horse.horse_id)
+            .single();
+          if (horseData) {
+            horseName = horseData.name;
+            horseNameAr = horseData.name_ar || null;
+            horseSnapshot = {
+              breed: (horseData as any).breed || undefined,
+              color: (horseData as any).color || undefined,
+            };
+          }
+        }
+
+        const { data: childReq, error: childError } = await supabase
+          .from('lab_requests')
+          .insert({
+            tenant_id: tenantId,
+            horse_id: horse.horse_id,
+            test_description: horse.test_description,
+            priority: data.priority || 'normal',
+            notes: data.notes || null,
+            expected_by: data.expected_by || null,
+            created_by: user.id,
+            initiator_tenant_id: effectiveInitiatorId,
+            lab_tenant_id: data.lab_tenant_id || null,
+            external_lab_name: data.external_lab_name || null,
+            submission_id: submission.id,
+            horse_name_snapshot: horseName,
+            horse_name_ar_snapshot: horseNameAr,
+            horse_snapshot: (horseSnapshot || null) as any,
+            initiator_tenant_name_snapshot: tenantNameSnapshot,
+          } as any)
+          .select()
+          .single();
+
+        if (childError) {
+          console.error('Failed to create child request for horse', horse.horse_id, childError);
+          continue; // Continue creating other children
+        }
+
+        childResults.push(childReq);
+
+        // Link services to child request
+        if (horse.service_ids && horse.service_ids.length > 0) {
+          const serviceRows = horse.service_ids.map(sid => ({
+            lab_request_id: childReq.id,
+            service_id: sid,
+          }));
+          const { error: svcError } = await supabase
+            .from('lab_request_services')
+            .insert(serviceRows as any);
+          if (svcError) {
+            console.error('Failed to link services for request', childReq.id, svcError);
+          }
+        }
+      }
+
+      if (childResults.length === 0) {
+        // No children created — clean up the parent
+        await supabase.from('lab_submissions').delete().eq('id', submission.id);
+        throw new Error('Failed to create any child requests');
+      }
+
+      return { submission, children: childResults };
+    },
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId, labMode) });
+      // Toast is handled by the caller for batch awareness
+    },
+    onError: (error) => {
+      console.error('Failed to create submission:', error);
       toast.error(t('laboratory.requests.createFailed') || 'Failed to create lab request');
     },
   });
@@ -277,9 +408,10 @@ export function useLabRequests() {
     error,
     refetch,
     createRequest: createMutation.mutateAsync,
+    createSubmission: createSubmissionMutation.mutateAsync,
     updateRequest: updateMutation.mutateAsync,
     deleteRequest: deleteMutation.mutateAsync,
-    isCreating: createMutation.isPending,
+    isCreating: createMutation.isPending || createSubmissionMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
   };
