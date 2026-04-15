@@ -486,6 +486,13 @@ export const ar = {
       createSampleFromRequest: "إنشاء عينة من الطلب",
       restartRetest: "إعادة / فحص مجدد",
       sampleCreated: "تم إنشاء عينة",
+      // Priority labels (dedicated lab namespace)
+      priorities: {
+        low: "منخفضة",
+        normal: "عادية",
+        high: "عالية",
+        urgent: "عاجلة",
+      },
     },
     
     // Stable Results Tab
