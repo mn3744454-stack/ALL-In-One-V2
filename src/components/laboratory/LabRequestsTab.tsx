@@ -917,24 +917,57 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const isStableMode = labMode === 'requests';
   const isLabFull = labMode === 'full';
 
-  const filteredRequests = requests.filter(req => {
-    const matchesSearch = !searchQuery || 
-      req.test_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // For Lab-full: filter submissions + orphans by search/status
+  const filteredSubmissions = useMemo(() => {
+    if (!isLabFull) return [];
+    return submissions.filter(sub => {
+      const matchesSearch = !searchQuery ||
+        sub.initiator_tenant_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.children.some(c =>
+          c.test_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      const matchesStatus = statusFilter === 'all' || sub.children.some(c => c.status === statusFilter);
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, submissions, searchQuery, statusFilter]);
+
+  const filteredOrphans = useMemo(() => {
+    if (!isLabFull) return [];
+    return orphanRequests.filter(req => {
+      const matchesSearch = !searchQuery ||
+        req.test_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, orphanRequests, searchQuery, statusFilter]);
+
+  // For Stable mode: filter flat requests
+  const filteredRequests = useMemo(() => {
+    if (isLabFull) return []; // Lab-full uses submissions
+    return requests.filter(req => {
+      const matchesSearch = !searchQuery || 
+        req.test_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, requests, searchQuery, statusFilter]);
 
   const handleGenerateInvoice = (request: LabRequest) => {
     setSelectedRequest(request);
     setInvoiceDialogOpen(true);
   };
 
-  if (loading) {
+  const isPageLoading = isLabFull ? (loading || submissionsLoading) : loading;
+
+  if (isPageLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
