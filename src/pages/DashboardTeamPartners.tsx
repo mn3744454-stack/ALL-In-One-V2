@@ -166,7 +166,7 @@ const DashboardTeamPartners = () => {
             </div>
           </div>
 
-          <Tabs defaultValue="people" className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="people" className="flex-1 sm:flex-none gap-1.5">
                 <Users className="w-4 h-4" />
