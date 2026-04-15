@@ -50,6 +50,21 @@ const DashboardTeamPartners = () => {
     return tabParam === "partners" ? "partners" : "people";
   });
 
+  // Deep-link: open specific connection from notification
+  useEffect(() => {
+    const connectionId = searchParams.get('connectionId');
+    if (!connectionId || connectionsLoading || !connectionsWithDetails?.length) return;
+    setActiveTab("partners");
+    const found = connectionsWithDetails.find(c => c.id === connectionId);
+    if (found) {
+      setSelectedPartner(found);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete('connectionId');
+    next.delete('tab');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, connectionsLoading, connectionsWithDetails, setSearchParams]);
+
   const pendingInvitations = sentInvitations.filter(i => i.status === "pending" || i.status === "preaccepted");
   const nonOwnerPeople = people.filter(p => p.role !== "owner");
 
