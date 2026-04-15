@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useLabSubmissions } from "@/hooks/laboratory/useLabSubmissions";
+import { LabSubmissionCard } from "./LabSubmissionCard";
 import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
