@@ -123,6 +123,26 @@ export function RequestDetailDialog({
     }
   };
 
+  // Fetch parent submission context if this request has a submission_id
+  const submissionId = (request as any).submission_id as string | null;
+  const { data: parentSubmission } = useQuery({
+    queryKey: ['lab_submission_context', submissionId],
+    queryFn: async () => {
+      if (!submissionId) return null;
+      const { data } = await supabase
+        .from('lab_submissions')
+        .select('id, initiator_tenant_name_snapshot, description, priority, notes, requested_at')
+        .eq('id', submissionId)
+        .single();
+      return data;
+    },
+    enabled: open && !!submissionId && isLabFull,
+  });
+
+  const senderName = parentSubmission?.initiator_tenant_name_snapshot
+    || request.initiator_tenant_name_snapshot
+    || request.initiator_tenant?.name;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
@@ -131,10 +151,15 @@ export function RequestDetailDialog({
             {horseName}
             <RequestStatusBadge status={request.status} />
           </DialogTitle>
-          {isLabFull && (request.initiator_tenant_name_snapshot || request.initiator_tenant?.name) && (
+          {isLabFull && senderName && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
               <Building2 className="h-3 w-3" />
-              {t('laboratory.requests.initiatorStable') || 'Requesting Stable'}: {request.initiator_tenant_name_snapshot || request.initiator_tenant?.name}
+              {t('laboratory.requests.initiatorStable') || 'Requesting Stable'}: {senderName}
+            </p>
+          )}
+          {isLabFull && parentSubmission?.description && (
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+              {parentSubmission.description}
             </p>
           )}
         </DialogHeader>
