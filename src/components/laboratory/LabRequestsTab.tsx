@@ -1169,8 +1169,58 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
         </div>
       </div>
 
-      {/* Requests Grid */}
-      {filteredRequests.length === 0 ? (
+      {/* Requests Content */}
+      {isLabFull ? (
+        /* Lab-full mode: submission-grouped intake view */
+        (filteredSubmissions.length === 0 && filteredOrphans.length === 0) ? (
+          <Card className="py-12">
+            <div className="text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-1">
+                {t('laboratory.submissions.noSubmissions') || 'No incoming submissions'}
+              </p>
+              <p className="text-sm">
+                {t('laboratory.submissions.noSubmissionsDesc') || 'Submissions from partner stables will appear here'}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {/* Grouped submissions */}
+            {filteredSubmissions.map((sub) => (
+              <LabSubmissionCard
+                key={sub.id}
+                submission={sub}
+                defaultOpen={filteredSubmissions.length === 1}
+                onOpenChildDetail={handleOpenDetail}
+                onCreateSample={onCreateSampleFromRequest}
+              />
+            ))}
+
+            {/* Legacy orphan requests (no submission) */}
+            {filteredOrphans.length > 0 && (
+              <>
+                {filteredSubmissions.length > 0 && (
+                  <p className="text-xs text-muted-foreground pt-2">
+                    {t('laboratory.submissions.legacyRequest') || 'Legacy requests'}
+                  </p>
+                )}
+                <div className={getGridClass(gridColumns, viewMode)}>
+                  {filteredOrphans.map((request) => (
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      canCreateInvoice={canCreateInvoice}
+                      onGenerateInvoice={() => handleGenerateInvoice(request)}
+                      onOpenDetail={() => handleOpenDetail(request)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      ) : filteredRequests.length === 0 ? (
         <Card className="py-12">
           <div className="text-center text-muted-foreground">
             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -1183,7 +1233,6 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           </div>
         </Card>
       ) : isStableMode ? (
-        // Stable mode: group requests by horse
         <StableRequestsByHorse
           requests={filteredRequests}
           viewMode={viewMode}
@@ -1194,60 +1243,17 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           dir={dir}
         />
       ) : (
-        viewMode === 'table' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-start">
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.createSample.horse')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.testDescription')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.status')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRequests.map((request) => {
-                  return (
-                    <tr
-                      key={request.id}
-                      className="border-b hover:bg-muted/50 cursor-pointer"
-                      onClick={() => handleOpenDetail(request)}
-                    >
-                      <td className="py-2 px-3">
-                        <BilingualName
-                          name={request.horse_name_snapshot || request.horse?.name}
-                          nameAr={request.horse_name_ar_snapshot || (request.horse as any)?.name_ar}
-                        />
-                      </td>
-                      <td className="py-2 px-3 truncate max-w-[200px]">{request.test_description}</td>
-                      <td className="py-2 px-3"><RequestStatusBadge status={request.status} /></td>
-                      <td className="py-2 px-3 text-muted-foreground">{formatStandardDate(request.requested_at)}</td>
-                      <td className="py-2 px-3">
-                        <Button size="sm" variant="ghost" className="gap-1.5" onClick={(e) => { e.stopPropagation(); handleOpenDetail(request); }}>
-                          <FileText className="h-4 w-4" />
-                          <span className="hidden sm:inline">{t('common.view') || 'View'}</span>
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredRequests.map((request) => (
-            <RequestCard 
-              key={request.id} 
-              request={request} 
+            <RequestCard
+              key={request.id}
+              request={request}
               canCreateInvoice={canCreateInvoice}
               onGenerateInvoice={() => handleGenerateInvoice(request)}
               onOpenDetail={() => handleOpenDetail(request)}
             />
           ))}
         </div>
-        )
       )}
 
       {/* Generate Invoice Dialog */}
