@@ -729,6 +729,17 @@ export const ar = {
       critical: "حرج",
     },
     
+    // Group State (for grouped views)
+    groupState: {
+      complete: "مكتمل",
+      inProgress: "قيد العمل",
+      mixed: "مختلط",
+      pending: "معلق",
+      allFinal: "معتمد بالكامل",
+      allReviewed: "تمت المراجعة بالكامل",
+      allDraft: "مسودة بالكامل",
+    },
+    
     // Samples List & Card
     samples: {
       title: "العينة",
