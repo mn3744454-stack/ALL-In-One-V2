@@ -67,6 +67,12 @@ export interface LabSample {
   receiver?: { id: string; full_name: string | null } | null;
   // Templates (many-to-many)
   templates?: SampleTemplate[];
+  // Submission context (joined through lab_request)
+  lab_request?: {
+    id: string;
+    submission_id: string | null;
+    initiator_tenant_name_snapshot: string | null;
+  } | null;
 }
 
 export interface LabSampleFilters {
