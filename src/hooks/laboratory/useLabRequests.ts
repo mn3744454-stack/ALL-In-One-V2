@@ -353,6 +353,7 @@ export function useLabRequests() {
     },
     onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.labRequests(tenantId, labMode) });
+      queryClient.invalidateQueries({ queryKey: ['lab-submissions'] });
       // Toast is handled by the caller for batch awareness
     },
     onError: (error) => {
