@@ -540,10 +540,10 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">{t('boarding.priorities.low') || 'Low'}</SelectItem>
-                  <SelectItem value="normal">{t('boarding.priorities.normal') || 'Normal'}</SelectItem>
-                  <SelectItem value="high">{t('boarding.priorities.high') || 'High'}</SelectItem>
-                  <SelectItem value="urgent">{t('boarding.priorities.urgent') || 'Urgent'}</SelectItem>
+                  <SelectItem value="low">{t('boarding.careNotes.priorities.low') || 'Low'}</SelectItem>
+                  <SelectItem value="normal">{t('boarding.careNotes.priorities.normal') || 'Normal'}</SelectItem>
+                  <SelectItem value="high">{t('boarding.careNotes.priorities.high') || 'High'}</SelectItem>
+                  <SelectItem value="urgent">{t('boarding.careNotes.priorities.urgent') || 'Urgent'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
