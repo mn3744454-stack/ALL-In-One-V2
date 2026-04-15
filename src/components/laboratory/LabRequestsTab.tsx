@@ -31,6 +31,8 @@ import { useTenant } from "@/contexts/TenantContext";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabCatalogViewer } from "./LabCatalogViewer";
 import { LabRequestThread } from "./LabRequestThread";
+import { MultiHorseSelector } from "./MultiHorseSelector";
+import { QuickCreateHorseDialog } from "@/components/housing/QuickCreateHorseDialog";
 import { Plus, Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText, Search, MoreVertical, Receipt, FlaskConical, Tag, Link2, Building2, RefreshCw, ChevronDown, ChevronUp, MessageSquare, SlidersHorizontal, Heart, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -39,8 +41,9 @@ import { toast } from "sonner";
 
 import { RequestDetailDialog, RequestStatusBadge } from "./RequestDetailDialog";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
-import { useViewPreference } from "@/hooks/useViewPreference";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { useViewPreference } from "@/hooks/useViewPreference";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface LabOption {
   tenantId: string;
@@ -54,11 +57,20 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   const { createRequest, isCreating } = useLabRequests();
   const { activeTenant } = useTenant();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
+  const queryClient = useQueryClient();
 
   const { createConnection } = useConnections();
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [pendingPartnerName, setPendingPartnerName] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Quick-create horse bridge
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreateKey, setQuickCreateKey] = useState(0);
+
+  // Multi-horse selection state
+  const [selectedHorses, setSelectedHorses] = useState<Array<{ id: string; name: string }>>([]);
+  const selectedHorseIds = useMemo(() => selectedHorses.map(h => h.id), [selectedHorses]);
 
   // Derive available lab partners from accepted B2B connections, deduplicated by tenantId
   const labPartners = useMemo<LabOption[]>(() => {
@@ -105,11 +117,8 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         recipientTenantId,
       });
       setAddPartnerOpen(false);
-      // Show inline pending state instead of navigating away
-      const matchedResult = connections.find(c => false); // We don't have the name yet from the dialog
       setPendingPartnerName(t('laboratory.requests.pendingPartnership') || 'Partnership request sent');
       toast.success(t('connections.requestSent') || 'Partnership request sent');
-      // Refresh connections to pick up new pending request
       refetchConnections();
     } catch (err: any) {
       const msg = err?.message || '';
@@ -125,17 +134,23 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
     setIsRefreshing(true);
     await refetchConnections();
     setIsRefreshing(false);
-    // If now we have accepted partners, clear pending state
     if (labPartners.length > 0) {
       setPendingPartnerName(null);
     }
   };
+
+  const handleQuickCreateHorse = (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => {
+    // Add the new horse to selection and refresh list
+    setSelectedHorses(prev => [...prev, { id: horse.id, name: horse.name }]);
+    setQuickCreateOpen(false);
+    // Refresh the horses query so MultiHorseSelector sees the new horse
+    queryClient.invalidateQueries({ queryKey: ['horses'] });
+  };
   
-  const [formData, setFormData] = useState<CreateLabRequestData>({
-    horse_id: '',
+  const [formData, setFormData] = useState({
     test_description: '',
     external_lab_name: '',
-    priority: 'normal',
+    priority: 'normal' as 'low' | 'normal' | 'high' | 'urgent',
     notes: '',
   });
   const [selectedLabTenantId, setSelectedLabTenantId] = useState<string | null>(null);
@@ -155,19 +170,22 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
 
   // Compute whether form is valid for submission
   const isFormValid = useMemo(() => {
-    if (!formData.horse_id) return false;
+    if (selectedHorses.length === 0) return false;
     if (labMode === 'platform') {
       if (!selectedLabTenantId) return false;
-      // Either test_description is filled OR at least one service is selected
       return !!(formData.test_description.trim() || selectedServiceIds.length > 0);
     } else {
       return !!formData.test_description.trim();
     }
-  }, [formData.horse_id, formData.test_description, labMode, selectedLabTenantId, selectedServiceIds]);
+  }, [selectedHorses.length, formData.test_description, labMode, selectedLabTenantId, selectedServiceIds]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isFormValid || isSubmitting) return;
+
+    setIsSubmitting(true);
 
     // Auto-generate test_description from selected service names if empty
     let finalDescription = formData.test_description.trim();
@@ -175,37 +193,70 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
       finalDescription = selectedServiceNames.join(', ');
     }
 
-    // Build snapshot fields from the selected horse
-    const selectedHorse = horses.find(h => h.id === formData.horse_id);
-    const snapshotFields: Partial<CreateLabRequestData> = {};
-    if (selectedHorse) {
-      snapshotFields.horse_name_snapshot = selectedHorse.name;
-      snapshotFields.horse_name_ar_snapshot = selectedHorse.name_ar || null as any;
-      snapshotFields.horse_snapshot = {
-        breed: (selectedHorse as any).breed || undefined,
-        color: (selectedHorse as any).color || undefined,
-        sex: (selectedHorse as any).sex || undefined,
-      };
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const horse of selectedHorses) {
+      try {
+        // Build snapshot fields from the selected horse
+        const horseData = horses.find(h => h.id === horse.id);
+        const snapshotFields: Partial<CreateLabRequestData> = {};
+        if (horseData) {
+          snapshotFields.horse_name_snapshot = horseData.name;
+          snapshotFields.horse_name_ar_snapshot = horseData.name_ar || null as any;
+          snapshotFields.horse_snapshot = {
+            breed: (horseData as any).breed || undefined,
+            color: (horseData as any).color || undefined,
+            sex: (horseData as any).sex || undefined,
+          };
+        }
+        if (activeTenant?.tenant?.name) {
+          snapshotFields.initiator_tenant_name_snapshot = activeTenant.tenant.name;
+        }
+
+        await createRequest({
+          horse_id: horse.id,
+          test_description: finalDescription || formData.test_description,
+          external_lab_name: labMode === 'external' ? formData.external_lab_name : undefined,
+          priority: formData.priority,
+          notes: formData.notes || undefined,
+          service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
+          initiator_tenant_id: activeTenant?.tenant_id,
+          lab_tenant_id: selectedLabTenantId || undefined,
+          ...snapshotFields,
+        });
+        successCount++;
+      } catch {
+        failCount++;
+      }
     }
-    if (activeTenant?.tenant?.name) {
-      snapshotFields.initiator_tenant_name_snapshot = activeTenant.tenant.name;
+
+    setIsSubmitting(false);
+
+    if (failCount === 0) {
+      if (successCount > 1) {
+        toast.success((t('laboratory.requests.batchCreated') || '{count} lab request(s) created').replace('{count}', String(successCount)));
+      }
+      // Single request toast is handled by the mutation's onSuccess
+    } else if (successCount > 0) {
+      toast.warning(
+        (t('laboratory.requests.batchPartialFail') || '{success} of {total} created. {failed} failed.')
+          .replace('{success}', String(successCount))
+          .replace('{total}', String(selectedHorses.length))
+          .replace('{failed}', String(failCount))
+      );
     }
-    
-    await createRequest({
-      ...formData,
-      test_description: finalDescription || formData.test_description,
-      service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
-      initiator_tenant_id: activeTenant?.tenant_id,
-      lab_tenant_id: selectedLabTenantId || undefined,
-      ...snapshotFields,
-    });
-    resetForm();
-    setOpen(false);
-    onSuccess?.();
+
+    if (successCount > 0) {
+      resetForm();
+      setOpen(false);
+      onSuccess?.();
+    }
   };
 
   const resetForm = () => {
-    setFormData({ horse_id: '', test_description: '', external_lab_name: '', priority: 'normal', notes: '' });
+    setFormData({ test_description: '', external_lab_name: '', priority: 'normal', notes: '' });
+    setSelectedHorses([]);
     setSelectedLabTenantId(null);
     setSelectedLabName('');
     setSelectedServiceIds([]);
@@ -223,30 +274,65 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
           {t('laboratory.requests.create') || 'New Request'}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col" dir={dir}>
+      <DialogContent className="sm:max-w-[650px] max-h-[85vh] flex flex-col" dir={dir}>
         <DialogHeader>
           <DialogTitle>{t('laboratory.requests.createTitle') || 'Create Lab Test Request'}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto -mx-6 px-6 min-h-0">
           <form onSubmit={handleSubmit} className="space-y-4 pb-4" id="create-request-form">
-            {/* Horse Selection */}
+            {/* Horse Selection — Multi-horse with empty state */}
             <div className="space-y-2">
-              <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
-              <Select
-                value={formData.horse_id}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, horse_id: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('laboratory.createSample.selectHorse') || 'Select horse'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {horses.map((horse) => (
-                    <SelectItem key={horse.id} value={horse.id}>
-                      {dir === 'rtl' && horse.name_ar ? horse.name_ar : horse.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
+                {horses.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1 h-7 text-xs"
+                    onClick={() => { setQuickCreateKey(k => k + 1); setQuickCreateOpen(true); }}
+                  >
+                    <Plus className="h-3 w-3" />
+                    {t('laboratory.requests.addNewHorse') || 'Add New Horse'}
+                  </Button>
+                )}
+              </div>
+              {horses.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-8 text-center space-y-3">
+                    <Heart className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t('laboratory.requests.noHorsesYet') || 'No horses registered yet'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('laboratory.requests.noHorsesHint') || 'Register at least one horse to create a lab request'}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => { setQuickCreateKey(k => k + 1); setQuickCreateOpen(true); }}
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t('laboratory.requests.addNewHorse') || 'Add New Horse'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <MultiHorseSelector
+                    selectedHorseIds={selectedHorseIds}
+                    onSelectionChange={setSelectedHorses}
+                    hideIds
+                  />
+                  {selectedHorses.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedHorses.length} {t('laboratory.requests.selectedHorses') || 'horses selected'}
+                    </p>
+                  )}
+                </>
+              )}
             </div>
 
             {/* Lab Source Mode Toggle */}
@@ -454,10 +540,10 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">{t('common.low') || 'Low'}</SelectItem>
-                  <SelectItem value="normal">{t('common.normal') || 'Normal'}</SelectItem>
-                  <SelectItem value="high">{t('common.high') || 'High'}</SelectItem>
-                  <SelectItem value="urgent">{t('common.urgent') || 'Urgent'}</SelectItem>
+                  <SelectItem value="low">{t('boarding.careNotes.priorities.low') || 'Low'}</SelectItem>
+                  <SelectItem value="normal">{t('boarding.careNotes.priorities.normal') || 'Normal'}</SelectItem>
+                  <SelectItem value="high">{t('boarding.careNotes.priorities.high') || 'High'}</SelectItem>
+                  <SelectItem value="urgent">{t('boarding.careNotes.priorities.urgent') || 'Urgent'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -480,9 +566,13 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
           <Button 
             type="submit" 
             form="create-request-form"
-            disabled={isCreating || !isFormValid}
+            disabled={isSubmitting || isCreating || !isFormValid}
           >
-            {isCreating ? t('common.loading') : t('common.create')}
+            {(isSubmitting || isCreating) ? t('common.loading') : (
+              selectedHorses.length > 1
+                ? `${t('common.create')} (${selectedHorses.length})`
+                : t('common.create')
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -493,6 +583,13 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
       onSubmit={handleAddPartner}
       isLoading={createConnection.isPending}
       typeFilter={['laboratory', 'lab']}
+    />
+    <QuickCreateHorseDialog
+      key={quickCreateKey}
+      open={quickCreateOpen}
+      onOpenChange={setQuickCreateOpen}
+      onCreated={handleQuickCreateHorse}
+      minimal
     />
     </>
   );
