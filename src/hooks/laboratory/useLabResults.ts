@@ -105,7 +105,8 @@ export function useLabResults(filters: LabResultFilters = {}) {
             horse_name,
             lab_request_id,
             horse:horses!lab_samples_horse_id_fkey(id, name, name_ar),
-            lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar)
+            lab_horse:lab_horses!lab_samples_lab_horse_id_fkey(id, name, name_ar),
+            lab_request:lab_requests!lab_samples_lab_request_id_fkey(id, submission_id, initiator_tenant_name_snapshot)
           ),
           template:lab_templates!lab_results_template_id_fkey(id, name, name_ar),
           creator:profiles!lab_results_created_by_fkey(id, full_name),
