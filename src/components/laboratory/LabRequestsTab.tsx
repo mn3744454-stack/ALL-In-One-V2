@@ -1,5 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useLabSubmissions } from "@/hooks/laboratory/useLabSubmissions";
+import { LabSubmissionCard } from "./LabSubmissionCard";
 import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
@@ -801,6 +803,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const { activeTenant, activeRole } = useTenant();
   const { labMode } = useModuleAccess();
   const { requests, loading } = useLabRequests();
+  const { submissions, orphanRequests, loading: submissionsLoading } = useLabSubmissions();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const { createConnection } = useConnections();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -914,24 +917,57 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const isStableMode = labMode === 'requests';
   const isLabFull = labMode === 'full';
 
-  const filteredRequests = requests.filter(req => {
-    const matchesSearch = !searchQuery || 
-      req.test_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      req.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // For Lab-full: filter submissions + orphans by search/status
+  const filteredSubmissions = useMemo(() => {
+    if (!isLabFull) return [];
+    return submissions.filter(sub => {
+      const matchesSearch = !searchQuery ||
+        sub.initiator_tenant_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.children.some(c =>
+          c.test_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      const matchesStatus = statusFilter === 'all' || sub.children.some(c => c.status === statusFilter);
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, submissions, searchQuery, statusFilter]);
+
+  const filteredOrphans = useMemo(() => {
+    if (!isLabFull) return [];
+    return orphanRequests.filter(req => {
+      const matchesSearch = !searchQuery ||
+        req.test_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, orphanRequests, searchQuery, statusFilter]);
+
+  // For Stable mode: filter flat requests
+  const filteredRequests = useMemo(() => {
+    if (isLabFull) return []; // Lab-full uses submissions
+    return requests.filter(req => {
+      const matchesSearch = !searchQuery || 
+        req.test_description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_snapshot?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        req.horse_name_ar_snapshot?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [isLabFull, requests, searchQuery, statusFilter]);
 
   const handleGenerateInvoice = (request: LabRequest) => {
     setSelectedRequest(request);
     setInvoiceDialogOpen(true);
   };
 
-  if (loading) {
+  const isPageLoading = isLabFull ? (loading || submissionsLoading) : loading;
+
+  if (isPageLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
@@ -1133,8 +1169,58 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
         </div>
       </div>
 
-      {/* Requests Grid */}
-      {filteredRequests.length === 0 ? (
+      {/* Requests Content */}
+      {isLabFull ? (
+        /* Lab-full mode: submission-grouped intake view */
+        (filteredSubmissions.length === 0 && filteredOrphans.length === 0) ? (
+          <Card className="py-12">
+            <div className="text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-1">
+                {t('laboratory.submissions.noSubmissions') || 'No incoming submissions'}
+              </p>
+              <p className="text-sm">
+                {t('laboratory.submissions.noSubmissionsDesc') || 'Submissions from partner stables will appear here'}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {/* Grouped submissions */}
+            {filteredSubmissions.map((sub) => (
+              <LabSubmissionCard
+                key={sub.id}
+                submission={sub}
+                defaultOpen={filteredSubmissions.length === 1}
+                onOpenChildDetail={handleOpenDetail}
+                onCreateSample={onCreateSampleFromRequest}
+              />
+            ))}
+
+            {/* Legacy orphan requests (no submission) */}
+            {filteredOrphans.length > 0 && (
+              <>
+                {filteredSubmissions.length > 0 && (
+                  <p className="text-xs text-muted-foreground pt-2">
+                    {t('laboratory.submissions.legacyRequest') || 'Legacy requests'}
+                  </p>
+                )}
+                <div className={getGridClass(gridColumns, viewMode)}>
+                  {filteredOrphans.map((request) => (
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      canCreateInvoice={canCreateInvoice}
+                      onGenerateInvoice={() => handleGenerateInvoice(request)}
+                      onOpenDetail={() => handleOpenDetail(request)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      ) : filteredRequests.length === 0 ? (
         <Card className="py-12">
           <div className="text-center text-muted-foreground">
             <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -1147,7 +1233,6 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           </div>
         </Card>
       ) : isStableMode ? (
-        // Stable mode: group requests by horse
         <StableRequestsByHorse
           requests={filteredRequests}
           viewMode={viewMode}
@@ -1158,60 +1243,17 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
           dir={dir}
         />
       ) : (
-        viewMode === 'table' ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground text-start">
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.createSample.horse')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('laboratory.requests.testDescription')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.status')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.date')}</th>
-                  <th className="py-2 px-3 font-medium text-start">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRequests.map((request) => {
-                  return (
-                    <tr
-                      key={request.id}
-                      className="border-b hover:bg-muted/50 cursor-pointer"
-                      onClick={() => handleOpenDetail(request)}
-                    >
-                      <td className="py-2 px-3">
-                        <BilingualName
-                          name={request.horse_name_snapshot || request.horse?.name}
-                          nameAr={request.horse_name_ar_snapshot || (request.horse as any)?.name_ar}
-                        />
-                      </td>
-                      <td className="py-2 px-3 truncate max-w-[200px]">{request.test_description}</td>
-                      <td className="py-2 px-3"><RequestStatusBadge status={request.status} /></td>
-                      <td className="py-2 px-3 text-muted-foreground">{formatStandardDate(request.requested_at)}</td>
-                      <td className="py-2 px-3">
-                        <Button size="sm" variant="ghost" className="gap-1.5" onClick={(e) => { e.stopPropagation(); handleOpenDetail(request); }}>
-                          <FileText className="h-4 w-4" />
-                          <span className="hidden sm:inline">{t('common.view') || 'View'}</span>
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredRequests.map((request) => (
-            <RequestCard 
-              key={request.id} 
-              request={request} 
+            <RequestCard
+              key={request.id}
+              request={request}
               canCreateInvoice={canCreateInvoice}
               onGenerateInvoice={() => handleGenerateInvoice(request)}
               onOpenDetail={() => handleOpenDetail(request)}
             />
           ))}
         </div>
-        )
       )}
 
       {/* Generate Invoice Dialog */}

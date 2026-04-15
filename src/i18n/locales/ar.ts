@@ -494,6 +494,26 @@ export const ar = {
         urgent: "عاجلة",
       },
     },
+
+    // Submissions (parent container)
+    submissions: {
+      unknownSender: "مرسل غير معروف",
+      horse: "حصان",
+      horses: "أحصنة",
+      service: "خدمة",
+      services: "خدمات",
+      legacyRequest: "طلب سابق",
+      noSubmissions: "لا توجد طلبات واردة",
+      noSubmissionsDesc: "ستظهر الطلبات من الإسطبلات الشريكة هنا",
+      status: {
+        pending: "قيد الانتظار",
+        processing: "جارٍ العمل",
+        partial: "جزئي",
+        ready: "جاهز",
+        received: "مُستلم",
+        cancelled: "ملغي",
+      },
+    },
     
     // Stable Results Tab
     stableResults: {
