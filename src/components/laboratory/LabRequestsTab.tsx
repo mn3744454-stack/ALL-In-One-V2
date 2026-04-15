@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLabRequests, type LabRequest, type CreateLabRequestData } from "@/hooks/laboratory/useLabRequests";
+import { useLabRequests, type LabRequest, type CreateLabRequestData, type CreateSubmissionData } from "@/hooks/laboratory/useLabRequests";
 import { useHorses } from "@/hooks/useHorses";
 import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
 import { AddPartnerDialog } from "@/components/connections";
