@@ -482,6 +482,26 @@ export const en = {
         urgent: "Urgent",
       },
     },
+
+    // Submissions (parent container)
+    submissions: {
+      unknownSender: "Unknown Sender",
+      horse: "horse",
+      horses: "horses",
+      service: "service",
+      services: "services",
+      legacyRequest: "Legacy request",
+      noSubmissions: "No incoming submissions",
+      noSubmissionsDesc: "Submissions from partner stables will appear here",
+      status: {
+        pending: "Pending",
+        processing: "In Progress",
+        partial: "Partial",
+        ready: "Ready",
+        received: "Received",
+        cancelled: "Cancelled",
+      },
+    },
     
     // Stable Results Tab
     stableResults: {
