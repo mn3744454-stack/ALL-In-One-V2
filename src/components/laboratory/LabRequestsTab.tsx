@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { RequestDetailDialog, RequestStatusBadge } from "./RequestDetailDialog";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface LabOption {
