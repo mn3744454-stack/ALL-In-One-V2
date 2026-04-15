@@ -803,6 +803,7 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const { activeTenant, activeRole } = useTenant();
   const { labMode } = useModuleAccess();
   const { requests, loading } = useLabRequests();
+  const { submissions, orphanRequests, loading: submissionsLoading } = useLabSubmissions();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const { createConnection } = useConnections();
   const [searchParams, setSearchParams] = useSearchParams();
