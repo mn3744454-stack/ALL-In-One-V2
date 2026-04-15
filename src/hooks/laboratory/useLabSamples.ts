@@ -67,6 +67,12 @@ export interface LabSample {
   receiver?: { id: string; full_name: string | null } | null;
   // Templates (many-to-many)
   templates?: SampleTemplate[];
+  // Submission context (joined through lab_request)
+  lab_request?: {
+    id: string;
+    submission_id: string | null;
+    initiator_tenant_name_snapshot: string | null;
+  } | null;
 }
 
 export interface LabSampleFilters {
@@ -179,7 +185,8 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
           assignee:profiles!lab_samples_assigned_to_fkey(id, full_name, avatar_url),
           creator:profiles!lab_samples_created_by_fkey(id, full_name),
           receiver:profiles!lab_samples_received_by_fkey(id, full_name),
-          templates:lab_sample_templates(id, sort_order, template:lab_templates(id, name, name_ar, template_type, fields))
+          templates:lab_sample_templates(id, sort_order, template:lab_templates(id, name, name_ar, template_type, fields)),
+          lab_request:lab_requests!lab_samples_lab_request_id_fkey(id, submission_id, initiator_tenant_name_snapshot)
         `)
         .eq("tenant_id", tenantId!)
         .order("created_at", { ascending: false });

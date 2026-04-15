@@ -714,6 +714,17 @@ export const en = {
       critical: "Critical",
     },
     
+    // Group State (for grouped views)
+    groupState: {
+      complete: "Complete",
+      inProgress: "In Progress",
+      mixed: "Mixed",
+      pending: "Pending",
+      allFinal: "All Final",
+      allReviewed: "All Reviewed",
+      allDraft: "All Draft",
+    },
+    
     // Samples List & Card
     samples: {
       title: "Sample",
