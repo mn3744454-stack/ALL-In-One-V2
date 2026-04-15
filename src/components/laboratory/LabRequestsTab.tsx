@@ -193,65 +193,52 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
       finalDescription = selectedServiceNames.join(', ');
     }
 
-    let successCount = 0;
-    let failCount = 0;
-
-    for (const horse of selectedHorses) {
-      try {
-        // Build snapshot fields from the selected horse
+    try {
+      // Build horse entries for the submission
+      const horseEntries = selectedHorses.map(horse => {
         const horseData = horses.find(h => h.id === horse.id);
-        const snapshotFields: Partial<CreateLabRequestData> = {};
-        if (horseData) {
-          snapshotFields.horse_name_snapshot = horseData.name;
-          snapshotFields.horse_name_ar_snapshot = horseData.name_ar || null as any;
-          snapshotFields.horse_snapshot = {
+        return {
+          horse_id: horse.id,
+          test_description: finalDescription || formData.test_description,
+          service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
+          horse_name_snapshot: horseData?.name,
+          horse_name_ar_snapshot: horseData?.name_ar || null,
+          horse_snapshot: horseData ? {
             breed: (horseData as any).breed || undefined,
             color: (horseData as any).color || undefined,
             sex: (horseData as any).sex || undefined,
-          };
-        }
-        if (activeTenant?.tenant?.name) {
-          snapshotFields.initiator_tenant_name_snapshot = activeTenant.tenant.name;
-        }
+          } : undefined,
+        };
+      });
 
-        await createRequest({
-          horse_id: horse.id,
-          test_description: finalDescription || formData.test_description,
-          external_lab_name: labMode === 'external' ? formData.external_lab_name : undefined,
-          priority: formData.priority,
-          notes: formData.notes || undefined,
-          service_ids: selectedServiceIds.length > 0 ? selectedServiceIds : undefined,
-          initiator_tenant_id: activeTenant?.tenant_id,
-          lab_tenant_id: selectedLabTenantId || undefined,
-          ...snapshotFields,
-        });
-        successCount++;
-      } catch {
-        failCount++;
-      }
-    }
+      const result = await createSubmission({
+        horses: horseEntries,
+        priority: formData.priority,
+        notes: formData.notes || undefined,
+        description: finalDescription || undefined,
+        expected_by: undefined,
+        initiator_tenant_id: activeTenant?.tenant_id,
+        lab_tenant_id: selectedLabTenantId || undefined,
+        external_lab_name: labMode === 'external' ? formData.external_lab_name : undefined,
+        initiator_tenant_name_snapshot: activeTenant?.tenant?.name || undefined,
+      });
 
-    setIsSubmitting(false);
-
-    if (failCount === 0) {
+      const successCount = result.children.length;
       if (successCount > 1) {
         toast.success((t('laboratory.requests.batchCreated') || '{count} lab request(s) created').replace('{count}', String(successCount)));
+      } else {
+        toast.success(t('laboratory.requests.created') || 'Lab request created');
       }
-      // Single request toast is handled by the mutation's onSuccess
-    } else if (successCount > 0) {
-      toast.warning(
-        (t('laboratory.requests.batchPartialFail') || '{success} of {total} created. {failed} failed.')
-          .replace('{success}', String(successCount))
-          .replace('{total}', String(selectedHorses.length))
-          .replace('{failed}', String(failCount))
-      );
-    }
 
-    if (successCount > 0) {
       resetForm();
       setOpen(false);
       onSuccess?.();
+    } catch (err) {
+      console.error('Submission failed:', err);
+      toast.error(t('laboratory.requests.createFailed') || 'Failed to create lab request');
     }
+
+    setIsSubmitting(false);
   };
 
   const resetForm = () => {
@@ -540,10 +527,10 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">{t('boarding.careNotes.priorities.low') || 'Low'}</SelectItem>
-                  <SelectItem value="normal">{t('boarding.careNotes.priorities.normal') || 'Normal'}</SelectItem>
-                  <SelectItem value="high">{t('boarding.careNotes.priorities.high') || 'High'}</SelectItem>
-                  <SelectItem value="urgent">{t('boarding.careNotes.priorities.urgent') || 'Urgent'}</SelectItem>
+                  <SelectItem value="low">{t('laboratory.requests.priorities.low') || 'Low'}</SelectItem>
+                  <SelectItem value="normal">{t('laboratory.requests.priorities.normal') || 'Normal'}</SelectItem>
+                  <SelectItem value="high">{t('laboratory.requests.priorities.high') || 'High'}</SelectItem>
+                  <SelectItem value="urgent">{t('laboratory.requests.priorities.urgent') || 'Urgent'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
