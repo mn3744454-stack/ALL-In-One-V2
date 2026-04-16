@@ -269,6 +269,19 @@ export function SubmissionGroupedSamplesView({
             (c) => (c.lab_decision || "pending_review") === "accepted" && !sampledRequestIds.has(c.id)
           );
 
+          // Phase 6C — eligibility = accepted + specimen received + not yet sampled
+          const eligibleChildren: BatchEligibleChild[] = unsampledChildren
+            .filter((c) => !!c.specimen_received_at)
+            .map((c) => ({
+              request_id: c.id,
+              horse_id: c.horse_id,
+              horse_name: c.horse?.name || c.horse_name_snapshot || (t("laboratory.samples.unknownHorse") as string),
+              horse_name_ar: c.horse?.name_ar || c.horse_name_ar_snapshot,
+              horse_snapshot: c.horse_snapshot,
+              test_description: c.test_description,
+            }));
+          const eligibleCount = eligibleChildren.length;
+
           const shortRef = group.submissionId
             ? group.submissionId.slice(0, 6).toUpperCase()
             : null;
@@ -288,6 +301,39 @@ export function SubmissionGroupedSamplesView({
           const horsesPreview = horseNames.slice(0, 2).join(", ");
           const horsesMore = horseNames.length > 2 ? horseNames.length - 2 : 0;
           const sampleCount = group.samples.length;
+
+          const buildLabRequestForChild = (c: AcceptedChildRow): LabRequest => ({
+            id: c.id,
+            tenant_id: tenantId || "",
+            horse_id: c.horse_id || "",
+            external_lab_name: null,
+            external_lab_id: null,
+            status: "received",
+            priority: "normal",
+            test_description: c.test_description || "",
+            notes: null,
+            requested_at: "",
+            expected_by: null,
+            received_at: c.specimen_received_at,
+            result_share_token: null,
+            result_url: null,
+            result_file_path: null,
+            created_by: "",
+            created_at: "",
+            updated_at: "",
+            is_demo: false,
+            initiator_tenant_id: null,
+            lab_tenant_id: null,
+            submission_id: group.submissionId,
+            horse_name_snapshot: c.horse_name_snapshot,
+            horse_name_ar_snapshot: c.horse_name_ar_snapshot,
+            horse_snapshot: c.horse_snapshot,
+            initiator_tenant_name_snapshot: group.sender,
+            horse: c.horse || undefined,
+            lab_decision: "accepted",
+            specimen_received_at: c.specimen_received_at,
+          });
+
 
           return (
             <Card key={group.key} className="overflow-hidden">
