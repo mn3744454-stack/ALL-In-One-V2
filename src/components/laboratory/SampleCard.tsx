@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { SampleProgressStepper } from "./SampleProgressStepper";
 import { TemplateDetailsDialog } from "./TemplateDetailsDialog";
+import { SubmissionContextChip } from "./SubmissionContextChip";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { formatStandardDate } from "@/lib/displayHelpers";
@@ -205,6 +206,14 @@ export function SampleCard({
                 <p className="text-xs text-muted-foreground font-mono">
                   {sample.physical_sample_id}
                 </p>
+              )}
+              {sample.lab_request?.submission_id && (
+                <div className="mt-1.5">
+                  <SubmissionContextChip
+                    submissionId={sample.lab_request.submission_id}
+                    senderName={sample.lab_request.initiator_tenant_name_snapshot}
+                  />
+                </div>
               )}
             </div>
           </div>
