@@ -153,6 +153,8 @@ export function HorseSelectionStep({
             onSelectionChange={handleAddInternalHorses}
             disabled={disabled}
             hideIds={true}
+            horses={horses}
+            loading={horsesLoading}
           />
         </div>
       )}
