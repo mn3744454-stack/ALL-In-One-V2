@@ -46,6 +46,7 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useQueryClient } from "@tanstack/react-query";
+import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
 
 interface LabOption {
   tenantId: string;
@@ -761,7 +762,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <RequestStatusBadge status={request.status} />
+            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
             {isBillable && canCreateInvoice && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -1404,26 +1405,34 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
       )}
 
       {/* Request Detail Dialog with Messaging Thread */}
-      {detailRequest && (
-        <RequestDetailDialog
-          request={detailRequest}
-          open={detailOpen}
-          onOpenChange={(open) => {
-            setDetailOpen(open);
-            if (!open) {
-              setDetailRequest(null);
-              setDetailDefaultTab(undefined);
-            }
-          }}
-          defaultTab={detailDefaultTab}
-          canCreateInvoice={canCreateInvoice}
-          onGenerateInvoice={() => handleGenerateInvoice(detailRequest)}
-          onCreateSample={onCreateSampleFromRequest ? (req) => {
-            setDetailOpen(false);
-            onCreateSampleFromRequest(req);
-          } : undefined}
-        />
-      )}
+      {/* Phase 5.1: re-derive from live data so intake mutations reflect immediately */}
+      {detailRequest && (() => {
+        const liveDetailRequest =
+          requests.find(r => r.id === detailRequest.id) ||
+          orphanRequests.find(r => r.id === detailRequest.id) ||
+          submissions.flatMap(s => s.children).find(r => r.id === detailRequest.id) ||
+          detailRequest;
+        return (
+          <RequestDetailDialog
+            request={liveDetailRequest}
+            open={detailOpen}
+            onOpenChange={(open) => {
+              setDetailOpen(open);
+              if (!open) {
+                setDetailRequest(null);
+                setDetailDefaultTab(undefined);
+              }
+            }}
+            defaultTab={detailDefaultTab}
+            canCreateInvoice={canCreateInvoice}
+            onGenerateInvoice={() => handleGenerateInvoice(liveDetailRequest)}
+            onCreateSample={onCreateSampleFromRequest ? (req) => {
+              setDetailOpen(false);
+              onCreateSampleFromRequest(req);
+            } : undefined}
+          />
+        );
+      })()}
     </div>
   );
 }
