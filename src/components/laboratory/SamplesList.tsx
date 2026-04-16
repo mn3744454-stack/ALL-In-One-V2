@@ -409,6 +409,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           samples={sortedSamples} 
           onSampleClick={onSampleClick}
         />
+      ) : groupViewMode === 'submissions' ? (
+        <SubmissionGroupedSamplesView
+          samples={sortedSamples}
+          onSampleClick={onSampleClick}
+        />
       ) : viewMode === 'table' ? (
         <SamplesTable
           samples={sortedSamples}
