@@ -22,6 +22,7 @@ import { useI18n } from "@/i18n";
 interface SubmissionGroupedSamplesViewProps {
   samples: LabSample[];
   onSampleClick?: (sampleId: string) => void;
+  pendingOnly?: boolean;
 }
 
 interface SubmissionMetaRow {
@@ -58,6 +59,7 @@ interface AcceptedChildRow {
 export function SubmissionGroupedSamplesView({
   samples,
   onSampleClick,
+  pendingOnly = false,
 }: SubmissionGroupedSamplesViewProps) {
   const { t } = useI18n();
   const { activeTenant, activeRole } = useTenant();
@@ -65,7 +67,6 @@ export function SubmissionGroupedSamplesView({
   const { isLabTenant, labMode } = useModuleAccess();
   const isLabFull = isLabTenant && labMode === "full";
 
-  const [pendingOnly, setPendingOnly] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Submission ids referenced by the current sample slice
@@ -238,18 +239,6 @@ export function SubmissionGroupedSamplesView({
 
   return (
     <div className="space-y-3">
-      {/* Discoverability filter */}
-      <div className="flex items-center justify-end gap-2 px-1">
-        <Label htmlFor="grouped-pending-only" className="text-xs text-muted-foreground cursor-pointer">
-          {t("laboratory.submissionGrouped.pendingOnly") || "Show only submissions with pending sampling"}
-        </Label>
-        <Switch
-          id="grouped-pending-only"
-          checked={pendingOnly}
-          onCheckedChange={setPendingOnly}
-        />
-      </div>
-
       {orderedGroups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <Layers className="h-10 w-10 text-muted-foreground/50 mb-3" />
@@ -271,9 +260,28 @@ export function SubmissionGroupedSamplesView({
             ? group.submissionId.slice(0, 6).toUpperCase()
             : null;
 
+          // Phase 6B.1 — collapsed-state preview: first 2 horse names
+          const horseNames: string[] = [];
+          for (const c of group.children) {
+            const name = c.horse?.name || c.horse_name_snapshot;
+            if (name && !horseNames.includes(name)) horseNames.push(name);
+          }
+          if (horseNames.length === 0) {
+            for (const s of group.samples) {
+              const name = (s as any).lab_request?.horse_name_snapshot || (s as any).horse?.name;
+              if (name && !horseNames.includes(name)) horseNames.push(name);
+            }
+          }
+          const horsesPreview = horseNames.slice(0, 2).join(", ");
+          const horsesMore = horseNames.length > 2 ? horseNames.length - 2 : 0;
+          const sampleCount = group.samples.length;
+
           return (
             <Card key={group.key} className="overflow-hidden">
-              <CardHeader className="pb-3 bg-muted/30">
+              <CardHeader
+                className="pb-3 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => toggleCollapsed(group.key)}
+              >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-9 w-9 rounded-lg bg-background border flex items-center justify-center shrink-0">
@@ -303,6 +311,23 @@ export function SubmissionGroupedSamplesView({
                           </span>
                         )}
                       </div>
+                      {/* Phase 6B.1 — compact preview line */}
+                      {(horsesPreview || sampleCount > 0) && (
+                        <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                          {horsesPreview && (
+                            <span className="truncate">
+                              {horsesPreview}
+                              {horsesMore > 0 && ` +${horsesMore}`}
+                            </span>
+                          )}
+                          {sampleCount > 0 && (
+                            <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                              <FlaskConical className="h-3 w-3 me-1" />
+                              {sampleCount}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                       {group.progress && (
                         <div className="mt-2 max-w-md">
                           <SubmissionSamplingProgress progress={group.progress} variant="bar" />
@@ -310,18 +335,16 @@ export function SubmissionGroupedSamplesView({
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8"
-                    onClick={() => toggleCollapsed(group.key)}
+                  <span
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
+                    aria-hidden="true"
                   >
                     {isCollapsed ? (
                       <ChevronDown className="h-4 w-4" />
                     ) : (
                       <ChevronUp className="h-4 w-4" />
                     )}
-                  </Button>
+                  </span>
                 </div>
               </CardHeader>
 

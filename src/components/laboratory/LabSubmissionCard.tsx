@@ -61,8 +61,8 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="overflow-hidden">
-        <CollapsibleTrigger className="flex items-center gap-3 w-full text-start p-4 hover:bg-muted/30 transition-colors">
+      <Card className="overflow-hidden transition-shadow hover:shadow-md">
+        <CollapsibleTrigger className="group flex items-center gap-3 w-full text-start p-4 hover:bg-muted/50 active:bg-muted/70 transition-colors cursor-pointer">
           {/* Sender icon */}
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
             <Building2 className="h-5 w-5 text-primary" />
@@ -106,9 +106,26 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
             <Badge variant="outline" className={cn("text-xs", aggregateStatus.color)}>
               {t(`laboratory.submissions.status.${aggregateStatus.label}`) || aggregateStatus.label}
             </Badge>
-            {isOpen
-              ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+            {/* Phase 6B.1 — divergence chip surfaces hidden cancellations/rejections */}
+            {aggregateStatus.divergence && aggregateStatus.divergence.rejected > 0 && (
+              <Badge variant="outline" className="text-[10px] h-5 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-200 dark:border-red-800">
+                {aggregateStatus.divergence.rejected} {t('laboratory.submissions.status.rejected') || 'rejected'}
+              </Badge>
+            )}
+            {aggregateStatus.divergence && aggregateStatus.divergence.cancelled > 0 && (
+              <Badge variant="outline" className="text-[10px] h-5 bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300 border-gray-200 dark:border-gray-700">
+                {aggregateStatus.divergence.cancelled} {t('laboratory.submissions.status.cancelled') || 'cancelled'}
+              </Badge>
+            )}
+            {/* Phase 6B.1 — strengthened expand affordance */}
+            <span
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground group-hover:bg-accent group-hover:text-accent-foreground group-hover:border-accent transition-colors"
+              aria-hidden="true"
+            >
+              {isOpen
+                ? <ChevronDown className="h-4 w-4" />
+                : <ChevronRight className="h-4 w-4" />}
+            </span>
           </div>
         </CollapsibleTrigger>
 
