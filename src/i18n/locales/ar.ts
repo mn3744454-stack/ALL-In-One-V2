@@ -534,6 +534,16 @@ export const ar = {
       fullySampled: "اكتمل استلام العينات",
     },
 
+    // Phase 6B — عرض العينات مُجمَّعة حسب الإرسالية
+    submissionGrouped: {
+      viewBySubmissions: "حسب الإرسالية",
+      pendingOnly: "إظهار الإرساليات التي بها عينات معلقة فقط",
+      empty: "لا توجد إرساليات مطابقة للفلاتر الحالية.",
+      noSubmission: "عينات مستقلة",
+      awaitingSampleCreation: "مقبولة، بانتظار إنشاء العينة",
+      batchHint: "سيتوفر الإنشاء الجماعي في المرحلة التالية.",
+    },
+
     // Phase 5 — سير قرار الاستلام
     intake: {
       title: "الاستلام",

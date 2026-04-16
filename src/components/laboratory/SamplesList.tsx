@@ -9,6 +9,7 @@ import { SampleCard } from "./SampleCard";
 import { SamplesTable } from "./SamplesTable";
 import { SamplesFilterTabs, type SampleFilterTab } from "./SamplesFilterTabs";
 import { ClientGroupedView } from "./ClientGroupedView";
+import { SubmissionGroupedSamplesView } from "./SubmissionGroupedSamplesView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
 import { GenerateInvoiceDialog } from "./GenerateInvoiceDialog";
 import { AdvancedFilters } from "./AdvancedFilters";
@@ -20,11 +21,11 @@ import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
-import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown, SlidersHorizontal } from "lucide-react";
+import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown, SlidersHorizontal, Layers } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-type GroupViewMode = 'samples' | 'clients';
+type GroupViewMode = 'samples' | 'clients' | 'submissions';
 type SortOrder = 'asc' | 'desc';
 
 interface SamplesListProps {
@@ -73,7 +74,10 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [search, setSearch] = useState(searchParams.get('q') || "");
   const [groupViewMode, setGroupViewMode] = useState<GroupViewMode>(() => {
     const saved = localStorage.getItem('lab-samples-group-view-mode');
-    return (saved === 'clients' ? 'clients' : 'samples') as GroupViewMode;
+    if (saved === 'clients' || saved === 'submissions' || saved === 'samples') {
+      return saved as GroupViewMode;
+    }
+    return 'samples';
   });
   const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
     const saved = localStorage.getItem('lab-samples-sort-order');
@@ -251,6 +255,14 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
               <Users className="h-4 w-4 me-1.5 shrink-0" />
               <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewByClients")}</span>
             </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="submissions" 
+              aria-label={t("laboratory.submissionGrouped.viewBySubmissions") || "By submission"}
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm whitespace-nowrap"
+            >
+              <Layers className="h-4 w-4 me-1.5 shrink-0" />
+              <span className="text-sm hidden sm:inline">{t("laboratory.submissionGrouped.viewBySubmissions") || "By submission"}</span>
+            </ToggleGroupItem>
           </ToggleGroup>
           
           {/* ViewSwitcher for Grid/List/Table */}
@@ -395,6 +407,11 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
       ) : groupViewMode === 'clients' ? (
         <ClientGroupedView 
           samples={sortedSamples} 
+          onSampleClick={onSampleClick}
+        />
+      ) : groupViewMode === 'submissions' ? (
+        <SubmissionGroupedSamplesView
+          samples={sortedSamples}
           onSampleClick={onSampleClick}
         />
       ) : viewMode === 'table' ? (
