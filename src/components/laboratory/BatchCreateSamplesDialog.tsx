@@ -145,9 +145,7 @@ export function BatchCreateSamplesDialog({
           // Reuse same single-create path
           horse_id: child.horse_id || undefined,
           horse_name: child.horse_id ? undefined : child.horse_name,
-          horse_metadata: snapshot
-            ? (snapshot as Record<string, unknown>)
-            : undefined,
+          horse_metadata: snapshot ? (snapshot as any) : undefined,
           collection_date: isoDate,
           physical_sample_id: sampleIds[child.request_id]?.trim() || undefined,
           notes: sharedNotes.trim() || undefined,
