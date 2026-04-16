@@ -36,6 +36,14 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
 
   const aggregateStatus = useMemo(() => deriveSubmissionStatus(submission.children), [submission.children]);
 
+  // Phase 6A — sampling progress for this submission (single batched query)
+  const submissionsForProgress = useMemo(
+    () => [{ id: submission.id, children: submission.children }],
+    [submission.id, submission.children]
+  );
+  const { progressMap, sampledRequestIds } = useLabSubmissionsSamplingProgress(submissionsForProgress);
+  const samplingProgress = progressMap.get(submission.id);
+
   // Phase 5 — count children still pending review (used for Accept All / Reject All)
   const pendingCount = useMemo(
     () => submission.children.filter(c => (c.lab_decision || 'pending_review') === 'pending_review').length,
