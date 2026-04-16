@@ -519,8 +519,52 @@ export const ar = {
         cancelled: "ملغي",
       },
     },
+
+    // Phase 5 — سير قرار الاستلام
+    intake: {
+      title: "الاستلام",
+      stepDecision: "المراجعة والقرار",
+      stepSpecimen: "استلام العينة",
+      accept: "قبول",
+      reject: "رفض",
+      acceptAll: "قبول الكل",
+      rejectAll: "رفض الكل",
+      rejectAllTitle: "رفض جميع الأحصنة المعلقة",
+      rejectAllDescription: "سيتم تطبيق سبب الرفض على جميع الأحصنة المعلقة في هذا الطلب.",
+      pendingChildren: "بانتظار المراجعة",
+      rejectTitle: "رفض الطلب",
+      rejectDescription: "يرجى إدخال سبب الرفض. سيظهر هذا السبب للإسطبل الطالب.",
+      rejectionReason: "سبب الرفض",
+      rejectionReasonPlaceholder: "مثال: نوع الأنبوب غير مناسب، عينة متحللة...",
+      confirmReject: "تأكيد الرفض",
+      markSpecimenReceived: "تأكيد الاستلام",
+      specimenReceived: "تم استلام العينة",
+      awaitingSpecimen: "بانتظار العينة",
+      readyForSampling: "جاهز لإنشاء العينة.",
+      waitingForSpecimen: "يجب تأكيد استلام العينة قبل إنشاء عينة المختبر.",
+      decision: {
+        pending_review: "بانتظار المراجعة",
+        accepted: "مقبول",
+        rejected: "مرفوض",
+        partial: "مقبول جزئياً",
+      },
+      stableView: {
+        accepted: "قبل المختبر طلبك — بانتظار العينة",
+        inProgress: "المختبر يعمل على طلبك",
+        rejected: "رفض المختبر هذا الطلب",
+      },
+      toast: {
+        accepted: "تم قبول الطلب",
+        rejected: "تم رفض الطلب",
+        acceptedAll: "تم قبول جميع الأحصنة المعلقة",
+        rejectedAll: "تم رفض جميع الأحصنة المعلقة",
+        specimenReceived: "تم تأكيد استلام العينة",
+        acceptFailed: "فشل قبول الطلب",
+        rejectFailed: "فشل رفض الطلب",
+        specimenFailed: "فشل تأكيد استلام العينة",
+      },
+    },
     
-    // Stable Results Tab
     stableResults: {
       tabLabel: "النتائج",
       title: "نتائج المختبر",
