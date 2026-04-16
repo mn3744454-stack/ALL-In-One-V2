@@ -461,10 +461,12 @@ export const ar = {
       deleteFailed: "فشل في حذف الطلب",
       status: {
         pending: "قيد الانتظار",
-        sent: "تم الإرسال",
+        // Phase 6A.1 — في سياق المختبر، الحالة "sent" تعني أن الطلب قد وصل
+        // وبانتظار استلام العينة فعلياً، لا مجرد إرسال خارجي.
+        sent: "بانتظار العينة",
         processing: "قيد المعالجة",
         ready: "جاهز",
-        received: "تم الاستلام",
+        received: "تم استلام العينة",
         cancelled: "ملغى",
       },
       // Messaging & thread
@@ -520,14 +522,16 @@ export const ar = {
       },
     },
 
-    // Phase 6A — تقدم أخذ العينات على مستوى الطلب
+    // Phase 6A — تقدم استلام العينات على مستوى الإرسالية
+    // Phase 6A.1 — صُحّحت المفردات لتعكس "الاستلام" بدلاً من "الأخذ"،
+    // إذ يتسلم المختبر العينات من الإسطبل ولا يتولى جمعها بنفسه.
     samplingProgress: {
-      submissionRef: "طلب",
-      sampled: "تم أخذ العينة",
-      awaitingSample: "بانتظار العينة",
-      notSampled: "بانتظار أخذ العينات",
-      partiallySampled: "أخذ عينات جزئي",
-      fullySampled: "اكتمل أخذ العينات",
+      submissionRef: "إرسالية",
+      sampled: "تم استلام العينة",
+      awaitingSample: "بانتظار استلام العينة",
+      notSampled: "بانتظار استلام العينات",
+      partiallySampled: "استلام جزئي للعينات",
+      fullySampled: "اكتمل استلام العينات",
     },
 
     // Phase 5 — سير قرار الاستلام
