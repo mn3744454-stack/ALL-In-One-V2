@@ -520,6 +520,16 @@ export const ar = {
       },
     },
 
+    // Phase 6A — تقدم أخذ العينات على مستوى الطلب
+    samplingProgress: {
+      submissionRef: "طلب",
+      sampled: "تم أخذ العينة",
+      awaitingSample: "بانتظار العينة",
+      notSampled: "بانتظار أخذ العينات",
+      partiallySampled: "أخذ عينات جزئي",
+      fullySampled: "اكتمل أخذ العينات",
+    },
+
     // Phase 5 — سير قرار الاستلام
     intake: {
       title: "الاستلام",

@@ -508,6 +508,16 @@ export const en = {
       },
     },
 
+    // Phase 6A — Submission sampling progress (read-layer)
+    samplingProgress: {
+      submissionRef: "Sub",
+      sampled: "Sampled",
+      awaitingSample: "Awaiting sample",
+      notSampled: "Awaiting sampling",
+      partiallySampled: "Partially sampled",
+      fullySampled: "Fully sampled",
+    },
+
     // Phase 5 — Intake decision workflow
     intake: {
       title: "Intake",
