@@ -55,7 +55,7 @@ interface LabOption {
 function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
-  const { horses } = useHorses();
+  const { horses, refresh: refreshHorses } = useHorses();
   const { createRequest, createSubmission, isCreating } = useLabRequests();
   const { activeTenant } = useTenant();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
@@ -142,11 +142,11 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   const handleQuickCreateHorse = (horse: { id: string; name: string; name_ar?: string | null; gender: string }) => {
-    // Add the new horse to selection and refresh list
+    // Add the new horse to selection
     setSelectedHorses(prev => [...prev, { id: horse.id, name: horse.name }]);
     setQuickCreateOpen(false);
-    // Refresh the horses query so MultiHorseSelector sees the new horse
-    queryClient.invalidateQueries({ queryKey: ['horses'] });
+    // Refresh the horses list so MultiHorseSelector sees the new horse
+    refreshHorses();
   };
   
   const [formData, setFormData] = useState({

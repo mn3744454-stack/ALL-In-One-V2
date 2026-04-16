@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { ErrorBoundary } from "@/components/guards/ErrorBoundary";
 import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -114,6 +115,7 @@ export default function DashboardLaboratory() {
 
   return (
     <DashboardShell headerRight={headerRight}>
+      <ErrorBoundary fallbackMessage="حدث خطأ في وحدة المختبر. يرجى المحاولة مرة أخرى.">
       {/* Mobile Page Header */}
       <MobilePageHeader title={t("sidebar.laboratory")} />
 
@@ -250,6 +252,7 @@ export default function DashboardLaboratory() {
           />
         </>
       )}
+      </ErrorBoundary>
     </DashboardShell>
   );
 }
