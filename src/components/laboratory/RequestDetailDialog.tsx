@@ -314,6 +314,30 @@ export function RequestDetailDialog({
                 </div>
               )}
 
+              {/* Stable-only: Lab decision reflection (read-only mapped status) */}
+              {!isLabFull && labDecision === 'rejected' && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-1">
+                  <div className="flex items-center gap-2 text-destructive font-medium text-sm">
+                    <XCircle className="h-4 w-4" />
+                    {t('laboratory.intake.stableView.rejected') || 'Lab rejected this request'}
+                  </div>
+                  {request.rejection_reason && (
+                    <p className="text-xs text-foreground/80">
+                      <span className="font-medium">{t('laboratory.intake.rejectionReason') || 'Reason'}:</span>{' '}
+                      {request.rejection_reason}
+                    </p>
+                  )}
+                </div>
+              )}
+              {!isLabFull && labDecision === 'accepted' && (
+                <div className="rounded-md border bg-muted/40 p-3 text-sm flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  {request.specimen_received_at
+                    ? (t('laboratory.intake.stableView.inProgress') || 'Lab is processing your request')
+                    : (t('laboratory.intake.stableView.accepted') || 'Lab accepted your request — awaiting specimen')}
+                </div>
+              )}
+
               {/* Stable-only Actions */}
               {!isLabFull && (
                 <div className="flex gap-2 pt-2">
