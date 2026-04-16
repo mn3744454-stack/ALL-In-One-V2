@@ -394,16 +394,37 @@ export function SubmissionGroupedSamplesView({
                       )}
                     </div>
                   </div>
-                  <span
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shrink-0"
-                    aria-hidden="true"
-                  >
-                    {isCollapsed ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronUp className="h-4 w-4" />
+                  <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {canManage && eligibleCount > 0 && onCreateSampleFromRequest && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-8"
+                        onClick={() =>
+                          setBatchOpen({
+                            submissionId: group.submissionId,
+                            shortRef,
+                            sender: group.sender,
+                            eligible: eligibleChildren,
+                          })
+                        }
+                      >
+                        <Plus className="h-3.5 w-3.5 me-1" />
+                        {(t("laboratory.batchCreate.headerAction") || "Batch create ({count})").replace(
+                          "{count}",
+                          String(eligibleCount)
+                        )}
+                      </Button>
                     )}
-                  </span>
+                    <button
+                      type="button"
+                      onClick={() => toggleCollapsed(group.key)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                      aria-label={isCollapsed ? "Expand" : "Collapse"}
+                    >
+                      {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </CardHeader>
 
