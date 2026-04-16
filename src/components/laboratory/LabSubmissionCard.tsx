@@ -271,7 +271,14 @@ function ChildRequestRow({
             </Badge>
           )
         )}
-        <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
+        {/* Phase 6A.1 — Suppress legacy status badge when the Phase 6A sampling
+            tag already conveys the more precise truth and the legacy badge
+            would only echo an ambiguous "sent"/awaiting-sample signal. */}
+        {(() => {
+          const effective = getEffectiveLabRequestStatus(request);
+          if (showSamplingTag && effective === 'sent') return null;
+          return <RequestStatusBadge status={effective} />;
+        })()}
         <Button
           size="icon"
           variant="ghost"
