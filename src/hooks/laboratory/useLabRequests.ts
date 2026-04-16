@@ -64,6 +64,13 @@ export interface LabRequest {
     id: string;
     name: string;
   };
+  // Phase 5 — intake decision fields
+  lab_decision?: 'pending_review' | 'accepted' | 'rejected';
+  rejection_reason?: string | null;
+  decided_at?: string | null;
+  decided_by?: string | null;
+  specimen_received_at?: string | null;
+  specimen_received_by?: string | null;
 }
 
 export interface CreateLabRequestData {
