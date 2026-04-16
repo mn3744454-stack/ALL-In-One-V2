@@ -10,17 +10,21 @@ import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples"
 import { deriveSamplingProgress } from "@/hooks/laboratory/useLabSubmissionSamplingProgress";
 import { SampleCard } from "./SampleCard";
 import { SubmissionSamplingProgress } from "./SubmissionSamplingProgress";
+import { BatchCreateSamplesDialog, type BatchEligibleChild } from "./BatchCreateSamplesDialog";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, Calendar, ChevronDown, ChevronUp, FlaskConical, Hourglass, Layers } from "lucide-react";
+import { Building2, Calendar, ChevronDown, ChevronUp, FlaskConical, Hourglass, Layers, Plus, PackageCheck, PackageX } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
+import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 
 interface SubmissionGroupedSamplesViewProps {
   samples: LabSample[];
   onSampleClick?: (sampleId: string) => void;
   pendingOnly?: boolean;
+  /** Phase 6C — inline single-horse Create Sample launcher (reuses existing wizard). */
+  onCreateSampleFromRequest?: (req: LabRequest) => void;
 }
 
 interface SubmissionMetaRow {
