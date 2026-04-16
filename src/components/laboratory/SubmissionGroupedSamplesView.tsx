@@ -120,7 +120,7 @@ export function SubmissionGroupedSamplesView({
       const filterCol = isLabFull ? "lab_tenant_id" : "tenant_id";
       const { data, error } = await supabase
         .from("lab_requests")
-        .select("id, submission_id, lab_decision, horse_name_snapshot, horse_name_ar_snapshot, horse:horses(id, name, name_ar)")
+        .select("id, submission_id, lab_decision, specimen_received_at, horse_id, horse_name_snapshot, horse_name_ar_snapshot, horse_snapshot, test_description, horse:horses(id, name, name_ar)")
         .in("submission_id", submissionIds)
         .eq(filterCol, tenantId);
       if (error) throw error;
