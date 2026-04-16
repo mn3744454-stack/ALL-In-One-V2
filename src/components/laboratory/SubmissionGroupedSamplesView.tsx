@@ -38,8 +38,12 @@ interface AcceptedChildRow {
   id: string;
   submission_id: string | null;
   lab_decision: string | null;
+  specimen_received_at: string | null;
+  horse_id: string | null;
   horse_name_snapshot: string | null;
   horse_name_ar_snapshot: string | null;
+  horse_snapshot: Record<string, unknown> | null;
+  test_description: string | null;
   horse?: { id: string; name: string; name_ar: string | null } | null;
 }
 
