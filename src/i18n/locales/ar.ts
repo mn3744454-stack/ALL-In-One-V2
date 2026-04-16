@@ -519,6 +519,8 @@ export const ar = {
         ready: "جاهز",
         received: "مُستلم",
         cancelled: "ملغي",
+        rejected: "مرفوض",
+        mixed: "مختلط",
       },
     },
 
@@ -538,6 +540,7 @@ export const ar = {
     submissionGrouped: {
       viewBySubmissions: "حسب الإرسالية",
       pendingOnly: "إظهار الإرساليات التي بها عينات معلقة فقط",
+      pendingOnlyShort: "المعلقة فقط",
       empty: "لا توجد إرساليات مطابقة للفلاتر الحالية.",
       noSubmission: "عينات مستقلة",
       awaitingSampleCreation: "مقبولة، بانتظار إنشاء العينة",

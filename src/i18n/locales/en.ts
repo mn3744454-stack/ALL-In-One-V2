@@ -505,6 +505,8 @@ export const en = {
         ready: "Ready",
         received: "Received",
         cancelled: "Cancelled",
+        rejected: "Rejected",
+        mixed: "Mixed",
       },
     },
 
@@ -522,6 +524,7 @@ export const en = {
     submissionGrouped: {
       viewBySubmissions: "By submission",
       pendingOnly: "Show only submissions with pending sampling",
+      pendingOnlyShort: "Pending only",
       empty: "No submissions match the current filters.",
       noSubmission: "Standalone samples",
       awaitingSampleCreation: "Accepted, awaiting sample creation",
