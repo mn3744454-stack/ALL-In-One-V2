@@ -103,6 +103,9 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
                 {t(`laboratory.requests.priorities.${submission.priority}`) || submission.priority}
               </Badge>
             )}
+            {samplingProgress && (
+              <SubmissionSamplingProgress progress={samplingProgress} variant="badge" />
+            )}
             <Badge variant="outline" className={cn("text-xs", aggregateStatus.color)}>
               {t(`laboratory.submissions.status.${aggregateStatus.label}`) || aggregateStatus.label}
             </Badge>
