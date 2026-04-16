@@ -10,6 +10,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
+import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -154,7 +155,7 @@ export function RequestDetailDialog({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             {horseName}
-            <RequestStatusBadge status={request.status} />
+            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
           </DialogTitle>
           {isLabFull && senderName && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">

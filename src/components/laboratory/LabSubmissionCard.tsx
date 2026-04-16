@@ -14,6 +14,7 @@ import { useLabIntake } from "@/hooks/laboratory/useLabIntake";
 import type { LabSubmission } from "@/hooks/laboratory/useLabSubmissions";
 import { deriveSubmissionStatus } from "@/hooks/laboratory/useLabSubmissions";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
+import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
 
 interface LabSubmissionCardProps {
   submission: LabSubmission;
@@ -226,7 +227,7 @@ function ChildRequestRow({
 
       {/* Status + actions */}
       <div className="flex items-center gap-2 shrink-0">
-        <RequestStatusBadge status={request.status} />
+        <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
         <Button
           size="icon"
           variant="ghost"
