@@ -172,6 +172,7 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
                 <ChildRequestRow
                   key={child.id}
                   request={child}
+                  isSampled={sampledRequestIds.has(child.id)}
                   onOpenDetail={(tab) => onOpenChildDetail(child, tab)}
                   onCreateSample={onCreateSample ? () => onCreateSample(child) : undefined}
                 />
@@ -199,10 +200,12 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
 /** Compact child row for a horse-level request inside a submission card */
 function ChildRequestRow({
   request,
+  isSampled,
   onOpenDetail,
   onCreateSample,
 }: {
   request: LabRequest;
+  isSampled?: boolean;
   onOpenDetail: (tab?: string) => void;
   onCreateSample?: () => void;
 }) {
@@ -211,6 +214,8 @@ function ChildRequestRow({
   const horseName = request.horse_name_snapshot || request.horse?.name || null;
   const horseNameAr = request.horse_name_ar_snapshot || (request.horse as any)?.name_ar || null;
   const services = request.lab_request_services || [];
+  const decision = request.lab_decision || 'pending_review';
+  const showSamplingTag = decision === 'accepted';
 
   return (
     <div
@@ -250,6 +255,25 @@ function ChildRequestRow({
 
       {/* Status + actions */}
       <div className="flex items-center gap-2 shrink-0">
+        {showSamplingTag && (
+          isSampled ? (
+            <Badge
+              variant="outline"
+              className="text-[10px] h-5 gap-1 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800"
+            >
+              <CheckCircle2 className="h-3 w-3" />
+              {t('laboratory.samplingProgress.sampled') || 'Sampled'}
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="text-[10px] h-5 gap-1 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+            >
+              <FlaskConical className="h-3 w-3" />
+              {t('laboratory.samplingProgress.awaitingSample') || 'Awaiting sample'}
+            </Badge>
+          )
+        )}
         <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
         <Button
           size="icon"
