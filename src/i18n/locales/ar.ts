@@ -547,6 +547,26 @@ export const ar = {
       batchHint: "سيتوفر الإنشاء الجماعي في المرحلة التالية.",
     },
 
+    // Phase 6C — إنشاء العينات المباشر والجماعي
+    batchCreate: {
+      title: "إنشاء عينات جماعي",
+      headerAction: "إنشاء جماعي ({count})",
+      inlineCreate: "إنشاء عينة",
+      eligibleSummary: "{count} مؤهلة (مقبولة + تم استلام العينة)",
+      eligibleHint: "{count} جاهزة للإنشاء الجماعي",
+      noneEligible: "لا توجد خيول جاهزة لأخذ العينات بعد.",
+      collectionDate: "تاريخ الجمع",
+      sharedNotes: "ملاحظات مشتركة (اختياري)",
+      sharedNotesPlaceholder: "تُطبَّق على جميع العينات المحددة",
+      includedHorses: "الخيول المضمَّنة ({selected}/{total})",
+      sampleIdPlaceholder: "رمز العينة",
+      reuseNote: "كل عينة تُنشأ بنفس مسار الإنشاء الفردي.",
+      submit: "إنشاء {count} عينات",
+      successCount: "تم إنشاء {count} عينة",
+      failureCount: "فشل {count}",
+      errorNoSelection: "اختر فرسًا واحدًا على الأقل لإنشاء العينات.",
+    },
+
     // Phase 5 — سير قرار الاستلام
     intake: {
       title: "الاستلام",

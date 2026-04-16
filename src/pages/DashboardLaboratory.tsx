@@ -170,7 +170,10 @@ export default function DashboardLaboratory() {
           {labMode === 'requests' && <TabsContent value="messages"><StableMessagesView /></TabsContent>}
 
           <TabsContent value="samples">
-            <SamplesList onCreateSample={() => setCreateSampleOpen(true)} />
+            <SamplesList
+              onCreateSample={() => setCreateSampleOpen(true)}
+              onCreateSampleFromRequest={(req) => { setFromRequest(req); setCreateSampleOpen(true); }}
+            />
           </TabsContent>
 
           {labMode === 'full' && (

@@ -531,6 +531,26 @@ export const en = {
       batchHint: "Batch creation will be available in the next phase.",
     },
 
+    // Phase 6C — Inline + Batch sample creation
+    batchCreate: {
+      title: "Batch create samples",
+      headerAction: "Batch create ({count})",
+      inlineCreate: "Create sample",
+      eligibleSummary: "{count} eligible (accepted + specimen received)",
+      eligibleHint: "{count} ready for batch creation",
+      noneEligible: "No horses are ready for sampling yet.",
+      collectionDate: "Collection date",
+      sharedNotes: "Shared notes (optional)",
+      sharedNotesPlaceholder: "Applied to all selected samples",
+      includedHorses: "Included horses ({selected}/{total})",
+      sampleIdPlaceholder: "Sample ID",
+      reuseNote: "Each sample uses the same creation path as the single-horse wizard.",
+      submit: "Create {count} samples",
+      successCount: "{count} samples created",
+      failureCount: "{count} failed",
+      errorNoSelection: "Select at least one horse to create samples for.",
+    },
+
     // Phase 5 — Intake decision workflow
     intake: {
       title: "Intake",
