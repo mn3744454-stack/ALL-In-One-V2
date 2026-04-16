@@ -518,6 +518,16 @@ export const en = {
       fullySampled: "Fully sampled",
     },
 
+    // Phase 6B — Submission-grouped Samples view
+    submissionGrouped: {
+      viewBySubmissions: "By submission",
+      pendingOnly: "Show only submissions with pending sampling",
+      empty: "No submissions match the current filters.",
+      noSubmission: "Standalone samples",
+      awaitingSampleCreation: "Accepted, awaiting sample creation",
+      batchHint: "Batch creation will be available in the next phase.",
+    },
+
     // Phase 5 — Intake decision workflow
     intake: {
       title: "Intake",
