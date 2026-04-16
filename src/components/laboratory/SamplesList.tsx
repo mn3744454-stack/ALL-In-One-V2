@@ -31,6 +31,7 @@ type SortOrder = 'asc' | 'desc';
 interface SamplesListProps {
   onCreateSample?: () => void;
   onSampleClick?: (sampleId: string) => void;
+  onCreateSampleFromRequest?: (req: import("@/hooks/laboratory/useLabRequests").LabRequest) => void;
 }
 
 // Map filter tabs to useLabSamples filters
