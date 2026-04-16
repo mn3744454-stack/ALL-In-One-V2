@@ -66,6 +66,7 @@ export function SubmissionGroupedSamplesView({
   samples,
   onSampleClick,
   pendingOnly = false,
+  onCreateSampleFromRequest,
 }: SubmissionGroupedSamplesViewProps) {
   const { t } = useI18n();
   const { activeTenant, activeRole } = useTenant();
@@ -74,6 +75,12 @@ export function SubmissionGroupedSamplesView({
   const isLabFull = isLabTenant && labMode === "full";
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [batchOpen, setBatchOpen] = useState<{
+    submissionId: string | null;
+    shortRef: string | null;
+    sender: string | null;
+    eligible: BatchEligibleChild[];
+  } | null>(null);
 
   // Submission ids referenced by the current sample slice
   const submissionIds = useMemo(() => {
