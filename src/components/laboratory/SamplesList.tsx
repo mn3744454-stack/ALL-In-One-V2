@@ -56,7 +56,7 @@ const getFiltersForTab = (tab: SampleFilterTab): Partial<LabSampleFilters> => {
   }
 };
 
-export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps) {
+export function SamplesList({ onCreateSample, onSampleClick, onCreateSampleFromRequest }: SamplesListProps) {
   const { t, dir } = useI18n();
   const { activeRole } = useTenant();
   const { isLabTenant, labMode } = useModuleAccess();
@@ -430,6 +430,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
           samples={sortedSamples}
           onSampleClick={onSampleClick}
           pendingOnly={groupedPendingOnly}
+          onCreateSampleFromRequest={onCreateSampleFromRequest}
         />
       ) : viewMode === 'table' ? (
         <SamplesTable
