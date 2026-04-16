@@ -8,6 +8,7 @@ import { Search } from "lucide-react";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 
 interface MultiHorseSelectorProps {
   selectedHorseIds: string[];
@@ -15,6 +16,8 @@ interface MultiHorseSelectorProps {
   disabled?: boolean;
   /** When true, hides long IDs (passport, microchip) in the list - used in Create Sample Step 1 */
   hideIds?: boolean;
+  /** External refresh trigger — call after quick-create to reload horses */
+  onRefreshNeeded?: () => void;
 }
 
 export function MultiHorseSelector({ 
@@ -22,10 +25,14 @@ export function MultiHorseSelector({
   onSelectionChange,
   disabled = false,
   hideIds = false,
+  onRefreshNeeded,
 }: MultiHorseSelectorProps) {
   const { t, dir } = useI18n();
-  const { horses, loading } = useHorses();
+  const { horses, loading, refresh } = useHorses();
   const [search, setSearch] = useState("");
+
+  // Expose refresh for parent use
+  const triggerRefresh = onRefreshNeeded || refresh;
 
   // Filter horses based on search
   const filteredHorses = useMemo(() => {
@@ -104,7 +111,6 @@ export function MultiHorseSelector({
         >
           <Checkbox
             checked={selectedHorseIds.length === filteredHorses.length && filteredHorses.length > 0}
-            onCheckedChange={handleSelectAll}
             disabled={disabled}
           />
           <span className="text-sm font-medium">
@@ -136,9 +142,8 @@ export function MultiHorseSelector({
                 >
                   <Checkbox
                     checked={isSelected}
-                    onCheckedChange={() => handleToggleHorse({ id: horse.id, name: horse.name })}
                     disabled={disabled}
-                    className="shrink-0"
+                    className="shrink-0 pointer-events-none"
                   />
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={horse.avatar_url || undefined} alt={horse.name} />
@@ -147,7 +152,12 @@ export function MultiHorseSelector({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{horse.name}</div>
+                    <BilingualName
+                      name={horse.name}
+                      nameAr={horse.name_ar}
+                      primaryClassName="text-sm"
+                      secondaryClassName="text-[11px]"
+                    />
                     {/* Only show IDs when hideIds is false */}
                     {!hideIds && (horse.passport_number || horse.microchip_number) && (
                       <div className="text-xs text-muted-foreground truncate">
@@ -157,7 +167,7 @@ export function MultiHorseSelector({
                   </div>
                   {horse.gender && (
                     <Badge variant="outline" className="text-xs shrink-0">
-                      {horse.gender}
+                      {t(`horses.gender.${horse.gender}`)}
                     </Badge>
                   )}
                 </div>
