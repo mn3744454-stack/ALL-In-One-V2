@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
-import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown, SlidersHorizontal, Layers } from "lucide-react";
+import { Plus, FlaskConical, RotateCcw, PackageCheck, LayoutGrid, Users, ArrowUp, ArrowDown, SlidersHorizontal, Layers, Hourglass } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -87,6 +87,8 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [selectedSampleForInvoice, setSelectedSampleForInvoice] = useState<LabSample | null>(null);
   const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
+  // Phase 6B.1 — pending-sampling filter lifted to toolbar (only meaningful in `submissions` mode)
+  const [groupedPendingOnly, setGroupedPendingOnly] = useState(false);
   
   // Detect if this is a primary lab tenant (use lab_horses for filtering)
   const isPrimaryLabTenant = isLabTenant && labMode === 'full';
@@ -280,6 +282,19 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Phase 6B.1 — surface grouped pending filter at toolbar level when in submissions mode */}
+          {groupViewMode === 'submissions' && (
+            <Button
+              variant={groupedPendingOnly ? 'default' : 'outline'}
+              size="sm"
+              className="h-9"
+              onClick={() => setGroupedPendingOnly(v => !v)}
+              title={t("laboratory.submissionGrouped.pendingOnly") || "Show only submissions with pending sampling"}
+            >
+              <Hourglass className="h-4 w-4 me-1.5" />
+              <span className="hidden md:inline">{t("laboratory.submissionGrouped.pendingOnlyShort") || "Pending only"}</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -413,6 +428,7 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
         <SubmissionGroupedSamplesView
           samples={sortedSamples}
           onSampleClick={onSampleClick}
+          pendingOnly={groupedPendingOnly}
         />
       ) : viewMode === 'table' ? (
         <SamplesTable

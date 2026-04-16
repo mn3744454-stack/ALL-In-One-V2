@@ -13,8 +13,6 @@ import { SubmissionSamplingProgress } from "./SubmissionSamplingProgress";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Building2, Calendar, ChevronDown, ChevronUp, FlaskConical, Hourglass, Layers } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
