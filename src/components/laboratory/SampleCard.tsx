@@ -207,6 +207,14 @@ export function SampleCard({
                   {sample.physical_sample_id}
                 </p>
               )}
+              {sample.lab_request?.submission_id && (
+                <div className="mt-1.5">
+                  <SubmissionContextChip
+                    submissionId={sample.lab_request.submission_id}
+                    senderName={sample.lab_request.initiator_tenant_name_snapshot}
+                  />
+                </div>
+              )}
             </div>
           </div>
           <SampleStatusBadge status={sample.status} />
