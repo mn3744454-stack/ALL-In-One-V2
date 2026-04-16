@@ -44,3 +44,4 @@ export * from "./LabServiceFormDialog";
 export * from "./LabServiceTemplateLinker";
 export * from "./SubmissionContextChip";
 export * from "./SubmissionSamplingProgress";
+export * from "./SubmissionGroupedSamplesView";
