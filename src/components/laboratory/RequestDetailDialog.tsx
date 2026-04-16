@@ -9,11 +9,12 @@ import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabReques
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
+import { RequestIntakePanel } from "./RequestIntakePanel";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
-  Tag, Building2, MessageSquare, Receipt, FlaskConical,
+  Tag, Building2, MessageSquare, Receipt, FlaskConical, XCircle,
 } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
@@ -91,7 +92,11 @@ export function RequestDetailDialog({
     enabled: open && isLabFull,
   });
   const hasSample = (linkedSamples?.length ?? 0) > 0;
-  const canCreateSample = isLabFull && onCreateSample && !hasSample && ['pending', 'sent', 'processing'].includes(request.status);
+  // Phase 5 — gate Create Sample behind: accepted decision + specimen received
+  const labDecision = (request.lab_decision as 'pending_review' | 'accepted' | 'rejected' | undefined) || 'pending_review';
+  const specimenReceived = !!request.specimen_received_at;
+  const intakeReady = labDecision === 'accepted' && specimenReceived;
+  const canCreateSample = isLabFull && onCreateSample && !hasSample && intakeReady;
 
   const handleMarkReceived = async () => {
     await updateRequest({
@@ -178,29 +183,31 @@ export function RequestDetailDialog({
 
           <TabsContent value="details" className="flex-1 overflow-y-auto px-6 pb-6 mt-0">
             <div className="space-y-4 pt-4">
-              {/* Lab Full Mode: Status Dropdown */}
+              {/* Lab Full Mode: Phase 5 stepped Intake Panel (replaces flat status dropdown) */}
               {isLabFull && (
+                <RequestIntakePanel request={request} />
+              )}
+
+              {/* Lab Full Mode: Processing/Result publish controls — only after intake is ready */}
+              {isLabFull && intakeReady && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
-                    {t('laboratory.requests.updateStatus') || 'Update Status'}
+                    {t('laboratory.requests.updateStatus') || 'Processing status'}
                   </Label>
                   <Select value={statusValue} onValueChange={handleStatusChange}>
                     <SelectTrigger className="w-full sm:w-[200px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pending">{t('laboratory.requests.status.pending') || 'Pending'}</SelectItem>
-                      <SelectItem value="sent">{t('laboratory.requests.status.sent') || 'Sent'}</SelectItem>
                       <SelectItem value="processing">{t('laboratory.requests.status.processing') || 'Processing'}</SelectItem>
                       <SelectItem value="ready">{t('laboratory.requests.status.ready') || 'Ready'}</SelectItem>
-                      <SelectItem value="cancelled">{t('laboratory.requests.status.cancelled') || 'Cancelled'}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
-              {/* Lab Full Mode: Result URL Publish */}
-              {isLabFull && (
+              {/* Lab Full Mode: Result URL Publish — only after intake is ready */}
+              {isLabFull && intakeReady && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
                     {t('laboratory.requests.resultUrl') || 'Result URL'}
