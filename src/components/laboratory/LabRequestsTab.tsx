@@ -55,7 +55,7 @@ interface LabOption {
 function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
-  const { horses } = useHorses();
+  const { horses, refresh: refreshHorses } = useHorses();
   const { createRequest, createSubmission, isCreating } = useLabRequests();
   const { activeTenant } = useTenant();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
