@@ -112,6 +112,36 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
               </div>
             )}
 
+            {/* Phase 5 — Submission-level convenience macros (fan out to children) */}
+            {pendingCount > 0 && (
+              <div className="px-4 py-2.5 bg-primary/5 border-b flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {pendingCount} {t('laboratory.intake.pendingChildren') || 'pending review'}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => acceptAllInSubmission(submission.id)}
+                    disabled={isPending}
+                    className="gap-1 h-7 text-xs"
+                  >
+                    {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                    {t('laboratory.intake.acceptAll') || 'Accept all'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setRejectAllOpen(true)}
+                    disabled={isPending}
+                    className="gap-1 h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                  >
+                    <XCircle className="h-3 w-3" />
+                    {t('laboratory.intake.rejectAll') || 'Reject all'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Child horse requests */}
             <div className="divide-y">
               {submission.children.map((child) => (
@@ -126,6 +156,18 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
           </div>
         </CollapsibleContent>
       </Card>
+
+      <RejectionReasonDialog
+        open={rejectAllOpen}
+        onOpenChange={setRejectAllOpen}
+        isPending={isPending}
+        title={t('laboratory.intake.rejectAllTitle') || 'Reject all pending horses'}
+        description={t('laboratory.intake.rejectAllDescription') || 'This rejection reason will be applied to all pending horses in this submission.'}
+        onConfirm={async (reason) => {
+          await rejectAllInSubmission({ submissionId: submission.id, reason });
+          setRejectAllOpen(false);
+        }}
+      />
     </Collapsible>
   );
 }
