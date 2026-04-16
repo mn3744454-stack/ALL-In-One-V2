@@ -255,6 +255,14 @@ export function SamplesList({ onCreateSample, onSampleClick }: SamplesListProps)
               <Users className="h-4 w-4 me-1.5 shrink-0" />
               <span className="text-sm hidden sm:inline">{t("laboratory.clientGrouped.viewByClients")}</span>
             </ToggleGroupItem>
+            <ToggleGroupItem 
+              value="submissions" 
+              aria-label={t("laboratory.submissionGrouped.viewBySubmissions") || "By submission"}
+              className="flex-1 h-9 px-4 data-[state=on]:bg-background data-[state=on]:shadow-sm whitespace-nowrap"
+            >
+              <Layers className="h-4 w-4 me-1.5 shrink-0" />
+              <span className="text-sm hidden sm:inline">{t("laboratory.submissionGrouped.viewBySubmissions") || "By submission"}</span>
+            </ToggleGroupItem>
           </ToggleGroup>
           
           {/* ViewSwitcher for Grid/List/Table */}
