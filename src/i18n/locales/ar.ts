@@ -3375,6 +3375,8 @@ export const ar = {
     horseDeletedDesc: "تم إزالة {{name}}.",
     deleteError: "فشل حذف الخيل",
     loadError: "فشل تحميل تفاصيل الخيل",
+    addSuccess: "تمت إضافة {{name}} بنجاح",
+    addError: "فشل إضافة الخيل",
     gender: {
       male: "ذكر",
       female: "أنثى",
