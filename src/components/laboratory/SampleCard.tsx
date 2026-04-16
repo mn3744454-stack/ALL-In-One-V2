@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { SampleStatusBadge } from "./SampleStatusBadge";
 import { SampleProgressStepper } from "./SampleProgressStepper";
 import { TemplateDetailsDialog } from "./TemplateDetailsDialog";
+import { SubmissionContextChip } from "./SubmissionContextChip";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { formatStandardDate } from "@/lib/displayHelpers";
