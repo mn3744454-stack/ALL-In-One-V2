@@ -95,30 +95,71 @@ export function useLabSubmissions() {
   };
 }
 
-/** Derive aggregate status from child statuses */
+/**
+ * Derive aggregate status from child statuses.
+ * Phase 6B.1 — now factors in `lab_decision` (Phase 5 intake truth) so the
+ * outer grouped badge no longer misrepresents cancelled/rejected child reality
+ * as a generic "pending" state.
+ */
 export function deriveSubmissionStatus(children: LabRequest[]): {
-  label: 'pending' | 'processing' | 'partial' | 'ready' | 'received' | 'cancelled';
+  label: 'pending' | 'processing' | 'partial' | 'ready' | 'received' | 'cancelled' | 'rejected' | 'mixed';
   color: string;
+  divergence?: { rejected: number; cancelled: number };
 } {
   if (children.length === 0) return { label: 'pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
 
-  const statuses = children.map(c => c.status);
+  // Phase 6B.1 — Decision-aware aggregation (runs before legacy status logic)
+  const decisions = children.map(c => (c.lab_decision || 'pending_review'));
+  const cancelledCount = children.filter(c => c.status === 'cancelled').length;
+  const rejectedCount = decisions.filter(d => d === 'rejected').length;
+  const acceptedCount = decisions.filter(d => d === 'accepted').length;
+  const pendingReviewCount = decisions.filter(d => d === 'pending_review').length;
+
+  // All children rejected at intake
+  if (rejectedCount === children.length) {
+    return { label: 'rejected', color: 'bg-red-100 text-red-800 border-red-200' };
+  }
+  // All children cancelled (transport-level)
+  if (cancelledCount === children.length) {
+    return { label: 'cancelled', color: 'bg-gray-100 text-gray-800 border-gray-200' };
+  }
+  // All children either rejected or cancelled (no live work remains)
+  if (rejectedCount + cancelledCount === children.length) {
+    return {
+      label: 'cancelled',
+      color: 'bg-gray-100 text-gray-800 border-gray-200',
+      divergence: { rejected: rejectedCount, cancelled: cancelledCount - rejectedCount > 0 ? cancelledCount - 0 : cancelledCount },
+    };
+  }
+
+  const divergence = (rejectedCount > 0 || cancelledCount > 0)
+    ? { rejected: rejectedCount, cancelled: cancelledCount }
+    : undefined;
+
+  // Live (non-cancelled, non-rejected) children only — drive the visible state
+  const liveChildren = children.filter(
+    c => c.status !== 'cancelled' && (c.lab_decision || 'pending_review') !== 'rejected'
+  );
+
+  if (liveChildren.length === 0) {
+    return { label: 'cancelled', color: 'bg-gray-100 text-gray-800 border-gray-200', divergence };
+  }
+
+  const statuses = liveChildren.map(c => c.status);
   const allSame = statuses.every(s => s === statuses[0]);
 
   if (allSame) {
     const s = statuses[0];
-    if (s === 'ready') return { label: 'ready', color: 'bg-green-100 text-green-800 border-green-200' };
-    if (s === 'received') return { label: 'received', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
-    if (s === 'cancelled') return { label: 'cancelled', color: 'bg-gray-100 text-gray-800 border-gray-200' };
-    if (s === 'processing') return { label: 'processing', color: 'bg-purple-100 text-purple-800 border-purple-200' };
-    if (s === 'sent') return { label: 'processing', color: 'bg-blue-100 text-blue-800 border-blue-200' };
-    return { label: 'pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+    if (s === 'ready') return { label: 'ready', color: 'bg-green-100 text-green-800 border-green-200', divergence };
+    if (s === 'received') return { label: 'received', color: 'bg-emerald-100 text-emerald-800 border-emerald-200', divergence };
+    if (s === 'processing') return { label: 'processing', color: 'bg-purple-100 text-purple-800 border-purple-200', divergence };
+    if (s === 'sent') return { label: 'processing', color: 'bg-blue-100 text-blue-800 border-blue-200', divergence };
+    return { label: 'pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', divergence };
   }
 
-  // Mixed: if any processing/sent, it's partial; if some ready, partial
   const hasActive = statuses.some(s => s === 'processing' || s === 'sent');
   const hasReady = statuses.some(s => s === 'ready' || s === 'received');
-  if (hasActive || hasReady) return { label: 'partial', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+  if (hasActive || hasReady) return { label: 'partial', color: 'bg-blue-100 text-blue-800 border-blue-200', divergence };
 
-  return { label: 'pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+  return { label: 'pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', divergence };
 }
