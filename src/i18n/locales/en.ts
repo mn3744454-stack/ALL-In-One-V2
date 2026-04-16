@@ -3360,6 +3360,8 @@ export const en = {
     horseDeletedDesc: "{{name}} has been removed.",
     deleteError: "Failed to delete horse",
     loadError: "Failed to load horse details",
+    addSuccess: "{{name}} has been added successfully",
+    addError: "Failed to add horse",
     gender: {
       male: "Male",
       female: "Female",

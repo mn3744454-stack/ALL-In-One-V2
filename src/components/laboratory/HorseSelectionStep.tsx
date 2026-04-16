@@ -9,6 +9,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { MultiHorseSelector } from "./MultiHorseSelector";
 import { WalkInHorseForm } from "./WalkInHorseForm";
+import { useHorses } from "@/hooks/useHorses";
 import { toast } from "sonner";
 
 export type HorseType = 'internal' | 'platform' | 'walk_in' | 'lab_horse';
@@ -37,6 +38,7 @@ export function HorseSelectionStep({
   disabled = false 
 }: HorseSelectionStepProps) {
   const { t, dir } = useI18n();
+  const { horses, loading: horsesLoading } = useHorses();
   const [selectionMode, setSelectionMode] = useState<HorseType | null>(
     selectedHorses.length > 0 ? selectedHorses[0].horse_type : null
   );
@@ -151,6 +153,8 @@ export function HorseSelectionStep({
             onSelectionChange={handleAddInternalHorses}
             disabled={disabled}
             hideIds={true}
+            horses={horses}
+            loading={horsesLoading}
           />
         </div>
       )}

@@ -1,44 +1,68 @@
 import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search } from "lucide-react";
-import { useHorses } from "@/hooks/useHorses";
+import { Search, Check } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
+
+interface Horse {
+  id: string;
+  name: string;
+  name_ar?: string | null;
+  gender: string;
+  avatar_url?: string | null;
+  passport_number?: string | null;
+  microchip_number?: string | null;
+}
 
 interface MultiHorseSelectorProps {
   selectedHorseIds: string[];
   onSelectionChange: (horses: Array<{ id: string; name: string }>) => void;
   disabled?: boolean;
-  /** When true, hides long IDs (passport, microchip) in the list - used in Create Sample Step 1 */
+  /** When true, hides long IDs (passport, microchip) in the list */
   hideIds?: boolean;
-  /** External refresh trigger — call after quick-create to reload horses */
-  onRefreshNeeded?: () => void;
+  /** Horse list provided by parent — single source of truth */
+  horses?: Horse[];
+  /** Whether horses are loading */
+  loading?: boolean;
 }
 
-export function MultiHorseSelector({ 
-  selectedHorseIds, 
+/**
+ * Visual-only check indicator — no Radix Checkbox to avoid ref-based state loops.
+ */
+function CheckIndicator({ checked }: { checked: boolean }) {
+  return (
+    <div
+      className={cn(
+        "h-4 w-4 shrink-0 rounded-sm border flex items-center justify-center transition-colors",
+        checked
+          ? "bg-primary border-primary text-primary-foreground"
+          : "border-primary"
+      )}
+    >
+      {checked && <Check className="h-3 w-3" />}
+    </div>
+  );
+}
+
+export function MultiHorseSelector({
+  selectedHorseIds,
   onSelectionChange,
   disabled = false,
   hideIds = false,
-  onRefreshNeeded,
+  horses = [],
+  loading = false,
 }: MultiHorseSelectorProps) {
   const { t, dir } = useI18n();
-  const { horses, loading, refresh } = useHorses();
   const [search, setSearch] = useState("");
 
-  // Expose refresh for parent use
-  const triggerRefresh = onRefreshNeeded || refresh;
-
-  // Filter horses based on search
   const filteredHorses = useMemo(() => {
     if (!search.trim()) return horses;
     const lowerSearch = search.toLowerCase();
-    return horses.filter(h => 
+    return horses.filter(h =>
       h.name.toLowerCase().includes(lowerSearch) ||
       h.name_ar?.toLowerCase().includes(lowerSearch) ||
       h.microchip_number?.toLowerCase().includes(lowerSearch) ||
@@ -48,7 +72,7 @@ export function MultiHorseSelector({
 
   const handleToggleHorse = (horse: { id: string; name: string }) => {
     const isSelected = selectedHorseIds.includes(horse.id);
-    
+
     if (isSelected) {
       const updated = selectedHorseIds.filter(id => id !== horse.id);
       const updatedHorses = horses
@@ -102,17 +126,14 @@ export function MultiHorseSelector({
 
       {/* Select All */}
       {filteredHorses.length > 0 && (
-        <div 
+        <div
           className={cn(
             "flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-muted/50",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           onClick={() => !disabled && handleSelectAll()}
         >
-          <Checkbox
-            checked={selectedHorseIds.length === filteredHorses.length && filteredHorses.length > 0}
-            disabled={disabled}
-          />
+          <CheckIndicator checked={selectedHorseIds.length === filteredHorses.length && filteredHorses.length > 0} />
           <span className="text-sm font-medium">
             {t("laboratory.horseSelection.selectAll")} ({filteredHorses.length})
           </span>
@@ -140,11 +161,7 @@ export function MultiHorseSelector({
                   )}
                   onClick={() => !disabled && handleToggleHorse({ id: horse.id, name: horse.name })}
                 >
-                  <Checkbox
-                    checked={isSelected}
-                    disabled={disabled}
-                    className="shrink-0 pointer-events-none"
-                  />
+                  <CheckIndicator checked={isSelected} />
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={horse.avatar_url || undefined} alt={horse.name} />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -158,7 +175,6 @@ export function MultiHorseSelector({
                       primaryClassName="text-sm"
                       secondaryClassName="text-[11px]"
                     />
-                    {/* Only show IDs when hideIds is false */}
                     {!hideIds && (horse.passport_number || horse.microchip_number) && (
                       <div className="text-xs text-muted-foreground truncate">
                         {horse.passport_number || horse.microchip_number}

@@ -378,6 +378,8 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                     selectedHorseIds={selectedHorseIds}
                     onSelectionChange={setSelectedHorses}
                     hideIds
+                    horses={horses}
+                    loading={false}
                   />
                   {selectedHorses.length > 0 && (
                     <p className="text-xs text-muted-foreground">
