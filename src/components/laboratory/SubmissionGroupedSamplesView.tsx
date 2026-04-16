@@ -459,6 +459,7 @@ export function SubmissionGroupedSamplesView({
                         {unsampledChildren.map((c) => {
                           const horseName =
                             c.horse?.name || c.horse_name_snapshot || t("laboratory.samples.unknownHorse");
+                          const isReceived = !!c.specimen_received_at;
                           return (
                             <div
                               key={c.id}
@@ -468,19 +469,37 @@ export function SubmissionGroupedSamplesView({
                                 <FlaskConical className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                 <span className="text-sm truncate">{horseName}</span>
                               </div>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] h-5 bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800"
-                              >
-                                {t("laboratory.samplingProgress.awaitingSample") || "Awaiting sample"}
-                              </Badge>
+                              {isReceived ? (
+                                canManage && onCreateSampleFromRequest ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs"
+                                    onClick={() => onCreateSampleFromRequest(buildLabRequestForChild(c))}
+                                  >
+                                    <Plus className="h-3 w-3 me-1" />
+                                    {t("laboratory.batchCreate.inlineCreate") || "Create sample"}
+                                  </Button>
+                                ) : (
+                                  <Badge variant="outline" className="text-[10px] h-5 gap-1">
+                                    <PackageCheck className="h-3 w-3" />
+                                    {t("laboratory.intake.specimenReceived") || "Received"}
+                                  </Badge>
+                                )
+                              ) : (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 text-muted-foreground">
+                                  <PackageX className="h-3 w-3" />
+                                  {t("laboratory.intake.awaitingSpecimen") || "Awaiting specimen"}
+                                </Badge>
+                              )}
                             </div>
                           );
                         })}
                       </div>
                       <p className="text-[11px] text-muted-foreground mt-2">
-                        {t("laboratory.submissionGrouped.batchHint") ||
-                          "Batch creation will be available in the next phase."}
+                        {eligibleCount > 0
+                          ? (t("laboratory.batchCreate.eligibleHint") || "{count} ready for batch creation").replace("{count}", String(eligibleCount))
+                          : (t("laboratory.batchCreate.noneEligible") || "No horses are ready for sampling yet.")}
                       </p>
                     </div>
                   )}
@@ -490,6 +509,16 @@ export function SubmissionGroupedSamplesView({
           );
         })
       )}
+
+      {/* Phase 6C — Batch dialog */}
+      <BatchCreateSamplesDialog
+        open={!!batchOpen}
+        onOpenChange={(v) => !v && setBatchOpen(null)}
+        submissionId={batchOpen?.submissionId || null}
+        submissionShortRef={batchOpen?.shortRef || null}
+        senderName={batchOpen?.sender || null}
+        eligibleChildren={batchOpen?.eligible || []}
+      />
     </div>
   );
 }
