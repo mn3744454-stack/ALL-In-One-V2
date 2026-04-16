@@ -507,6 +507,51 @@ export const en = {
         cancelled: "Cancelled",
       },
     },
+
+    // Phase 5 — Intake decision workflow
+    intake: {
+      title: "Intake",
+      stepDecision: "Review & decide",
+      stepSpecimen: "Specimen receipt",
+      accept: "Accept",
+      reject: "Reject",
+      acceptAll: "Accept all",
+      rejectAll: "Reject all",
+      rejectAllTitle: "Reject all pending horses",
+      rejectAllDescription: "This rejection reason will be applied to all pending horses in this submission.",
+      pendingChildren: "pending review",
+      rejectTitle: "Reject request",
+      rejectDescription: "Please provide a reason. This will be visible to the requesting stable.",
+      rejectionReason: "Rejection reason",
+      rejectionReasonPlaceholder: "e.g. wrong specimen tube, hemolyzed sample...",
+      confirmReject: "Confirm rejection",
+      markSpecimenReceived: "Mark received",
+      specimenReceived: "Specimen received",
+      awaitingSpecimen: "Awaiting specimen",
+      readyForSampling: "Ready for sample creation.",
+      waitingForSpecimen: "Specimen must be marked received before sample creation.",
+      decision: {
+        pending_review: "Pending review",
+        accepted: "Accepted",
+        rejected: "Rejected",
+        partial: "Partially accepted",
+      },
+      stableView: {
+        accepted: "Lab accepted your request — awaiting specimen",
+        inProgress: "Lab is processing your request",
+        rejected: "Lab rejected this request",
+      },
+      toast: {
+        accepted: "Request accepted",
+        rejected: "Request rejected",
+        acceptedAll: "All pending horses accepted",
+        rejectedAll: "All pending horses rejected",
+        specimenReceived: "Specimen marked received",
+        acceptFailed: "Failed to accept request",
+        rejectFailed: "Failed to reject request",
+        specimenFailed: "Failed to mark specimen received",
+      },
+    },
     
     // Stable Results Tab
     stableResults: {

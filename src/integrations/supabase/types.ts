@@ -5411,6 +5411,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_request_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests_stable_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lab_request_messages_sender_tenant_id_fkey"
             columns: ["sender_tenant_id"]
             isOneToOne: false
@@ -5440,9 +5447,11 @@ export type Database = {
           lab_request_id: string
           pricing_rule_snapshot: Json | null
           service_code_snapshot: string | null
+          service_decision: Database["public"]["Enums"]["lab_service_decision"]
           service_id: string
           service_name_ar_snapshot: string | null
           service_name_snapshot: string | null
+          service_rejection_reason: string | null
           template_ids_snapshot: Json | null
           unit_price_snapshot: number | null
         }
@@ -5452,9 +5461,11 @@ export type Database = {
           lab_request_id: string
           pricing_rule_snapshot?: Json | null
           service_code_snapshot?: string | null
+          service_decision?: Database["public"]["Enums"]["lab_service_decision"]
           service_id: string
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
+          service_rejection_reason?: string | null
           template_ids_snapshot?: Json | null
           unit_price_snapshot?: number | null
         }
@@ -5464,9 +5475,11 @@ export type Database = {
           lab_request_id?: string
           pricing_rule_snapshot?: Json | null
           service_code_snapshot?: string | null
+          service_decision?: Database["public"]["Enums"]["lab_service_decision"]
           service_id?: string
           service_name_ar_snapshot?: string | null
           service_name_snapshot?: string | null
+          service_rejection_reason?: string | null
           template_ids_snapshot?: Json | null
           unit_price_snapshot?: number | null
         }
@@ -5476,6 +5489,13 @@ export type Database = {
             columns: ["lab_request_id"]
             isOneToOne: false
             referencedRelation: "lab_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_services_lab_request_id_fkey"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests_stable_view"
             referencedColumns: ["id"]
           },
           {
@@ -5491,6 +5511,8 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string
+          decided_at: string | null
+          decided_by: string | null
           expected_by: string | null
           external_lab_id: string | null
           external_lab_name: string | null
@@ -5502,14 +5524,18 @@ export type Database = {
           initiator_tenant_id: string | null
           initiator_tenant_name_snapshot: string | null
           is_demo: boolean | null
+          lab_decision: Database["public"]["Enums"]["lab_request_decision"]
           lab_tenant_id: string | null
           notes: string | null
           priority: string
           received_at: string | null
+          rejection_reason: string | null
           requested_at: string
           result_file_path: string | null
           result_share_token: string | null
           result_url: string | null
+          specimen_received_at: string | null
+          specimen_received_by: string | null
           status: string
           submission_id: string | null
           tenant_id: string
@@ -5519,6 +5545,8 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by: string
+          decided_at?: string | null
+          decided_by?: string | null
           expected_by?: string | null
           external_lab_id?: string | null
           external_lab_name?: string | null
@@ -5530,14 +5558,18 @@ export type Database = {
           initiator_tenant_id?: string | null
           initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean | null
+          lab_decision?: Database["public"]["Enums"]["lab_request_decision"]
           lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
           received_at?: string | null
+          rejection_reason?: string | null
           requested_at?: string
           result_file_path?: string | null
           result_share_token?: string | null
           result_url?: string | null
+          specimen_received_at?: string | null
+          specimen_received_by?: string | null
           status?: string
           submission_id?: string | null
           tenant_id: string
@@ -5547,6 +5579,8 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string
+          decided_at?: string | null
+          decided_by?: string | null
           expected_by?: string | null
           external_lab_id?: string | null
           external_lab_name?: string | null
@@ -5558,14 +5592,18 @@ export type Database = {
           initiator_tenant_id?: string | null
           initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean | null
+          lab_decision?: Database["public"]["Enums"]["lab_request_decision"]
           lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
           received_at?: string | null
+          rejection_reason?: string | null
           requested_at?: string
           result_file_path?: string | null
           result_share_token?: string | null
           result_url?: string | null
+          specimen_received_at?: string | null
+          specimen_received_by?: string | null
           status?: string
           submission_id?: string | null
           tenant_id?: string
@@ -5573,6 +5611,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lab_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lab_requests_external_lab_id_fkey"
             columns: ["external_lab_id"]
@@ -5620,6 +5665,13 @@ export type Database = {
             columns: ["lab_tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_specimen_received_by_fkey"
+            columns: ["specimen_received_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6079,6 +6131,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_samples_lab_request_id_fkey"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests_stable_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lab_samples_received_by_fkey"
             columns: ["received_by"]
             isOneToOne: false
@@ -6277,6 +6336,7 @@ export type Database = {
           initiator_tenant_id: string | null
           initiator_tenant_name_snapshot: string | null
           is_demo: boolean
+          lab_decision: Database["public"]["Enums"]["lab_submission_decision"]
           lab_tenant_id: string | null
           notes: string | null
           priority: string
@@ -6295,6 +6355,7 @@ export type Database = {
           initiator_tenant_id?: string | null
           initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean
+          lab_decision?: Database["public"]["Enums"]["lab_submission_decision"]
           lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
@@ -6313,6 +6374,7 @@ export type Database = {
           initiator_tenant_id?: string | null
           initiator_tenant_name_snapshot?: string | null
           is_demo?: boolean
+          lab_decision?: Database["public"]["Enums"]["lab_submission_decision"]
           lab_tenant_id?: string | null
           notes?: string | null
           priority?: string
@@ -9824,6 +9886,129 @@ export type Database = {
           },
         ]
       }
+      lab_requests_stable_view: {
+        Row: {
+          decided_at: string | null
+          expected_by: string | null
+          horse_id: string | null
+          id: string | null
+          initiator_tenant_id: string | null
+          internal_decision:
+            | Database["public"]["Enums"]["lab_request_decision"]
+            | null
+          internal_status: string | null
+          lab_tenant_id: string | null
+          priority: string | null
+          received_at: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          result_url: string | null
+          specimen_received_at: string | null
+          stable_status: string | null
+          submission_id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          decided_at?: string | null
+          expected_by?: string | null
+          horse_id?: string | null
+          id?: string | null
+          initiator_tenant_id?: string | null
+          internal_decision?:
+            | Database["public"]["Enums"]["lab_request_decision"]
+            | null
+          internal_status?: string | null
+          lab_tenant_id?: string | null
+          priority?: string | null
+          received_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          result_url?: string | null
+          specimen_received_at?: string | null
+          stable_status?: never
+          submission_id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          decided_at?: string | null
+          expected_by?: string | null
+          horse_id?: string | null
+          id?: string | null
+          initiator_tenant_id?: string | null
+          internal_decision?:
+            | Database["public"]["Enums"]["lab_request_decision"]
+            | null
+          internal_status?: string | null
+          lab_tenant_id?: string | null
+          priority?: string | null
+          received_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          result_url?: string | null
+          specimen_received_at?: string | null
+          stable_status?: never
+          submission_id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_lab_tenant_id_fkey"
+            columns: ["lab_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "lab_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_tenant_directory: {
         Row: {
           cover_url: string | null
@@ -10078,6 +10263,10 @@ export type Database = {
       finalize_invitation_acceptance: {
         Args: { _token: string }
         Returns: Json
+      }
+      fn_recompute_submission_decision: {
+        Args: { p_submission_id: string }
+        Returns: undefined
       }
       generate_client_claim_token: {
         Args: { _client_id: string }
@@ -10426,6 +10615,13 @@ export type Database = {
         | "preaccepted"
         | "expired"
         | "revoked"
+      lab_request_decision: "pending_review" | "accepted" | "rejected"
+      lab_service_decision: "pending" | "accepted" | "rejected"
+      lab_submission_decision:
+        | "pending_review"
+        | "accepted"
+        | "rejected"
+        | "partial"
       movement_type: "in" | "out" | "transfer"
       occupancy_mode: "single" | "group"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
@@ -10615,6 +10811,14 @@ export const Constants = {
         "preaccepted",
         "expired",
         "revoked",
+      ],
+      lab_request_decision: ["pending_review", "accepted", "rejected"],
+      lab_service_decision: ["pending", "accepted", "rejected"],
+      lab_submission_decision: [
+        "pending_review",
+        "accepted",
+        "rejected",
+        "partial",
       ],
       movement_type: ["in", "out", "transfer"],
       occupancy_mode: ["single", "group"],

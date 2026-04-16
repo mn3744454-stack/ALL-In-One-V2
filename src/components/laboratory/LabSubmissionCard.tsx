@@ -3,12 +3,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, ChevronDown, ChevronRight, Heart, Tag, FlaskConical, Clock, FileText, MessageSquare } from "lucide-react";
+import { Building2, ChevronDown, ChevronRight, Heart, Tag, FlaskConical, Clock, FileText, MessageSquare, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { RequestStatusBadge } from "./RequestDetailDialog";
+import { RejectionReasonDialog } from "./RejectionReasonDialog";
+import { useLabIntake } from "@/hooks/laboratory/useLabIntake";
 import type { LabSubmission } from "@/hooks/laboratory/useLabSubmissions";
 import { deriveSubmissionStatus } from "@/hooks/laboratory/useLabSubmissions";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
@@ -23,8 +25,17 @@ interface LabSubmissionCardProps {
 export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChildDetail, onCreateSample }: LabSubmissionCardProps) {
   const { t, dir } = useI18n();
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [rejectAllOpen, setRejectAllOpen] = useState(false);
+  const { acceptAllInSubmission, rejectAllInSubmission, isPending } = useLabIntake();
 
   const aggregateStatus = useMemo(() => deriveSubmissionStatus(submission.children), [submission.children]);
+
+  // Phase 5 — count children still pending review (used for Accept All / Reject All)
+  const pendingCount = useMemo(
+    () => submission.children.filter(c => (c.lab_decision || 'pending_review') === 'pending_review').length,
+    [submission.children]
+  );
+  const submissionDecision = (submission.lab_decision as 'pending_review' | 'accepted' | 'rejected' | 'partial' | undefined) || 'pending_review';
 
   // Count unique services across all children
   const totalServices = useMemo(() => {
@@ -101,6 +112,36 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
               </div>
             )}
 
+            {/* Phase 5 — Submission-level convenience macros (fan out to children) */}
+            {pendingCount > 0 && (
+              <div className="px-4 py-2.5 bg-primary/5 border-b flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {pendingCount} {t('laboratory.intake.pendingChildren') || 'pending review'}
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => acceptAllInSubmission(submission.id)}
+                    disabled={isPending}
+                    className="gap-1 h-7 text-xs"
+                  >
+                    {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                    {t('laboratory.intake.acceptAll') || 'Accept all'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setRejectAllOpen(true)}
+                    disabled={isPending}
+                    className="gap-1 h-7 text-xs text-destructive border-destructive/40 hover:bg-destructive/10"
+                  >
+                    <XCircle className="h-3 w-3" />
+                    {t('laboratory.intake.rejectAll') || 'Reject all'}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Child horse requests */}
             <div className="divide-y">
               {submission.children.map((child) => (
@@ -115,6 +156,18 @@ export function LabSubmissionCard({ submission, defaultOpen = false, onOpenChild
           </div>
         </CollapsibleContent>
       </Card>
+
+      <RejectionReasonDialog
+        open={rejectAllOpen}
+        onOpenChange={setRejectAllOpen}
+        isPending={isPending}
+        title={t('laboratory.intake.rejectAllTitle') || 'Reject all pending horses'}
+        description={t('laboratory.intake.rejectAllDescription') || 'This rejection reason will be applied to all pending horses in this submission.'}
+        onConfirm={async (reason) => {
+          await rejectAllInSubmission({ submissionId: submission.id, reason });
+          setRejectAllOpen(false);
+        }}
+      />
     </Collapsible>
   );
 }

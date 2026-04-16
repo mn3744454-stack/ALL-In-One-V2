@@ -21,6 +21,8 @@ export interface LabSubmission {
   is_demo: boolean;
   created_at: string;
   updated_at: string;
+  // Phase 5 — derived parent decision (system-managed via DB trigger)
+  lab_decision?: 'pending_review' | 'accepted' | 'rejected' | 'partial';
   // Populated by join
   children: LabRequest[];
 }
