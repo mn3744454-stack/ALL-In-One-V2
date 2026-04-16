@@ -6,7 +6,6 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useSampleInvoiceMap } from "@/hooks/laboratory/useSampleInvoiceMap";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useTenant as useTenantCtx } from "@/contexts/TenantContext";
 import { useLabSamples, type LabSample } from "@/hooks/laboratory/useLabSamples";
 import { deriveSamplingProgress } from "@/hooks/laboratory/useLabSubmissionSamplingProgress";
 import { SampleCard } from "./SampleCard";
@@ -60,8 +59,8 @@ export function SubmissionGroupedSamplesView({
   samples,
   onSampleClick,
 }: SubmissionGroupedSamplesViewProps) {
-  const { t, dir } = useI18n();
-  const { activeTenant, activeRole } = useTenantCtx();
+  const { t } = useI18n();
+  const { activeTenant, activeRole } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { isLabTenant, labMode } = useModuleAccess();
   const isLabFull = isLabTenant && labMode === "full";
