@@ -44,6 +44,11 @@ interface CreateResultDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedSample?: LabSample;
+  /** Phase 7 — When opened from ResultsOwedPanel for a specific accepted template,
+   * the wizard auto-resolves the sample (from the request) and skips to results entry. */
+  preselectedTemplateId?: string;
+  /** Phase 7 — Optional request scope for sample auto-resolution. */
+  preselectedRequestId?: string;
   onSuccess?: () => void;
 }
 
@@ -59,6 +64,8 @@ export function CreateResultDialog({
   open,
   onOpenChange,
   preselectedSample,
+  preselectedTemplateId,
+  preselectedRequestId,
   onSuccess,
 }: CreateResultDialogProps) {
   const { t } = useI18n();
