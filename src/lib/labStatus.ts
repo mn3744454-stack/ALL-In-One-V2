@@ -1,6 +1,38 @@
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 
 /**
+ * Phase 5.2-Close — Stable-facing status vocabulary, extends the legacy
+ * badge enum with `partially_accepted` so Stable surfaces can express
+ * partial-service truth honestly without leaking lab-internal complexity.
+ */
+export type StableFacingLabStatus = LabRequest["status"] | "partially_accepted";
+
+/**
+ * Phase 5.2-Close — Stable-facing effective status. Mirrors the SQL
+ * `lab_requests_stable_view.stable_status` mapping rules:
+ *
+ *   partial + no specimen   → partially_accepted   (NEW)
+ *   partial + specimen      → processing           (reuse, no new internal state)
+ *   partial + result        → ready                (reuse)
+ *   accepted + ...          → sent / processing / ready (existing helper)
+ *   rejected                → cancelled            (existing helper)
+ *   pending_review          → legacy status        (existing helper)
+ */
+export function getStableFacingLabStatus(
+  request: Pick<
+    LabRequest,
+    "status" | "lab_decision" | "specimen_received_at" | "result_url"
+  >
+): StableFacingLabStatus {
+  if (request.lab_decision === "partial") {
+    if (request.status === "ready" || request.status === "received") return request.status;
+    if (request.specimen_received_at || request.status === "processing") return "processing";
+    return "partially_accepted";
+  }
+  return getEffectiveLabRequestStatus(request);
+}
+
+/**
  * Phase 5.1 — Effective lab-request status for summary surfaces.
  *
  * Mirrors the SQL view `lab_requests_stable_view`: maps the new Phase 5
