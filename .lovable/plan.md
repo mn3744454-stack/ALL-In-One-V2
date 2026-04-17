@@ -1,40 +1,13 @@
 
+The user wants Documentation 13 — the formal archival successor to Documentation 12. They've uploaded Docs 3-12 as reference. From the conversation summary I already have full context on the post-Doc-12 period: it's the Laboratory closure arc (Phase 5.2.2 atomic hotfix → Phase 7 Results Coherence → Phase 7 continuation → Phase 8 polish).
 
-## تحليل السبب الجذري: فجوة الـ 1,150 ريال
+I already produced this exact document in my previous turn. The user is now re-issuing the request as a more formal, generic prompt (not naming Doc 12 explicitly, asking me to discover identity myself). They've also attached all prior docs for context.
 
-### المشكلة
+This is a documentation artifact request in plan mode — the appropriate response is the documentation itself inside `<lov-plan>`. I should not just repeat my prior output verbatim; I should produce a slightly more formal, polished version that better matches the cadence of Docs 8–12 (which I can see have very structured numbering, formal section headers, and explicit baseline references).
 
-- **بطاقة الملخص** (إجمالي الفواتير ضمن النطاق) = **143,625 ريال**
-- **آخر رصيد متراكم** في آخر صف بالجدول = **142,475 ريال**
-- **الفرق** = **1,150 ريال**
+Key inputs:
+- Last baseline = Doc 12 (April 4, 2026 — backend permission migration closure)
+- Post-Doc-12 period dominant theme = Laboratory closure (verified from conversation history: 5.2.2 hotfix, Phase 7 Patches A/B/D/F, Phase 7 continuation Patches C/E, Phase 8 P8-A through P8-F)
+- Verified artifacts: migrations `20260417190602`, `20260417190634`; new components `ResultsOwedPanel`, `StableTemplateProgressList`; new hooks `useRequestResultProgress`, `useSubmissionResultProgress`; gates `validate_lab_result_eligibility`, `validate_lab_result_publish`; view `vw_lab_result_progress`
 
-### السبب
-
-عندك فاتورة إيواء فيها بنود مختلطة — يعني فيها بنود إيواء (لها تاريخ بداية ونهاية) وفيها بند أو أكثر **مش إيواء** (مثلاً رسوم خدمة، استشارة، أو أي شيء ثاني).
-
-اللي يصير في الكود:
-
-1. **بطاقة الملخص** تحسب المبلغ الكامل للفاتورة من دفتر الأستاذ (كل البنود مع بعض) = صح ✅
-2. **صفوف الجدول** لما تلاقي إن الفاتورة فيها بنود إيواء، تعرض **بس** بنود الإيواء كصفوف منفصلة، وتتجاهل أي بند ثاني على نفس الفاتورة = **هنا المشكلة** ❌
-
-يعني البند اللي قيمته 1,000 ريال + 150 ريال ضريبة (15%) = 1,150 ريال — موجود في حساب البطاقة بس **ما له صف في الجدول**.
-
-### الحل المقترح
-
-في ملف `ClientStatementTab.tsx`، في المكان اللي يبني فيه صفوف الجدول:
-
-- بعد ما يعرض كل بنود الإيواء، يحسب: **هل مجموع البنود المعروضة = إجمالي الفاتورة؟**
-- لو في فرق، يضيف **صف إضافي** باسم "رسوم أخرى" / "Other charges" بقيمة الفرق
-- كذا الرصيد المتراكم يوصل لنفس رقم البطاقة بالضبط
-
-### الملفات اللي تتغير
-
-- `src/components/clients/ClientStatementTab.tsx` — منطق بناء الصفوف فقط
-
-### اللي ما يتغير
-
-- لا تغيير في قاعدة البيانات
-- لا تغيير في منطق الإثراء (enrichment)
-- لا تغيير في البطاقات أو الملخصات
-- لا تغيير في الطباعة/PDF (لأنها تاخذ من نفس الصفوف)
-
+I'll produce Doc 13 as a polished archival artifact matching the established documentation style.
