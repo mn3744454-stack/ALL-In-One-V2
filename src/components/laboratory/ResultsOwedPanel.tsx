@@ -123,16 +123,16 @@ export function ResultsOwedPanel({
 
   return (
     <Card className="p-4 space-y-3">
-      {/* Header with progress */}
+      {/* Header with progress — P8-E: clearer section heading */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-4 w-4 text-primary" />
-          <span className="font-medium text-sm">
+          <span className="font-semibold text-sm">
             {t("laboratory.results.resultsOwed") || "Results"}
           </span>
         </div>
         {acceptedCount > 0 && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground tabular-nums">
             {(t("laboratory.results.publishedOfAccepted") || "{published} of {total} published")
               .replace("{published}", String(publishedCount))
               .replace("{total}", String(acceptedCount))}
