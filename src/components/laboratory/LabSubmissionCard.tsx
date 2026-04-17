@@ -14,7 +14,7 @@ import { useLabIntake } from "@/hooks/laboratory/useLabIntake";
 import type { LabSubmission } from "@/hooks/laboratory/useLabSubmissions";
 import { deriveSubmissionStatus } from "@/hooks/laboratory/useLabSubmissions";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
-import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
+import { getStableFacingLabStatus } from "@/lib/labStatus";
 import { useLabSubmissionsSamplingProgress } from "@/hooks/laboratory/useLabSubmissionSamplingProgress";
 import { SubmissionSamplingProgress } from "./SubmissionSamplingProgress";
 
@@ -292,7 +292,7 @@ function ChildRequestRow({
             tag already conveys the more precise truth and the legacy badge
             would only echo an ambiguous "sent"/awaiting-sample signal. */}
         {(() => {
-          const effective = getEffectiveLabRequestStatus(request);
+          const effective = getStableFacingLabStatus(request);
           if (showSamplingTag && effective === 'sent') return null;
           return <RequestStatusBadge status={effective} />;
         })()}

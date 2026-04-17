@@ -762,7 +762,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
+            <RequestStatusBadge status={getStableFacingLabStatus(request)} />
             {isBillable && canCreateInvoice && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
