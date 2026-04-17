@@ -593,7 +593,17 @@ export const en = {
         acceptFailed: "Failed to accept request",
         rejectFailed: "Failed to reject request",
         specimenFailed: "Failed to mark specimen received",
+        serviceAccepted: "Service accepted",
+        serviceRejected: "Service rejected",
+        serviceAcceptFailed: "Failed to accept service",
+        serviceRejectFailed: "Failed to reject service",
       },
+      // Phase 5.2 — service-level decision UI
+      decidePerService: "Decide per service",
+      serviceSummary: "{accepted} of {total} services accepted",
+      rejectService: "Reject service",
+      rejectServiceDescription: "Provide a precise reason for rejecting this service. It will be visible to the requesting stable.",
+      partiallyAccepted: "Partially accepted",
     },
     
     // Stable Results Tab

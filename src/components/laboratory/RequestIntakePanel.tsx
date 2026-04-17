@@ -16,15 +16,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
+import type { LabRequest, LabRequestService } from "@/hooks/laboratory/useLabRequests";
+import { ServiceDecisionList } from "./ServiceDecisionList";
 
-type LabDecision = "pending_review" | "accepted" | "rejected";
+type LabDecision = "pending_review" | "accepted" | "rejected" | "partial";
 
 export interface IntakeRequestLike extends LabRequest {
   lab_decision?: LabDecision;
   rejection_reason?: string | null;
   decided_at?: string | null;
   specimen_received_at?: string | null;
+  lab_request_services?: LabRequestService[];
 }
 
 interface RequestIntakePanelProps {
@@ -42,10 +44,14 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
 
   const decision: LabDecision = (request.lab_decision as LabDecision) || "pending_review";
   const specimenReceived = !!request.specimen_received_at;
+  const services = request.lab_request_services || [];
+  const hasMultipleServices = services.length > 1;
+  // Phase 5.2 — partial behaves like accepted for downstream sampling/specimen flow
+  const isAcceptedOrPartial = decision === "accepted" || decision === "partial";
 
   const stepActive = (step: "decision" | "specimen") => {
     if (step === "decision") return decision === "pending_review";
-    if (step === "specimen") return decision === "accepted" && !specimenReceived;
+    if (step === "specimen") return isAcceptedOrPartial && !specimenReceived;
     return false;
   };
 
@@ -107,6 +113,15 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
             </div>
           )}
         </div>
+
+        {/* Phase 5.2 — nested service-level decisions for multi-service requests */}
+        {hasMultipleServices && decision !== "rejected" && (
+          <ServiceDecisionList
+            requestId={request.id}
+            services={services}
+            disabled={false}
+          />
+        )}
       </div>
 
       {/* Step 2: Specimen Receipt — only when accepted */}
@@ -137,7 +152,7 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
                 </p>
               )}
             </div>
-            {decision === "accepted" && !specimenReceived && (
+            {isAcceptedOrPartial && !specimenReceived && (
               <Button
                 size="sm"
                 variant="outline"
@@ -194,6 +209,14 @@ function DecisionBadge({ decision }: { decision: LabDecision }) {
       <Badge variant="outline" className="text-xs gap-1 bg-destructive/10 text-destructive border-destructive/30">
         <XCircle className="h-3 w-3" />
         {t("laboratory.intake.decision.rejected") || "Rejected"}
+      </Badge>
+    );
+  }
+  if (decision === "partial") {
+    return (
+      <Badge variant="outline" className="text-xs gap-1 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">
+        <CheckCircle2 className="h-3 w-3" />
+        {t("laboratory.intake.decision.partial") || "Partially accepted"}
       </Badge>
     );
   }
