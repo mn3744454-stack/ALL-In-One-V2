@@ -16,15 +16,17 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
+import type { LabRequest, LabRequestService } from "@/hooks/laboratory/useLabRequests";
+import { ServiceDecisionList } from "./ServiceDecisionList";
 
-type LabDecision = "pending_review" | "accepted" | "rejected";
+type LabDecision = "pending_review" | "accepted" | "rejected" | "partial";
 
 export interface IntakeRequestLike extends LabRequest {
   lab_decision?: LabDecision;
   rejection_reason?: string | null;
   decided_at?: string | null;
   specimen_received_at?: string | null;
+  lab_request_services?: LabRequestService[];
 }
 
 interface RequestIntakePanelProps {
@@ -42,10 +44,14 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
 
   const decision: LabDecision = (request.lab_decision as LabDecision) || "pending_review";
   const specimenReceived = !!request.specimen_received_at;
+  const services = request.lab_request_services || [];
+  const hasMultipleServices = services.length > 1;
+  // Phase 5.2 — partial behaves like accepted for downstream sampling/specimen flow
+  const isAcceptedOrPartial = decision === "accepted" || decision === "partial";
 
   const stepActive = (step: "decision" | "specimen") => {
     if (step === "decision") return decision === "pending_review";
-    if (step === "specimen") return decision === "accepted" && !specimenReceived;
+    if (step === "specimen") return isAcceptedOrPartial && !specimenReceived;
     return false;
   };
 

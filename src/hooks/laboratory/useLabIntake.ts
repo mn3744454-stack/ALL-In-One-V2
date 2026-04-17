@@ -155,17 +155,74 @@ export function useLabIntake() {
     },
   });
 
+  // Phase 5.2 — Service-level mutations (writes to lab_request_services).
+  // The DB trigger on lab_request_services.service_decision will recompute
+  // the parent request decision (and cascade to submission decision).
+  const acceptServiceMutation = useMutation({
+    mutationFn: async ({ requestId, serviceId }: { requestId: string; serviceId: string }) => {
+      if (!user?.id) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("lab_request_services")
+        .update({
+          service_decision: "accepted",
+          service_rejection_reason: null,
+        } as any)
+        .eq("lab_request_id", requestId)
+        .eq("service_id", serviceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success(t("laboratory.intake.toast.serviceAccepted") || "Service accepted");
+    },
+    onError: (err) => {
+      console.error("acceptService", err);
+      toast.error(t("laboratory.intake.toast.serviceAcceptFailed") || "Failed to accept service");
+    },
+  });
+
+  const rejectServiceMutation = useMutation({
+    mutationFn: async ({
+      requestId,
+      serviceId,
+      reason,
+    }: { requestId: string; serviceId: string; reason: string }) => {
+      if (!user?.id) throw new Error("Not signed in");
+      const { error } = await supabase
+        .from("lab_request_services")
+        .update({
+          service_decision: "rejected",
+          service_rejection_reason: reason,
+        } as any)
+        .eq("lab_request_id", requestId)
+        .eq("service_id", serviceId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success(t("laboratory.intake.toast.serviceRejected") || "Service rejected");
+    },
+    onError: (err) => {
+      console.error("rejectService", err);
+      toast.error(t("laboratory.intake.toast.serviceRejectFailed") || "Failed to reject service");
+    },
+  });
+
   return {
     acceptRequest: acceptMutation.mutateAsync,
     rejectRequest: rejectMutation.mutateAsync,
     markSpecimenReceived: specimenReceivedMutation.mutateAsync,
     acceptAllInSubmission: acceptAllInSubmissionMutation.mutateAsync,
     rejectAllInSubmission: rejectAllInSubmissionMutation.mutateAsync,
+    acceptService: acceptServiceMutation.mutateAsync,
+    rejectService: rejectServiceMutation.mutateAsync,
     isPending:
       acceptMutation.isPending ||
       rejectMutation.isPending ||
       specimenReceivedMutation.isPending ||
       acceptAllInSubmissionMutation.isPending ||
-      rejectAllInSubmissionMutation.isPending,
+      rejectAllInSubmissionMutation.isPending ||
+      acceptServiceMutation.isPending ||
+      rejectServiceMutation.isPending,
   };
 }
