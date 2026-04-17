@@ -10615,7 +10615,11 @@ export type Database = {
         | "preaccepted"
         | "expired"
         | "revoked"
-      lab_request_decision: "pending_review" | "accepted" | "rejected"
+      lab_request_decision:
+        | "pending_review"
+        | "accepted"
+        | "rejected"
+        | "partial"
       lab_service_decision: "pending" | "accepted" | "rejected"
       lab_submission_decision:
         | "pending_review"
@@ -10812,7 +10816,12 @@ export const Constants = {
         "expired",
         "revoked",
       ],
-      lab_request_decision: ["pending_review", "accepted", "rejected"],
+      lab_request_decision: [
+        "pending_review",
+        "accepted",
+        "rejected",
+        "partial",
+      ],
       lab_service_decision: ["pending", "accepted", "rejected"],
       lab_submission_decision: [
         "pending_review",
