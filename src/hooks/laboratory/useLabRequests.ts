@@ -137,8 +137,8 @@ export function useLabRequests() {
       const filterColumn = isLabFull ? 'lab_tenant_id' : 'tenant_id';
       
       const selectStr = isLabFull
-        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
-        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service:lab_services(id, name, name_ar, code, category, price, currency))`;
+        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service_decision, service_rejection_reason, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
+        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service_decision, service_rejection_reason, service:lab_services(id, name, name_ar, code, category, price, currency))`;
       
       const { data, error } = await supabase
         .from('lab_requests')
