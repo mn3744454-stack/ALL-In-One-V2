@@ -624,8 +624,6 @@ export const en = {
       // Phase 5.2.2 — template-level decision vocabulary
       decidePerTemplate: "Decide per test",
       templateSummary: "{accepted} of {total} tests accepted",
-      acceptAll: "Accept all",
-      rejectAll: "Reject all",
       acceptAllTemplates: "Accept all tests in this service",
       rejectAllTemplates: "Reject all tests in this service",
       rejectTemplate: "Reject test",

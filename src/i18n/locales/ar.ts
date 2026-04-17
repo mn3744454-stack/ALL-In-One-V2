@@ -640,8 +640,6 @@ export const ar = {
       // Phase 5.2.2 — قرارات على مستوى الفحص
       decidePerTemplate: "اتخاذ قرار لكل فحص",
       templateSummary: "{accepted} من {total} فحوصات مقبولة",
-      acceptAll: "قبول الكل",
-      rejectAll: "رفض الكل",
       acceptAllTemplates: "قبول جميع الفحوصات في هذه الخدمة",
       rejectAllTemplates: "رفض جميع الفحوصات في هذه الخدمة",
       rejectTemplate: "رفض الفحص",
