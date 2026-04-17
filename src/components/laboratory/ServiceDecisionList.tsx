@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, Clock, Loader2, ChevronDown, ChevronUp } from "lucide-react";
@@ -42,6 +42,16 @@ export function ServiceDecisionList({ requestId, services, disabled }: ServiceDe
   }, [services]);
 
   const [expanded, setExpanded] = useState(!allSameDecision);
+
+  // Phase 5.2.1 — Live reactive expansion: as soon as service decisions diverge
+  // from each other (e.g. operator just rejected one of three pending services),
+  // auto-expand so the freshly-changed truth is immediately visible without
+  // requiring a manual click.
+  useEffect(() => {
+    if (!allSameDecision) {
+      setExpanded(true);
+    }
+  }, [allSameDecision]);
 
   if (services.length === 0) return null;
 

@@ -60,7 +60,7 @@ interface RequestDetailDialogProps {
 }
 
 export function RequestDetailDialog({
-  request,
+  request: requestProp,
   open,
   onOpenChange,
   defaultTab,
@@ -69,9 +69,16 @@ export function RequestDetailDialog({
   onCreateSample,
 }: RequestDetailDialogProps) {
   const { t, dir } = useI18n();
-  const { updateRequest } = useLabRequests();
+  const { updateRequest, requests } = useLabRequests();
   const { labMode } = useModuleAccess();
   const isLabFull = labMode === 'full';
+
+  // Phase 5.2.1 — Re-read the freshest request from the live query result by ID.
+  // This ensures per-service decisions, the request-level badge, and the
+  // "X of Y accepted" summary update inside the open dialog immediately after
+  // mutations invalidate the labRequests query (no close/reopen required).
+  const request = (requests.find(r => r.id === requestProp.id) as LabRequest | undefined) || requestProp;
+
   const [statusValue, setStatusValue] = useState(request.status);
   const [resultUrl, setResultUrl] = useState(request.result_url || '');
   const [isPublishing, setIsPublishing] = useState(false);
