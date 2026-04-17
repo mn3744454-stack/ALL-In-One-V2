@@ -625,6 +625,13 @@ export const ar = {
       serviceStatusRejected: "مرفوضة",
       serviceStatusPending: "قيد المراجعة",
       serviceRejectionReasonLabel: "السبب",
+      // Phase 5.2.1 — انضباط الإجراءات الجماعية
+      acceptAllServices: "قبول الكل",
+      rejectAllServices: "رفض الكل",
+      macroShortcutsHint: "هل تريد اتخاذ قرار للطلب بالكامل دفعة واحدة؟",
+      macroOverwriteAcceptTitle: "قبول الطلب بالكامل؟",
+      macroOverwriteRejectTitle: "رفض الطلب بالكامل؟",
+      macroOverwriteDescription: "تم تحديد قرارات لـ {count} من الخدمات. سيؤدي هذا الإجراء إلى استبدالها وتطبيق نفس القرار على جميع الخدمات في هذا الطلب.",
     },
     
     stableResults: {

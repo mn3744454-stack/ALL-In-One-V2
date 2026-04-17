@@ -609,6 +609,13 @@ export const en = {
       serviceStatusRejected: "Rejected",
       serviceStatusPending: "Pending",
       serviceRejectionReasonLabel: "Reason",
+      // Phase 5.2.1 — macro discipline copy
+      acceptAllServices: "Accept all",
+      rejectAllServices: "Reject all",
+      macroShortcutsHint: "Need to decide the whole request at once?",
+      macroOverwriteAcceptTitle: "Accept the entire request?",
+      macroOverwriteRejectTitle: "Reject the entire request?",
+      macroOverwriteDescription: "{count} service decisions are already set. This action will overwrite them and apply the same decision to every service in this request.",
     },
     
     // Stable Results Tab
