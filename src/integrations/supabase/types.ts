@@ -5452,7 +5452,7 @@ export type Database = {
           sort_order_snapshot: number
           template_category_snapshot: string | null
           template_decision: Database["public"]["Enums"]["lab_template_decision"]
-          template_id: string
+          template_id: string | null
           template_name_ar_snapshot: string | null
           template_name_snapshot: string | null
           template_rejection_reason: string | null
@@ -5470,7 +5470,7 @@ export type Database = {
           sort_order_snapshot?: number
           template_category_snapshot?: string | null
           template_decision?: Database["public"]["Enums"]["lab_template_decision"]
-          template_id: string
+          template_id?: string | null
           template_name_ar_snapshot?: string | null
           template_name_snapshot?: string | null
           template_rejection_reason?: string | null
@@ -5488,7 +5488,7 @@ export type Database = {
           sort_order_snapshot?: number
           template_category_snapshot?: string | null
           template_decision?: Database["public"]["Enums"]["lab_template_decision"]
-          template_id?: string
+          template_id?: string | null
           template_name_ar_snapshot?: string | null
           template_name_snapshot?: string | null
           template_rejection_reason?: string | null

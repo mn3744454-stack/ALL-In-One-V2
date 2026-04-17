@@ -253,7 +253,11 @@ export function useLabIntake() {
   const acceptServiceMutation = useMutation({
     mutationFn: async ({ requestId, serviceId }: { requestId: string; serviceId: string }) => {
       if (!user?.id) throw new Error("Not signed in");
-      const { error } = await supabase
+      // Phase 5.2.2 hotfix — require at least one row affected so atomic
+      // template-less services no longer silently succeed when no child
+      // decision row exists. The H1 migration + backfill guarantees one row
+      // per service; if zero rows are affected, surface a real error.
+      const { data, error } = await supabase
         .from("lab_request_service_templates")
         .update({
           template_decision: "accepted",
@@ -262,8 +266,12 @@ export function useLabIntake() {
           decided_by: user.id,
         } as any)
         .eq("lab_request_id", requestId)
-        .eq("service_id", serviceId);
+        .eq("service_id", serviceId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No decision rows were updated for this service");
+      }
     },
     onSuccess: () => {
       invalidate();
@@ -282,7 +290,7 @@ export function useLabIntake() {
       reason,
     }: { requestId: string; serviceId: string; reason: string }) => {
       if (!user?.id) throw new Error("Not signed in");
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("lab_request_service_templates")
         .update({
           template_decision: "rejected",
@@ -291,8 +299,12 @@ export function useLabIntake() {
           decided_by: user.id,
         } as any)
         .eq("lab_request_id", requestId)
-        .eq("service_id", serviceId);
+        .eq("service_id", serviceId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No decision rows were updated for this service");
+      }
     },
     onSuccess: () => {
       invalidate();
