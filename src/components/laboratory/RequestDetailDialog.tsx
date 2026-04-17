@@ -10,12 +10,12 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
-import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
+import { getEffectiveLabRequestStatus, getStableFacingLabStatus, type StableFacingLabStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
-  Tag, Building2, MessageSquare, Receipt, FlaskConical, XCircle,
+  Tag, Building2, MessageSquare, Receipt, FlaskConical, XCircle, AlertCircle,
 } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
@@ -23,24 +23,28 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-const statusConfig: Record<LabRequest['status'], { icon: React.ElementType; color: string }> = {
+const statusConfig: Record<StableFacingLabStatus, { icon: React.ElementType; color: string }> = {
   pending: { icon: Clock, color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   sent: { icon: Send, color: 'bg-blue-100 text-blue-800 border-blue-200' },
   processing: { icon: Loader2, color: 'bg-purple-100 text-purple-800 border-purple-200' },
   ready: { icon: CheckCircle2, color: 'bg-green-100 text-green-800 border-green-200' },
   received: { icon: FileText, color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   cancelled: { icon: Clock, color: 'bg-gray-100 text-gray-800 border-gray-200' },
+  partially_accepted: { icon: AlertCircle, color: 'bg-amber-100 text-amber-800 border-amber-200' },
 };
 
-export function RequestStatusBadge({ status }: { status: LabRequest['status'] }) {
+export function RequestStatusBadge({ status }: { status: StableFacingLabStatus }) {
   const { t } = useI18n();
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
   const Icon = config.icon;
+  const label = status === 'partially_accepted'
+    ? (t('laboratory.intake.partiallyAccepted') || 'Partially accepted')
+    : (t(`laboratory.requests.status.${status}`) || status);
 
   return (
     <Badge variant="outline" className={cn("gap-1", config.color)}>
       <Icon className={cn("h-3 w-3", status === 'processing' && "animate-spin")} />
-      {t(`laboratory.requests.status.${status}`) || status}
+      {label}
     </Badge>
   );
 }
@@ -155,7 +159,7 @@ export function RequestDetailDialog({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             {horseName}
-            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
+            <RequestStatusBadge status={isLabFull ? getEffectiveLabRequestStatus(request) : getStableFacingLabStatus(request)} />
           </DialogTitle>
           {isLabFull && senderName && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -242,9 +246,18 @@ export function RequestDetailDialog({
               {/* Services */}
               {services.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1.5">
-                    {t('laboratory.requests.selectedServices') || 'Selected Services'}
-                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t('laboratory.requests.selectedServices') || 'Selected Services'}
+                    </p>
+                    {services.length > 1 && (
+                      <p className="text-xs text-muted-foreground">
+                        {(t('laboratory.intake.serviceSummary') || '{accepted} of {total} services accepted')
+                          .replace('{accepted}', String(services.filter(s => s.service_decision === 'accepted').length))
+                          .replace('{total}', String(services.length))}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {services.map(s => (
                       <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
@@ -256,6 +269,45 @@ export function RequestDetailDialog({
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Stable-only: Service-level breakdown — visible when partial OR any service rejected */}
+              {!isLabFull && services.length > 0 && (labDecision === 'partial' || services.some(s => s.service_decision === 'rejected')) && (
+                <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                  <p className="text-sm font-medium">
+                    {t('laboratory.intake.serviceBreakdown') || 'Service breakdown'}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {services.map(s => {
+                      const decision = s.service_decision || 'pending';
+                      const name = dir === 'rtl' && (s.service_name_ar_snapshot || s.service?.name_ar)
+                        ? (s.service_name_ar_snapshot || s.service.name_ar)
+                        : (s.service_name_snapshot || s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service');
+                      const pillClass =
+                        decision === 'accepted' ? 'bg-green-100 text-green-800 border-green-200' :
+                        decision === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                        'bg-muted text-muted-foreground border-border';
+                      const label =
+                        decision === 'accepted' ? (t('laboratory.intake.serviceStatusAccepted') || 'Accepted') :
+                        decision === 'rejected' ? (t('laboratory.intake.serviceStatusRejected') || 'Rejected') :
+                        (t('laboratory.intake.serviceStatusPending') || 'Pending');
+                      return (
+                        <li key={s.service_id} className="text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate">{name}</span>
+                            <Badge variant="outline" className={cn("text-xs shrink-0", pillClass)}>{label}</Badge>
+                          </div>
+                          {decision === 'rejected' && s.service_rejection_reason && (
+                            <p className="text-xs text-muted-foreground mt-0.5 ms-0">
+                              <span className="font-medium">{t('laboratory.intake.serviceRejectionReasonLabel') || 'Reason'}:</span>{' '}
+                              {s.service_rejection_reason}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               )}
 

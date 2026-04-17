@@ -46,7 +46,7 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useQueryClient } from "@tanstack/react-query";
-import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
+import { getEffectiveLabRequestStatus, getStableFacingLabStatus } from "@/lib/labStatus";
 
 interface LabOption {
   tenantId: string;
@@ -762,7 +762,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
+            <RequestStatusBadge status={getStableFacingLabStatus(request)} />
             {isBillable && canCreateInvoice && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

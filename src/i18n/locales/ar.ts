@@ -620,6 +620,11 @@ export const ar = {
       rejectService: "رفض الخدمة",
       rejectServiceDescription: "يرجى إدخال سبب دقيق لرفض هذه الخدمة. سيظهر للإسطبل الطالب.",
       partiallyAccepted: "مقبول جزئياً",
+      serviceBreakdown: "تفصيل الخدمات",
+      serviceStatusAccepted: "مقبولة",
+      serviceStatusRejected: "مرفوضة",
+      serviceStatusPending: "قيد المراجعة",
+      serviceRejectionReasonLabel: "السبب",
     },
     
     stableResults: {
