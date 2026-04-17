@@ -10,11 +10,15 @@ import { queryKeys } from "@/lib/queryKeys";
 /**
  * Phase 5 — Laboratory intake decision mutations.
  *
- * All decisions live at the child request level. Submission-level decisions
- * are derived by a database trigger and must NOT be written directly.
+ * Phase 5.2.2 — Template-level decision is now AUTHORITATIVE for composite
+ * services. Service-level decision is derived by a DB trigger from per-template
+ * decisions (`fn_recompute_service_decision`). Service-level macros therefore
+ * fan out to children rather than writing service_decision directly.
  *
- * Submission-level macros (Accept All / Reject All) fan out to per-child
- * writes through these same primitives.
+ * For atomic services (1 template), behavior is mathematically identical: the
+ * one child row is updated and the trigger rolls up to the same service state.
+ *
+ * Submission-level decisions remain trigger-derived from request-level decisions.
  */
 export function useLabIntake() {
   const { t } = useI18n();
@@ -155,17 +159,107 @@ export function useLabIntake() {
     },
   });
 
-  // Phase 5.2 — Service-level mutations (writes to lab_request_services).
-  // The DB trigger on lab_request_services.service_decision will recompute
-  // the parent request decision (and cascade to submission decision).
+  // Phase 5.2.2 — Template-level mutations (authoritative writes).
+  // Service-level decision is then recomputed by the DB trigger
+  // fn_recompute_service_decision; request and submission decisions cascade
+  // through the existing chain.
+  const acceptTemplateMutation = useMutation({
+    mutationFn: async ({
+      requestId: _requestId,
+      serviceId: _serviceId,
+      templateId,
+      requestServiceTemplateId,
+    }: {
+      requestId: string;
+      serviceId: string;
+      templateId: string;
+      requestServiceTemplateId?: string;
+    }) => {
+      if (!user?.id) throw new Error("Not signed in");
+      const patch = {
+        template_decision: "accepted" as const,
+        template_rejection_reason: null,
+        decided_at: new Date().toISOString(),
+        decided_by: user.id,
+      };
+      // Prefer the row id when available; otherwise (request_id, template_id) is unique.
+      const q = requestServiceTemplateId
+        ? supabase.from("lab_request_service_templates").update(patch as any).eq("id", requestServiceTemplateId)
+        : supabase
+            .from("lab_request_service_templates")
+            .update(patch as any)
+            .eq("lab_request_id", _requestId)
+            .eq("template_id", templateId);
+      const { error } = await q;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success(t("laboratory.intake.toast.templateAccepted") || "Template accepted");
+    },
+    onError: (err) => {
+      console.error("acceptTemplate", err);
+      toast.error(t("laboratory.intake.toast.templateAcceptFailed") || "Failed to accept template");
+    },
+  });
+
+  const rejectTemplateMutation = useMutation({
+    mutationFn: async ({
+      requestId: _requestId,
+      serviceId: _serviceId,
+      templateId,
+      requestServiceTemplateId,
+      reason,
+    }: {
+      requestId: string;
+      serviceId: string;
+      templateId: string;
+      requestServiceTemplateId?: string;
+      reason: string;
+    }) => {
+      if (!user?.id) throw new Error("Not signed in");
+      const patch = {
+        template_decision: "rejected" as const,
+        template_rejection_reason: reason,
+        decided_at: new Date().toISOString(),
+        decided_by: user.id,
+      };
+      const q = requestServiceTemplateId
+        ? supabase.from("lab_request_service_templates").update(patch as any).eq("id", requestServiceTemplateId)
+        : supabase
+            .from("lab_request_service_templates")
+            .update(patch as any)
+            .eq("lab_request_id", _requestId)
+            .eq("template_id", templateId);
+      const { error } = await q;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success(t("laboratory.intake.toast.templateRejected") || "Template rejected");
+    },
+    onError: (err) => {
+      console.error("rejectTemplate", err);
+      toast.error(t("laboratory.intake.toast.templateRejectFailed") || "Failed to reject template");
+    },
+  });
+
+  /**
+   * Phase 5.2.2 — Service-level macros now fan out to all child templates.
+   * For atomic services (1 child row) this is mathematically identical to the
+   * previous direct service write. For composite services this preserves the
+   * "service decision is derived" invariant.
+   */
   const acceptServiceMutation = useMutation({
     mutationFn: async ({ requestId, serviceId }: { requestId: string; serviceId: string }) => {
       if (!user?.id) throw new Error("Not signed in");
       const { error } = await supabase
-        .from("lab_request_services")
+        .from("lab_request_service_templates")
         .update({
-          service_decision: "accepted",
-          service_rejection_reason: null,
+          template_decision: "accepted",
+          template_rejection_reason: null,
+          decided_at: new Date().toISOString(),
+          decided_by: user.id,
         } as any)
         .eq("lab_request_id", requestId)
         .eq("service_id", serviceId);
@@ -189,10 +283,12 @@ export function useLabIntake() {
     }: { requestId: string; serviceId: string; reason: string }) => {
       if (!user?.id) throw new Error("Not signed in");
       const { error } = await supabase
-        .from("lab_request_services")
+        .from("lab_request_service_templates")
         .update({
-          service_decision: "rejected",
-          service_rejection_reason: reason,
+          template_decision: "rejected",
+          template_rejection_reason: reason,
+          decided_at: new Date().toISOString(),
+          decided_by: user.id,
         } as any)
         .eq("lab_request_id", requestId)
         .eq("service_id", serviceId);
@@ -216,6 +312,9 @@ export function useLabIntake() {
     rejectAllInSubmission: rejectAllInSubmissionMutation.mutateAsync,
     acceptService: acceptServiceMutation.mutateAsync,
     rejectService: rejectServiceMutation.mutateAsync,
+    // Phase 5.2.2 — template-level authoritative mutations
+    acceptTemplate: acceptTemplateMutation.mutateAsync,
+    rejectTemplate: rejectTemplateMutation.mutateAsync,
     isPending:
       acceptMutation.isPending ||
       rejectMutation.isPending ||
@@ -223,6 +322,8 @@ export function useLabIntake() {
       acceptAllInSubmissionMutation.isPending ||
       rejectAllInSubmissionMutation.isPending ||
       acceptServiceMutation.isPending ||
-      rejectServiceMutation.isPending,
+      rejectServiceMutation.isPending ||
+      acceptTemplateMutation.isPending ||
+      rejectTemplateMutation.isPending,
   };
 }

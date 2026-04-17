@@ -7,6 +7,18 @@ import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 import { queryKeys } from "@/lib/queryKeys";
 
+// Phase 5.2.2 — Authoritative per-template decision row.
+export interface LabRequestServiceTemplate {
+  template_id: string;
+  template_name_snapshot: string | null;
+  template_name_ar_snapshot: string | null;
+  template_category_snapshot: string | null;
+  is_required_snapshot: boolean;
+  sort_order_snapshot: number;
+  template_decision: 'pending' | 'accepted' | 'rejected';
+  template_rejection_reason: string | null;
+}
+
 export interface LabRequestService {
   service_id: string;
   template_ids_snapshot: string[] | null;
@@ -16,9 +28,14 @@ export interface LabRequestService {
   service_name_snapshot: string | null;
   service_name_ar_snapshot: string | null;
   service_code_snapshot: string | null;
-  // Phase 5.2 — service-level decision fields
-  service_decision?: 'pending' | 'accepted' | 'rejected' | null;
+  // Phase 5.2 — service-level decision fields. Phase 5.2.2 adds 'partial'
+  // as the derived roll-up for composite services.
+  service_decision?: 'pending' | 'accepted' | 'rejected' | 'partial' | null;
   service_rejection_reason?: string | null;
+  // Phase 5.2.2 — nested authoritative template rows for composite services.
+  // Atomic services still have exactly one row here (mathematically equivalent
+  // to today's single-service decision).
+  lab_request_service_templates?: LabRequestServiceTemplate[];
   service?: {
     id: string;
     name: string;
@@ -136,9 +153,11 @@ export function useLabRequests() {
       
       const filterColumn = isLabFull ? 'lab_tenant_id' : 'tenant_id';
       
+      // Phase 5.2.2 — embed authoritative template-level decision rows under each service.
+      const serviceWithTemplates = `lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service_decision, service_rejection_reason, service:lab_services(id, name, name_ar, code, category, price, currency), lab_request_service_templates(template_id, template_name_snapshot, template_name_ar_snapshot, template_category_snapshot, is_required_snapshot, sort_order_snapshot, template_decision, template_rejection_reason))`;
       const selectStr = isLabFull
-        ? `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service_decision, service_rejection_reason, service:lab_services(id, name, name_ar, code, category, price, currency)), initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
-        : `*, horse:horses(id, name, name_ar), lab_request_services(service_id, template_ids_snapshot, unit_price_snapshot, currency_snapshot, pricing_rule_snapshot, service_name_snapshot, service_name_ar_snapshot, service_code_snapshot, service_decision, service_rejection_reason, service:lab_services(id, name, name_ar, code, category, price, currency))`;
+        ? `*, horse:horses(id, name, name_ar), ${serviceWithTemplates}, initiator_tenant:tenants!lab_requests_initiator_tenant_id_fkey(id, name)`
+        : `*, horse:horses(id, name, name_ar), ${serviceWithTemplates}`;
       
       const { data, error } = await supabase
         .from('lab_requests')
