@@ -10,12 +10,12 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
-import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
+import { getEffectiveLabRequestStatus, getStableFacingLabStatus, type StableFacingLabStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Clock, CheckCircle2, Send, Loader2, ExternalLink, FileText,
-  Tag, Building2, MessageSquare, Receipt, FlaskConical, XCircle,
+  Tag, Building2, MessageSquare, Receipt, FlaskConical, XCircle, AlertCircle,
 } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
@@ -23,24 +23,28 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-const statusConfig: Record<LabRequest['status'], { icon: React.ElementType; color: string }> = {
+const statusConfig: Record<StableFacingLabStatus, { icon: React.ElementType; color: string }> = {
   pending: { icon: Clock, color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
   sent: { icon: Send, color: 'bg-blue-100 text-blue-800 border-blue-200' },
   processing: { icon: Loader2, color: 'bg-purple-100 text-purple-800 border-purple-200' },
   ready: { icon: CheckCircle2, color: 'bg-green-100 text-green-800 border-green-200' },
   received: { icon: FileText, color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
   cancelled: { icon: Clock, color: 'bg-gray-100 text-gray-800 border-gray-200' },
+  partially_accepted: { icon: AlertCircle, color: 'bg-amber-100 text-amber-800 border-amber-200' },
 };
 
-export function RequestStatusBadge({ status }: { status: LabRequest['status'] }) {
+export function RequestStatusBadge({ status }: { status: StableFacingLabStatus }) {
   const { t } = useI18n();
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
   const Icon = config.icon;
+  const label = status === 'partially_accepted'
+    ? (t('laboratory.intake.partiallyAccepted') || 'Partially accepted')
+    : (t(`laboratory.requests.status.${status}`) || status);
 
   return (
     <Badge variant="outline" className={cn("gap-1", config.color)}>
       <Icon className={cn("h-3 w-3", status === 'processing' && "animate-spin")} />
-      {t(`laboratory.requests.status.${status}`) || status}
+      {label}
     </Badge>
   );
 }

@@ -604,6 +604,11 @@ export const en = {
       rejectService: "Reject service",
       rejectServiceDescription: "Provide a precise reason for rejecting this service. It will be visible to the requesting stable.",
       partiallyAccepted: "Partially accepted",
+      serviceBreakdown: "Service breakdown",
+      serviceStatusAccepted: "Accepted",
+      serviceStatusRejected: "Rejected",
+      serviceStatusPending: "Pending",
+      serviceRejectionReasonLabel: "Reason",
     },
     
     // Stable Results Tab
