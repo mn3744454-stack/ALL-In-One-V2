@@ -814,18 +814,7 @@ function RequestCard({ request, canCreateInvoice, onGenerateInvoice, onOpenDetai
           </div>
         )}
         
-        {request.result_url && (
-          <a 
-            href={request.result_url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <FileText className="h-3 w-3" />
-            {t('laboratory.requests.viewResult') || 'View Result'}
-          </a>
-        )}
+        {/* P8-B: legacy result_url removed from card surface — structured lab_results is authoritative. */}
         
         {/* Message indicator */}
         <div className="flex items-center gap-1 text-xs text-muted-foreground">

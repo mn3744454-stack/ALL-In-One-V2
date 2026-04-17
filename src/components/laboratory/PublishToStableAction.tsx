@@ -28,7 +28,9 @@ export function PublishToStableAction({
   const [justPublished, setJustPublished] = useState(false);
 
   const isPublished = published_to_stable || justPublished;
-  const canPublishStatus = status === "reviewed" || status === "final";
+  // P8-A: Align with DB trigger — only `final` results may be published.
+  const canPublishStatus = status === "final";
+  const isReviewedNotFinal = status === "reviewed";
   const hasRequest = !!sample_lab_request_id;
 
   // Already published
@@ -79,6 +81,23 @@ export function PublishToStableAction({
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">
           <p>{t("laboratory.results.notLinkedToRequest")}</p>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // P8-A: Reviewed but not final — explicit "finalize first" hint matching DB gate.
+  if (isReviewedNotFinal) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground cursor-help">
+            <Info className="h-3 w-3" />
+            {t("laboratory.results.cannotPublishNotFinal")}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs">
+          <p>{t("laboratory.results.cannotPublishNotFinal")}</p>
         </TooltipContent>
       </Tooltip>
     );
