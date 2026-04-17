@@ -942,6 +942,8 @@ export const ar = {
       pendingResult: "قيد الإنتظار",
       refusedAtIntake: "مرفوض عند الاستلام",
       publishedOfAccepted: "تم نشر {published} من {total}",
+      publishedOfAcceptedShort: "{published}/{total}",
+      resultsProgressTitle: "تقدم النتائج",
       cannotPublishNotFinal: "لا يمكن النشر: النتيجة ليست نهائية",
       cannotResultNotAccepted: "لا يمكن إنشاء نتيجة: القالب غير مقبول",
       publishAllFinal: "نشر كل النهائية",
