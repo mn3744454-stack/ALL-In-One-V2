@@ -12,6 +12,7 @@ import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
 import { ResultsOwedPanel } from "./ResultsOwedPanel";
 import { StableTemplateProgressList } from "./StableTemplateProgressList";
+import { CreateResultDialog } from "./CreateResultDialog";
 import { getEffectiveLabRequestStatus, getStableFacingLabStatus, type StableFacingLabStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
