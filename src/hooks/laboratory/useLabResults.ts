@@ -14,6 +14,8 @@ export interface LabResult {
   tenant_id: string;
   sample_id: string;
   template_id: string;
+  /** Phase 7 — Authoritative link to the accepted intake template-decision row. */
+  lab_request_service_template_id?: string | null;
   status: LabResultStatus;
   result_data: Record<string, unknown>;
   interpretation: Record<string, unknown>;

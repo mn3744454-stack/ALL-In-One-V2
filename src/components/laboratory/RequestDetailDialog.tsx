@@ -10,6 +10,8 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useI18n } from "@/i18n";
 import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
+import { ResultsOwedPanel } from "./ResultsOwedPanel";
+import { StableTemplateProgressList } from "./StableTemplateProgressList";
 import { getEffectiveLabRequestStatus, getStableFacingLabStatus, type StableFacingLabStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -80,8 +82,6 @@ export function RequestDetailDialog({
   const request = (requests.find(r => r.id === requestProp.id) as LabRequest | undefined) || requestProp;
 
   const [statusValue, setStatusValue] = useState(request.status);
-  const [resultUrl, setResultUrl] = useState(request.result_url || '');
-  const [isPublishing, setIsPublishing] = useState(false);
 
   const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
     ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
@@ -126,19 +126,7 @@ export function RequestDetailDialog({
     });
   };
 
-  const handlePublishResult = async () => {
-    if (!resultUrl.trim()) return;
-    setIsPublishing(true);
-    try {
-      await updateRequest({
-        id: request.id,
-        result_url: resultUrl.trim(),
-        status: 'ready',
-      });
-    } finally {
-      setIsPublishing(false);
-    }
-  };
+  // Phase 7 — handlePublishResult removed; result_url is no longer an authoritative path.
 
   // Fetch parent submission context if this request has a submission_id
   const submissionId = (request as any).submission_id as string | null;
@@ -218,29 +206,15 @@ export function RequestDetailDialog({
                 </div>
               )}
 
-              {/* Lab Full Mode: Result URL Publish — only after intake is ready */}
+              {/* Phase 7 — Lab-side: Results Owed panel (template-authoritative workflow) */}
               {isLabFull && intakeReady && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    {t('laboratory.requests.resultUrl') || 'Result URL'}
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={resultUrl}
-                      onChange={(e) => setResultUrl(e.target.value)}
-                      placeholder={t('laboratory.requests.resultUrlPlaceholder') || 'https://...'}
-                      className="flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={handlePublishResult}
-                      disabled={!resultUrl.trim() || isPublishing}
-                    >
-                      {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : t('laboratory.requests.publishResult') || 'Publish'}
-                    </Button>
-                  </div>
-                </div>
+                <ResultsOwedPanel requestId={request.id} />
               )}
+
+              {/* Phase 7 — Legacy result_url path is deprecated as authoritative.
+                  Kept read-only for back-compat: if a legacy URL exists, surface it
+                  as a reference link, but do not allow new edits. New publication
+                  goes through structured lab_results via ResultsOwedPanel above. */}
 
               {/* Description */}
               <div>
@@ -277,6 +251,11 @@ export function RequestDetailDialog({
                     ))}
                   </div>
                 </div>
+              )}
+
+              {/* Phase 7 — Stable-side: per-template publish progress under accepted services */}
+              {!isLabFull && labDecision !== 'rejected' && (
+                <StableTemplateProgressList requestId={request.id} />
               )}
 
               {/* Stable-only: Service-level breakdown — visible when partial OR any service rejected/partial.
