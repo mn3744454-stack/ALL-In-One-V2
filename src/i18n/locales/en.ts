@@ -597,6 +597,10 @@ export const en = {
         serviceRejected: "Service rejected",
         serviceAcceptFailed: "Failed to accept service",
         serviceRejectFailed: "Failed to reject service",
+        templateAccepted: "Test accepted",
+        templateRejected: "Test rejected",
+        templateAcceptFailed: "Failed to accept test",
+        templateRejectFailed: "Failed to reject test",
       },
       // Phase 5.2 — service-level decision UI
       decidePerService: "Decide per service",
@@ -608,6 +612,7 @@ export const en = {
       serviceStatusAccepted: "Accepted",
       serviceStatusRejected: "Rejected",
       serviceStatusPending: "Pending",
+      serviceStatusPartial: "Partially accepted",
       serviceRejectionReasonLabel: "Reason",
       // Phase 5.2.1 — macro discipline copy
       acceptAllServices: "Accept all",
@@ -616,6 +621,17 @@ export const en = {
       macroOverwriteAcceptTitle: "Accept the entire request?",
       macroOverwriteRejectTitle: "Reject the entire request?",
       macroOverwriteDescription: "{count} service decisions are already set. This action will overwrite them and apply the same decision to every service in this request.",
+      // Phase 5.2.2 — template-level decision vocabulary
+      decidePerTemplate: "Decide per test",
+      templateSummary: "{accepted} of {total} tests accepted",
+      acceptAll: "Accept all",
+      rejectAll: "Reject all",
+      acceptAllTemplates: "Accept all tests in this service",
+      rejectAllTemplates: "Reject all tests in this service",
+      rejectTemplate: "Reject test",
+      rejectTemplateDescription: "Provide a precise reason for rejecting this specific test. The requesting stable will see which test was refused and why.",
+      partialShort: "partial",
+      optionalTemplate: "Optional",
     },
     
     // Stable Results Tab

@@ -279,13 +279,15 @@ export function RequestDetailDialog({
                 </div>
               )}
 
-              {/* Stable-only: Service-level breakdown — visible when partial OR any service rejected */}
-              {!isLabFull && services.length > 0 && (labDecision === 'partial' || services.some(s => s.service_decision === 'rejected')) && (
+              {/* Stable-only: Service-level breakdown — visible when partial OR any service rejected/partial.
+                  Phase 5.2.2: when a service is itself 'partial', expose the per-template breakdown
+                  beneath it so the Stable user can see exactly which test inside the service was refused. */}
+              {!isLabFull && services.length > 0 && (labDecision === 'partial' || services.some(s => s.service_decision === 'rejected' || s.service_decision === 'partial')) && (
                 <div className="rounded-md border bg-muted/30 p-3 space-y-2">
                   <p className="text-sm font-medium">
                     {t('laboratory.intake.serviceBreakdown') || 'Service breakdown'}
                   </p>
-                  <ul className="space-y-1.5">
+                  <ul className="space-y-2">
                     {services.map(s => {
                       const decision = s.service_decision || 'pending';
                       const name = dir === 'rtl' && (s.service_name_ar_snapshot || s.service?.name_ar)
@@ -294,11 +296,19 @@ export function RequestDetailDialog({
                       const pillClass =
                         decision === 'accepted' ? 'bg-green-100 text-green-800 border-green-200' :
                         decision === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                        decision === 'partial' ? 'bg-amber-100 text-amber-800 border-amber-200' :
                         'bg-muted text-muted-foreground border-border';
                       const label =
                         decision === 'accepted' ? (t('laboratory.intake.serviceStatusAccepted') || 'Accepted') :
                         decision === 'rejected' ? (t('laboratory.intake.serviceStatusRejected') || 'Rejected') :
+                        decision === 'partial' ? (t('laboratory.intake.serviceStatusPartial') || 'Partially accepted') :
                         (t('laboratory.intake.serviceStatusPending') || 'Pending');
+
+                      const templates = (s.lab_request_service_templates || [])
+                        .slice()
+                        .sort((a, b) => (a.sort_order_snapshot ?? 0) - (b.sort_order_snapshot ?? 0));
+                      const showTemplates = decision === 'partial' && templates.length > 1;
+
                       return (
                         <li key={s.service_id} className="text-sm">
                           <div className="flex items-center justify-between gap-2">
@@ -310,6 +320,38 @@ export function RequestDetailDialog({
                               <span className="font-medium">{t('laboratory.intake.serviceRejectionReasonLabel') || 'Reason'}:</span>{' '}
                               {s.service_rejection_reason}
                             </p>
+                          )}
+                          {showTemplates && (
+                            <ul className="mt-1.5 ms-3 ps-3 border-s space-y-1">
+                              {templates.map(tpl => {
+                                const td = tpl.template_decision || 'pending';
+                                const tplName = dir === 'rtl' && tpl.template_name_ar_snapshot
+                                  ? tpl.template_name_ar_snapshot
+                                  : (tpl.template_name_snapshot || '—');
+                                const tplPillClass =
+                                  td === 'accepted' ? 'bg-green-100 text-green-800 border-green-200' :
+                                  td === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                                  'bg-muted text-muted-foreground border-border';
+                                const tplLabel =
+                                  td === 'accepted' ? (t('laboratory.intake.serviceStatusAccepted') || 'Accepted') :
+                                  td === 'rejected' ? (t('laboratory.intake.serviceStatusRejected') || 'Rejected') :
+                                  (t('laboratory.intake.serviceStatusPending') || 'Pending');
+                                return (
+                                  <li key={tpl.template_id} className="text-xs">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="truncate">{tplName}</span>
+                                      <Badge variant="outline" className={cn("text-[10px] h-4 shrink-0", tplPillClass)}>{tplLabel}</Badge>
+                                    </div>
+                                    {td === 'rejected' && tpl.template_rejection_reason && (
+                                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                                        <span className="font-medium">{t('laboratory.intake.rejectionReason') || 'Reason'}:</span>{' '}
+                                        {tpl.template_rejection_reason}
+                                      </p>
+                                    )}
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           )}
                         </li>
                       );
