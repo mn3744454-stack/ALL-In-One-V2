@@ -290,7 +290,7 @@ export function useLabIntake() {
       reason,
     }: { requestId: string; serviceId: string; reason: string }) => {
       if (!user?.id) throw new Error("Not signed in");
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("lab_request_service_templates")
         .update({
           template_decision: "rejected",
@@ -299,8 +299,12 @@ export function useLabIntake() {
           decided_by: user.id,
         } as any)
         .eq("lab_request_id", requestId)
-        .eq("service_id", serviceId);
+        .eq("service_id", serviceId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("No decision rows were updated for this service");
+      }
     },
     onSuccess: () => {
       invalidate();
