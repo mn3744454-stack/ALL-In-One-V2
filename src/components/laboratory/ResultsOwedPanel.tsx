@@ -48,6 +48,24 @@ export function ResultsOwedPanel({
 
   if (!progress || progress.templates.length === 0) return null;
 
+  // P8-D: Explicit empty state when nothing is accepted yet (intake not decided / all rejected).
+  if (progress.acceptedCount === 0) {
+    return (
+      <Card className="p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <FlaskConical className="h-4 w-4 text-muted-foreground" />
+          <span className="font-medium text-sm">
+            {t("laboratory.results.resultsOwed") || "Results"}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {t("laboratory.results.noAcceptedTemplatesHint") ||
+            "Make intake decisions to start authoring results."}
+        </p>
+      </Card>
+    );
+  }
+
   const { acceptedCount, resultsCount, publishedCount, templates } = progress;
   const pct = acceptedCount > 0 ? (publishedCount / acceptedCount) * 100 : 0;
 

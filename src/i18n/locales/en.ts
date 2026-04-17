@@ -948,6 +948,10 @@ export const en = {
       editDraft: "Edit",
       loadingProgress: "Loading progress…",
       testResultsBreakdown: "Test results",
+      // Phase 8 — Polish
+      noAcceptedTemplatesHint: "Make intake decisions to start authoring results.",
+      allRefusedNoResults: "All tests refused — no results expected.",
+      duplicateResultExists: "A result already exists for this template and sample.",
     },
     
     // Result Actions
