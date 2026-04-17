@@ -375,17 +375,25 @@ export function RequestDetailDialog({
                 </div>
               )}
 
-              {/* Result link */}
-              {request.result_url && (
-                <a
-                  href={request.result_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                >
-                  <FileText className="h-3 w-3" />
-                  {t('laboratory.requests.viewResult') || 'View Result'}
-                </a>
+              {/* P8-B: legacy result_url demoted to lab-only read-only reference, deprecation tone. */}
+              {isLabFull && request.result_url && (
+                <div className="rounded-md border border-dashed bg-muted/30 p-2 text-xs text-muted-foreground">
+                  <p className="font-medium mb-0.5">
+                    {t('laboratory.requests.legacyReferenceLabel') || 'Legacy reference link'}
+                  </p>
+                  <a
+                    href={request.result_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground hover:underline break-all"
+                  >
+                    <FileText className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{request.result_url}</span>
+                  </a>
+                  <p className="mt-1 text-[11px] opacity-75">
+                    {t('laboratory.requests.legacyReferenceHint') || 'Deprecated — new results are published via the structured workflow above.'}
+                  </p>
+                </div>
               )}
 
               {/* Lab-only: Create Sample from Request (hidden once sample exists) */}

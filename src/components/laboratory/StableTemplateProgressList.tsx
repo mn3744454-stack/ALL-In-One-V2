@@ -18,7 +18,21 @@ export function StableTemplateProgressList({
   const { t, dir } = useI18n();
   const { data: progress, isLoading } = useRequestResultProgress(requestId);
 
-  if (isLoading || !progress || progress.acceptedCount === 0) return null;
+  if (isLoading || !progress) return null;
+
+  // P8-D: When everything was refused at intake, show a calm informative hint
+  // instead of a silent empty area.
+  if (progress.acceptedCount === 0) {
+    if (progress.templates.length === 0) return null;
+    return (
+      <div className="rounded-md border bg-muted/20 p-3">
+        <p className="text-xs text-muted-foreground">
+          {t("laboratory.results.allRefusedNoResults") ||
+            "All tests refused — no results expected."}
+        </p>
+      </div>
+    );
+  }
 
   // Group by service
   const groups = new Map<

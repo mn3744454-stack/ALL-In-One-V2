@@ -178,7 +178,16 @@ export function useLabResults(filters: LabResultFilters = {}) {
       return result;
     } catch (error: unknown) {
       console.error("Error creating result:", error);
-      const message = error instanceof Error ? error.message : tGlobal("laboratory.toasts.failedToCreateResult");
+      const raw = error instanceof Error ? error.message : "";
+      // P8-A: Friendlier mapping for DB-level guards.
+      let message = tGlobal("laboratory.toasts.failedToCreateResult");
+      if (/duplicate key|unique/i.test(raw)) {
+        message = tGlobal("laboratory.results.duplicateResultExists");
+      } else if (/not accepted|template_decision|eligibility/i.test(raw)) {
+        message = tGlobal("laboratory.results.cannotResultNotAccepted");
+      } else if (raw) {
+        message = raw;
+      }
       toast.error(message);
       return null;
     }

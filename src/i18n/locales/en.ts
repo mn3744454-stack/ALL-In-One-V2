@@ -438,6 +438,8 @@ export const en = {
       noRequests: "No lab requests yet",
       noRequestsDesc: "Create your first lab test request",
       viewResult: "View Result",
+      legacyReferenceLabel: "Legacy reference link",
+      legacyReferenceHint: "Deprecated — new results are published via the structured workflow above.",
       markReceived: "Mark as Received",
       created: "Lab request created",
       updated: "Lab request updated",
@@ -948,6 +950,10 @@ export const en = {
       editDraft: "Edit",
       loadingProgress: "Loading progress…",
       testResultsBreakdown: "Test results",
+      // Phase 8 — Polish
+      noAcceptedTemplatesHint: "Make intake decisions to start authoring results.",
+      allRefusedNoResults: "All tests refused — no results expected.",
+      duplicateResultExists: "A result already exists for this template and sample.",
     },
     
     // Result Actions

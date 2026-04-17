@@ -452,6 +452,8 @@ export const ar = {
       orders: "طلبات",
       noRequestsDesc: "أنشئ أول طلب تحليل",
       viewResult: "عرض النتيجة",
+      legacyReferenceLabel: "رابط مرجعي قديم",
+      legacyReferenceHint: "مهجور — تُنشر النتائج الجديدة عبر سير العمل المنظم أعلاه.",
       markReceived: "تحديد كمستلم",
       created: "تم إنشاء الطلب",
       updated: "تم تحديث الطلب",
@@ -953,6 +955,10 @@ export const ar = {
       editDraft: "تعديل",
       loadingProgress: "جاري التحميل…",
       testResultsBreakdown: "نتائج الفحوص",
+      // Phase 8 — Polish
+      noAcceptedTemplatesHint: "اتخذ قرارات الاستلام لبدء إدخال النتائج.",
+      allRefusedNoResults: "تم رفض جميع الفحوص — لا تُتوقع أي نتائج.",
+      duplicateResultExists: "توجد نتيجة مسجلة بالفعل لهذا القالب والعينة.",
       status: {
         draft: "مسودة",
         reviewed: "مراجع",

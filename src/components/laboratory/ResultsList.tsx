@@ -72,11 +72,11 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
   // View preference (Grid/List/Table)
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-results');
 
-  // Status options for result statuses (different from sample)
+  // P8-C: Result-status vocabulary now speaks LabResultStatus, not sample-status.
   const statusOptions: { value: LabSampleStatus; label: string }[] = [
-    { value: 'draft' as LabSampleStatus, label: t("laboratory.resultStatus.draft") },
-    { value: 'processing' as LabSampleStatus, label: t("laboratory.resultStatus.reviewed") },
-    { value: 'completed' as LabSampleStatus, label: t("laboratory.resultStatus.final") },
+    { value: 'draft' as unknown as LabSampleStatus, label: t("laboratory.resultStatus.draft") },
+    { value: 'reviewed' as unknown as LabSampleStatus, label: t("laboratory.resultStatus.reviewed") },
+    { value: 'final' as unknown as LabSampleStatus, label: t("laboratory.resultStatus.final") },
   ];
 
   // Get status filter from tab
