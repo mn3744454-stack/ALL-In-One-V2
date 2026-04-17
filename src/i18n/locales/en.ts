@@ -937,6 +937,8 @@ export const en = {
       pendingResult: "Pending result",
       refusedAtIntake: "Refused at intake",
       publishedOfAccepted: "{published} of {total} published",
+      publishedOfAcceptedShort: "{published}/{total}",
+      resultsProgressTitle: "Results progress",
       cannotPublishNotFinal: "Cannot publish: result is not final",
       cannotResultNotAccepted: "Cannot create result: template not accepted",
       publishAllFinal: "Publish all final",

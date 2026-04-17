@@ -12,6 +12,7 @@ import { LabRequestThread } from "./LabRequestThread";
 import { RequestIntakePanel } from "./RequestIntakePanel";
 import { ResultsOwedPanel } from "./ResultsOwedPanel";
 import { StableTemplateProgressList } from "./StableTemplateProgressList";
+import { CreateResultDialog } from "./CreateResultDialog";
 import { getEffectiveLabRequestStatus, getStableFacingLabStatus, type StableFacingLabStatus } from "@/lib/labStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -108,7 +109,13 @@ export function RequestDetailDialog({
   const labDecision = (request.lab_decision as 'pending_review' | 'accepted' | 'rejected' | 'partial' | undefined) || 'pending_review';
   const specimenReceived = !!request.specimen_received_at;
   const intakeReady = labDecision === 'accepted' && specimenReceived;
+  // Phase 7 — Results panel becomes visible for accepted *or* partial intake (any accepted templates),
+  // independent of the stricter sample-creation gate.
+  const resultsOwedVisible = (labDecision === 'accepted' || labDecision === 'partial') && specimenReceived;
   const canCreateSample = isLabFull && onCreateSample && !hasSample && intakeReady;
+
+  // Phase 7 — Local CreateResultDialog state for prefilled flow from ResultsOwedPanel.
+  const [createResultState, setCreateResultState] = useState<{ open: boolean; templateId?: string }>({ open: false });
 
   const handleMarkReceived = async () => {
     await updateRequest({
@@ -207,8 +214,13 @@ export function RequestDetailDialog({
               )}
 
               {/* Phase 7 — Lab-side: Results Owed panel (template-authoritative workflow) */}
-              {isLabFull && intakeReady && (
-                <ResultsOwedPanel requestId={request.id} />
+              {isLabFull && resultsOwedVisible && (
+                <ResultsOwedPanel
+                  requestId={request.id}
+                  onCreateResult={(templateId) =>
+                    setCreateResultState({ open: true, templateId })
+                  }
+                />
               )}
 
               {/* Phase 7 — Legacy result_url path is deprecated as authoritative.
@@ -444,6 +456,18 @@ export function RequestDetailDialog({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Phase 7 — Prefilled Create Result flow launched from ResultsOwedPanel */}
+      {isLabFull && (
+        <CreateResultDialog
+          open={createResultState.open}
+          onOpenChange={(o) =>
+            setCreateResultState((s) => ({ open: o, templateId: o ? s.templateId : undefined }))
+          }
+          preselectedRequestId={request.id}
+          preselectedTemplateId={createResultState.templateId}
+        />
+      )}
     </Dialog>
   );
 }

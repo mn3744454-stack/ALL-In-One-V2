@@ -44,6 +44,11 @@ interface CreateResultDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedSample?: LabSample;
+  /** Phase 7 — When opened from ResultsOwedPanel for a specific accepted template,
+   * the wizard auto-resolves the sample (from the request) and skips to results entry. */
+  preselectedTemplateId?: string;
+  /** Phase 7 — Optional request scope for sample auto-resolution. */
+  preselectedRequestId?: string;
   onSuccess?: () => void;
 }
 
@@ -59,6 +64,8 @@ export function CreateResultDialog({
   open,
   onOpenChange,
   preselectedSample,
+  preselectedTemplateId,
+  preselectedRequestId,
   onSuccess,
 }: CreateResultDialogProps) {
   const { t } = useI18n();
@@ -150,6 +157,45 @@ export function CreateResultDialog({
       refreshResults();
     }
   }, [open, preselectedSample, refreshResults]);
+
+  // Phase 7 — When opened from ResultsOwedPanel with a template + request, auto-resolve
+  // the matching sample (must be in 'processing' and linked to the request and contain the template),
+  // then jump straight to the results entry step.
+  useEffect(() => {
+    if (!open || !preselectedTemplateId || !preselectedRequestId) return;
+    if (selectedSample && selectedTemplate?.id === preselectedTemplateId) return;
+    // Find a sample that belongs to this request and exposes this template.
+    const candidate = allSamples.find(s => {
+      if (s.lab_request_id !== preselectedRequestId) return false;
+      const tplIds = (s.templates || []).map(st => st.template?.id).filter(Boolean) as string[];
+      return tplIds.includes(preselectedTemplateId);
+    });
+    if (!candidate) return;
+    setSelectedSample(candidate);
+    const fullTpl = activeTemplates.find(t => t.id === preselectedTemplateId);
+    if (!fullTpl) return;
+    // Hydrate existing draft if any
+    const existing = results.find(
+      r => r.sample_id === candidate.id && r.template_id === preselectedTemplateId
+    );
+    setSelectedTemplate(fullTpl);
+    if (existing) {
+      setResultData((existing.result_data as Record<string, unknown>) || {});
+      setFlags((existing.flags as LabResultFlags) || 'normal');
+      setInterpretation((existing.interpretation as { notes?: string })?.notes || '');
+      setEditingResultId(existing.id);
+    }
+    setStep(STEPS.findIndex(s => s.key === 'results'));
+  }, [
+    open,
+    preselectedTemplateId,
+    preselectedRequestId,
+    allSamples,
+    activeTemplates,
+    results,
+    selectedSample,
+    selectedTemplate,
+  ]);
 
   const handleNext = () => {
     if (step < STEPS.length - 1) {

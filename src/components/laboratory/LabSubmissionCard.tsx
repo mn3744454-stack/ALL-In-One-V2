@@ -17,6 +17,7 @@ import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { getStableFacingLabStatus } from "@/lib/labStatus";
 import { useLabSubmissionsSamplingProgress } from "@/hooks/laboratory/useLabSubmissionSamplingProgress";
 import { SubmissionSamplingProgress } from "./SubmissionSamplingProgress";
+import { useRequestResultProgress } from "@/hooks/laboratory/useRequestResultProgress";
 
 interface LabSubmissionCardProps {
   submission: LabSubmission;
@@ -231,6 +232,13 @@ function ChildRequestRow({
   const decision = request.lab_decision || 'pending_review';
   const showSamplingTag = decision === 'accepted';
 
+  // Phase 7 — per-request results progress (only meaningful once intake decided)
+  const { data: resultProgress } = useRequestResultProgress(
+    decision === 'accepted' || decision === 'partial' ? request.id : null
+  );
+  const showResultsChip =
+    !!resultProgress && resultProgress.acceptedCount > 0;
+
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
@@ -287,6 +295,25 @@ function ChildRequestRow({
               {t('laboratory.samplingProgress.awaitingSample') || 'Awaiting sample'}
             </Badge>
           )
+        )}
+        {showResultsChip && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px] h-5 gap-1",
+              resultProgress!.publishedCount === resultProgress!.acceptedCount
+                ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300 border-green-200 dark:border-green-800"
+                : resultProgress!.publishedCount > 0
+                ? "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                : "bg-muted text-muted-foreground"
+            )}
+            title={t('laboratory.results.resultsProgressTitle') || 'Results progress'}
+          >
+            <FileText className="h-3 w-3" />
+            {(t('laboratory.results.publishedOfAcceptedShort') || '{published}/{total}')
+              .replace('{published}', String(resultProgress!.publishedCount))
+              .replace('{total}', String(resultProgress!.acceptedCount))}
+          </Badge>
         )}
         {/* Phase 6A.1 — Suppress legacy status badge when the Phase 6A sampling
             tag already conveys the more precise truth and the legacy badge

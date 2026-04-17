@@ -272,9 +272,35 @@ export function useLabSamples(filters: LabSampleFilters = {}) {
 
       if (error) throw error;
 
+      // Phase 7 — Filter template_ids to only those that are *accepted* under
+      // the linked request's authoritative intake decisions. This prevents
+      // rejected/pending templates from becoming legitimate result targets.
+      let effectiveTemplateIds: string[] = template_ids ?? [];
+      if (effectiveTemplateIds.length > 0 && sampleData.lab_request_id) {
+        const { data: lrstRows, error: lrstErr } = await supabase
+          .from("lab_request_service_templates")
+          .select("template_id, template_decision")
+          .eq("lab_request_id", sampleData.lab_request_id)
+          .in("template_id", effectiveTemplateIds);
+        if (!lrstErr && lrstRows) {
+          const acceptedSet = new Set(
+            lrstRows
+              .filter((r) => r.template_decision === "accepted")
+              .map((r) => r.template_id)
+          );
+          // Only keep templates that are *known accepted*. Templates with no LRST
+          // row (legacy / pre-Phase-5.2.2 data) are conservatively kept to avoid
+          // breaking older flows.
+          const knownTemplateIds = new Set(lrstRows.map((r) => r.template_id));
+          effectiveTemplateIds = effectiveTemplateIds.filter(
+            (id) => !knownTemplateIds.has(id) || acceptedSet.has(id)
+          );
+        }
+      }
+
       // Insert templates if provided (with sort_order to preserve selection order)
-      if (template_ids && template_ids.length > 0 && sample) {
-        const templateRows = template_ids.map((templateId, index) => ({
+      if (effectiveTemplateIds.length > 0 && sample) {
+        const templateRows = effectiveTemplateIds.map((templateId, index) => ({
           sample_id: sample.id,
           template_id: templateId,
           tenant_id: tenantId,

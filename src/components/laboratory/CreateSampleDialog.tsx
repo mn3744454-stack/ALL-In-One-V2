@@ -660,16 +660,35 @@ export function CreateSampleDialog({
           })
           .filter((id, i, arr) => arr.indexOf(id) === i); // deduplicate
 
+        let candidateIds: string[] = [];
         if (snapshotTemplateIds.length > 0) {
-          setFormData(prev => ({ ...prev, template_ids: snapshotTemplateIds }));
+          candidateIds = snapshotTemplateIds;
         } else {
           // Fallback to live mapping for backward compatibility (pre-snapshot rows)
           const serviceIds = services.map(s => s.service_id);
           if (serviceIds.length > 0) {
-            const templateIds = await fetchTemplateIdsForServices(tenantId, serviceIds);
-            if (templateIds.length > 0) {
-              setFormData(prev => ({ ...prev, template_ids: templateIds }));
-            }
+            candidateIds = await fetchTemplateIdsForServices(tenantId, serviceIds);
+          }
+        }
+
+        // Phase 7 — Filter prefilled templates to only those *accepted* under the
+        // request's authoritative intake decisions, so rejected/pending templates
+        // never appear as legitimate result targets.
+        if (candidateIds.length > 0) {
+          const { data: lrstRows } = await supabase
+            .from('lab_request_service_templates')
+            .select('template_id, template_decision')
+            .eq('lab_request_id', fromRequest.id)
+            .in('template_id', candidateIds);
+          if (lrstRows && lrstRows.length > 0) {
+            const accepted = new Set(
+              lrstRows.filter(r => r.template_decision === 'accepted').map(r => r.template_id)
+            );
+            const known = new Set(lrstRows.map(r => r.template_id));
+            candidateIds = candidateIds.filter(id => !known.has(id) || accepted.has(id));
+          }
+          if (candidateIds.length > 0) {
+            setFormData(prev => ({ ...prev, template_ids: candidateIds }));
           }
         }
       } catch (e) { console.error('Template prefill failed:', e); }
