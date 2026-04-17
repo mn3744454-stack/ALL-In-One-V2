@@ -609,7 +609,17 @@ export const ar = {
         acceptFailed: "فشل قبول الطلب",
         rejectFailed: "فشل رفض الطلب",
         specimenFailed: "فشل تأكيد استلام العينة",
+        serviceAccepted: "تم قبول الخدمة",
+        serviceRejected: "تم رفض الخدمة",
+        serviceAcceptFailed: "فشل قبول الخدمة",
+        serviceRejectFailed: "فشل رفض الخدمة",
       },
+      // Phase 5.2 — قرارات على مستوى الخدمة
+      decidePerService: "اتخاذ قرار لكل خدمة",
+      serviceSummary: "{accepted} من {total} خدمات مقبولة",
+      rejectService: "رفض الخدمة",
+      rejectServiceDescription: "يرجى إدخال سبب دقيق لرفض هذه الخدمة. سيظهر للإسطبل الطالب.",
+      partiallyAccepted: "مقبول جزئياً",
     },
     
     stableResults: {
