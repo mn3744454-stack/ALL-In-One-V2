@@ -456,6 +456,18 @@ export function RequestDetailDialog({
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Phase 7 — Prefilled Create Result flow launched from ResultsOwedPanel */}
+      {isLabFull && (
+        <CreateResultDialog
+          open={createResultState.open}
+          onOpenChange={(o) =>
+            setCreateResultState((s) => ({ open: o, templateId: o ? s.templateId : undefined }))
+          }
+          preselectedRequestId={request.id}
+          preselectedTemplateId={createResultState.templateId}
+        />
+      )}
     </Dialog>
   );
 }
