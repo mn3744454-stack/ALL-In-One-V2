@@ -108,7 +108,13 @@ export function RequestDetailDialog({
   const labDecision = (request.lab_decision as 'pending_review' | 'accepted' | 'rejected' | 'partial' | undefined) || 'pending_review';
   const specimenReceived = !!request.specimen_received_at;
   const intakeReady = labDecision === 'accepted' && specimenReceived;
+  // Phase 7 — Results panel becomes visible for accepted *or* partial intake (any accepted templates),
+  // independent of the stricter sample-creation gate.
+  const resultsOwedVisible = (labDecision === 'accepted' || labDecision === 'partial') && specimenReceived;
   const canCreateSample = isLabFull && onCreateSample && !hasSample && intakeReady;
+
+  // Phase 7 — Local CreateResultDialog state for prefilled flow from ResultsOwedPanel.
+  const [createResultState, setCreateResultState] = useState<{ open: boolean; templateId?: string }>({ open: false });
 
   const handleMarkReceived = async () => {
     await updateRequest({
