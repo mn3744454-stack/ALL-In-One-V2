@@ -280,6 +280,43 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
           setRejectOpen(false);
         }}
       />
+
+      {/* Phase 5.2.1 — Macro overwrite confirmation.
+          Shown only when the operator triggers a macro Accept-all/Reject-all on
+          a multi-service request that already has explicit per-service
+          decisions. Prevents accidental destruction of granular intent. */}
+      <AlertDialog
+        open={pendingMacro !== null}
+        onOpenChange={(o) => !o && setPendingMacro(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingMacro === "accept"
+                ? (t("laboratory.intake.macroOverwriteAcceptTitle") || "Accept the entire request?")
+                : (t("laboratory.intake.macroOverwriteRejectTitle") || "Reject the entire request?")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(t("laboratory.intake.macroOverwriteDescription")
+                || "{count} service decisions are already set. This action will overwrite them and apply the same decision to every service in this request.")
+                .replace("{count}", String(decidedServiceCount))}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              {t("common.cancel") || "Cancel"}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPendingMacro}
+              className={cn(pendingMacro === "reject" && "bg-destructive text-destructive-foreground hover:bg-destructive/90")}
+            >
+              {pendingMacro === "accept"
+                ? (t("laboratory.intake.acceptAllServices") || "Accept all")
+                : (t("laboratory.intake.rejectAllServices") || "Reject all")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
