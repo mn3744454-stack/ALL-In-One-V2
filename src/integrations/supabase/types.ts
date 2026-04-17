@@ -10318,8 +10318,16 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      fn_expand_service_templates: {
+        Args: { p_lab_request_id: string; p_service_id: string }
+        Returns: undefined
+      }
       fn_recompute_request_decision: {
         Args: { p_request_id: string }
+        Returns: undefined
+      }
+      fn_recompute_service_decision: {
+        Args: { p_lab_request_id: string; p_service_id: string }
         Returns: undefined
       }
       fn_recompute_submission_decision: {
