@@ -42,9 +42,12 @@ export function deriveSamplingProgress(
   sampledRequestIds: Set<string>
 ): SubmissionSamplingProgress {
   const totalHorses = children.length;
-  const acceptedChildren = children.filter(
-    (c) => (c.lab_decision || "pending_review") === "accepted"
-  );
+  // Phase 5.2 — partial requests have at least one accepted service and
+  // therefore count as ready-for-sampling alongside fully accepted requests.
+  const acceptedChildren = children.filter((c) => {
+    const d = c.lab_decision || "pending_review";
+    return d === "accepted" || d === "partial";
+  });
   const acceptedHorses = acceptedChildren.length;
   const sampledHorses = acceptedChildren.filter((c) => sampledRequestIds.has(c.id)).length;
   const pendingSampleCount = Math.max(0, acceptedHorses - sampledHorses);

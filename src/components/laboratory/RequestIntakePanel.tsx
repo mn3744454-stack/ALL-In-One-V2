@@ -212,6 +212,14 @@ function DecisionBadge({ decision }: { decision: LabDecision }) {
       </Badge>
     );
   }
+  if (decision === "partial") {
+    return (
+      <Badge variant="outline" className="text-xs gap-1 bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">
+        <CheckCircle2 className="h-3 w-3" />
+        {t("laboratory.intake.decision.partial") || "Partially accepted"}
+      </Badge>
+    );
+  }
   return (
     <Badge variant="outline" className="text-xs gap-1">
       <Clock className="h-3 w-3" />

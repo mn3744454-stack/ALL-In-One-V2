@@ -265,9 +265,11 @@ export function SubmissionGroupedSamplesView({
           const sampledRequestIds = new Set(
             group.samples.map((s) => s.lab_request_id).filter(Boolean) as string[]
           );
-          const unsampledChildren = group.children.filter(
-            (c) => (c.lab_decision || "pending_review") === "accepted" && !sampledRequestIds.has(c.id)
-          );
+          const unsampledChildren = group.children.filter((c) => {
+            const d = c.lab_decision || "pending_review";
+            // Phase 5.2 — accepted OR partial (at least one accepted service) qualifies for sampling
+            return (d === "accepted" || d === "partial") && !sampledRequestIds.has(c.id);
+          });
 
           // Phase 6C — eligibility = accepted + specimen received + not yet sampled
           const eligibleChildren: BatchEligibleChild[] = unsampledChildren
