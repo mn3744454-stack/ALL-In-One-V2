@@ -232,6 +232,13 @@ function ChildRequestRow({
   const decision = request.lab_decision || 'pending_review';
   const showSamplingTag = decision === 'accepted';
 
+  // Phase 7 — per-request results progress (only meaningful once intake decided)
+  const { data: resultProgress } = useRequestResultProgress(
+    decision === 'accepted' || decision === 'partial' ? request.id : null
+  );
+  const showResultsChip =
+    !!resultProgress && resultProgress.acceptedCount > 0;
+
   return (
     <div
       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
