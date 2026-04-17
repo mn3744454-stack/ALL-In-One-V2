@@ -452,6 +452,8 @@ export const ar = {
       orders: "طلبات",
       noRequestsDesc: "أنشئ أول طلب تحليل",
       viewResult: "عرض النتيجة",
+      legacyReferenceLabel: "رابط مرجعي قديم",
+      legacyReferenceHint: "مهجور — تُنشر النتائج الجديدة عبر سير العمل المنظم أعلاه.",
       markReceived: "تحديد كمستلم",
       created: "تم إنشاء الطلب",
       updated: "تم تحديث الطلب",
