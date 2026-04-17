@@ -9888,6 +9888,7 @@ export type Database = {
       }
       lab_requests_stable_view: {
         Row: {
+          accepted_service_count: number | null
           decided_at: string | null
           expected_by: string | null
           horse_id: string | null
@@ -9900,6 +9901,7 @@ export type Database = {
           lab_tenant_id: string | null
           priority: string | null
           received_at: string | null
+          rejected_service_count: number | null
           rejection_reason: string | null
           requested_at: string | null
           result_url: string | null
@@ -9907,48 +9909,7 @@ export type Database = {
           stable_status: string | null
           submission_id: string | null
           tenant_id: string | null
-        }
-        Insert: {
-          decided_at?: string | null
-          expected_by?: string | null
-          horse_id?: string | null
-          id?: string | null
-          initiator_tenant_id?: string | null
-          internal_decision?:
-            | Database["public"]["Enums"]["lab_request_decision"]
-            | null
-          internal_status?: string | null
-          lab_tenant_id?: string | null
-          priority?: string | null
-          received_at?: string | null
-          rejection_reason?: string | null
-          requested_at?: string | null
-          result_url?: string | null
-          specimen_received_at?: string | null
-          stable_status?: never
-          submission_id?: string | null
-          tenant_id?: string | null
-        }
-        Update: {
-          decided_at?: string | null
-          expected_by?: string | null
-          horse_id?: string | null
-          id?: string | null
-          initiator_tenant_id?: string | null
-          internal_decision?:
-            | Database["public"]["Enums"]["lab_request_decision"]
-            | null
-          internal_status?: string | null
-          lab_tenant_id?: string | null
-          priority?: string | null
-          received_at?: string | null
-          rejection_reason?: string | null
-          requested_at?: string | null
-          result_url?: string | null
-          specimen_received_at?: string | null
-          stable_status?: never
-          submission_id?: string | null
-          tenant_id?: string | null
+          total_service_count: number | null
         }
         Relationships: [
           {
