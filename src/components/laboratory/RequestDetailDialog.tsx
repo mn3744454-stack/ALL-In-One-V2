@@ -82,8 +82,6 @@ export function RequestDetailDialog({
   const request = (requests.find(r => r.id === requestProp.id) as LabRequest | undefined) || requestProp;
 
   const [statusValue, setStatusValue] = useState(request.status);
-  const [resultUrl, setResultUrl] = useState(request.result_url || '');
-  const [isPublishing, setIsPublishing] = useState(false);
 
   const horseName = dir === 'rtl' && (request.horse_name_ar_snapshot || request.horse?.name_ar)
     ? (request.horse_name_ar_snapshot || request.horse?.name_ar)
@@ -128,19 +126,7 @@ export function RequestDetailDialog({
     });
   };
 
-  const handlePublishResult = async () => {
-    if (!resultUrl.trim()) return;
-    setIsPublishing(true);
-    try {
-      await updateRequest({
-        id: request.id,
-        result_url: resultUrl.trim(),
-        status: 'ready',
-      });
-    } finally {
-      setIsPublishing(false);
-    }
-  };
+  // Phase 7 — handlePublishResult removed; result_url is no longer an authoritative path.
 
   // Fetch parent submission context if this request has a submission_id
   const submissionId = (request as any).submission_id as string | null;
