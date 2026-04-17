@@ -10264,6 +10264,10 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      fn_recompute_request_decision: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
       fn_recompute_submission_decision: {
         Args: { p_submission_id: string }
         Returns: undefined
