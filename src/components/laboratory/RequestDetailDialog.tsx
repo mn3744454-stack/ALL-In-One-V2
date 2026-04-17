@@ -213,8 +213,13 @@ export function RequestDetailDialog({
               )}
 
               {/* Phase 7 — Lab-side: Results Owed panel (template-authoritative workflow) */}
-              {isLabFull && intakeReady && (
-                <ResultsOwedPanel requestId={request.id} />
+              {isLabFull && resultsOwedVisible && (
+                <ResultsOwedPanel
+                  requestId={request.id}
+                  onCreateResult={(templateId) =>
+                    setCreateResultState({ open: true, templateId })
+                  }
+                />
               )}
 
               {/* Phase 7 — Legacy result_url path is deprecated as authoritative.
