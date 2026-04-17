@@ -5440,6 +5440,99 @@ export type Database = {
           },
         ]
       }
+      lab_request_service_templates: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          is_required_snapshot: boolean
+          lab_request_id: string
+          service_id: string
+          sort_order_snapshot: number
+          template_category_snapshot: string | null
+          template_decision: Database["public"]["Enums"]["lab_template_decision"]
+          template_id: string
+          template_name_ar_snapshot: string | null
+          template_name_snapshot: string | null
+          template_rejection_reason: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          is_required_snapshot?: boolean
+          lab_request_id: string
+          service_id: string
+          sort_order_snapshot?: number
+          template_category_snapshot?: string | null
+          template_decision?: Database["public"]["Enums"]["lab_template_decision"]
+          template_id: string
+          template_name_ar_snapshot?: string | null
+          template_name_snapshot?: string | null
+          template_rejection_reason?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          is_required_snapshot?: boolean
+          lab_request_id?: string
+          service_id?: string
+          sort_order_snapshot?: number
+          template_category_snapshot?: string | null
+          template_decision?: Database["public"]["Enums"]["lab_template_decision"]
+          template_id?: string
+          template_name_ar_snapshot?: string | null
+          template_name_snapshot?: string | null
+          template_rejection_reason?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lrst_request"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lrst_request"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests_stable_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lrst_request_service"
+            columns: ["lab_request_id", "service_id"]
+            isOneToOne: false
+            referencedRelation: "lab_request_services"
+            referencedColumns: ["lab_request_id", "service_id"]
+          },
+          {
+            foreignKeyName: "lab_request_service_templates_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_request_service_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_request_services: {
         Row: {
           created_at: string
@@ -10225,8 +10318,16 @@ export type Database = {
         Args: { _token: string }
         Returns: Json
       }
+      fn_expand_service_templates: {
+        Args: { p_lab_request_id: string; p_service_id: string }
+        Returns: undefined
+      }
       fn_recompute_request_decision: {
         Args: { p_request_id: string }
+        Returns: undefined
+      }
+      fn_recompute_service_decision: {
+        Args: { p_lab_request_id: string; p_service_id: string }
         Returns: undefined
       }
       fn_recompute_submission_decision: {
@@ -10585,12 +10686,13 @@ export type Database = {
         | "accepted"
         | "rejected"
         | "partial"
-      lab_service_decision: "pending" | "accepted" | "rejected"
+      lab_service_decision: "pending" | "accepted" | "rejected" | "partial"
       lab_submission_decision:
         | "pending_review"
         | "accepted"
         | "rejected"
         | "partial"
+      lab_template_decision: "pending" | "accepted" | "rejected"
       movement_type: "in" | "out" | "transfer"
       occupancy_mode: "single" | "group"
       payment_intent_type: "platform_fee" | "service_payment" | "commission"
@@ -10787,13 +10889,14 @@ export const Constants = {
         "rejected",
         "partial",
       ],
-      lab_service_decision: ["pending", "accepted", "rejected"],
+      lab_service_decision: ["pending", "accepted", "rejected", "partial"],
       lab_submission_decision: [
         "pending_review",
         "accepted",
         "rejected",
         "partial",
       ],
+      lab_template_decision: ["pending", "accepted", "rejected"],
       movement_type: ["in", "out", "transfer"],
       occupancy_mode: ["single", "group"],
       payment_intent_type: ["platform_fee", "service_payment", "commission"],

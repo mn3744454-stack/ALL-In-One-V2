@@ -105,7 +105,7 @@ export function RequestDetailDialog({
   });
   const hasSample = (linkedSamples?.length ?? 0) > 0;
   // Phase 5 — gate Create Sample behind: accepted decision + specimen received
-  const labDecision = (request.lab_decision as 'pending_review' | 'accepted' | 'rejected' | undefined) || 'pending_review';
+  const labDecision = (request.lab_decision as 'pending_review' | 'accepted' | 'rejected' | 'partial' | undefined) || 'pending_review';
   const specimenReceived = !!request.specimen_received_at;
   const intakeReady = labDecision === 'accepted' && specimenReceived;
   const canCreateSample = isLabFull && onCreateSample && !hasSample && intakeReady;
