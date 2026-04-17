@@ -5862,6 +5862,7 @@ export type Database = {
           flags: string | null
           id: string
           interpretation: Json | null
+          lab_request_service_template_id: string | null
           published_at: string | null
           published_by: string | null
           published_to_stable: boolean
@@ -5879,6 +5880,7 @@ export type Database = {
           flags?: string | null
           id?: string
           interpretation?: Json | null
+          lab_request_service_template_id?: string | null
           published_at?: string | null
           published_by?: string | null
           published_to_stable?: boolean
@@ -5896,6 +5898,7 @@ export type Database = {
           flags?: string | null
           id?: string
           interpretation?: Json | null
+          lab_request_service_template_id?: string | null
           published_at?: string | null
           published_by?: string | null
           published_to_stable?: boolean
@@ -5913,6 +5916,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_results_lab_request_service_template_id_fkey"
+            columns: ["lab_request_service_template_id"]
+            isOneToOne: false
+            referencedRelation: "lab_request_service_templates"
             referencedColumns: ["id"]
           },
           {
@@ -10135,6 +10145,33 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_lab_result_progress: {
+        Row: {
+          accepted_templates_count: number | null
+          final_results_count: number | null
+          lab_request_id: string | null
+          progress_state: string | null
+          published_results_count: number | null
+          results_count: number | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lrst_request"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_lrst_request"
+            columns: ["lab_request_id"]
+            isOneToOne: false
+            referencedRelation: "lab_requests_stable_view"
             referencedColumns: ["id"]
           },
         ]
