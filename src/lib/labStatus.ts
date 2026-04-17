@@ -23,16 +23,18 @@ export function getEffectiveLabRequestStatus(
   // legacy badge vocabulary (visually distinct, dedicated reject UI on detail).
   if (decision === "rejected") return "cancelled";
 
-  // Once the operator has accepted, intake state takes precedence over the
-  // legacy raw `status` until downstream lifecycle (ready/received) catches up.
-  if (decision === "accepted") {
+  // Phase 5.2 — partial means at least one accepted service exists; treat
+  // identically to "accepted" for downstream lifecycle/badge mapping. The
+  // partial nuance is surfaced separately by the Phase 5.2 intake UI and
+  // by the Stable-side view, not by the legacy status badge.
+  if (decision === "accepted" || decision === "partial") {
     if (request.status === "ready" || request.status === "received") {
       return request.status;
     }
     if (request.specimen_received_at || request.status === "processing") {
       return "processing";
     }
-    // Accepted, awaiting specimen — surface as "sent" (in-flight) on summaries.
+    // Accepted (or partial), awaiting specimen — surface as "sent" (in-flight) on summaries.
     return "sent";
   }
 

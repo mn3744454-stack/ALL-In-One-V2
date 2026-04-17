@@ -16,6 +16,9 @@ export interface LabRequestService {
   service_name_snapshot: string | null;
   service_name_ar_snapshot: string | null;
   service_code_snapshot: string | null;
+  // Phase 5.2 — service-level decision fields
+  service_decision?: 'pending' | 'accepted' | 'rejected' | null;
+  service_rejection_reason?: string | null;
   service?: {
     id: string;
     name: string;
@@ -64,8 +67,8 @@ export interface LabRequest {
     id: string;
     name: string;
   };
-  // Phase 5 — intake decision fields
-  lab_decision?: 'pending_review' | 'accepted' | 'rejected';
+  // Phase 5 — intake decision fields (Phase 5.2 adds 'partial')
+  lab_decision?: 'pending_review' | 'accepted' | 'rejected' | 'partial';
   rejection_reason?: string | null;
   decided_at?: string | null;
   decided_by?: string | null;
