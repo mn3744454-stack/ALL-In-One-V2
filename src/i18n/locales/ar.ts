@@ -613,6 +613,10 @@ export const ar = {
         serviceRejected: "تم رفض الخدمة",
         serviceAcceptFailed: "فشل قبول الخدمة",
         serviceRejectFailed: "فشل رفض الخدمة",
+        templateAccepted: "تم قبول الفحص",
+        templateRejected: "تم رفض الفحص",
+        templateAcceptFailed: "فشل قبول الفحص",
+        templateRejectFailed: "فشل رفض الفحص",
       },
       // Phase 5.2 — قرارات على مستوى الخدمة
       decidePerService: "اتخاذ قرار لكل خدمة",
@@ -624,6 +628,7 @@ export const ar = {
       serviceStatusAccepted: "مقبولة",
       serviceStatusRejected: "مرفوضة",
       serviceStatusPending: "قيد المراجعة",
+      serviceStatusPartial: "مقبولة جزئياً",
       serviceRejectionReasonLabel: "السبب",
       // Phase 5.2.1 — انضباط الإجراءات الجماعية
       acceptAllServices: "قبول الكل",
@@ -632,6 +637,15 @@ export const ar = {
       macroOverwriteAcceptTitle: "قبول الطلب بالكامل؟",
       macroOverwriteRejectTitle: "رفض الطلب بالكامل؟",
       macroOverwriteDescription: "تم تحديد قرارات لـ {count} من الخدمات. سيؤدي هذا الإجراء إلى استبدالها وتطبيق نفس القرار على جميع الخدمات في هذا الطلب.",
+      // Phase 5.2.2 — قرارات على مستوى الفحص
+      decidePerTemplate: "اتخاذ قرار لكل فحص",
+      templateSummary: "{accepted} من {total} فحوصات مقبولة",
+      acceptAllTemplates: "قبول جميع الفحوصات في هذه الخدمة",
+      rejectAllTemplates: "رفض جميع الفحوصات في هذه الخدمة",
+      rejectTemplate: "رفض الفحص",
+      rejectTemplateDescription: "يرجى إدخال سبب دقيق لرفض هذا الفحص بالتحديد. سيرى الإسطبل الطالب أي فحص تم رفضه ولماذا.",
+      partialShort: "جزئي",
+      optionalTemplate: "اختياري",
     },
     
     stableResults: {

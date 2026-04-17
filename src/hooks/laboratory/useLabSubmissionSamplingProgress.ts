@@ -42,8 +42,11 @@ export function deriveSamplingProgress(
   sampledRequestIds: Set<string>
 ): SubmissionSamplingProgress {
   const totalHorses = children.length;
-  // Phase 5.2 — partial requests have at least one accepted service and
-  // therefore count as ready-for-sampling alongside fully accepted requests.
+  // Phase 5.2 / 5.2.2 — a request qualifies for sampling when at least one
+  // template inside it is accepted. With template-level authority, the derived
+  // request decision is 'accepted' (all templates accepted) or 'partial' (some
+  // templates accepted, some rejected) iff ≥1 template is accepted, so the
+  // request-level enum remains a faithful "≥1 accepted template" proxy.
   const acceptedChildren = children.filter((c) => {
     const d = c.lab_decision || "pending_review";
     return d === "accepted" || d === "partial";
