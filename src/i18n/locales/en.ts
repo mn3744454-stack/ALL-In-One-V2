@@ -931,6 +931,21 @@ export const en = {
       noRequest: "No request",
       draftCannotPublish: "Review or finalize this result before publishing",
       publishAll: "Publish All Eligible",
+      // Phase 7 — Results Coherence
+      resultsOwed: "Results",
+      needsResult: "Needs result",
+      pendingResult: "Pending result",
+      refusedAtIntake: "Refused at intake",
+      publishedOfAccepted: "{published} of {total} published",
+      cannotPublishNotFinal: "Cannot publish: result is not final",
+      cannotResultNotAccepted: "Cannot create result: template not accepted",
+      publishAllFinal: "Publish all final",
+      publishedCount: "Published {n} results",
+      nothingToPublish: "Nothing to publish",
+      createResult: "Create result",
+      editDraft: "Edit",
+      loadingProgress: "Loading progress…",
+      testResultsBreakdown: "Test results",
     },
     
     // Result Actions
