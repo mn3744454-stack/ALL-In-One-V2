@@ -113,6 +113,15 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
             </div>
           )}
         </div>
+
+        {/* Phase 5.2 — nested service-level decisions for multi-service requests */}
+        {hasMultipleServices && decision !== "rejected" && (
+          <ServiceDecisionList
+            requestId={request.id}
+            services={services}
+            disabled={false}
+          />
+        )}
       </div>
 
       {/* Step 2: Specimen Receipt — only when accepted */}
@@ -143,7 +152,7 @@ export function RequestIntakePanel({ request }: RequestIntakePanelProps) {
                 </p>
               )}
             </div>
-            {decision === "accepted" && !specimenReceived && (
+            {isAcceptedOrPartial && !specimenReceived && (
               <Button
                 size="sm"
                 variant="outline"
