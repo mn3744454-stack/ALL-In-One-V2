@@ -46,7 +46,7 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useQueryClient } from "@tanstack/react-query";
-import { getEffectiveLabRequestStatus } from "@/lib/labStatus";
+import { getEffectiveLabRequestStatus, getStableFacingLabStatus } from "@/lib/labStatus";
 
 interface LabOption {
   tenantId: string;

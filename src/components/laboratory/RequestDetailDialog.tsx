@@ -159,7 +159,7 @@ export function RequestDetailDialog({
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             {horseName}
-            <RequestStatusBadge status={getEffectiveLabRequestStatus(request)} />
+            <RequestStatusBadge status={isLabFull ? getEffectiveLabRequestStatus(request) : getStableFacingLabStatus(request)} />
           </DialogTitle>
           {isLabFull && senderName && (
             <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -246,9 +246,18 @@ export function RequestDetailDialog({
               {/* Services */}
               {services.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1.5">
-                    {t('laboratory.requests.selectedServices') || 'Selected Services'}
-                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {t('laboratory.requests.selectedServices') || 'Selected Services'}
+                    </p>
+                    {services.length > 1 && (
+                      <p className="text-xs text-muted-foreground">
+                        {(t('laboratory.intake.serviceSummary') || '{accepted} of {total} services accepted')
+                          .replace('{accepted}', String(services.filter(s => s.service_decision === 'accepted').length))
+                          .replace('{total}', String(services.length))}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {services.map(s => (
                       <Badge key={s.service_id} variant="secondary" className="text-xs gap-1">
@@ -260,6 +269,45 @@ export function RequestDetailDialog({
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Stable-only: Service-level breakdown — visible when partial OR any service rejected */}
+              {!isLabFull && services.length > 0 && (labDecision === 'partial' || services.some(s => s.service_decision === 'rejected')) && (
+                <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                  <p className="text-sm font-medium">
+                    {t('laboratory.intake.serviceBreakdown') || 'Service breakdown'}
+                  </p>
+                  <ul className="space-y-1.5">
+                    {services.map(s => {
+                      const decision = s.service_decision || 'pending';
+                      const name = dir === 'rtl' && (s.service_name_ar_snapshot || s.service?.name_ar)
+                        ? (s.service_name_ar_snapshot || s.service.name_ar)
+                        : (s.service_name_snapshot || s.service?.name || t('laboratory.requests.unknownService') || 'Unknown Service');
+                      const pillClass =
+                        decision === 'accepted' ? 'bg-green-100 text-green-800 border-green-200' :
+                        decision === 'rejected' ? 'bg-destructive/10 text-destructive border-destructive/30' :
+                        'bg-muted text-muted-foreground border-border';
+                      const label =
+                        decision === 'accepted' ? (t('laboratory.intake.serviceStatusAccepted') || 'Accepted') :
+                        decision === 'rejected' ? (t('laboratory.intake.serviceStatusRejected') || 'Rejected') :
+                        (t('laboratory.intake.serviceStatusPending') || 'Pending');
+                      return (
+                        <li key={s.service_id} className="text-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate">{name}</span>
+                            <Badge variant="outline" className={cn("text-xs shrink-0", pillClass)}>{label}</Badge>
+                          </div>
+                          {decision === 'rejected' && s.service_rejection_reason && (
+                            <p className="text-xs text-muted-foreground mt-0.5 ms-0">
+                              <span className="font-medium">{t('laboratory.intake.serviceRejectionReasonLabel') || 'Reason'}:</span>{' '}
+                              {s.service_rejection_reason}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               )}
 
