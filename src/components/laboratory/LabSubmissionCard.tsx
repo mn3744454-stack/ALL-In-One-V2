@@ -17,6 +17,7 @@ import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { getStableFacingLabStatus } from "@/lib/labStatus";
 import { useLabSubmissionsSamplingProgress } from "@/hooks/laboratory/useLabSubmissionSamplingProgress";
 import { SubmissionSamplingProgress } from "./SubmissionSamplingProgress";
+import { useRequestResultProgress } from "@/hooks/laboratory/useRequestResultProgress";
 
 interface LabSubmissionCardProps {
   submission: LabSubmission;
