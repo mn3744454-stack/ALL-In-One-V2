@@ -94,7 +94,9 @@ export function useIncomingMovements(statusFilter?: string) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.incoming.cancelled'));
-      queryClient.invalidateQueries({ queryKey: ['incoming-movements', tenantId] });
+      // Cancellation only affects the incoming pipeline + eligibility surfaces;
+      // no occupancy or admission state changes.
+      invalidate(['movement']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.incoming.cancelFailed'));
