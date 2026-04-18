@@ -38,6 +38,9 @@ import {
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
 import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
+import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
+import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
+import { Users } from "lucide-react";
 
 interface AdmissionDetailSheetProps {
   admissionId: string | null;
@@ -53,6 +56,7 @@ const CHECK_TRANSLATION_MAP: Record<string, string> = {
   housing_assigned: 'housing.admissions.checks.noUnit',
   emergency_contact: 'housing.admissions.checks.noEmergency',
   rate_configured: 'housing.admissions.checks.noRate',
+  team_assigned: 'housing.admissions.checks.noTeam',
 };
 
 export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: AdmissionDetailSheetProps) {
