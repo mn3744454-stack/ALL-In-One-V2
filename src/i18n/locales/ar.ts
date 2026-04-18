@@ -340,6 +340,9 @@ export const ar = {
       searchHorses: "البحث في الخيول...",
       noHorsesAvailable: "لا توجد خيول متاحة للتعيين",
       assignFirstHorse: "قم بتعيين خيل لهذا الموظف",
+      addStaff: "إضافة موظف",
+      removeRow: "إزالة",
+      assignedTeamHelp: "الموظفون المسؤولون تشغيلياً عن هذا الخيل خلال فترة الإقامة. مختلف عن جهة اتصال الطوارئ.",
     },
     
     // Demo

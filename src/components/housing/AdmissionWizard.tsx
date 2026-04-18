@@ -34,11 +34,14 @@ import { PlanIncludedServicesDisplay } from "@/components/services/PlanIncludedS
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus, Users, X } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { QuickCreatePackageDialog } from "./QuickCreatePackageDialog";
 import { useClients } from "@/hooks/useClients";
+import { useEmployees } from "@/hooks/hr/useEmployees";
+import { ASSIGNMENT_ROLES } from "@/hooks/hr/useHorseAssignments";
+import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from "@/components/hr/QuickCreateEmployeeDialog";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -84,8 +87,13 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
   const [packageCreateOpen, setPackageCreateOpen] = useState(false);
+  const [quickCreateEmployeeOpen, setQuickCreateEmployeeOpen] = useState(false);
+  const [pendingEmpRowIndex, setPendingEmpRowIndex] = useState<number | null>(null);
+  // Phase C (Image 27): in-flow staff assignment rows
+  const [staffRows, setStaffRows] = useState<Array<{ employee_id: string; role: string }>>([]);
   const { createClient } = useClients();
   const { createAdmission, isCreating } = useBoardingAdmissions();
+  const { employees } = useEmployees();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
   const { activePlans } = useStableServicePlans();
@@ -195,6 +203,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
       await createAdmission(data);
 
+      // Phase C (Image 27): persist in-flow staff assignments to existing hr_assignments truth
+      const validRows = staffRows.filter(r => r.employee_id && r.role);
+      if (tenantId && form.horseId && validRows.length > 0) {
+        const inserts = validRows.map(r => ({
+          tenant_id: tenantId,
+          employee_id: r.employee_id,
+          entity_type: 'horse' as const,
+          entity_id: form.horseId,
+          role: r.role,
+        }));
+        const { error: assignError } = await supabase.from('hr_assignments').insert(inserts);
+        if (assignError) {
+          console.error('Failed to persist in-flow staff assignments:', assignError);
+        }
+      }
+
       resetForm();
       onOpenChange(false);
       onSuccess?.();
@@ -211,6 +235,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       reason: '', specialInstructions: '', emergencyContact: '', expectedDeparture: '',
       arrivalDate: '',
     });
+    setStaffRows([]);
   };
 
   const stepLabels: Record<Step, string> = {
@@ -587,6 +612,102 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 rows={3}
               />
             </div>
+
+            {/* Phase C (Image 27): in-flow Assigned Team sub-section */}
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <Label className="m-0">{t('hr.assignments.title')}</Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t('hr.assignments.assignedTeamHelp')}
+              </p>
+
+              {staffRows.length > 0 && (
+                <div className="space-y-2">
+                  {staffRows.map((row, idx) => {
+                    const usedIds = staffRows.filter((_, i) => i !== idx).map(r => r.employee_id).filter(Boolean);
+                    const available = employees.filter(e => e.is_active && !usedIds.includes(e.id));
+                    return (
+                      <div key={idx} className="flex items-start gap-2">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <Select
+                            value={row.employee_id}
+                            onValueChange={(v) => setStaffRows(rs => rs.map((r, i) => i === idx ? { ...r, employee_id: v } : r))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('hr.assignments.selectEmployee')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {available.map(emp => (
+                                <SelectItem key={emp.id} value={emp.id}>
+                                  {lang === 'ar' && emp.full_name_ar ? emp.full_name_ar : emp.full_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={row.role}
+                            onValueChange={(v) => setStaffRows(rs => rs.map((r, i) => i === idx ? { ...r, role: v } : r))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('hr.assignments.selectRole')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ASSIGNMENT_ROLES.map(role => (
+                                <SelectItem key={role} value={role}>
+                                  {t(`hr.assignments.roles.${role}`)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 shrink-0"
+                          onClick={() => setStaffRows(rs => rs.filter((_, i) => i !== idx))}
+                          aria-label={t('hr.assignments.removeRow')}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStaffRows(rs => [...rs, { employee_id: '', role: '' }])}
+                  disabled={employees.filter(e => e.is_active).length === 0}
+                >
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('hr.assignments.addStaff')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary"
+                  onClick={() => {
+                    setStaffRows(rs => {
+                      const next = [...rs, { employee_id: '', role: '' }];
+                      setPendingEmpRowIndex(next.length - 1);
+                      return next;
+                    });
+                    setQuickCreateEmployeeOpen(true);
+                  }}
+                >
+                  <UserPlus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('hr.assignments.addNewEmployee')}
+                </Button>
+              </div>
+            </div>
           </div>
         );
       case 'review':
@@ -750,6 +871,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     />
   );
 
+  // Phase C (Image 27): in-flow quick-create employee continuity
+  const quickCreateEmployeeDialog = (
+    <QuickCreateEmployeeDialog
+      open={quickCreateEmployeeOpen}
+      onOpenChange={setQuickCreateEmployeeOpen}
+      onCreated={(emp: QuickCreatedEmployee) => {
+        if (pendingEmpRowIndex !== null) {
+          const targetIdx = pendingEmpRowIndex;
+          setStaffRows(rs => rs.map((r, i) => i === targetIdx ? { ...r, employee_id: emp.id } : r));
+          setPendingEmpRowIndex(null);
+        }
+      }}
+    />
+  );
+
   if (isMobile) {
     return (
       <>
@@ -764,6 +900,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         {quickCreateDialog}
         {clientDialog}
         {packageDialog}
+        {quickCreateEmployeeDialog}
       </>
     );
   }
@@ -794,6 +931,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       {quickCreateDialog}
       {clientDialog}
       {packageDialog}
+      {quickCreateEmployeeDialog}
     </>
   );
 }
