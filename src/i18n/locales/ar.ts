@@ -5116,6 +5116,18 @@ export const ar = {
       movement: "الحركات",
       generic: "عام",
     },
+    summary: {
+      status: "الحالة",
+      message: "الرسالة",
+      direction: "الاتجاه",
+      when: "متى",
+    },
+    severity: {
+      info: "معلومة",
+      success: "تم",
+      warning: "إجراء",
+      critical: "عاجل",
+    },
     noUnread: "لا توجد إشعارات غير مقروءة",
     noRead: "لا توجد إشعارات مقروءة",
     noInvitations: "لا توجد دعوات معلقة",

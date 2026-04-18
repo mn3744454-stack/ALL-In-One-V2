@@ -46,6 +46,23 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
 
   const { data: activeAdmission } = useHorseActiveAdmission(dispatchHorseId);
 
+  // Phase 2: open-on-arrival from notification deep-links.
+  // Reads ?movementId=… (set by notification routeDescriptor), opens the
+  // detail sheet, then strips the param so back-nav doesn't re-trigger.
+  useEffect(() => {
+    const movementId = searchParams.get('movementId');
+    if (!movementId || isLoading || movements.length === 0) return;
+    const found = movements.find((m) => m.id === movementId);
+    if (!found) return;
+    setSelectedMovement(found);
+    const next = new URLSearchParams(searchParams);
+    next.delete('movementId');
+    next.delete('entityType');
+    next.delete('entityId');
+    next.delete('open');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isLoading, movements, setSearchParams]);
+
   const handleDispatch = (movementId: string) => {
     setDispatchMovementId(movementId);
   };
