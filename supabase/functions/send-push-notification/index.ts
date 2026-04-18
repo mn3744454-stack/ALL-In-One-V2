@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
     }
 
     const notification = await req.json();
-    const { id, user_id, event_type, title, body, entity_id } = notification;
+    const { id, user_id, tenant_id, event_type, title, body, entity_id } = notification;
 
     if (!user_id || !event_type) {
       return new Response(
@@ -243,7 +243,83 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3. Get active subscriptions
+    // 2b. Phase 4 — full policy resolver (org floor + personal + self-suppression
+    //     + critical-escalation). Mirrors src/lib/notifications/policy.ts.
+    try {
+      // Look up the actor + viewer role + governance row
+      const { data: notifRow } = await supabase
+        .from("notifications")
+        .select("actor_user_id")
+        .eq("id", id)
+        .maybeSingle();
+      const actorUserId = notifRow?.actor_user_id ?? null;
+
+      let viewerIsLeadership = false;
+      if (tenant_id) {
+        const { data: memberRow } = await supabase
+          .from("tenant_members")
+          .select("role")
+          .eq("tenant_id", tenant_id)
+          .eq("user_id", user_id)
+          .eq("is_active", true)
+          .maybeSingle();
+        viewerIsLeadership = memberRow?.role === "owner" || memberRow?.role === "manager";
+      }
+
+      let governance = {
+        family_floor: {} as Record<string, Level>,
+        suppress_self_actions: true,
+        escalate_critical_to_leadership: true,
+      };
+      if (tenant_id) {
+        const { data: govRow } = await supabase
+          .from("tenant_notification_governance")
+          .select("family_floor, suppress_self_actions, escalate_critical_to_leadership")
+          .eq("tenant_id", tenant_id)
+          .maybeSingle();
+        if (govRow) {
+          governance = {
+            family_floor: (govRow.family_floor as Record<string, Level>) ?? {},
+            suppress_self_actions: govRow.suppress_self_actions ?? true,
+            escalate_critical_to_leadership: govRow.escalate_critical_to_leadership ?? true,
+          };
+        }
+      }
+
+      // Self-action suppression
+      if (governance.suppress_self_actions && actorUserId && actorUserId === user_id) {
+        console.log(`[push] Suppressed (self-action) for ${user_id}`);
+        return new Response(
+          JSON.stringify({ skipped: true, reason: "self_action" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const family = resolveFamily(event_type);
+      const severity = getSeverity(event_type);
+      const personal = ((prefs?.family_preferences as Record<string, { level: Level }>)?.[family]?.level) ?? "all";
+      const floor = governance.family_floor[family];
+      if (floor === "off") {
+        console.log(`[push] Suppressed (org_floor_off) for ${user_id} family=${family}`);
+        return new Response(
+          JSON.stringify({ skipped: true, reason: "org_floor_off" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      let effective: Level = floor ? louder(personal, floor) : personal;
+      if (governance.escalate_critical_to_leadership && severity === "critical" && viewerIsLeadership) {
+        effective = louder(effective, "critical");
+      }
+      if (!shouldDeliver(effective, severity)) {
+        console.log(`[push] Suppressed (personal_preference) effective=${effective} severity=${severity}`);
+        return new Response(
+          JSON.stringify({ skipped: true, reason: "personal_preference" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch (policyErr) {
+      console.warn("[push] Policy resolver soft-failed; falling through:", policyErr);
+    }
     const { data: subscriptions, error: subError } = await supabase
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth")
