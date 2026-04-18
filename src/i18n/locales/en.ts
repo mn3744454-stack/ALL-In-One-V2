@@ -319,6 +319,8 @@ export const en = {
       },
       assignedHorses: "Assigned Horses",
       noHorses: "No horses assigned",
+      noEmployeesYet: "No employees yet",
+      addNewEmployee: "Add new employee",
     },
     
     // Demo
