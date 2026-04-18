@@ -34,7 +34,6 @@ const fromTable = (table: string) => (supabase as any).from(table);
 
 export function useIncomingMovements(statusFilter?: string) {
   const { activeTenant, activeRole } = useTenant();
-  const queryClient = useQueryClient();
   const { invalidate } = useHousingInvalidation();
   const tenantId = activeTenant?.tenant?.id;
 
