@@ -58,10 +58,16 @@ export function NotificationControlCenter() {
   const { preferences, updatePreferences, isSaving } =
     useNotificationPreferences();
 
-  const currentPreset: PresetId =
-    (preferences.preset as PresetId) ?? "all";
   const familyMap: FamilyPreferencesMap =
     preferences.family_preferences ?? {};
+  // Legacy "finance" preset (from before the corrective rename) is migrated
+  // on read into "billing" when family levels still match, otherwise into
+  // "custom" — keeps stored rows valid without a DB migration.
+  const storedPreset = preferences.preset as string | undefined;
+  const currentPreset: PresetId =
+    storedPreset === "finance"
+      ? detectPreset(familyMap)
+      : ((storedPreset as PresetId) ?? "all");
 
   const handlePresetSelect = async (id: PresetId) => {
     if (id === "custom") return; // custom is observed, not chosen
