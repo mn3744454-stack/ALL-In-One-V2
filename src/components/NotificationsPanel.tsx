@@ -226,7 +226,6 @@ function NotificationCard({
 // ─── Notifications sub-content ────────────────────────────
 
 function NotificationsTabContent() {
-  const navigate = useNavigate();
   const { t } = useI18n();
   const {
     notifications,
@@ -236,15 +235,21 @@ function NotificationsTabContent() {
     deleteNotification,
   } = useNotifications();
 
+  // Phase 1 — quick-detail-first interaction.
+  // Clicking a notification opens the dialog instead of forcing navigation.
+  const [activeNotification, setActiveNotification] =
+    useState<AppNotification | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const unreadNotifications = notifications.filter((n) => !n.is_read);
   const readNotifications = notifications.filter((n) => n.is_read);
 
   const handleClick = (notification: AppNotification) => {
-    if (!notification.is_read) {
-      markAsRead.mutate(notification.id);
-    }
-    const route = getNotificationRoute(notification);
-    navigate(route);
+    setActiveNotification(notification);
+    setDetailOpen(true);
+    // Note: mark-as-read now fires inside the dialog on open,
+    // not on bare card click — so quickly peeking the bell list
+    // no longer silently clears unread state.
   };
 
   return (
