@@ -288,9 +288,13 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
     await signOut();
   };
 
-  /** Prefix-aware active check: exact for /dashboard, prefix for everything else */
+  /** Prefix-aware active check: exact for /dashboard and parent group routes, prefix for everything else */
   const isActive = (path: string) => {
-    if (path === "/dashboard") return location.pathname === "/dashboard";
+    // Parent/group routes that have child sub-routes need exact matching
+    // to prevent false double-highlight (e.g. /dashboard/hr vs /dashboard/hr/payroll)
+    if (path === "/dashboard" || path === "/dashboard/hr") {
+      return location.pathname === path;
+    }
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 

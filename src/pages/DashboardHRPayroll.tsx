@@ -42,6 +42,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
+import { useViewPreference } from '@/hooks/useViewPreference';
 
 interface PayrollFilters {
   employeeId: string;
@@ -83,6 +86,10 @@ export default function DashboardHRPayroll() {
   
   const canManage = activeRole === 'owner' || activeRole === 'manager';
   const dateLocale: Locale = lang === 'ar' ? arLocale : enUS;
+
+  // View mode (Table / List only — no Grid for payment rows)
+  const { viewMode, setViewMode } = useViewPreference('hr_payroll');
+  const effectiveViewMode = viewMode === 'grid' ? 'table' : viewMode;
   
   // Internal employees for salary payments
   const internalEmployees = useMemo(() => 
@@ -171,15 +178,19 @@ export default function DashboardHRPayroll() {
 
           {/* Content */}
           <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
-            {/* Desktop page-level Add Payment action */}
-            {canManage && (
-              <div className="hidden lg:flex justify-end">
+            {/* Desktop page header — title + subtitle + Add Payment */}
+            <div className="hidden lg:flex items-center justify-between gap-3">
+              <div>
+                <h1 className="text-xl font-bold text-foreground">{t('hr.payroll.title')}</h1>
+                <p className="text-sm text-muted-foreground mt-1">{t('hr.payroll.subtitle')}</p>
+              </div>
+              {canManage && (
                 <Button onClick={() => setShowAddDialog(true)} className="gap-2" size="sm">
                   <Plus className="h-4 w-4" />
                   {t('hr.payroll.addPayment')}
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -283,8 +294,21 @@ export default function DashboardHRPayroll() {
 
             {/* Payments List */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
                 <CardTitle className="text-base">{t('hr.payroll.recentPayments')}</CardTitle>
+                {/* Table / List view switcher (desktop/tablet only, no Grid) */}
+                <div className="hidden md:block">
+                  <ViewSwitcher
+                    viewMode={effectiveViewMode}
+                    gridColumns={3}
+                    onViewModeChange={(mode) => {
+                      if (mode === 'grid') return; // Grid not supported here
+                      setViewMode(mode);
+                    }}
+                    onGridColumnsChange={() => { /* no-op */ }}
+                    showTable={true}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -304,6 +328,59 @@ export default function DashboardHRPayroll() {
                   <div className="text-center py-8 text-muted-foreground">
                     <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>{t('hr.payroll.noPayments')}</p>
+                  </div>
+                ) : effectiveViewMode === 'table' ? (
+                  <div className="rounded-md border overflow-x-auto hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t('hr.name')}</TableHead>
+                          <TableHead>{t('hr.payroll.period')}</TableHead>
+                          <TableHead>{t('common.date') || 'Date'}</TableHead>
+                          <TableHead className="text-end">{t('finance.expenses.amount')}</TableHead>
+                          <TableHead className="text-end">{t('common.status')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredPayments.map((payment) => (
+                          <TableRow key={payment.id} className="hover:bg-muted/50">
+                            <TableCell className="font-medium">
+                              {payment.employee?.full_name || t('common.unknown')}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {payment.payment_period || '-'}
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {formatStandardDate(payment.paid_at)}
+                            </TableCell>
+                            <TableCell className="text-end font-semibold text-success">
+                              {formatCurrency(payment.amount, payment.currency)}
+                            </TableCell>
+                            <TableCell className="text-end">
+                              {payment.finance_expense_id ? (
+                                <Badge variant="outline" className="text-xs">
+                                  {t('hr.payroll.linkedToExpense')}
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    {/* Mobile fallback (always rendered list on mobile) */}
+                    <div className="md:hidden space-y-3 p-3">
+                      {filteredPayments.map((payment) => (
+                        <PaymentRow
+                          key={payment.id}
+                          payment={payment}
+                          formatCurrency={formatCurrency}
+                          dateLocale={dateLocale}
+                          t={t}
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3">

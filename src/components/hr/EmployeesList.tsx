@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
 import { useViewPreference } from '@/hooks/useViewPreference';
@@ -45,6 +45,11 @@ interface EmployeesListProps {
   onDeactivateEmployee: (id: string) => Promise<Employee>;
   isCreating?: boolean;
   isUpdating?: boolean;
+  /** Optional secondary action (e.g. HR Settings) shown in the toolbar next to Add Employee */
+  settingsAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function EmployeesList({
@@ -58,6 +63,7 @@ export function EmployeesList({
   onDeactivateEmployee,
   isCreating,
   isUpdating,
+  settingsAction,
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
@@ -135,7 +141,7 @@ export function EmployeesList({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Hide ViewSwitcher on mobile */}
           <div className="hidden md:block">
             <ViewSwitcher
@@ -146,6 +152,17 @@ export function EmployeesList({
               showTable={true}
             />
           </div>
+          {settingsAction && (
+            <Button
+              variant="outline"
+              size={isMobile ? "sm" : "default"}
+              onClick={settingsAction.onClick}
+              className="gap-2 shrink-0 hidden md:inline-flex"
+            >
+              <Settings className="h-4 w-4" />
+              <span>{settingsAction.label}</span>
+            </Button>
+          )}
           <Button
             onClick={() => setShowCreateDialog(true)}
             size={isMobile ? "sm" : "default"}

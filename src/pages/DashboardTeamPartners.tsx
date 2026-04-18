@@ -128,8 +128,8 @@ const DashboardTeamPartners = () => {
     <DashboardShell>
       <MobilePageHeader title={t("teamPartners.title")} backTo="/dashboard" />
 
-      <div className="flex-1 p-4 lg:p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8">
+        <div className="w-full">
           {/* Header with actions */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>

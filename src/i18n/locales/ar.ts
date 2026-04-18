@@ -206,6 +206,7 @@ export const ar = {
     salaryPaymentCreated: "تم تسجيل دفعة الراتب بنجاح",
     payroll: {
       title: "كشف الرواتب",
+      subtitle: "إدارة ومتابعة دفعات رواتب الموظفين",
       description: "إدارة ومتابعة دفعات رواتب الموظفين",
       addPayment: "إضافة دفعة",
       totalPaid: "إجمالي المدفوعات",
