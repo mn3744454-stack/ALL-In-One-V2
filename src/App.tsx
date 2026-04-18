@@ -58,6 +58,7 @@ import TenantPublicProfile from "./pages/TenantPublicProfile";
 import NotFound from "./pages/NotFound";
 import AcceptConnectionPage from "./pages/AcceptConnectionPage";
 import DashboardNotificationSettings from "./pages/DashboardNotificationSettings";
+import DashboardNotificationGovernance from "./pages/DashboardNotificationGovernance";
 import DashboardClients from "./pages/DashboardClients";
 import DashboardClientStatement from "./pages/DashboardClientStatement";
 import ForgotPassword from "./pages/ForgotPassword";
