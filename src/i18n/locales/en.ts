@@ -168,6 +168,7 @@ export const en = {
   },
   hr: {
     title: "Team Directory",
+    name: "Name",
     addEmployee: "Add Employee",
     editEmployee: "Edit Employee",
     employeeDetails: "Employee Details",

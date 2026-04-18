@@ -100,7 +100,10 @@ export function AssignHorseDialog({
           <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
               <CommandInput placeholder={t('hr.assignments.searchHorses')} />
-              <CommandList>
+              <CommandList
+                className="max-h-[260px] overflow-y-auto"
+                onWheel={(e) => e.stopPropagation()}
+              >
                 <CommandEmpty>
                   <div className="flex flex-col items-center gap-3 py-6 px-4 text-center">
                     <Heart className="w-8 h-8 text-muted-foreground/40" />
@@ -187,7 +190,7 @@ export function AssignHorseDialog({
           onClick={handleSubmit}
           disabled={!selectedHorseId || !selectedRole || isCreating}
         >
-          {isCreating ? t('common.loading') : t('hr.assignments.addAssignment')}
+          {isCreating ? t('common.loading') : t('hr.assignments.assignHorse')}
         </Button>
       </div>
     </div>

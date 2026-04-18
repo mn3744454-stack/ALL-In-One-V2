@@ -101,8 +101,8 @@ export function EmployeeAssignedHorses({ employeeId, employeeName, employeeUserI
   };
 
   const getGenderLabel = (gender: string) => {
-    if (gender === 'male') return t('horses.genders.stallion') || 'Stallion';
-    if (gender === 'female') return t('horses.genders.mare') || 'Mare';
+    if (gender === 'male') return t('horses.stallion') || 'Stallion';
+    if (gender === 'female') return t('horses.mare') || 'Mare';
     return gender;
   };
 
