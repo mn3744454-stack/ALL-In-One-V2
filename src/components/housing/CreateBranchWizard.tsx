@@ -10,9 +10,9 @@ import { useI18n } from "@/i18n";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
+import { useHousingInvalidation } from "@/hooks/housing/useHousingInvalidation";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import { FacilityCreationForm, FACILITY_CATEGORY, type FacilityFormData } from "./FacilityCreationForm";
 
 interface CreateBranchWizardProps {
@@ -25,7 +25,7 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
   const { createLocation, isCreating } = useLocations();
   const { createArea } = useFacilityAreas();
   const { createUnit } = useHousingUnits();
-  const queryClient = useQueryClient();
+  const { invalidate } = useHousingInvalidation();
 
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,8 +79,8 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
         address: address.trim() || undefined,
       });
       setCreatedBranchId(newBranch.id);
-      queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['expanded-branch-detail'] });
+      // useLocations.createMutation already invalidates the canonical branch
+      // family via the shared helper, so no extra ad-hoc calls are needed here.
       setStep(2);
     } catch (error: any) {
       toast.error(error.message || t('common.error'));
@@ -143,9 +143,10 @@ export function CreateBranchWizard({ open, onOpenChange }: CreateBranchWizardPro
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['expanded-branch-detail'] });
-      queryClient.invalidateQueries({ queryKey: ['facility-areas'] });
+      // Facility + units were created via the canonical hooks above; we still
+      // explicitly refresh the branch+structure+occupancy families here because
+      // a multi-step wizard touches all three domains at once.
+      invalidate(['branch', 'structure', 'occupancy']);
 
       toast.success(t('housing.branchWizard.success'));
       handleClose(false);

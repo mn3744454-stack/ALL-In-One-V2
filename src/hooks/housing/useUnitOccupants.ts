@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
+import { useHousingInvalidation } from './useHousingInvalidation';
 
 export interface UnitOccupant {
   id: string;
@@ -27,6 +28,7 @@ export function useUnitOccupants(unitId?: string) {
   const tenantId = activeTenant?.tenant?.id;
 
   const canManage = activeRole === 'owner' || activeRole === 'manager';
+  const { invalidate } = useHousingInvalidation();
 
   const {
     data: occupants = [],
@@ -89,10 +91,8 @@ export function useUnitOccupants(unitId?: string) {
     },
     onSuccess: () => {
       toast.success(tGlobal('housing.occupants.orphanRemoved'));
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
+      // Orphan removal is a pure occupancy event.
+      invalidate('occupancy');
     },
     onError: (error) => {
       toast.error(error.message);

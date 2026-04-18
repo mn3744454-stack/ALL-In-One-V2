@@ -4,6 +4,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { computeAdmissionChecks, type AdmissionChecks } from './admissionChecks';
+import { useHousingInvalidation } from './useHousingInvalidation';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
@@ -87,6 +88,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
+  const { invalidate } = useHousingInvalidation();
 
   const { data: admissions = [], isLoading } = useQuery({
     queryKey: ['boarding-admissions', tenantId, filters],
@@ -257,11 +259,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     },
     onSuccess: () => {
       toast.success('Admission created successfully');
-      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      // Admission create = admission state + check-in movement + occupancy.
+      invalidate(['admission', 'occupancy', 'movement']);
     },
     onError: (error: Error) => {
       const msg = error.message || 'Failed to create admission';
@@ -311,8 +310,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
+      // Status transition only (active → checkout_pending). No movement, no occupancy yet.
+      invalidate('admission');
     },
   });
 
@@ -403,13 +402,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     },
     onSuccess: () => {
       toast.success('Checkout completed successfully');
-      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['admission-financials', tenantId] });
+      // Checkout = admission close + checkout movement + occupancy release.
+      invalidate(['admission', 'occupancy', 'movement']);
       queryClient.invalidateQueries({ queryKey: ['billing-links', tenantId] });
     },
     onError: (error: Error) => {
@@ -461,8 +455,8 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
     },
     onSuccess: () => {
       toast.success('Admission updated');
-      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['boarding-admission', tenantId] });
+      // Field edits may include unit/area changes → admission + occupancy.
+      invalidate(['admission', 'occupancy']);
     },
   });
 

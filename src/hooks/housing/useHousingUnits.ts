@@ -4,6 +4,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
+import { useHousingInvalidation } from './useHousingInvalidation';
 
 type InternalUnitType = Database['public']['Enums']['internal_unit_type'];
 type OccupancyMode = Database['public']['Enums']['occupancy_mode'];
@@ -86,10 +87,9 @@ export function useHousingUnits(branchId?: string, areaId?: string) {
 
   const activeUnits = units.filter(u => u.is_active && !u.is_archived);
 
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-    queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
-  };
+  const { invalidate } = useHousingInvalidation();
+  // Unit writes are structural and may flip occupancy-derived counters.
+  const invalidateAll = () => invalidate(['structure', 'occupancy']);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateUnitData) => {

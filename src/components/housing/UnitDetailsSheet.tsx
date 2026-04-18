@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -102,7 +102,20 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
 
   const { history, isLoading: historyLoading } = useUnitHistory(unit?.id);
 
-  const { updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
+  const { units: liveUnits, updateUnit, setUnitStatus, archiveUnit, restoreUnit, deleteUnit, toggleUnitActive } = useHousingUnits();
+
+  // Defensive survival guard: when the canonical helper refreshes housing-units
+  // (e.g. another user or another tab archives/deletes this unit), the parent
+  // grid drops it but our `unit` prop is a stale snapshot. Detect that the
+  // unit no longer exists in the live cache and close the sheet cleanly so we
+  // never render against vanished data.
+  useEffect(() => {
+    if (!open || !unit?.id || liveUnits.length === 0) return;
+    const stillExists = liveUnits.some(u => u.id === unit.id);
+    if (!stillExists) {
+      onOpenChange(false);
+    }
+  }, [open, unit?.id, liveUnits, onOpenChange]);
 
   // Fetch active admissions for all occupant horses to detect orphans
   const occupantHorseIds = useMemo(() => occupants.map(o => o.horse_id), [occupants]);

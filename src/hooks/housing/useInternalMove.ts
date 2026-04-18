@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
 import { tGlobal } from '@/i18n';
+import { useHousingInvalidation } from './useHousingInvalidation';
 
 interface InternalMoveParams {
   horseId: string;
@@ -23,6 +24,7 @@ export function useInternalMove() {
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
   const tenantId = activeTenant?.tenant?.id;
+  const { invalidate } = useHousingInvalidation();
 
   const mutation = useMutation({
     mutationFn: async (params: InternalMoveParams) => {
@@ -71,12 +73,8 @@ export function useInternalMove() {
     },
     onSuccess: () => {
       toast.success(tGlobal('housing.occupants.moved'));
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['boarding-admissions', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      // Internal move = physical occupancy change + admission unit_id update + movement record.
+      invalidate(['occupancy', 'movement', 'admission']);
     },
     onError: (error: Error) => {
       toast.error(error.message);
