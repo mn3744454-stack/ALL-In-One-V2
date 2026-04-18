@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useLocations } from "@/hooks/movement/useLocations";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface EditBranchDialogProps {
   branch: { id: string; name: string; name_ar?: string | null; city: string | null; address: string | null };
@@ -19,7 +18,6 @@ interface EditBranchDialogProps {
 export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialogProps) {
   const { t } = useI18n();
   const { updateLocation, isUpdating } = useLocations();
-  const queryClient = useQueryClient();
 
   const [name, setName] = useState(branch.name);
   const [nameAr, setNameAr] = useState(branch.name_ar || "");
@@ -43,8 +41,8 @@ export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialo
       city: city.trim() || undefined,
       address: address.trim() || undefined,
     });
-    queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-    queryClient.invalidateQueries({ queryKey: ['expanded-branch-detail'] });
+    // useLocations already invalidates the canonical branch family via the
+    // shared helper — no extra ad-hoc invalidation needed here.
     onOpenChange(false);
   };
 

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
+import { useHousingInvalidation } from './useHousingInvalidation';
 
 export type FacilityType = 'barn' | 'paddock' | 'arena' | 'isolation' | 'pasture' | 'wash_area' | 'round_pen' | 'storage';
 export const FACILITY_TYPES: FacilityType[] = ['barn', 'paddock', 'arena', 'isolation', 'pasture', 'wash_area', 'round_pen', 'storage'];
@@ -76,11 +77,9 @@ export function useFacilityAreas(branchId?: string) {
 
   const activeAreas = areas.filter(a => a.is_active && !a.is_archived);
 
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['facility-areas', tenantId] });
-    queryClient.invalidateQueries({ queryKey: ['inline-facility-units', tenantId] });
-    queryClient.invalidateQueries({ queryKey: ['facility-all-units-count'] });
-  };
+  const { invalidate } = useHousingInvalidation();
+  // Facility writes are structural; archive/deactivate cascade to units → also occupancy.
+  const invalidateAll = () => invalidate(['structure', 'occupancy']);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateAreaData) => {

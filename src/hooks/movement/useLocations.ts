@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
+import { useHousingInvalidation } from '@/hooks/housing/useHousingInvalidation';
 
 export interface Location {
   id: string;
@@ -46,10 +47,10 @@ export function useLocations() {
 
   const activeLocations = locations.filter(l => l.is_active && !l.is_archived);
 
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['locations', tenantId] });
-    queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-  };
+  const { invalidate } = useHousingInvalidation();
+  // Branch CRUD cascades into facilities/units (deactivate, archive). Always
+  // invalidate branch + structure + occupancy to cover the cascade truthfully.
+  const invalidateAll = () => invalidate(['branch', 'structure', 'occupancy']);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateLocationData) => {

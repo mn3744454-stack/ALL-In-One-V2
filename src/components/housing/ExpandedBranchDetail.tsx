@@ -6,10 +6,11 @@ import {
   Heart, DoorOpen, BarChart3, MapPin, Plus, Loader2, Pencil,
 } from "lucide-react";
 import { useI18n } from "@/i18n";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { useLocations } from "@/hooks/movement/useLocations";
+import { useHousingInvalidation } from "@/hooks/housing/useHousingInvalidation";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { EditBranchDialog } from "./EditBranchDialog";
@@ -48,7 +49,7 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const { toggleLocationActive, archiveLocation, restoreLocation, deleteLocation } = useLocations();
-  const queryClient = useQueryClient();
+  const { invalidate } = useHousingInvalidation();
   const [editOpen, setEditOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -157,11 +158,9 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
   }
   const canDelete = deleteBlockers.length === 0;
 
-  const invalidateAll = () => {
-    queryClient.invalidateQueries({ queryKey: ['locations'] });
-    queryClient.invalidateQueries({ queryKey: ['branch-overview-stats'] });
-    queryClient.invalidateQueries({ queryKey: ['expanded-branch-detail'] });
-  };
+  // Branch lifecycle actions cascade into facilities + units, so refresh the
+  // full canonical branch family via the shared helper.
+  const invalidateAll = () => invalidate(['branch', 'structure', 'occupancy']);
 
   if (isLoading) {
     return (

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { getHousingKeysForScopes, type HousingScope } from '@/hooks/housing/useHousingInvalidation';
 
 /**
  * Mapping from DB table name to the query-key prefixes that should be
@@ -9,7 +10,15 @@ import { useTenant } from '@/contexts/TenantContext';
  * so that any query whose key *starts with* one of these arrays is matched.
  *
  * The tenantId placeholder is injected at runtime.
+ *
+ * For Housing-domain tables, prefix lists are derived from the canonical
+ * scope→key map in `useHousingInvalidation`. This guarantees realtime
+ * events and local mutations invalidate exactly the same canonical
+ * Housing key family — no divergence.
  */
+const housingPrefixes = (tid: string, scopes: HousingScope[]): string[][] =>
+  getHousingKeysForScopes(scopes).map(key => [key, tid]);
+
 const TABLE_TO_PREFIXES: Record<string, (tid: string) => string[][]> = {
   horses:                 (t) => [['horses', t], ['horse', t], ['horse-search', t]],
   horse_ownership:        (t) => [['horses', t], ['horse', t], ['party-horse-links', t]],
@@ -30,14 +39,19 @@ const TABLE_TO_PREFIXES: Record<string, (tid: string) => string[][]> = {
   customer_balances:      (t) => [['customer-balances', t], ['ledger-balances'], ['clients', t]],
   horse_orders:           (t) => [['horse-orders', t]],
   horse_order_events:     (t) => [['order-events', t], ['horse-orders', t]],
-  horse_movements:        (t) => [['horse-movements', t]],
-  incoming_horse_movements: (t) => [['incoming-movements', t]],
-  housing_units:          (t) => [['housing-units', t], ['facility-areas', t]],
-  housing_unit_occupants: (t) => [['unit-occupants', t], ['housing-units', t]],
-  boarding_admissions:    (t) => [['boarding-admissions', t], ['boarding-admission', t]],
-  boarding_status_history:(t) => [['boarding-status-history', t], ['boarding-admissions', t]],
   horse_care_notes:       (t) => [['horse-care-notes', t]],
   stable_service_plans:   (t) => [['stable-service-plans', t]],
+
+  // ─── Housing domain — sourced from the canonical scope→key map ───
+  // The scopes mirror the operational consequences of each table change.
+  branches:                 (t) => housingPrefixes(t, ['branch', 'structure', 'occupancy']),
+  facility_areas:           (t) => housingPrefixes(t, ['structure', 'occupancy']),
+  housing_units:            (t) => housingPrefixes(t, ['structure', 'occupancy']),
+  housing_unit_occupants:   (t) => housingPrefixes(t, ['occupancy']),
+  boarding_admissions:      (t) => housingPrefixes(t, ['admission', 'occupancy']),
+  boarding_status_history:  (t) => housingPrefixes(t, ['admission']),
+  horse_movements:          (t) => housingPrefixes(t, ['movement', 'occupancy']),
+  incoming_horse_movements: (t) => housingPrefixes(t, ['movement']),
 };
 
 /** All 20 realtime-enabled tables */
