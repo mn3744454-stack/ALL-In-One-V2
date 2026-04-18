@@ -280,10 +280,8 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.lifecycle.dispatched'));
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      // Dispatch flips status; same housing/admission consumers care.
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.lifecycle.dispatchFailed'));
