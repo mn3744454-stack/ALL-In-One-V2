@@ -61,6 +61,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
+import { NotificationQuickDetailDialog } from "@/components/notifications/NotificationQuickDetailDialog";
+import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -83,35 +85,9 @@ function getNotificationIcon(eventType: string) {
   return Bell;
 }
 
-function getNotificationRoute(notification: AppNotification): string {
-  const { event_type, entity_id } = notification;
-
-  if (event_type.startsWith("connection.")) {
-    return entity_id
-      ? `/dashboard/team?tab=partners&connectionId=${entity_id}`
-      : "/dashboard/team?tab=partners";
-  }
-
-  if (event_type === "lab_request.message_added") {
-    return `/dashboard/laboratory?tab=requests&requestId=${entity_id}&openThread=true`;
-  }
-
-  if (event_type.startsWith("lab_request.") && entity_id) {
-    return `/dashboard/laboratory?tab=requests&requestId=${entity_id}`;
-  }
-
-  if (event_type.startsWith("boarding.")) {
-    return entity_id
-      ? `/dashboard/housing?tab=admissions&admissionId=${entity_id}`
-      : "/dashboard/housing?tab=admissions";
-  }
-
-  if (event_type.startsWith("movement.")) {
-    return "/dashboard/housing?tab=arrivalsAndDepartures";
-  }
-
-  return "/dashboard";
-}
+// Note: Phase 1 — route resolution is now centralised in
+// src/lib/notifications/routeDescriptor.ts and used by the
+// quick-detail dialog. The panel no longer force-navigates on click.
 
 /**
  * Interpolate i18n template with notification metadata.
