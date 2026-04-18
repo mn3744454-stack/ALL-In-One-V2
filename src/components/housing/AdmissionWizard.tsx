@@ -34,11 +34,14 @@ import { PlanIncludedServicesDisplay } from "@/components/services/PlanIncludedS
 import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Heart, User, Building2, DoorOpen, CreditCard, FileText, Package, Plus, UserPlus, Users, X } from "lucide-react";
 import { QuickCreateHorseDialog } from "./QuickCreateHorseDialog";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { QuickCreatePackageDialog } from "./QuickCreatePackageDialog";
 import { useClients } from "@/hooks/useClients";
+import { useEmployees } from "@/hooks/hr/useEmployees";
+import { ASSIGNMENT_ROLES } from "@/hooks/hr/useHorseAssignments";
+import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from "@/components/hr/QuickCreateEmployeeDialog";
 
 interface AdmissionWizardProps {
   open: boolean;
@@ -84,8 +87,13 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [clientFormOpen, setClientFormOpen] = useState(false);
   const [packageCreateOpen, setPackageCreateOpen] = useState(false);
+  const [quickCreateEmployeeOpen, setQuickCreateEmployeeOpen] = useState(false);
+  const [pendingEmpRowIndex, setPendingEmpRowIndex] = useState<number | null>(null);
+  // Phase C (Image 27): in-flow staff assignment rows
+  const [staffRows, setStaffRows] = useState<Array<{ employee_id: string; role: string }>>([]);
   const { createClient } = useClients();
   const { createAdmission, isCreating } = useBoardingAdmissions();
+  const { employees } = useEmployees();
   const { areas } = useFacilityAreas();
   const { units } = useHousingUnits();
   const { activePlans } = useStableServicePlans();
