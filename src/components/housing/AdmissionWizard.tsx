@@ -885,6 +885,8 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       }}
     />
   );
+
+  if (isMobile) {
     return (
       <>
         <Drawer open={open} onOpenChange={onOpenChange}>
@@ -898,6 +900,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
         {quickCreateDialog}
         {clientDialog}
         {packageDialog}
+        {quickCreateEmployeeDialog}
       </>
     );
   }
