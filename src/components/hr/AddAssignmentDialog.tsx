@@ -41,8 +41,9 @@ import {
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { BilingualName } from '@/components/ui/BilingualName';
-import { Check, ChevronsUpDown, Search } from 'lucide-react';
+import { Check, ChevronsUpDown, Search, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from '@/components/hr/QuickCreateEmployeeDialog';
 
 interface AddAssignmentDialogProps {
   open: boolean;
