@@ -109,7 +109,7 @@ function NotificationCard({
   const titleRaw = t(titleKey);
   const hasI18nTitle = titleRaw !== titleKey;
   const displayTitle = hasI18nTitle
-    ? interpolateTemplate(titleRaw, notification)
+    ? interpolateNotificationTemplate(titleRaw, notification)
     : notification.title;
 
   // Resolve body: i18n key with interpolation → fallback to DB body
@@ -117,7 +117,7 @@ function NotificationCard({
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
   // Only use interpolated body if it produces meaningful content (not just empty placeholders)
-  const interpolatedBody = hasI18nBody ? interpolateTemplate(bodyRaw, notification) : '';
+  const interpolatedBody = hasI18nBody ? interpolateNotificationTemplate(bodyRaw, notification) : '';
   const displayBody = hasI18nBody && interpolatedBody.replace(/·/g, '').trim()
     ? interpolatedBody
     : notification.body;
