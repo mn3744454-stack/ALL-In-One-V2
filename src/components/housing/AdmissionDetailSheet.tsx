@@ -75,6 +75,16 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const { clients } = useClients();
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
+  const [assignStaffOpen, setAssignStaffOpen] = useState(false);
+
+  // Phase C: assigned team for this admission's horse
+  const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
+  const assignedStaffCount = horseAssignments.length;
+  const assignedStaffNames = horseAssignments
+    .slice(0, 2)
+    .map((a) => (lang === 'ar' && a.employee?.full_name_ar ? a.employee.full_name_ar : a.employee?.full_name))
+    .filter(Boolean) as string[];
+  const existingEmployeeIds = horseAssignments.map((a) => a.employee_id);
 
   // Billing links for this admission
   const { links: billingLinks, isLoading: billingLinksLoading } = useBillingLinks("boarding", admissionId || undefined);
