@@ -30,6 +30,10 @@ import { tStatus } from "@/i18n/labels";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/hooks/useNotifications";
 import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
+import {
+  getNotificationIcon,
+  interpolateNotificationTemplate,
+} from "@/lib/notifications/helpers";
 
 interface Props {
   notification: AppNotification | null;
@@ -70,13 +74,15 @@ export function NotificationQuickDetailDialog({
   const titleRaw = t(titleKey);
   const hasI18nTitle = titleRaw !== titleKey;
   const displayTitle = hasI18nTitle
-    ? interpolate(titleRaw, notification)
+    ? interpolateNotificationTemplate(titleRaw, notification)
     : notification.title;
 
   const bodyKey = `notifications.events.${safeEventType}.body`;
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
-  const interpolatedBody = hasI18nBody ? interpolate(bodyRaw, notification) : "";
+  const interpolatedBody = hasI18nBody
+    ? interpolateNotificationTemplate(bodyRaw, notification)
+    : "";
   const displayBody =
     hasI18nBody && interpolatedBody.replace(/·/g, "").trim()
       ? interpolatedBody
