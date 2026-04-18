@@ -61,6 +61,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
+import { NotificationQuickDetailDialog } from "@/components/notifications/NotificationQuickDetailDialog";
+import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -83,35 +85,9 @@ function getNotificationIcon(eventType: string) {
   return Bell;
 }
 
-function getNotificationRoute(notification: AppNotification): string {
-  const { event_type, entity_id } = notification;
-
-  if (event_type.startsWith("connection.")) {
-    return entity_id
-      ? `/dashboard/team?tab=partners&connectionId=${entity_id}`
-      : "/dashboard/team?tab=partners";
-  }
-
-  if (event_type === "lab_request.message_added") {
-    return `/dashboard/laboratory?tab=requests&requestId=${entity_id}&openThread=true`;
-  }
-
-  if (event_type.startsWith("lab_request.") && entity_id) {
-    return `/dashboard/laboratory?tab=requests&requestId=${entity_id}`;
-  }
-
-  if (event_type.startsWith("boarding.")) {
-    return entity_id
-      ? `/dashboard/housing?tab=admissions&admissionId=${entity_id}`
-      : "/dashboard/housing?tab=admissions";
-  }
-
-  if (event_type.startsWith("movement.")) {
-    return "/dashboard/housing?tab=arrivalsAndDepartures";
-  }
-
-  return "/dashboard";
-}
+// Note: Phase 1 — route resolution is now centralised in
+// src/lib/notifications/routeDescriptor.ts and used by the
+// quick-detail dialog. The panel no longer force-navigates on click.
 
 /**
  * Interpolate i18n template with notification metadata.
@@ -250,7 +226,6 @@ function NotificationCard({
 // ─── Notifications sub-content ────────────────────────────
 
 function NotificationsTabContent() {
-  const navigate = useNavigate();
   const { t } = useI18n();
   const {
     notifications,
@@ -260,18 +235,25 @@ function NotificationsTabContent() {
     deleteNotification,
   } = useNotifications();
 
+  // Phase 1 — quick-detail-first interaction.
+  // Clicking a notification opens the dialog instead of forcing navigation.
+  const [activeNotification, setActiveNotification] =
+    useState<AppNotification | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const unreadNotifications = notifications.filter((n) => !n.is_read);
   const readNotifications = notifications.filter((n) => n.is_read);
 
   const handleClick = (notification: AppNotification) => {
-    if (!notification.is_read) {
-      markAsRead.mutate(notification.id);
-    }
-    const route = getNotificationRoute(notification);
-    navigate(route);
+    setActiveNotification(notification);
+    setDetailOpen(true);
+    // Note: mark-as-read now fires inside the dialog on open,
+    // not on bare card click — so quickly peeking the bell list
+    // no longer silently clears unread state.
   };
 
   return (
+    <>
     <Tabs defaultValue="unread" className="mt-2">
       <TabsList className="w-full">
         <TabsTrigger value="unread" className="flex-1 gap-1 text-xs">
@@ -350,6 +332,14 @@ function NotificationsTabContent() {
         </ScrollArea>
       </TabsContent>
     </Tabs>
+
+    <NotificationQuickDetailDialog
+      notification={activeNotification}
+      open={detailOpen}
+      onOpenChange={setDetailOpen}
+      onMarkRead={(id) => markAsRead.mutate(id)}
+    />
+    </>
   );
 }
 
