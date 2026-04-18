@@ -148,6 +148,34 @@ const DashboardOrganizationSettings = () => {
             </CardHeader>
           </Card>
 
+          {/* Notification Governance Card — owner/manager only */}
+          {(activeRole === "owner" || activeRole === "manager") && (
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <BellRing className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle>{t("notifications.governance.cardTitle")}</CardTitle>
+                      <CardDescription>
+                        {t("notifications.governance.cardDesc")}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => navigate("/dashboard/settings/notifications/governance")}
+                    className="gap-2"
+                  >
+                    {t("settings.permissionsRoles.open")}
+                    <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          )}
+
           {/* Connections & Sharing Card */}
           {(activeRole === "owner" || activeRole === "manager") && (
             <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">

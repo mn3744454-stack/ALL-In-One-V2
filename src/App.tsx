@@ -519,6 +519,16 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/settings/notifications/governance"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardNotificationGovernance />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/schedule"
         element={
           <ProtectedRoute>
