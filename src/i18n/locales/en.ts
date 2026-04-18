@@ -5125,6 +5125,12 @@ export const en = {
       direction: "Direction",
       when: "When",
     },
+    direction: {
+      in: "Incoming",
+      out: "Outgoing",
+      transfer: "Transfer",
+    },
+    notFound: "That notification's record is no longer available here.",
     severity: {
       info: "Info",
       success: "Done",

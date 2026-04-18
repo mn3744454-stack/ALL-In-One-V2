@@ -5122,6 +5122,12 @@ export const ar = {
       direction: "الاتجاه",
       when: "متى",
     },
+    direction: {
+      in: "وارد",
+      out: "صادر",
+      transfer: "نقل",
+    },
+    notFound: "السجل المرتبط بهذا الإشعار لم يعد متاحاً هنا.",
     severity: {
       info: "معلومة",
       success: "تم",
