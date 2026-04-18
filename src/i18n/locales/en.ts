@@ -5137,6 +5137,58 @@ export const en = {
       warning: "Action",
       critical: "Urgent",
     },
+    controlCenter: {
+      title: "Notification Control Center",
+      description: "Tune how each kind of notification reaches you. Start from a preset, then refine.",
+      presetSection: "Starting preset",
+      presetSectionDesc: "Pick a profile that matches how you work. You can fine-tune below afterwards.",
+      familySection: "Per-area control",
+      familySectionDesc: "Choose how loud each notification family should be for you.",
+      currentPreset: "Current preset",
+      activePreset: "Active",
+      switchedToCustom: "Switched to Custom",
+      presetApplied: "Preset applied",
+    },
+    levels: {
+      all: "All updates",
+      important: "Important only",
+      critical: "Critical only",
+      off: "Off",
+      allDesc: "Receive every event in this area.",
+      importantDesc: "Only events that need attention or are urgent.",
+      criticalDesc: "Only urgent events.",
+      offDesc: "Mute this area completely.",
+    },
+    presets: {
+      all: {
+        label: "All notifications",
+        description: "Get everything across every area. Recommended when you're running things end-to-end.",
+      },
+      leadership: {
+        label: "Leadership",
+        description: "Stay across partnerships fully; get only important signals from operations.",
+      },
+      operations: {
+        label: "Operations",
+        description: "Day-to-day stable floor focus: movements and admissions front-and-center.",
+      },
+      lab: {
+        label: "Laboratory",
+        description: "Focus on lab requests and results; mute most other areas.",
+      },
+      finance: {
+        label: "Finance",
+        description: "Focus on partnerships and admission billing signals; mute clinical chatter.",
+      },
+      minimal: {
+        label: "Minimal",
+        description: "Only urgent events from each area. Quietest setting.",
+      },
+      custom: {
+        label: "Custom",
+        description: "Your own per-area mix.",
+      },
+    },
     noUnread: "No unread notifications",
     noRead: "No read notifications",
     noInvitations: "No pending invitations",

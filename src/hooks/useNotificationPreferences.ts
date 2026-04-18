@@ -2,6 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+import type {
+  FamilyPreferencesMap,
+  PresetId,
+} from "@/lib/notifications/presets";
+
 export interface NotificationPreferences {
   id: string;
   user_id: string;
@@ -14,6 +19,10 @@ export interface NotificationPreferences {
   quiet_start: string | null;
   quiet_end: string | null;
   quiet_timezone: string;
+  /** Phase 3 — personal preset starting point. */
+  preset: PresetId;
+  /** Phase 3 — per-family delivery levels. */
+  family_preferences: FamilyPreferencesMap;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +37,9 @@ const DEFAULT_PREFS: Omit<NotificationPreferences, "id" | "user_id" | "created_a
   quiet_start: null,
   quiet_end: null,
   quiet_timezone: "Asia/Riyadh",
+  // Phase 3 founder/bootstrap default: everything on, no per-family overrides.
+  preset: "all",
+  family_preferences: {},
 };
 
 export function useNotificationPreferences() {
