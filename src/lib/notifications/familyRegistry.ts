@@ -35,6 +35,10 @@ export type NotificationSeverity = "info" | "success" | "warning" | "critical";
  * pair, pulling from notification.metadata. Cards/dialogs only ever ask the
  * registry "which chips, in which order?" — they never inspect metadata
  * shape directly.
+ *
+ * Note: time/freshness ("when") is intentionally NOT a chip id — every card
+ * and dialog already renders a live `formatDistanceToNow` row separately,
+ * so a redundant chip would only add noise.
  */
 export type SummaryChipId =
   | "status"
@@ -43,8 +47,7 @@ export type SummaryChipId =
   | "actorTenant"
   | "entityLabel"
   | "messagePreview"
-  | "direction" // movement-specific (in/out/transfer)
-  | "when";
+  | "direction"; // movement-specific (in/out/transfer)
 
 export interface FamilyConfig {
   family: NotificationFamily;
@@ -78,7 +81,7 @@ const FAMILY_REGISTRY: Record<NotificationFamily, FamilyConfig> = {
       "connection.accepted": "success",
       "connection.rejected": "info",
     },
-    summaryChips: ["actorTenant", "status", "when"],
+    summaryChips: ["actorTenant", "status"],
   },
   lab_request: {
     family: "lab_request",
@@ -96,7 +99,6 @@ const FAMILY_REGISTRY: Record<NotificationFamily, FamilyConfig> = {
       "status",
       "entityLabel",
       "messagePreview",
-      "when",
     ],
   },
   boarding: {
@@ -109,7 +111,7 @@ const FAMILY_REGISTRY: Record<NotificationFamily, FamilyConfig> = {
       "boarding.checkout_initiated": "warning",
       "boarding.checkout_completed": "success",
     },
-    summaryChips: ["horse", "status", "actorTenant", "when"],
+    summaryChips: ["horse", "status", "actorTenant"],
   },
   movement: {
     family: "movement",
@@ -122,14 +124,14 @@ const FAMILY_REGISTRY: Record<NotificationFamily, FamilyConfig> = {
       "movement.incoming_pending": "warning",
       "movement.incoming_confirmed": "success",
     },
-    summaryChips: ["horse", "direction", "actorTenant", "when"],
+    summaryChips: ["horse", "direction", "actorTenant"],
   },
   generic: {
     family: "generic",
     icon: Bell,
     labelKey: "notifications.families.generic",
     defaultSeverity: "info",
-    summaryChips: ["actorTenant", "when"],
+    summaryChips: ["actorTenant"],
   },
 };
 
@@ -163,9 +165,10 @@ export function getEventSeverity(eventType: string): NotificationSeverity {
 }
 
 /**
- * Tailwind class fragments for severity. Kept as plain class strings so the
- * card and dialog can compose them without importing yet another helper.
- * All colors come from the design-system semantic tokens.
+ * Tailwind class fragments for severity. All colors come from the
+ * design-system semantic tokens defined in `index.css` / `tailwind.config.ts`
+ * (`--primary`, `--success`, `--warning`, `--destructive`) so light/dark
+ * theming and brand changes propagate automatically — no raw palette names.
  */
 export const SEVERITY_STYLES: Record<
   NotificationSeverity,
@@ -178,16 +181,16 @@ export const SEVERITY_STYLES: Record<
     iconFg: "text-primary",
   },
   success: {
-    accent: "border-l-emerald-500/70",
-    chip: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:text-emerald-400",
-    iconBg: "bg-emerald-500/10",
-    iconFg: "text-emerald-600 dark:text-emerald-400",
+    accent: "border-l-success/70",
+    chip: "bg-success/10 text-success border-success/20",
+    iconBg: "bg-success/10",
+    iconFg: "text-success",
   },
   warning: {
-    accent: "border-l-amber-500/70",
-    chip: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:text-amber-400",
-    iconBg: "bg-amber-500/10",
-    iconFg: "text-amber-600 dark:text-amber-400",
+    accent: "border-l-warning/70",
+    chip: "bg-warning/10 text-warning border-warning/20",
+    iconBg: "bg-warning/10",
+    iconFg: "text-warning",
   },
   critical: {
     accent: "border-l-destructive/70",

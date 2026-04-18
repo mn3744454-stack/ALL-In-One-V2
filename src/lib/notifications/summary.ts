@@ -1,5 +1,5 @@
 /**
- * Smart Summary Resolver — Phase 2.
+ * Smart Summary Resolver — Phase 2 (post-corrective).
  *
  * Turns a notification + its family config into an ordered list of typed
  * summary chips. Cards render a capped subset; dialogs render the full set.
@@ -9,6 +9,14 @@
  *   - Adding metadata fields in the future is a one-line change here.
  *   - Phase 3 (control center) and Phase 4 (governance presets) will read
  *     the same chip schema to render preview UIs without duplicating logic.
+ *
+ * Corrective-pass note (post-Phase-2 audit):
+ *   - The dead `"when"` chip slot was removed everywhere. Time/freshness is
+ *     already rendered separately by every surface via `formatDistanceToNow`,
+ *     so a chip would have been redundant noise.
+ *   - The `direction` chip now resolves to a localized label (e.g.
+ *     "Incoming" / "وارد") via the `t()` lookup the caller passes in,
+ *     instead of leaking raw "in" / "out" tokens to users.
  */
 
 import type { AppNotification } from "@/hooks/useNotifications";
@@ -36,6 +44,13 @@ interface ResolveOpts {
    * If a number, caps the result at that count (card mode, typically 2).
    */
   limit?: number | "all";
+  /**
+   * Optional translator. When provided, chip values that need localization
+   * (currently only `direction`) will be passed through it. When omitted,
+   * the resolver falls back to the raw token so callers without an i18n
+   * context still get *something* renderable.
+   */
+  t?: (key: string) => string;
 }
 
 const TONE_BY_CHIP: Record<SummaryChipId, SummaryChipTone> = {
@@ -46,7 +61,6 @@ const TONE_BY_CHIP: Record<SummaryChipId, SummaryChipTone> = {
   entityLabel: "ref",
   messagePreview: "neutral",
   direction: "status",
-  when: "neutral",
 };
 
 const LABEL_KEY_BY_CHIP: Record<SummaryChipId, string> = {
@@ -57,14 +71,16 @@ const LABEL_KEY_BY_CHIP: Record<SummaryChipId, string> = {
   entityLabel: "notifications.reference",
   messagePreview: "notifications.summary.message",
   direction: "notifications.summary.direction",
-  when: "notifications.summary.when",
 };
 
 /**
  * Movement direction is encoded in event_type (in/out/transfer). The
  * resolver derives a localized label from it so the chip is self-contained.
  */
-function deriveDirectionLabel(notification: AppNotification): string {
+function deriveDirectionLabel(
+  notification: AppNotification,
+  t?: (key: string) => string
+): string {
   const meta = notification.metadata as Record<string, unknown> | null;
   const direction =
     (meta?.movement_type as string | undefined) ??
@@ -74,12 +90,19 @@ function deriveDirectionLabel(notification: AppNotification): string {
           notification.event_type.includes("scheduled")
         ? "out"
         : undefined);
-  return direction ?? "";
+  if (!direction) return "";
+  if (!t) return direction; // graceful fallback — never block render
+  const key = `notifications.direction.${direction}`;
+  const translated = t(key);
+  // If the i18n lookup misses, fall back to the raw token rather than
+  // leaking the bare key to users.
+  return translated === key ? direction : translated;
 }
 
 function resolveValue(
   id: SummaryChipId,
-  notification: AppNotification
+  notification: AppNotification,
+  t?: (key: string) => string
 ): string {
   const meta = (notification.metadata || {}) as Record<string, unknown>;
   switch (id) {
@@ -99,13 +122,7 @@ function resolveValue(
       return raw.length > 60 ? raw.slice(0, 57) + "…" : raw;
     }
     case "direction":
-      return deriveDirectionLabel(notification);
-    case "when":
-      // Time chips are rendered separately by the card/dialog (with an icon
-      // and live `formatDistanceToNow`); we expose the chip schema slot
-      // here so future surfaces can opt in, but resolveSummaryChips will
-      // skip it by default.
-      return "";
+      return deriveDirectionLabel(notification, t);
     default:
       return "";
   }
@@ -122,8 +139,7 @@ export function resolveSummaryChips(
   const cfg = getFamilyConfig(notification.event_type);
   const out: SummaryChip[] = [];
   for (const id of cfg.summaryChips) {
-    if (id === "when") continue; // rendered separately
-    const value = resolveValue(id, notification);
+    const value = resolveValue(id, notification, opts.t);
     if (!value) continue;
     out.push({
       id,

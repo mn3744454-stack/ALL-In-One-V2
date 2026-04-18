@@ -4,6 +4,7 @@ import { useLabSubmissions } from "@/hooks/laboratory/useLabSubmissions";
 import { LabSubmissionCard } from "./LabSubmissionCard";
 import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -960,24 +961,22 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-requests');
 
-  // Deep-link support: open request detail from URL params (requestId, openThread)
-  useEffect(() => {
-    const requestId = searchParams.get('requestId');
-    const openThread = searchParams.get('openThread');
-    if (requestId && requests.length > 0) {
-      const found = requests.find(r => r.id === requestId);
-      if (found) {
-        setDetailRequest(found);
-        setDetailDefaultTab(openThread === 'true' ? 'thread' : 'details');
-        setDetailOpen(true);
-        // Clean up URL params after opening
-        const next = new URLSearchParams(searchParams);
-        next.delete('requestId');
-        next.delete('openThread');
-        setSearchParams(next, { replace: true });
-      }
-    }
-  }, [searchParams, requests]);
+  // Phase 2 corrective: shared deep-link hook handles miss-toast + URL
+  // cleanup. We still need `openThread` to pick the right detail tab,
+  // so we read it once inside `onFound`.
+  useNotificationDeepLink<LabRequest>({
+    paramKey: "requestId",
+    isLoading: loading,
+    items: requests,
+    getId: (r) => r.id,
+    extraParamsToClear: ["entityType", "entityId", "open", "openThread"],
+    onFound: (found) => {
+      const openThread = searchParams.get("openThread");
+      setDetailRequest(found);
+      setDetailDefaultTab(openThread === "true" ? "thread" : "details");
+      setDetailOpen(true);
+    },
+  });
 
   const handleOpenDetail = (request: LabRequest, tab?: string) => {
     setDetailRequest(request);

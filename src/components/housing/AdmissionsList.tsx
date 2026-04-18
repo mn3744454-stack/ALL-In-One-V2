@@ -24,6 +24,7 @@ import { AdmissionDetailSheet } from "./AdmissionDetailSheet";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
@@ -80,18 +81,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     search: search || undefined,
   });
 
-  // Deep-link: open specific admission from notification
-  useEffect(() => {
-    const admissionId = searchParams.get('admissionId');
-    if (!admissionId || isLoading || !allAdmissions.length) return;
-    const found = allAdmissions.find(a => a.id === admissionId);
-    if (found) {
-      setSelectedAdmissionId(found.id);
-    }
-    const next = new URLSearchParams(searchParams);
-    next.delete('admissionId');
-    setSearchParams(next, { replace: true });
-  }, [searchParams, isLoading, allAdmissions, setSearchParams]);
+  // Phase 2 corrective: shared deep-link hook handles miss-toast + URL
+  // cleanup. Replaces an ad-hoc useEffect that silently no-op'd when the
+  // target admission was filtered out of the current list.
+  useNotificationDeepLink<BoardingAdmission>({
+    paramKey: "admissionId",
+    isLoading,
+    items: allAdmissions,
+    getId: (a) => a.id,
+    onFound: (a) => setSelectedAdmissionId(a.id),
+  });
 
   const branchFiltered = useMemo(() => 
     branchId ? allAdmissions.filter(a => a.branch_id === branchId) : allAdmissions,

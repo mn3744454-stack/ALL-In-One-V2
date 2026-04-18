@@ -132,7 +132,7 @@ function NotificationCard({
   });
 
   // Smart summary — capped to 2 chips on the card to stay scannable.
-  const chips = resolveSummaryChips(notification, { limit: 2 });
+  const chips = resolveSummaryChips(notification, { limit: 2, t });
 
   return (
     <Card
