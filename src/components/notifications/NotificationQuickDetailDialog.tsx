@@ -30,10 +30,7 @@ import { tStatus } from "@/i18n/labels";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/hooks/useNotifications";
 import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
-import {
-  getNotificationIcon,
-  interpolateNotificationTemplate,
-} from "@/lib/notifications/helpers";
+import { interpolateNotificationTemplate } from "@/lib/notifications/helpers";
 
 interface Props {
   notification: AppNotification | null;
