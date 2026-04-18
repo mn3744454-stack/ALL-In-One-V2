@@ -574,6 +574,9 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
                 onChange={e => setForm(f => ({ ...f, emergencyContact: e.target.value }))}
                 placeholder={t('housing.admissions.wizard.emergencyContactPlaceholder')}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('housing.admissions.detail.emergencyContactHelp')}
+              </p>
             </div>
             <div>
               <Label>{t('housing.admissions.wizard.specialInstructions')}</Label>
