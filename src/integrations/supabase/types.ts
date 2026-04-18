@@ -4412,6 +4412,7 @@ export type Database = {
           employee_type_custom: string | null
           employment_kind: string
           full_name: string
+          full_name_ar: string | null
           id: string
           is_active: boolean
           job_title: string | null
@@ -4440,6 +4441,7 @@ export type Database = {
           employee_type_custom?: string | null
           employment_kind?: string
           full_name: string
+          full_name_ar?: string | null
           id?: string
           is_active?: boolean
           job_title?: string | null
@@ -4468,6 +4470,7 @@ export type Database = {
           employee_type_custom?: string | null
           employment_kind?: string
           full_name?: string
+          full_name_ar?: string | null
           id?: string
           is_active?: boolean
           job_title?: string | null
