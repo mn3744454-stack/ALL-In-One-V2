@@ -204,8 +204,7 @@ function FamilySection({
   const rows = useMemo(
     () =>
       CONTROLLABLE_FAMILIES.map((family) => {
-        // Use a stable event prefix to resolve config (no real event needed).
-        const cfg = getFamilyConfig(`${family}.x`);
+        const cfg = getFamilyConfigByName(family);
         const sev = SEVERITY_STYLES[cfg.defaultSeverity];
         return { family, cfg, sev };
       }),
