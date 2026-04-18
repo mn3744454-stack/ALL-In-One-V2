@@ -132,7 +132,7 @@ export function useEmployees() {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Employee[];
+      return (data as unknown) as Employee[];
     },
     enabled: !!tenantId,
   });
@@ -141,6 +141,23 @@ export function useEmployees() {
   const createMutation = useMutation({
     mutationFn: async (data: CreateEmployeeData) => {
       if (!tenantId || !user?.id) throw new Error('No active tenant or user');
+
+      // Reconcile structured phones with the legacy single-phone mirror.
+      // - If structured `phones` is provided, it is canonical and the legacy
+      //   `phone` mirrors the primary entry.
+      // - If only legacy `phone` is provided (e.g. QuickCreate), persist it
+      //   on both columns so structured consumers stay consistent.
+      const structuredPhones = Array.isArray(data.phones)
+        ? data.phones.filter(p => p.number?.trim())
+        : null;
+      const legacyPhone = structuredPhones && structuredPhones.length > 0
+        ? derivePrimaryPhone(structuredPhones)
+        : (data.phone?.trim() || null);
+      const phonesToWrite: PhoneEntry[] | null = structuredPhones && structuredPhones.length > 0
+        ? structuredPhones
+        : (legacyPhone
+            ? [{ number: legacyPhone, label: 'mobile', is_whatsapp: false, is_primary: true }]
+            : null);
 
       const { data: result, error } = await supabase
         .from('hr_employees')
@@ -152,7 +169,8 @@ export function useEmployees() {
           employee_type: data.employee_type,
           employee_type_custom: data.employee_type === 'other' ? data.employee_type_custom : null,
           department: data.department || null,
-          phone: data.phone || null,
+          phone: legacyPhone,
+          phones: (phonesToWrite ?? []) as unknown as never,
           email: data.email || null,
           notes: data.notes || null,
           tags: data.tags || [],
@@ -171,7 +189,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
