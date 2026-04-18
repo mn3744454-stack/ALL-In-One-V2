@@ -116,7 +116,11 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const [editNumValue, setEditNumValue] = useState<number | null>(null);
 
   const checks = admission?.admission_checks || {};
-  const warnings = Object.entries(checks).filter(([, v]: [string, any]) => v?.status === 'warning');
+  const baseWarnings = Object.entries(checks).filter(([, v]: [string, any]) => v?.status === 'warning');
+  // Phase C: synthesize team_assigned warning if no staff assigned to this horse
+  const warnings: Array<[string, any]> = admission && assignedStaffCount === 0
+    ? [...baseWarnings, ['team_assigned', { status: 'warning', message: 'No staff assigned' }]]
+    : baseWarnings;
 
   const isEditable = admission && !['checked_out', 'cancelled'].includes(admission.status);
 
