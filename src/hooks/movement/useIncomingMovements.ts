@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useHousingInvalidation } from '@/hooks/housing/useHousingInvalidation';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
@@ -33,7 +34,7 @@ const fromTable = (table: string) => (supabase as any).from(table);
 
 export function useIncomingMovements(statusFilter?: string) {
   const { activeTenant, activeRole } = useTenant();
-  const queryClient = useQueryClient();
+  const { invalidate } = useHousingInvalidation();
   const tenantId = activeTenant?.tenant?.id;
 
   const canManage = activeRole === 'owner' || activeRole === 'manager';
@@ -72,8 +73,9 @@ export function useIncomingMovements(statusFilter?: string) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.incoming.confirmed'));
-      queryClient.invalidateQueries({ queryKey: ['incoming-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      // Confirming an incoming movement materializes the inbound housing leg
+      // and may auto-create/activate a local admission for the arriving horse.
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.incoming.confirmFailed'));
@@ -91,7 +93,9 @@ export function useIncomingMovements(statusFilter?: string) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.incoming.cancelled'));
-      queryClient.invalidateQueries({ queryKey: ['incoming-movements', tenantId] });
+      // Cancellation only affects the incoming pipeline + eligibility surfaces;
+      // no occupancy or admission state changes.
+      invalidate(['movement']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.incoming.cancelFailed'));

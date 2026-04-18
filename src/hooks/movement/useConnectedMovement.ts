@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useHousingInvalidation } from '@/hooks/housing/useHousingInvalidation';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 
@@ -16,7 +17,7 @@ export interface RecordConnectedMovementData {
 
 export function useConnectedMovement() {
   const { activeTenant } = useTenant();
-  const queryClient = useQueryClient();
+  const { invalidate } = useHousingInvalidation();
   const tenantId = activeTenant?.tenant?.id;
 
   const mutation = useMutation({
@@ -39,11 +40,9 @@ export function useConnectedMovement() {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.toasts.movementRecorded'));
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['incoming-movements'] });
+      // B2B connected movement: outbound housing leg + inbound mirror at recipient.
+      // Locally affects movement lists, occupancy, and admission state.
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       const msg = error.message;

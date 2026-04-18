@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useHousingInvalidation } from '@/hooks/housing/useHousingInvalidation';
 import { tGlobal } from '@/i18n';
 import { toast } from 'sonner';
 import { startOfDay, startOfWeek, endOfDay } from 'date-fns';
@@ -132,7 +133,7 @@ const MOVEMENT_SELECT = `
 
 export function useHorseMovements(filters: MovementFilters = {}) {
   const { activeTenant, activeRole } = useTenant();
-  const queryClient = useQueryClient();
+  const { invalidate } = useHousingInvalidation();
   const tenantId = activeTenant?.tenant?.id;
 
   const canManage = activeRole === 'owner' || activeRole === 'manager';
@@ -242,10 +243,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         ? tGlobal('movement.lifecycle.scheduled')
         : tGlobal('movement.toasts.movementRecorded');
       toast.success(msg);
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      // A recorded movement can affect movement lists, occupancy (housing legs),
+      // and admission state (admission-linked check-in/out movements).
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       const msg = error.message;
@@ -279,10 +279,8 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.lifecycle.dispatched'));
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      // Dispatch flips status; same housing/admission consumers care.
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.lifecycle.dispatchFailed'));
