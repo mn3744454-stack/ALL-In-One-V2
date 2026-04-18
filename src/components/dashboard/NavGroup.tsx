@@ -20,6 +20,13 @@ interface NavGroupProps {
   tooltipSide?: "left" | "right";
 }
 
+/** Parent routes that must be matched exactly to avoid false-positive
+ *  prefix highlighting against deeper child routes. */
+const EXACT_MATCH_ONLY_HREFS = new Set<string>([
+  "/dashboard",
+  "/dashboard/hr",
+]);
+
 /** Supports both path-based and query-param-based active detection */
 const isHrefActive = (pathname: string, search: string, href: string) => {
   const qIdx = href.indexOf('?');
@@ -27,6 +34,9 @@ const isHrefActive = (pathname: string, search: string, href: string) => {
     const hrefPath = href.substring(0, qIdx);
     const hrefSearch = href.substring(qIdx);
     return pathname === hrefPath && search === hrefSearch;
+  }
+  if (EXACT_MATCH_ONLY_HREFS.has(href)) {
+    return pathname === href;
   }
   return pathname === href || pathname.startsWith(href + "/");
 };
