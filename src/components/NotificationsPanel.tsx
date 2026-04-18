@@ -62,6 +62,12 @@ import {
   getNotificationIcon,
   interpolateNotificationTemplate,
 } from "@/lib/notifications/helpers";
+import {
+  getEventSeverity,
+  getFamilyConfig,
+  SEVERITY_STYLES,
+} from "@/lib/notifications/familyRegistry";
+import { resolveSummaryChips } from "@/lib/notifications/summary";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
