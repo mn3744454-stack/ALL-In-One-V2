@@ -73,6 +73,7 @@ import { resolveDelivery } from "@/lib/notifications/policy";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { useTenantNotificationGovernance } from "@/hooks/useTenantNotificationGovernance";
 import { useTenant } from "@/contexts/TenantContext";
+import { useViewerIsLeadership } from "@/hooks/notifications/useViewerIsLeadership";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
