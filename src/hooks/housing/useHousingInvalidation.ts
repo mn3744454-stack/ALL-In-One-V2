@@ -112,7 +112,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
 function resolveKeys(scopes: HousingScope[]): string[] {
   if (scopes.includes('all')) {
     const all = new Set<string>();
-    (Object.values(KEY_MAP) as readonly string[][]).forEach(family => {
+    Object.values(KEY_MAP).forEach(family => {
       family.forEach(k => all.add(k));
     });
     return Array.from(all);

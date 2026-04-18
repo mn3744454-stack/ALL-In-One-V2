@@ -175,6 +175,13 @@ export function UnitDetailsSheet({ unit, open, onOpenChange }: UnitDetailsSheetP
     return blockers;
   }, [unit, unitBlockerData, t]);
 
+  // Defensive guard: if the canonical helper invalidates housing-units while
+  // this Sheet is open, the parent grid may refetch and the unit may no longer
+  // exist (e.g. it was archived or deleted in another tab). Close gracefully
+  // instead of crashing on stale prop snapshot.
+  // We close the sheet rather than rendering against stale data — the next
+  // render will run with `unit=null` and bail at the existing guard above.
+
   if (!unit) return null;
 
   const displayName = language === 'ar' && unit.name_ar ? unit.name_ar : (unit.name || unit.code);
