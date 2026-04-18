@@ -69,11 +69,11 @@ import {
   SEVERITY_STYLES,
 } from "@/lib/notifications/familyRegistry";
 import { resolveSummaryChips } from "@/lib/notifications/summary";
-import {
-  getFamilyLevel,
-  shouldDeliver,
-} from "@/lib/notifications/presets";
+import { resolveDelivery } from "@/lib/notifications/policy";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { useTenantNotificationGovernance } from "@/hooks/useTenantNotificationGovernance";
+import { useTenant } from "@/contexts/TenantContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -266,20 +266,33 @@ function NotificationsTabContent() {
     deleteNotification,
   } = useNotifications();
   const { preferences } = useNotificationPreferences();
+  const { governance } = useTenantNotificationGovernance();
+  const { activeRole } = useTenant();
+  const { user } = useAuth();
+  const viewerIsLeadership =
+    activeRole === "owner" || activeRole === "manager";
 
-  // Phase 3 — apply personal delivery-level preferences to the bell list.
-  // Notifications whose family is set to a stricter level than the event's
-  // severity are hidden from view (they remain in the database; this is a
-  // personal *presentation* filter, not a server-side suppression).
+  // Phase 4 — apply the full governance precedence (platform → org floor →
+  // preset → personal + self-suppression + critical-escalation) to the bell
+  // list. This is a presentation-layer filter; rows remain in the DB. The
+  // server-side push gate now mirrors this resolver in the edge function.
   const visibleNotifications = React.useMemo(() => {
     const map = preferences.family_preferences ?? {};
     return notifications.filter((n) => {
       const family = resolveFamily(n.event_type);
-      const level = getFamilyLevel(map, family);
       const severity = getEventSeverity(n.event_type);
-      return shouldDeliver(level, severity);
+      const decision = resolveDelivery({
+        family,
+        severity,
+        viewerUserId: user?.id ?? null,
+        actorUserId: n.actor_user_id,
+        viewerIsLeadership,
+        preferences: map,
+        governance,
+      });
+      return decision.deliver;
     });
-  }, [notifications, preferences.family_preferences]);
+  }, [notifications, preferences.family_preferences, governance, user?.id, viewerIsLeadership]);
 
   const visibleUnreadCount = visibleNotifications.filter((n) => !n.is_read).length;
 

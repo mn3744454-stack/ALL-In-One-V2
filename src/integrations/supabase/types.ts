@@ -7165,6 +7165,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          actor_user_id: string | null
           body: string | null
           created_at: string
           entity_id: string | null
@@ -7179,6 +7180,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          actor_user_id?: string | null
           body?: string | null
           created_at?: string
           entity_id?: string | null
@@ -7193,6 +7195,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          actor_user_id?: string | null
           body?: string | null
           created_at?: string
           entity_id?: string | null
@@ -9101,6 +9104,54 @@ export type Database = {
           },
         ]
       }
+      tenant_notification_governance: {
+        Row: {
+          created_at: string
+          default_preset: string
+          escalate_critical_to_leadership: boolean
+          family_floor: Json
+          suppress_self_actions: boolean
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          default_preset?: string
+          escalate_critical_to_leadership?: boolean
+          family_floor?: Json
+          suppress_self_actions?: boolean
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          default_preset?: string
+          escalate_critical_to_leadership?: boolean
+          family_floor?: Json
+          suppress_self_actions?: boolean
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_notification_governance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_notification_governance_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_role_bundles: {
         Row: {
           bundle_id: string
@@ -9199,6 +9250,48 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tenant_roles"
             referencedColumns: ["tenant_id", "role_key"]
+          },
+        ]
+      }
+      tenant_role_preset_bindings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          preset_id: string
+          role_key: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          preset_id: string
+          role_key: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          preset_id?: string
+          role_key?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_role_preset_bindings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_role_preset_bindings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -10514,6 +10607,16 @@ export type Database = {
         Args: { object_path: string }
         Returns: string
       }
+      get_tenant_notification_governance: {
+        Args: { _tenant_id: string }
+        Returns: {
+          default_preset: string
+          escalate_critical_to_leadership: boolean
+          family_floor: Json
+          suppress_self_actions: boolean
+          tenant_id: string
+        }[]
+      }
       has_internal_capability: {
         Args: { _category: string; _tenant_id: string }
         Returns: boolean
@@ -10682,6 +10785,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      set_tenant_notification_governance: {
+        Args: {
+          _default_preset: string
+          _escalate_critical_to_leadership: boolean
+          _family_floor: Json
+          _suppress_self_actions: boolean
+          _tenant_id: string
+        }
+        Returns: undefined
       }
       set_tenant_role_access: {
         Args: {
