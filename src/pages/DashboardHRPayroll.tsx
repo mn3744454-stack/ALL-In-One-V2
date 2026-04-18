@@ -42,6 +42,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
+import { useViewPreference } from '@/hooks/useViewPreference';
 
 interface PayrollFilters {
   employeeId: string;
