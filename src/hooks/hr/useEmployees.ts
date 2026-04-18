@@ -329,7 +329,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
