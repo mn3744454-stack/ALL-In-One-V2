@@ -331,6 +331,14 @@ function NotificationsTabContent() {
         </ScrollArea>
       </TabsContent>
     </Tabs>
+
+    <NotificationQuickDetailDialog
+      notification={activeNotification}
+      open={detailOpen}
+      onOpenChange={setDetailOpen}
+      onMarkRead={(id) => markAsRead.mutate(id)}
+    />
+    </>
   );
 }
 
