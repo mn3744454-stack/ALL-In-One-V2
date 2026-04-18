@@ -30,6 +30,7 @@ import { tStatus } from "@/i18n/labels";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/hooks/useNotifications";
 import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
+import { interpolateNotificationTemplate } from "@/lib/notifications/helpers";
 
 interface Props {
   notification: AppNotification | null;
@@ -70,13 +71,15 @@ export function NotificationQuickDetailDialog({
   const titleRaw = t(titleKey);
   const hasI18nTitle = titleRaw !== titleKey;
   const displayTitle = hasI18nTitle
-    ? interpolate(titleRaw, notification)
+    ? interpolateNotificationTemplate(titleRaw, notification)
     : notification.title;
 
   const bodyKey = `notifications.events.${safeEventType}.body`;
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
-  const interpolatedBody = hasI18nBody ? interpolate(bodyRaw, notification) : "";
+  const interpolatedBody = hasI18nBody
+    ? interpolateNotificationTemplate(bodyRaw, notification)
+    : "";
   const displayBody =
     hasI18nBody && interpolatedBody.replace(/·/g, "").trim()
       ? interpolatedBody
@@ -180,18 +183,4 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="text-end font-medium">{value}</span>
     </div>
   );
-}
-
-function interpolate(template: string, notification: AppNotification): string {
-  const meta = notification.metadata || {};
-  return template
-    .replace(/\{\{actorTenantName\}\}/g, meta.actor_tenant_name || "")
-    .replace(/\{\{entityLabel\}\}/g, meta.entity_label || "")
-    .replace(/\{\{horseName\}\}/g, meta.horse_name || "")
-    .replace(
-      /\{\{messagePreview\}\}/g,
-      meta.message_preview || notification.body || ""
-    )
-    .replace(/\{\{statusLabel\}\}/g, meta.status ? tStatus(meta.status) : "")
-    .trim();
 }

@@ -32,9 +32,6 @@ import {
 } from "@/components/ui/select";
 import {
   Bell,
-  Link2,
-  FlaskConical,
-  MessageSquare,
   CheckCheck,
   Check,
   Clock,
@@ -46,8 +43,6 @@ import {
   Copy,
   X,
   Loader2,
-  Truck,
-  Home,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -63,6 +58,10 @@ import {
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 import { NotificationQuickDetailDialog } from "@/components/notifications/NotificationQuickDetailDialog";
 import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
+import {
+  getNotificationIcon,
+  interpolateNotificationTemplate,
+} from "@/lib/notifications/helpers";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -74,35 +73,12 @@ import { toast } from "sonner";
 
 type TenantRole = "owner" | "admin" | "manager" | "foreman" | "vet" | "trainer" | "employee";
 
-// ─── Notification helpers ─────────────────────────────────
+// Note: Phase 1 — route resolution is centralised in
+// src/lib/notifications/routeDescriptor.ts and shared helpers
+// (icon + template interpolation) live in
+// src/lib/notifications/helpers.ts. The panel no longer
+// force-navigates on click and no longer re-implements helpers.
 
-function getNotificationIcon(eventType: string) {
-  if (eventType.startsWith("connection.")) return Link2;
-  if (eventType.startsWith("lab_request.message")) return MessageSquare;
-  if (eventType.startsWith("lab_request.")) return FlaskConical;
-  if (eventType.startsWith("boarding.")) return Home;
-  if (eventType.startsWith("movement.")) return Truck;
-  return Bell;
-}
-
-// Note: Phase 1 — route resolution is now centralised in
-// src/lib/notifications/routeDescriptor.ts and used by the
-// quick-detail dialog. The panel no longer force-navigates on click.
-
-/**
- * Interpolate i18n template with notification metadata.
- * Replaces {{key}} placeholders with values from metadata.
- */
-function interpolateTemplate(template: string, notification: AppNotification): string {
-  const meta = notification.metadata || {};
-  return template
-    .replace(/\{\{actorTenantName\}\}/g, meta.actor_tenant_name || '')
-    .replace(/\{\{entityLabel\}\}/g, meta.entity_label || '')
-    .replace(/\{\{horseName\}\}/g, meta.horse_name || '')
-    .replace(/\{\{messagePreview\}\}/g, meta.message_preview || notification.body || '')
-    .replace(/\{\{statusLabel\}\}/g, meta.status ? tStatus(meta.status) : '')
-    .trim();
-}
 
 // ─── Notification card ────────────────────────────────────
 
@@ -128,7 +104,7 @@ function NotificationCard({
   const titleRaw = t(titleKey);
   const hasI18nTitle = titleRaw !== titleKey;
   const displayTitle = hasI18nTitle
-    ? interpolateTemplate(titleRaw, notification)
+    ? interpolateNotificationTemplate(titleRaw, notification)
     : notification.title;
 
   // Resolve body: i18n key with interpolation → fallback to DB body
@@ -136,7 +112,7 @@ function NotificationCard({
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
   // Only use interpolated body if it produces meaningful content (not just empty placeholders)
-  const interpolatedBody = hasI18nBody ? interpolateTemplate(bodyRaw, notification) : '';
+  const interpolatedBody = hasI18nBody ? interpolateNotificationTemplate(bodyRaw, notification) : '';
   const displayBody = hasI18nBody && interpolatedBody.replace(/·/g, '').trim()
     ? interpolatedBody
     : notification.body;
