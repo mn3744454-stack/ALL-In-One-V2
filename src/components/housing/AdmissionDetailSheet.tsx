@@ -396,7 +396,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <div className="text-sm text-muted-foreground min-w-0 truncate">
                       {assignedStaffCount === 0
                         ? t('housing.admissions.detail.assignedTeamEmpty')
-                        : assignedStaffNames.join(' · ') + (assignedStaffCount > assignedStaffNames.length ? ` +${assignedStaffCount - assignedStaffNames.length}` : '')}
+                        : assignedStaffEntries.join(' · ') + (assignedStaffCount > assignedStaffEntries.length ? ` +${assignedStaffCount - assignedStaffEntries.length}` : '')}
                     </div>
                     {isEditable && canUpdate && (
                       <Button
