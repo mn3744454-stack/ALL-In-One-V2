@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
@@ -16,6 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { CURRENCY_OPTIONS } from "@/lib/currencyOptions";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,19 +40,22 @@ import { format } from 'date-fns';
 import { formatStandardDate } from '@/lib/displayHelpers';
 import { ar as arLocale, enUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
-import { 
-  Plus, 
-  Wallet, 
-  Calendar, 
+import {
+  Plus,
+  Wallet,
+  Calendar,
   FileText,
   TrendingUp,
   Search,
-  Loader2
+  Loader2,
+  Check,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
 import { useViewPreference } from '@/hooks/useViewPreference';
+import { BilingualName } from '@/components/ui/BilingualName';
+import { QuickCreateEmployeeDialog } from '@/components/hr/QuickCreateEmployeeDialog';
 
 interface PayrollFilters {
   employeeId: string;
@@ -74,6 +85,8 @@ export default function DashboardHRPayroll() {
   const { t, dir, lang } = useI18n();
   const { activeRole } = useTenant();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
   const [filters, setFilters] = useState<PayrollFilters>({
     employeeId: '',
