@@ -104,7 +104,7 @@ export function NotificationQuickDetailDialog({
   });
 
   // Full chip set (no card cap) — gives the dialog its richer summary.
-  const chips = resolveSummaryChips(notification, { limit: "all" });
+  const chips = resolveSummaryChips(notification, { limit: "all", t });
 
   // Family-specific compact block — currently a richer message preview for
   // lab message events. New families can add their own small block here
