@@ -206,10 +206,20 @@ export function useEmployees() {
       if (!tenantId || !user?.id) throw new Error('No active tenant');
 
       const updateData: Record<string, unknown> = { ...data };
-      
+
       // Enforce constraint: clear custom type if type is not 'other'
       if (data.employee_type && data.employee_type !== 'other') {
         updateData.employee_type_custom = null;
+      }
+
+      // Reconcile structured phones with legacy `phone` mirror on update.
+      // - If `phones` is provided, it becomes canonical and `phone` mirrors
+      //   the primary entry.
+      // - If only legacy `phone` is provided, leave `phones` untouched.
+      if (Array.isArray(data.phones)) {
+        const cleaned = data.phones.filter(p => p.number?.trim());
+        updateData.phones = cleaned;
+        updateData.phone = derivePrimaryPhone(cleaned);
       }
 
       const { data: result, error } = await supabase
@@ -245,7 +255,7 @@ export function useEmployees() {
         });
       }
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
@@ -282,7 +292,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
