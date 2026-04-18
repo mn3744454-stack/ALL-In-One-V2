@@ -119,15 +119,16 @@ export default function DashboardHRPayroll() {
     return Array.from(uniquePeriods).sort().reverse();
   }, [payments]);
 
-  // Filter payments
+  // Filter payments — bilingual-aware search
   const filteredPayments = useMemo(() => {
     return payments.filter(payment => {
       if (filters.employeeId && payment.employee_id !== filters.employeeId) return false;
       if (filters.period && payment.payment_period !== filters.period) return false;
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        const employeeName = payment.employee?.full_name?.toLowerCase() || '';
-        if (!employeeName.includes(searchLower)) return false;
+        const en = payment.employee?.full_name?.toLowerCase() || '';
+        const ar = payment.employee?.full_name_ar?.toLowerCase() || '';
+        if (!en.includes(searchLower) && !ar.includes(searchLower)) return false;
       }
       return true;
     });
@@ -279,7 +280,7 @@ export default function DashboardHRPayroll() {
                       <SelectItem value="all">{t('common.all')}</SelectItem>
                       {employees.filter(e => e.employment_kind === 'internal').map((emp) => (
                         <SelectItem key={emp.id} value={emp.id}>
-                          {emp.full_name}
+                          <BilingualName name={emp.full_name} nameAr={emp.full_name_ar} inline />
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -358,7 +359,9 @@ export default function DashboardHRPayroll() {
                         {filteredPayments.map((payment) => (
                           <TableRow key={payment.id} className="hover:bg-muted/50">
                             <TableCell className="font-medium">
-                              {payment.employee?.full_name || t('common.unknown')}
+                              {payment.employee ? (
+                                <BilingualName name={payment.employee.full_name} nameAr={payment.employee.full_name_ar} />
+                              ) : t('common.unknown')}
                             </TableCell>
                             <TableCell className="text-muted-foreground">
                               {payment.payment_period || '-'}
@@ -604,10 +607,16 @@ function PaymentRow({ payment, formatCurrency, dateLocale, t }: PaymentRowProps)
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-medium truncate">
-          {payment.employee?.full_name || t('common.unknown')}
-        </p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {payment.employee ? (
+          <BilingualName
+            name={payment.employee.full_name}
+            nameAr={payment.employee.full_name_ar}
+            className="min-w-0"
+          />
+        ) : (
+          <p className="font-medium truncate">{t('common.unknown')}</p>
+        )}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
           <Calendar className="h-3 w-3" />
           <span>{formatStandardDate(payment.paid_at)}</span>
           {payment.payment_period && (
