@@ -80,9 +80,17 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   // Phase C: assigned team for this admission's horse
   const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
   const assignedStaffCount = horseAssignments.length;
-  const assignedStaffNames = horseAssignments
+  // Phase C (Image 26): enrich summary with role/responsibility — name (role)
+  const assignedStaffEntries = horseAssignments
     .slice(0, 2)
-    .map((a) => (lang === 'ar' && a.employee?.full_name_ar ? a.employee.full_name_ar : a.employee?.full_name))
+    .map((a) => {
+      const name = lang === 'ar' && a.employee?.full_name_ar ? a.employee.full_name_ar : a.employee?.full_name;
+      if (!name) return null;
+      const roleKey = `hr.assignments.roles.${a.role}`;
+      const roleLabel = t(roleKey);
+      const role = roleLabel && roleLabel !== roleKey ? roleLabel : a.role;
+      return role ? `${name} (${role})` : name;
+    })
     .filter(Boolean) as string[];
   const existingEmployeeIds = horseAssignments.map((a) => a.employee_id);
 
