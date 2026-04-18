@@ -265,6 +265,23 @@ function NotificationsTabContent() {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
+  const { preferences } = useNotificationPreferences();
+
+  // Phase 3 — apply personal delivery-level preferences to the bell list.
+  // Notifications whose family is set to a stricter level than the event's
+  // severity are hidden from view (they remain in the database; this is a
+  // personal *presentation* filter, not a server-side suppression).
+  const visibleNotifications = React.useMemo(() => {
+    const map = preferences.family_preferences ?? {};
+    return notifications.filter((n) => {
+      const family = resolveFamily(n.event_type);
+      const level = getFamilyLevel(map, family);
+      const severity = getEventSeverity(n.event_type);
+      return shouldDeliver(level, severity);
+    });
+  }, [notifications, preferences.family_preferences]);
+
+  const visibleUnreadCount = visibleNotifications.filter((n) => !n.is_read).length;
 
   // Phase 1 — quick-detail-first interaction.
   // Clicking a notification opens the dialog instead of forcing navigation.
@@ -272,8 +289,8 @@ function NotificationsTabContent() {
     useState<AppNotification | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const unreadNotifications = notifications.filter((n) => !n.is_read);
-  const readNotifications = notifications.filter((n) => n.is_read);
+  const unreadNotifications = visibleNotifications.filter((n) => !n.is_read);
+  const readNotifications = visibleNotifications.filter((n) => n.is_read);
 
   const handleClick = (notification: AppNotification) => {
     setActiveNotification(notification);
