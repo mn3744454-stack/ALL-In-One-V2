@@ -5,6 +5,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
+import type { PhoneEntry } from '@/components/shared/contact/MultiPhoneInput';
 
 export type HrEmployeeType = 
   | 'trainer' | 'groom' | 'vet_tech' | 'receptionist' 
@@ -19,7 +20,10 @@ export interface Employee {
   employee_type: HrEmployeeType;
   employee_type_custom: string | null;
   department: string | null;
+  /** Legacy primary-phone mirror — kept for back-compat with existing surfaces. */
   phone: string | null;
+  /** Canonical structured phone list. */
+  phones?: PhoneEntry[] | null;
   email: string | null;
   is_active: boolean;
   notes: string | null;
@@ -49,7 +53,10 @@ export interface CreateEmployeeData {
   employee_type: HrEmployeeType;
   employee_type_custom?: string | null;
   department?: string | null;
+  /** Legacy single-phone field — kept for QuickCreate and back-compat. */
   phone?: string | null;
+  /** Canonical structured phone list (full form). */
+  phones?: PhoneEntry[] | null;
   email?: string | null;
   notes?: string | null;
   tags?: string[];
@@ -57,6 +64,18 @@ export interface CreateEmployeeData {
 
 export interface UpdateEmployeeData extends Partial<CreateEmployeeData> {
   is_active?: boolean;
+}
+
+/**
+ * Pick the legacy primary-mirror value from a structured phones array.
+ * Falls back to the first non-empty number when no primary is flagged.
+ */
+function derivePrimaryPhone(phones: PhoneEntry[] | null | undefined): string | null {
+  if (!phones || phones.length === 0) return null;
+  const primary = phones.find(p => p.is_primary && p.number?.trim());
+  if (primary) return primary.number.trim();
+  const firstNonEmpty = phones.find(p => p.number?.trim());
+  return firstNonEmpty?.number.trim() ?? null;
 }
 
 export function useEmployees() {
