@@ -15,6 +15,7 @@ export interface Employee {
   tenant_id: string;
   created_by: string | null;
   full_name: string;
+  full_name_ar?: string | null;
   employee_type: HrEmployeeType;
   employee_type_custom: string | null;
   department: string | null;

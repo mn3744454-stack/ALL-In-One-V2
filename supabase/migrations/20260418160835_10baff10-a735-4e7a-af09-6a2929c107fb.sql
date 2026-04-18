@@ -1,0 +1,1 @@
+ALTER TABLE public.hr_employees ADD COLUMN IF NOT EXISTS full_name_ar text;

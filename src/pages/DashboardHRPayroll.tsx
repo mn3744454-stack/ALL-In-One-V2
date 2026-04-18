@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useI18n } from '@/i18n';
 import { useTenant } from '@/contexts/TenantContext';
 import { useSalaryPayments, SalaryPayment } from '@/hooks/hr/useSalaryPayments';
@@ -16,6 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import { CURRENCY_OPTIONS } from "@/lib/currencyOptions";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,19 +40,22 @@ import { format } from 'date-fns';
 import { formatStandardDate } from '@/lib/displayHelpers';
 import { ar as arLocale, enUS } from 'date-fns/locale';
 import type { Locale } from 'date-fns';
-import { 
-  Plus, 
-  Wallet, 
-  Calendar, 
+import {
+  Plus,
+  Wallet,
+  Calendar,
   FileText,
   TrendingUp,
   Search,
-  Loader2
+  Loader2,
+  Check,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ViewSwitcher } from '@/components/ui/ViewSwitcher';
 import { useViewPreference } from '@/hooks/useViewPreference';
+import { BilingualName } from '@/components/ui/BilingualName';
+import { QuickCreateEmployeeDialog } from '@/components/hr/QuickCreateEmployeeDialog';
 
 interface PayrollFilters {
   employeeId: string;
@@ -74,6 +85,8 @@ export default function DashboardHRPayroll() {
   const { t, dir, lang } = useI18n();
   const { activeRole } = useTenant();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState<PaymentFormData>(initialFormData);
   const [filters, setFilters] = useState<PayrollFilters>({
     employeeId: '',
@@ -413,34 +426,76 @@ export default function DashboardHRPayroll() {
 
       {/* Add Payment Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-[480px] flex flex-col max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>{t('hr.payroll.addPayment')}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="flex-1 overflow-y-auto px-1 space-y-4 py-2">
             <div className="space-y-2">
-              <Label>{t('hr.employees.name')} *</Label>
-              <Select
-                value={formData.employee_id}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, employee_id: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={t('hr.payroll.selectEmployee')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {internalEmployees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>{t('hr.payroll.employeeLabel')} *</Label>
+              <Command className="border rounded-lg">
+                <CommandInput placeholder={t('hr.payroll.searchEmployee')} />
+                <CommandList className="max-h-48">
+                  <CommandEmpty>
+                    <div className="flex flex-col items-center gap-2 py-4 px-3">
+                      <p className="text-sm text-muted-foreground">{t('hr.payroll.noEmployeesYet')}</p>
+                      <p className="text-xs text-muted-foreground text-center">{t('hr.payroll.noEmployeesDesc')}</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-1"
+                        onClick={() => setShowQuickCreate(true)}
+                      >
+                        <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                        {t('hr.payroll.addNewEmployee')}
+                      </Button>
+                    </div>
+                  </CommandEmpty>
+                  {internalEmployees.length > 0 && (
+                    <CommandGroup>
+                      {internalEmployees.map((emp) => (
+                        <CommandItem
+                          key={emp.id}
+                          value={`${emp.full_name} ${emp.full_name_ar || ''}`}
+                          onSelect={() => setFormData(prev => ({ ...prev, employee_id: emp.id }))}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between w-full gap-2">
+                            <BilingualName
+                              name={emp.full_name}
+                              nameAr={emp.full_name_ar}
+                              primaryClassName="text-sm"
+                            />
+                            {formData.employee_id === emp.id && (
+                              <Check className="h-4 w-4 text-primary shrink-0" />
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  )}
+                </CommandList>
+              </Command>
+              {/* Always-visible quick-add CTA when employees exist */}
+              {internalEmployees.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2 border-dashed border-primary/40 text-primary hover:bg-primary/5"
+                  onClick={() => setShowQuickCreate(true)}
+                >
+                  <Plus className="w-3.5 h-3.5 ltr:mr-1 rtl:ml-1" />
+                  {t('hr.payroll.addNewEmployee')}
+                </Button>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>{t('finance.expenses.amount')} *</Label>
+                <Label htmlFor="pay-amount">{t('finance.expenses.amount')} *</Label>
                 <Input
+                  id="pay-amount"
+                  ref={amountInputRef}
                   type="number"
                   min="0"
                   step="0.01"
@@ -450,7 +505,7 @@ export default function DashboardHRPayroll() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t('finance.common.currency')}</Label>
+                <Label>{t('hr.payroll.currency')}</Label>
                 <Select
                   value={formData.currency}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
@@ -477,11 +532,11 @@ export default function DashboardHRPayroll() {
             </div>
 
             <div className="space-y-2">
-              <Label>{t('common.notes')}</Label>
+              <Label>{t('hr.payroll.notes')}</Label>
               <Textarea
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder={t('common.notesPlaceholder')}
+                placeholder={t('hr.payroll.notesPlaceholder')}
                 rows={2}
               />
             </div>
@@ -501,8 +556,8 @@ export default function DashboardHRPayroll() {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               {t('common.cancel')}
             </Button>
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={!formData.employee_id || !formData.amount || isCreating}
             >
               {isCreating && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
@@ -511,6 +566,16 @@ export default function DashboardHRPayroll() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Quick Create Employee — bridge from payroll workflow */}
+      <QuickCreateEmployeeDialog
+        open={showQuickCreate}
+        onOpenChange={setShowQuickCreate}
+        onCreated={(emp) => {
+          setFormData(prev => ({ ...prev, employee_id: emp.id }));
+          setTimeout(() => amountInputRef.current?.focus(), 50);
+        }}
+      />
     </>
   );
 }
