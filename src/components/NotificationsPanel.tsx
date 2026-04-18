@@ -253,6 +253,7 @@ function NotificationsTabContent() {
   };
 
   return (
+    <>
     <Tabs defaultValue="unread" className="mt-2">
       <TabsList className="w-full">
         <TabsTrigger value="unread" className="flex-1 gap-1 text-xs">
