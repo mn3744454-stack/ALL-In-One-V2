@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Users, Plus, Phone, Mail, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { BilingualName } from '@/components/ui/BilingualName';
 import { AddAssignmentDialog } from './AddAssignmentDialog';
 import type { HorseAssignment } from '@/hooks/hr/useHorseAssignments';
 
@@ -130,11 +131,13 @@ export function HorseAssignedStaff({ horseId, horseName }: HorseAssignedStaffPro
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-foreground">
-                          {employee.full_name}
-                        </span>
-                        <Badge variant="secondary" className="text-xs">
+                      <div className="flex items-start gap-2 flex-wrap">
+                        <BilingualName
+                          name={employee.full_name}
+                          nameAr={employee.full_name_ar}
+                          className="min-w-0"
+                        />
+                        <Badge variant="secondary" className="text-xs shrink-0">
                           {roleLabel}
                         </Badge>
                       </div>
@@ -195,8 +198,9 @@ export function HorseAssignedStaff({ horseId, horseName }: HorseAssignedStaffPro
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t('hr.assignments.confirmRemove')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deleteTarget?.employee?.full_name} - {t(`hr.assignments.roles.${deleteTarget?.role}`)}
+            <AlertDialogDescription className="flex items-center gap-1 flex-wrap">
+              <BilingualName name={deleteTarget?.employee?.full_name} nameAr={deleteTarget?.employee?.full_name_ar} inline />
+              <span>- {t(`hr.assignments.roles.${deleteTarget?.role}`)}</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

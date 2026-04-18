@@ -19,6 +19,7 @@ import {
 import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X } from 'lucide-react';
 import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
+import { BilingualName } from '@/components/ui/BilingualName';
 import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';
 import { SalaryPaymentsSection } from './SalaryPaymentsSection';
@@ -122,10 +123,14 @@ export function EmployeeDetailsSheet({
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">
-              {employee.full_name}
-            </h2>
+          <div className="flex flex-col gap-2 items-center">
+            <BilingualName
+              name={employee.full_name}
+              nameAr={employee.full_name_ar}
+              className="text-center"
+              primaryClassName="text-lg font-semibold"
+              secondaryClassName="text-sm"
+            />
             <div className="flex items-center justify-center gap-2 flex-wrap">
               <Badge variant={isInternal ? "default" : "secondary"}>
                 {isInternal ? t('hr.internal') : t('hr.external')}
