@@ -129,36 +129,75 @@ export function AddAssignmentDialog({
               <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
               <CommandInput placeholder={t('hr.assignments.searchEmployees')} />
               <CommandList>
-                <CommandEmpty>{t('common.noResults')}</CommandEmpty>
-                <CommandGroup>
-                  {availableEmployees.map((emp) => (
-                    <CommandItem
-                      key={emp.id}
-                      value={`${emp.full_name} ${emp.full_name_ar || ''}`}
-                      onSelect={() => {
-                        setSelectedEmployeeId(emp.id);
+                <CommandEmpty>
+                  <div className="flex flex-col items-center gap-3 py-6 px-4 text-center">
+                    <Users className="w-8 h-8 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      {availableEmployees.length === 0
+                        ? t('hr.assignments.noEmployeesYet')
+                        : t('common.noResults')}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="gold"
+                      size="sm"
+                      onClick={() => {
                         setEmployeeSearchOpen(false);
+                        setShowQuickCreate(true);
                       }}
                     >
-                      <Check
-                        className={cn(
-                          "me-2 h-4 w-4",
-                          selectedEmployeeId === emp.id ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <BilingualName name={emp.full_name} nameAr={emp.full_name_ar} />
-                        <span className="text-xs text-muted-foreground">
-                          {t(`hr.employeeTypes.${emp.employee_type}`)}
-                        </span>
-                      </div>
+                      <UserPlus className="w-4 h-4 me-2" />
+                      {t('hr.assignments.addNewEmployee')}
+                    </Button>
+                  </div>
+                </CommandEmpty>
+                {availableEmployees.length > 0 && (
+                  <CommandGroup>
+                    {availableEmployees.map((emp) => (
+                      <CommandItem
+                        key={emp.id}
+                        value={`${emp.full_name} ${emp.full_name_ar || ''}`}
+                        onSelect={() => {
+                          setSelectedEmployeeId(emp.id);
+                          setEmployeeSearchOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "me-2 h-4 w-4",
+                            selectedEmployeeId === emp.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <BilingualName name={emp.full_name} nameAr={emp.full_name_ar} />
+                          <span className="text-xs text-muted-foreground">
+                            {t(`hr.employeeTypes.${emp.employee_type}`)}
+                          </span>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {/* Persistent create-new affordance — visible whether or not employees exist */}
+                {availableEmployees.length > 0 && (
+                  <CommandGroup>
+                    <CommandItem
+                      value="__add_new_employee__"
+                      onSelect={() => {
+                        setEmployeeSearchOpen(false);
+                        setShowQuickCreate(true);
+                      }}
+                      className="text-gold"
+                    >
+                      <UserPlus className="me-2 h-4 w-4" />
+                      <span className="font-medium">{t('hr.assignments.addNewEmployee')}</span>
                     </CommandItem>
-                  ))}
-                </CommandGroup>
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
