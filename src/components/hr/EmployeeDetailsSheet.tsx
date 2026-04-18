@@ -16,7 +16,7 @@ import {
   DrawerTitle,
   DrawerClose,
 } from '@/components/ui/drawer';
-import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X } from 'lucide-react';
+import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X, MessageCircle } from 'lucide-react';
 import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 import { BilingualName } from '@/components/ui/BilingualName';
@@ -24,6 +24,7 @@ import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';
 import { SalaryPaymentsSection } from './SalaryPaymentsSection';
 import type { Employee } from '@/hooks/hr/useEmployees';
+import type { PhoneEntry } from '@/components/shared/contact/MultiPhoneInput';
 
 interface ExtendedEmployee extends Employee {
   employment_kind?: 'internal' | 'external';
@@ -32,6 +33,7 @@ interface ExtendedEmployee extends Employee {
   start_date?: string | null;
   avatar_url?: string | null;
   user_id?: string | null;
+  phones?: PhoneEntry[] | null;
 }
 
 interface EmployeeDetailsSheetProps {
@@ -162,13 +164,54 @@ export function EmployeeDetailsSheet({
           />
         )}
         
-        <InfoRow
-          icon={Phone}
-          label={t('hr.phone')}
-          value={employee.phone}
-          href={employee.phone ? `tel:${employee.phone}` : undefined}
-        />
-        
+        {(() => {
+          // Prefer structured phones; fall back to legacy single phone for back-compat
+          const structured = Array.isArray(employee.phones) && employee.phones.length > 0
+            ? employee.phones
+            : (employee.phone
+                ? [{ number: employee.phone, label: 'mobile' as const, is_whatsapp: false, is_primary: true }]
+                : []);
+
+          if (structured.length === 0) return null;
+
+          return (
+            <div className="flex items-start gap-3 py-3 border-b border-border/50">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                <span className="text-xs text-muted-foreground">{t('hr.phone')}</span>
+                <div className="flex flex-col gap-1.5">
+                  {structured.map((p, i) => (
+                    <div key={i} className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={`tel:${p.number}`}
+                        className="text-sm text-foreground hover:underline"
+                        dir="ltr"
+                      >
+                        {p.number}
+                      </a>
+                      <span className="text-xs text-muted-foreground">
+                        · {t(`hr.phoneLabels.${p.label}`)}
+                      </span>
+                      {p.is_primary && (
+                        <Badge variant="default" className="h-4 text-[10px] px-1.5">
+                          {t('hr.contact.primaryPhone')}
+                        </Badge>
+                      )}
+                      {p.is_whatsapp && (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <MessageCircle className="h-3 w-3" />
+                          {t('hr.contact.whatsapp')}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         <InfoRow
           icon={Mail}
           label={t('hr.email')}

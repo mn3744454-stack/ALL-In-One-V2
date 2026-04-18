@@ -5,6 +5,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
+import type { PhoneEntry } from '@/components/shared/contact/MultiPhoneInput';
 
 export type HrEmployeeType = 
   | 'trainer' | 'groom' | 'vet_tech' | 'receptionist' 
@@ -19,7 +20,10 @@ export interface Employee {
   employee_type: HrEmployeeType;
   employee_type_custom: string | null;
   department: string | null;
+  /** Legacy primary-phone mirror — kept for back-compat with existing surfaces. */
   phone: string | null;
+  /** Canonical structured phone list. */
+  phones?: PhoneEntry[] | null;
   email: string | null;
   is_active: boolean;
   notes: string | null;
@@ -49,7 +53,10 @@ export interface CreateEmployeeData {
   employee_type: HrEmployeeType;
   employee_type_custom?: string | null;
   department?: string | null;
+  /** Legacy single-phone field — kept for QuickCreate and back-compat. */
   phone?: string | null;
+  /** Canonical structured phone list (full form). */
+  phones?: PhoneEntry[] | null;
   email?: string | null;
   notes?: string | null;
   tags?: string[];
@@ -57,6 +64,18 @@ export interface CreateEmployeeData {
 
 export interface UpdateEmployeeData extends Partial<CreateEmployeeData> {
   is_active?: boolean;
+}
+
+/**
+ * Pick the legacy primary-mirror value from a structured phones array.
+ * Falls back to the first non-empty number when no primary is flagged.
+ */
+function derivePrimaryPhone(phones: PhoneEntry[] | null | undefined): string | null {
+  if (!phones || phones.length === 0) return null;
+  const primary = phones.find(p => p.is_primary && p.number?.trim());
+  if (primary) return primary.number.trim();
+  const firstNonEmpty = phones.find(p => p.number?.trim());
+  return firstNonEmpty?.number.trim() ?? null;
 }
 
 export function useEmployees() {
@@ -113,7 +132,7 @@ export function useEmployees() {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as Employee[];
+      return (data as unknown) as Employee[];
     },
     enabled: !!tenantId,
   });
@@ -122,6 +141,23 @@ export function useEmployees() {
   const createMutation = useMutation({
     mutationFn: async (data: CreateEmployeeData) => {
       if (!tenantId || !user?.id) throw new Error('No active tenant or user');
+
+      // Reconcile structured phones with the legacy single-phone mirror.
+      // - If structured `phones` is provided, it is canonical and the legacy
+      //   `phone` mirrors the primary entry.
+      // - If only legacy `phone` is provided (e.g. QuickCreate), persist it
+      //   on both columns so structured consumers stay consistent.
+      const structuredPhones = Array.isArray(data.phones)
+        ? data.phones.filter(p => p.number?.trim())
+        : null;
+      const legacyPhone = structuredPhones && structuredPhones.length > 0
+        ? derivePrimaryPhone(structuredPhones)
+        : (data.phone?.trim() || null);
+      const phonesToWrite: PhoneEntry[] | null = structuredPhones && structuredPhones.length > 0
+        ? structuredPhones
+        : (legacyPhone
+            ? [{ number: legacyPhone, label: 'mobile', is_whatsapp: false, is_primary: true }]
+            : null);
 
       const { data: result, error } = await supabase
         .from('hr_employees')
@@ -133,7 +169,8 @@ export function useEmployees() {
           employee_type: data.employee_type,
           employee_type_custom: data.employee_type === 'other' ? data.employee_type_custom : null,
           department: data.department || null,
-          phone: data.phone || null,
+          phone: legacyPhone,
+          phones: (phonesToWrite ?? []) as unknown as never,
           email: data.email || null,
           notes: data.notes || null,
           tags: data.tags || [],
@@ -152,7 +189,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
@@ -169,10 +206,20 @@ export function useEmployees() {
       if (!tenantId || !user?.id) throw new Error('No active tenant');
 
       const updateData: Record<string, unknown> = { ...data };
-      
+
       // Enforce constraint: clear custom type if type is not 'other'
       if (data.employee_type && data.employee_type !== 'other') {
         updateData.employee_type_custom = null;
+      }
+
+      // Reconcile structured phones with legacy `phone` mirror on update.
+      // - If `phones` is provided, it becomes canonical and `phone` mirrors
+      //   the primary entry.
+      // - If only legacy `phone` is provided, leave `phones` untouched.
+      if (Array.isArray(data.phones)) {
+        const cleaned = data.phones.filter(p => p.number?.trim());
+        updateData.phones = cleaned;
+        updateData.phone = derivePrimaryPhone(cleaned);
       }
 
       const { data: result, error } = await supabase
@@ -208,7 +255,7 @@ export function useEmployees() {
         });
       }
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
@@ -245,7 +292,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });
@@ -282,7 +329,7 @@ export function useEmployees() {
         created_by: user.id,
       });
       
-      return result as Employee;
+      return (result as unknown) as Employee;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hr-employees', tenantId] });

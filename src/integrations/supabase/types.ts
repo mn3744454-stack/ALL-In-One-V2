@@ -4418,6 +4418,7 @@ export type Database = {
           job_title: string | null
           notes: string | null
           phone: string | null
+          phones: Json
           salary_amount: number | null
           salary_currency: string | null
           start_date: string | null
@@ -4447,6 +4448,7 @@ export type Database = {
           job_title?: string | null
           notes?: string | null
           phone?: string | null
+          phones?: Json
           salary_amount?: number | null
           salary_currency?: string | null
           start_date?: string | null
@@ -4476,6 +4478,7 @@ export type Database = {
           job_title?: string | null
           notes?: string | null
           phone?: string | null
+          phones?: Json
           salary_amount?: number | null
           salary_currency?: string | null
           start_date?: string | null

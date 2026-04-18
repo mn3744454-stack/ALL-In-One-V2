@@ -69,7 +69,7 @@ export function useHorseAssignments(horseId: string) {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data as HorseAssignment[];
+      return (data as unknown) as HorseAssignment[];
     },
     enabled: !!tenantId && !!horseId,
   });
@@ -98,7 +98,7 @@ export function useHorseAssignments(horseId: string) {
         .single();
 
       if (error) throw error;
-      return result as HorseAssignment;
+      return (result as unknown) as HorseAssignment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['horse-assignments', tenantId, horseId] });
