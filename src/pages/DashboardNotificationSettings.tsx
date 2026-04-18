@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { NotificationControlCenter } from "@/components/notifications/NotificationControlCenter";
 
 interface PushDevice {
   id: string;
@@ -124,13 +125,16 @@ const DashboardNotificationSettings = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">
-              {t("pushNotifications.settingsTitle")}
+              {t("notifications.controlCenter.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {t("pushNotifications.settingsDesc")}
+              {t("notifications.controlCenter.description")}
             </p>
           </div>
         </div>
+
+        {/* Phase 3 — Personal Control Center (presets + per-family) */}
+        <NotificationControlCenter />
 
         {/* Push Enable/Disable */}
         <Card>
