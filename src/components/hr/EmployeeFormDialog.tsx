@@ -284,36 +284,27 @@ export function EmployeeFormDialog({
           {t('hr.contactInfo')}
         </div>
         
-        <div className="grid gap-4 sm:grid-cols-2">
-          {/* Phone */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="phone" className="text-sm font-medium">
-              {t('hr.phone')}
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone || ''}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder={t('hr.phonePlaceholder')}
-              dir="ltr"
-            />
-          </div>
+        {/* Multi-phone input (structured) */}
+        <MultiPhoneInput
+          phones={phones}
+          onChange={setPhones}
+          disabled={isSubmitting}
+          labelNamespace="hr"
+        />
 
-          {/* Email */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              {t('hr.email')}
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email || ''}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder={t('hr.emailPlaceholder')}
-              dir="ltr"
-            />
-          </div>
+        {/* Email */}
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email" className="text-sm font-medium">
+            {t('hr.email')}
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email || ''}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            placeholder={t('hr.emailPlaceholder')}
+            dir="ltr"
+          />
         </div>
       </div>
 
