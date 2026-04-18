@@ -69,6 +69,7 @@ export function AddAssignmentDialog({
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [employeeSearchOpen, setEmployeeSearchOpen] = useState(false);
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
 
   // Filter out employees already assigned with any role
   const availableEmployees = employees.filter(
