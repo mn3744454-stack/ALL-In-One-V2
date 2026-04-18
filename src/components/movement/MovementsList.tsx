@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
@@ -14,6 +13,7 @@ import { useHorseActiveAdmission } from "@/hooks/housing/useHorseActiveAdmission
 import { Skeleton } from "@/components/ui/skeleton";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 
 interface MovementsListProps {
   onRecordMovement: () => void;
