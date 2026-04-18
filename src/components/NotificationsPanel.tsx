@@ -267,10 +267,9 @@ function NotificationsTabContent() {
   } = useNotifications();
   const { preferences } = useNotificationPreferences();
   const { governance } = useTenantNotificationGovernance();
-  const { activeRole } = useTenant();
   const { user } = useAuth();
-  const viewerIsLeadership =
-    activeRole === "owner" || activeRole === "manager";
+  // Residual Item 3 — canonical client-side leadership detection.
+  const viewerIsLeadership = useViewerIsLeadership();
 
   // Phase 4 — apply the full governance precedence (platform → org floor →
   // preset → personal + self-suppression + critical-escalation) to the bell
