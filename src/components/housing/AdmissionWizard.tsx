@@ -871,7 +871,20 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     />
   );
 
-  if (isMobile) {
+  // Phase C (Image 27): in-flow quick-create employee continuity
+  const quickCreateEmployeeDialog = (
+    <QuickCreateEmployeeDialog
+      open={quickCreateEmployeeOpen}
+      onOpenChange={setQuickCreateEmployeeOpen}
+      onCreated={(emp: QuickCreatedEmployee) => {
+        if (pendingEmpRowIndex !== null) {
+          const targetIdx = pendingEmpRowIndex;
+          setStaffRows(rs => rs.map((r, i) => i === targetIdx ? { ...r, employee_id: emp.id } : r));
+          setPendingEmpRowIndex(null);
+        }
+      }}
+    />
+  );
     return (
       <>
         <Drawer open={open} onOpenChange={onOpenChange}>
