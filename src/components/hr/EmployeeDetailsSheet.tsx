@@ -16,7 +16,7 @@ import {
   DrawerTitle,
   DrawerClose,
 } from '@/components/ui/drawer';
-import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X } from 'lucide-react';
+import { Phone, Mail, Edit, Power, Calendar, DollarSign, ArrowRightLeft, X, MessageCircle } from 'lucide-react';
 import { formatStandardDate } from '@/lib/displayHelpers';
 import { cn } from '@/lib/utils';
 import { BilingualName } from '@/components/ui/BilingualName';
@@ -24,6 +24,7 @@ import { EmployeeAssignedHorses } from './EmployeeAssignedHorses';
 import { EmployeeTimeline } from './EmployeeTimeline';
 import { SalaryPaymentsSection } from './SalaryPaymentsSection';
 import type { Employee } from '@/hooks/hr/useEmployees';
+import type { PhoneEntry } from '@/components/shared/contact/MultiPhoneInput';
 
 interface ExtendedEmployee extends Employee {
   employment_kind?: 'internal' | 'external';
@@ -32,6 +33,7 @@ interface ExtendedEmployee extends Employee {
   start_date?: string | null;
   avatar_url?: string | null;
   user_id?: string | null;
+  phones?: PhoneEntry[] | null;
 }
 
 interface EmployeeDetailsSheetProps {
