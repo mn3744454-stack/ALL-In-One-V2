@@ -5176,9 +5176,9 @@ export const en = {
         label: "Laboratory",
         description: "Focus on lab requests and results; mute most other areas.",
       },
-      finance: {
-        label: "Finance",
-        description: "Focus on partnerships and admission billing signals; mute clinical chatter.",
+      billing: {
+        label: "Billing-adjacent",
+        description: "Partnerships and admission/boarding signals (closest billing-relevant streams today). A dedicated finance feed will land in a future update.",
       },
       minimal: {
         label: "Minimal",
