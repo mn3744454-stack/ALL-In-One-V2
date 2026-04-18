@@ -187,17 +187,3 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-function interpolate(template: string, notification: AppNotification): string {
-  const meta = notification.metadata || {};
-  return template
-    .replace(/\{\{actorTenantName\}\}/g, meta.actor_tenant_name || "")
-    .replace(/\{\{entityLabel\}\}/g, meta.entity_label || "")
-    .replace(/\{\{horseName\}\}/g, meta.horse_name || "")
-    .replace(
-      /\{\{messagePreview\}\}/g,
-      meta.message_preview || notification.body || ""
-    )
-    .replace(/\{\{statusLabel\}\}/g, meta.status ? tStatus(meta.status) : "")
-    .trim();
-}
