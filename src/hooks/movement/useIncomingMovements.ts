@@ -74,8 +74,9 @@ export function useIncomingMovements(statusFilter?: string) {
     },
     onSuccess: () => {
       toast.success(tGlobal('movement.incoming.confirmed'));
-      queryClient.invalidateQueries({ queryKey: ['incoming-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
+      // Confirming an incoming movement materializes the inbound housing leg
+      // and may auto-create/activate a local admission for the arriving horse.
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       toast.error(error.message || tGlobal('movement.incoming.confirmFailed'));
