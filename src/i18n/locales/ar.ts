@@ -331,6 +331,8 @@ export const ar = {
       },
       assignedHorses: "الخيول المعينة",
       noHorses: "لا توجد خيول معينة",
+      noEmployeesYet: "لا يوجد موظفون بعد",
+      addNewEmployee: "إضافة موظف جديد",
     },
     
     // Demo
