@@ -66,6 +66,7 @@ export function EmployeeFormDialog({
 
   const [formData, setFormData] = useState<ExtendedEmployeeData>({
     full_name: '',
+    full_name_ar: '',
     employee_type: 'other',
     employee_type_custom: '',
     department: '',
@@ -84,6 +85,7 @@ export function EmployeeFormDialog({
     if (open && employee) {
       setFormData({
         full_name: employee.full_name,
+        full_name_ar: employee.full_name_ar || '',
         employee_type: employee.employee_type,
         employee_type_custom: employee.employee_type_custom || '',
         department: employee.department || '',
@@ -99,6 +101,7 @@ export function EmployeeFormDialog({
     } else if (open && !employee) {
       setFormData({
         full_name: '',
+        full_name_ar: '',
         employee_type: 'other',
         employee_type_custom: '',
         department: '',
@@ -132,19 +135,33 @@ export function EmployeeFormDialog({
           {t('hr.basicInfo')}
         </div>
         
-        {/* Full Name - Required */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="full_name" className="text-sm font-medium">
-            {t('hr.fullName')} <span className="text-destructive">*</span>
-          </Label>
-          <Input
-            id="full_name"
-            value={formData.full_name}
-            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-            placeholder={t('hr.fullNamePlaceholder')}
-            required
-            autoFocus
-          />
+        {/* Bilingual Names */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="full_name" className="text-sm font-medium">
+              {t('hr.fullName')} <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="full_name"
+              value={formData.full_name}
+              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              placeholder={t('hr.fullNamePlaceholder')}
+              required
+              autoFocus
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="full_name_ar" className="text-sm font-medium">
+              {t('hr.fullNameAr')}
+            </Label>
+            <Input
+              id="full_name_ar"
+              value={formData.full_name_ar || ''}
+              onChange={(e) => setFormData({ ...formData, full_name_ar: e.target.value })}
+              placeholder={t('hr.fullNameArPlaceholder')}
+              dir="rtl"
+            />
+          </div>
         </div>
 
         {/* Employment Kind */}
