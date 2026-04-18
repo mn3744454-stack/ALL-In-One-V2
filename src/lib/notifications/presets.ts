@@ -127,7 +127,7 @@ export const PRESET_ORDER: PresetId[] = [
   "leadership",
   "operations",
   "lab",
-  "finance",
+  "billing",
   "minimal",
   "custom",
 ];
