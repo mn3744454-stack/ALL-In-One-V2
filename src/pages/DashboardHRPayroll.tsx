@@ -86,6 +86,10 @@ export default function DashboardHRPayroll() {
   
   const canManage = activeRole === 'owner' || activeRole === 'manager';
   const dateLocale: Locale = lang === 'ar' ? arLocale : enUS;
+
+  // View mode (Table / List only — no Grid for payment rows)
+  const { viewMode, setViewMode } = useViewPreference('hr_payroll');
+  const effectiveViewMode = viewMode === 'grid' ? 'table' : viewMode;
   
   // Internal employees for salary payments
   const internalEmployees = useMemo(() => 
