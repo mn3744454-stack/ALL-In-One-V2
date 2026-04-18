@@ -355,6 +355,16 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               {t('housing.admissions.detail.assignClient')}
                             </Button>
                           )}
+                          {isEditable && canUpdate && key === 'team_assigned' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs shrink-0"
+                              onClick={() => setAssignStaffOpen(true)}
+                            >
+                              {t('housing.admissions.detail.assignStaff')}
+                            </Button>
+                          )}
                         </div>
                       );
                     })}
