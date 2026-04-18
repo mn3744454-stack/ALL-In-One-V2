@@ -101,6 +101,13 @@ export function AddAssignmentDialog({
     onOpenChange(false);
   };
 
+  const handleQuickCreated = (employee: QuickCreatedEmployee) => {
+    // Auto-select the newly created employee and return to assignment flow.
+    setSelectedEmployeeId(employee.id);
+    setShowQuickCreate(false);
+    setEmployeeSearchOpen(false);
+  };
+
   const formContent = (
     <div className="space-y-6 p-4">
       {/* Employee Select */}
