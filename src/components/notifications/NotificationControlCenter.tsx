@@ -71,7 +71,7 @@ export function NotificationControlCenter() {
       await updatePreferences({
         preset: id,
         family_preferences: map,
-      } as any);
+      });
       toast.success(t("notifications.controlCenter.presetApplied"));
     } catch {
       toast.error(t("common.error"));
@@ -91,7 +91,7 @@ export function NotificationControlCenter() {
       await updatePreferences({
         preset: detected,
         family_preferences: next,
-      } as any);
+      });
       if (detected === "custom" && currentPreset !== "custom") {
         toast.success(t("notifications.controlCenter.switchedToCustom"));
       }
