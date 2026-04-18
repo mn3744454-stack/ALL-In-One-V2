@@ -333,6 +333,12 @@ export const ar = {
       noHorses: "لا توجد خيول معينة",
       noEmployeesYet: "لا يوجد موظفون بعد",
       addNewEmployee: "إضافة موظف جديد",
+      assignHorse: "تعيين خيل",
+      assignHorseTo: "تعيين خيل إلى {{name}}",
+      selectHorse: "اختر الخيل",
+      searchHorses: "البحث في الخيول...",
+      noHorsesAvailable: "لا توجد خيول متاحة للتعيين",
+      assignFirstHorse: "قم بتعيين خيل لهذا الموظف",
     },
     
     // Demo
