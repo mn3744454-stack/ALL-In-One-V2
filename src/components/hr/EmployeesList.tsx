@@ -141,7 +141,7 @@ export function EmployeesList({
             </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Hide ViewSwitcher on mobile */}
           <div className="hidden md:block">
             <ViewSwitcher
@@ -152,6 +152,17 @@ export function EmployeesList({
               showTable={true}
             />
           </div>
+          {settingsAction && (
+            <Button
+              variant="outline"
+              size={isMobile ? "sm" : "default"}
+              onClick={settingsAction.onClick}
+              className="gap-2 shrink-0 hidden md:inline-flex"
+            >
+              <Settings className="h-4 w-4" />
+              <span>{settingsAction.label}</span>
+            </Button>
+          )}
           <Button
             onClick={() => setShowCreateDialog(true)}
             size={isMobile ? "sm" : "default"}
