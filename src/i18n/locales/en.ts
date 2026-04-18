@@ -149,6 +149,7 @@ export const en = {
     pushDisabledDesc: "Enable to receive notifications when you're away from the app.",
     categories: "Notification Categories",
     categoriesDesc: "Choose which types of notifications you want to receive.",
+    channelLayerNote: "These push categories control how notifications reach your device. Your per-area preferences above decide what kinds of notifications you receive in the first place — push categories sit on top of those choices.",
     catMessages: "Messages",
     catResults: "Lab Results",
     catStatus: "Status Updates",
