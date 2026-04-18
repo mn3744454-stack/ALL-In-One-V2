@@ -4,6 +4,7 @@ import { useLabSubmissions } from "@/hooks/laboratory/useLabSubmissions";
 import { LabSubmissionCard } from "./LabSubmissionCard";
 import { ChevronRight } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
