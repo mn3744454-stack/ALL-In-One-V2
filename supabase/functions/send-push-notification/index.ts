@@ -212,9 +212,20 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     // If no preferences row, defaults are all true / no quiet hours
+    // Residual Item 4 — Legacy push-category booleans now act as a *fallback*
+    // only when the user has no `family_preferences` map. Once the new family-
+    // level personal/governance model is seeded, the policy resolver below is
+    // the single source of truth for push gating. This removes the prior
+    // "stacked AND" behavior where the legacy column could silently override
+    // a user's newer family-level intent.
+    const hasFamilyPrefs =
+      prefs &&
+      prefs.family_preferences &&
+      typeof prefs.family_preferences === "object" &&
+      Object.keys(prefs.family_preferences as Record<string, unknown>).length > 0;
     const prefColumn = getPreferenceColumn(event_type);
-    if (prefs && prefColumn && prefs[prefColumn] === false) {
-      console.log(`[push] Category ${prefColumn} disabled for user ${user_id}`);
+    if (!hasFamilyPrefs && prefs && prefColumn && prefs[prefColumn] === false) {
+      console.log(`[push] Category ${prefColumn} disabled (legacy fallback) for user ${user_id}`);
       return new Response(
         JSON.stringify({ skipped: true, reason: "category_disabled" }),
         {
