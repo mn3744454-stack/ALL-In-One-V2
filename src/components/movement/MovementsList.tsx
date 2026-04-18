@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
@@ -26,6 +27,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Merge external filters with user filters
   const mergedFilters: FiltersType = {
