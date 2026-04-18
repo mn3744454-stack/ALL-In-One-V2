@@ -45,6 +45,11 @@ interface EmployeesListProps {
   onDeactivateEmployee: (id: string) => Promise<Employee>;
   isCreating?: boolean;
   isUpdating?: boolean;
+  /** Optional secondary action (e.g. HR Settings) shown in the toolbar next to Add Employee */
+  settingsAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function EmployeesList({
