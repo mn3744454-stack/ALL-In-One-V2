@@ -7112,8 +7112,10 @@ export type Database = {
       notification_preferences: {
         Row: {
           created_at: string
+          family_preferences: Json
           id: string
           in_app_sound: boolean
+          preset: string
           push_invitations: boolean
           push_messages: boolean
           push_partnerships: boolean
@@ -7127,8 +7129,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          family_preferences?: Json
           id?: string
           in_app_sound?: boolean
+          preset?: string
           push_invitations?: boolean
           push_messages?: boolean
           push_partnerships?: boolean
@@ -7142,8 +7146,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          family_preferences?: Json
           id?: string
           in_app_sound?: boolean
+          preset?: string
           push_invitations?: boolean
           push_messages?: boolean
           push_partnerships?: boolean
