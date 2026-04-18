@@ -65,9 +65,15 @@ import {
 import {
   getEventSeverity,
   getFamilyConfig,
+  resolveFamily,
   SEVERITY_STYLES,
 } from "@/lib/notifications/familyRegistry";
 import { resolveSummaryChips } from "@/lib/notifications/summary";
+import {
+  getFamilyLevel,
+  shouldDeliver,
+} from "@/lib/notifications/presets";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
