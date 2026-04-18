@@ -931,6 +931,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       {quickCreateDialog}
       {clientDialog}
       {packageDialog}
+      {quickCreateEmployeeDialog}
     </>
   );
 }
