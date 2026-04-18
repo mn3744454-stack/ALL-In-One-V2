@@ -52,7 +52,7 @@ export function useNotificationPreferences() {
     queryFn: async () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
-        .from("notification_preferences" as any)
+        .from("notification_preferences")
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
@@ -67,21 +67,21 @@ export function useNotificationPreferences() {
       if (!user?.id) throw new Error("Not authenticated");
 
       const { data: existing } = await supabase
-        .from("notification_preferences" as any)
+        .from("notification_preferences")
         .select("id")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (existing) {
         const { error } = await supabase
-          .from("notification_preferences" as any)
-          .update(updates)
+          .from("notification_preferences")
+          .update(updates as never)
           .eq("user_id", user.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("notification_preferences" as any)
-          .insert({ user_id: user.id, ...DEFAULT_PREFS, ...updates });
+          .from("notification_preferences")
+          .insert({ user_id: user.id, ...DEFAULT_PREFS, ...updates } as never);
         if (error) throw error;
       }
     },
