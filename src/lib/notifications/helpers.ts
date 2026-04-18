@@ -9,29 +9,19 @@
  *   - i18n template interpolation against notification metadata
  */
 
-import {
-  Bell,
-  Link2,
-  FlaskConical,
-  MessageSquare,
-  Truck,
-  Home,
-  type LucideIcon,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { AppNotification } from "@/hooks/useNotifications";
 import { tStatus } from "@/i18n/labels";
+import { getFamilyIcon } from "@/lib/notifications/familyRegistry";
 
 /**
  * Resolve the icon component for a notification family based on its event_type.
- * Mirrors the family taxonomy used by resolveNotificationRoute.
+ *
+ * Phase 2: delegates to the family registry so the icon taxonomy lives in a
+ * single place alongside severity, summary chip schema, and label keys.
  */
 export function getNotificationIcon(eventType: string): LucideIcon {
-  if (eventType.startsWith("connection.")) return Link2;
-  if (eventType.startsWith("lab_request.message")) return MessageSquare;
-  if (eventType.startsWith("lab_request.")) return FlaskConical;
-  if (eventType.startsWith("boarding.")) return Home;
-  if (eventType.startsWith("movement.")) return Truck;
-  return Bell;
+  return getFamilyIcon(eventType);
 }
 
 /**

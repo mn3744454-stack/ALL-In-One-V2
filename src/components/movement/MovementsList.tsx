@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
@@ -26,6 +27,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Merge external filters with user filters
   const mergedFilters: FiltersType = {
@@ -43,6 +45,23 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const dispatchHorseId = dispatchMovement_?.horse_id || null;
 
   const { data: activeAdmission } = useHorseActiveAdmission(dispatchHorseId);
+
+  // Phase 2: open-on-arrival from notification deep-links.
+  // Reads ?movementId=… (set by notification routeDescriptor), opens the
+  // detail sheet, then strips the param so back-nav doesn't re-trigger.
+  useEffect(() => {
+    const movementId = searchParams.get('movementId');
+    if (!movementId || isLoading || movements.length === 0) return;
+    const found = movements.find((m) => m.id === movementId);
+    if (!found) return;
+    setSelectedMovement(found);
+    const next = new URLSearchParams(searchParams);
+    next.delete('movementId');
+    next.delete('entityType');
+    next.delete('entityId');
+    next.delete('open');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, isLoading, movements, setSearchParams]);
 
   const handleDispatch = (movementId: string) => {
     setDispatchMovementId(movementId);

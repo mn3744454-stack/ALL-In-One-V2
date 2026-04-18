@@ -1,13 +1,16 @@
 /**
- * NotificationQuickDetailDialog — Phase 1 reusable shell.
+ * NotificationQuickDetailDialog — Phase 2 enrichment.
  *
- * Replaces forced-navigation-on-click with a quick-detail-first flow:
- *   1. User clicks a notification → this dialog opens (no route change).
- *   2. User can read the summary + close → returns to original page.
- *   3. User can explicitly press "Open full record" → deep-link navigation.
+ * Phase 1 established this as the family-agnostic shell that opens instead of
+ * forcing navigation. Phase 2 makes it more useful without redesigning it:
+ *   - severity-coded header accent (sourced from the family registry)
+ *   - smart summary chip row (same resolver the card uses → guaranteed
+ *     consistency between bell list and detail view)
+ *   - optional family-specific compact detail block (e.g. lab message body)
  *
- * Built generically so Phase 2 can plug in family-specific summary blocks
- * without touching the click flow or the source CTA.
+ * The shell stays generic: families plug in via the registry + summary
+ * resolver, never by editing this file. New families in Phase 2+ get
+ * card and dialog enrichment for free.
  */
 
 import { useEffect } from "react";
@@ -22,15 +25,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock } from "lucide-react";
+import { Clock, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale/ar";
 import { useI18n } from "@/i18n";
-import { tStatus } from "@/i18n/labels";
 import { cn } from "@/lib/utils";
 import type { AppNotification } from "@/hooks/useNotifications";
 import { resolveNotificationRoute } from "@/lib/notifications/routeDescriptor";
-import { interpolateNotificationTemplate } from "@/lib/notifications/helpers";
+import {
+  getNotificationIcon,
+  interpolateNotificationTemplate,
+} from "@/lib/notifications/helpers";
+import {
+  getEventSeverity,
+  getFamilyConfig,
+  SEVERITY_STYLES,
+} from "@/lib/notifications/familyRegistry";
+import { resolveSummaryChips } from "@/lib/notifications/summary";
 
 interface Props {
   notification: AppNotification | null;
@@ -52,8 +63,7 @@ export function NotificationQuickDetailDialog({
   const { t, lang } = useI18n();
   const navigate = useNavigate();
 
-  // Mark-read trigger now fires on dialog OPEN (not on bare card click),
-  // so users who only peek at the bell list keep their unread state.
+  // Mark-read trigger fires on dialog OPEN (Phase 1 contract — preserved).
   useEffect(() => {
     if (open && notification && !notification.is_read) {
       onMarkRead(notification.id);
@@ -64,7 +74,10 @@ export function NotificationQuickDetailDialog({
   if (!notification) return null;
 
   const descriptor = resolveNotificationRoute(notification);
-  const meta = notification.metadata || {};
+  const familyCfg = getFamilyConfig(notification.event_type);
+  const severity = getEventSeverity(notification.event_type);
+  const styles = SEVERITY_STYLES[severity];
+  const Icon = getNotificationIcon(notification.event_type);
 
   const safeEventType = notification.event_type.replace(/\./g, "_");
   const titleKey = `notifications.events.${safeEventType}.title`;
@@ -90,8 +103,17 @@ export function NotificationQuickDetailDialog({
     ...(lang === "ar" ? { locale: ar } : {}),
   });
 
-  // ── Family chip (small visual cue; expanded in Phase 2) ──
-  const familyLabel = t(`notifications.families.${descriptor.family}`);
+  // Full chip set (no card cap) — gives the dialog its richer summary.
+  const chips = resolveSummaryChips(notification, { limit: "all" });
+
+  // Family-specific compact block — currently a richer message preview for
+  // lab message events. New families can add their own small block here
+  // without touching the shell.
+  const meta = (notification.metadata || {}) as Record<string, unknown>;
+  const messagePreview =
+    notification.event_type === "lab_request.message_added"
+      ? ((meta.message_preview as string) || notification.body || "")
+      : "";
 
   const handleOpenSource = () => {
     if (!descriptor.sourceUrl) return;
@@ -107,59 +129,85 @@ export function NotificationQuickDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary" className="text-[10px]">
-              {familyLabel}
-            </Badge>
-            {meta.status && (
-              <Badge variant="outline" className="text-[10px]">
-                {tStatus(meta.status)}
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        {/* Severity-coded header strip */}
+        <div
+          className={cn(
+            "border-l-4 px-6 pt-6 pb-4",
+            styles.accent
+          )}
+        >
+          <DialogHeader className="text-start space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div
+                className={cn(
+                  "w-7 h-7 rounded-md flex items-center justify-center",
+                  styles.iconBg
+                )}
+              >
+                <Icon className={cn("w-4 h-4", styles.iconFg)} />
+              </div>
+              <Badge
+                variant="outline"
+                className="text-[10px] font-normal"
+              >
+                {t(familyCfg.labelKey)}
               </Badge>
+              {chips.find((c) => c.id === "status") && (
+                <Badge
+                  variant="outline"
+                  className={cn("text-[10px] font-normal", styles.chip)}
+                >
+                  {chips.find((c) => c.id === "status")!.value}
+                </Badge>
+              )}
+            </div>
+            <DialogTitle className="text-base leading-snug">
+              {displayTitle}
+            </DialogTitle>
+            {displayBody && (
+              <DialogDescription className="text-sm">
+                {displayBody}
+              </DialogDescription>
             )}
-          </div>
-          <DialogTitle className="text-base">{displayTitle}</DialogTitle>
-          {displayBody && (
-            <DialogDescription className="text-sm">
-              {displayBody}
-            </DialogDescription>
-          )}
-        </DialogHeader>
+          </DialogHeader>
+        </div>
 
-        {/* Summary chips (Phase 1: identity-only; Phase 2 adds family blocks) */}
-        <div className="space-y-2 text-sm">
-          {meta.actor_tenant_name && (
-            <SummaryRow
-              label={t("notifications.fromOrg")}
-              value={meta.actor_tenant_name}
-            />
+        {/* Body */}
+        <div className="px-6 pb-4 space-y-3">
+          {/* Family-specific compact block: lab message preview */}
+          {messagePreview && (
+            <div className="rounded-md border bg-muted/40 p-3 text-sm">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>{t("notifications.summary.message")}</span>
+              </div>
+              <p className="leading-relaxed line-clamp-4">{messagePreview}</p>
+            </div>
           )}
-          {meta.actor_user_name && (
-            <SummaryRow
-              label={t("notifications.actor")}
-              value={meta.actor_user_name}
-            />
+
+          {/* Smart summary chips (full set) */}
+          {chips.filter((c) => c.id !== "status").length > 0 && (
+            <div className="space-y-1.5">
+              {chips
+                .filter((c) => c.id !== "status")
+                .map((chip) => (
+                  <SummaryRow
+                    key={chip.id}
+                    label={t(chip.labelKey)}
+                    value={chip.value}
+                  />
+                ))}
+            </div>
           )}
-          {meta.horse_name && (
-            <SummaryRow
-              label={t("notifications.horse")}
-              value={meta.horse_name}
-            />
-          )}
-          {meta.entity_label && (
-            <SummaryRow
-              label={t("notifications.reference")}
-              value={meta.entity_label}
-            />
-          )}
+
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1">
             <Clock className="w-3 h-3" />
             <span>{timeAgo}</span>
           </div>
         </div>
 
-        <DialogFooter className={cn("gap-2 sm:gap-2")}>
+        <DialogFooter className={cn("gap-2 sm:gap-2 px-6 pb-6")}>
           <Button variant="outline" onClick={handleClose}>
             {t("notifications.close")}
           </Button>
@@ -178,9 +226,11 @@ export function NotificationQuickDetailDialog({
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-muted-foreground text-xs">{label}</span>
-      <span className="text-end font-medium">{value}</span>
+      <span className="text-end font-medium break-words max-w-[60%]">
+        {value}
+      </span>
     </div>
   );
 }

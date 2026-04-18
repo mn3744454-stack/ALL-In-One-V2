@@ -5119,6 +5119,18 @@ export const en = {
       movement: "Movements",
       generic: "General",
     },
+    summary: {
+      status: "Status",
+      message: "Message",
+      direction: "Direction",
+      when: "When",
+    },
+    severity: {
+      info: "Info",
+      success: "Done",
+      warning: "Action",
+      critical: "Urgent",
+    },
     noUnread: "No unread notifications",
     noRead: "No read notifications",
     noInvitations: "No pending invitations",
