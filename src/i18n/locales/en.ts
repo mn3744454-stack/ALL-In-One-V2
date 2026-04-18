@@ -194,6 +194,7 @@ export const en = {
     salaryPaymentCreated: "Salary payment recorded successfully",
     payroll: {
       title: "Payroll",
+      subtitle: "Manage and track employee salary payments",
       description: "Manage and track employee salary payments",
       addPayment: "Add Payment",
       totalPaid: "Total Paid",
