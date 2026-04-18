@@ -101,6 +101,9 @@ function NotificationCard({
 }) {
   const { t, lang } = useI18n();
   const Icon = getNotificationIcon(notification.event_type);
+  const severity = getEventSeverity(notification.event_type);
+  const styles = SEVERITY_STYLES[severity];
+  const familyCfg = getFamilyConfig(notification.event_type);
 
   // Normalize dotted event_type for i18n key lookup (e.g. "connection.accepted" → "connection_accepted")
   const safeEventType = notification.event_type.replace(/\./g, '_');
@@ -117,7 +120,6 @@ function NotificationCard({
   const bodyKey = `notifications.events.${safeEventType}.body`;
   const bodyRaw = t(bodyKey);
   const hasI18nBody = bodyRaw !== bodyKey;
-  // Only use interpolated body if it produces meaningful content (not just empty placeholders)
   const interpolatedBody = hasI18nBody ? interpolateNotificationTemplate(bodyRaw, notification) : '';
   const displayBody = hasI18nBody && interpolatedBody.replace(/·/g, '').trim()
     ? interpolatedBody
@@ -129,11 +131,15 @@ function NotificationCard({
     ...(lang === 'ar' ? { locale: ar } : {}),
   });
 
+  // Smart summary — capped to 2 chips on the card to stay scannable.
+  const chips = resolveSummaryChips(notification, { limit: 2 });
+
   return (
     <Card
       className={cn(
-        "overflow-hidden cursor-pointer transition-colors hover:bg-muted/50",
-        !notification.is_read && "border-primary/30 bg-primary/5"
+        "overflow-hidden cursor-pointer transition-colors hover:bg-muted/50 border-l-4",
+        styles.accent,
+        !notification.is_read && "bg-primary/5"
       )}
       onClick={onClick}
     >
@@ -142,20 +148,35 @@ function NotificationCard({
           <div
             className={cn(
               "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-              !notification.is_read ? "bg-primary/10" : "bg-muted"
+              !notification.is_read ? styles.iconBg : "bg-muted"
             )}
           >
             <Icon
               className={cn(
                 "w-4 h-4",
-                !notification.is_read ? "text-primary" : "text-muted-foreground"
+                !notification.is_read ? styles.iconFg : "text-muted-foreground"
               )}
             />
           </div>
           <div className="flex-1 min-w-0">
+            {/* Family chip + unread dot */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 h-4 font-normal"
+              >
+                {t(familyCfg.labelKey)}
+              </Badge>
+              {!notification.is_read && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-primary"
+                  aria-hidden
+                />
+              )}
+            </div>
             <p
               className={cn(
-                "text-sm",
+                "text-sm leading-snug",
                 !notification.is_read ? "font-semibold" : "font-medium"
               )}
             >
@@ -166,7 +187,29 @@ function NotificationCard({
                 {displayBody}
               </p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
+            {/* Smart summary chips — family-aware, scannable */}
+            {chips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                {chips.map((chip) => (
+                  <span
+                    key={chip.id}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] max-w-full",
+                      chip.tone === "status"
+                        ? styles.chip
+                        : "bg-muted/60 text-muted-foreground border-border"
+                    )}
+                    title={`${t(chip.labelKey)}: ${chip.value}`}
+                  >
+                    <span className="opacity-70">{t(chip.labelKey)}</span>
+                    <span className="truncate font-medium max-w-[10rem]">
+                      {chip.value}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-1.5">
               <Clock className="w-3 h-3 inline me-1" />
               {timeAgo}
             </p>
