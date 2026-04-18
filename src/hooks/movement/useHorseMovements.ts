@@ -244,10 +244,9 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         ? tGlobal('movement.lifecycle.scheduled')
         : tGlobal('movement.toasts.movementRecorded');
       toast.success(msg);
-      queryClient.invalidateQueries({ queryKey: ['horse-movements', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['horses'] });
-      queryClient.invalidateQueries({ queryKey: ['unit-occupants', tenantId] });
-      queryClient.invalidateQueries({ queryKey: ['housing-units', tenantId] });
+      // A recorded movement can affect movement lists, occupancy (housing legs),
+      // and admission state (admission-linked check-in/out movements).
+      invalidate(['movement', 'occupancy', 'admission']);
     },
     onError: (error: Error) => {
       const msg = error.message;
