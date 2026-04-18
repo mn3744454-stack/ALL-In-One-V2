@@ -63,6 +63,7 @@ export function EmployeesList({
   onDeactivateEmployee,
   isCreating,
   isUpdating,
+  settingsAction,
 }: EmployeesListProps) {
   const { t } = useI18n();
   const isMobile = useIsMobile();
