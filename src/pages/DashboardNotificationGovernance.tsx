@@ -39,6 +39,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { TenantGovernance } from "@/lib/notifications/policy";
+import { RolePresetBindingsSection } from "@/components/notifications/RolePresetBindingsSection";
 
 const FLOOR_LEVELS: Array<DeliveryLevel | "none"> = [
   "none",
@@ -242,6 +243,9 @@ export default function DashboardNotificationGovernance() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Residual Item 2 — Role-based presets management */}
+        <RolePresetBindingsSection canManage={canManage} />
 
         <p className="text-xs text-muted-foreground text-center">
           {t("notifications.governance.precedenceNote")}
