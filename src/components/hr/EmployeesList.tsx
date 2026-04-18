@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
 import { useViewPreference } from '@/hooks/useViewPreference';
