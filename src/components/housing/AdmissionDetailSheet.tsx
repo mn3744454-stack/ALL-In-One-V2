@@ -372,6 +372,40 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                 </Card>
               )}
 
+              {/* Phase C: Assigned Team summary */}
+              <Card>
+                <CardHeader className="p-4 pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {t('housing.admissions.detail.assignedTeam')}
+                    {assignedStaffCount > 0 && (
+                      <Badge variant="secondary" className="ms-1 h-5 text-[10px]">{assignedStaffCount}</Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm text-muted-foreground min-w-0 truncate">
+                      {assignedStaffCount === 0
+                        ? t('housing.admissions.detail.assignedTeamEmpty')
+                        : assignedStaffNames.join(' · ') + (assignedStaffCount > assignedStaffNames.length ? ` +${assignedStaffCount - assignedStaffNames.length}` : '')}
+                    </div>
+                    {isEditable && canUpdate && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs shrink-0"
+                        onClick={() => setAssignStaffOpen(true)}
+                      >
+                        {assignedStaffCount === 0
+                          ? t('housing.admissions.detail.assignStaff')
+                          : t('housing.admissions.detail.manageTeam')}
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Financial Summary Card */}
               {accruedCost !== null && accruedCost > 0 && (
                 <Card>
@@ -683,13 +717,18 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       </Button>
                     </div>
                   ) : (
-                    <EditableDetailRow
-                      icon={User}
-                      label={t('housing.admissions.detail.emergencyContact')}
-                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
-                      canEdit={isEditable && canUpdate}
-                      onEdit={() => startEdit('emergency_contact', admission.emergency_contact || '')}
-                    />
+                    <div className="space-y-1">
+                      <EditableDetailRow
+                        icon={User}
+                        label={t('housing.admissions.detail.emergencyContact')}
+                        value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
+                        canEdit={isEditable && canUpdate}
+                        onEdit={() => startEdit('emergency_contact', admission.emergency_contact || '')}
+                      />
+                      <p className="text-[11px] text-muted-foreground ps-6">
+                        {t('housing.admissions.detail.emergencyContactHelp')}
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -903,6 +942,16 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           admission={admission}
           open={invoiceDialogOpen}
           onOpenChange={setInvoiceDialogOpen}
+        />
+      )}
+
+      {admission?.horse_id && (
+        <AddAssignmentDialog
+          open={assignStaffOpen}
+          onOpenChange={setAssignStaffOpen}
+          horseId={admission.horse_id}
+          horseName={admission.horse?.name || ''}
+          existingEmployeeIds={existingEmployeeIds}
         />
       )}
     </>
