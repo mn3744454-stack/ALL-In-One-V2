@@ -46,7 +46,7 @@ import {
   type FamilyPreferencesMap,
 } from "@/lib/notifications/presets";
 import {
-  getFamilyConfig,
+  getFamilyConfigByName,
   SEVERITY_STYLES,
 } from "@/lib/notifications/familyRegistry";
 import type { NotificationFamily } from "@/lib/notifications/routeDescriptor";
