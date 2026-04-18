@@ -133,7 +133,6 @@ const MOVEMENT_SELECT = `
 
 export function useHorseMovements(filters: MovementFilters = {}) {
   const { activeTenant, activeRole } = useTenant();
-  const queryClient = useQueryClient();
   const { invalidate } = useHousingInvalidation();
   const tenantId = activeTenant?.tenant?.id;
 
