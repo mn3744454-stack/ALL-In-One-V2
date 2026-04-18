@@ -5173,6 +5173,11 @@ export const en = {
       precedenceNote: "Order of precedence: organization floor → personal preset → personal per-area level.",
       cardTitle: "Notification governance",
       cardDesc: "Org-wide floor, default preset, escalation, and self-action rules.",
+      rolePresetsTitle: "Role-based presets",
+      rolePresetsDesc: "When a new member with a matching role joins, they start from this preset instead of the default. Their personal choices later always win.",
+      rolePresetsEmpty: "No role-based presets configured. New members start from the default preset above.",
+      rolePresetsRoleLabel: "Role key",
+      rolePresetsPresetLabel: "Preset",
     },
     levels: {
       all: "All updates",

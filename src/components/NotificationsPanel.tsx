@@ -72,7 +72,7 @@ import { resolveSummaryChips } from "@/lib/notifications/summary";
 import { resolveDelivery } from "@/lib/notifications/policy";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { useTenantNotificationGovernance } from "@/hooks/useTenantNotificationGovernance";
-import { useTenant } from "@/contexts/TenantContext";
+import { useViewerIsLeadership } from "@/hooks/notifications/useViewerIsLeadership";
 import { useAuth } from "@/contexts/AuthContext";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
@@ -267,10 +267,9 @@ function NotificationsTabContent() {
   } = useNotifications();
   const { preferences } = useNotificationPreferences();
   const { governance } = useTenantNotificationGovernance();
-  const { activeRole } = useTenant();
   const { user } = useAuth();
-  const viewerIsLeadership =
-    activeRole === "owner" || activeRole === "manager";
+  // Residual Item 3 — canonical client-side leadership detection.
+  const viewerIsLeadership = useViewerIsLeadership();
 
   // Phase 4 — apply the full governance precedence (platform → org floor →
   // preset → personal + self-suppression + critical-escalation) to the bell
