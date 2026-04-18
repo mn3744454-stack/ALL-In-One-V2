@@ -255,27 +255,41 @@ export function AddAssignmentDialog({
 
   const title = t('hr.assignments.assignTo').replace('{{name}}', horseName);
 
+  const quickCreateMount = (
+    <QuickCreateEmployeeDialog
+      open={showQuickCreate}
+      onOpenChange={setShowQuickCreate}
+      onCreated={handleQuickCreated}
+    />
+  );
+
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-          </DrawerHeader>
-          {formContent}
-        </DrawerContent>
-      </Drawer>
+      <>
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{title}</DrawerTitle>
+            </DrawerHeader>
+            {formContent}
+          </DrawerContent>
+        </Drawer>
+        {quickCreateMount}
+      </>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        {formContent}
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          {formContent}
+        </DialogContent>
+      </Dialog>
+      {quickCreateMount}
+    </>
   );
 }
