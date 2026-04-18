@@ -27,7 +27,7 @@ export type DeliveryLevel = "all" | "important" | "critical" | "off";
 export type PresetId =
   | "all"
   | "leadership"
-  | "finance"
+  | "billing"
   | "lab"
   | "operations"
   | "minimal"
@@ -91,12 +91,14 @@ const PRESET_CONFIGS: Record<Exclude<PresetId, "custom">, PresetConfig> = {
     // Cross-cutting, important-only on operational families.
     familyLevels: lvl("all", "important", "important", "important"),
   },
-  finance: {
-    id: "finance",
-    labelKey: "notifications.presets.finance.label",
-    descriptionKey: "notifications.presets.finance.description",
-    // No dedicated finance family yet → emphasize partnerships + boarding billing
-    // signals, mute clinical chatter.
+  billing: {
+    id: "billing",
+    labelKey: "notifications.presets.billing.label",
+    descriptionKey: "notifications.presets.billing.description",
+    // No dedicated finance/billing notification family yet — this preset is an
+    // honest "billing-adjacent" view: keep partnerships + admission/boarding
+    // signals (closest billing-relevant streams today), mute clinical chatter.
+    // Will be revisited when a true finance.* family ships.
     familyLevels: lvl("all", "off", "important", "off"),
   },
   lab: {
@@ -125,7 +127,7 @@ export const PRESET_ORDER: PresetId[] = [
   "leadership",
   "operations",
   "lab",
-  "finance",
+  "billing",
   "minimal",
   "custom",
 ];

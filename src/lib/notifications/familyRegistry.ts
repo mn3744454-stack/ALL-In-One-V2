@@ -152,6 +152,17 @@ export function getFamilyConfig(eventType: string): FamilyConfig {
   return FAMILY_REGISTRY[resolveFamily(eventType)];
 }
 
+/**
+ * Direct lookup by family identifier (no synthetic event id needed).
+ * Use this from settings surfaces / control center where there is no real
+ * event_type to inspect — only a known family.
+ */
+export function getFamilyConfigByName(
+  family: NotificationFamily,
+): FamilyConfig {
+  return FAMILY_REGISTRY[family];
+}
+
 export function getFamilyIcon(eventType: string): LucideIcon {
   // Preserves the Phase 1 special-case where lab_request.message_* uses a
   // chat icon instead of the flask. Kept here so callers stay registry-pure.

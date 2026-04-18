@@ -65,9 +65,15 @@ import {
 import {
   getEventSeverity,
   getFamilyConfig,
+  resolveFamily,
   SEVERITY_STYLES,
 } from "@/lib/notifications/familyRegistry";
 import { resolveSummaryChips } from "@/lib/notifications/summary";
+import {
+  getFamilyLevel,
+  shouldDeliver,
+} from "@/lib/notifications/presets";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { useInvitations } from "@/hooks/useInvitations";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
@@ -259,6 +265,23 @@ function NotificationsTabContent() {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
+  const { preferences } = useNotificationPreferences();
+
+  // Phase 3 — apply personal delivery-level preferences to the bell list.
+  // Notifications whose family is set to a stricter level than the event's
+  // severity are hidden from view (they remain in the database; this is a
+  // personal *presentation* filter, not a server-side suppression).
+  const visibleNotifications = React.useMemo(() => {
+    const map = preferences.family_preferences ?? {};
+    return notifications.filter((n) => {
+      const family = resolveFamily(n.event_type);
+      const level = getFamilyLevel(map, family);
+      const severity = getEventSeverity(n.event_type);
+      return shouldDeliver(level, severity);
+    });
+  }, [notifications, preferences.family_preferences]);
+
+  const visibleUnreadCount = visibleNotifications.filter((n) => !n.is_read).length;
 
   // Phase 1 — quick-detail-first interaction.
   // Clicking a notification opens the dialog instead of forcing navigation.
@@ -266,8 +289,8 @@ function NotificationsTabContent() {
     useState<AppNotification | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const unreadNotifications = notifications.filter((n) => !n.is_read);
-  const readNotifications = notifications.filter((n) => n.is_read);
+  const unreadNotifications = visibleNotifications.filter((n) => !n.is_read);
+  const readNotifications = visibleNotifications.filter((n) => n.is_read);
 
   const handleClick = (notification: AppNotification) => {
     setActiveNotification(notification);
@@ -284,12 +307,12 @@ function NotificationsTabContent() {
         <TabsTrigger value="unread" className="flex-1 gap-1 text-xs">
           <Bell className="w-3.5 h-3.5" />
           {t('notifications.unread')}
-          {unreadCount > 0 && (
+          {visibleUnreadCount > 0 && (
             <Badge
               variant="destructive"
               className="ml-1 h-4 min-w-[16px] p-0 flex items-center justify-center text-[10px]"
             >
-              {unreadCount}
+              {visibleUnreadCount}
             </Badge>
           )}
         </TabsTrigger>
@@ -300,7 +323,7 @@ function NotificationsTabContent() {
       </TabsList>
 
       <TabsContent value="unread" className="mt-3">
-        {unreadCount > 0 && (
+        {visibleUnreadCount > 0 && (
           <div className="flex justify-end mb-2">
             <Button
               variant="ghost"

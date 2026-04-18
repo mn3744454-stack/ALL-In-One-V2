@@ -46,7 +46,7 @@ import {
   type FamilyPreferencesMap,
 } from "@/lib/notifications/presets";
 import {
-  getFamilyConfig,
+  getFamilyConfigByName,
   SEVERITY_STYLES,
 } from "@/lib/notifications/familyRegistry";
 import type { NotificationFamily } from "@/lib/notifications/routeDescriptor";
@@ -58,10 +58,16 @@ export function NotificationControlCenter() {
   const { preferences, updatePreferences, isSaving } =
     useNotificationPreferences();
 
-  const currentPreset: PresetId =
-    (preferences.preset as PresetId) ?? "all";
   const familyMap: FamilyPreferencesMap =
     preferences.family_preferences ?? {};
+  // Legacy "finance" preset (from before the corrective rename) is migrated
+  // on read into "billing" when family levels still match, otherwise into
+  // "custom" — keeps stored rows valid without a DB migration.
+  const storedPreset = preferences.preset as string | undefined;
+  const currentPreset: PresetId =
+    storedPreset === "finance"
+      ? detectPreset(familyMap)
+      : ((storedPreset as PresetId) ?? "all");
 
   const handlePresetSelect = async (id: PresetId) => {
     if (id === "custom") return; // custom is observed, not chosen
@@ -71,7 +77,7 @@ export function NotificationControlCenter() {
       await updatePreferences({
         preset: id,
         family_preferences: map,
-      } as any);
+      });
       toast.success(t("notifications.controlCenter.presetApplied"));
     } catch {
       toast.error(t("common.error"));
@@ -91,7 +97,7 @@ export function NotificationControlCenter() {
       await updatePreferences({
         preset: detected,
         family_preferences: next,
-      } as any);
+      });
       if (detected === "custom" && currentPreset !== "custom") {
         toast.success(t("notifications.controlCenter.switchedToCustom"));
       }
@@ -204,8 +210,7 @@ function FamilySection({
   const rows = useMemo(
     () =>
       CONTROLLABLE_FAMILIES.map((family) => {
-        // Use a stable event prefix to resolve config (no real event needed).
-        const cfg = getFamilyConfig(`${family}.x`);
+        const cfg = getFamilyConfigByName(family);
         const sev = SEVERITY_STYLES[cfg.defaultSeverity];
         return { family, cfg, sev };
       }),

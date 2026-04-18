@@ -173,6 +173,10 @@ const DashboardNotificationSettings = () => {
             <CardDescription>{t("pushNotifications.categoriesDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Phase 3 — clarify how the legacy channel layer relates to the new family layer above. */}
+            <p className="text-xs text-muted-foreground bg-muted/40 border border-border/60 rounded-md px-3 py-2 leading-relaxed">
+              {t("pushNotifications.channelLayerNote")}
+            </p>
             {[
               { key: "push_messages", label: t("pushNotifications.catMessages") },
               { key: "push_results", label: t("pushNotifications.catResults") },
