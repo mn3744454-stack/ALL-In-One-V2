@@ -203,6 +203,22 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
 
       await createAdmission(data);
 
+      // Phase C (Image 27): persist in-flow staff assignments to existing hr_assignments truth
+      const validRows = staffRows.filter(r => r.employee_id && r.role);
+      if (tenantId && form.horseId && validRows.length > 0) {
+        const inserts = validRows.map(r => ({
+          tenant_id: tenantId,
+          employee_id: r.employee_id,
+          entity_type: 'horse' as const,
+          entity_id: form.horseId,
+          role: r.role,
+        }));
+        const { error: assignError } = await supabase.from('hr_assignments').insert(inserts);
+        if (assignError) {
+          console.error('Failed to persist in-flow staff assignments:', assignError);
+        }
+      }
+
       resetForm();
       onOpenChange(false);
       onSuccess?.();
@@ -219,6 +235,7 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
       reason: '', specialInstructions: '', emergencyContact: '', expectedDeparture: '',
       arrivalDate: '',
     });
+    setStaffRows([]);
   };
 
   const stepLabels: Record<Step, string> = {
