@@ -32,6 +32,8 @@ export interface AppNotification {
   read_at: string | null;
   created_at: string;
   metadata: NotificationMetadata;
+  /** Phase 4 — who triggered this event. Nullable for system-generated rows. */
+  actor_user_id: string | null;
 }
 
 export function useNotifications() {
