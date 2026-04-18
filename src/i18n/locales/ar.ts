@@ -180,6 +180,7 @@ export const ar = {
   },
   hr: {
     title: "دليل الفريق",
+    name: "الاسم",
     addEmployee: "إضافة موظف",
     editEmployee: "تعديل بيانات الموظف",
     employeeDetails: "تفاصيل الموظف",
