@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-push-secret",
 };
 
-// Category mapping: event_type -> preference column
+// Category mapping: event_type -> preference column (legacy push categories)
 function getPreferenceColumn(
   eventType: string
 ): string | null {
@@ -20,6 +20,51 @@ function getPreferenceColumn(
   if (eventType.startsWith("invitation.")) return "push_invitations";
   if (eventType.startsWith("connection.")) return "push_partnerships";
   return null; // unknown category — send by default
+}
+
+// ── Phase 4 — server-side mirror of src/lib/notifications/policy.ts ──
+// Keep these mirrors in lockstep when the family taxonomy changes.
+
+type Family = "connection" | "lab_request" | "boarding" | "movement" | "generic";
+type Level = "all" | "important" | "critical" | "off";
+type Severity = "info" | "success" | "warning" | "critical";
+
+const LEVEL_RANK: Record<Level, number> = { all: 0, important: 1, critical: 2, off: 3 };
+const louder = (a: Level, b: Level): Level =>
+  LEVEL_RANK[a] <= LEVEL_RANK[b] ? a : b;
+
+function resolveFamily(eventType: string): Family {
+  if (eventType.startsWith("connection.")) return "connection";
+  if (eventType.startsWith("lab_request.")) return "lab_request";
+  if (eventType.startsWith("boarding.")) return "boarding";
+  if (eventType.startsWith("movement.")) return "movement";
+  return "generic";
+}
+
+const SEVERITY_BY_EVENT: Record<string, Severity> = {
+  "connection.request_received": "warning",
+  "connection.accepted": "success",
+  "connection.rejected": "info",
+  "lab_request.new": "warning",
+  "lab_request.result_published": "success",
+  "lab_request.message_added": "info",
+  "lab_request.status_changed": "info",
+  "boarding.admission_created": "success",
+  "boarding.checkout_initiated": "warning",
+  "boarding.checkout_completed": "success",
+  "movement.scheduled": "info",
+  "movement.dispatched": "warning",
+  "movement.incoming_pending": "warning",
+  "movement.incoming_confirmed": "success",
+};
+const getSeverity = (eventType: string): Severity =>
+  SEVERITY_BY_EVENT[eventType] ?? "info";
+
+function shouldDeliver(level: Level, severity: Severity): boolean {
+  if (level === "off") return false;
+  if (level === "all") return true;
+  if (level === "important") return severity === "warning" || severity === "critical";
+  return severity === "critical";
 }
 
 function isInQuietHours(
