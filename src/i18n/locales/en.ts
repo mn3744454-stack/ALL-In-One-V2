@@ -328,6 +328,9 @@ export const en = {
       searchHorses: "Search horses...",
       noHorsesAvailable: "No horses available to assign",
       assignFirstHorse: "Assign a horse to this employee",
+      addStaff: "Add staff member",
+      removeRow: "Remove",
+      assignedTeamHelp: "Operational staff responsible for this horse during the stay. Distinct from emergency contact.",
     },
     
     // Demo
