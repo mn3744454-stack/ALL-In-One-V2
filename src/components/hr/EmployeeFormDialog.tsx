@@ -32,6 +32,7 @@ import { User, Briefcase, Phone, Mail, Calendar, DollarSign, FileText } from 'lu
 import { cn } from '@/lib/utils';
 import type { Employee, HrEmployeeType, CreateEmployeeData } from '@/hooks/hr/useEmployees';
 import type { EmploymentKind } from '@/hooks/hr/useEmploymentKind';
+import { MultiPhoneInput, type PhoneEntry } from '@/components/shared/contact/MultiPhoneInput';
 
 const EMPLOYEE_TYPES: HrEmployeeType[] = [
   'trainer', 'groom', 'vet_tech', 'receptionist',
@@ -80,9 +81,21 @@ export function EmployeeFormDialog({
     start_date: null,
   });
 
+  // Structured multi-phone state for the full form
+  const [phones, setPhones] = useState<PhoneEntry[]>([]);
+
   // Reset form when opening/closing or when employee changes
   useEffect(() => {
     if (open && employee) {
+      // Load structured phones if present; otherwise migrate legacy single phone
+      const empAny = employee as unknown as { phones?: PhoneEntry[] | null };
+      const existingPhones: PhoneEntry[] = Array.isArray(empAny.phones) && empAny.phones.length > 0
+        ? (empAny.phones as PhoneEntry[])
+        : (employee.phone
+            ? [{ number: employee.phone, label: 'mobile', is_whatsapp: false, is_primary: true }]
+            : []);
+      setPhones(existingPhones);
+
       setFormData({
         full_name: employee.full_name,
         full_name_ar: employee.full_name_ar || '',
@@ -99,6 +112,7 @@ export function EmployeeFormDialog({
         start_date: employee.start_date || null,
       });
     } else if (open && !employee) {
+      setPhones([]);
       setFormData({
         full_name: '',
         full_name_ar: '',
@@ -120,8 +134,19 @@ export function EmployeeFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.full_name.trim()) return;
-    
-    await onSubmit(formData);
+
+    // Build save payload: structured `phones` is canonical; mirror primary
+    // into legacy `phone` for compatibility with surfaces still reading it.
+    const cleanedPhones = phones.filter(p => p.number?.trim());
+    const primaryNumber = cleanedPhones.find(p => p.is_primary)?.number?.trim()
+      || cleanedPhones[0]?.number?.trim()
+      || '';
+
+    await onSubmit({
+      ...formData,
+      phone: primaryNumber || null,
+      phones: cleanedPhones,
+    });
   };
 
   const isInternal = formData.employment_kind === 'internal';
