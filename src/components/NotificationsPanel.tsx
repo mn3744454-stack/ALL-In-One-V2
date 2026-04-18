@@ -32,9 +32,6 @@ import {
 } from "@/components/ui/select";
 import {
   Bell,
-  Link2,
-  FlaskConical,
-  MessageSquare,
   CheckCheck,
   Check,
   Clock,
@@ -46,8 +43,6 @@ import {
   Copy,
   X,
   Loader2,
-  Truck,
-  Home,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
