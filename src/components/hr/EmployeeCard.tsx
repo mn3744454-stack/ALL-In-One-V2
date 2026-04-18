@@ -2,6 +2,7 @@ import { useI18n } from '@/i18n';
 import { DirectionalIcon } from '@/components/ui/directional-icon';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BilingualName } from '@/components/ui/BilingualName';
 import { ChevronRight, Phone, Mail, Briefcase, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatStandardDate } from '@/lib/displayHelpers';
@@ -60,9 +61,12 @@ export function EmployeeCard({ employee, onClick }: EmployeeCardProps) {
         
         <div className="flex flex-col gap-1.5 min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-foreground truncate">
-              {employee.full_name}
-            </span>
+            <BilingualName
+              name={employee.full_name}
+              nameAr={employee.full_name_ar}
+              className="min-w-0 flex-1"
+              primaryClassName="text-foreground"
+            />
             {!employee.is_active && (
               <Badge variant="outline" className="text-[10px] px-1.5 shrink-0">
                 {t('common.inactive')}

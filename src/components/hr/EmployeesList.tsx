@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmployeeCard } from './EmployeeCard';
 import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
+import { BilingualName } from '@/components/ui/BilingualName';
 import { Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
@@ -266,7 +267,7 @@ export function EmployeesList({
                   onClick={() => setSelectedEmployee(employee)}
                 >
                   <TableCell>
-                    <span className="font-medium">{employee.full_name}</span>
+                    <BilingualName name={employee.full_name} nameAr={employee.full_name_ar} />
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-xs">

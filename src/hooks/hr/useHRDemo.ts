@@ -11,6 +11,7 @@ const DEMO_TAG = 'demo';
 const DEMO_EMPLOYEES = [
   {
     full_name: 'Ahmed Al-Rashid',
+    full_name_ar: 'أحمد الراشد',
     employee_type: 'groom' as const,
     employee_category: 'field' as const,
     phone: '+966 55 111 2222',
@@ -18,6 +19,7 @@ const DEMO_EMPLOYEES = [
   },
   {
     full_name: 'Sarah Johnson',
+    full_name_ar: 'سارة جونسون',
     employee_type: 'trainer' as const,
     employee_category: 'field' as const,
     phone: '+966 55 333 4444',
@@ -25,6 +27,7 @@ const DEMO_EMPLOYEES = [
   },
   {
     full_name: 'Mohammad Al-Faris',
+    full_name_ar: 'محمد الفارس',
     employee_type: 'farrier' as const,
     employee_category: 'field' as const,
     phone: '+966 55 555 6666',
@@ -32,6 +35,7 @@ const DEMO_EMPLOYEES = [
   },
   {
     full_name: 'Emily Chen',
+    full_name_ar: 'إيميلي تشين',
     employee_type: 'vet_tech' as const,
     employee_category: 'mixed' as const,
     phone: null,
@@ -39,6 +43,7 @@ const DEMO_EMPLOYEES = [
   },
   {
     full_name: 'Khaled Al-Omari',
+    full_name_ar: 'خالد العمري',
     employee_type: 'admin' as const,
     employee_category: 'office' as const,
     phone: null,
@@ -46,6 +51,7 @@ const DEMO_EMPLOYEES = [
   },
   {
     full_name: 'Lisa Thompson',
+    full_name_ar: 'ليزا طومسون',
     employee_type: 'manager' as const,
     employee_category: 'office' as const,
     phone: '+966 55 777 8888',

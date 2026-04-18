@@ -45,6 +45,7 @@ export interface EmployeeFilters {
 
 export interface CreateEmployeeData {
   full_name: string;
+  full_name_ar?: string | null;
   employee_type: HrEmployeeType;
   employee_type_custom?: string | null;
   department?: string | null;
@@ -101,9 +102,10 @@ export function useEmployees() {
         query = query.eq('department', filters.department);
       }
 
-      // SEARCH LAST (after tenant scope)
+      // SEARCH LAST (after tenant scope) — bilingual name aware
       if (filters.search) {
-        query = query.ilike('full_name', `%${filters.search}%`);
+        const term = filters.search.replace(/[%,]/g, '');
+        query = query.or(`full_name.ilike.%${term}%,full_name_ar.ilike.%${term}%`);
       }
 
       query = query.order('full_name', { ascending: true });
@@ -127,6 +129,7 @@ export function useEmployees() {
           tenant_id: tenantId,
           created_by: user.id,
           full_name: data.full_name,
+          full_name_ar: data.full_name_ar?.trim() || null,
           employee_type: data.employee_type,
           employee_type_custom: data.employee_type === 'other' ? data.employee_type_custom : null,
           department: data.department || null,

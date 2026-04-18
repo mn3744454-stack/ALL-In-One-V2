@@ -20,6 +20,7 @@ export interface SalaryPayment {
   employee?: {
     id: string;
     full_name: string;
+    full_name_ar?: string | null;
     employee_type: string;
     employment_kind: string;
   };
@@ -55,7 +56,7 @@ export function useSalaryPayments() {
         .from('hr_salary_payments')
         .select(`
           *,
-          employee:hr_employees(id, full_name, employee_type, employment_kind)
+          employee:hr_employees(id, full_name, full_name_ar, employee_type, employment_kind)
         `)
         .eq('tenant_id', tenantId)
         .order('paid_at', { ascending: false });

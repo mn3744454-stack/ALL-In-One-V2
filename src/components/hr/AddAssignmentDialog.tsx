@@ -40,6 +40,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { BilingualName } from '@/components/ui/BilingualName';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -113,7 +114,9 @@ export function AddAssignmentDialog({
                 !selectedEmployeeId && "text-muted-foreground"
               )}
             >
-              {selectedEmployee ? selectedEmployee.full_name : t('hr.assignments.searchEmployees')}
+              {selectedEmployee ? (
+                <BilingualName name={selectedEmployee.full_name} nameAr={selectedEmployee.full_name_ar} inline />
+              ) : t('hr.assignments.searchEmployees')}
               <ChevronsUpDown className="ms-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -126,7 +129,7 @@ export function AddAssignmentDialog({
                   {availableEmployees.map((emp) => (
                     <CommandItem
                       key={emp.id}
-                      value={emp.full_name}
+                      value={`${emp.full_name} ${emp.full_name_ar || ''}`}
                       onSelect={() => {
                         setSelectedEmployeeId(emp.id);
                         setEmployeeSearchOpen(false);
@@ -138,8 +141,8 @@ export function AddAssignmentDialog({
                           selectedEmployeeId === emp.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      <div className="flex flex-col">
-                        <span>{emp.full_name}</span>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <BilingualName name={emp.full_name} nameAr={emp.full_name_ar} />
                         <span className="text-xs text-muted-foreground">
                           {t(`hr.employeeTypes.${emp.employee_type}`)}
                         </span>
