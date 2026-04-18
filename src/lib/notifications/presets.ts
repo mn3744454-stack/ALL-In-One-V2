@@ -27,7 +27,7 @@ export type DeliveryLevel = "all" | "important" | "critical" | "off";
 export type PresetId =
   | "all"
   | "leadership"
-  | "finance"
+  | "billing"
   | "lab"
   | "operations"
   | "minimal"
