@@ -307,12 +307,12 @@ function NotificationsTabContent() {
         <TabsTrigger value="unread" className="flex-1 gap-1 text-xs">
           <Bell className="w-3.5 h-3.5" />
           {t('notifications.unread')}
-          {unreadCount > 0 && (
+          {visibleUnreadCount > 0 && (
             <Badge
               variant="destructive"
               className="ml-1 h-4 min-w-[16px] p-0 flex items-center justify-center text-[10px]"
             >
-              {unreadCount}
+              {visibleUnreadCount}
             </Badge>
           )}
         </TabsTrigger>
@@ -323,7 +323,7 @@ function NotificationsTabContent() {
       </TabsList>
 
       <TabsContent value="unread" className="mt-3">
-        {unreadCount > 0 && (
+        {visibleUnreadCount > 0 && (
           <div className="flex justify-end mb-2">
             <Button
               variant="ghost"
