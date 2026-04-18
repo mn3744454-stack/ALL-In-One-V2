@@ -252,9 +252,10 @@ export function EmployeeDetailsSheet({
           </div>
         )}
 
-        {/* Assigned Horses - now passes user_id for member_horse_access lookup */}
-        <EmployeeAssignedHorses 
-          employeeId={employee.id} 
+        {/* Assigned Horses — bidirectional management surface */}
+        <EmployeeAssignedHorses
+          employeeId={employee.id}
+          employeeName={employee.full_name}
           employeeUserId={employee.user_id}
         />
 
