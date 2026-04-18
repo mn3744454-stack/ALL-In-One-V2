@@ -321,6 +321,12 @@ export const en = {
       noHorses: "No horses assigned",
       noEmployeesYet: "No employees yet",
       addNewEmployee: "Add new employee",
+      assignHorse: "Assign Horse",
+      assignHorseTo: "Assign horse to {{name}}",
+      selectHorse: "Select Horse",
+      searchHorses: "Search horses...",
+      noHorsesAvailable: "No horses available to assign",
+      assignFirstHorse: "Assign a horse to this employee",
     },
     
     // Demo
