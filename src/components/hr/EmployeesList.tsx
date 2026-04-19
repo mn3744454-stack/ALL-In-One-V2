@@ -255,14 +255,14 @@ export function EmployeesList({
       ) : viewMode === 'table' ? (
         <div className="rounded-md border overflow-x-auto">
           <Table>
-            <TableHeader className="bg-muted/40">
-              <TableRow className="border-b border-border">
-                <TableHead className="font-semibold text-foreground">{t('hr.name')}</TableHead>
-                <TableHead className="font-semibold text-foreground">{t('hr.employeeType')}</TableHead>
-                <TableHead className="font-semibold text-foreground">{t('hr.department')}</TableHead>
-                <TableHead className="font-semibold text-foreground text-center">{t('hr.phone')}</TableHead>
-                <TableHead className="font-semibold text-foreground">{t('hr.responsibilities')}</TableHead>
-                <TableHead className="font-semibold text-foreground text-center">{t('common.status')}</TableHead>
+            <TableHeader className="bg-muted">
+              <TableRow className="border-b-2 border-border hover:bg-muted">
+                <TableHead className="font-bold text-foreground text-sm tracking-wide">{t('hr.name')}</TableHead>
+                <TableHead className="font-bold text-foreground text-sm tracking-wide">{t('hr.employeeType')}</TableHead>
+                <TableHead className="font-bold text-foreground text-sm tracking-wide">{t('hr.department')}</TableHead>
+                <TableHead className="font-bold text-foreground text-sm tracking-wide text-center">{t('hr.phone')}</TableHead>
+                <TableHead className="font-bold text-foreground text-sm tracking-wide">{t('hr.responsibilities')}</TableHead>
+                <TableHead className="font-bold text-foreground text-sm tracking-wide text-center">{t('common.status')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
