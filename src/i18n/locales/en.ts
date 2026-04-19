@@ -266,6 +266,13 @@ export const en = {
     filterByStatus: "Filter by status",
     allTypes: "All Types",
     allStatuses: "All Statuses",
+    // Phase D — Responsibilities column
+    responsibilities: "Responsibilities",
+    responsibilitiesShort: "Responsibilities",
+    responsibilitiesNone: "No responsibilities recorded yet",
+    responsibilitiesPopover: {
+      title: "Responsibilities",
+    },
     
     // Categories
     category: "Category",

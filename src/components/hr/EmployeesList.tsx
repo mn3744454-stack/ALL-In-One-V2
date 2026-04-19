@@ -24,8 +24,10 @@ import { EmployeeCard } from './EmployeeCard';
 import { EmployeeFormDialog } from './EmployeeFormDialog';
 import { EmployeeDetailsSheet } from './EmployeeDetailsSheet';
 import { BilingualName } from '@/components/ui/BilingualName';
+import { ResponsibilitiesCell } from './ResponsibilitiesCell';
 import { Plus, Search, Settings, Users } from 'lucide-react';
 import { useEmploymentKind } from '@/hooks/hr/useEmploymentKind';
+import { useEmployeesAssignmentCounts } from '@/hooks/hr/useEmployeesAssignmentCounts';
 import { ViewSwitcher, getGridClass } from '@/components/ui/ViewSwitcher';
 import { useViewPreference } from '@/hooks/useViewPreference';
 import type { Employee, EmployeeFilters, HrEmployeeType, CreateEmployeeData, UpdateEmployeeData } from '@/hooks/hr/useEmployees';
@@ -78,6 +80,9 @@ export function EmployeesList({
   const totalCount = employees.length;
   const internalCount = employees.filter(e => e.employment_kind === 'internal').length;
   const externalCount = employees.filter(e => e.employment_kind === 'external').length;
+
+  // Phase D — aggregate horse-backed responsibility counts for the visible list.
+  const { countsMap } = useEmployeesAssignmentCounts(employees.map(e => e.id));
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value });
@@ -250,13 +255,14 @@ export function EmployeesList({
       ) : viewMode === 'table' ? (
         <div className="rounded-md border overflow-x-auto">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('hr.name')}</TableHead>
-                <TableHead>{t('hr.employeeType')}</TableHead>
-                <TableHead>{t('hr.department')}</TableHead>
-                <TableHead className="text-center">{t('hr.phone')}</TableHead>
-                <TableHead className="text-center">{t('common.status')}</TableHead>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="border-b border-border">
+                <TableHead className="font-semibold text-foreground">{t('hr.name')}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t('hr.employeeType')}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t('hr.department')}</TableHead>
+                <TableHead className="font-semibold text-foreground text-center">{t('hr.phone')}</TableHead>
+                <TableHead className="font-semibold text-foreground">{t('hr.responsibilities')}</TableHead>
+                <TableHead className="font-semibold text-foreground text-center">{t('common.status')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -279,6 +285,14 @@ export function EmployeesList({
                   </TableCell>
                   <TableCell className="text-center font-mono text-sm" dir="ltr">
                     {employee.phone || '-'}
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <ResponsibilitiesCell
+                      employeeId={employee.id}
+                      employeeFullName={employee.full_name}
+                      employeeFullNameAr={employee.full_name_ar}
+                      count={countsMap.get(employee.id) ?? 0}
+                    />
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge
