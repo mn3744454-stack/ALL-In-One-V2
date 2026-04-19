@@ -278,6 +278,13 @@ export const ar = {
     filterByStatus: "تصفية حسب الحالة",
     allTypes: "جميع الأنواع",
     allStatuses: "جميع الحالات",
+    // Phase D — عمود المسؤوليات
+    responsibilities: "المسؤوليات",
+    responsibilitiesShort: "مسؤوليات",
+    responsibilitiesNone: "لا توجد مسؤوليات مسجلة بعد",
+    responsibilitiesPopover: {
+      title: "المسؤوليات",
+    },
     
     // Categories
     category: "الفئة",
