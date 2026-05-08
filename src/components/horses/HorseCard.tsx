@@ -85,6 +85,8 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
   }, [horse.gender, horse.birth_date, horse.birth_at, horse.is_gelded, horse.breeding_role]);
 
   const typeLabel = rtl ? typeBadgeProps.labelAr : typeBadgeProps.label;
+  const opStatus = deriveOperationalStatus(lifecycleState);
+  const showLifecycleChip = opStatus !== 'unknown';
   const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
   const branchName = horse.branch_data?.name;
