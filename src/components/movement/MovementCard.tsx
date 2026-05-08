@@ -184,6 +184,30 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               </div>
             )}
 
+            {/* Confirm Internal Transfer action — internal transfer (scheduled or dispatched) */}
+            {internalTransferActionable && canDispatch && onConfirmTransfer && (
+              <div className="pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirmTransfer(movement.id);
+                  }}
+                >
+                  {isTransferRetry ? (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                  )}
+                  {isTransferRetry
+                    ? t('movement.lifecycle.completeInternalTransfer')
+                    : t('movement.lifecycle.confirmInternalTransfer')}
+                </Button>
+              </div>
+            )}
+
             {/* Dispatch action — non-arrival scheduled movements (out / transfer) */}
             {showDispatchAction && canDispatch && onDispatch && (
               <div className="pt-2 border-t">
