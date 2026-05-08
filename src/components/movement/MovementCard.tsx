@@ -42,7 +42,6 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
 
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
   const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
-  const isTransfer = movement.movement_type === 'transfer';
 
   const getCategoryBadge = () => {
     if (isAdmissionCheckin) return <Badge className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">{t('housing.admissions.detail.checkin')}</Badge>;
