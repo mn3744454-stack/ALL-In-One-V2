@@ -257,14 +257,25 @@ export function RecordMovementDialog({
 
   const handleSubmit = async () => {
     if (!formData.movementType || isSubmitting) return;
+
+    // AD-1 Pass 1.1: surface tenant errors instead of silent returns.
+    const tenantId = activeTenant?.tenant_id ?? activeTenant?.tenant?.id ?? null;
+    if (!tenantId) {
+      toast.error(t("movement.toasts.noActiveOrganization"));
+      return;
+    }
+
     setIsSubmitting(true);
 
-    try {
-      let horseId = formData.horseId;
+    let horseId = formData.horseId;
+    let createdNewHorseId: string | null = null;
 
-      // If new horse, create it first with intake_draft status
+    try {
+      // If new horse, create it first with intake_draft status.
+      // NOTE: if movement creation later fails, the orphan horse remains as
+      // intake_draft and is reachable from the Horses list (filter: incomplete
+      // profiles); the user can complete or delete it manually.
       if (arrivalSource === 'new_horse' && !horseId) {
-        if (!activeTenant?.tenant_id) return;
         const { data: createdHorse, error: createError } = await supabase
           .from("horses")
           .insert({
@@ -277,21 +288,34 @@ export function RecordMovementDialog({
             breed: newHorse.breed.trim() || null,
             color: newHorse.color.trim() || null,
             notes: newHorse.notes.trim() || null,
-            tenant_id: activeTenant.tenant_id,
+            tenant_id: tenantId,
             status: 'intake_draft',
           })
           .select('id')
           .single();
 
         if (createError || !createdHorse) {
-          toast.error(createError?.message || "Failed to create horse");
+          toast.error(createError?.message || t("movement.toasts.failedToCreateHorse"));
           return;
         }
         horseId = createdHorse.id;
+        createdNewHorseId = createdHorse.id;
         toast.success(t("movement.arrival.horseCreated").replace("{{name}}", newHorse.name));
       }
 
-      if (!horseId) return;
+      if (!horseId) {
+        toast.error(t("movement.toasts.horseRequired"));
+        return;
+      }
+
+      // ---- Unified scheduled-status derivation (AD-1 Pass 1.1) ----
+      // A movement is "scheduled" when EITHER the explicit toggle is on OR
+      // the chosen movement_at falls in the future. This prevents future-dated
+      // arrivals/transfers from being incorrectly persisted as completed.
+      const explicitSchedule = scheduleForLater && !!scheduledAt;
+      const futureMovementDate = !!movementDate && new Date(movementDate).getTime() > Date.now();
+      const isScheduled = explicitSchedule || futureMovementDate;
+      const effectiveMovementAt = explicitSchedule ? scheduledAt : (movementDate || undefined);
 
       // Connected movement uses a separate RPC
       if (formData.destinationType === 'connected' && formData.connectedTenantId) {
@@ -299,7 +323,7 @@ export function RecordMovementDialog({
           horse_id: horseId,
           connected_tenant_id: formData.connectedTenantId,
           from_location_id: formData.fromLocationId,
-          movement_at: scheduleForLater && scheduledAt ? scheduledAt : undefined,
+          movement_at: isScheduled ? effectiveMovementAt : undefined,
           reason: formData.reason || undefined,
           notes: formData.notes || undefined,
         });
@@ -310,8 +334,7 @@ export function RecordMovementDialog({
       }
 
       const currentHorse = allHorses.find(h => h.id === horseId);
-      const isScheduled = scheduleForLater && scheduledAt;
-      
+
       const data: CreateMovementData = {
         horse_id: horseId,
         movement_type: formData.movementType,
@@ -321,7 +344,7 @@ export function RecordMovementDialog({
         from_unit_id: currentHorse?.housing_unit_id || null,
         to_area_id: formData.toAreaId,
         to_unit_id: formData.toUnitId,
-        movement_at: movementDate || undefined,
+        movement_at: effectiveMovementAt,
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
         internal_location_note: formData.internalLocationNote || undefined,
@@ -330,13 +353,25 @@ export function RecordMovementDialog({
         from_external_location_id: formData.fromExternalLocationId,
         to_external_location_id: formData.toExternalLocationId,
         movement_status: isScheduled ? 'scheduled' : undefined,
-        scheduled_at: isScheduled ? scheduledAt : undefined,
+        scheduled_at: isScheduled ? effectiveMovementAt : undefined,
       };
 
       await recordMovement(data);
       onOpenChange(false);
       resetForm();
       onSuccess?.();
+    } catch (err: any) {
+      // recordMovement already toasts via mutation onError; this guards against
+      // any other unexpected failure (network, supabase client error). We keep
+      // the dialog open so the user can retry without losing entered data.
+      const message = err?.message || t("movement.toasts.failedToRecord");
+      // Avoid double-toasting: only toast if the message wasn't already surfaced
+      // by the mutation onError handler.
+      if (!err?.__toasted) toast.error(message);
+      if (createdNewHorseId) {
+        // Horse was created but movement failed — let the user know it's findable.
+        toast.message(t("movement.toasts.horseCreatedMovementFailed"));
+      }
     } finally {
       setIsSubmitting(false);
     }
