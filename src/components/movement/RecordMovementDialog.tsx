@@ -453,6 +453,7 @@ export function RecordMovementDialog({
       connectedTenantId: null,
       toAreaId: null, toUnitId: null,
       reason: "", notes: "", internalLocationNote: "",
+      subtypeChoice: null,
     });
     setNewHorse({ name: '', name_ar: '', gender: 'male', birth_date: '', microchip_number: '', passport_number: '', breed: '', color: '', notes: '' });
     setShowNewExternal(false);
