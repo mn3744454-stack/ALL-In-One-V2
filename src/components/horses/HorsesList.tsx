@@ -213,7 +213,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           )}
         </div>
       ) : viewMode === 'table' ? (
-        <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} />
+        <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} lifecycleStates={statesByHorseId} />
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredHorses.map((horse) => (
@@ -223,6 +223,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
               onClick={() => onHorseClick?.(horse)}
               compact={viewMode === 'list'}
               dense={viewMode === 'grid' && gridColumns >= 4}
+              lifecycleState={statesByHorseId.get(horse.id) ?? null}
             />
           ))}
         </div>
