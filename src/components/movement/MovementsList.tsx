@@ -88,6 +88,10 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     setArrivalMovementId(movementId);
   };
 
+  const handleConfirmTransfer = (movementId: string) => {
+    setTransferMovementId(movementId);
+  };
+
   const handleConfirmDispatch = async () => {
     if (!dispatchMovementId) return;
     await dispatchMovement({ movementId: dispatchMovementId });
