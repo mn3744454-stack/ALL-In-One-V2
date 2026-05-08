@@ -243,7 +243,14 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
+        onRecordReturn={(horseId) => { setSelectedMovement(null); handleRecordReturn(horseId); }}
         lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
+      />
+
+      <RecordMovementDialog
+        open={!!returnPrefill}
+        onOpenChange={(open) => { if (!open) setReturnPrefill(null); }}
+        prefill={returnPrefill}
       />
 
       <DispatchConfirmDialog
