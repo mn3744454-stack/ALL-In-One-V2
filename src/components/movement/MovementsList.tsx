@@ -21,7 +21,7 @@ import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleState
 interface MovementsListProps {
   onRecordMovement: () => void;
   typeFilter?: 'in' | 'out' | 'transfer';
-  statusFilter?: 'scheduled' | 'dispatched' | 'completed' | 'cancelled';
+  statusFilter?: 'scheduled' | 'dispatched' | 'completed' | 'cancelled' | Array<'scheduled' | 'dispatched' | 'completed' | 'cancelled'>;
 }
 
 export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: MovementsListProps) {
