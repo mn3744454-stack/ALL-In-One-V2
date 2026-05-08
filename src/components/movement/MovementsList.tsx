@@ -245,6 +245,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         isRetry={arrivalMovement?.movement_status === 'dispatched'}
         hasUnit={!!arrivalMovement?.to_unit_id}
       />
+
+      <ConfirmTransferDialog
+        open={!!transferMovementId}
+        onOpenChange={(open) => { if (!open) setTransferMovementId(null); }}
+        onConfirm={handleConfirmTransferSubmit}
+        isProcessing={isConfirmingTransfer}
+        isRetry={transferMovement?.movement_status === 'dispatched'}
+        hasUnit={!!transferMovement?.to_unit_id}
+      />
     </div>
   );
 }
