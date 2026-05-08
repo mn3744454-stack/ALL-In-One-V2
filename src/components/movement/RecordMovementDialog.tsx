@@ -1073,8 +1073,61 @@ export function RecordMovementDialog({
           <div className="space-y-4">
             <h3 className="font-medium text-center">{t("movement.wizard.step4Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step4Desc")}</p>
-            
-            {/* Schedule for later — only for OUT */}
+
+            {/* AD-1 Pass 2-C: explicit departure subtype picker.
+                Only required when this OUT movement is not a connected
+                transfer or an internal cross-branch transfer. */}
+            {requiresDepartureSubtype && (
+              <div className="space-y-2">
+                <Label className="font-medium">
+                  {t("movement.subtype.departureTypeLabel")}
+                </Label>
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, subtypeChoice: 'checkout_departure' })}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg border-2 text-start transition-all",
+                      formData.subtypeChoice === 'checkout_departure'
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{t("movement.subtype.checkoutDeparture")}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("movement.subtype.checkoutDepartureHint")}</p>
+                    </div>
+                    {formData.subtypeChoice === 'checkout_departure' && (
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, subtypeChoice: 'temporary_out' })}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg border-2 text-start transition-all",
+                      formData.subtypeChoice === 'temporary_out'
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{t("movement.subtype.temporaryOut")}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("movement.subtype.temporaryOutHint")}</p>
+                    </div>
+                    {formData.subtypeChoice === 'temporary_out' && (
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                    )}
+                  </button>
+                </div>
+                {!formData.subtypeChoice && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    {t("movement.subtype.chooseRequired")}
+                  </p>
+                )}
+              </div>
+            )}
+
             {formData.movementType === "out" && (
               <div className="rounded-lg border p-3 space-y-3">
                 <div className="flex items-center justify-between">
