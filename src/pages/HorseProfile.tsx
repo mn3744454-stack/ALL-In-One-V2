@@ -43,6 +43,8 @@ import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n, isRTL } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
 import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
