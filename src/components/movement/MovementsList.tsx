@@ -33,12 +33,16 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
   const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
 
-  // Merge external filters with user filters
-  const mergedFilters: FiltersType = {
-    ...filters,
-    ...(typeFilter ? { movementType: typeFilter } : {}),
-    ...(statusFilter ? { movementStatus: statusFilter } : {}),
-  };
+  // When a parent tab enforces typeFilter/statusFilter, the local filter UI
+  // is hidden — so preserving local filters here would silently apply
+  // invisible constraints (date/search/location) and zero out results.
+  // Derive a clean mergedFilters from the enforced props only in that case.
+  const mergedFilters: FiltersType = (typeFilter || statusFilter)
+    ? {
+        ...(typeFilter ? { movementType: typeFilter } : {}),
+        ...(statusFilter ? { movementStatus: statusFilter } : {}),
+      }
+    : filters;
   
   const {
     movements,
