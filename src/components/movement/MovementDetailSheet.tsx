@@ -18,6 +18,8 @@ import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, R
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import { type HorseLifecycleState, deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementDetailSheetProps {
   movement: HorseMovement | null;
@@ -27,9 +29,10 @@ interface MovementDetailSheetProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -95,6 +98,31 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
               </div>
             </CardContent>
           </Card>
+
+          {/* Operational lifecycle summary */}
+          {lifecycleState && (() => {
+            const op = deriveOperationalStatus(lifecycleState);
+            if (op === 'unknown') return null;
+            const descKey =
+              op === 'needs_admission' ? 'movement.lifecycle.summary.needsAdmissionDesc' :
+              op === 'needs_placement' ? 'movement.lifecycle.summary.needsPlacementDesc' :
+              op === 'in_transit' ? 'movement.lifecycle.summary.inTransitDesc' :
+              op === 'temporarily_out' ? 'movement.lifecycle.summary.temporarilyOutDesc' :
+              null;
+            return (
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-muted-foreground">{t('movement.lifecycle.summary.title')}</span>
+                    <HorseLifecycleChip status={op} size="sm" />
+                  </div>
+                  {descKey && (
+                    <p className="text-sm text-foreground">{t(descKey)}</p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Movement Details */}
           <Card>

@@ -11,6 +11,9 @@ import { useMemo } from "react";
 import { useI18n, isRTL } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { HorseLifecycleChip } from "./HorseLifecycleChip";
+import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface Horse {
   id: string;
@@ -40,9 +43,11 @@ interface HorseCardProps {
   compact?: boolean;
   /** Dense mode for 4-column grid — vertical layout with smaller avatar */
   dense?: boolean;
+  /** Optional lifecycle state — when present, renders an operational chip and suppresses misleading raw status */
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export const HorseCard = ({ horse, onClick, compact = false, dense = false }: HorseCardProps) => {
+export const HorseCard = ({ horse, onClick, compact = false, dense = false, lifecycleState }: HorseCardProps) => {
   const { t, lang } = useI18n();
   const rtl = isRTL(lang);
 
@@ -80,6 +85,8 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false }: Ho
   }, [horse.gender, horse.birth_date, horse.birth_at, horse.is_gelded, horse.breeding_role]);
 
   const typeLabel = rtl ? typeBadgeProps.labelAr : typeBadgeProps.label;
+  const opStatus = deriveOperationalStatus(lifecycleState);
+  const showLifecycleChip = opStatus !== 'unknown';
   const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
   const colorName = horse.color_data?.name || horse.color;
   const branchName = horse.branch_data?.name;
@@ -117,9 +124,13 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false }: Ho
             {formattedAge && ` • ${formattedAge}`}
           </p>
         </div>
-        <Badge variant="secondary" className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}>
-          {t(`horses.status.${horse.status || 'draft'}`)}
-        </Badge>
+        {showLifecycleChip ? (
+          <HorseLifecycleChip status={opStatus} size="xs" className="shrink-0" />
+        ) : (
+          <Badge variant="secondary" className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}>
+            {t(`horses.status.${horse.status || 'draft'}`)}
+          </Badge>
+        )}
       </div>
     );
   }
@@ -157,9 +168,13 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false }: Ho
 
           {/* Badges row */}
           <div className="flex flex-wrap gap-1 mb-2">
-            <Badge variant="secondary" className={cn("text-[10px] px-1.5", getStatusColor(horse.status))}>
-              {t(`horses.status.${horse.status || 'draft'}`)}
-            </Badge>
+            {showLifecycleChip ? (
+              <HorseLifecycleChip status={opStatus} size="xs" />
+            ) : (
+              <Badge variant="secondary" className={cn("text-[10px] px-1.5", getStatusColor(horse.status))}>
+                {t(`horses.status.${horse.status || 'draft'}`)}
+              </Badge>
+            )}
             <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
               {typeLabel}
             </Badge>
@@ -220,12 +235,16 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false }: Ho
                 primaryClassName="font-display font-semibold text-foreground"
               />
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <Badge 
-                  variant="secondary" 
-                  className={cn("text-xs", getStatusColor(horse.status))}
-                >
-                  {t(`horses.status.${horse.status || 'draft'}`)}
-                </Badge>
+                {showLifecycleChip ? (
+                  <HorseLifecycleChip status={opStatus} size="sm" />
+                ) : (
+                  <Badge
+                    variant="secondary"
+                    className={cn("text-xs", getStatusColor(horse.status))}
+                  >
+                    {t(`horses.status.${horse.status || 'draft'}`)}
+                  </Badge>
+                )}
                 <Badge className={cn("text-xs", typeBadgeProps.className)}>
                   {typeLabel}
                 </Badge>

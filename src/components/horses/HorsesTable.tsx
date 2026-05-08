@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { HorseLifecycleChip } from "./HorseLifecycleChip";
+import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 import { 
   getCurrentAgeParts, 
   getHorseTypeLabel, 
@@ -40,9 +43,10 @@ interface Horse {
 interface HorsesTableProps {
   horses: Horse[];
   onHorseClick?: (horse: Horse) => void;
+  lifecycleStates?: Map<string, HorseLifecycleState>;
 }
 
-export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
+export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTableProps) => {
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
 
@@ -169,12 +173,21 @@ export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
                 <TableCell className="text-muted-foreground">{colorName}</TableCell>
                 <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
-                  <Badge 
-                    variant="secondary" 
-                    className={cn("text-xs", getStatusColor(horse.status))}
-                  >
-                    {getStatusLabel(horse.status)}
-                  </Badge>
+                  {(() => {
+                    const lc = lifecycleStates?.get(horse.id) ?? null;
+                    const op = deriveOperationalStatus(lc);
+                    if (op !== 'unknown') {
+                      return <HorseLifecycleChip status={op} size="sm" />;
+                    }
+                    return (
+                      <Badge
+                        variant="secondary"
+                        className={cn("text-xs", getStatusColor(horse.status))}
+                      >
+                        {getStatusLabel(horse.status)}
+                      </Badge>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
             );

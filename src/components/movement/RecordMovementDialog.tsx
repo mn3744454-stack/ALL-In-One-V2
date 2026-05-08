@@ -22,6 +22,8 @@ import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
 import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
 import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useEligibleHorses } from "@/hooks/movement/useEligibleHorses";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -104,6 +106,7 @@ export function RecordMovementDialog({
     formData.movementType,
     formData.fromLocationId
   );
+  const { statesByHorseId: lifecycleByHorseId } = useHorseLifecycleStates(eligibleHorses.map(h => h.id));
   const { recordMovement, isRecording } = useHorseMovements();
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
   const { destinations: connectedDestinations } = useConnectedDestinations();
@@ -573,7 +576,10 @@ export function RecordMovementDialog({
                       <AvatarFallback>{horse.name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{horse.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium truncate">{horse.name}</p>
+                        <HorseLifecycleChip state={lifecycleByHorseId.get(horse.id) ?? null} hideUnknown size="xs" />
+                      </div>
                       {horse.name_ar && (
                         <p className="text-sm text-muted-foreground">{horse.name_ar}</p>
                       )}

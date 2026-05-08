@@ -12,6 +12,7 @@ import { Heart, Plus, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface Horse {
   id: string;
@@ -101,6 +102,9 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
       return true;
     });
   }, [baseHorses, filters]);
+
+  // Batch lifecycle states for visible horses
+  const { statesByHorseId } = useHorseLifecycleStates(filteredHorses.map(h => h.id));
 
   const handleWizardSuccess = () => {
     setWizardOpen(false);
@@ -209,7 +213,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
           )}
         </div>
       ) : viewMode === 'table' ? (
-        <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} />
+        <HorsesTable horses={filteredHorses} onHorseClick={onHorseClick} lifecycleStates={statesByHorseId} />
       ) : (
         <div className={getGridClass(gridColumns, viewMode)}>
           {filteredHorses.map((horse) => (
@@ -219,6 +223,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
               onClick={() => onHorseClick?.(horse)}
               compact={viewMode === 'list'}
               dense={viewMode === 'grid' && gridColumns >= 4}
+              lifecycleState={statesByHorseId.get(horse.id) ?? null}
             />
           ))}
         </div>

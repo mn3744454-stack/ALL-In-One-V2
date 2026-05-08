@@ -43,6 +43,8 @@ import { HorseSharesPanel } from "@/components/horses/HorseSharesPanel";
 import { useI18n, isRTL } from "@/i18n";
 import { HorseLocationSection } from "@/components/movement/HorseLocationSection";
 import { HorseMovementTimeline } from "@/components/movement/HorseMovementTimeline";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { HorseAdmissionCard } from "@/components/housing/HorseAdmissionCard";
 import { HorseProfileCareNotes } from "@/components/housing/HorseProfileCareNotes";
 import { HorseProfileCompleteness } from "@/components/horses/HorseProfileCompleteness";
@@ -97,6 +99,7 @@ const HorseProfile = () => {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
+  const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
 
   useEffect(() => {
     if (id) {
@@ -273,7 +276,9 @@ const HorseProfile = () => {
                   <Badge className={typeBadgeProps.className}>
                     {isRTL(lang) ? typeBadgeProps.labelAr : typeBadgeProps.label}
                   </Badge>
-                  {isIntakeDraft ? (
+                  {opStatus !== 'unknown' ? (
+                    <HorseLifecycleChip state={lifecycleState} size="sm" />
+                  ) : isIntakeDraft ? (
                     <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">
                       {t('horses.status.intake_draft')}
                     </Badge>

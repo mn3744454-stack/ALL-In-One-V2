@@ -5,3 +5,4 @@ export * from './useExternalLocations';
 export * from './useConnectedDestinations';
 export * from './useConnectedMovement';
 export * from './useIncomingMovements';
+export * from './useHorseLifecycleStates';

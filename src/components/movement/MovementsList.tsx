@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementsListProps {
   onRecordMovement: () => void;
@@ -51,6 +52,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     isConfirmingTransfer,
   } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
+  const { statesByHorseId } = useHorseLifecycleStates(movements.map(m => m.horse_id));
 
   const dispatchMovement_ = dispatchMovementId
     ? movements.find(m => m.id === dispatchMovementId)
@@ -214,6 +216,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               onDispatch={handleDispatch}
               onConfirmArrival={handleConfirmArrival}
               onConfirmTransfer={handleConfirmTransfer}
+              lifecycleState={movement.horse_id ? statesByHorseId.get(movement.horse_id) ?? null : null}
             />
           ))}
         </div>
@@ -226,6 +229,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
+        lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
       />
 
       <DispatchConfirmDialog

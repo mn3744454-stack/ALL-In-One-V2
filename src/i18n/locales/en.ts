@@ -1737,6 +1737,22 @@ export const en = {
       transferFailed: "Failed to confirm internal transfer",
       transferHalfFailed: "Transfer started but did not finish. The equine is currently in transit. Tap Complete Internal Transfer again to finish the transfer.",
       retryCompleteTransferDesc: "The transfer was started but did not finish. The equine is currently in transit. Confirming again will complete the transfer without re-running the dispatch step.",
+      opStatus: {
+        housed: "Housed",
+        needsAdmission: "Needs Admission",
+        needsPlacement: "Needs Placement",
+        temporarilyOut: "Temporarily Out",
+        inTransit: "In Transit",
+        scheduled: "Scheduled",
+        unknown: "Status unavailable",
+      },
+      summary: {
+        title: "Operational status",
+        needsAdmissionDesc: "The equine has arrived but no boarding admission is open. Start an admission to place it under care.",
+        needsPlacementDesc: "An admission is active but no housing unit is assigned. Assign a stall, paddock, or area.",
+        inTransitDesc: "Movement was dispatched but not yet completed. Confirm the arrival or transfer to finish.",
+        temporarilyOutDesc: "The equine is recorded as temporarily off-site. Record its return when it comes back.",
+      },
     },
     timeline: {
       title: "Movement History",

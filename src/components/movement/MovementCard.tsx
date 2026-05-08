@@ -11,6 +11,8 @@ import { MapPin, ArrowRight, ArrowRightLeft, Clock, FileText, Calendar, Truck, C
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -19,9 +21,10 @@ interface MovementCardProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -92,6 +95,11 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
                       </span>
                     )}
                   </h4>
+                )}
+                {lifecycleState && (
+                  <div className="mt-1">
+                    <HorseLifecycleChip state={lifecycleState} hideUnknown size="xs" />
+                  </div>
                 )}
                 <div className="flex items-center gap-2 mt-1 text-sm">
                   <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
