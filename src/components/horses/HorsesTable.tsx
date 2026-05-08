@@ -173,12 +173,21 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
                 <TableCell className="text-muted-foreground">{colorName}</TableCell>
                 <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
-                  <Badge 
-                    variant="secondary" 
-                    className={cn("text-xs", getStatusColor(horse.status))}
-                  >
-                    {getStatusLabel(horse.status)}
-                  </Badge>
+                  {(() => {
+                    const lc = lifecycleStates?.get(horse.id) ?? null;
+                    const op = deriveOperationalStatus(lc);
+                    if (op !== 'unknown') {
+                      return <HorseLifecycleChip status={op} size="sm" />;
+                    }
+                    return (
+                      <Badge
+                        variant="secondary"
+                        className={cn("text-xs", getStatusColor(horse.status))}
+                      >
+                        {getStatusLabel(horse.status)}
+                      </Badge>
+                    );
+                  })()}
                 </TableCell>
               </TableRow>
             );
