@@ -68,12 +68,20 @@ export function HorseLocationSection({
           <MapPin className="h-4 w-4 text-primary" />
           {t("movement.horseSection.title")}
         </CardTitle>
-        {canManage && (
-          <Button variant="outline" size="sm" onClick={() => setRecordDialogOpen(true)}>
-            <Plus className="h-4 w-4 me-1" />
-            {t("movement.form.recordMovement")}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canManage && isTemporarilyOut && (
+            <Button variant="outline" size="sm" onClick={() => setReturnPrefillOn(true)} className="gap-1">
+              <ArrowDownToLine className="h-4 w-4" />
+              {t("movement.return.recordReturn")}
+            </Button>
+          )}
+          {canManage && (
+            <Button variant="outline" size="sm" onClick={() => setRecordDialogOpen(true)}>
+              <Plus className="h-4 w-4 me-1" />
+              {t("movement.form.recordMovement")}
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Location */}
