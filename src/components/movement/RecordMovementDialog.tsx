@@ -212,6 +212,22 @@ export function RecordMovementDialog({
     formData.fromLocationId && formData.toLocationId && 
     formData.fromLocationId === formData.toLocationId;
 
+  // AD-1 Pass 2-C: an internal "out" between two different branches is
+  // reclassified to a transfer downstream — so it does NOT need a checkout
+  // vs temporary-out choice. Connected outgoing uses a different RPC and
+  // also skips this picker. Everything else (external + same-branch out)
+  // requires the user to explicitly pick the departure subtype.
+  const isInternalBranchToBranchOut =
+    formData.movementType === 'out' &&
+    formData.destinationType === 'internal' &&
+    !!formData.toLocationId &&
+    !!formData.fromLocationId &&
+    formData.toLocationId !== formData.fromLocationId;
+  const requiresDepartureSubtype =
+    formData.movementType === 'out' &&
+    formData.destinationType !== 'connected' &&
+    !isInternalBranchToBranchOut;
+
   // Auto-fill FROM when horse is selected for OUT/TRANSFER
   const autoFillOrigin = (horseId: string) => {
     const horse = allHorses.find(h => h.id === horseId);
