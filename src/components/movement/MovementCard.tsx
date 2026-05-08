@@ -52,9 +52,13 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
   const localArrivalActionable = isLocalArrivalActionable(movement);
   const localArrival = isLocalArrival(movement);
   const isArrivalRetry = localArrival && movement.movement_status === 'dispatched';
-  // Dispatch path is reserved for non-local-arrival scheduled rows
-  // (out / transfer / connected outgoing). Local arrivals use Confirm Arrival.
-  const showDispatchAction = isScheduled && !localArrival;
+  const internalTransfer = isInternalTransfer(movement);
+  const internalTransferActionable = isInternalTransferActionable(movement);
+  const isTransferRetry = internalTransfer && movement.movement_status === 'dispatched';
+  // Dispatch path is reserved for non-local-arrival, non-internal-transfer
+  // scheduled rows (e.g. out / connected outgoing). Local arrivals use
+  // Confirm Arrival; internal transfers use Confirm Internal Transfer.
+  const showDispatchAction = isScheduled && !localArrival && !internalTransfer;
 
   return (
     <Card
