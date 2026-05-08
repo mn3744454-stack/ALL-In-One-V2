@@ -49,8 +49,11 @@ export function HorseLocationSection({
 }: HorseLocationSectionProps) {
   const { t, dir } = useI18n();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
-  
+  const [returnPrefillOn, setReturnPrefillOn] = useState(false);
+
   const { data: movements = [], isLoading } = useSingleHorseMovements(horseId);
+  const { state: lifecycleState } = useHorseLifecycleState(horseId);
+  const isTemporarilyOut = !!lifecycleState?.is_temporarily_out;
 
   const ArrowIcon = dir === 'rtl' ? (
     <ArrowRight className="h-3 w-3 rotate-180 text-muted-foreground shrink-0" />
