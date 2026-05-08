@@ -104,6 +104,7 @@ export function RecordMovementDialog({
     formData.movementType,
     formData.fromLocationId
   );
+  const { statesByHorseId: lifecycleByHorseId } = useHorseLifecycleStates(eligibleHorses.map(h => h.id));
   const { recordMovement, isRecording } = useHorseMovements();
   const { externalLocations, createExternalLocation, isCreating: isCreatingExternal } = useExternalLocations();
   const { destinations: connectedDestinations } = useConnectedDestinations();
