@@ -191,8 +191,29 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </CardContent>
           </Card>
 
-          {/* Dispatch action */}
-          {isScheduled && canDispatch && onDispatch && (
+          {/* Confirm Arrival action — local arrival */}
+          {isLocalArrivalActionable(movement) && canDispatch && onConfirmArrival && (
+            <Card className="border-amber-200 dark:border-amber-800">
+              <CardContent className="p-3">
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => onConfirmArrival(movement.id)}
+                >
+                  {movement.movement_status === 'dispatched' ? (
+                    <RefreshCw className="h-4 w-4" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4" />
+                  )}
+                  {movement.movement_status === 'dispatched'
+                    ? t('movement.lifecycle.retryArrival')
+                    : t('movement.lifecycle.confirmArrival')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dispatch action — non-arrival scheduled (out / transfer) */}
+          {isScheduled && !isLocalArrival(movement) && canDispatch && onDispatch && (
             <Card className="border-amber-200 dark:border-amber-800">
               <CardContent className="p-3">
                 <Button
