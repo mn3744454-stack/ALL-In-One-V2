@@ -21,7 +21,7 @@ interface MovementCardProps {
   onConfirmTransfer?: (movementId: string) => void;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
