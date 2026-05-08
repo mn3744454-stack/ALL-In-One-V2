@@ -58,7 +58,7 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
     if (isAdmissionCheckin) return { label: t('housing.admissions.detail.checkin'), className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' };
     if (isAdmissionCheckout) return { label: t('housing.admissions.detail.checkout'), className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
     if (isTransfer) return { label: t('movement.types.transfer'), className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
-    return { label: t('movement.types.manual'), className: '' };
+    return null;
   };
 
   const category = getMovementCategory();
@@ -91,9 +91,11 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   {movement.movement_status !== 'completed' && (
                     <MovementStatusBadge status={movement.movement_status} />
                   )}
-                  <Badge className={cn("text-xs", category.className)}>
-                    {category.label}
-                  </Badge>
+                  {category && (
+                    <Badge className={cn("text-xs", category.className)}>
+                      {category.label}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -132,14 +134,14 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 {movement.from_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.from')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
                     <span className="font-medium">{formatLocationName(movement.from_location)}</span>
                   </div>
                 )}
                 {movement.from_external_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.from')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
                     <span className="font-medium">{formatExternalLocationName(movement.from_external_location)}</span>
                     <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.from_external_location.location_type}`)}</Badge>
                   </div>
@@ -147,14 +149,14 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 {movement.to_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.to')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
                     <span className="font-medium">{formatLocationName(movement.to_location)}</span>
                   </div>
                 )}
                 {movement.to_external_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.to')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
                     <span className="font-medium">{formatExternalLocationName(movement.to_external_location)}</span>
                     <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.to_external_location.location_type}`)}</Badge>
                   </div>
