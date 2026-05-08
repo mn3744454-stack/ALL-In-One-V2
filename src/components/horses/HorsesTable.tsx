@@ -43,9 +43,10 @@ interface Horse {
 interface HorsesTableProps {
   horses: Horse[];
   onHorseClick?: (horse: Horse) => void;
+  lifecycleStates?: Map<string, HorseLifecycleState>;
 }
 
-export const HorsesTable = ({ horses, onHorseClick }: HorsesTableProps) => {
+export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTableProps) => {
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
 
