@@ -31,13 +31,16 @@ interface MovementDetailSheetProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  onRecordReturn?: (horseId: string) => void;
   lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
+  const canCancel = canDispatch; // gated like dispatch for this pass
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   if (!movement) return null;
 
