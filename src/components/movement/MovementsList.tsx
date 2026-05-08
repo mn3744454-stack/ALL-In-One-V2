@@ -184,6 +184,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               movement={movement}
               onClick={() => setSelectedMovement(movement)}
               onDispatch={handleDispatch}
+              onConfirmArrival={handleConfirmArrival}
             />
           ))}
         </div>
@@ -194,6 +195,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         open={!!selectedMovement}
         onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
         onDispatch={handleDispatch}
+        onConfirmArrival={handleConfirmArrival}
       />
 
       <DispatchConfirmDialog
@@ -203,6 +205,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         isDispatching={isDispatching}
         admissionId={activeAdmission?.id || null}
         clientId={activeAdmission?.client_id || null}
+      />
+
+      <ConfirmArrivalDialog
+        open={!!arrivalMovementId}
+        onOpenChange={(open) => { if (!open) setArrivalMovementId(null); }}
+        onConfirm={handleConfirmArrivalSubmit}
+        isProcessing={isConfirmingArrival}
+        isRetry={arrivalMovement?.movement_status === 'dispatched'}
+        hasUnit={!!arrivalMovement?.to_unit_id}
       />
     </div>
   );
