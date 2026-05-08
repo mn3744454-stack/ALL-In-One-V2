@@ -126,7 +126,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-wrap gap-1 justify-end shrink-0 max-w-[55%] [&>*]:whitespace-nowrap">
                 <MovementTypeBadge type={movement.movement_type} size="sm" />
                 {movement.movement_status !== 'completed' && (
                   <MovementStatusBadge status={movement.movement_status} />
