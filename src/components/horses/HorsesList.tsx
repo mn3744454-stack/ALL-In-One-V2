@@ -103,6 +103,9 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
     });
   }, [baseHorses, filters]);
 
+  // Batch lifecycle states for visible horses
+  const { statesByHorseId } = useHorseLifecycleStates(filteredHorses.map(h => h.id));
+
   const handleWizardSuccess = () => {
     setWizardOpen(false);
     onRefresh?.();
