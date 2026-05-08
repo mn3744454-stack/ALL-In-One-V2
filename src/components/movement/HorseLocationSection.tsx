@@ -234,6 +234,11 @@ export function HorseLocationSection({
         open={recordDialogOpen}
         onOpenChange={setRecordDialogOpen}
       />
+      <RecordMovementDialog
+        open={returnPrefillOn}
+        onOpenChange={(o) => { if (!o) setReturnPrefillOn(false); }}
+        prefill={returnPrefillOn ? { horseId, movementType: 'in', movementSubtype: 'return_from_temporary_out' } : null}
+      />
     </Card>
   );
 }
