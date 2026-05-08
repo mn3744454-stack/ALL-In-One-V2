@@ -1835,7 +1835,7 @@ export const ar = {
       selectHorse: "الخيل",
       fromLocation: "من موقع",
       toLocation: "إلى موقع",
-      reason: "السبب",
+      noOtherLocations: "لا توجد فروع أخرى متاحة",
       reasonPlaceholder: "مثال: تدريب، زيارة بيطرية، مسابقة...",
       notes: "ملاحظات",
       notesPlaceholder: "ملاحظات إضافية...",
