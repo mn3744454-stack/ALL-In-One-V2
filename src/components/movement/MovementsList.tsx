@@ -52,6 +52,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     isConfirmingTransfer,
   } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
+  const { statesByHorseId } = useHorseLifecycleStates(movements.map(m => m.horse_id));
 
   const dispatchMovement_ = dispatchMovementId
     ? movements.find(m => m.id === dispatchMovementId)
