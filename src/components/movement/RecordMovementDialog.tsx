@@ -22,6 +22,8 @@ import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
 import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
 import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
 import { useEligibleHorses } from "@/hooks/movement/useEligibleHorses";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
 import { usePermissions } from "@/hooks/usePermissions";
