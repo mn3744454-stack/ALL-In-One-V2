@@ -99,6 +99,7 @@ const HorseProfile = () => {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
+  const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
 
   useEffect(() => {
     if (id) {
