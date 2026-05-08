@@ -63,6 +63,10 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     ? movements.find(m => m.id === arrivalMovementId)
     : null;
 
+  const transferMovement = transferMovementId
+    ? movements.find(m => m.id === transferMovementId)
+    : null;
+
   // Phase 2 corrective: open-on-arrival via the shared deep-link hook.
   const handleDeepLinkFound = useCallback(
     (m: HorseMovement) => setSelectedMovement(m),
