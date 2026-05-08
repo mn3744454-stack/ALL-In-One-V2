@@ -134,14 +134,14 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 {movement.from_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.from')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
                     <span className="font-medium">{formatLocationName(movement.from_location)}</span>
                   </div>
                 )}
                 {movement.from_external_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.from')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
                     <span className="font-medium">{formatExternalLocationName(movement.from_external_location)}</span>
                     <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.from_external_location.location_type}`)}</Badge>
                   </div>
@@ -149,14 +149,14 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                 {movement.to_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.to')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
                     <span className="font-medium">{formatLocationName(movement.to_location)}</span>
                   </div>
                 )}
                 {movement.to_external_location && (
                   <div className="flex items-center gap-2 text-sm">
                     <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.to')}:</span>
+                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
                     <span className="font-medium">{formatExternalLocationName(movement.to_external_location)}</span>
                     <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.to_external_location.location_type}`)}</Badge>
                   </div>
