@@ -7,18 +7,20 @@ import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck } from "lucide-react";
+import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
+import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
 
 interface MovementCardProps {
   movement: HorseMovement;
   showHorse?: boolean;
   onClick?: () => void;
   onDispatch?: (movementId: string) => void;
+  onConfirmArrival?: (movementId: string) => void;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
