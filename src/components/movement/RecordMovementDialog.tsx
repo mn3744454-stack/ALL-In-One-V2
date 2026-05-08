@@ -285,8 +285,10 @@ export function RecordMovementDialog({
       case "housing":
         return true;
       case "details":
+        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
         return true;
       case "review":
+        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
         return true;
       default:
         return false;
