@@ -5,6 +5,7 @@ import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
 import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
+import { ConfirmTransferDialog } from "./ConfirmTransferDialog";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
