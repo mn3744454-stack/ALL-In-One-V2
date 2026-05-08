@@ -317,6 +317,69 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     },
   });
 
+  // Confirm Arrival — local arrival only.
+  // scheduled → dispatch then complete; dispatched → complete only.
+  // On half-failure (dispatch ok, complete fail) the row is left dispatched
+  // and the same action becomes a retry (complete-only).
+  const confirmLocalArrivalMutation = useMutation({
+    mutationFn: async ({
+      movementId,
+      currentStatus,
+    }: {
+      movementId: string;
+      currentStatus: MovementStatus;
+    }) => {
+      if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
+
+      let dispatched = currentStatus === 'dispatched';
+
+      if (currentStatus === 'scheduled') {
+        const { error: dErr } = await supabase.rpc('dispatch_horse_movement' as any, {
+          p_movement_id: movementId,
+        });
+        if (dErr) {
+          // Step 1 failure — row stays scheduled.
+          const e = new Error(dErr.message) as Error & { phase?: string };
+          e.phase = 'dispatch';
+          throw e;
+        }
+        dispatched = true;
+      }
+
+      const { error: cErr } = await supabase.rpc('complete_horse_movement' as any, {
+        p_movement_id: movementId,
+        p_override_reason: null,
+        p_notes: null,
+      });
+      if (cErr) {
+        const e = new Error(cErr.message) as Error & { phase?: string; halfFailure?: boolean };
+        e.phase = 'complete';
+        // Half-failure only when we just transitioned scheduled → dispatched in this call.
+        e.halfFailure = currentStatus === 'scheduled' && dispatched;
+        throw e;
+      }
+
+      return { movementId };
+    },
+    onSuccess: () => {
+      toast.success(tGlobal('movement.lifecycle.arrivalConfirmed'));
+      invalidate(['movement', 'occupancy', 'admission']);
+    },
+    onError: (error: Error & { phase?: string; halfFailure?: boolean }) => {
+      // Always refresh so the UI reflects the actual server state
+      // (scheduled if dispatch failed, dispatched if complete failed).
+      invalidate(['movement', 'occupancy', 'admission']);
+      if (error.halfFailure) {
+        toast.warning(tGlobal('movement.lifecycle.arrivalHalfFailed'), {
+          description: error.message,
+          duration: 8000,
+        });
+      } else {
+        toast.error(error.message || tGlobal('movement.lifecycle.arrivalFailed'));
+      }
+    },
+  });
+
   // Cancel mutation — scheduled or dispatched → cancelled (AD-1 Pass 1)
   const cancelMutation = useMutation({
     mutationFn: async ({ movementId, reason }: { movementId: string; reason?: string }) => {
