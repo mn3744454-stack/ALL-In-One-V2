@@ -18,6 +18,8 @@ import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, R
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import { type HorseLifecycleState, deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementDetailSheetProps {
   movement: HorseMovement | null;
@@ -27,9 +29,10 @@ interface MovementDetailSheetProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
