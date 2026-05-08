@@ -757,40 +757,28 @@ export function RecordMovementDialog({
                     <SelectTrigger>
                       <SelectValue placeholder={t("movement.form.fromLocation")} />
                     </SelectTrigger>
-                    <SelectContent>
-                      {activeLocations.map((loc) => (
+                  <SelectContent>
+                    {(() => {
+                      // AD-1 Pass 1.3: exclude the source location from the
+                      // internal destination dropdown for out/transfer flows.
+                      const excludeSource =
+                        formData.movementType === 'out' || formData.movementType === 'transfer';
+                      const opts = excludeSource
+                        ? activeLocations.filter(l => l.id !== formData.fromLocationId)
+                        : activeLocations;
+                      if (opts.length === 0) {
+                        return (
+                          <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+                            {t("movement.form.noOtherLocations")}
+                          </div>
+                        );
+                      }
+                      return opts.map((loc) => (
                         <SelectItem key={loc.id} value={loc.id}>
                           {loc.name} {loc.city && `(${loc.city})`}
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
-
-            {/* To Location — Internal */}
-            {(formData.movementType === "in" || formData.movementType === "transfer" || (formData.movementType === "out" && formData.destinationType === "internal")) && (
-              <div className="space-y-2">
-                <Label>{t("movement.form.toLocation")}</Label>
-                <Select
-                  value={formData.toLocationId || ""}
-                  onValueChange={(value) => setFormData({ 
-                    ...formData, 
-                    toLocationId: value,
-                    toAreaId: null,
-                    toUnitId: null,
-                  })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("movement.form.toLocation")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {activeLocations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        {loc.name} {loc.city && `(${loc.city})`}
-                      </SelectItem>
-                    ))}
+                      ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
