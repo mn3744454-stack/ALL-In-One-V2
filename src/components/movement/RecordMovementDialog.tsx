@@ -88,6 +88,8 @@ export function RecordMovementDialog({
     reason: string;
     notes: string;
     internalLocationNote: string;
+    /** AD-1 Pass 2-C: explicit subtype choice (departures + returns). */
+    subtypeChoice: 'checkout_departure' | 'temporary_out' | 'return_from_temporary_out' | null;
   }>({
     movementType: null, horseId: null, destinationType: 'internal',
     fromLocationId: null, toLocationId: null,
@@ -95,7 +97,32 @@ export function RecordMovementDialog({
     connectedTenantId: null,
     toAreaId: null, toUnitId: null,
     reason: "", notes: "", internalLocationNote: "",
+    subtypeChoice: null,
   });
+
+  // Apply prefill once when dialog opens with a prefill payload.
+  useEffect(() => {
+    if (!open || !prefill) return;
+    setFormData(prev => ({
+      ...prev,
+      movementType: prefill.movementType,
+      horseId: prefill.horseId,
+      subtypeChoice: prefill.movementSubtype === 'return_from_temporary_out'
+        ? 'return_from_temporary_out'
+        : prefill.movementSubtype === 'temporary_out'
+          ? 'temporary_out'
+          : prefill.movementSubtype === 'checkout_departure'
+            ? 'checkout_departure'
+            : prev.subtypeChoice,
+    }));
+    if (prefill.movementType === 'in') {
+      setArrivalSource('existing');
+      setStep('location');
+    } else {
+      setStep('location');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // New horse inline intake
   const [newHorse, setNewHorse] = useState({
