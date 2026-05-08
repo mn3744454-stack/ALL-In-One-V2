@@ -312,10 +312,21 @@ export function RecordMovementDialog({
       // A movement is "scheduled" when EITHER the explicit toggle is on OR
       // the chosen movement_at falls in the future. This prevents future-dated
       // arrivals/transfers from being incorrectly persisted as completed.
-      const explicitSchedule = scheduleForLater && !!scheduledAt;
-      const futureMovementDate = !!movementDate && new Date(movementDate).getTime() > Date.now();
+      // AD-1 Pass 1.3: convert <input type="datetime-local"> values (which are
+      // timezone-less local strings, e.g. "2026-05-09T21:55") to a proper
+      // timezone-aware ISO string so Postgres timestamptz stores the user's
+      // intended local time correctly. `new Date(localString)` parses as local.
+      const toIsoLocal = (s: string | undefined | null): string | undefined => {
+        if (!s) return undefined;
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      };
+      const scheduledAtIso = toIsoLocal(scheduledAt);
+      const movementDateIso = toIsoLocal(movementDate);
+      const explicitSchedule = scheduleForLater && !!scheduledAtIso;
+      const futureMovementDate = !!movementDateIso && new Date(movementDateIso).getTime() > Date.now();
       const isScheduled = explicitSchedule || futureMovementDate;
-      const effectiveMovementAt = explicitSchedule ? scheduledAt : (movementDate || undefined);
+      const effectiveMovementAt = explicitSchedule ? scheduledAtIso : movementDateIso;
 
       // Connected movement uses a separate RPC
       if (formData.destinationType === 'connected' && formData.connectedTenantId) {
@@ -335,9 +346,23 @@ export function RecordMovementDialog({
 
       const currentHorse = allHorses.find(h => h.id === horseId);
 
+      // AD-1 Pass 1.3: an internal "out" to a different branch is logically a
+      // transfer, not a checkout. Re-classify so the BEFORE INSERT trigger
+      // assigns movement_subtype = 'internal_transfer' (not checkout_departure)
+      // and the financial checkout gate / admission close logic does not fire.
+      const isInternalBranchToBranch =
+        formData.movementType === 'out' &&
+        formData.destinationType === 'internal' &&
+        !!formData.toLocationId &&
+        !!formData.fromLocationId &&
+        formData.toLocationId !== formData.fromLocationId;
+      const effectiveMovementType: MovementType = isInternalBranchToBranch
+        ? 'transfer'
+        : formData.movementType;
+
       const data: CreateMovementData = {
         horse_id: horseId,
-        movement_type: formData.movementType,
+        movement_type: effectiveMovementType,
         from_location_id: formData.fromLocationId,
         to_location_id: formData.toLocationId,
         from_area_id: currentHorse?.current_area_id || null,
@@ -348,7 +373,7 @@ export function RecordMovementDialog({
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
         internal_location_note: formData.internalLocationNote || undefined,
-        clear_housing: isScheduled ? false : formData.movementType === 'out',
+        clear_housing: isScheduled ? false : effectiveMovementType === 'out',
         destination_type: formData.destinationType,
         from_external_location_id: formData.fromExternalLocationId,
         to_external_location_id: formData.toExternalLocationId,
@@ -750,8 +775,8 @@ export function RecordMovementDialog({
                 <Label>{t("movement.form.toLocation")}</Label>
                 <Select
                   value={formData.toLocationId || ""}
-                  onValueChange={(value) => setFormData({ 
-                    ...formData, 
+                  onValueChange={(value) => setFormData({
+                    ...formData,
                     toLocationId: value,
                     toAreaId: null,
                     toUnitId: null,
@@ -761,11 +786,27 @@ export function RecordMovementDialog({
                     <SelectValue placeholder={t("movement.form.toLocation")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {activeLocations.map((loc) => (
-                      <SelectItem key={loc.id} value={loc.id}>
-                        {loc.name} {loc.city && `(${loc.city})`}
-                      </SelectItem>
-                    ))}
+                    {(() => {
+                      // AD-1 Pass 1.3: exclude the source location from the
+                      // internal destination dropdown for out/transfer flows.
+                      const excludeSource =
+                        formData.movementType === "out" || formData.movementType === "transfer";
+                      const opts = excludeSource && formData.fromLocationId
+                        ? activeLocations.filter((l) => l.id !== formData.fromLocationId)
+                        : activeLocations;
+                      if (opts.length === 0) {
+                        return (
+                          <div className="px-3 py-4 text-xs text-muted-foreground text-center">
+                            {t("movement.form.noOtherLocations")}
+                          </div>
+                        );
+                      }
+                      return opts.map((loc) => (
+                        <SelectItem key={loc.id} value={loc.id}>
+                          {loc.name} {loc.city && `(${loc.city})`}
+                        </SelectItem>
+                      ));
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
