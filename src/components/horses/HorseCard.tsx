@@ -43,9 +43,11 @@ interface HorseCardProps {
   compact?: boolean;
   /** Dense mode for 4-column grid — vertical layout with smaller avatar */
   dense?: boolean;
+  /** Optional lifecycle state — when present, renders an operational chip and suppresses misleading raw status */
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export const HorseCard = ({ horse, onClick, compact = false, dense = false }: HorseCardProps) => {
+export const HorseCard = ({ horse, onClick, compact = false, dense = false, lifecycleState }: HorseCardProps) => {
   const { t, lang } = useI18n();
   const rtl = isRTL(lang);
 
