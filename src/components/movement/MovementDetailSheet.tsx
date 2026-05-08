@@ -14,10 +14,10 @@ import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
-import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
+import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 
 interface MovementDetailSheetProps {
   movement: HorseMovement | null;
@@ -26,9 +26,10 @@ interface MovementDetailSheetProps {
   onViewAdmission?: (admissionId: string) => void;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
+  onConfirmTransfer?: (movementId: string) => void;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
