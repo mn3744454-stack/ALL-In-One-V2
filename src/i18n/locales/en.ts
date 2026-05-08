@@ -1987,7 +1987,7 @@ export const en = {
       title: "Return from temporary out",
     },
   },
-
+  housing: {
     title: "Housing Management",
     subtitle: "Manage stalls, paddocks, and horse housing assignments",
     tabs: {
