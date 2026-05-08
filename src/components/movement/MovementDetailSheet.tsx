@@ -14,10 +14,12 @@ import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { CancelMovementDialog } from "./CancelMovementDialog";
+import { useState } from "react";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { type HorseLifecycleState, deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 
@@ -29,13 +31,16 @@ interface MovementDetailSheetProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  onRecordReturn?: (horseId: string) => void;
   lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
+  const canCancel = canDispatch; // gated like dispatch for this pass
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   if (!movement) return null;
 
@@ -295,7 +300,46 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
               </CardContent>
             </Card>
           )}
+
+          {/* Record Return — visible when this horse is currently temporarily out */}
+          {lifecycleState?.is_temporarily_out && onRecordReturn && movement.horse_id && (
+            <Card className="border-emerald-200 dark:border-emerald-800">
+              <CardContent className="p-3">
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => onRecordReturn(movement.horse_id)}
+                >
+                  <ArrowDownToLine className="h-4 w-4" />
+                  {t('movement.return.recordReturn')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cancel action — scheduled or dispatched only */}
+          {(movement.movement_status === 'scheduled' || movement.movement_status === 'dispatched') && canCancel && (
+            <Card>
+              <CardContent className="p-3">
+                <Button
+                  variant="ghost"
+                  className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  <X className="h-4 w-4" />
+                  {t('movement.cancel.action')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        <CancelMovementDialog
+          movement={movement}
+          open={cancelOpen}
+          onOpenChange={setCancelOpen}
+          onCancelled={() => onOpenChange(false)}
+        />
       </SheetContent>
     </Sheet>
   );

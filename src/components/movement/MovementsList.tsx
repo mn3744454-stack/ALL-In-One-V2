@@ -6,10 +6,11 @@ import { MovementFilters } from "./MovementFilters";
 import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
 import { ConfirmTransferDialog } from "./ConfirmTransferDialog";
+import { RecordMovementDialog } from "./RecordMovementDialog";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement } from "@/hooks/movement/useHorseMovements";
+import { useHorseMovements, type MovementFilters as FiltersType, type HorseMovement, type MovementType, type MovementSubtype } from "@/hooks/movement/useHorseMovements";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useHorseActiveAdmission } from "@/hooks/housing/useHorseActiveAdmission";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,6 +33,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
   const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
+  const [returnPrefill, setReturnPrefill] = useState<{ horseId: string; movementType: MovementType; movementSubtype?: MovementSubtype } | null>(null);
 
   // When a parent tab enforces typeFilter/statusFilter, the local filter UI
   // is hidden — so preserving local filters here would silently apply
@@ -96,6 +98,14 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
 
   const handleConfirmTransfer = (movementId: string) => {
     setTransferMovementId(movementId);
+  };
+
+  const handleRecordReturn = (horseId: string) => {
+    setReturnPrefill({
+      horseId,
+      movementType: 'in',
+      movementSubtype: 'return_from_temporary_out',
+    });
   };
 
   const handleConfirmDispatch = async () => {
@@ -233,7 +243,14 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
+        onRecordReturn={(horseId) => { setSelectedMovement(null); handleRecordReturn(horseId); }}
         lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
+      />
+
+      <RecordMovementDialog
+        open={!!returnPrefill}
+        onOpenChange={(open) => { if (!open) setReturnPrefill(null); }}
+        prefill={returnPrefill}
       />
 
       <DispatchConfirmDialog

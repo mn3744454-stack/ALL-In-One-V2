@@ -118,6 +118,15 @@ export interface CreateMovementData {
   to_external_location_id?: string | null;
   movement_status?: MovementStatus;
   scheduled_at?: string;
+  /**
+   * Optional explicit movement subtype (AD-1 Pass 2-C).
+   * - When omitted/null, the BEFORE INSERT trigger assigns the default
+   *   subtype for the movement_type (`arrival` / `checkout_departure` /
+   *   `internal_transfer`).
+   * - Provide `temporary_out` for non-checkout departures and
+   *   `return_from_temporary_out` for the matching return arrival.
+   */
+  movement_subtype?: MovementSubtype;
 }
 
 export interface MovementFilters {
@@ -245,6 +254,7 @@ export function useHorseMovements(filters: MovementFilters = {}) {
         p_from_external_location_id: data.from_external_location_id || null,
         p_to_external_location_id: data.to_external_location_id || null,
         p_movement_status: data.movement_status || 'completed',
+        p_movement_subtype: data.movement_subtype ?? null,
       };
 
       const { data: result, error } = await supabase.rpc('record_horse_movement_with_housing', rpcParams as any);

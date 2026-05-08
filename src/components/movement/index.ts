@@ -13,3 +13,4 @@ export * from './DispatchConfirmDialog';
 export * from './ConfirmArrivalDialog';
 export * from './ConfirmTransferDialog';
 export * from './HorseMovementTimeline';
+export * from './CancelMovementDialog';

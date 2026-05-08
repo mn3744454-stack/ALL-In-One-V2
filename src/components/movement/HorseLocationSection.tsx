@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { MapPin, ArrowRight, Clock, Plus, ChevronRight, Building2, DoorOpen } from "lucide-react";
+import { MapPin, ArrowRight, Plus, ChevronRight, Building2, DoorOpen, ArrowDownToLine } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
-import { useSingleHorseMovements, type HorseMovement } from "@/hooks/movement/useHorseMovements";
+import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { RecordMovementDialog } from "./RecordMovementDialog";
+import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -48,8 +49,11 @@ export function HorseLocationSection({
 }: HorseLocationSectionProps) {
   const { t, dir } = useI18n();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
-  
+  const [returnPrefillOn, setReturnPrefillOn] = useState(false);
+
   const { data: movements = [], isLoading } = useSingleHorseMovements(horseId);
+  const { state: lifecycleState } = useHorseLifecycleState(horseId);
+  const isTemporarilyOut = !!lifecycleState?.is_temporarily_out;
 
   const ArrowIcon = dir === 'rtl' ? (
     <ArrowRight className="h-3 w-3 rotate-180 text-muted-foreground shrink-0" />
@@ -64,12 +68,20 @@ export function HorseLocationSection({
           <MapPin className="h-4 w-4 text-primary" />
           {t("movement.horseSection.title")}
         </CardTitle>
-        {canManage && (
-          <Button variant="outline" size="sm" onClick={() => setRecordDialogOpen(true)}>
-            <Plus className="h-4 w-4 me-1" />
-            {t("movement.form.recordMovement")}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canManage && isTemporarilyOut && (
+            <Button variant="outline" size="sm" onClick={() => setReturnPrefillOn(true)} className="gap-1">
+              <ArrowDownToLine className="h-4 w-4" />
+              {t("movement.return.recordReturn")}
+            </Button>
+          )}
+          {canManage && (
+            <Button variant="outline" size="sm" onClick={() => setRecordDialogOpen(true)}>
+              <Plus className="h-4 w-4 me-1" />
+              {t("movement.form.recordMovement")}
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Current Location */}
@@ -221,6 +233,11 @@ export function HorseLocationSection({
       <RecordMovementDialog
         open={recordDialogOpen}
         onOpenChange={setRecordDialogOpen}
+      />
+      <RecordMovementDialog
+        open={returnPrefillOn}
+        onOpenChange={(o) => { if (!o) setReturnPrefillOn(false); }}
+        prefill={returnPrefillOn ? { horseId, movementType: 'in', movementSubtype: 'return_from_temporary_out' } : null}
       />
     </Card>
   );

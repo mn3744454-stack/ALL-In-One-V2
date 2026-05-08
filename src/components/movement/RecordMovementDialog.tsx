@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -17,7 +17,7 @@ import {
 import { useI18n } from "@/i18n";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocations } from "@/hooks/movement/useLocations";
-import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
+import { useHorseMovements, type MovementType, type MovementSubtype, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
 import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
 import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
 import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
@@ -43,6 +43,16 @@ interface RecordMovementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  /**
+   * AD-1 Pass 2-C — optional prefill for entry from contextual actions
+   * (e.g. "Record return" on a temporarily-out horse). When provided, the
+   * wizard skips type/source choices and lets the user pick destination.
+   */
+  prefill?: {
+    horseId: string;
+    movementType: MovementType;
+    movementSubtype?: MovementSubtype;
+  } | null;
 }
 
 type DestinationType = 'internal' | 'external' | 'connected';
@@ -52,7 +62,7 @@ type ArrivalSource = 'existing' | 'new_horse';
 type Step = "type" | "arrival_source" | "horse" | "new_horse" | "location" | "housing" | "details" | "review";
 
 export function RecordMovementDialog({
-  open, onOpenChange, onSuccess,
+  open, onOpenChange, onSuccess, prefill,
 }: RecordMovementDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
@@ -78,6 +88,8 @@ export function RecordMovementDialog({
     reason: string;
     notes: string;
     internalLocationNote: string;
+    /** AD-1 Pass 2-C: explicit subtype choice (departures + returns). */
+    subtypeChoice: 'checkout_departure' | 'temporary_out' | 'return_from_temporary_out' | null;
   }>({
     movementType: null, horseId: null, destinationType: 'internal',
     fromLocationId: null, toLocationId: null,
@@ -85,7 +97,32 @@ export function RecordMovementDialog({
     connectedTenantId: null,
     toAreaId: null, toUnitId: null,
     reason: "", notes: "", internalLocationNote: "",
+    subtypeChoice: null,
   });
+
+  // Apply prefill once when dialog opens with a prefill payload.
+  useEffect(() => {
+    if (!open || !prefill) return;
+    setFormData(prev => ({
+      ...prev,
+      movementType: prefill.movementType,
+      horseId: prefill.horseId,
+      subtypeChoice: prefill.movementSubtype === 'return_from_temporary_out'
+        ? 'return_from_temporary_out'
+        : prefill.movementSubtype === 'temporary_out'
+          ? 'temporary_out'
+          : prefill.movementSubtype === 'checkout_departure'
+            ? 'checkout_departure'
+            : prev.subtypeChoice,
+    }));
+    if (prefill.movementType === 'in') {
+      setArrivalSource('existing');
+      setStep('location');
+    } else {
+      setStep('location');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // New horse inline intake
   const [newHorse, setNewHorse] = useState({
@@ -175,6 +212,22 @@ export function RecordMovementDialog({
     formData.fromLocationId && formData.toLocationId && 
     formData.fromLocationId === formData.toLocationId;
 
+  // AD-1 Pass 2-C: an internal "out" between two different branches is
+  // reclassified to a transfer downstream — so it does NOT need a checkout
+  // vs temporary-out choice. Connected outgoing uses a different RPC and
+  // also skips this picker. Everything else (external + same-branch out)
+  // requires the user to explicitly pick the departure subtype.
+  const isInternalBranchToBranchOut =
+    formData.movementType === 'out' &&
+    formData.destinationType === 'internal' &&
+    !!formData.toLocationId &&
+    !!formData.fromLocationId &&
+    formData.toLocationId !== formData.fromLocationId;
+  const requiresDepartureSubtype =
+    formData.movementType === 'out' &&
+    formData.destinationType !== 'connected' &&
+    !isInternalBranchToBranchOut;
+
   // Auto-fill FROM when horse is selected for OUT/TRANSFER
   const autoFillOrigin = (horseId: string) => {
     const horse = allHorses.find(h => h.id === horseId);
@@ -232,8 +285,10 @@ export function RecordMovementDialog({
       case "housing":
         return true;
       case "details":
+        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
         return true;
       case "review":
+        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
         return true;
       default:
         return false;
@@ -363,6 +418,22 @@ export function RecordMovementDialog({
         ? 'transfer'
         : formData.movementType;
 
+      // AD-1 Pass 2-C: only forward an explicit subtype when it actually
+      // matches the effective type. Internal-branch-to-branch is reclassified
+      // to 'transfer' and must let the trigger assign 'internal_transfer'.
+      let effectiveSubtype: MovementSubtype | undefined;
+      if (!isInternalBranchToBranch && formData.subtypeChoice) {
+        if (effectiveMovementType === 'out' &&
+          (formData.subtypeChoice === 'temporary_out' || formData.subtypeChoice === 'checkout_departure')) {
+          effectiveSubtype = formData.subtypeChoice;
+        } else if (effectiveMovementType === 'in' && formData.subtypeChoice === 'return_from_temporary_out') {
+          effectiveSubtype = formData.subtypeChoice;
+        }
+      }
+
+      // Temporary out must NOT clear housing or close admission.
+      const isTemporaryOut = effectiveSubtype === 'temporary_out';
+
       const data: CreateMovementData = {
         horse_id: horseId,
         movement_type: effectiveMovementType,
@@ -376,13 +447,17 @@ export function RecordMovementDialog({
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
         internal_location_note: formData.internalLocationNote || undefined,
-        clear_housing: isScheduled ? false : effectiveMovementType === 'out',
+        clear_housing: isScheduled
+          ? false
+          : effectiveMovementType === 'out' && !isTemporaryOut,
         destination_type: formData.destinationType,
         from_external_location_id: formData.fromExternalLocationId,
         to_external_location_id: formData.toExternalLocationId,
         movement_status: isScheduled ? 'scheduled' : undefined,
         scheduled_at: isScheduled ? effectiveMovementAt : undefined,
+        movement_subtype: effectiveSubtype,
       };
+
 
       await recordMovement(data);
       onOpenChange(false);
@@ -416,6 +491,7 @@ export function RecordMovementDialog({
       connectedTenantId: null,
       toAreaId: null, toUnitId: null,
       reason: "", notes: "", internalLocationNote: "",
+      subtypeChoice: null,
     });
     setNewHorse({ name: '', name_ar: '', gender: 'male', birth_date: '', microchip_number: '', passport_number: '', breed: '', color: '', notes: '' });
     setShowNewExternal(false);
@@ -997,8 +1073,61 @@ export function RecordMovementDialog({
           <div className="space-y-4">
             <h3 className="font-medium text-center">{t("movement.wizard.step4Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step4Desc")}</p>
-            
-            {/* Schedule for later — only for OUT */}
+
+            {/* AD-1 Pass 2-C: explicit departure subtype picker.
+                Only required when this OUT movement is not a connected
+                transfer or an internal cross-branch transfer. */}
+            {requiresDepartureSubtype && (
+              <div className="space-y-2">
+                <Label className="font-medium">
+                  {t("movement.subtype.departureTypeLabel")}
+                </Label>
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, subtypeChoice: 'checkout_departure' })}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg border-2 text-start transition-all",
+                      formData.subtypeChoice === 'checkout_departure'
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{t("movement.subtype.checkoutDeparture")}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("movement.subtype.checkoutDepartureHint")}</p>
+                    </div>
+                    {formData.subtypeChoice === 'checkout_departure' && (
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, subtypeChoice: 'temporary_out' })}
+                    className={cn(
+                      "flex items-start gap-3 p-3 rounded-lg border-2 text-start transition-all",
+                      formData.subtypeChoice === 'temporary_out'
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{t("movement.subtype.temporaryOut")}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t("movement.subtype.temporaryOutHint")}</p>
+                    </div>
+                    {formData.subtypeChoice === 'temporary_out' && (
+                      <Check className="h-4 w-4 text-primary mt-0.5" />
+                    )}
+                  </button>
+                </div>
+                {!formData.subtypeChoice && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
+                    {t("movement.subtype.chooseRequired")}
+                  </p>
+                )}
+              </div>
+            )}
+
             {formData.movementType === "out" && (
               <div className="rounded-lg border p-3 space-y-3">
                 <div className="flex items-center justify-between">
