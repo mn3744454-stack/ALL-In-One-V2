@@ -33,6 +33,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
   const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
+  const [returnPrefill, setReturnPrefill] = useState<{ horseId: string; movementType: MovementType; movementSubtype?: MovementSubtype } | null>(null);
 
   // When a parent tab enforces typeFilter/statusFilter, the local filter UI
   // is hidden — so preserving local filters here would silently apply
