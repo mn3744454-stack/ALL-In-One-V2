@@ -11064,6 +11064,7 @@ export type Database = {
           p_is_demo?: boolean
           p_movement_at?: string
           p_movement_status?: string
+          p_movement_subtype?: string
           p_movement_type: string
           p_notes?: string
           p_reason?: string
