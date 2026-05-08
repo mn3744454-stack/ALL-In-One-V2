@@ -346,9 +346,23 @@ export function RecordMovementDialog({
 
       const currentHorse = allHorses.find(h => h.id === horseId);
 
+      // AD-1 Pass 1.3: an internal "out" to a different branch is logically a
+      // transfer, not a checkout. Re-classify so the BEFORE INSERT trigger
+      // assigns movement_subtype = 'internal_transfer' (not checkout_departure)
+      // and the financial checkout gate / admission close logic does not fire.
+      const isInternalBranchToBranch =
+        formData.movementType === 'out' &&
+        formData.destinationType === 'internal' &&
+        !!formData.toLocationId &&
+        !!formData.fromLocationId &&
+        formData.toLocationId !== formData.fromLocationId;
+      const effectiveMovementType: MovementType = isInternalBranchToBranch
+        ? 'transfer'
+        : formData.movementType;
+
       const data: CreateMovementData = {
         horse_id: horseId,
-        movement_type: formData.movementType,
+        movement_type: effectiveMovementType,
         from_location_id: formData.fromLocationId,
         to_location_id: formData.toLocationId,
         from_area_id: currentHorse?.current_area_id || null,
@@ -359,7 +373,7 @@ export function RecordMovementDialog({
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
         internal_location_note: formData.internalLocationNote || undefined,
-        clear_housing: isScheduled ? false : formData.movementType === 'out',
+        clear_housing: isScheduled ? false : effectiveMovementType === 'out',
         destination_type: formData.destinationType,
         from_external_location_id: formData.fromExternalLocationId,
         to_external_location_id: formData.toExternalLocationId,
