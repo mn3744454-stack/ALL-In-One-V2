@@ -11,6 +11,8 @@ import { MapPin, ArrowRight, ArrowRightLeft, Clock, FileText, Calendar, Truck, C
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -19,9 +21,10 @@ interface MovementCardProps {
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
+  lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
