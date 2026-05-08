@@ -111,39 +111,29 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               {getCategoryBadge()}
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className={cn(
-                    "truncate",
-                    movement.movement_type === 'out' ? "text-muted-foreground line-through" : ""
-                  )}>
-                    {movement.movement_type === 'out' 
-                      ? formatLocationName(movement.from_location)
-                      : movement.movement_type === 'in'
-                        ? formatLocationName(movement.to_location)
-                        : (
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground">
-                              {formatLocationName(movement.from_location)}
-                            </span>
-                            {ArrowIcon}
-                            <span className="font-medium">
-                              {formatLocationName(movement.to_location)}
-                            </span>
-                          </span>
-                        )
-                    }
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1 justify-end shrink-0 max-w-[55%] [&>*]:whitespace-nowrap">
-                <MovementTypeBadge type={movement.movement_type} size="sm" />
-                {movement.movement_status !== 'completed' && (
-                  <MovementStatusBadge status={movement.movement_status} />
-                )}
-                {getCategoryBadge()}
-              </div>
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className={cn(
+                "truncate",
+                movement.movement_type === 'out' ? "text-muted-foreground line-through" : ""
+              )}>
+                {movement.movement_type === 'out'
+                  ? formatLocationName(movement.from_location)
+                  : movement.movement_type === 'in'
+                    ? formatLocationName(movement.to_location)
+                    : (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-muted-foreground">
+                          {formatLocationName(movement.from_location)}
+                        </span>
+                        {ArrowIcon}
+                        <span className="font-medium">
+                          {formatLocationName(movement.to_location)}
+                        </span>
+                      </span>
+                    )
+                }
+              </span>
             </div>
 
             {/* Scheduled datetime */}
