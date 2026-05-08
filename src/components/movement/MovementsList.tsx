@@ -100,6 +100,14 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     setTransferMovementId(movementId);
   };
 
+  const handleRecordReturn = (horseId: string) => {
+    setReturnPrefill({
+      horseId,
+      movementType: 'in',
+      movementSubtype: 'return_from_temporary_out',
+    });
+  };
+
   const handleConfirmDispatch = async () => {
     if (!dispatchMovementId) return;
     await dispatchMovement({ movementId: dispatchMovementId });
