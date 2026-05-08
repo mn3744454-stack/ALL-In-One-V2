@@ -300,7 +300,46 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
               </CardContent>
             </Card>
           )}
+
+          {/* Record Return — visible when this horse is currently temporarily out */}
+          {lifecycleState?.is_temporarily_out && onRecordReturn && movement.horse_id && (
+            <Card className="border-emerald-200 dark:border-emerald-800">
+              <CardContent className="p-3">
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={() => onRecordReturn(movement.horse_id)}
+                >
+                  <ArrowDownToLine className="h-4 w-4" />
+                  {t('movement.return.recordReturn')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cancel action — scheduled or dispatched only */}
+          {(movement.movement_status === 'scheduled' || movement.movement_status === 'dispatched') && canCancel && (
+            <Card>
+              <CardContent className="p-3">
+                <Button
+                  variant="ghost"
+                  className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setCancelOpen(true)}
+                >
+                  <X className="h-4 w-4" />
+                  {t('movement.cancel.action')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
+
+        <CancelMovementDialog
+          movement={movement}
+          open={cancelOpen}
+          onOpenChange={setCancelOpen}
+          onCancelled={() => onOpenChange(false)}
+        />
       </SheetContent>
     </Sheet>
   );
