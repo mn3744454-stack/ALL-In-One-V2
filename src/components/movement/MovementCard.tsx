@@ -72,7 +72,7 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-4 overflow-hidden">
         <div className="flex items-start gap-3">
           {showHorse && movement.horse && (
             <Avatar className="h-12 w-12 shrink-0">
@@ -84,55 +84,56 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
           )}
 
           <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                {showHorse && movement.horse && (
-                  <h4 className="font-semibold text-foreground truncate">
-                    {movement.horse.name}
-                    {movement.horse.name_ar && (
-                      <span className="text-muted-foreground text-sm ms-2">
-                        ({movement.horse.name_ar})
-                      </span>
-                    )}
-                  </h4>
-                )}
-                {lifecycleState && (
-                  <div className="mt-1">
-                    <HorseLifecycleChip state={lifecycleState} hideUnknown size="xs" />
-                  </div>
-                )}
-                <div className="flex items-center gap-2 mt-1 text-sm">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className={cn(
-                    "truncate",
-                    movement.movement_type === 'out' ? "text-muted-foreground line-through" : ""
-                  )}>
-                    {movement.movement_type === 'out' 
-                      ? formatLocationName(movement.from_location)
-                      : movement.movement_type === 'in'
-                        ? formatLocationName(movement.to_location)
-                        : (
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground">
-                              {formatLocationName(movement.from_location)}
-                            </span>
-                            {ArrowIcon}
-                            <span className="font-medium">
-                              {formatLocationName(movement.to_location)}
-                            </span>
-                          </span>
-                        )
-                    }
-                  </span>
+            <div className="min-w-0">
+              {showHorse && movement.horse && (
+                <h4 className="font-semibold text-foreground truncate">
+                  {movement.horse.name}
+                  {movement.horse.name_ar && (
+                    <span className="text-muted-foreground text-sm ms-2">
+                      ({movement.horse.name_ar})
+                    </span>
+                  )}
+                </h4>
+              )}
+              {lifecycleState && (
+                <div className="mt-1">
+                  <HorseLifecycleChip state={lifecycleState} hideUnknown size="xs" />
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-1 justify-end shrink-0 max-w-[55%] [&>*]:whitespace-nowrap">
-                <MovementTypeBadge type={movement.movement_type} size="sm" />
-                {movement.movement_status !== 'completed' && (
-                  <MovementStatusBadge status={movement.movement_status} />
-                )}
-                {getCategoryBadge()}
-              </div>
+              )}
+            </div>
+
+            {/* Dedicated full-width movement badge row (prevents grid-cell overflow) */}
+            <div className="flex flex-wrap items-center gap-1 max-w-full">
+              <MovementTypeBadge type={movement.movement_type} size="sm" />
+              {movement.movement_status !== 'completed' && (
+                <MovementStatusBadge status={movement.movement_status} />
+              )}
+              {getCategoryBadge()}
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className={cn(
+                "truncate",
+                movement.movement_type === 'out' ? "text-muted-foreground line-through" : ""
+              )}>
+                {movement.movement_type === 'out'
+                  ? formatLocationName(movement.from_location)
+                  : movement.movement_type === 'in'
+                    ? formatLocationName(movement.to_location)
+                    : (
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-muted-foreground">
+                          {formatLocationName(movement.from_location)}
+                        </span>
+                        {ArrowIcon}
+                        <span className="font-medium">
+                          {formatLocationName(movement.to_location)}
+                        </span>
+                      </span>
+                    )
+                }
+              </span>
             </div>
 
             {/* Scheduled datetime */}
