@@ -10,4 +10,6 @@ export * from './RecordMovementDialog';
 export * from './HorseLocationSection';
 export * from './IncomingArrivals';
 export * from './DispatchConfirmDialog';
+export * from './ConfirmArrivalDialog';
+export * from './ConfirmTransferDialog';
 export * from './HorseMovementTimeline';

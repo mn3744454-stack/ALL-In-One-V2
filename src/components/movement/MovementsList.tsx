@@ -5,6 +5,7 @@ import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
 import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
+import { ConfirmTransferDialog } from "./ConfirmTransferDialog";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
+  const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
 
   // Merge external filters with user filters
   const mergedFilters: FiltersType = {
@@ -45,6 +47,8 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     isDispatching,
     confirmLocalArrival,
     isConfirmingArrival,
+    confirmInternalTransfer,
+    isConfirmingTransfer,
   } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
 
@@ -57,6 +61,10 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
 
   const arrivalMovement = arrivalMovementId
     ? movements.find(m => m.id === arrivalMovementId)
+    : null;
+
+  const transferMovement = transferMovementId
+    ? movements.find(m => m.id === transferMovementId)
     : null;
 
   // Phase 2 corrective: open-on-arrival via the shared deep-link hook.
@@ -80,6 +88,10 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     setArrivalMovementId(movementId);
   };
 
+  const handleConfirmTransfer = (movementId: string) => {
+    setTransferMovementId(movementId);
+  };
+
   const handleConfirmDispatch = async () => {
     if (!dispatchMovementId) return;
     await dispatchMovement({ movementId: dispatchMovementId });
@@ -100,6 +112,22 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
       // Error toast (incl. half-failure) is handled inside the mutation.
       // Close the dialog so the user sees the refreshed state and can retry.
       setArrivalMovementId(null);
+    }
+  };
+
+  const handleConfirmTransferSubmit = async () => {
+    if (!transferMovement) return;
+    try {
+      await confirmInternalTransfer({
+        movementId: transferMovement.id,
+        currentStatus: transferMovement.movement_status,
+      });
+      setTransferMovementId(null);
+      setSelectedMovement(null);
+    } catch {
+      // Toast (incl. half-failure) handled inside mutation. Close dialog so
+      // the user sees the refreshed state and can retry from the card.
+      setTransferMovementId(null);
     }
   };
 
@@ -185,6 +213,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               onClick={() => setSelectedMovement(movement)}
               onDispatch={handleDispatch}
               onConfirmArrival={handleConfirmArrival}
+              onConfirmTransfer={handleConfirmTransfer}
             />
           ))}
         </div>
@@ -196,6 +225,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
+        onConfirmTransfer={handleConfirmTransfer}
       />
 
       <DispatchConfirmDialog
@@ -214,6 +244,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         isProcessing={isConfirmingArrival}
         isRetry={arrivalMovement?.movement_status === 'dispatched'}
         hasUnit={!!arrivalMovement?.to_unit_id}
+      />
+
+      <ConfirmTransferDialog
+        open={!!transferMovementId}
+        onOpenChange={(open) => { if (!open) setTransferMovementId(null); }}
+        onConfirm={handleConfirmTransferSubmit}
+        isProcessing={isConfirmingTransfer}
+        isRetry={transferMovement?.movement_status === 'dispatched'}
+        hasUnit={!!transferMovement?.to_unit_id}
       />
     </div>
   );

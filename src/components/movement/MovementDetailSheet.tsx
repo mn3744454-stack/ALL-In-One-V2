@@ -14,10 +14,10 @@ import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
-import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
+import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 
 interface MovementDetailSheetProps {
   movement: HorseMovement | null;
@@ -26,9 +26,10 @@ interface MovementDetailSheetProps {
   onViewAdmission?: (admissionId: string) => void;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
+  onConfirmTransfer?: (movementId: string) => void;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -212,8 +213,29 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </Card>
           )}
 
-          {/* Dispatch action — non-arrival scheduled (out / transfer) */}
-          {isScheduled && !isLocalArrival(movement) && canDispatch && onDispatch && (
+          {/* Confirm Internal Transfer action — internal transfer (scheduled or dispatched) */}
+          {isInternalTransferActionable(movement) && canDispatch && onConfirmTransfer && (
+            <Card className="border-amber-200 dark:border-amber-800">
+              <CardContent className="p-3">
+                <Button
+                  className="w-full gap-2"
+                  onClick={() => onConfirmTransfer(movement.id)}
+                >
+                  {movement.movement_status === 'dispatched' ? (
+                    <RefreshCw className="h-4 w-4" />
+                  ) : (
+                    <ArrowRightLeft className="h-4 w-4" />
+                  )}
+                  {movement.movement_status === 'dispatched'
+                    ? t('movement.lifecycle.completeInternalTransfer')
+                    : t('movement.lifecycle.confirmInternalTransfer')}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dispatch action — non-arrival, non-internal-transfer scheduled (e.g. out / connected outgoing) */}
+          {isScheduled && !isLocalArrival(movement) && !isInternalTransfer(movement) && canDispatch && onDispatch && (
             <Card className="border-amber-200 dark:border-amber-800">
               <CardContent className="p-3">
                 <Button

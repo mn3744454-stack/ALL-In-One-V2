@@ -7,10 +7,10 @@ import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
+import { MapPin, ArrowRight, ArrowRightLeft, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
-import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
+import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -18,9 +18,10 @@ interface MovementCardProps {
   onClick?: () => void;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
+  onConfirmTransfer?: (movementId: string) => void;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -51,9 +52,13 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
   const localArrivalActionable = isLocalArrivalActionable(movement);
   const localArrival = isLocalArrival(movement);
   const isArrivalRetry = localArrival && movement.movement_status === 'dispatched';
-  // Dispatch path is reserved for non-local-arrival scheduled rows
-  // (out / transfer / connected outgoing). Local arrivals use Confirm Arrival.
-  const showDispatchAction = isScheduled && !localArrival;
+  const internalTransfer = isInternalTransfer(movement);
+  const internalTransferActionable = isInternalTransferActionable(movement);
+  const isTransferRetry = internalTransfer && movement.movement_status === 'dispatched';
+  // Dispatch path is reserved for non-local-arrival, non-internal-transfer
+  // scheduled rows (e.g. out / connected outgoing). Local arrivals use
+  // Confirm Arrival; internal transfers use Confirm Internal Transfer.
+  const showDispatchAction = isScheduled && !localArrival && !internalTransfer;
 
   return (
     <Card
@@ -175,6 +180,30 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
                   {isArrivalRetry
                     ? t('movement.lifecycle.retryArrival')
                     : t('movement.lifecycle.confirmArrival')}
+                </Button>
+              </div>
+            )}
+
+            {/* Confirm Internal Transfer action — internal transfer (scheduled or dispatched) */}
+            {internalTransferActionable && canDispatch && onConfirmTransfer && (
+              <div className="pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirmTransfer(movement.id);
+                  }}
+                >
+                  {isTransferRetry ? (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  ) : (
+                    <ArrowRightLeft className="h-3.5 w-3.5" />
+                  )}
+                  {isTransferRetry
+                    ? t('movement.lifecycle.completeInternalTransfer')
+                    : t('movement.lifecycle.confirmInternalTransfer')}
                 </Button>
               </div>
             )}
