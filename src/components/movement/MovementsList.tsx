@@ -213,6 +213,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               onClick={() => setSelectedMovement(movement)}
               onDispatch={handleDispatch}
               onConfirmArrival={handleConfirmArrival}
+              onConfirmTransfer={handleConfirmTransfer}
             />
           ))}
         </div>
@@ -224,6 +225,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
+        onConfirmTransfer={handleConfirmTransfer}
       />
 
       <DispatchConfirmDialog
