@@ -96,6 +96,11 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
                     )}
                   </h4>
                 )}
+                {lifecycleState && (
+                  <div className="mt-1">
+                    <HorseLifecycleChip state={lifecycleState} hideUnknown size="xs" />
+                  </div>
+                )}
                 <div className="flex items-center gap-2 mt-1 text-sm">
                   <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className={cn(
