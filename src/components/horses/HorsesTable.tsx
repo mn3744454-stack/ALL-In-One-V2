@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { HorseLifecycleChip } from "./HorseLifecycleChip";
+import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
 import { 
   getCurrentAgeParts, 
   getHorseTypeLabel, 
