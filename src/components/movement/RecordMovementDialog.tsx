@@ -400,6 +400,22 @@ export function RecordMovementDialog({
         ? 'transfer'
         : formData.movementType;
 
+      // AD-1 Pass 2-C: only forward an explicit subtype when it actually
+      // matches the effective type. Internal-branch-to-branch is reclassified
+      // to 'transfer' and must let the trigger assign 'internal_transfer'.
+      let effectiveSubtype: MovementSubtype | undefined;
+      if (!isInternalBranchToBranch && formData.subtypeChoice) {
+        if (effectiveMovementType === 'out' &&
+          (formData.subtypeChoice === 'temporary_out' || formData.subtypeChoice === 'checkout_departure')) {
+          effectiveSubtype = formData.subtypeChoice;
+        } else if (effectiveMovementType === 'in' && formData.subtypeChoice === 'return_from_temporary_out') {
+          effectiveSubtype = formData.subtypeChoice;
+        }
+      }
+
+      // Temporary out must NOT clear housing or close admission.
+      const isTemporaryOut = effectiveSubtype === 'temporary_out';
+
       const data: CreateMovementData = {
         horse_id: horseId,
         movement_type: effectiveMovementType,
@@ -413,13 +429,17 @@ export function RecordMovementDialog({
         reason: formData.reason || undefined,
         notes: formData.notes || undefined,
         internal_location_note: formData.internalLocationNote || undefined,
-        clear_housing: isScheduled ? false : effectiveMovementType === 'out',
+        clear_housing: isScheduled
+          ? false
+          : effectiveMovementType === 'out' && !isTemporaryOut,
         destination_type: formData.destinationType,
         from_external_location_id: formData.fromExternalLocationId,
         to_external_location_id: formData.toExternalLocationId,
         movement_status: isScheduled ? 'scheduled' : undefined,
         scheduled_at: isScheduled ? effectiveMovementAt : undefined,
+        movement_subtype: effectiveSubtype,
       };
+
 
       await recordMovement(data);
       onOpenChange(false);
