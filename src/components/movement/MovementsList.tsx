@@ -30,6 +30,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
+  const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
 
   // Merge external filters with user filters
   const mergedFilters: FiltersType = {
