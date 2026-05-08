@@ -115,6 +115,22 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     }
   };
 
+  const handleConfirmTransferSubmit = async () => {
+    if (!transferMovement) return;
+    try {
+      await confirmInternalTransfer({
+        movementId: transferMovement.id,
+        currentStatus: transferMovement.movement_status,
+      });
+      setTransferMovementId(null);
+      setSelectedMovement(null);
+    } catch {
+      // Toast (incl. half-failure) handled inside mutation. Close dialog so
+      // the user sees the refreshed state and can retry from the card.
+      setTransferMovementId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
