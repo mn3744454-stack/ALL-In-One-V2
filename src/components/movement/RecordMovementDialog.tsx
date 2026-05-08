@@ -312,10 +312,21 @@ export function RecordMovementDialog({
       // A movement is "scheduled" when EITHER the explicit toggle is on OR
       // the chosen movement_at falls in the future. This prevents future-dated
       // arrivals/transfers from being incorrectly persisted as completed.
-      const explicitSchedule = scheduleForLater && !!scheduledAt;
-      const futureMovementDate = !!movementDate && new Date(movementDate).getTime() > Date.now();
+      // AD-1 Pass 1.3: convert <input type="datetime-local"> values (which are
+      // timezone-less local strings, e.g. "2026-05-09T21:55") to a proper
+      // timezone-aware ISO string so Postgres timestamptz stores the user's
+      // intended local time correctly. `new Date(localString)` parses as local.
+      const toIsoLocal = (s: string | undefined | null): string | undefined => {
+        if (!s) return undefined;
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+      };
+      const scheduledAtIso = toIsoLocal(scheduledAt);
+      const movementDateIso = toIsoLocal(movementDate);
+      const explicitSchedule = scheduleForLater && !!scheduledAtIso;
+      const futureMovementDate = !!movementDateIso && new Date(movementDateIso).getTime() > Date.now();
       const isScheduled = explicitSchedule || futureMovementDate;
-      const effectiveMovementAt = explicitSchedule ? scheduledAt : (movementDate || undefined);
+      const effectiveMovementAt = explicitSchedule ? scheduledAtIso : movementDateIso;
 
       // Connected movement uses a separate RPC
       if (formData.destinationType === 'connected' && formData.connectedTenantId) {
