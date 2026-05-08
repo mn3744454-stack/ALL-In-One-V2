@@ -474,6 +474,8 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     isCancelling: cancelMutation.isPending,
     confirmLocalArrival: confirmLocalArrivalMutation.mutateAsync,
     isConfirmingArrival: confirmLocalArrivalMutation.isPending,
+    confirmInternalTransfer: confirmInternalTransferMutation.mutateAsync,
+    isConfirmingTransfer: confirmInternalTransferMutation.isPending,
   };
 }
 
