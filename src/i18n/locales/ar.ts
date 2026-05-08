@@ -2000,11 +2000,16 @@ export const ar = {
     arrivalsAndDepartures: {
       arrivals: "الوصول",
       departures: "المغادرة",
+      transfers: "النقل",
       incoming: "الوارد",
       pending: "قيد الانتظار",
       completed: "مكتمل",
       arrivalsToday: "وصول اليوم",
       departuresToday: "مغادرة اليوم",
+      arrivingToday: "الوصول اليوم",
+      departingToday: "المغادرة اليوم",
+      transfersToday: "النقل اليوم",
+      needsAction: "بحاجة إجراء",
     },
     branchScope: {
       selectBranch: "اختر الفرع",
