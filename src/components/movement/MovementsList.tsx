@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface MovementsListProps {
   onRecordMovement: () => void;
