@@ -7,10 +7,10 @@ import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
+import { MapPin, ArrowRight, ArrowRightLeft, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
-import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
+import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -18,6 +18,7 @@ interface MovementCardProps {
   onClick?: () => void;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
+  onConfirmTransfer?: (movementId: string) => void;
 }
 
 export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival }: MovementCardProps) {
