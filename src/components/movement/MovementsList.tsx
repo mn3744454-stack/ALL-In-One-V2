@@ -229,6 +229,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         onDispatch={handleDispatch}
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
+        lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
       />
 
       <DispatchConfirmDialog
