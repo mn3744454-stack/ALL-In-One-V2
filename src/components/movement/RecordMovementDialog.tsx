@@ -62,7 +62,7 @@ type ArrivalSource = 'existing' | 'new_horse';
 type Step = "type" | "arrival_source" | "horse" | "new_horse" | "location" | "housing" | "details" | "review";
 
 export function RecordMovementDialog({
-  open, onOpenChange, onSuccess,
+  open, onOpenChange, onSuccess, prefill,
 }: RecordMovementDialogProps) {
   const { t, dir } = useI18n();
   const isMobile = useIsMobile();
