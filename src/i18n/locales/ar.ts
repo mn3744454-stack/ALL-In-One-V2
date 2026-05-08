@@ -1836,6 +1836,7 @@ export const ar = {
       fromLocation: "من موقع",
       toLocation: "إلى موقع",
       noOtherLocations: "لا توجد فروع أخرى متاحة",
+      reason: "السبب",
       reasonPlaceholder: "مثال: تدريب، زيارة بيطرية، مسابقة...",
       notes: "ملاحظات",
       notesPlaceholder: "ملاحظات إضافية...",
