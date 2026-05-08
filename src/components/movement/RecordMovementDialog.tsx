@@ -17,7 +17,7 @@ import {
 import { useI18n } from "@/i18n";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocations } from "@/hooks/movement/useLocations";
-import { useHorseMovements, type MovementType, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
+import { useHorseMovements, type MovementType, type MovementSubtype, type CreateMovementData } from "@/hooks/movement/useHorseMovements";
 import { useExternalLocations } from "@/hooks/movement/useExternalLocations";
 import { useConnectedDestinations } from "@/hooks/movement/useConnectedDestinations";
 import { useConnectedMovement } from "@/hooks/movement/useConnectedMovement";
