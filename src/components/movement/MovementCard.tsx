@@ -155,8 +155,32 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               )}
             </div>
 
-            {/* Dispatch action for scheduled movements */}
-            {isScheduled && canDispatch && onDispatch && (
+            {/* Confirm Arrival action — local arrival (in, not connected) */}
+            {localArrivalActionable && canDispatch && onConfirmArrival && (
+              <div className="pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirmArrival(movement.id);
+                  }}
+                >
+                  {isArrivalRetry ? (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  )}
+                  {isArrivalRetry
+                    ? t('movement.lifecycle.retryArrival')
+                    : t('movement.lifecycle.confirmArrival')}
+                </Button>
+              </div>
+            )}
+
+            {/* Dispatch action — non-arrival scheduled movements (out / transfer) */}
+            {showDispatchAction && canDispatch && onDispatch && (
               <div className="pt-2 border-t">
                 <Button
                   size="sm"
