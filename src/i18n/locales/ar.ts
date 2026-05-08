@@ -1820,6 +1820,7 @@ export const ar = {
     },
     form: {
       recordMovement: "تسجيل حركة",
+      movementDate: "تاريخ الحركة",
       movementType: "نوع الحركة",
       selectHorse: "الخيل",
       fromLocation: "من موقع",
