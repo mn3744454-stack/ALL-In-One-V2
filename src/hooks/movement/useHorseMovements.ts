@@ -8,6 +8,13 @@ import { startOfDay, startOfWeek, endOfDay } from 'date-fns';
 
 export type MovementType = 'in' | 'out' | 'transfer';
 export type MovementStatus = 'scheduled' | 'dispatched' | 'completed' | 'cancelled';
+export type MovementSubtype =
+  | 'arrival'
+  | 'checkout_departure'
+  | 'temporary_out'
+  | 'return_from_temporary_out'
+  | 'internal_transfer'
+  | 'unspecified';
 
 export interface HorseMovement {
   id: string;
@@ -15,6 +22,9 @@ export interface HorseMovement {
   horse_id: string;
   movement_type: MovementType;
   movement_status: MovementStatus;
+  movement_subtype: MovementSubtype;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
   from_location_id: string | null;
   to_location_id: string | null;
   from_area_id: string | null;
@@ -287,6 +297,45 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     },
   });
 
+  // Complete mutation — transitions dispatched → completed (AD-1 Pass 1)
+  const completeMutation = useMutation({
+    mutationFn: async ({ movementId, overrideReason, notes }: { movementId: string; overrideReason?: string; notes?: string }) => {
+      if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
+      const { data, error } = await supabase.rpc('complete_horse_movement' as any, {
+        p_movement_id: movementId,
+        p_override_reason: overrideReason ?? null,
+        p_notes: notes ?? null,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      invalidate(['movement', 'occupancy', 'admission']);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  // Cancel mutation — scheduled or dispatched → cancelled (AD-1 Pass 1)
+  const cancelMutation = useMutation({
+    mutationFn: async ({ movementId, reason }: { movementId: string; reason?: string }) => {
+      if (!tenantId) throw new Error(tGlobal('movement.toasts.noActiveOrganization'));
+      const { data, error } = await supabase.rpc('cancel_horse_movement' as any, {
+        p_movement_id: movementId,
+        p_reason: reason ?? null,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      invalidate(['movement', 'occupancy', 'admission']);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
   return {
     movements,
     isLoading,
@@ -297,6 +346,10 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     isRecording: recordMutation.isPending,
     dispatchMovement: dispatchMutation.mutateAsync,
     isDispatching: dispatchMutation.isPending,
+    completeMovement: completeMutation.mutateAsync,
+    isCompleting: completeMutation.isPending,
+    cancelMovement: cancelMutation.mutateAsync,
+    isCancelling: cancelMutation.isPending,
   };
 }
 

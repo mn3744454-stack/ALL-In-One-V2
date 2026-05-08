@@ -347,6 +347,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "boarding_admissions_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "boarding_admissions_plan_id_fkey"
             columns: ["plan_id"]
             isOneToOne: false
@@ -414,6 +421,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "boarding_admissions"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_status_history_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["open_admission_id"]
           },
           {
             foreignKeyName: "boarding_status_history_changed_by_fkey"
@@ -643,6 +657,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "breeding_attempts_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "breeding_attempts_performed_by_fkey"
             columns: ["performed_by"]
             isOneToOne: false
@@ -676,6 +697,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_attempts_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "breeding_attempts_tenant_id_fkey"
@@ -786,6 +814,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "breeding_contracts_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "breeding_contracts_service_id_fkey"
             columns: ["service_id"]
             isOneToOne: false
@@ -798,6 +833,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "breeding_contracts_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "breeding_contracts_tenant_id_fkey"
@@ -1138,6 +1180,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connection_horse_access_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
         ]
       }
@@ -1956,6 +2005,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "doctor_patients_linked_horse_id_fkey"
+            columns: ["linked_horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "doctor_patients_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -2199,6 +2255,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "embryo_transfers_donor_mare_id_fkey"
+            columns: ["donor_mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "embryo_transfers_performed_by_fkey"
             columns: ["performed_by"]
             isOneToOne: false
@@ -2225,6 +2288,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "embryo_transfers_recipient_mare_id_fkey"
+            columns: ["recipient_mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "embryo_transfers_tenant_id_fkey"
@@ -2681,11 +2751,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "foalings_foal_horse_id_fkey"
+            columns: ["foal_horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "foalings_mare_id_fkey"
             columns: ["mare_id"]
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "foalings_performed_by_fkey"
@@ -2707,6 +2791,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "foalings_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "foalings_tenant_id_fkey"
@@ -2802,6 +2893,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_aliases_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horse_aliases_tenant_id_fkey"
@@ -2919,6 +3017,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_care_notes_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["open_admission_id"]
+          },
+          {
             foreignKeyName: "horse_care_notes_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -2931,6 +3036,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_care_notes_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horse_care_notes_tenant_id_fkey"
@@ -2991,6 +3103,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_classification_changes_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "horse_classification_changes_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -3047,12 +3166,17 @@ export type Database = {
       }
       horse_movements: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           completed_at: string | null
+          completed_by: string | null
           connected_movement_id: string | null
           connected_tenant_id: string | null
           created_at: string
           destination_type: string
           dispatched_at: string | null
+          dispatched_by: string | null
           from_area_id: string | null
           from_external_location_id: string | null
           from_location_id: string | null
@@ -3063,6 +3187,7 @@ export type Database = {
           is_demo: boolean
           movement_at: string
           movement_status: string
+          movement_subtype: string
           movement_type: Database["public"]["Enums"]["movement_type"]
           notes: string | null
           reason: string | null
@@ -3076,12 +3201,17 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           completed_at?: string | null
+          completed_by?: string | null
           connected_movement_id?: string | null
           connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
           dispatched_at?: string | null
+          dispatched_by?: string | null
           from_area_id?: string | null
           from_external_location_id?: string | null
           from_location_id?: string | null
@@ -3092,6 +3222,7 @@ export type Database = {
           is_demo?: boolean
           movement_at?: string
           movement_status?: string
+          movement_subtype?: string
           movement_type: Database["public"]["Enums"]["movement_type"]
           notes?: string | null
           reason?: string | null
@@ -3105,12 +3236,17 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           completed_at?: string | null
+          completed_by?: string | null
           connected_movement_id?: string | null
           connected_tenant_id?: string | null
           created_at?: string
           destination_type?: string
           dispatched_at?: string | null
+          dispatched_by?: string | null
           from_area_id?: string | null
           from_external_location_id?: string | null
           from_location_id?: string | null
@@ -3121,6 +3257,7 @@ export type Database = {
           is_demo?: boolean
           movement_at?: string
           movement_status?: string
+          movement_subtype?: string
           movement_type?: Database["public"]["Enums"]["movement_type"]
           notes?: string | null
           reason?: string | null
@@ -3182,6 +3319,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_movements_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horse_movements_tenant_id_fkey"
@@ -3474,6 +3618,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_orders_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "horse_orders_order_type_id_fkey"
             columns: ["order_type_id"]
             isOneToOne: false
@@ -3575,6 +3726,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_ownership_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "horse_ownership_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
@@ -3633,6 +3791,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_ownership_history_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horse_ownership_history_owner_id_fkey"
@@ -3756,6 +3921,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horse_shares_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "horse_shares_pack_id_fkey"
             columns: ["pack_id"]
             isOneToOne: false
@@ -3845,6 +4017,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horse_vaccinations_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horse_vaccinations_program_id_fkey"
@@ -4083,6 +4262,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "horses_father_id_fkey"
+            columns: ["father_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "horses_housing_unit_id_fkey"
             columns: ["housing_unit_id"]
             isOneToOne: false
@@ -4095,6 +4281,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_mother_id_fkey"
+            columns: ["mother_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "horses_stable_id_fkey"
@@ -4157,6 +4350,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housing_unit_occupants_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "housing_unit_occupants_tenant_id_fkey"
@@ -4693,6 +4893,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incoming_horse_movements_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
             columns: ["local_movement_id"]
             isOneToOne: false
@@ -4700,11 +4907,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
+            columns: ["local_movement_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["latest_movement_id"]
+          },
+          {
             foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
             columns: ["sender_movement_id"]
             isOneToOne: true
             referencedRelation: "horse_movements"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
+            columns: ["sender_movement_id"]
+            isOneToOne: true
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["latest_movement_id"]
           },
           {
             foreignKeyName: "incoming_horse_movements_sender_tenant_id_fkey"
@@ -4980,6 +5201,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "invoice_items_invoice_id_fkey"
@@ -5739,6 +5967,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
             columns: ["initiator_tenant_id"]
             isOneToOne: false
@@ -6224,6 +6459,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_samples_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "lab_samples_lab_horse_id_fkey"
@@ -7013,6 +7255,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_horse_access_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "member_horse_access_tenant_member_id_fkey"
@@ -7868,6 +8117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pregnancies_mare_id_fkey"
+            columns: ["mare_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "pregnancies_source_attempt_id_fkey"
             columns: ["source_attempt_id"]
             isOneToOne: false
@@ -7880,6 +8136,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pregnancies_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "pregnancies_tenant_id_fkey"
@@ -8401,6 +8664,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "horses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semen_batches_stallion_id_fkey"
+            columns: ["stallion_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
           },
           {
             foreignKeyName: "semen_batches_tank_id_fkey"
@@ -9885,6 +10155,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "vet_treatments_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "vet_treatments_related_order_id_fkey"
             columns: ["related_order_id"]
             isOneToOne: false
@@ -10128,6 +10405,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lab_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
             foreignKeyName: "lab_requests_initiator_tenant_id_fkey"
             columns: ["initiator_tenant_id"]
             isOneToOne: false
@@ -10247,6 +10531,36 @@ export type Database = {
           },
           {
             foreignKeyName: "ledger_entries_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_horse_lifecycle_state: {
+        Row: {
+          horse_id: string | null
+          is_temporarily_out: boolean | null
+          latest_movement_id: string | null
+          latest_movement_status: string | null
+          latest_movement_subtype: string | null
+          needs_admission: boolean | null
+          needs_placement: boolean | null
+          open_admission_id: string | null
+          open_admission_status: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horses_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -10385,6 +10699,10 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      cancel_horse_movement: {
+        Args: { p_movement_id: string; p_reason?: string }
+        Returns: Json
+      }
       cancel_incoming_movement: {
         Args: { p_incoming_id: string; p_reason?: string }
         Returns: Json
@@ -10395,6 +10713,14 @@ export type Database = {
       }
       claim_client_portal: { Args: { _token: string }; Returns: string }
       cleanup_connection_rate_limits: { Args: never; Returns: number }
+      complete_horse_movement: {
+        Args: {
+          p_movement_id: string
+          p_notes?: string
+          p_override_reason?: string
+        }
+        Returns: Json
+      }
       confirm_incoming_movement: {
         Args: { p_incoming_id: string; p_notes?: string }
         Returns: Json
@@ -10813,6 +11139,14 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      validate_boarding_checkout_gate: {
+        Args: {
+          p_actor_user_id?: string
+          p_admission_id: string
+          p_override_reason?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       connection_type: "b2b" | "b2c" | "employment"
