@@ -48,6 +48,12 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
   };
 
   const isScheduled = movement.movement_status === 'scheduled';
+  const localArrivalActionable = isLocalArrivalActionable(movement);
+  const localArrival = isLocalArrival(movement);
+  const isArrivalRetry = localArrival && movement.movement_status === 'dispatched';
+  // Dispatch path is reserved for non-local-arrival scheduled rows
+  // (out / transfer / connected outgoing). Local arrivals use Confirm Arrival.
+  const showDispatchAction = isScheduled && !localArrival;
 
   return (
     <Card
