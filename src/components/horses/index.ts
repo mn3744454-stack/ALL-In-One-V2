@@ -7,3 +7,4 @@ export { HorsesTable } from "./HorsesTable";
 export { AddMasterDataDialog } from "./AddMasterDataDialog";
 export { HorseMediaGallery } from "./HorseMediaGallery";
 export { IncompleteProfileModal } from "./IncompleteProfileModal";
+export { HorseLifecycleChip } from "./HorseLifecycleChip";
