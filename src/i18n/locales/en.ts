@@ -1817,6 +1817,7 @@ export const en = {
       selectHorse: "Horse",
       fromLocation: "From Location",
       toLocation: "To Location",
+      noOtherLocations: "No other branches available",
       reason: "Reason",
       reasonPlaceholder: "e.g. Training, Vet visit, Competition...",
       notes: "Notes",
