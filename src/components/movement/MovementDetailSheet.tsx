@@ -99,6 +99,31 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </CardContent>
           </Card>
 
+          {/* Operational lifecycle summary */}
+          {lifecycleState && (() => {
+            const op = deriveOperationalStatus(lifecycleState);
+            if (op === 'unknown') return null;
+            const descKey =
+              op === 'needs_admission' ? 'movement.lifecycle.summary.needsAdmissionDesc' :
+              op === 'needs_placement' ? 'movement.lifecycle.summary.needsPlacementDesc' :
+              op === 'in_transit' ? 'movement.lifecycle.summary.inTransitDesc' :
+              op === 'temporarily_out' ? 'movement.lifecycle.summary.temporarilyOutDesc' :
+              null;
+            return (
+              <Card>
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-muted-foreground">{t('movement.lifecycle.summary.title')}</span>
+                    <HorseLifecycleChip status={op} size="sm" />
+                  </div>
+                  {descKey && (
+                    <p className="text-sm text-foreground">{t(descKey)}</p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           {/* Movement Details */}
           <Card>
             <CardContent className="p-4 space-y-3">
