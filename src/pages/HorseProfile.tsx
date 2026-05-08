@@ -276,7 +276,9 @@ const HorseProfile = () => {
                   <Badge className={typeBadgeProps.className}>
                     {isRTL(lang) ? typeBadgeProps.labelAr : typeBadgeProps.label}
                   </Badge>
-                  {isIntakeDraft ? (
+                  {opStatus !== 'unknown' ? (
+                    <HorseLifecycleChip state={lifecycleState} size="sm" />
+                  ) : isIntakeDraft ? (
                     <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/30">
                       {t('horses.status.intake_draft')}
                     </Badge>
