@@ -1982,11 +1982,16 @@ export const en = {
     arrivalsAndDepartures: {
       arrivals: "Arrivals",
       departures: "Departures",
+      transfers: "Transfers",
       incoming: "Incoming",
       pending: "Pending",
       completed: "Completed",
       arrivalsToday: "arrivals today",
       departuresToday: "departures today",
+      arrivingToday: "Arriving today",
+      departingToday: "Departing today",
+      transfersToday: "Transfers today",
+      needsAction: "Needs action",
     },
     branchScope: {
       selectBranch: "Select Branch",

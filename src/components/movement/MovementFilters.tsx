@@ -113,7 +113,7 @@ export function MovementFilters({
 
       {/* Status filter */}
       <Select
-        value={filters.movementStatus || "all"}
+        value={Array.isArray(filters.movementStatus) ? "all" : (filters.movementStatus || "all")}
         onValueChange={(value) =>
           onFiltersChange({
             ...filters,

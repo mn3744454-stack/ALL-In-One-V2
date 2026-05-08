@@ -124,7 +124,7 @@ export interface MovementFilters {
   dateRange?: 'today' | 'week' | 'all';
   locationId?: string;
   movementType?: MovementType;
-  movementStatus?: MovementStatus;
+  movementStatus?: MovementStatus | MovementStatus[];
   search?: string;
 }
 
@@ -181,7 +181,11 @@ export function useHorseMovements(filters: MovementFilters = {}) {
       }
 
       if (filters.movementStatus) {
-        query = query.eq('movement_status', filters.movementStatus);
+        if (Array.isArray(filters.movementStatus)) {
+          query = query.in('movement_status', filters.movementStatus);
+        } else {
+          query = query.eq('movement_status', filters.movementStatus);
+        }
       }
 
       const { data, error } = await query.limit(100);
