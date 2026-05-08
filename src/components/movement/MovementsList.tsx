@@ -47,6 +47,8 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     isDispatching,
     confirmLocalArrival,
     isConfirmingArrival,
+    confirmInternalTransfer,
+    isConfirmingTransfer,
   } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
 
