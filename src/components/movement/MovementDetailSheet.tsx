@@ -91,9 +91,11 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   {movement.movement_status !== 'completed' && (
                     <MovementStatusBadge status={movement.movement_status} />
                   )}
-                  <Badge className={cn("text-xs", category.className)}>
-                    {category.label}
-                  </Badge>
+                  {category && (
+                    <Badge className={cn("text-xs", category.className)}>
+                      {category.label}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardContent>
