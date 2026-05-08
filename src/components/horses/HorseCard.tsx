@@ -235,12 +235,16 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
                 primaryClassName="font-display font-semibold text-foreground"
               />
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <Badge 
-                  variant="secondary" 
-                  className={cn("text-xs", getStatusColor(horse.status))}
-                >
-                  {t(`horses.status.${horse.status || 'draft'}`)}
-                </Badge>
+                {showLifecycleChip ? (
+                  <HorseLifecycleChip status={opStatus} size="sm" />
+                ) : (
+                  <Badge
+                    variant="secondary"
+                    className={cn("text-xs", getStatusColor(horse.status))}
+                  >
+                    {t(`horses.status.${horse.status || 'draft'}`)}
+                  </Badge>
+                )}
                 <Badge className={cn("text-xs", typeBadgeProps.className)}>
                   {typeLabel}
                 </Badge>
