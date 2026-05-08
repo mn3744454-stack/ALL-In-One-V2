@@ -216,6 +216,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               onDispatch={handleDispatch}
               onConfirmArrival={handleConfirmArrival}
               onConfirmTransfer={handleConfirmTransfer}
+              lifecycleState={movement.horse_id ? statesByHorseId.get(movement.horse_id) ?? null : null}
             />
           ))}
         </div>
