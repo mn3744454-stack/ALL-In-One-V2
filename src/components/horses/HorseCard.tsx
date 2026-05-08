@@ -168,9 +168,13 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
 
           {/* Badges row */}
           <div className="flex flex-wrap gap-1 mb-2">
-            <Badge variant="secondary" className={cn("text-[10px] px-1.5", getStatusColor(horse.status))}>
-              {t(`horses.status.${horse.status || 'draft'}`)}
-            </Badge>
+            {showLifecycleChip ? (
+              <HorseLifecycleChip status={opStatus} size="xs" />
+            ) : (
+              <Badge variant="secondary" className={cn("text-[10px] px-1.5", getStatusColor(horse.status))}>
+                {t(`horses.status.${horse.status || 'draft'}`)}
+              </Badge>
+            )}
             <Badge className={cn("text-[10px] px-1.5", typeBadgeProps.className)}>
               {typeLabel}
             </Badge>
