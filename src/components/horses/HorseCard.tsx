@@ -124,9 +124,13 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
             {formattedAge && ` • ${formattedAge}`}
           </p>
         </div>
-        <Badge variant="secondary" className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}>
-          {t(`horses.status.${horse.status || 'draft'}`)}
-        </Badge>
+        {showLifecycleChip ? (
+          <HorseLifecycleChip status={opStatus} size="xs" className="shrink-0" />
+        ) : (
+          <Badge variant="secondary" className={cn("text-[10px] shrink-0", getStatusColor(horse.status))}>
+            {t(`horses.status.${horse.status || 'draft'}`)}
+          </Badge>
+        )}
       </div>
     );
   }
