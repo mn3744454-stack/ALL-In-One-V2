@@ -43,6 +43,16 @@ interface RecordMovementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  /**
+   * AD-1 Pass 2-C — optional prefill for entry from contextual actions
+   * (e.g. "Record return" on a temporarily-out horse). When provided, the
+   * wizard skips type/source choices and lets the user pick destination.
+   */
+  prefill?: {
+    horseId: string;
+    movementType: MovementType;
+    movementSubtype?: MovementSubtype;
+  } | null;
 }
 
 type DestinationType = 'internal' | 'external' | 'connected';
