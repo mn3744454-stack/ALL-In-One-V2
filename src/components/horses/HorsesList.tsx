@@ -12,6 +12,7 @@ import { Heart, Plus, AlertTriangle } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
+import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
 
 interface Horse {
   id: string;
