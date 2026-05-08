@@ -576,7 +576,10 @@ export function RecordMovementDialog({
                       <AvatarFallback>{horse.name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{horse.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium truncate">{horse.name}</p>
+                        <HorseLifecycleChip state={lifecycleByHorseId.get(horse.id) ?? null} hideUnknown size="xs" />
+                      </div>
                       {horse.name_ar && (
                         <p className="text-sm text-muted-foreground">{horse.name_ar}</p>
                       )}
