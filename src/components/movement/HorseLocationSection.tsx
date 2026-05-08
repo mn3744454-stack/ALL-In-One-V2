@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { MapPin, ArrowRight, Clock, Plus, ChevronRight, Building2, DoorOpen } from "lucide-react";
+import { MapPin, ArrowRight, Plus, ChevronRight, Building2, DoorOpen, ArrowDownToLine } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
-import { useSingleHorseMovements, type HorseMovement } from "@/hooks/movement/useHorseMovements";
+import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { MovementTypeBadge } from "./MovementTypeBadge";
 import { RecordMovementDialog } from "./RecordMovementDialog";
+import { useHorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
