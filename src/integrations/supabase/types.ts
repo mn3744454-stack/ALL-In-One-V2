@@ -3222,7 +3222,7 @@ export type Database = {
           is_demo?: boolean
           movement_at?: string
           movement_status?: string
-          movement_subtype: string
+          movement_subtype?: string
           movement_type: Database["public"]["Enums"]["movement_type"]
           notes?: string | null
           reason?: string | null
