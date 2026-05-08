@@ -4,6 +4,7 @@ import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
 import { MovementFilters } from "./MovementFilters";
 import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
+import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
   const [filters, setFilters] = useState<FiltersType>({});
   const [selectedMovement, setSelectedMovement] = useState<HorseMovement | null>(null);
   const [dispatchMovementId, setDispatchMovementId] = useState<string | null>(null);
+  const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
 
   // Merge external filters with user filters
   const mergedFilters: FiltersType = {
@@ -35,7 +37,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     ...(statusFilter ? { movementStatus: statusFilter } : {}),
   };
   
-  const { movements, isLoading, canManage, dispatchMovement, isDispatching } = useHorseMovements(mergedFilters);
+  const {
+    movements,
+    isLoading,
+    canManage,
+    dispatchMovement,
+    isDispatching,
+    confirmLocalArrival,
+    isConfirmingArrival,
+  } = useHorseMovements(mergedFilters);
   const { locations } = useLocations();
 
   const dispatchMovement_ = dispatchMovementId
@@ -45,10 +55,11 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
 
   const { data: activeAdmission } = useHorseActiveAdmission(dispatchHorseId);
 
+  const arrivalMovement = arrivalMovementId
+    ? movements.find(m => m.id === arrivalMovementId)
+    : null;
+
   // Phase 2 corrective: open-on-arrival via the shared deep-link hook.
-  // Auto-opens the matching movement, strips related URL params, and
-  // surfaces a toast (instead of failing silently) if the target row
-  // isn't visible — e.g. filtered out of the current view.
   const handleDeepLinkFound = useCallback(
     (m: HorseMovement) => setSelectedMovement(m),
     []
@@ -65,11 +76,31 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
     setDispatchMovementId(movementId);
   };
 
+  const handleConfirmArrival = (movementId: string) => {
+    setArrivalMovementId(movementId);
+  };
+
   const handleConfirmDispatch = async () => {
     if (!dispatchMovementId) return;
     await dispatchMovement({ movementId: dispatchMovementId });
     setDispatchMovementId(null);
     setSelectedMovement(null);
+  };
+
+  const handleConfirmArrivalSubmit = async () => {
+    if (!arrivalMovement) return;
+    try {
+      await confirmLocalArrival({
+        movementId: arrivalMovement.id,
+        currentStatus: arrivalMovement.movement_status,
+      });
+      setArrivalMovementId(null);
+      setSelectedMovement(null);
+    } catch {
+      // Error toast (incl. half-failure) is handled inside the mutation.
+      // Close the dialog so the user sees the refreshed state and can retry.
+      setArrivalMovementId(null);
+    }
   };
 
   if (isLoading) {
@@ -153,6 +184,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
               movement={movement}
               onClick={() => setSelectedMovement(movement)}
               onDispatch={handleDispatch}
+              onConfirmArrival={handleConfirmArrival}
             />
           ))}
         </div>
@@ -163,6 +195,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         open={!!selectedMovement}
         onOpenChange={(open) => { if (!open) setSelectedMovement(null); }}
         onDispatch={handleDispatch}
+        onConfirmArrival={handleConfirmArrival}
       />
 
       <DispatchConfirmDialog
@@ -172,6 +205,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: Mo
         isDispatching={isDispatching}
         admissionId={activeAdmission?.id || null}
         clientId={activeAdmission?.client_id || null}
+      />
+
+      <ConfirmArrivalDialog
+        open={!!arrivalMovementId}
+        onOpenChange={(open) => { if (!open) setArrivalMovementId(null); }}
+        onConfirm={handleConfirmArrivalSubmit}
+        isProcessing={isConfirmingArrival}
+        isRetry={arrivalMovement?.movement_status === 'dispatched'}
+        hasUnit={!!arrivalMovement?.to_unit_id}
       />
     </div>
   );

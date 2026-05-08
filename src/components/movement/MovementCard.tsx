@@ -7,18 +7,20 @@ import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck } from "lucide-react";
+import { MapPin, ArrowRight, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
+import { isLocalArrival, isLocalArrivalActionable } from "./movementRouting";
 
 interface MovementCardProps {
   movement: HorseMovement;
   showHorse?: boolean;
   onClick?: () => void;
   onDispatch?: (movementId: string) => void;
+  onConfirmArrival?: (movementId: string) => void;
 }
 
-export function MovementCard({ movement, showHorse = true, onClick, onDispatch }: MovementCardProps) {
+export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival }: MovementCardProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -46,6 +48,12 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
   };
 
   const isScheduled = movement.movement_status === 'scheduled';
+  const localArrivalActionable = isLocalArrivalActionable(movement);
+  const localArrival = isLocalArrival(movement);
+  const isArrivalRetry = localArrival && movement.movement_status === 'dispatched';
+  // Dispatch path is reserved for non-local-arrival scheduled rows
+  // (out / transfer / connected outgoing). Local arrivals use Confirm Arrival.
+  const showDispatchAction = isScheduled && !localArrival;
 
   return (
     <Card
@@ -147,8 +155,32 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch }
               )}
             </div>
 
-            {/* Dispatch action for scheduled movements */}
-            {isScheduled && canDispatch && onDispatch && (
+            {/* Confirm Arrival action — local arrival (in, not connected) */}
+            {localArrivalActionable && canDispatch && onConfirmArrival && (
+              <div className="pt-2 border-t">
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="gap-1.5 w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onConfirmArrival(movement.id);
+                  }}
+                >
+                  {isArrivalRetry ? (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  )}
+                  {isArrivalRetry
+                    ? t('movement.lifecycle.retryArrival')
+                    : t('movement.lifecycle.confirmArrival')}
+                </Button>
+              </div>
+            )}
+
+            {/* Dispatch action — non-arrival scheduled movements (out / transfer) */}
+            {showDispatchAction && canDispatch && onDispatch && (
               <div className="pt-2 border-t">
                 <Button
                   size="sm"
