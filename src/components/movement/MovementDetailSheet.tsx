@@ -58,7 +58,7 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
     if (isAdmissionCheckin) return { label: t('housing.admissions.detail.checkin'), className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' };
     if (isAdmissionCheckout) return { label: t('housing.admissions.detail.checkout'), className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' };
     if (isTransfer) return { label: t('movement.types.transfer'), className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' };
-    return { label: t('movement.types.manual'), className: '' };
+    return null;
   };
 
   const category = getMovementCategory();
