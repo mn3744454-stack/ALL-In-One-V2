@@ -1973,6 +1973,11 @@ export const en = {
       reasonPlaceholder: "e.g. duplicate entry, plan changed...",
       confirmButton: "Cancel movement",
       success: "Movement cancelled",
+      historyTitle: "Cancelled movement",
+      reasonHistoryLabel: "Cancellation reason",
+      cancelledAtLabel: "Cancelled at",
+      cancelledByLabel: "Cancelled by",
+      noReasonProvided: "No reason was provided.",
     },
     subtype: {
       departureTypeLabel: "Departure type",
