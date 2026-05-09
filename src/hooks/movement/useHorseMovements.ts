@@ -25,6 +25,7 @@ export interface HorseMovement {
   movement_subtype: MovementSubtype;
   cancellation_reason?: string | null;
   cancelled_at?: string | null;
+  cancelled_by?: string | null;
   from_location_id: string | null;
   to_location_id: string | null;
   from_area_id: string | null;
@@ -166,11 +167,23 @@ export function useHorseMovements(filters: MovementFilters = {}) {
     queryFn: async () => {
       if (!tenantId) return [];
 
+      // Pass 2-C.1: when the parent tab enforces statusFilter='completed',
+      // order by completed_at so freshly-completed rows surface at the top
+      // even when their planned movement_at is in the future.
+      const isCompletedOnly =
+        filters.movementStatus === 'completed' ||
+        (Array.isArray(filters.movementStatus) &&
+          filters.movementStatus.length === 1 &&
+          filters.movementStatus[0] === 'completed');
+
       let query = supabase
         .from('horse_movements')
         .select(MOVEMENT_SELECT)
         .eq('tenant_id', tenantId)
-        .order('movement_at', { ascending: false });
+        .order(isCompletedOnly ? 'completed_at' : 'movement_at', {
+          ascending: false,
+          nullsFirst: false,
+        });
 
       if (filters.dateRange === 'today') {
         const todayStart = startOfDay(new Date()).toISOString();
