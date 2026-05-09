@@ -192,6 +192,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         </div>
       </div>
 
+      {/* Pass 2-D — Needs Admission visibility (branch-scoped, read-only) */}
+      <NeedsAdmissionSection branchId={branchId} />
+
       {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
