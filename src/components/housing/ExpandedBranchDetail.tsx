@@ -323,24 +323,9 @@ export function ExpandedBranchDetail({ branch, onNavigateToTab }: ExpandedBranch
         )}
       </div>
 
-      {/* ── Unassigned Horses ── */}
-      {data.unassignedHorses.length > 0 && (
-        <div>
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-2.5">
-            <Heart className="h-3.5 w-3.5" />
-            {t('housing.branchScope.unassignedHorses')}
-            <Badge variant="secondary" className="text-xs font-normal">{data.unassignedHorses.length}</Badge>
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
-            {data.unassignedHorses.map((horse) => (
-              <Badge key={horse.id} variant="outline" className="text-xs font-normal gap-1 py-0.5">
-                <Heart className="h-2.5 w-2.5 text-muted-foreground" />
-                <BilingualName name={horse.name} nameAr={horse.name_ar} inline primaryClassName="text-xs font-normal" secondaryClassName="text-[10px]" />
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* ── Needs Attention (lifecycle-driven) ── */}
+      <BranchNeedsAttention branchId={branch.id} />
+
 
       {/* ── Edit Dialog ── */}
       <EditBranchDialog branch={branch} open={editOpen} onOpenChange={setEditOpen} />
