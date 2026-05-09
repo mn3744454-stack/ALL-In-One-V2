@@ -2035,6 +2035,11 @@ export const en = {
       noFacilitiesYet: "No facilities added yet",
       unitsOccupied: "occupied",
       unassignedHorses: "Unassigned Horses",
+      needsAttention: "Needs Attention",
+      needsPlacement: "Needs Placement",
+      needsAdmission: "Needs Admission",
+      noNeedsPlacement: "No horses need placement",
+      noNeedsAdmission: "No horses need admission",
     },
     branchActions: {
       edit: "Edit Branch",
