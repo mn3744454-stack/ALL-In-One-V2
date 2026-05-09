@@ -6,7 +6,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
-import { formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDateTime, displayLocationName } from "@/lib/displayHelpers";
 import { MapPin, ArrowRightLeft, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
@@ -30,9 +30,9 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
 
 
-  const formatLocationName = (location: { name: string; city: string | null } | null) => {
+  const formatLocationName = (location: { name: string; name_ar?: string | null; city: string | null } | null) => {
     if (!location) return "—";
-    return location.city ? `${location.name}` : location.name;
+    return displayLocationName(location.name, location.name_ar ?? null, location.city);
   };
 
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
