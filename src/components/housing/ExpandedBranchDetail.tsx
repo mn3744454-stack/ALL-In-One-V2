@@ -342,3 +342,80 @@ function StatCell({ icon: Icon, label, value }: { icon: React.ElementType; label
     </div>
   );
 }
+
+/**
+ * Pass 2-D — Branch-level "Needs Attention" surface, lifecycle-driven.
+ * Replaces the legacy ambiguous "unassigned horses" bucket which silently
+ * mixed Needs Placement and Needs Admission together.
+ */
+function BranchNeedsAttention({ branchId }: { branchId: string }) {
+  const { t } = useI18n();
+  const { needsPlacementHorses, needsAdmissionHorses, isLoading } =
+    useBranchAttentionHorses(branchId);
+
+  if (isLoading) return null;
+  if (needsPlacementHorses.length === 0 && needsAdmissionHorses.length === 0) return null;
+
+  const renderRow = (
+    horse: { id: string; name: string; name_ar: string | null; avatar_url: string | null; lifecycle: any }
+  ) => (
+    <div
+      key={horse.id}
+      className="flex items-center gap-2 rounded-md border bg-muted/30 px-2 py-1.5"
+    >
+      <Avatar className="h-7 w-7">
+        <AvatarImage src={horse.avatar_url || undefined} />
+        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+          {horse.name?.[0]?.toUpperCase() || "H"}
+        </AvatarFallback>
+      </Avatar>
+      <BilingualName
+        name={horse.name}
+        nameAr={horse.name_ar}
+        inline
+        primaryClassName="text-xs font-medium"
+        secondaryClassName="text-[10px]"
+      />
+      <HorseLifecycleChip state={horse.lifecycle} hideUnknown size="xs" className="ms-auto" />
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+        {t('housing.branchScope.needsAttention')}
+      </h4>
+
+      {needsPlacementHorses.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <MapPinOff className="h-3.5 w-3.5 text-amber-600" />
+            {t('housing.branchScope.needsPlacement')}
+            <Badge variant="secondary" className="text-[10px] font-normal">
+              {needsPlacementHorses.length}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {needsPlacementHorses.map(renderRow)}
+          </div>
+        </div>
+      )}
+
+      {needsAdmissionHorses.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <PackageOpen className="h-3.5 w-3.5 text-orange-600" />
+            {t('housing.branchScope.needsAdmission')}
+            <Badge variant="secondary" className="text-[10px] font-normal">
+              {needsAdmissionHorses.length}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {needsAdmissionHorses.map(renderRow)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
