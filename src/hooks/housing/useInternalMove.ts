@@ -46,7 +46,11 @@ export function useInternalMove() {
           p_movement_at: new Date().toISOString(),
           p_reason: 'Internal unit reassignment',
           p_notes: null,
-          p_internal_location_note: null,
+          // AD-1 Pass 2-E.1 — chk_transfer_same_branch requires a non-null
+          // internal note for same-branch transfer rows. Provide a meaningful
+          // default so first-unit placement and unit-to-unit moves both pass.
+          p_internal_location_note:
+            params.fromUnitId == null ? 'Initial unit placement' : 'Internal unit move',
           p_is_demo: false,
           p_clear_housing: false,
           p_destination_type: 'internal',
