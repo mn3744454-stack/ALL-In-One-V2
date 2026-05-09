@@ -78,6 +78,39 @@ export function displayClientName(
 }
 
 /**
+ * Bilingual branch/location name display helper.
+ * Mirrors displayHorseName/Service/Client logic and optionally appends ", city".
+ */
+export function displayLocationName(
+  name?: string | null,
+  nameAr?: string | null,
+  city?: string | null,
+  lang?: string
+): string {
+  const activeLang = lang || getCurrentLanguage();
+  const en = name?.trim() || null;
+  const ar = nameAr?.trim() || null;
+  const cityStr = city?.trim() || null;
+
+  let base: string;
+  if (!en && !ar) {
+    base = "—";
+  } else if (!ar) {
+    base = en!;
+  } else if (!en) {
+    base = ar!;
+  } else if (en === ar) {
+    base = en;
+  } else if (activeLang === "ar") {
+    base = `${ar} (${en})`;
+  } else {
+    base = `${en} (${ar})`;
+  }
+
+  return cityStr && base !== "—" ? `${base}, ${cityStr}` : base;
+}
+
+/**
  * Format a date as DD-MM-YYYY — platform-wide standard.
  * Alias: formatBreedingDate (backward compat)
  */
