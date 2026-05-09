@@ -54,11 +54,13 @@ export interface HorseMovement {
   from_location?: {
     id: string;
     name: string;
+    name_ar: string | null;
     city: string | null;
   };
   to_location?: {
     id: string;
     name: string;
+    name_ar: string | null;
     city: string | null;
   };
   from_area?: {
