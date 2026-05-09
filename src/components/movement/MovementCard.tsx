@@ -25,15 +25,10 @@ interface MovementCardProps {
 }
 
 export function MovementCard({ movement, showHorse = true, onClick, onDispatch, onConfirmArrival, onConfirmTransfer, lifecycleState }: MovementCardProps) {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
 
-  const ArrowIcon = dir === 'rtl' ? (
-    <ArrowRight className="h-4 w-4 rotate-180 text-muted-foreground shrink-0" />
-  ) : (
-    <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-  );
 
   const formatLocationName = (location: { name: string; city: string | null } | null) => {
     if (!location) return "—";
