@@ -25,6 +25,8 @@ import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
+import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
+import { PackageOpen } from "lucide-react";
 
 
 type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
