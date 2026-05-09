@@ -154,7 +154,10 @@ export default function DashboardHousing() {
           </TabsContent>
 
           <TabsContent value="arrivalsAndDepartures" className="mt-0">
-            <ArrivalsAndDepartures onRecordMovement={() => setRecordDialogOpen(true)} />
+            <ArrivalsAndDepartures
+              onRecordMovement={() => setRecordDialogOpen(true)}
+              selectedBranchId={selectedBranchId === '__all__' ? null : selectedBranchId}
+            />
           </TabsContent>
         </Tabs>
       </div>
