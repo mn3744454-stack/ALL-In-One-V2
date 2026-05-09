@@ -62,6 +62,9 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'horses',                 // Horse current_location_id / housing_unit_id
     'occupant-admissions',    // UnitDetailsSheet horse-admission summaries
     'unit-lifecycle-blockers',
+    // Pass 2-E: Needs Attention surfaces are derived from lifecycle view.
+    'horse-lifecycle-states',
+    'branch-attention-horses',
   ],
   structure: [
     'housing-units',
@@ -87,6 +90,9 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'facility-admission-count',
     'expanded-branch-detail',
     'horses',
+    // Pass 2-E: Needs Admission/Placement chips depend on lifecycle view.
+    'horse-lifecycle-states',
+    'branch-attention-horses',
   ],
   branch: [
     'locations',              // branch dropdown / branch list
@@ -107,6 +113,8 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     // truth (open admission, latest movement, temporarily_out). Lifecycle
     // chips must refresh together with the movement list.
     'horse-lifecycle-states',
+    // Pass 2-E: Needs Attention surfaces also derive from lifecycle view.
+    'branch-attention-horses',
   ],
 };
 

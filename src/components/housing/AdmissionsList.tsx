@@ -461,7 +461,10 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
  */
 function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
   const { t } = useI18n();
+  const { hasPermission } = usePermissions();
+  const canCreate = hasPermission('boarding.admission.create');
   const { needsAdmissionHorses, isLoading } = useBranchAttentionHorses(branchId ?? null);
+  const [admitHorseId, setAdmitHorseId] = useState<string | null>(null);
   if (!branchId) return null;
   if (isLoading) return null;
   if (needsAdmissionHorses.length === 0) return null;
@@ -481,10 +484,26 @@ function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
                 <AvatarFallback className="text-[10px]">{h.name?.[0]?.toUpperCase() || '?'}</AvatarFallback>
               </Avatar>
               <BilingualName name={h.name} nameAr={h.name_ar} inline primaryClassName="text-xs font-medium" secondaryClassName="text-[10px]" />
+              {canCreate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs px-2 ms-auto"
+                  onClick={() => setAdmitHorseId(h.id)}
+                >
+                  {t('housing.branchScope.startAdmission')}
+                </Button>
+              )}
             </div>
           ))}
         </div>
       </CardContent>
+      <AdmissionWizard
+        open={!!admitHorseId}
+        onOpenChange={(open) => { if (!open) setAdmitHorseId(null); }}
+        preselectedHorseId={admitHorseId ?? undefined}
+        preselectedBranchId={branchId}
+      />
     </Card>
   );
 }

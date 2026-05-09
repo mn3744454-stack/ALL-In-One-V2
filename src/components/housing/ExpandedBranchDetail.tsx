@@ -22,6 +22,8 @@ import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHors
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PackageOpen, MapPinOff } from "lucide-react";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
+import { AdmissionWizard } from "./AdmissionWizard";
 
 interface Branch {
   id: string;
@@ -352,12 +354,19 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
   const { t } = useI18n();
   const { needsPlacementHorses, needsAdmissionHorses, isLoading } =
     useBranchAttentionHorses(branchId);
+  const [placeHorse, setPlaceHorse] = useState<
+    null | { id: string; name: string; name_ar: string | null; avatar_url: string | null; lifecycle: any }
+  >(null);
+  const [admitHorse, setAdmitHorse] = useState<
+    null | { id: string; name: string; name_ar: string | null }
+  >(null);
 
   if (isLoading) return null;
   if (needsPlacementHorses.length === 0 && needsAdmissionHorses.length === 0) return null;
 
   const renderRow = (
-    horse: { id: string; name: string; name_ar: string | null; avatar_url: string | null; lifecycle: any }
+    horse: { id: string; name: string; name_ar: string | null; avatar_url: string | null; lifecycle: any },
+    action: "place" | "admit"
   ) => (
     <div
       key={horse.id}
@@ -377,6 +386,25 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
         secondaryClassName="text-[10px]"
       />
       <HorseLifecycleChip state={horse.lifecycle} hideUnknown size="xs" className="ms-auto" />
+      {action === "place" ? (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs px-2"
+          onClick={() => setPlaceHorse(horse)}
+        >
+          {t("housing.branchScope.placeInUnit")}
+        </Button>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs px-2"
+          onClick={() => setAdmitHorse({ id: horse.id, name: horse.name, name_ar: horse.name_ar })}
+        >
+          {t("housing.branchScope.startAdmission")}
+        </Button>
+      )}
     </div>
   );
 
@@ -396,7 +424,7 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
             </Badge>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            {needsPlacementHorses.map(renderRow)}
+            {needsPlacementHorses.map((h) => renderRow(h, "place"))}
           </div>
         </div>
       )}
@@ -411,10 +439,24 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
             </Badge>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            {needsAdmissionHorses.map(renderRow)}
+            {needsAdmissionHorses.map((h) => renderRow(h, "admit"))}
           </div>
         </div>
       )}
+
+      <PlaceInUnitDialog
+        open={!!placeHorse}
+        onOpenChange={(open) => { if (!open) setPlaceHorse(null); }}
+        horse={placeHorse}
+        branchId={branchId}
+      />
+
+      <AdmissionWizard
+        open={!!admitHorse}
+        onOpenChange={(open) => { if (!open) setAdmitHorse(null); }}
+        preselectedHorseId={admitHorse?.id}
+        preselectedBranchId={branchId}
+      />
     </div>
   );
 }
