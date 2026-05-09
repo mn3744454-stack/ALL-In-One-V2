@@ -52,15 +52,16 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
   // is hidden — so preserving local filters here would silently apply
   // invisible constraints (date/search/location) and zero out results.
   // Derive a clean mergedFilters from the enforced props only in that case.
-  const mergedFilters: FiltersType = (typeFilter || statusFilter)
+  const mergedFilters: FiltersType = (typeFilter || statusFilter || branchId)
     ? {
         ...(typeFilter ? { movementType: typeFilter } : {}),
         ...(statusFilter ? { movementStatus: statusFilter } : {}),
+        ...(branchId ? { locationId: branchId } : {}),
       }
     : filters;
   
   const {
-    movements,
+    movements: rawMovements,
     isLoading,
     canManage,
     dispatchMovement,
@@ -70,6 +71,27 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
     confirmInternalTransfer,
     isConfirmingTransfer,
   } = useHorseMovements(mergedFilters);
+
+  // AD-1 Pass 2-G: client-side branch-side post-filter. The server `locationId`
+  // filter is OR(from,to); here we narrow to one-sided or inter-branch as
+  // required by the active sub-tab.
+  const movements = (() => {
+    if (!branchId) return rawMovements;
+    switch (branchScopeSide) {
+      case 'from':
+        return rawMovements.filter(m => m.from_location_id === branchId);
+      case 'to':
+        return rawMovements.filter(m => m.to_location_id === branchId);
+      case 'inter-branch':
+        return rawMovements.filter(m =>
+          (m.from_location_id === branchId || m.to_location_id === branchId)
+          && m.from_location_id !== m.to_location_id
+        );
+      case 'any':
+      default:
+        return rawMovements;
+    }
+  })();
   const { locations } = useLocations();
   const { statesByHorseId } = useHorseLifecycleStates(movements.map(m => m.horse_id));
 
