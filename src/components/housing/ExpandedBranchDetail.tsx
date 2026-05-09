@@ -18,6 +18,10 @@ import { LifecycleActionMenu, LifecycleStateBadge } from "./LifecycleActionMenu"
 import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
+import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PackageOpen, MapPinOff } from "lucide-react";
 
 interface Branch {
   id: string;
