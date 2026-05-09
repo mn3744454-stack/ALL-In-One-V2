@@ -23,9 +23,22 @@ interface MovementsListProps {
   onRecordMovement: () => void;
   typeFilter?: 'in' | 'out' | 'transfer';
   statusFilter?: 'scheduled' | 'dispatched' | 'completed' | 'cancelled' | Array<'scheduled' | 'dispatched' | 'completed' | 'cancelled'>;
+  /**
+   * AD-1 Pass 2-G: Housing branch scope. When set, the list is filtered to
+   * movements relevant to this branch using `branchScopeSide`.
+   */
+  branchId?: string | null;
+  /**
+   * Branch-side rule:
+   *  - 'any' (default when branchId set): from = B OR to = B (parent SQL OR)
+   *  - 'from': only from_location_id = B (Departures)
+   *  - 'to':   only to_location_id = B (Arrivals)
+   *  - 'inter-branch': from = B OR to = B AND from <> to (true Transfers)
+   */
+  branchScopeSide?: 'any' | 'from' | 'to' | 'inter-branch';
 }
 
-export function MovementsList({ onRecordMovement, typeFilter, statusFilter }: MovementsListProps) {
+export function MovementsList({ onRecordMovement, typeFilter, statusFilter, branchId, branchScopeSide = 'any' }: MovementsListProps) {
   const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('movements');
   const [filters, setFilters] = useState<FiltersType>({});
