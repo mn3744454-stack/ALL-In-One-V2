@@ -454,3 +454,37 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
     </Card>
   );
 }
+
+/**
+ * Pass 2-D — Read-only "Needs Admission" callout for the active branch scope.
+ * Hidden when no branch is selected or when no horses need admission.
+ */
+function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
+  const { t } = useI18n();
+  const { needsAdmissionHorses, isLoading } = useBranchAttentionHorses(branchId ?? null);
+  if (!branchId) return null;
+  if (isLoading) return null;
+  if (needsAdmissionHorses.length === 0) return null;
+  return (
+    <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-900">
+      <CardContent className="p-3 space-y-2">
+        <div className="flex items-center gap-2 text-sm font-medium text-orange-900 dark:text-orange-200">
+          <PackageOpen className="h-4 w-4" />
+          {t('housing.branchScope.needsAdmission')}
+          <Badge variant="secondary" className="text-[10px] font-normal">{needsAdmissionHorses.length}</Badge>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+          {needsAdmissionHorses.map((h) => (
+            <div key={h.id} className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1.5 border">
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={h.avatar_url || undefined} />
+                <AvatarFallback className="text-[10px]">{h.name?.[0]?.toUpperCase() || '?'}</AvatarFallback>
+              </Avatar>
+              <BilingualName name={h.name} nameAr={h.name_ar} inline primaryClassName="text-xs font-medium" secondaryClassName="text-[10px]" />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
