@@ -1991,6 +1991,10 @@ export const en = {
       recordReturn: "Record return",
       title: "Return from temporary out",
     },
+    route: {
+      from: "From",
+      to: "To",
+    },
   },
   housing: {
     title: "Housing Management",
