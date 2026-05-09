@@ -113,6 +113,8 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     // truth (open admission, latest movement, temporarily_out). Lifecycle
     // chips must refresh together with the movement list.
     'horse-lifecycle-states',
+    // Pass 2-E: Needs Attention surfaces also derive from lifecycle view.
+    'branch-attention-horses',
   ],
 };
 
