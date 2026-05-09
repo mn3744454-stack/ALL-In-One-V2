@@ -2053,6 +2053,11 @@ export const ar = {
       noFacilitiesYet: "لم تتم إضافة مرافق بعد",
       unitsOccupied: "مشغول",
       unassignedHorses: "خيول غير معينة",
+      needsAttention: "بحاجة إجراء",
+      needsPlacement: "يحتاج تسكين",
+      needsAdmission: "يحتاج إيواء",
+      noNeedsPlacement: "لا توجد خيل بحاجة تسكين",
+      noNeedsAdmission: "لا توجد خيل بحاجة إيواء",
     },
     branchActions: {
       edit: "تعديل الفرع",
