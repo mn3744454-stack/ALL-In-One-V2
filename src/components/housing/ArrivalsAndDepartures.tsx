@@ -6,21 +6,40 @@ import { MovementsList } from "@/components/movement/MovementsList";
 import { IncomingArrivals } from "@/components/movement/IncomingArrivals";
 import { useHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useIncomingMovements } from "@/hooks/movement/useIncomingMovements";
-import { ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Package, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { useLocations } from "@/hooks/movement/useLocations";
+import { BilingualName } from "@/components/ui/BilingualName";
+import {
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  ArrowLeftRight,
+  Package,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  LayoutDashboard,
+  Building2,
+} from "lucide-react";
 import { startOfDay, endOfDay } from "date-fns";
 
 type SubTab = 'all' | 'arrivals' | 'departures' | 'transfers' | 'incoming' | 'pending' | 'completed';
 
 interface ArrivalsAndDeparturesProps {
   onRecordMovement: () => void;
+  /** AD-1 Pass 2-G: Housing branch scope. Null/undefined = all branches. */
+  selectedBranchId?: string | null;
 }
 
-export function ArrivalsAndDepartures({ onRecordMovement }: ArrivalsAndDeparturesProps) {
+export function ArrivalsAndDepartures({ onRecordMovement, selectedBranchId }: ArrivalsAndDeparturesProps) {
   const { t } = useI18n();
   const [subTab, setSubTab] = useState<SubTab>('all');
+  const { activeLocations } = useLocations();
 
-  // Fetch data for KPI counters and tab badges
-  const { movements } = useHorseMovements({});
+  const branchId = selectedBranchId || null;
+  const selectedBranch = branchId ? activeLocations.find(l => l.id === branchId) : null;
+
+  // Counts: server already OR-filters by from/to via locationId. Client-side
+  // we then split into one-sided / inter-branch buckets for the badges.
+  const { movements } = useHorseMovements(branchId ? { locationId: branchId } : {});
   const { pendingCount } = useIncomingMovements('pending');
 
   const counts = useMemo(() => {
@@ -41,22 +60,31 @@ export function ArrivalsAndDepartures({ onRecordMovement }: ArrivalsAndDeparture
 
     const active = movements.filter(m => m.movement_status !== 'cancelled');
 
-    // Tab counts (scope-based, all-time, exclude cancelled)
-    const arrivals = active.filter(m => m.movement_type === 'in').length;
-    const departures = active.filter(m => m.movement_type === 'out').length;
-    const transfers = active.filter(m => m.movement_type === 'transfer').length;
+    // Branch-aware predicates. When no branch is scoped, predicates collapse
+    // to the original tenant-wide behaviour.
+    const isArrival = (m: typeof movements[number]) =>
+      m.movement_type === 'in' && (!branchId || m.to_location_id === branchId);
+    const isDeparture = (m: typeof movements[number]) =>
+      m.movement_type === 'out' && (!branchId || m.from_location_id === branchId);
+    const isInterBranchTransfer = (m: typeof movements[number]) =>
+      m.movement_type === 'transfer'
+      && (!branchId || m.from_location_id === branchId || m.to_location_id === branchId)
+      && m.from_location_id !== m.to_location_id;
+
+    const arrivals = active.filter(isArrival).length;
+    const departures = active.filter(isDeparture).length;
+    const transfers = active.filter(isInterBranchTransfer).length;
     const pendingMovements = movements.filter(m =>
-      m.movement_status === 'scheduled' || m.movement_status === 'dispatched'
+      (m.movement_status === 'scheduled' || m.movement_status === 'dispatched')
     ).length;
 
-    // KPI today counts
-    const arrivingToday = active.filter(m => m.movement_type === 'in' && inToday(m)).length;
-    const departingToday = active.filter(m => m.movement_type === 'out' && inToday(m)).length;
-    const transfersToday = active.filter(m => m.movement_type === 'transfer' && inToday(m)).length;
+    const arrivingToday = active.filter(m => isArrival(m) && inToday(m)).length;
+    const departingToday = active.filter(m => isDeparture(m) && inToday(m)).length;
+    const transfersToday = active.filter(m => isInterBranchTransfer(m) && inToday(m)).length;
 
-    // Needs action: scheduled+dispatched horse_movements + pending incoming
-    // (no double-count: confirmed incoming materializes a new horse_movements
-    // row, but pendingCount only includes still-pending incoming rows.)
+    // Incoming chips are pre-arrival rows on `incoming_horse_movements`,
+    // tenant-scoped and not safely branch-filterable here, so they remain
+    // tenant-wide regardless of selected branch.
     const needsAction = pendingMovements + pendingCount;
 
     return {
@@ -69,10 +97,31 @@ export function ArrivalsAndDepartures({ onRecordMovement }: ArrivalsAndDeparture
       transfersToday,
       needsAction,
     };
-  }, [movements, pendingCount]);
+  }, [movements, pendingCount, branchId]);
 
   return (
     <div className="space-y-4">
+      {/* Scope indicator */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {selectedBranch ? (
+          <>
+            <Building2 className="h-3.5 w-3.5" />
+            <BilingualName
+              name={selectedBranch.name}
+              nameAr={(selectedBranch as any).name_ar}
+              inline
+              primaryClassName="font-medium text-xs text-foreground"
+              secondaryClassName="text-[11px]"
+            />
+          </>
+        ) : (
+          <>
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            <span>{t('housing.branchScope.allBranches')}</span>
+          </>
+        )}
+      </div>
+
       {/* KPI Chips */}
       <div className="flex items-center gap-2 flex-wrap">
         {counts.arrivingToday > 0 && (
@@ -156,6 +205,13 @@ export function ArrivalsAndDepartures({ onRecordMovement }: ArrivalsAndDeparture
       ) : (
         <MovementsList
           onRecordMovement={onRecordMovement}
+          branchId={branchId}
+          branchScopeSide={
+            subTab === 'arrivals' ? 'to'
+            : subTab === 'departures' ? 'from'
+            : subTab === 'transfers' ? 'inter-branch'
+            : 'any'
+          }
           typeFilter={
             subTab === 'arrivals' ? 'in'
             : subTab === 'departures' ? 'out'
