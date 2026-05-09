@@ -2009,6 +2009,10 @@ export const ar = {
       recordReturn: "تسجيل عودة الخيل",
       title: "عودة الخيل من خروج مؤقت",
     },
+    route: {
+      from: "من",
+      to: "إلى",
+    },
   },
   housing: {
     title: "إدارة الإسكان",
