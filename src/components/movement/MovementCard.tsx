@@ -109,30 +109,37 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               {getCategoryBadge()}
             </div>
 
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className={cn(
-                "truncate",
-                movement.movement_type === 'out' ? "text-muted-foreground line-through" : ""
-              )}>
-                {movement.movement_type === 'out'
-                  ? formatLocationName(movement.from_location)
-                  : movement.movement_type === 'in'
-                    ? formatLocationName(movement.to_location)
-                    : (
-                      <span className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">
-                          {formatLocationName(movement.from_location)}
-                        </span>
-                        {ArrowIcon}
-                        <span className="font-medium">
-                          {formatLocationName(movement.to_location)}
-                        </span>
-                      </span>
-                    )
-                }
-              </span>
+            <div className="text-sm space-y-1">
+              {movement.movement_type === 'out' && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground line-through truncate">
+                    {formatLocationName(movement.from_location)}
+                  </span>
+                </div>
+              )}
+              {movement.movement_type === 'in' && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="truncate">{formatLocationName(movement.to_location)}</span>
+                </div>
+              )}
+              {movement.movement_type !== 'in' && movement.movement_type !== 'out' && (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground shrink-0">{t('movement.route.from')}:</span>
+                    <span className="truncate">{formatLocationName(movement.from_location)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-muted-foreground shrink-0">{t('movement.route.to')}:</span>
+                    <span className="font-medium truncate">{formatLocationName(movement.to_location)}</span>
+                  </div>
+                </>
+              )}
             </div>
+
 
             {/* Scheduled datetime */}
             {isScheduled && movement.scheduled_at && (
