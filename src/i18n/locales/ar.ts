@@ -2009,6 +2009,10 @@ export const ar = {
       recordReturn: "تسجيل عودة الخيل",
       title: "عودة الخيل من خروج مؤقت",
     },
+    route: {
+      from: "من",
+      to: "إلى",
+    },
   },
   housing: {
     title: "إدارة الإسكان",
@@ -2053,6 +2057,11 @@ export const ar = {
       noFacilitiesYet: "لم تتم إضافة مرافق بعد",
       unitsOccupied: "مشغول",
       unassignedHorses: "خيول غير معينة",
+      needsAttention: "بحاجة إجراء",
+      needsPlacement: "يحتاج تسكين",
+      needsAdmission: "يحتاج إيواء",
+      noNeedsPlacement: "لا توجد خيل بحاجة تسكين",
+      noNeedsAdmission: "لا توجد خيل بحاجة إيواء",
     },
     branchActions: {
       edit: "تعديل الفرع",
