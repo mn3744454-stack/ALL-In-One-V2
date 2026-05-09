@@ -423,6 +423,9 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
               {needsPlacementHorses.length}
             </Badge>
           </div>
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            {t('housing.branchScope.needsPlacementHelper')}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {needsPlacementHorses.map((h) => renderRow(h, "place"))}
           </div>
@@ -438,6 +441,9 @@ function BranchNeedsAttention({ branchId }: { branchId: string }) {
               {needsAdmissionHorses.length}
             </Badge>
           </div>
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            {t('housing.branchScope.needsAdmissionHelper')}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
             {needsAdmissionHorses.map((h) => renderRow(h, "admit"))}
           </div>

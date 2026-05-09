@@ -476,6 +476,9 @@ function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
           {t('housing.branchScope.needsAdmission')}
           <Badge variant="secondary" className="text-[10px] font-normal">{needsAdmissionHorses.length}</Badge>
         </div>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          {t('housing.branchScope.needsAdmissionHelper')}
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
           {needsAdmissionHorses.map((h) => (
             <div key={h.id} className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1.5 border">
