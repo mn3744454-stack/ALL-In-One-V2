@@ -14,7 +14,7 @@ import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
@@ -227,6 +227,55 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </CardContent>
           </Card>
 
+          {/* Pass 2-C.1 — Cancellation history block (visible only when cancelled) */}
+          {movement.movement_status === 'cancelled' && (
+            <Card className="border-destructive/40 bg-destructive/5">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                  <span className="font-semibold text-destructive">
+                    {t('movement.cancel.historyTitle')}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-sm">
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">
+                      {t('movement.cancel.reasonHistoryLabel')}:
+                    </span>
+                    <p className="font-medium whitespace-pre-wrap break-words">
+                      {movement.cancellation_reason?.trim()
+                        ? movement.cancellation_reason
+                        : t('movement.cancel.noReasonProvided')}
+                    </p>
+                  </div>
+
+                  {movement.cancelled_at && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="text-muted-foreground">
+                        {t('movement.cancel.cancelledAtLabel')}:
+                      </span>
+                      <span className="font-medium">
+                        {formatStandardDateTime(new Date(movement.cancelled_at))}
+                      </span>
+                    </div>
+                  )}
+
+                  {movement.cancelled_by && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">
+                        {t('movement.cancel.cancelledByLabel')}:
+                      </span>
+                      <span className="font-mono text-xs text-muted-foreground/80 truncate">
+                        {movement.cancelled_by}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
           {/* Confirm Arrival action — local arrival */}
           {isLocalArrivalActionable(movement) && canDispatch && onConfirmArrival && (
             <Card className="border-amber-200 dark:border-amber-800">

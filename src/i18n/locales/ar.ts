@@ -1991,6 +1991,11 @@ export const ar = {
       reasonPlaceholder: "مثال: تكرار، تغيير الخطة...",
       confirmButton: "إلغاء الحركة",
       success: "تم إلغاء الحركة",
+      historyTitle: "حركة ملغية",
+      reasonHistoryLabel: "سبب الإلغاء",
+      cancelledAtLabel: "تم الإلغاء في",
+      cancelledByLabel: "ألغاها",
+      noReasonProvided: "لم يُسجَّل سبب.",
     },
     subtype: {
       departureTypeLabel: "نوع المغادرة",
