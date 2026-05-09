@@ -12,7 +12,7 @@ import { MovementTypeBadge } from "./MovementTypeBadge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
-import { formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDateTime, displayLocationName } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,14 +44,14 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
 
   if (!movement) return null;
 
-  const formatLocationName = (location: { name: string; city: string | null } | null) => {
+  const formatLocationName = (location: { name: string; name_ar?: string | null; city: string | null } | null) => {
     if (!location) return "—";
-    return location.city ? `${location.name}, ${location.city}` : location.name;
+    return displayLocationName(location.name, location.name_ar ?? null, location.city);
   };
 
   const formatExternalLocationName = (location: { name: string; name_ar: string | null; location_type: string } | null) => {
     if (!location) return null;
-    return location.name;
+    return displayLocationName(location.name, location.name_ar);
   };
 
   const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');

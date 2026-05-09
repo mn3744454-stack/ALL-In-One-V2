@@ -54,11 +54,13 @@ export interface HorseMovement {
   from_location?: {
     id: string;
     name: string;
+    name_ar: string | null;
     city: string | null;
   };
   to_location?: {
     id: string;
     name: string;
+    name_ar: string | null;
     city: string | null;
   };
   from_area?: {
@@ -141,8 +143,8 @@ export interface MovementFilters {
 const MOVEMENT_SELECT = `
   *,
   horse:horses!horse_movements_horse_id_fkey(id, name, name_ar, avatar_url),
-  from_location:branches!horse_movements_from_location_id_fkey(id, name, city),
-  to_location:branches!horse_movements_to_location_id_fkey(id, name, city),
+  from_location:branches!horse_movements_from_location_id_fkey(id, name, name_ar, city),
+  to_location:branches!horse_movements_to_location_id_fkey(id, name, name_ar, city),
   from_area:facility_areas!horse_movements_from_area_id_fkey(id, name, name_ar),
   to_area:facility_areas!horse_movements_to_area_id_fkey(id, name, name_ar),
   from_unit:housing_units!horse_movements_from_unit_id_fkey(id, code, name),
