@@ -14,7 +14,7 @@ import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine } from "lucide-react";
+import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, RefreshCw, ArrowRightLeft, X, ArrowDownToLine, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
