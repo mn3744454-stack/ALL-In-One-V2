@@ -22,6 +22,8 @@ import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHors
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PackageOpen, MapPinOff } from "lucide-react";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
+import { AdmissionWizard } from "./AdmissionWizard";
 
 interface Branch {
   id: string;
