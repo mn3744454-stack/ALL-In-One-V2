@@ -7,7 +7,7 @@ import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useI18n } from "@/i18n";
 import { usePermissions } from "@/hooks/usePermissions";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { MapPin, ArrowRight, ArrowRightLeft, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
+import { MapPin, ArrowRightLeft, Clock, FileText, Calendar, Truck, CheckCircle2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
