@@ -97,50 +97,21 @@ const HorseProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t, dir, lang } = useI18n();
-  const [horse, setHorse] = useState<Horse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
+  const { horse, loading, refresh: refreshHorse } = useHorseFile(id);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditWizard, setShowEditWizard] = useState(false);
   const { state: lifecycleState, status: opStatus } = useHorseLifecycleState(id);
 
-  useEffect(() => {
-    if (id) {
-      fetchHorse();
-    }
-  }, [id]);
-
-  const fetchHorse = async () => {
-    if (!id) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("horses")
-        .select(`
-          *,
-          breed_data:horse_breeds(name),
-          color_data:horse_colors(name),
-          branch_data:branches!branch_id(id, name),
-          stable_data:stables(name),
-          area_data:facility_areas!current_area_id(id, name, name_ar, facility_type),
-          unit_data:housing_units!housing_unit_id(id, code, name, name_ar)
-        `)
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-      setHorse(data);
-    } catch (error: any) {
-      console.error("Error fetching horse:", error);
-      toast({
-        title: t('common.error'),
-        description: t('horses.loadError'),
-        variant: "destructive",
-      });
-      navigate("/dashboard/horses");
-    } finally {
-      setLoading(false);
+  const handleEditSuccess = () => {
+    setShowEditWizard(false);
+    refreshHorse();
+    // Keep horse list in sync after manual edits.
+    if (tenantId) {
+      queryClient.invalidateQueries({ queryKey: ["horses", tenantId] });
     }
   };
 
