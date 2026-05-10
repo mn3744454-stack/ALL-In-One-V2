@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { classifyMovement } from "./movementClassification";
+import { formatMovementReason } from "./movementReasonDisplay";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
