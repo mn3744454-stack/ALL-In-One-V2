@@ -1676,6 +1676,20 @@ export const ar = {
       unit_reassignment: "إعادة تعيين وحدة سكن",
       unknown: "حركة",
     },
+    reason: {
+      system: {
+        boardingAdmissionCheckin: "تسجيل دخول الإيواء",
+        boardingAdmissionCheckout: "تسجيل خروج الإيواء",
+        internalUnitReassignment: "إعادة تعيين وحدة سكن داخلية",
+      },
+    },
+    note: {
+      system: {
+        initialUnitPlacement: "تعيين أول وحدة سكن",
+        internalUnitMove: "إعادة تعيين وحدة سكن داخلية",
+        internalUnitReassignment: "إعادة تعيين وحدة سكن داخلية",
+      },
+    },
     detail: {
       title: "تفاصيل الحركة",
       internalNote: "ملاحظة داخلية",

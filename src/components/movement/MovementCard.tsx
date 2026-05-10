@@ -14,6 +14,7 @@ import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInterna
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { classifyMovement } from "./movementClassification";
+import { formatMovementReason, formatMovementInternalNote } from "./movementReasonDisplay";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -175,18 +176,24 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               </div>
             )}
 
-            {movement.internal_location_note && (
-              <p className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-                📍 {movement.internal_location_note}
-              </p>
-            )}
+            {(() => {
+              const noteDisplay = formatMovementInternalNote(movement.internal_location_note, t);
+              return noteDisplay ? (
+                <p className="text-sm text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                  📍 {noteDisplay}
+                </p>
+              ) : null;
+            })()}
 
-            {movement.reason && (
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <FileText className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{movement.reason}</span>
-              </div>
-            )}
+            {(() => {
+              const reasonDisplay = formatMovementReason(movement.reason, t);
+              return reasonDisplay ? (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{reasonDisplay}</span>
+                </div>
+              ) : null;
+            })()}
 
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
               <div className="flex items-center gap-1">

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
@@ -7,6 +8,10 @@ import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
 import { ConfirmTransferDialog } from "./ConfirmTransferDialog";
 import { RecordMovementDialog } from "./RecordMovementDialog";
+import { AdmissionDetailSheet } from "@/components/housing/AdmissionDetailSheet";
+import { classifyMovement } from "./movementClassification";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -47,6 +52,44 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
   const [arrivalMovementId, setArrivalMovementId] = useState<string | null>(null);
   const [transferMovementId, setTransferMovementId] = useState<string | null>(null);
   const [returnPrefill, setReturnPrefill] = useState<{ horseId: string; movementType: MovementType; movementSubtype?: MovementSubtype } | null>(null);
+  const [admissionDrawerId, setAdmissionDrawerId] = useState<string | null>(null);
+  const { activeTenant } = useTenant();
+  const tenantId = activeTenant?.tenant?.id;
+
+  // H3.1 — Best-effort admission link lookup for the currently-selected
+  // movement. horse_movements has no direct admission_id FK, so we look up
+  // the boarding admission for the same horse and pick the row whose
+  // admitted_at (check-in) or checked_out_at (checkout) is closest to the
+  // movement's movement_at. Only runs for admission check-in / checkout.
+  const selectedClass = selectedMovement ? classifyMovement(selectedMovement) : null;
+  const isAdmissionMovement = selectedClass === 'admission_checkin' || selectedClass === 'checkout_departure';
+  const { data: linkedAdmissionId = null } = useQuery({
+    queryKey: ['movement-linked-admission', tenantId, selectedMovement?.id, selectedMovement?.horse_id, isAdmissionMovement],
+    queryFn: async () => {
+      if (!tenantId || !selectedMovement?.horse_id || !isAdmissionMovement) return null;
+      const { data } = await supabase
+        .from('boarding_admissions')
+        .select('id, admitted_at, checked_out_at')
+        .eq('tenant_id', tenantId)
+        .eq('horse_id', selectedMovement.horse_id)
+        .order('admitted_at', { ascending: false })
+        .limit(20);
+      if (!data?.length) return null;
+      const movementMs = new Date(selectedMovement.movement_at).getTime();
+      const isCheckin = selectedClass === 'admission_checkin';
+      let best: { id: string; delta: number } | null = null;
+      for (const row of data) {
+        const ts = isCheckin ? row.admitted_at : (row.checked_out_at ?? row.admitted_at);
+        if (!ts) continue;
+        const delta = Math.abs(new Date(ts).getTime() - movementMs);
+        // Conservative: only link if within 24h of the movement timestamp.
+        if (delta > 24 * 60 * 60 * 1000) continue;
+        if (!best || delta < best.delta) best = { id: row.id, delta };
+      }
+      return best?.id ?? null;
+    },
+    enabled: !!tenantId && !!selectedMovement?.horse_id && isAdmissionMovement,
+  });
 
   // When a parent tab enforces typeFilter/statusFilter, the local filter UI
   // is hidden — so preserving local filters here would silently apply
@@ -279,7 +322,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
         onRecordReturn={(horseId) => { setSelectedMovement(null); handleRecordReturn(horseId); }}
+        onViewAdmission={(id) => setAdmissionDrawerId(id)}
+        linkedAdmissionId={linkedAdmissionId}
         lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
+      />
+
+      <AdmissionDetailSheet
+        admissionId={admissionDrawerId}
+        open={!!admissionDrawerId}
+        onOpenChange={(open) => { if (!open) setAdmissionDrawerId(null); }}
       />
 
       <RecordMovementDialog
