@@ -536,18 +536,30 @@ export function RecordMovementDialog({
                 <button
                   key={type}
                   onClick={() => {
-                    setFormData({ ...formData, movementType: type, horseId: null, fromLocationId: null });
+                    // H3: when switching to Departure, force destinationType
+                    // off "internal" since the Internal option is no longer
+                    // exposed in the UI for OUT movements.
+                    setFormData({
+                      ...formData,
+                      movementType: type,
+                      horseId: null,
+                      fromLocationId: null,
+                      destinationType: type === "out" ? "external" : "internal",
+                      toLocationId: null,
+                      toExternalLocationId: null,
+                      connectedTenantId: null,
+                    });
                     setArrivalSource(null);
                   }}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-start",
+                    "flex items-start gap-4 p-4 rounded-lg border-2 transition-all text-start",
                     formData.movementType === type
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   )}
                 >
                   <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center",
+                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
                     type === "in" ? "bg-emerald-100 text-emerald-600" :
                     type === "out" ? "bg-red-100 text-red-600" :
                     "bg-blue-100 text-blue-600"
@@ -556,11 +568,14 @@ export function RecordMovementDialog({
                     {type === "out" && <ArrowUpFromLine className="h-6 w-6" />}
                     {type === "transfer" && <ArrowLeftRight className="h-6 w-6" />}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium">{t(`movement.types.${type}`)}</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                      {t(`movement.types.${type}Helper`)}
+                    </p>
                   </div>
                   {formData.movementType === type && (
-                    <Check className="h-5 w-5 text-primary" />
+                    <Check className="h-5 w-5 text-primary shrink-0 mt-1" />
                   )}
                 </button>
               ))}
