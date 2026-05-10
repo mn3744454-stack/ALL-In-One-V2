@@ -788,53 +788,48 @@ export function RecordMovementDialog({
             <h3 className="font-medium text-center">{t("movement.wizard.step3Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step3Desc")}</p>
 
-            {/* Destination type toggle — show for OUT movements */}
+            {/* H3: Departure path no longer exposes the Internal toggle.
+                Same-branch behaviour is suppressed; cross-branch internal
+                moves should be recorded as Inter-Branch Transfer instead. */}
             {formData.movementType === "out" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null, connectedTenantId: null })}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                    formData.destinationType === 'internal'
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <Building2 className="h-3.5 w-3.5" />
-                  {t("movement.destination.internal")}
-                </button>
-                <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                    formData.destinationType === 'external'
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  {t("movement.destination.external")}
-                </button>
-                {canSendConnected && (
+              <>
+                <div className="flex gap-2">
                   <button
-                    onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                    onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                      formData.destinationType === 'connected'
+                      formData.destinationType === 'external'
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-border text-muted-foreground hover:border-primary/50"
                     )}
                   >
-                    <Link2 className="h-3.5 w-3.5" />
-                    {t("movement.destination.connected")}
-                    {connectedDestinations.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
-                        {connectedDestinations.length}
-                      </Badge>
-                    )}
+                    <MapPin className="h-3.5 w-3.5" />
+                    {t("movement.destination.external")}
                   </button>
-                )}
-              </div>
+                  {canSendConnected && (
+                    <button
+                      onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                        formData.destinationType === 'connected'
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/50"
+                      )}
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                      {t("movement.destination.connected")}
+                      {connectedDestinations.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
+                          {connectedDestinations.length}
+                        </Badge>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("movement.transfer.departureUseTransferHint")}
+                </p>
+              </>
             )}
             
             {/* FROM Location — auto-filled for OUT/TRANSFER, read-only if resolved */}
