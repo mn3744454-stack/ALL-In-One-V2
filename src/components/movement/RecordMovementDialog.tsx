@@ -1080,8 +1080,12 @@ export function RecordMovementDialog({
               branchId={formData.movementType === 'transfer' && isSameBranchTransfer ? formData.fromLocationId : formData.toLocationId}
               selectedAreaId={formData.toAreaId}
               selectedUnitId={formData.toUnitId}
-              onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
-              onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
+              onAreaChange={(areaId) =>
+                setFormData(prev => ({ ...prev, toAreaId: areaId, toUnitId: null }))
+              }
+              onUnitChange={(unitId) =>
+                setFormData(prev => ({ ...prev, toUnitId: unitId }))
+              }
               onSkip={handleHousingSkip}
             />
             {formData.movementType === 'transfer' && !formData.toUnitId && (
