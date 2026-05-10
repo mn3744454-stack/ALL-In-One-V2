@@ -1075,14 +1075,23 @@ export function RecordMovementDialog({
 
         {/* === STEP: HOUSING === */}
         {step === "housing" && (
-          <HousingSelector
-            branchId={formData.movementType === 'transfer' && isSameBranchTransfer ? formData.fromLocationId : formData.toLocationId}
-            selectedAreaId={formData.toAreaId}
-            selectedUnitId={formData.toUnitId}
-            onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
-            onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
-            onSkip={handleHousingSkip}
-          />
+          <div className="space-y-3">
+            <HousingSelector
+              branchId={formData.movementType === 'transfer' && isSameBranchTransfer ? formData.fromLocationId : formData.toLocationId}
+              selectedAreaId={formData.toAreaId}
+              selectedUnitId={formData.toUnitId}
+              onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
+              onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
+              onSkip={handleHousingSkip}
+            />
+            {formData.movementType === 'transfer' && !formData.toUnitId && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  {t("movement.transfer.unitLater")}
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* === STEP: DETAILS === */}
