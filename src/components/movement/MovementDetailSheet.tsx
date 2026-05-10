@@ -30,6 +30,8 @@ interface MovementDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onViewAdmission?: (admissionId: string) => void;
+  /** H3.1: best-effort linked admission id (looked up by parent). */
+  linkedAdmissionId?: string | null;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
@@ -37,7 +39,7 @@ interface MovementDetailSheetProps {
   lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, linkedAdmissionId, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
