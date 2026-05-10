@@ -365,15 +365,20 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </Card>
           )}
 
-          {/* Link to admission */}
-          {(isAdmissionCheckin || isAdmissionCheckout) && (
+          {/* Link to admission — only when a linked admission was resolved */}
+          {(isAdmissionCheckin || isAdmissionCheckout) && linkedAdmissionId && (
             <Card className="border-primary/20">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
                     <span className="text-muted-foreground">{t('movement.detail.linkedAdmission')}</span>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => onViewAdmission?.(linkedAdmissionId)}
+                  >
                     <ExternalLink className="h-3 w-3" />
                     {t('movement.detail.viewAdmission')}
                   </Button>
