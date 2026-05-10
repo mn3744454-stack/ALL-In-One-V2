@@ -60,6 +60,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'unit-history',           // Room Event History (Section 3 of UnitDetailsSheet)
     'open-area-horses',       // Paddock/pasture occupancy view
     'horses',                 // Horse current_location_id / housing_unit_id
+    'horse',                  // Horse File single-row query (Pass H1)
     'occupant-admissions',    // UnitDetailsSheet horse-admission summaries
     'unit-lifecycle-blockers',
     // Pass 2-E: Needs Attention surfaces are derived from lifecycle view.
