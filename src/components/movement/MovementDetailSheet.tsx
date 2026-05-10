@@ -20,7 +20,6 @@ import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 import { classifyMovement } from "./movementClassification";
 import { formatMovementReason, formatMovementInternalNote } from "./movementReasonDisplay";
-import { ArrowRightLeft as UnitArrow } from "lucide-react";
 import { CancelMovementDialog } from "./CancelMovementDialog";
 import { useState } from "react";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
