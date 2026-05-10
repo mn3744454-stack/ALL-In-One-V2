@@ -1658,6 +1658,20 @@ export const en = {
       unit_reassignment: "Housing Unit Reassignment",
       unknown: "Movement",
     },
+    reason: {
+      system: {
+        boardingAdmissionCheckin: "Boarding admission check-in",
+        boardingAdmissionCheckout: "Boarding admission checkout",
+        internalUnitReassignment: "Internal housing unit reassignment",
+      },
+    },
+    note: {
+      system: {
+        initialUnitPlacement: "Initial housing unit assignment",
+        internalUnitMove: "Internal housing unit reassignment",
+        internalUnitReassignment: "Internal housing unit reassignment",
+      },
+    },
     detail: {
       title: "Movement Detail",
       internalNote: "Internal Note",
