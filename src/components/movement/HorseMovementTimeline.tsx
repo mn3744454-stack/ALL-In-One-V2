@@ -122,9 +122,12 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
                       )}
                     </div>
 
-                    {m.reason && (
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{m.reason}</p>
-                    )}
+                    {(() => {
+                      const reasonDisplay = formatMovementReason(m.reason, t);
+                      return reasonDisplay ? (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{reasonDisplay}</p>
+                      ) : null;
+                    })()}
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
