@@ -7,8 +7,8 @@ import {
   MapPinOff,
   Truck,
   PlaneTakeoff,
+  PlaneLanding,
   CalendarClock,
-  HelpCircle,
 } from "lucide-react";
 import type { OperationalStatus, HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { deriveOperationalStatus } from "@/hooks/movement/useHorseLifecycleStates";
@@ -62,8 +62,14 @@ const CONFIG: Record<
     className:
       "text-sky-700 bg-sky-100 border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800",
   },
+  departed: {
+    icon: PlaneLanding,
+    key: "movement.lifecycle.opStatus.departed",
+    className:
+      "text-slate-700 bg-slate-100 border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700",
+  },
   unknown: {
-    icon: HelpCircle,
+    icon: MapPinOff,
     key: "movement.lifecycle.opStatus.unknown",
     className: "text-muted-foreground bg-muted border-border",
   },

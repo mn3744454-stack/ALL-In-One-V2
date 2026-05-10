@@ -1744,7 +1744,8 @@ export const en = {
         temporarilyOut: "Temporarily Out",
         inTransit: "In Transit",
         scheduled: "Scheduled",
-        unknown: "Status unavailable",
+        departed: "Departed",
+        unknown: "Not Currently Housed",
       },
       summary: {
         title: "Operational status",

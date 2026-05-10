@@ -4911,7 +4911,28 @@ export type Database = {
             columns: ["local_movement_id"]
             isOneToOne: false
             referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["active_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
+            columns: ["local_movement_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["latest_completed_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
+            columns: ["local_movement_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
             referencedColumns: ["latest_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_local_movement_id_fkey"
+            columns: ["local_movement_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["next_scheduled_movement_id"]
           },
           {
             foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
@@ -4925,7 +4946,28 @@ export type Database = {
             columns: ["sender_movement_id"]
             isOneToOne: true
             referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["active_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
+            columns: ["sender_movement_id"]
+            isOneToOne: true
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["latest_completed_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
+            columns: ["sender_movement_id"]
+            isOneToOne: true
+            referencedRelation: "vw_horse_lifecycle_state"
             referencedColumns: ["latest_movement_id"]
+          },
+          {
+            foreignKeyName: "incoming_horse_movements_sender_movement_id_fkey"
+            columns: ["sender_movement_id"]
+            isOneToOne: true
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["next_scheduled_movement_id"]
           },
           {
             foreignKeyName: "incoming_horse_movements_sender_tenant_id_fkey"
@@ -10540,13 +10582,26 @@ export type Database = {
       }
       vw_horse_lifecycle_state: {
         Row: {
+          active_movement_id: string | null
+          active_movement_status: string | null
+          active_movement_subtype: string | null
+          departed_at: string | null
           horse_id: string | null
+          is_admission_draft: boolean | null
+          is_departed: boolean | null
+          is_housed: boolean | null
+          is_in_transit: boolean | null
           is_temporarily_out: boolean | null
+          latest_completed_movement_id: string | null
+          latest_completed_movement_status: string | null
+          latest_completed_movement_subtype: string | null
           latest_movement_id: string | null
           latest_movement_status: string | null
           latest_movement_subtype: string | null
           needs_admission: boolean | null
           needs_placement: boolean | null
+          next_scheduled_movement_at: string | null
+          next_scheduled_movement_id: string | null
           open_admission_id: string | null
           open_admission_status: string | null
           tenant_id: string | null
