@@ -18,6 +18,7 @@ import { MapPin, Clock, FileText, ExternalLink, Calendar, Truck, CheckCircle2, R
 import { cn } from "@/lib/utils";
 import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
+import { classifyMovement } from "./movementClassification";
 import { CancelMovementDialog } from "./CancelMovementDialog";
 import { useState } from "react";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
@@ -92,14 +93,9 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   <BilingualName name={movement.horse?.name} nameAr={movement.horse?.name_ar} primaryClassName="font-semibold" />
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <MovementTypeBadge type={movement.movement_type} size="sm" />
+                  <Badge className="text-xs">{t(`movement.class.${classifyMovement(movement)}`)}</Badge>
                   {movement.movement_status !== 'completed' && (
                     <MovementStatusBadge status={movement.movement_status} />
-                  )}
-                  {category && (
-                    <Badge className={cn("text-xs", category.className)}>
-                      {category.label}
-                    </Badge>
                   )}
                 </div>
               </div>
