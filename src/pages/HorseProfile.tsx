@@ -53,6 +53,7 @@ import { HorseProfileCompleteness } from "@/components/horses/HorseProfileComple
 import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { useHorseFile } from "@/hooks/useHorseFile";
 
 interface Horse {
   id: string;
