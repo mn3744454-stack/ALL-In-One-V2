@@ -45,11 +45,12 @@ export function HousingSelector({
   const handleAreaChange = (value: string) => {
     if (value === "none") {
       onAreaChange(null);
-      onUnitChange(null);
     } else {
       onAreaChange(value);
-      onUnitChange(null); // Reset unit when area changes
     }
+    // Note: parent resets toUnitId atomically inside the same functional
+    // setState — do not call onUnitChange(null) here, that would race with
+    // the parent's batched update and clobber the new area selection.
   };
 
   const handleUnitChange = (value: string) => {
