@@ -1869,6 +1869,18 @@ export const ar = {
     },
     transfer: {
       sameBranchHint: "نقل داخل نفس الفرع — اختر المرفق/الوحدة المستهدفة في الخطوة التالية.",
+      sameBranchBlocked: "يجب أن يكون فرع المصدر مختلفًا عن فرع الوجهة. لتعيين أو تغيير وحدة سكن داخل نفس الفرع، استخدم مهام الإيواء.",
+      unitLater: "لم يتم اختيار وحدة سكن. بعد التأكيد سيظهر الخيل ضمن قائمة يحتاج تعيين وحدة سكن في فرع الوجهة.",
+      departureUseTransferHint: "هل تريد النقل بين فروعك؟ استخدم نقل بين الفروع بدلًا من المغادرة.",
+      sourceBranch: "فرع المصدر",
+      destinationBranch: "فرع الوجهة",
+      branch: "الفرع",
+      fromUnit: "من الوحدة",
+      toUnit: "إلى الوحدة",
+      housingNote: "ملاحظة السكن",
+      movementNote: "ملاحظة الحركة",
+      needsStallAssignmentHint: "يحتاج تعيين وحدة سكن في فرع الوجهة",
+      unitTransition: "الوحدة",
     },
     form: {
       recordMovement: "تسجيل حركة",
