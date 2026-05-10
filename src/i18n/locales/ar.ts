@@ -1762,7 +1762,8 @@ export const ar = {
         temporarilyOut: "خارج مؤقتاً",
         inTransit: "قيد النقل",
         scheduled: "مجدول",
-        unknown: "الحالة غير متاحة",
+        departed: "مغادر",
+        unknown: "غير مسكّن حاليًا",
       },
       summary: {
         title: "الحالة التشغيلية",

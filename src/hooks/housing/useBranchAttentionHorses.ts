@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
-import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { HORSE_LIFECYCLE_SELECT, type HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 
 /**
  * Pass 2-D — Frontend-only hook surfacing branch-level "Needs Attention" horses
@@ -43,9 +43,7 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
 
       const { data: states, error: stateErr } = await supabase
         .from("vw_horse_lifecycle_state" as any)
-        .select(
-          "horse_id, tenant_id, open_admission_id, open_admission_status, needs_admission, needs_placement, is_temporarily_out, latest_movement_status, latest_movement_subtype, latest_movement_id"
-        )
+        .select(HORSE_LIFECYCLE_SELECT)
         .in("horse_id", ids);
       if (stateErr) throw stateErr;
 
