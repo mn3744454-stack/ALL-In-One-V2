@@ -131,61 +131,94 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
           {/* Movement Details */}
           <Card>
             <CardContent className="p-4 space-y-3">
-              {/* From → To */}
-              <div className="space-y-2">
-                {movement.from_location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
-                    <span className="font-medium">{formatLocationName(movement.from_location)}</span>
-                  </div>
-                )}
-                {movement.from_external_location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
-                    <span className="font-medium">{formatExternalLocationName(movement.from_external_location)}</span>
-                    <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.from_external_location.location_type}`)}</Badge>
-                  </div>
-                )}
-                {movement.to_location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
-                    <span className="font-medium">{formatLocationName(movement.to_location)}</span>
-                  </div>
-                )}
-                {movement.to_external_location && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
-                    <span className="font-medium">{formatExternalLocationName(movement.to_external_location)}</span>
-                    <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.to_external_location.location_type}`)}</Badge>
-                  </div>
-                )}
-              </div>
+              {(() => {
+                const cls = classifyMovement(movement);
+                const isUnitOp = cls === 'unit_assignment' || cls === 'unit_reassignment';
+                const branchLoc = movement.to_location || movement.from_location;
+                const noteDisplay = formatMovementInternalNote(movement.internal_location_note, t);
+                const reasonDisplay = formatMovementReason(movement.reason, t);
 
-              {/* Internal note */}
-              {movement.internal_location_note && (
-                <div className="flex items-start gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-muted-foreground">{t('movement.detail.internalNote')}:</span>
-                    <p className="font-medium">{movement.internal_location_note}</p>
-                  </div>
-                </div>
-              )}
+                return (
+                  <>
+                    {/* From → To OR tailored housing layout */}
+                    <div className="space-y-2">
+                      {isUnitOp ? (
+                        <>
+                          <div className="flex items-center gap-2 text-sm">
+                            <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-muted-foreground">{t('movement.transfer.branch')}:</span>
+                            <span className="font-medium">{formatLocationName(branchLoc)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <ArrowRightLeft className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <span className="text-muted-foreground">{t('movement.transfer.unitTransition')}:</span>
+                            <span className="font-medium">
+                              {(movement.from_unit?.code || movement.from_unit?.name || '—')} → {(movement.to_unit?.code || movement.to_unit?.name || '—')}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {movement.from_location && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
+                              <span className="font-medium">{formatLocationName(movement.from_location)}</span>
+                            </div>
+                          )}
+                          {movement.from_external_location && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                              <span className="text-muted-foreground">{t('movement.form.fromLocation')}:</span>
+                              <span className="font-medium">{formatExternalLocationName(movement.from_external_location)}</span>
+                              <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.from_external_location.location_type}`)}</Badge>
+                            </div>
+                          )}
+                          {movement.to_location && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-primary shrink-0" />
+                              <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
+                              <span className="font-medium">{formatLocationName(movement.to_location)}</span>
+                            </div>
+                          )}
+                          {movement.to_external_location && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-primary shrink-0" />
+                              <span className="text-muted-foreground">{t('movement.form.toLocation')}:</span>
+                              <span className="font-medium">{formatExternalLocationName(movement.to_external_location)}</span>
+                              <Badge variant="outline" className="text-xs">{t(`movement.destination.types.${movement.to_external_location.location_type}`)}</Badge>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
 
-              {/* Reason */}
-              {movement.reason && (
-                <div className="flex items-start gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div>
-                    <span className="text-muted-foreground">{t('movement.detail.reason')}:</span>
-                    <p className="font-medium">{movement.reason}</p>
-                  </div>
-                </div>
-              )}
+                    {/* Internal / housing note */}
+                    {noteDisplay && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-muted-foreground">
+                            {isUnitOp ? t('movement.transfer.housingNote') : t('movement.detail.internalNote')}:
+                          </span>
+                          <p className="font-medium">{noteDisplay}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reason */}
+                    {reasonDisplay && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <span className="text-muted-foreground">{t('movement.detail.reason')}:</span>
+                          <p className="font-medium">{reasonDisplay}</p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Lifecycle timestamps */}
               <div className="space-y-1.5">
