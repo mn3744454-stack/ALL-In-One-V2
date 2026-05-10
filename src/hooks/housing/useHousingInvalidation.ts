@@ -60,6 +60,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'unit-history',           // Room Event History (Section 3 of UnitDetailsSheet)
     'open-area-horses',       // Paddock/pasture occupancy view
     'horses',                 // Horse current_location_id / housing_unit_id
+    'horse',                  // Horse File single-row query (Pass H1)
     'occupant-admissions',    // UnitDetailsSheet horse-admission summaries
     'unit-lifecycle-blockers',
     // Pass 2-E: Needs Attention surfaces are derived from lifecycle view.
@@ -90,6 +91,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'facility-admission-count',
     'expanded-branch-detail',
     'horses',
+    'horse',
     // Pass 2-E: Needs Admission/Placement chips depend on lifecycle view.
     'horse-lifecycle-states',
     'branch-attention-horses',
@@ -109,6 +111,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'pending-outbound-b2b',
     'active-admission-horse-ids',
     'horses',
+    'horse',
     // Pass 2-C.1: cancel/dispatch/complete change vw_horse_lifecycle_state
     // truth (open admission, latest movement, temporarily_out). Lifecycle
     // chips must refresh together with the movement list.
