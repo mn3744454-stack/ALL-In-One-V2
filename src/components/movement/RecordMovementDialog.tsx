@@ -1058,11 +1058,15 @@ export function RecordMovementDialog({
               </div>
             )}
 
-            {/* Same-branch transfer: use housing selector on next step instead of free text */}
-            {isSameBranchTransfer && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3">
-                <p className="text-xs text-blue-700 dark:text-blue-400">
-                  {t("movement.transfer.sameBranchHint")}
+            {/* H3: same-branch transfer is now blocked. Show explanatory
+                error so the user knows to use Housing Tasks instead. */}
+            {formData.movementType === 'transfer' &&
+              !!formData.fromLocationId &&
+              !!formData.toLocationId &&
+              formData.fromLocationId === formData.toLocationId && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+                <p className="text-xs text-destructive">
+                  {t("movement.transfer.sameBranchBlocked")}
                 </p>
               </div>
             )}
