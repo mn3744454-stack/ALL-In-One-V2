@@ -111,6 +111,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'pending-outbound-b2b',
     'active-admission-horse-ids',
     'horses',
+    'horse',
     // Pass 2-C.1: cancel/dispatch/complete change vw_horse_lifecycle_state
     // truth (open admission, latest movement, temporarily_out). Lifecycle
     // chips must refresh together with the movement list.
