@@ -91,6 +91,7 @@ const KEY_MAP: Record<Exclude<HousingScope, 'all'>, readonly string[]> = {
     'facility-admission-count',
     'expanded-branch-detail',
     'horses',
+    'horse',
     // Pass 2-E: Needs Admission/Placement chips depend on lifecycle view.
     'horse-lifecycle-states',
     'branch-attention-horses',
