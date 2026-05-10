@@ -1,10 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { classifyMovement } from "./movementClassification";
-import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
