@@ -279,6 +279,9 @@ export function RecordMovementDialog({
         if (formData.movementType === "out") return !!formData.fromLocationId;
         if (formData.movementType === "transfer") {
           if (!formData.fromLocationId || !formData.toLocationId) return false;
+          // H3: same-branch transfer is no longer permitted — users must use
+          // Housing Tasks to assign or change a unit inside the same branch.
+          if (formData.fromLocationId === formData.toLocationId) return false;
           return true;
         }
         return false;
