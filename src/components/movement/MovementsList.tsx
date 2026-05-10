@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
 import { MovementDetailSheet } from "./MovementDetailSheet";
@@ -7,6 +8,10 @@ import { DispatchConfirmDialog } from "./DispatchConfirmDialog";
 import { ConfirmArrivalDialog } from "./ConfirmArrivalDialog";
 import { ConfirmTransferDialog } from "./ConfirmTransferDialog";
 import { RecordMovementDialog } from "./RecordMovementDialog";
+import { AdmissionDetailSheet } from "@/components/housing/AdmissionDetailSheet";
+import { classifyMovement } from "./movementClassification";
+import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { Plus, Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
