@@ -322,7 +322,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
         onConfirmArrival={handleConfirmArrival}
         onConfirmTransfer={handleConfirmTransfer}
         onRecordReturn={(horseId) => { setSelectedMovement(null); handleRecordReturn(horseId); }}
+        onViewAdmission={(id) => setAdmissionDrawerId(id)}
+        linkedAdmissionId={linkedAdmissionId}
         lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
+      />
+
+      <AdmissionDetailSheet
+        admissionId={admissionDrawerId}
+        open={!!admissionDrawerId}
+        onOpenChange={(open) => { if (!open) setAdmissionDrawerId(null); }}
       />
 
       <RecordMovementDialog
