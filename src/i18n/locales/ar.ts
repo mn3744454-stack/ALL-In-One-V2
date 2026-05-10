@@ -2060,7 +2060,7 @@ export const ar = {
     arrivalsAndDepartures: {
       arrivals: "الوصول",
       departures: "المغادرة",
-      transfers: "النقل",
+      transfers: "النقل بين الفروع",
       incoming: "الوارد",
       pending: "قيد الانتظار",
       completed: "مكتمل",
