@@ -483,10 +483,7 @@ const HorseProfile = () => {
         onOpenChange={setShowEditWizard}
         mode="edit"
         existingHorse={horse as HorseData}
-        onSuccess={() => {
-          setShowEditWizard(false);
-          fetchHorse();
-        }}
+        onSuccess={handleEditSuccess}
       />
 
       {/* Delete Confirmation Dialog */}
