@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MovementTypeBadge } from "./MovementTypeBadge";
+import { Badge } from "@/components/ui/badge";
+import { MovementStatusBadge } from "./MovementStatusBadge";
+import { classifyMovement } from "./movementClassification";
 import { MovementStatusBadge } from "./MovementStatusBadge";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
@@ -87,7 +89,7 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
 
                   <div className="flex-1 min-w-0 pb-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <MovementTypeBadge type={m.movement_type} size="sm" />
+                      <Badge variant="outline" className="text-xs">{t(`movement.class.${classifyMovement(m)}`)}</Badge>
                       <MovementStatusBadge status={m.movement_status} />
                       {isConnected && (
                         <Badge variant="outline" className="text-xs gap-0.5">

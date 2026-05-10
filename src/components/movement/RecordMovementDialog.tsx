@@ -279,6 +279,9 @@ export function RecordMovementDialog({
         if (formData.movementType === "out") return !!formData.fromLocationId;
         if (formData.movementType === "transfer") {
           if (!formData.fromLocationId || !formData.toLocationId) return false;
+          // H3: same-branch transfer is no longer permitted — users must use
+          // Housing Tasks to assign or change a unit inside the same branch.
+          if (formData.fromLocationId === formData.toLocationId) return false;
           return true;
         }
         return false;
@@ -536,18 +539,30 @@ export function RecordMovementDialog({
                 <button
                   key={type}
                   onClick={() => {
-                    setFormData({ ...formData, movementType: type, horseId: null, fromLocationId: null });
+                    // H3: when switching to Departure, force destinationType
+                    // off "internal" since the Internal option is no longer
+                    // exposed in the UI for OUT movements.
+                    setFormData({
+                      ...formData,
+                      movementType: type,
+                      horseId: null,
+                      fromLocationId: null,
+                      destinationType: type === "out" ? "external" : "internal",
+                      toLocationId: null,
+                      toExternalLocationId: null,
+                      connectedTenantId: null,
+                    });
                     setArrivalSource(null);
                   }}
                   className={cn(
-                    "flex items-center gap-4 p-4 rounded-lg border-2 transition-all text-start",
+                    "flex items-start gap-4 p-4 rounded-lg border-2 transition-all text-start",
                     formData.movementType === type
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   )}
                 >
                   <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center",
+                    "w-12 h-12 rounded-full flex items-center justify-center shrink-0",
                     type === "in" ? "bg-emerald-100 text-emerald-600" :
                     type === "out" ? "bg-red-100 text-red-600" :
                     "bg-blue-100 text-blue-600"
@@ -556,11 +571,14 @@ export function RecordMovementDialog({
                     {type === "out" && <ArrowUpFromLine className="h-6 w-6" />}
                     {type === "transfer" && <ArrowLeftRight className="h-6 w-6" />}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium">{t(`movement.types.${type}`)}</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-snug">
+                      {t(`movement.types.${type}Helper`)}
+                    </p>
                   </div>
                   {formData.movementType === type && (
-                    <Check className="h-5 w-5 text-primary" />
+                    <Check className="h-5 w-5 text-primary shrink-0 mt-1" />
                   )}
                 </button>
               ))}
@@ -770,53 +788,48 @@ export function RecordMovementDialog({
             <h3 className="font-medium text-center">{t("movement.wizard.step3Title")}</h3>
             <p className="text-sm text-muted-foreground text-center">{t("movement.wizard.step3Desc")}</p>
 
-            {/* Destination type toggle — show for OUT movements */}
+            {/* H3: Departure path no longer exposes the Internal toggle.
+                Same-branch behaviour is suppressed; cross-branch internal
+                moves should be recorded as Inter-Branch Transfer instead. */}
             {formData.movementType === "out" && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'internal', toExternalLocationId: null, connectedTenantId: null })}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                    formData.destinationType === 'internal'
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <Building2 className="h-3.5 w-3.5" />
-                  {t("movement.destination.internal")}
-                </button>
-                <button
-                  onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
-                  className={cn(
-                    "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                    formData.destinationType === 'external'
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  )}
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  {t("movement.destination.external")}
-                </button>
-                {canSendConnected && (
+              <>
+                <div className="flex gap-2">
                   <button
-                    onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                    onClick={() => setFormData({ ...formData, destinationType: 'external', toLocationId: null, toAreaId: null, toUnitId: null, connectedTenantId: null })}
                     className={cn(
                       "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
-                      formData.destinationType === 'connected'
+                      formData.destinationType === 'external'
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-border text-muted-foreground hover:border-primary/50"
                     )}
                   >
-                    <Link2 className="h-3.5 w-3.5" />
-                    {t("movement.destination.connected")}
-                    {connectedDestinations.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
-                        {connectedDestinations.length}
-                      </Badge>
-                    )}
+                    <MapPin className="h-3.5 w-3.5" />
+                    {t("movement.destination.external")}
                   </button>
-                )}
-              </div>
+                  {canSendConnected && (
+                    <button
+                      onClick={() => setFormData({ ...formData, destinationType: 'connected', toLocationId: null, toAreaId: null, toUnitId: null, toExternalLocationId: null })}
+                      className={cn(
+                        "flex-1 flex items-center justify-center gap-2 p-2.5 rounded-lg border-2 text-xs font-medium transition-all",
+                        formData.destinationType === 'connected'
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-muted-foreground hover:border-primary/50"
+                      )}
+                    >
+                      <Link2 className="h-3.5 w-3.5" />
+                      {t("movement.destination.connected")}
+                      {connectedDestinations.length > 0 && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 min-w-4 flex items-center justify-center">
+                          {connectedDestinations.length}
+                        </Badge>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("movement.transfer.departureUseTransferHint")}
+                </p>
+              </>
             )}
             
             {/* FROM Location — auto-filled for OUT/TRANSFER, read-only if resolved */}
@@ -1045,11 +1058,15 @@ export function RecordMovementDialog({
               </div>
             )}
 
-            {/* Same-branch transfer: use housing selector on next step instead of free text */}
-            {isSameBranchTransfer && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-3">
-                <p className="text-xs text-blue-700 dark:text-blue-400">
-                  {t("movement.transfer.sameBranchHint")}
+            {/* H3: same-branch transfer is now blocked. Show explanatory
+                error so the user knows to use Housing Tasks instead. */}
+            {formData.movementType === 'transfer' &&
+              !!formData.fromLocationId &&
+              !!formData.toLocationId &&
+              formData.fromLocationId === formData.toLocationId && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+                <p className="text-xs text-destructive">
+                  {t("movement.transfer.sameBranchBlocked")}
                 </p>
               </div>
             )}
@@ -1058,14 +1075,23 @@ export function RecordMovementDialog({
 
         {/* === STEP: HOUSING === */}
         {step === "housing" && (
-          <HousingSelector
-            branchId={formData.movementType === 'transfer' && isSameBranchTransfer ? formData.fromLocationId : formData.toLocationId}
-            selectedAreaId={formData.toAreaId}
-            selectedUnitId={formData.toUnitId}
-            onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
-            onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
-            onSkip={handleHousingSkip}
-          />
+          <div className="space-y-3">
+            <HousingSelector
+              branchId={formData.movementType === 'transfer' && isSameBranchTransfer ? formData.fromLocationId : formData.toLocationId}
+              selectedAreaId={formData.toAreaId}
+              selectedUnitId={formData.toUnitId}
+              onAreaChange={(areaId) => setFormData({ ...formData, toAreaId: areaId })}
+              onUnitChange={(unitId) => setFormData({ ...formData, toUnitId: unitId })}
+              onSkip={handleHousingSkip}
+            />
+            {formData.movementType === 'transfer' && !formData.toUnitId && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3">
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  {t("movement.transfer.unitLater")}
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* === STEP: DETAILS === */}

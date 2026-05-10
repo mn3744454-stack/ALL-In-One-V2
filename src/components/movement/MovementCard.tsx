@@ -13,6 +13,7 @@ import type { HorseMovement } from "@/hooks/movement/useHorseMovements";
 import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInternalTransferActionable } from "./movementRouting";
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
+import { classifyMovement } from "./movementClassification";
 
 interface MovementCardProps {
   movement: HorseMovement;
@@ -95,45 +96,75 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
               )}
             </div>
 
-            {/* Dedicated full-width movement badge row (prevents grid-cell overflow) */}
-            <div className="flex flex-wrap items-center gap-1 max-w-full">
-              <MovementTypeBadge type={movement.movement_type} size="sm" />
-              {movement.movement_status !== 'completed' && (
-                <MovementStatusBadge status={movement.movement_status} />
-              )}
-              {getCategoryBadge()}
-            </div>
-
-            <div className="text-sm space-y-1">
-              {movement.movement_type === 'out' && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground line-through truncate">
-                    {formatLocationName(movement.from_location)}
-                  </span>
-                </div>
-              )}
-              {movement.movement_type === 'in' && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{formatLocationName(movement.to_location)}</span>
-                </div>
-              )}
-              {movement.movement_type !== 'in' && movement.movement_type !== 'out' && (
+            {/* H3: classification-aware primary badge replaces raw type badge. */}
+            {(() => {
+              const cls = classifyMovement(movement);
+              const isUnitOp = cls === 'unit_assignment' || cls === 'unit_reassignment';
+              const tone =
+                cls === 'arrival' || cls === 'admission_checkin' || cls === 'return_from_temporary_out'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
+                  : cls === 'checkout_departure' || cls === 'temporary_out'
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  : cls === 'inter_branch_transfer' || cls === 'connected_outgoing'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                  : isUnitOp
+                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                  : 'bg-muted text-muted-foreground';
+              return (
                 <>
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-muted-foreground shrink-0">{t('movement.route.from')}:</span>
-                    <span className="truncate">{formatLocationName(movement.from_location)}</span>
+                  <div className="flex flex-wrap items-center gap-1 max-w-full">
+                    <Badge className={cn("text-xs", tone)}>{t(`movement.class.${cls}`)}</Badge>
+                    {movement.movement_status !== 'completed' && (
+                      <MovementStatusBadge status={movement.movement_status} />
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="text-muted-foreground shrink-0">{t('movement.route.to')}:</span>
-                    <span className="font-medium truncate">{formatLocationName(movement.to_location)}</span>
+
+                  <div className="text-sm space-y-1">
+                    {isUnitOp ? (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground shrink-0">{t('movement.transfer.branch')}:</span>
+                          <span className="truncate">{formatLocationName(movement.to_location)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <ArrowRightLeft className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground shrink-0">{t('movement.transfer.unitTransition')}:</span>
+                          <span className="truncate">
+                            {(movement.from_unit?.code || movement.from_unit?.name || '—')} → {(movement.to_unit?.code || movement.to_unit?.name || '—')}
+                          </span>
+                        </div>
+                      </>
+                    ) : movement.movement_type === 'out' ? (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground line-through truncate">
+                          {formatLocationName(movement.from_location)}
+                        </span>
+                      </div>
+                    ) : movement.movement_type === 'in' ? (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="truncate">{formatLocationName(movement.to_location)}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground shrink-0">{t('movement.route.from')}:</span>
+                          <span className="truncate">{formatLocationName(movement.from_location)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
+                          <span className="text-muted-foreground shrink-0">{t('movement.route.to')}:</span>
+                          <span className="font-medium truncate">{formatLocationName(movement.to_location)}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </>
-              )}
-            </div>
+              );
+            })()}
 
 
             {/* Scheduled datetime */}
