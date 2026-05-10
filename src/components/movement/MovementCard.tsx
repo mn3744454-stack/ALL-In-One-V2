@@ -14,6 +14,7 @@ import { isLocalArrival, isLocalArrivalActionable, isInternalTransfer, isInterna
 import { HorseLifecycleChip } from "@/components/horses/HorseLifecycleChip";
 import type { HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 import { classifyMovement } from "./movementClassification";
+import { formatMovementReason, formatMovementInternalNote } from "./movementReasonDisplay";
 
 interface MovementCardProps {
   movement: HorseMovement;
