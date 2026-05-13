@@ -172,7 +172,7 @@ export default function SharedHorseReport() {
       return;
     }
 
-    const content = reportRef.current.innerHTML;
+    const content = DOMPurify.sanitize(reportRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">

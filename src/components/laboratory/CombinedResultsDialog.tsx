@@ -134,7 +134,7 @@ export function CombinedResultsDialog({
       return;
     }
     
-    const content = previewRef.current.innerHTML;
+    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html dir="rtl">

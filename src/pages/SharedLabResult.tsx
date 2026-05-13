@@ -174,7 +174,7 @@ export default function SharedLabResult() {
       return;
     }
     
-    const content = previewRef.current.innerHTML;
+    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">
