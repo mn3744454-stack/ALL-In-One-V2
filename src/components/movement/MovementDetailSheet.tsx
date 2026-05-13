@@ -32,6 +32,8 @@ interface MovementDetailSheetProps {
   onViewAdmission?: (admissionId: string) => void;
   /** H3.1: best-effort linked admission id (looked up by parent). */
   linkedAdmissionId?: string | null;
+  /** H5-C-A: source of the link — 'direct' (FK) or 'heuristic' (±24h match). */
+  linkedAdmissionSource?: 'direct' | 'heuristic' | null;
   onDispatch?: (movementId: string) => void;
   onConfirmArrival?: (movementId: string) => void;
   onConfirmTransfer?: (movementId: string) => void;
@@ -39,7 +41,7 @@ interface MovementDetailSheetProps {
   lifecycleState?: HorseLifecycleState | null;
 }
 
-export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, linkedAdmissionId, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
+export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmission, linkedAdmissionId, linkedAdmissionSource, onDispatch, onConfirmArrival, onConfirmTransfer, onRecordReturn, lifecycleState }: MovementDetailSheetProps) {
   const { t, dir } = useI18n();
   const { hasPermission, isOwner } = usePermissions();
   const canDispatch = isOwner || hasPermission('movement.dispatch.confirm');
@@ -385,7 +387,9 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('movement.detail.admissionLinkApprox')}
+                  {t(linkedAdmissionSource === 'direct'
+                    ? 'movement.detail.admissionLinkDirect'
+                    : 'movement.detail.admissionLinkApprox')}
                 </p>
               </CardContent>
             </Card>
