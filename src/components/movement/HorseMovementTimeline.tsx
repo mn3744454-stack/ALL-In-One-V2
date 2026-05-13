@@ -70,8 +70,8 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
               const toName = formatLocation(m.to_location);
               const fromExt = m.from_external_location?.name;
               const toExt = m.to_external_location?.name;
-              const isConnected = m.destination_type === 'connected';
-              const isAdmission = m.reason?.includes('admission');
+              const movementClass = classifyMovement(m);
+              const isAdmission = movementClass === 'admission_checkin' || movementClass === 'checkout_departure';
 
               return (
                 <div key={m.id} className={cn("relative flex gap-3", dir === 'rtl' ? 'pr-6' : 'pl-6')}>
