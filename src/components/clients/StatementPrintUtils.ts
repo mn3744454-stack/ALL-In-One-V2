@@ -112,23 +112,23 @@ export function printStatement(data: StatementPrintData) {
     .map((e) => {
       const desc = data.enrichedDescriptions?.get(e.id) || e.description || "-";
       const descHtml = desc.includes(" | ")
-        ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${part}</strong>` : `<span style="color:#666;font-size:12px">${part}</span>`).join("<br>")
-        : desc;
+        ? desc.split(" | ").map((part, i) => i === 0 ? `<strong>${escapeHtml(part)}</strong>` : `<span style="color:#666;font-size:12px">${escapeHtml(part)}</span>`).join("<br>")
+        : escapeHtml(desc);
       return `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${formatDateForPrint(e.date)}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap;vertical-align:top" dir="ltr">${escapeHtml(formatDateForPrint(e.date))}</td>
       <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"};vertical-align:top">${descHtml}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${formatCurrency(e.balance)}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;vertical-align:top" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600;vertical-align:top" dir="ltr">${escapeHtml(formatCurrency(e.balance))}</td>
     </tr>`;
     })
     .join("");
 
-  // Scope context meta line
-  const metaParts: string[] = [data.clientName];
-  if (data.scopeHorses) metaParts.push(`${labels.horses}: ${data.scopeHorses}`);
-  if (data.scopeCategory) metaParts.push(`${labels.category}: ${data.scopeCategory}`);
+  // Scope context meta line — escape user-controlled strings
+  const metaParts: string[] = [escapeHtml(data.clientName)];
+  if (data.scopeHorses) metaParts.push(`${escapeHtml(labels.horses)}: ${escapeHtml(data.scopeHorses)}`);
+  if (data.scopeCategory) metaParts.push(`${escapeHtml(labels.category)}: ${escapeHtml(data.scopeCategory)}`);
   const metaLine = metaParts.join(" &nbsp;|&nbsp; ");
 
   // Summary cards
