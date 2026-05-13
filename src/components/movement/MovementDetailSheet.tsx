@@ -366,10 +366,10 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
             </Card>
           )}
 
-          {/* Link to admission — only when a linked admission was resolved */}
+          {/* Link to admission — best-match heuristic (±24h, same horse). */}
           {(isAdmissionCheckin || isAdmissionCheckout) && linkedAdmissionId && (
             <Card className="border-primary/20">
-              <CardContent className="p-3">
+              <CardContent className="p-3 space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
                     <span className="text-muted-foreground">{t('movement.detail.linkedAdmission')}</span>
@@ -384,6 +384,20 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
                     {t('movement.detail.viewAdmission')}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('movement.detail.admissionLinkApprox')}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* No matching admission file — informational only, no action. */}
+          {(isAdmissionCheckin || isAdmissionCheckout) && !linkedAdmissionId && (
+            <Card>
+              <CardContent className="p-3">
+                <p className="text-xs text-muted-foreground">
+                  {t('movement.detail.noMatchingAdmission')}
+                </p>
               </CardContent>
             </Card>
           )}
