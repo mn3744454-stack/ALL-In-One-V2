@@ -2705,6 +2705,8 @@ export const en = {
         fullyBilled: "This admission has been fully billed. No remaining amount to invoice.",
         overlapWarning: "Selected period overlaps with an already-billed period",
         overlapBlock: "Cannot create invoice — selected period overlaps with an already-billed period",
+        fullMonth: "full month",
+        segmentsBreakdown: "Billing breakdown",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",
