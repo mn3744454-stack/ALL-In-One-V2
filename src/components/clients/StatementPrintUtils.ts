@@ -278,12 +278,12 @@ export function printLedgerEntries(data: {
     .map(
       (e) => `
     <tr>
-      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${formatTimeForPrint(e.date, lang)}</td>
-      <td style="padding:6px 8px;text-align:center"><span style="background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:11px">${e.entry_type}</span></td>
-      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${e.description || "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? formatCurrency(e.debit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.credit > 0 ? formatCurrency(e.credit) : "-"}</td>
-      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600" dir="ltr">${formatCurrency(e.balance)}</td>
+      <td style="padding:6px 8px;font-family:monospace;white-space:nowrap" dir="ltr">${escapeHtml(formatTimeForPrint(e.date, lang))}</td>
+      <td style="padding:6px 8px;text-align:center"><span style="background:#f0f0f0;padding:2px 8px;border-radius:4px;font-size:11px">${escapeHtml(e.entry_type)}</span></td>
+      <td style="padding:6px 8px;text-align:${data.isRTL ? "right" : "left"}">${escapeHtml(e.description || "-")}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.debit > 0 ? escapeHtml(formatCurrency(e.debit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace" dir="ltr">${e.credit > 0 ? escapeHtml(formatCurrency(e.credit)) : "-"}</td>
+      <td style="padding:6px 8px;text-align:center;font-family:monospace;font-weight:600" dir="ltr">${escapeHtml(formatCurrency(e.balance))}</td>
     </tr>`
     )
     .join("");
