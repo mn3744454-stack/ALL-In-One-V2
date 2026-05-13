@@ -126,9 +126,11 @@ export const useInvitations = () => {
     if (!activeTenant || !user) return;
 
     // Only fetch invitations sent by the current user (RLS enforces this too)
+    // Note: token column is intentionally excluded — senders don't need the raw token,
+    // it's delivered to recipients via email link by the send-invitation-email function.
     const { data, error } = await supabase
       .from("invitations")
-      .select("*, token")
+      .select("id, tenant_id, sender_id, invitee_id, invitee_email, invitee_phone, proposed_role, status, assigned_horse_ids, created_at, expires_at, accepted_at, rejected_at, rejection_reason")
       .eq("tenant_id", activeTenant.tenant_id)
       .eq("sender_id", user.id)
       .order("created_at", { ascending: false });
