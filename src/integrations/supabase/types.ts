@@ -10684,24 +10684,15 @@ export type Database = {
         Args: { _connection_id: string; _preset_name: string }
         Returns: undefined
       }
-      can_access_shared_resource:
-        | {
-            Args: {
-              _actor_user_id: string
-              _required_access?: string
-              _resource_id: string
-              _resource_type: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              _resource_id: string
-              _resource_type: string
-              _tenant_id: string
-            }
-            Returns: boolean
-          }
+      can_access_shared_resource: {
+        Args: {
+          _actor_user_id: string
+          _required_access?: string
+          _resource_id: string
+          _resource_type: string
+        }
+        Returns: boolean
+      }
       can_delegate_permission: {
         Args: { _permission_key: string; _tenant_id: string; _user_id: string }
         Returns: boolean
