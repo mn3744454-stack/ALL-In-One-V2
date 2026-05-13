@@ -2567,6 +2567,8 @@ export const ar = {
         active: "نشط",
         checkoutPending: "بانتظار الإخراج",
         checkedOut: "تم الإخراج",
+        checkout_pending: "بانتظار الإخراج",
+        checked_out: "تم الإخراج",
         draft: "مسودة",
         cancelled: "ملغي",
       },
