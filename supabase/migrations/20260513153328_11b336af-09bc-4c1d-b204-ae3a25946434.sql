@@ -1,0 +1,1 @@
+GRANT SELECT (token) ON public.invitations TO authenticated;

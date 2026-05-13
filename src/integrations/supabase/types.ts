@@ -10950,6 +10950,24 @@ export type Database = {
           type: Database["public"]["Enums"]["tenant_type"]
         }[]
       }
+      get_public_tenants_directory: {
+        Args: { _region?: string; _type?: string }
+        Returns: {
+          cover_url: string
+          created_at: string
+          id: string
+          is_listed: boolean
+          logo_url: string
+          name: string
+          public_description: string
+          public_location_text: string
+          public_name: string
+          region: string
+          slug: string
+          tags: string[]
+          type: string
+        }[]
+      }
       get_riyadh_day_bounds: {
         Args: { _day?: string }
         Returns: {

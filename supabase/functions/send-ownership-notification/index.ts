@@ -275,7 +275,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal error";
     console.error("send-ownership-notification error:", message);
-    return json({ ok: false, error: message }, 500);
+    return json({ ok: false, error: "An unexpected error occurred" }, 500);
   }
 };
 

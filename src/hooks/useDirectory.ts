@@ -50,25 +50,11 @@ export const useDirectory = (filters: DirectoryFilters = {}) => {
   return useQuery({
     queryKey: ["directory", filters],
     queryFn: async (): Promise<PublicTenant[]> => {
-      // Query public tenants directly with RLS policy
-      let query = supabase
-        .from("tenants")
-        .select("id, slug, type, name, public_name, public_description, public_location_text, region, logo_url, cover_url, tags, is_listed, created_at")
-        .eq("is_public", true)
-        .eq("is_listed", true)
-        .order("created_at", { ascending: false });
-
-      // Apply type filter
-      if (filters.type) {
-        query = query.eq("type", filters.type as any);
-      }
-
-      // Apply region filter
-      if (filters.region) {
-        query = query.eq("region", filters.region);
-      }
-
-      const { data, error } = await query;
+      // Use SECURITY DEFINER RPC that exposes only safe public columns
+      const { data, error } = await supabase.rpc("get_public_tenants_directory", {
+        _type: filters.type ?? null,
+        _region: filters.region ?? null,
+      });
 
       if (error) {
         console.error("Directory query error:", error);
