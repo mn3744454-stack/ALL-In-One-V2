@@ -37,8 +37,9 @@ export function MovementCard({ movement, showHorse = true, onClick, onDispatch, 
     return displayLocationName(location.name, location.name_ar ?? null, location.city);
   };
 
-  const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
-  const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
+  const movementClass = classifyMovement(movement);
+  const isAdmissionCheckin = movementClass === 'admission_checkin';
+  const isAdmissionCheckout = movementClass === 'checkout_departure';
 
   const getCategoryBadge = () => {
     if (isAdmissionCheckin) return <Badge className="text-xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">{t('housing.admissions.detail.checkin')}</Badge>;
