@@ -2,6 +2,21 @@ import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
+/**
+ * Escape user-controlled strings before interpolating into HTML written to a
+ * print window. Prevents stored XSS via client names, descriptions, scope text,
+ * and entry types sourced from the database.
+ */
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export interface StatementPrintData {
   clientName: string;
   dateFrom: string;
