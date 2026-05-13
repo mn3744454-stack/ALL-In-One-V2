@@ -1680,6 +1680,7 @@ export const en = {
       linkedAdmission: "Linked to boarding admission",
       viewAdmission: "View Admission",
       admissionLinkApprox: "Best-match admission within 24h.",
+      admissionLinkDirect: "Linked admission file.",
       noMatchingAdmission: "No matching admission file was found for this movement.",
     },
     destination: {

@@ -63,10 +63,29 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
   // movement's movement_at. Only runs for admission check-in / checkout.
   const selectedClass = selectedMovement ? classifyMovement(selectedMovement) : null;
   const isAdmissionMovement = selectedClass === 'admission_checkin' || selectedClass === 'checkout_departure';
-  const { data: linkedAdmissionId = null } = useQuery({
+  // H5-C-A — FK-first admission link lookup. Prefer direct reverse-lookup
+  // via boarding_admissions.checkin_movement_id / checkout_movement_id; fall
+  // back to the H3.1 ±24h heuristic only when no direct link exists.
+  const { data: linkedAdmission = { id: null, source: null } } = useQuery<{
+    id: string | null;
+    source: 'direct' | 'heuristic' | null;
+  }>({
     queryKey: ['movement-linked-admission', tenantId, selectedMovement?.id, selectedMovement?.horse_id, isAdmissionMovement],
     queryFn: async () => {
-      if (!tenantId || !selectedMovement?.horse_id || !isAdmissionMovement) return null;
+      if (!tenantId || !selectedMovement?.horse_id || !isAdmissionMovement) {
+        return { id: null, source: null };
+      }
+      // 1) Direct FK reverse-lookup.
+      const { data: direct } = await supabase
+        .from('boarding_admissions')
+        .select('id')
+        .eq('tenant_id', tenantId)
+        .or(`checkin_movement_id.eq.${selectedMovement.id},checkout_movement_id.eq.${selectedMovement.id}`)
+        .limit(1)
+        .maybeSingle();
+      if (direct?.id) return { id: direct.id, source: 'direct' };
+
+      // 2) Heuristic fallback (preserved from H3.1).
       const { data } = await supabase
         .from('boarding_admissions')
         .select('id, admitted_at, checked_out_at')
@@ -74,7 +93,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
         .eq('horse_id', selectedMovement.horse_id)
         .order('admitted_at', { ascending: false })
         .limit(20);
-      if (!data?.length) return null;
+      if (!data?.length) return { id: null, source: null };
       const movementMs = new Date(selectedMovement.movement_at).getTime();
       const isCheckin = selectedClass === 'admission_checkin';
       let best: { id: string; delta: number } | null = null;
@@ -82,14 +101,15 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
         const ts = isCheckin ? row.admitted_at : (row.checked_out_at ?? row.admitted_at);
         if (!ts) continue;
         const delta = Math.abs(new Date(ts).getTime() - movementMs);
-        // Conservative: only link if within 24h of the movement timestamp.
         if (delta > 24 * 60 * 60 * 1000) continue;
         if (!best || delta < best.delta) best = { id: row.id, delta };
       }
-      return best?.id ?? null;
+      return best ? { id: best.id, source: 'heuristic' } : { id: null, source: null };
     },
     enabled: !!tenantId && !!selectedMovement?.horse_id && isAdmissionMovement,
   });
+  const linkedAdmissionId = linkedAdmission.id;
+  const linkedAdmissionSource = linkedAdmission.source;
 
   // H4-A — When the parent Movement Detail sheet closes, also dismiss any
   // nested Admission Detail drawer opened from it. Closing the admission
@@ -331,6 +351,7 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
         onRecordReturn={(horseId) => { setSelectedMovement(null); handleRecordReturn(horseId); }}
         onViewAdmission={(id) => setAdmissionDrawerId(id)}
         linkedAdmissionId={linkedAdmissionId}
+        linkedAdmissionSource={linkedAdmissionSource}
         lifecycleState={selectedMovement?.horse_id ? statesByHorseId.get(selectedMovement.horse_id) ?? null : null}
       />
 
