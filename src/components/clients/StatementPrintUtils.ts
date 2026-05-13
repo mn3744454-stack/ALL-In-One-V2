@@ -304,7 +304,7 @@ export function printLedgerEntries(data: {
 </style>
 </head>
 <body>
-<h1>${data.title}</h1>
+<h1>${escapeHtml(data.title)}</h1>
 <table>
   <thead>
     <tr>
