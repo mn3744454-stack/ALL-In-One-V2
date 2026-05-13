@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { MovementCard } from "./MovementCard";
@@ -90,6 +90,13 @@ export function MovementsList({ onRecordMovement, typeFilter, statusFilter, bran
     },
     enabled: !!tenantId && !!selectedMovement?.horse_id && isAdmissionMovement,
   });
+
+  // H4-A — When the parent Movement Detail sheet closes, also dismiss any
+  // nested Admission Detail drawer opened from it. Closing the admission
+  // drawer alone leaves the movement sheet underneath untouched.
+  useEffect(() => {
+    if (!selectedMovement) setAdmissionDrawerId(null);
+  }, [selectedMovement]);
 
   // When a parent tab enforces typeFilter/statusFilter, the local filter UI
   // is hidden — so preserving local filters here would silently apply
