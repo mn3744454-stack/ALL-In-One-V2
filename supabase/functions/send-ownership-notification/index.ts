@@ -125,10 +125,21 @@ function getSubject(action: string, horseName: string): string {
   }
 }
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getEmailHtml(data: ValidatedPayload): string {
-  const name = data.owner_name || "Owner";
-  const horse = data.horse_name || "your horse";
-  const pct = data.percentage;
+  const name = escapeHtml(data.owner_name || "Owner");
+  const horse = escapeHtml(data.horse_name || "your horse");
+  const fromOwner = data.from_owner_name ? escapeHtml(data.from_owner_name) : "";
+  const toOwner = data.to_owner_name ? escapeHtml(data.to_owner_name) : "";
+  const pct = typeof data.percentage === "number" ? data.percentage : undefined;
 
   switch (data.event_type) {
     case "added":
@@ -151,13 +162,13 @@ function getEmailHtml(data: ValidatedPayload): string {
       return `<h1>Hello ${name}!</h1>
         <p>You have received an ownership transfer for <strong>${horse}</strong>.</p>
         ${pct ? `<p>Transferred share: <strong>${pct}%</strong></p>` : ""}
-        ${data.from_owner_name ? `<p>Transfer from: <strong>${data.from_owner_name}</strong></p>` : ""}
+        ${fromOwner ? `<p>Transfer from: <strong>${fromOwner}</strong></p>` : ""}
         <br><p>Best regards,<br>The Equestrian Management Team</p>`;
     case "transferred_out":
       return `<h1>Hello ${name},</h1>
         <p>An ownership transfer has been made from your share in <strong>${horse}</strong>.</p>
         ${pct ? `<p>Transferred share: <strong>${pct}%</strong></p>` : ""}
-        ${data.to_owner_name ? `<p>Transfer to: <strong>${data.to_owner_name}</strong></p>` : ""}
+        ${toOwner ? `<p>Transfer to: <strong>${toOwner}</strong></p>` : ""}
         <br><p>Best regards,<br>The Equestrian Management Team</p>`;
     default:
       return `<h1>Hello ${name},</h1>
