@@ -221,9 +221,13 @@ const handler = async (req: Request): Promise<Response> => {
       .eq("id", callerId)
       .single();
 
-    const senderName = senderProfile?.full_name || "A team member";
-    const inviteeEmail = invitation.invitee_email;
-    const roleLabel = roleLabels[invitation.proposed_role] || invitation.proposed_role;
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+    const senderName = escapeHtml(senderProfile?.full_name || "A team member");
+    const inviteeEmail = escapeHtml(invitation.invitee_email);
+    const roleLabel = escapeHtml(roleLabels[invitation.proposed_role] || invitation.proposed_role);
+    const tenantName = escapeHtml(tenant.name);
 
     // Validate APP_ORIGIN before building link
     if (!appOriginValidation.valid || !APP_ORIGIN) {
@@ -270,7 +274,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             
             <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 20px;">
-              <strong>${senderName}</strong> has invited you to join <strong>${tenant.name}</strong> as a <strong>${roleLabel}</strong>.
+              <strong>${senderName}</strong> has invited you to join <strong>${tenantName}</strong> as a <strong>${roleLabel}</strong>.
             </p>
             
             <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 30px;">
@@ -293,7 +297,7 @@ const handler = async (req: Request): Promise<Response> => {
           <!-- Footer -->
           <div style="background-color: #f9f9f9; padding: 20px 30px; text-align: center; border-top: 1px solid #eee;">
             <p style="color: #999; font-size: 12px; margin: 0;">
-              This invitation was sent by ${tenant.name}
+              This invitation was sent by ${tenantName}
             </p>
           </div>
           
@@ -311,7 +315,7 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         from: "Equestrian App <onboarding@resend.dev>",
         to: [inviteeEmail],
-        subject: `You've been invited to join ${tenant.name}`,
+        subject: `You've been invited to join ${tenant.name}`.replace(/[\r\n]+/g, " "),
         html: emailHtml,
       }),
     });
