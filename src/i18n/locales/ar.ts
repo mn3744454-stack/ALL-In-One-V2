@@ -1697,6 +1697,8 @@ export const ar = {
       time: "الوقت",
       linkedAdmission: "مرتبطة بإيواء",
       viewAdmission: "عرض الإيواء",
+      admissionLinkApprox: "أقرب ملف إيواء مطابق خلال ٢٤ ساعة.",
+      noMatchingAdmission: "لم يتم العثور على ملف إيواء مطابق لهذه الحركة.",
     },
     destination: {
       internal: "داخلي",
