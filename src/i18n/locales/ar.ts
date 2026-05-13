@@ -2567,6 +2567,8 @@ export const ar = {
         active: "نشط",
         checkoutPending: "بانتظار الإخراج",
         checkedOut: "تم الإخراج",
+        checkout_pending: "بانتظار الإخراج",
+        checked_out: "تم الإخراج",
         draft: "مسودة",
         cancelled: "ملغي",
       },
@@ -2721,6 +2723,8 @@ export const ar = {
         fullyBilled: "تم فوترة هذا الإيواء بالكامل. لا يوجد مبلغ متبقي للفوترة.",
         overlapWarning: "الفترة المحددة تتداخل مع فترة مفوترة مسبقاً",
         overlapBlock: "لا يمكن إنشاء الفاتورة — الفترة المحددة تتداخل مع فترة مفوترة مسبقاً",
+        fullMonth: "شهر كامل",
+        segmentsBreakdown: "تفصيل فترات الفوترة",
       },
       checkout: {
         initiateTitle: "بدء الإخراج",

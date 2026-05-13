@@ -2549,6 +2549,8 @@ export const en = {
         active: "Active",
         checkoutPending: "Pending Checkout",
         checkedOut: "Checked Out",
+        checkout_pending: "Checkout pending",
+        checked_out: "Checked out",
         draft: "Draft",
         cancelled: "Cancelled",
       },
@@ -2703,6 +2705,8 @@ export const en = {
         fullyBilled: "This admission has been fully billed. No remaining amount to invoice.",
         overlapWarning: "Selected period overlaps with an already-billed period",
         overlapBlock: "Cannot create invoice — selected period overlaps with an already-billed period",
+        fullMonth: "full month",
+        segmentsBreakdown: "Billing breakdown",
       },
       checkout: {
         initiateTitle: "Initiate Checkout",
