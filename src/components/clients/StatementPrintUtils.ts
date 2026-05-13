@@ -292,7 +292,7 @@ export function printLedgerEntries(data: {
 <html dir="${dir}">
 <head>
 <meta charset="UTF-8">
-<title>${data.title}</title>
+<title>${escapeHtml(data.title)}</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   h1 { font-size: 20px; margin-bottom: 16px; }
