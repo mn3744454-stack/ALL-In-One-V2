@@ -130,7 +130,7 @@ export const useInvitations = () => {
     // it's delivered to recipients via email link by the send-invitation-email function.
     const { data, error } = await supabase
       .from("invitations")
-      .select("id, tenant_id, sender_id, invitee_id, invitee_email, invitee_phone, proposed_role, status, assigned_horse_ids, role_accepted, horses_accepted, rejection_reason, responded_at, preaccepted_at, accepted_at, sender_display_name, expires_at, created_at, updated_at")
+      .select("id, tenant_id, sender_id, invitee_id, invitee_email, invitee_phone, proposed_role, status, assigned_horse_ids, role_accepted, horses_accepted, rejection_reason, responded_at, preaccepted_at, accepted_at, sender_display_name, expires_at, created_at, updated_at, token")
       .eq("tenant_id", activeTenant.tenant_id)
       .eq("sender_id", user.id)
       .order("created_at", { ascending: false });
