@@ -1,5 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import DOMPurify from "dompurify";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import type { Invoice, InvoiceItem } from "@/hooks/finance/useInvoices";
 
@@ -134,7 +135,7 @@ export async function generateInvoicePDF(options: GeneratePDFOptions): Promise<j
   container.style.position = "absolute";
   container.style.left = "-9999px";
   container.style.width = "210mm"; // A4 width
-  container.innerHTML = createInvoiceHTML(options);
+  container.innerHTML = DOMPurify.sanitize(createInvoiceHTML(options), { ADD_TAGS: ["style"] });
   document.body.appendChild(container);
 
   try {

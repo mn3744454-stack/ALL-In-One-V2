@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import DOMPurify from "dompurify";
 import { useParams, useSearchParams } from "react-router-dom";
 import { fetchHorseShareView, HorseShareViewData } from "@/hooks/useHorseShares";
 import { Button } from "@/components/ui/button";
@@ -172,7 +173,7 @@ export default function SharedHorseReport() {
       return;
     }
 
-    const content = reportRef.current.innerHTML;
+    const content = DOMPurify.sanitize(reportRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import DOMPurify from "dompurify";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -174,7 +175,7 @@ export default function SharedLabResult() {
       return;
     }
     
-    const content = previewRef.current.innerHTML;
+    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html lang="${lang}" dir="${dir}">

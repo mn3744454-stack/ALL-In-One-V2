@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
@@ -109,7 +110,7 @@ export function ResultPreviewDialog({
       return;
     }
     
-    const content = previewRef.current.innerHTML;
+    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
