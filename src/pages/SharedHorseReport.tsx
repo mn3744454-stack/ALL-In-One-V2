@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import DOMPurify from "dompurify";
 import { useParams, useSearchParams } from "react-router-dom";
 import { fetchHorseShareView, HorseShareViewData } from "@/hooks/useHorseShares";
 import { Button } from "@/components/ui/button";
