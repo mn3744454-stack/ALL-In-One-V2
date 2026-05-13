@@ -2549,6 +2549,8 @@ export const en = {
         active: "Active",
         checkoutPending: "Pending Checkout",
         checkedOut: "Checked Out",
+        checkout_pending: "Checkout pending",
+        checked_out: "Checked out",
         draft: "Draft",
         cancelled: "Cancelled",
       },
