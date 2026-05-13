@@ -26,7 +26,7 @@ interface Invitation {
   rejection_reason: string | null;
   responded_at: string | null;
   created_at: string;
-  // token intentionally omitted: senders never need the raw token client-side
+  token: string;
   tenant?: {
     id: string;
     name: string;
