@@ -149,7 +149,7 @@ export function printStatement(data: StatementPrintData) {
 <html dir="${dir}">
 <head>
 <meta charset="UTF-8">
-<title>${labels.title} - ${data.clientName}</title>
+<title>${escapeHtml(labels.title)} - ${escapeHtml(data.clientName)}</title>
 <style>
   body { font-family: system-ui, sans-serif; margin: 20px; color: #1a1a1a; direction: ${dir}; }
   h1 { font-size: 20px; margin-bottom: 4px; }
