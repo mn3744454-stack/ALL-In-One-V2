@@ -58,8 +58,9 @@ export function MovementDetailSheet({ movement, open, onOpenChange, onViewAdmiss
     return displayLocationName(location.name, location.name_ar);
   };
 
-  const isAdmissionCheckin = movement.reason?.includes('admission check-in') || movement.reason?.includes('Boarding admission check-in');
-  const isAdmissionCheckout = movement.reason?.includes('admission checkout') || movement.reason?.includes('Boarding admission checkout');
+  const movementClass = classifyMovement(movement);
+  const isAdmissionCheckin = movementClass === 'admission_checkin';
+  const isAdmissionCheckout = movementClass === 'checkout_departure';
   const isTransfer = movement.movement_type === 'transfer';
   const isScheduled = movement.movement_status === 'scheduled';
 
