@@ -1676,6 +1676,21 @@ export const ar = {
       outHelper: "لتسجيل خروج الخيل من الرعاية: إلى جهة خارجية، أو إلى شريك مرتبط، أو خروج مؤقت مع توقّع العودة.",
       transferHelper: "لنقل الخيل بين فرعين داخليين. لا يُستخدم لتعيين وحدة سكن — استخدم مهام الإيواء لذلك.",
     },
+    guards: {
+      sameBranchTransfer: "هذا نفس الفرع. استخدم مهام الإيواء أو تعيين وحدة سكن لإعادة التسكين داخل نفس الفرع.",
+    },
+    missingFields: {
+      movementType: "نوع الحركة",
+      arrivalSource: "مصدر الوصول",
+      horse: "الخيل",
+      sourceLocation: "الفرع المصدر",
+      destinationLocation: "فرع الوجهة",
+      externalDestination: "الوجهة الخارجية",
+      connectedDestination: "الجهة المرتبطة",
+      arrivalBranch: "فرع الوصول",
+      departureSubtype: "نوع المغادرة",
+      newHorseName: "اسم الخيل الجديد",
+    },
     class: {
       arrival: "وصول",
       admission_checkin: "دخول إلى الإقامة",
