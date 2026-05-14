@@ -88,6 +88,18 @@ export const ar = {
     goToDashboard: "الذهاب للوحة التحكم",
     backToDashboard: "العودة للوحة التحكم",
     accessRestricted: "الوصول مقيد",
+    dialog: {
+      discardChanges: {
+        title: "تجاهل التغييرات؟",
+        description: "لديك تغييرات غير محفوظة. الإغلاق الآن سيؤدي إلى تجاهلها.",
+        confirm: "تجاهل وإغلاق",
+        keepEditing: "متابعة التحرير",
+      },
+    },
+    validation: {
+      missing: "مطلوب للمتابعة:",
+      attemptedSubmit: "بعض الحقول المطلوبة مفقودة.",
+    },
   },
   workspace: {
     personal: "شخصي",
