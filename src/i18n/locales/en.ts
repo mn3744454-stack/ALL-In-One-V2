@@ -1673,6 +1673,7 @@ export const en = {
       departureSubtype: "Departure type",
       newHorseName: "New horse name",
     },
+    class: {
       arrival: "Arrival",
       admission_checkin: "Admission Check-in",
       checkout_departure: "Final Checkout",
