@@ -1356,32 +1356,37 @@ export function RecordMovementDialog({
       </div>
 
       {/* Sticky navigation buttons */}
-      <div className="shrink-0 flex items-center justify-between gap-4 pt-4 border-t">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={effectiveSteps.indexOf(step) === 0}
-          className="gap-1"
-        >
-          {dir === 'rtl' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          {t("common.back")}
-        </Button>
-
-        {step === "review" ? (
-          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected || isSubmitting}>
-            {t("common.confirm")}
-          </Button>
-        ) : step === "housing" ? (
-          <Button onClick={handleNext} className="gap-1">
-            {t("common.next")}
-            {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        ) : (
-          <Button onClick={handleNext} disabled={!canGoNext()} className="gap-1">
-            {t("common.next")}
-            {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
+      <div className="shrink-0 pt-4 border-t space-y-3">
+        {attempted && currentIssues.length > 0 && (
+          <MissingRequirementsBar issues={currentIssues} attempted />
         )}
+        <div className="flex items-center justify-between gap-4">
+          <Button
+            variant="outline"
+            onClick={effectiveSteps.indexOf(step) === 0 ? () => handleOpenChange(false) : handleBack}
+            className="gap-1"
+          >
+            {effectiveSteps.indexOf(step) === 0 ? (
+              t("common.cancel")
+            ) : (
+              <>
+                {dir === 'rtl' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                {t("common.back")}
+              </>
+            )}
+          </Button>
+
+          {step === "review" ? (
+            <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected || isSubmitting}>
+              {t("common.confirm")}
+            </Button>
+          ) : (
+            <Button onClick={handleNext} className="gap-1">
+              {t("common.next")}
+              {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
