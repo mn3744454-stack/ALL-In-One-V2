@@ -1660,6 +1660,17 @@ export const en = {
     },
     guards: {
       sameBranchTransfer: "This is the same branch. Use Housing Tasks or Assign Housing Unit to reassign within the same branch.",
+      selectMovementType: "Select a movement type",
+      selectArrivalSource: "Select an arrival source",
+      selectHorse: "Select a horse",
+      horseName: "Horse name is required",
+      horseGender: "Horse gender is required",
+      fromLocation: "Source branch is required",
+      toLocation: "Destination branch is required",
+      externalDestination: "External destination is required",
+      connectedPartner: "Connected partner is required",
+      connectedDirectionUnsupported: "Connected partner is only supported for departures",
+      departureSubtype: "Departure type is required",
     },
     missingFields: {
       movementType: "Movement type",

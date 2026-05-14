@@ -1678,6 +1678,17 @@ export const ar = {
     },
     guards: {
       sameBranchTransfer: "هذا نفس الفرع. استخدم مهام الإيواء أو تعيين وحدة سكن لإعادة التسكين داخل نفس الفرع.",
+      selectMovementType: "اختر نوع الحركة",
+      selectArrivalSource: "اختر مصدر الوصول",
+      selectHorse: "اختر خيلًا",
+      horseName: "اسم الخيل مطلوب",
+      horseGender: "جنس الخيل مطلوب",
+      fromLocation: "فرع المصدر مطلوب",
+      toLocation: "فرع الوجهة مطلوب",
+      externalDestination: "وجهة خارجية مطلوبة",
+      connectedPartner: "شريك متصل مطلوب",
+      connectedDirectionUnsupported: "الشريك المتصل مدعوم فقط للمغادرة",
+      departureSubtype: "نوع المغادرة مطلوب",
     },
     missingFields: {
       movementType: "نوع الحركة",

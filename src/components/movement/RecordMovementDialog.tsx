@@ -1,11 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer, DrawerContent, DrawerHeader, DrawerTitle,
+  DrawerHeader, DrawerTitle,
 } from "@/components/ui/drawer";
+import { SafeFormDialog, SafeFormDrawer } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -255,50 +258,73 @@ export function RecordMovementDialog({
     );
   }, [eligibleHorses, horseSearch]);
 
-  const canGoNext = () => {
-    switch (step) {
+  const getStepIssues = (s: Step): string[] => {
+    const issues: string[] = [];
+    switch (s) {
       case "type":
-        return !!formData.movementType;
+        if (!formData.movementType) issues.push(t("movement.guards.selectMovementType"));
+        break;
       case "arrival_source":
-        return !!arrivalSource;
+        if (!arrivalSource) issues.push(t("movement.guards.selectArrivalSource"));
+        break;
       case "horse":
-        return !!formData.horseId;
+        if (!formData.horseId) issues.push(t("movement.guards.selectHorse"));
+        break;
       case "new_horse":
-        return !!newHorse.name.trim() && !!newHorse.gender;
-      case "location":
+        if (!newHorse.name.trim()) issues.push(t("movement.guards.horseName"));
+        if (!newHorse.gender) issues.push(t("movement.guards.horseGender"));
+        break;
+      case "location": {
         if (formData.destinationType === 'connected') {
-          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.connectedTenantId;
-          return false;
+          if (formData.movementType === 'out') {
+            if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+            if (!formData.connectedTenantId) issues.push(t("movement.guards.connectedPartner"));
+          } else {
+            issues.push(t("movement.guards.connectedDirectionUnsupported"));
+          }
+          break;
         }
         if (formData.destinationType === 'external') {
-          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.toExternalLocationId;
-          if (formData.movementType === 'in') return !!formData.toLocationId;
-          return false;
+          if (formData.movementType === 'out') {
+            if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+            if (!formData.toExternalLocationId) issues.push(t("movement.guards.externalDestination"));
+          } else if (formData.movementType === 'in') {
+            if (!formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+          }
+          break;
         }
-        if (formData.movementType === "in") return !!formData.toLocationId;
-        if (formData.movementType === "out") return !!formData.fromLocationId;
+        if (formData.movementType === "in" && !formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+        if (formData.movementType === "out" && !formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
         if (formData.movementType === "transfer") {
-          if (!formData.fromLocationId || !formData.toLocationId) return false;
-          // H3: same-branch transfer is no longer permitted — users must use
-          // Housing Tasks to assign or change a unit inside the same branch.
-          if (formData.fromLocationId === formData.toLocationId) return false;
-          return true;
+          if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+          if (!formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+          if (formData.fromLocationId && formData.toLocationId && formData.fromLocationId === formData.toLocationId) {
+            issues.push(t("movement.guards.sameBranchTransfer"));
+          }
         }
-        return false;
-      case "housing":
-        return true;
+        break;
+      }
       case "details":
-        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
-        return true;
       case "review":
-        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
-        return true;
-      default:
-        return false;
+        if (requiresDepartureSubtype && !formData.subtypeChoice) issues.push(t("movement.guards.departureSubtype"));
+        break;
     }
+    return issues;
   };
+  const canGoNext = () => getStepIssues(step).length === 0;
+
+  const [attempted, setAttempted] = useState(false);
+  const currentIssues = getStepIssues(step);
+
+  const dirtyValue = useMemo(
+    () => ({ formData, newHorse, arrivalSource, scheduleForLater, scheduledAt, movementDate }),
+    [formData, newHorse, arrivalSource, scheduleForLater, scheduledAt, movementDate]
+  );
+  const { isDirty } = useDirtyForm(dirtyValue, open);
 
   const handleNext = () => {
+    if (!canGoNext()) { setAttempted(true); return; }
+    setAttempted(false);
     const currentIndex = effectiveSteps.indexOf(step);
     if (currentIndex < effectiveSteps.length - 1) {
       setStep(effectiveSteps[currentIndex + 1]);
@@ -1330,32 +1356,37 @@ export function RecordMovementDialog({
       </div>
 
       {/* Sticky navigation buttons */}
-      <div className="shrink-0 flex items-center justify-between gap-4 pt-4 border-t">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={effectiveSteps.indexOf(step) === 0}
-          className="gap-1"
-        >
-          {dir === 'rtl' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          {t("common.back")}
-        </Button>
-
-        {step === "review" ? (
-          <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected || isSubmitting}>
-            {t("common.confirm")}
-          </Button>
-        ) : step === "housing" ? (
-          <Button onClick={handleNext} className="gap-1">
-            {t("common.next")}
-            {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        ) : (
-          <Button onClick={handleNext} disabled={!canGoNext()} className="gap-1">
-            {t("common.next")}
-            {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
+      <div className="shrink-0 pt-4 border-t space-y-3">
+        {attempted && currentIssues.length > 0 && (
+          <MissingRequirementsBar issues={currentIssues} attempted />
         )}
+        <div className="flex items-center justify-between gap-4">
+          <Button
+            variant="outline"
+            onClick={effectiveSteps.indexOf(step) === 0 ? () => handleOpenChange(false) : handleBack}
+            className="gap-1"
+          >
+            {effectiveSteps.indexOf(step) === 0 ? (
+              t("common.cancel")
+            ) : (
+              <>
+                {dir === 'rtl' ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                {t("common.back")}
+              </>
+            )}
+          </Button>
+
+          {step === "review" ? (
+            <Button onClick={handleSubmit} disabled={isRecording || isRecordingConnected || isSubmitting}>
+              {t("common.confirm")}
+            </Button>
+          ) : (
+            <Button onClick={handleNext} className="gap-1">
+              {t("common.next")}
+              {dir === 'rtl' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1376,16 +1407,14 @@ export function RecordMovementDialog({
   if (isMobile) {
     return (
       <>
-        <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-8 overflow-y-auto">
-              {content}
-            </div>
-          </DrawerContent>
-        </Drawer>
+        <SafeFormDrawer open={open} onOpenChange={handleOpenChange} isDirty={isDirty} drawerContentClassName="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-8 overflow-y-auto">
+            {content}
+          </div>
+        </SafeFormDrawer>
         <AddPartnerDialog
           open={showPartnerRequest}
           onOpenChange={setShowPartnerRequest}
@@ -1399,14 +1428,17 @@ export function RecordMovementDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-          <DialogHeader className="shrink-0">
-            <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
-          </DialogHeader>
-          {content}
-        </DialogContent>
-      </Dialog>
+      <SafeFormDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        isDirty={isDirty}
+        className="sm:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden"
+      >
+        <DialogHeader className="shrink-0">
+          <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
+        </DialogHeader>
+        {content}
+      </SafeFormDialog>
       <AddPartnerDialog
         open={showPartnerRequest}
         onOpenChange={setShowPartnerRequest}
