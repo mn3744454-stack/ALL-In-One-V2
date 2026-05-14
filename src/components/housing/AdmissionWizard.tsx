@@ -155,18 +155,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   };
 
   const stepIndex = STEPS.indexOf(step);
-  const canGoNext = () => {
-    switch (step) {
-      case 'horse': return !!form.horseId;
-      case 'client': return true;
-      case 'housing': return !!form.branchId;
-      case 'plan': return true;
-      case 'rates': return true;
-      case 'details': return true;
-      case 'review': return true;
-      default: return false;
+
+  const getStepIssues = (s: Step): string[] => {
+    switch (s) {
+      case 'horse': return form.horseId ? [] : [t('housing.admissions.wizard.selectHorse')];
+      case 'housing': return form.branchId ? [] : [t('housing.admissions.wizard.branch')];
+      default: return [];
     }
   };
+  const canGoNext = () => getStepIssues(step).length === 0;
+
+  const [attempted, setAttempted] = useState(false);
+  const currentIssues = getStepIssues(step);
+
+  const dirtyValue = useMemo(() => ({ form, staffRows }), [form, staffRows]);
+  const { isDirty } = useDirtyForm(dirtyValue, open);
 
   const goNext = () => {
     const idx = STEPS.indexOf(step);
