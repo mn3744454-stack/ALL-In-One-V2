@@ -1407,16 +1407,14 @@ export function RecordMovementDialog({
   if (isMobile) {
     return (
       <>
-        <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="max-h-[90vh]">
-            <DrawerHeader>
-              <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
-            </DrawerHeader>
-            <div className="px-4 pb-8 overflow-y-auto">
-              {content}
-            </div>
-          </DrawerContent>
-        </Drawer>
+        <SafeFormDrawer open={open} onOpenChange={handleOpenChange} isDirty={isDirty} drawerContentClassName="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle>{t("movement.form.recordMovement")}</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-8 overflow-y-auto">
+            {content}
+          </div>
+        </SafeFormDrawer>
         <AddPartnerDialog
           open={showPartnerRequest}
           onOpenChange={setShowPartnerRequest}
@@ -1430,14 +1428,17 @@ export function RecordMovementDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
-          <DialogHeader className="shrink-0">
-            <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
-          </DialogHeader>
-          {content}
-        </DialogContent>
-      </Dialog>
+      <SafeFormDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        isDirty={isDirty}
+        className="sm:max-w-4xl max-h-[85vh] flex flex-col overflow-hidden"
+      >
+        <DialogHeader className="shrink-0">
+          <DialogTitle>{t("movement.form.recordMovement")}</DialogTitle>
+        </DialogHeader>
+        {content}
+      </SafeFormDialog>
       <AddPartnerDialog
         open={showPartnerRequest}
         onOpenChange={setShowPartnerRequest}
