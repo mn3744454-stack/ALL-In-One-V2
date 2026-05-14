@@ -258,50 +258,73 @@ export function RecordMovementDialog({
     );
   }, [eligibleHorses, horseSearch]);
 
-  const canGoNext = () => {
-    switch (step) {
+  const getStepIssues = (s: Step): string[] => {
+    const issues: string[] = [];
+    switch (s) {
       case "type":
-        return !!formData.movementType;
+        if (!formData.movementType) issues.push(t("movement.guards.selectMovementType"));
+        break;
       case "arrival_source":
-        return !!arrivalSource;
+        if (!arrivalSource) issues.push(t("movement.guards.selectArrivalSource"));
+        break;
       case "horse":
-        return !!formData.horseId;
+        if (!formData.horseId) issues.push(t("movement.guards.selectHorse"));
+        break;
       case "new_horse":
-        return !!newHorse.name.trim() && !!newHorse.gender;
-      case "location":
+        if (!newHorse.name.trim()) issues.push(t("movement.guards.horseName"));
+        if (!newHorse.gender) issues.push(t("movement.guards.horseGender"));
+        break;
+      case "location": {
         if (formData.destinationType === 'connected') {
-          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.connectedTenantId;
-          return false;
+          if (formData.movementType === 'out') {
+            if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+            if (!formData.connectedTenantId) issues.push(t("movement.guards.connectedPartner"));
+          } else {
+            issues.push(t("movement.guards.connectedDirectionUnsupported"));
+          }
+          break;
         }
         if (formData.destinationType === 'external') {
-          if (formData.movementType === 'out') return !!formData.fromLocationId && !!formData.toExternalLocationId;
-          if (formData.movementType === 'in') return !!formData.toLocationId;
-          return false;
+          if (formData.movementType === 'out') {
+            if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+            if (!formData.toExternalLocationId) issues.push(t("movement.guards.externalDestination"));
+          } else if (formData.movementType === 'in') {
+            if (!formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+          }
+          break;
         }
-        if (formData.movementType === "in") return !!formData.toLocationId;
-        if (formData.movementType === "out") return !!formData.fromLocationId;
+        if (formData.movementType === "in" && !formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+        if (formData.movementType === "out" && !formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
         if (formData.movementType === "transfer") {
-          if (!formData.fromLocationId || !formData.toLocationId) return false;
-          // H3: same-branch transfer is no longer permitted — users must use
-          // Housing Tasks to assign or change a unit inside the same branch.
-          if (formData.fromLocationId === formData.toLocationId) return false;
-          return true;
+          if (!formData.fromLocationId) issues.push(t("movement.guards.fromLocation"));
+          if (!formData.toLocationId) issues.push(t("movement.guards.toLocation"));
+          if (formData.fromLocationId && formData.toLocationId && formData.fromLocationId === formData.toLocationId) {
+            issues.push(t("movement.guards.sameBranchTransfer"));
+          }
         }
-        return false;
-      case "housing":
-        return true;
+        break;
+      }
       case "details":
-        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
-        return true;
       case "review":
-        if (requiresDepartureSubtype && !formData.subtypeChoice) return false;
-        return true;
-      default:
-        return false;
+        if (requiresDepartureSubtype && !formData.subtypeChoice) issues.push(t("movement.guards.departureSubtype"));
+        break;
     }
+    return issues;
   };
+  const canGoNext = () => getStepIssues(step).length === 0;
+
+  const [attempted, setAttempted] = useState(false);
+  const currentIssues = getStepIssues(step);
+
+  const dirtyValue = useMemo(
+    () => ({ formData, newHorse, arrivalSource, scheduleForLater, scheduledAt, movementDate }),
+    [formData, newHorse, arrivalSource, scheduleForLater, scheduledAt, movementDate]
+  );
+  const { isDirty } = useDirtyForm(dirtyValue, open);
 
   const handleNext = () => {
+    if (!canGoNext()) { setAttempted(true); return; }
+    setAttempted(false);
     const currentIndex = effectiveSteps.indexOf(step);
     if (currentIndex < effectiveSteps.length - 1) {
       setStep(effectiveSteps[currentIndex + 1]);
