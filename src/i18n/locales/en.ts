@@ -1658,7 +1658,21 @@ export const en = {
       outHelper: "Record a horse leaving care: going to an outside destination, sent to a connected partner, or going out temporarily and expected back.",
       transferHelper: "Move a horse between two internal branches. Do not use this to assign a housing unit — use Housing Tasks for that.",
     },
-    class: {
+    guards: {
+      sameBranchTransfer: "This is the same branch. Use Housing Tasks or Assign Housing Unit to reassign within the same branch.",
+    },
+    missingFields: {
+      movementType: "Movement type",
+      arrivalSource: "Arrival source",
+      horse: "Horse",
+      sourceLocation: "Source branch",
+      destinationLocation: "Destination branch",
+      externalDestination: "External destination",
+      connectedDestination: "Connected destination",
+      arrivalBranch: "Arrival branch",
+      departureSubtype: "Departure type",
+      newHorseName: "New horse name",
+    },
       arrival: "Arrival",
       admission_checkin: "Admission Check-in",
       checkout_departure: "Final Checkout",
