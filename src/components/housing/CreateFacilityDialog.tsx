@@ -1,8 +1,11 @@
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+  DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { useI18n } from "@/i18n";
 import { useFacilityAreas } from "@/hooks/housing/useFacilityAreas";
 import { useHousingUnits } from "@/hooks/housing/useHousingUnits";
@@ -29,19 +32,37 @@ export function CreateFacilityDialog({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [attempted, setAttempted] = useState(false);
+  const [formSnapshot, setFormSnapshot] = useState<FacilityFormData | null>(null);
   const formDataRef = useRef<FacilityFormData | null>(null);
 
   const handleFormDataChange = useCallback((data: FacilityFormData) => {
     formDataRef.current = data;
+    setFormSnapshot(data);
   }, []);
+  const handleValidityChange = useCallback((valid: boolean) => setIsValid(valid), []);
+  const handleMissingFieldsChange = useCallback((labels: string[]) => setMissingFields(labels), []);
 
-  const handleValidityChange = useCallback((valid: boolean) => {
-    setIsValid(valid);
-  }, []);
+  // Treat the form as dirty when name, code, or non-locked branch differs from
+  // its initial empty/locked baseline.
+  const dirtyValue = {
+    name: formSnapshot?.name ?? '',
+    nameAr: formSnapshot?.nameAr ?? '',
+    code: formSnapshot?.code ?? '',
+    branchId: lockedBranchId ? '' : (formSnapshot?.branchId ?? ''),
+    facilityType: formSnapshot?.facilityType ?? 'barn',
+    unitCount: formSnapshot?.unitCount ?? 6,
+  };
+  const { isDirty } = useDirtyForm(dirtyValue, open);
 
   const handleSubmit = async () => {
     const data = formDataRef.current;
-    if (!data || !data.name || !data.branchId) return;
+    if (!data || !data.name || !data.branchId) {
+      setAttempted(true);
+      return;
+    }
+    setAttempted(false);
     setIsSubmitting(true);
 
     try {
@@ -100,35 +121,47 @@ export function CreateFacilityDialog({
     }
   };
 
+  const showBar = attempted && missingFields.length > 0;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-5xl max-h-[90vh] p-0 gap-0">
-        {/* Fixed header */}
-        <div className="shrink-0 border-b px-6 py-4">
-          <DialogHeader>
-            <DialogTitle>{t('housing.create.title')}</DialogTitle>
-            <DialogDescription>{t('housing.create.description')}</DialogDescription>
-          </DialogHeader>
-        </div>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) setAttempted(false);
+        onOpenChange(o);
+      }}
+      isDirty={isDirty}
+      contentClassName="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-5xl max-h-[90vh] p-0 gap-0"
+    >
+      {/* Fixed header */}
+      <div className="shrink-0 border-b px-6 py-4">
+        <DialogHeader>
+          <DialogTitle>{t('housing.create.title')}</DialogTitle>
+          <DialogDescription>{t('housing.create.description')}</DialogDescription>
+        </DialogHeader>
+      </div>
 
-        {/* Scrollable body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
-          <FacilityCreationForm
-            lockedBranchId={lockedBranchId}
-            defaultBranchId={effectiveBranchId}
-            onFormDataChange={handleFormDataChange}
-            onValidityChange={handleValidityChange}
-          />
-        </div>
+      {/* Scrollable body */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+        <FacilityCreationForm
+          lockedBranchId={lockedBranchId}
+          defaultBranchId={effectiveBranchId}
+          onFormDataChange={handleFormDataChange}
+          onValidityChange={handleValidityChange}
+          onMissingFieldsChange={handleMissingFieldsChange}
+        />
+      </div>
 
-        {/* Fixed footer */}
-        <div className="shrink-0 border-t px-6 py-3 flex justify-end gap-2">
+      {/* Fixed footer */}
+      <div className="shrink-0 border-t px-6 py-3 space-y-3">
+        {showBar && <MissingRequirementsBar issues={missingFields} attempted />}
+        <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!isValid || isCreating || isSubmitting}
+            disabled={isCreating || isSubmitting}
           >
             {(isCreating || isSubmitting) ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -137,8 +170,8 @@ export function CreateFacilityDialog({
             )}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </SafeFormDialog>
   );
 }
 

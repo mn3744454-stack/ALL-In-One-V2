@@ -1,16 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Drawer,
-  DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { SafeFormDialog, SafeFormDrawer } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -156,18 +155,21 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
   };
 
   const stepIndex = STEPS.indexOf(step);
-  const canGoNext = () => {
-    switch (step) {
-      case 'horse': return !!form.horseId;
-      case 'client': return true;
-      case 'housing': return !!form.branchId;
-      case 'plan': return true;
-      case 'rates': return true;
-      case 'details': return true;
-      case 'review': return true;
-      default: return false;
+
+  const getStepIssues = (s: Step): string[] => {
+    switch (s) {
+      case 'horse': return form.horseId ? [] : [t('housing.admissions.wizard.selectHorse')];
+      case 'housing': return form.branchId ? [] : [t('housing.admissions.wizard.branch')];
+      default: return [];
     }
   };
+  const canGoNext = () => getStepIssues(step).length === 0;
+
+  const [attempted, setAttempted] = useState(false);
+  const currentIssues = getStepIssues(step);
+
+  const dirtyValue = useMemo(() => ({ form, staffRows }), [form, staffRows]);
+  const { isDirty } = useDirtyForm(dirtyValue, open);
 
   const goNext = () => {
     const idx = STEPS.indexOf(step);
@@ -793,27 +795,38 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     </div>
   );
 
+  const handleNextClick = () => {
+    if (!canGoNext()) { setAttempted(true); return; }
+    setAttempted(false);
+    goNext();
+  };
+
   const navigationFooter = (
-    <div className="flex justify-between">
-      <Button
-        variant="outline"
-        onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
-        size="sm"
-      >
-        <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
-        {stepIndex === 0 ? t('common.cancel') : t('common.back')}
-      </Button>
-      {step === 'review' ? (
-        <Button onClick={handleSubmit} disabled={isCreating} size="sm">
-          {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
-          <Check className="h-4 w-4 ms-1" />
-        </Button>
-      ) : (
-        <Button onClick={goNext} disabled={!canGoNext()} size="sm">
-          {t('common.next')}
-          <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
-        </Button>
+    <div className="space-y-3">
+      {attempted && currentIssues.length > 0 && (
+        <MissingRequirementsBar issues={currentIssues} attempted />
       )}
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
+          size="sm"
+        >
+          <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
+          {stepIndex === 0 ? t('common.cancel') : t('common.back')}
+        </Button>
+        {step === 'review' ? (
+          <Button onClick={handleSubmit} disabled={isCreating} size="sm">
+            {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
+            <Check className="h-4 w-4 ms-1" />
+          </Button>
+        ) : (
+          <Button onClick={handleNextClick} size="sm">
+            {t('common.next')}
+            <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 
