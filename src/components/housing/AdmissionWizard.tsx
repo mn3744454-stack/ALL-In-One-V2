@@ -795,27 +795,38 @@ export function AdmissionWizard({ open, onOpenChange, onSuccess, preselectedHors
     </div>
   );
 
+  const handleNextClick = () => {
+    if (!canGoNext()) { setAttempted(true); return; }
+    setAttempted(false);
+    goNext();
+  };
+
   const navigationFooter = (
-    <div className="flex justify-between">
-      <Button
-        variant="outline"
-        onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
-        size="sm"
-      >
-        <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
-        {stepIndex === 0 ? t('common.cancel') : t('common.back')}
-      </Button>
-      {step === 'review' ? (
-        <Button onClick={handleSubmit} disabled={isCreating} size="sm">
-          {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
-          <Check className="h-4 w-4 ms-1" />
-        </Button>
-      ) : (
-        <Button onClick={goNext} disabled={!canGoNext()} size="sm">
-          {t('common.next')}
-          <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
-        </Button>
+    <div className="space-y-3">
+      {attempted && currentIssues.length > 0 && (
+        <MissingRequirementsBar issues={currentIssues} attempted />
       )}
+      <div className="flex justify-between">
+        <Button
+          variant="outline"
+          onClick={stepIndex === 0 ? () => onOpenChange(false) : goBack}
+          size="sm"
+        >
+          <ChevronLeft className="h-4 w-4 me-1 rtl:rotate-180" />
+          {stepIndex === 0 ? t('common.cancel') : t('common.back')}
+        </Button>
+        {step === 'review' ? (
+          <Button onClick={handleSubmit} disabled={isCreating} size="sm">
+            {isCreating ? t('common.loading') : t('housing.admissions.wizard.confirmAdmission')}
+            <Check className="h-4 w-4 ms-1" />
+          </Button>
+        ) : (
+          <Button onClick={handleNextClick} size="sm">
+            {t('common.next')}
+            <ChevronRight className="h-4 w-4 ms-1 rtl:rotate-180" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 
