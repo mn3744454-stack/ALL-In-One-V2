@@ -1,3 +1,14 @@
+/**
+ * SafeFormDialog / SafeFormDrawer — primitives for the Safe Data-Entry Dialog
+ * Dismissal rule (see `docs/platform-ux-standards.md` §6).
+ *
+ * Current adoption is **scoped to Housing/Movement surfaces** only
+ * (CreateBranchWizard, CreateFacilityDialog, AdmissionWizard,
+ * RecordMovementDialog). Platform-wide rollout is pending a future
+ * dialog/wizard inventory audit.
+ *
+ * This JSDoc is documentation-only; no runtime behavior is changed by it.
+ */
 import * as React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";

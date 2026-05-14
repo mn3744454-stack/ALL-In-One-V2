@@ -1,3 +1,13 @@
+/**
+ * MissingRequirementsBar — primitive for the Visible Validation Guidance rule
+ * (see `docs/platform-ux-standards.md` §7).
+ *
+ * Current adoption is **scoped to Housing/Movement surfaces** only — the same
+ * four files that adopt SafeFormDialog. Platform-wide rollout is pending a
+ * future adoption audit.
+ *
+ * This JSDoc is documentation-only; no runtime behavior is changed by it.
+ */
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";

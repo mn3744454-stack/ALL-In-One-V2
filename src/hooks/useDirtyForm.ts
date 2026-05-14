@@ -1,3 +1,17 @@
+/**
+ * useDirtyForm — supporting hook for the Safe Data-Entry Dialog Dismissal rule
+ * (see `docs/platform-ux-standards.md` §6).
+ *
+ * Current adoption is **scoped to Housing/Movement surfaces** only. Platform-
+ * wide rollout is pending a future dialog/wizard inventory audit.
+ *
+ * Intended for **plain serializable form state** (primitives, plain objects,
+ * small arrays). It is NOT designed for `Date` instances, `Map`/`Set`, class
+ * instances, functions, or other non-serializable values without a custom
+ * comparison strategy — JSON serialization will lose or misrepresent them.
+ *
+ * This JSDoc is documentation-only; no runtime behavior is changed by it.
+ */
 import { useEffect, useRef, useState } from "react";
 
 /**
