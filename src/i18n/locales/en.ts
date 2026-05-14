@@ -76,6 +76,18 @@ export const en = {
     of: "of",
     tryAdjustingFilters: "Try adjusting your filters",
     viewAll: "View All",
+    dialog: {
+      discardChanges: {
+        title: "Discard changes?",
+        description: "You have unsaved changes. Closing now will discard them.",
+        confirm: "Discard & close",
+        keepEditing: "Keep editing",
+      },
+    },
+    validation: {
+      missing: "Required to continue:",
+      attemptedSubmit: "Some required fields are missing.",
+    },
   },
   workspace: {
     personal: "Personal",
@@ -2138,6 +2150,13 @@ export const en = {
       facilityNamePlaceholder: "Facility",
       addFacility: "Add Another Facility",
       skipFacilities: "Skip",
+      skipFacilitiesConfirm: {
+        title: "Skip facility setup?",
+        description: "Your branch '{branchName}' has already been saved. Closing now will discard the facility details you entered, but the branch itself will be kept.",
+        confirm: "Discard facility & close",
+        keepEditing: "Keep editing",
+      },
+      branchKeptToast: "Branch saved. You can add facilities later from Facilities.",
     },
     facilityTypes: {
       barn: "Barn",

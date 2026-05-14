@@ -2156,6 +2156,13 @@ export const ar = {
       facilityNamePlaceholder: "المرفق",
       addFacility: "إضافة مرفق آخر",
       skipFacilities: "تخطي",
+      skipFacilitiesConfirm: {
+        title: "تخطّي إعداد المرافق؟",
+        description: "تم حفظ الفرع '{branchName}' مسبقًا. الإغلاق الآن سيُلغي تفاصيل المرفق التي أدخلتها، لكن الفرع نفسه سيبقى محفوظًا.",
+        confirm: "تجاهل المرفق والإغلاق",
+        keepEditing: "متابعة التحرير",
+      },
+      branchKeptToast: "تم حفظ الفرع. يمكنك إضافة المرافق لاحقًا من قسم المرافق.",
     },
     facilityTypes: {
       barn: "حظيرة",
