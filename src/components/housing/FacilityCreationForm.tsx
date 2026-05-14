@@ -76,6 +76,8 @@ interface FacilityCreationFormProps {
   defaultBranchId?: string;
   onValidityChange?: (valid: boolean) => void;
   onFormDataChange?: (data: FacilityFormData) => void;
+  /** Publishes localized labels of currently-missing required fields. */
+  onMissingFieldsChange?: (labels: string[]) => void;
 }
 
 export function FacilityCreationForm({
@@ -83,6 +85,7 @@ export function FacilityCreationForm({
   defaultBranchId,
   onValidityChange,
   onFormDataChange,
+  onMissingFieldsChange,
 }: FacilityCreationFormProps) {
   const { t, lang: language } = useI18n();
   const { activeTenant } = useTenant();
@@ -147,10 +150,18 @@ export function FacilityCreationForm({
     actDimensions, actDiameter, actCovered, actFooting, actWashPoints, actWaterType,
   }), [branchId, facilityType, name, nameAr, code, roomConfig, capacity, areaSize, shade, hasWater, actDimensions, actDiameter, actCovered, actFooting, actWashPoints, actWaterType]);
 
+  const missingLabels = useMemo(() => {
+    const labels: string[] = [];
+    if (!branchId) labels.push(t('housing.facilities.branch'));
+    if (!name) labels.push(t('housing.facilities.name'));
+    return labels;
+  }, [branchId, name, t]);
+
   useMemo(() => {
     onFormDataChange?.(formData);
     onValidityChange?.(isValid);
-  }, [formData, isValid, onFormDataChange, onValidityChange]);
+    onMissingFieldsChange?.(missingLabels);
+  }, [formData, isValid, missingLabels, onFormDataChange, onValidityChange, onMissingFieldsChange]);
 
   return (
     <div className="space-y-5">
