@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
