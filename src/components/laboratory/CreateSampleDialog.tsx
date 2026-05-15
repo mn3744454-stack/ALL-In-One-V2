@@ -2515,7 +2515,7 @@ export function CreateSampleDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
+                onClick={step === 0 ? () => guardedOpenChange(false) : handlePrevious}
                 className="flex-1"
                 size="sm"
               >
