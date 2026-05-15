@@ -616,28 +616,45 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
       {/* Step indicators (desktop only) */}
       <div className="hidden md:flex items-center justify-center gap-2 mb-6">
-        {STEPS.map((step, index) => (
-          <button
-            key={step.id}
-            onClick={() => goToStep(index)}
-            disabled={index > currentStep}
-            className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
-              index === currentStep
-                ? "bg-gold text-navy"
-                : index < currentStep
-                ? "bg-gold/20 text-gold cursor-pointer hover:bg-gold/30"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {index + 1}
-          </button>
-        ))}
+        {STEPS.map((step, index) => {
+          const hasIssues = attemptedAdvance && stepIssues(index).length > 0;
+          return (
+            <button
+              key={step.id}
+              onClick={() => goToStep(index)}
+              disabled={index > currentStep}
+              className={`relative w-8 h-8 rounded-full text-xs font-medium transition-all ${
+                index === currentStep
+                  ? "bg-gold text-navy"
+                  : index < currentStep
+                  ? "bg-gold/20 text-gold cursor-pointer hover:bg-gold/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+              aria-label={hasIssues ? `${step.title} — missing fields` : step.title}
+            >
+              {index + 1}
+              {hasIssues && (
+                <span className="absolute -top-1 -end-1 w-3 h-3 rounded-full bg-destructive border-2 border-background" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Step Content */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto min-h-0 px-1">
         {renderStep()}
       </div>
+
+      {/* Missing requirements bar (current step) */}
+      {attemptedAdvance && currentStepIssues.length > 0 && (
+        <div className="pt-4">
+          <MissingRequirementsBar
+            issues={currentStepIssues}
+            attempted={attemptedAdvance}
+          />
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex items-center justify-between pt-6 pb-4 border-t mt-6">
@@ -652,12 +669,22 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         </Button>
 
         {currentStep === STEPS.length - 1 ? (
-          <Button onClick={handleSave} disabled={!canGoNext() || saving} className="min-w-[120px]">
+          <Button
+            onClick={() => {
+              if (currentStepIssues.length > 0) {
+                setAttemptedAdvance(true);
+                return;
+              }
+              handleSave();
+            }}
+            disabled={saving}
+            className="min-w-[120px]"
+          >
             {saving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
             {saving ? t('horses.wizard.saving') : (mode === "edit" ? t('horses.wizard.saveChanges') : t('horses.wizard.save'))}
           </Button>
         ) : (
-          <Button onClick={goNext} disabled={!canGoNext() || saving} className="min-w-[100px]">
+          <Button onClick={goNext} disabled={saving} className="min-w-[100px]">
             {t('horses.wizard.next')}
             <ChevronRight className="w-4 h-4 ms-2" />
           </Button>
@@ -670,25 +697,31 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="h-[90vh] overflow-hidden pb-safe">
-          <SheetHeader className="mb-4">
-            <SheetTitle>{wizardTitle}</SheetTitle>
-          </SheetHeader>
-          {content}
-        </SheetContent>
-      </Sheet>
+      <SafeFormDrawer
+        open={open}
+        onOpenChange={(next) => { if (!next) handleClose(); }}
+        isDirty={isDirty}
+        drawerContentClassName="h-[90vh] overflow-hidden pb-safe"
+      >
+        <SheetHeader className="mb-4">
+          <SheetTitle>{wizardTitle}</SheetTitle>
+        </SheetHeader>
+        {content}
+      </SafeFormDrawer>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl lg:max-w-5xl h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>{wizardTitle}</DialogTitle>
-        </DialogHeader>
-        {content}
-      </DialogContent>
-    </Dialog>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={(next) => { if (!next) handleClose(); }}
+      isDirty={isDirty}
+      className="max-w-4xl lg:max-w-5xl h-[85vh] overflow-hidden flex flex-col"
+    >
+      <DialogHeader>
+        <DialogTitle>{wizardTitle}</DialogTitle>
+      </DialogHeader>
+      {content}
+    </SafeFormDialog>
   );
 };
