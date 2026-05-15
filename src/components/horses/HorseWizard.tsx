@@ -261,7 +261,12 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const [currentStep, setCurrentStep] = useState(mode === "edit" ? 1 : 0); // Skip registration for edit
   const [data, setData] = useState<HorseWizardData>(initialData);
   const [saving, setSaving] = useState(false);
-  
+  const [attemptedAdvance, setAttemptedAdvance] = useState(false);
+
+  // Dirty tracking — only the wizard data form is tracked. Refs (scroll/visited)
+  // and UX flags (saving/currentStep) are intentionally excluded per S1b spec.
+  const { isDirty } = useDirtyForm(data, open);
+
   // Single source of truth: stable temp UUID for entire wizard session (create mode only)
   // Initialized once on mount, regenerated only when wizard opens fresh in create mode
   const [mediaTempUUID, setMediaTempUUID] = useState<string>(() => crypto.randomUUID());
