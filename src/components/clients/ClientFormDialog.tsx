@@ -45,7 +45,8 @@ export function ClientFormDialog({
 }: ClientFormDialogProps) {
   const { t, dir } = useI18n();
   const [loading, setLoading] = useState(false);
-  
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
   const [formData, setFormData] = useState<CreateClientData>({
     name: "",
     name_ar: "",
