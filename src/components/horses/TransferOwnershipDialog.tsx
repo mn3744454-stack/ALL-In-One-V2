@@ -362,9 +362,11 @@ export const TransferOwnershipDialog = ({
             className="flex-1 w-full sm:w-auto"
           />
           <div className="flex gap-2 sm:ms-auto">
-            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>
-              {t('common.cancel')}
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button onClick={handleTransfer} disabled={saving}>
               {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
             </Button>
