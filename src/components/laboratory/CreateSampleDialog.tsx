@@ -787,15 +787,85 @@ export function CreateSampleDialog({
   };
 
   const handleNext = () => {
+    if (!canProceed()) {
+      setAttemptedAdvance(true);
+      return;
+    }
+    setAttemptedAdvance(false);
     if (step < effectiveSteps.length - 1) {
       setStep(step + 1);
     }
   };
 
+  const handleSubmitClick = () => {
+    if (!canProceed()) {
+      setAttemptedAdvance(true);
+      return;
+    }
+    setAttemptedAdvance(false);
+    handleSubmit();
+  };
+
   const handlePrevious = () => {
+    setAttemptedAdvance(false);
     if (step > 0) {
       setStep(step - 1);
     }
+  };
+
+  // Reset attempted-advance whenever the active step changes or the dialog opens.
+  useEffect(() => {
+    setAttemptedAdvance(false);
+  }, [step, open]);
+
+  // Step-scoped issue messages, derived from the same gates as canProceed().
+  // canProceed remains the single source of truth — this only surfaces *why*.
+  const getStepIssues = (): string[] => {
+    const currentStep = effectiveSteps[step];
+    const issues: string[] = [];
+    switch (currentStep?.key) {
+      case 'client':
+        if (isPrimaryLabTenant) {
+          if (formData.clientMode === 'none' && formData.no_client_reason.trim().length < 5) {
+            issues.push(t('laboratory.createSample.missing.enterNoClientReason'));
+          }
+          if (formData.clientMode === 'registered' && !formData.client_id) {
+            issues.push(t('laboratory.createSample.missing.selectClient'));
+          }
+          if (formData.clientMode === 'new' && !formData.client_id) {
+            issues.push(t('laboratory.createSample.missing.enterWalkInClientName'));
+          }
+        }
+        break;
+      case 'horses':
+        if (formData.selectedHorses.length === 0) {
+          issues.push(t('laboratory.createSample.missing.addHorseOrSubject'));
+        }
+        break;
+      case 'basic':
+        if (!formData.collection_date) {
+          issues.push(t('laboratory.createSample.missing.setCollectionDate'));
+        }
+        break;
+      case 'details':
+        if (!isPrimaryLabTenant && formData.clientMode === 'walkin' && formData.walkInClient.client_name.trim().length === 0) {
+          issues.push(t('laboratory.createSample.missing.enterWalkInClientName'));
+        }
+        break;
+      case 'checkout':
+        if (!skipCheckout && requirePricesForCheckout && hasMissingPrices) {
+          issues.push(t('laboratory.createSample.missing.completeRequiredPrices'));
+        }
+        break;
+      case 'credits':
+        if (creditsEnabled && (wallet?.balance || 0) < formData.selectedHorses.length) {
+          issues.push(t('laboratory.createSample.missing.insufficientCredits'));
+        }
+        break;
+      default:
+        break;
+    }
+    return issues;
   };
 
   // Build client data based on client mode
