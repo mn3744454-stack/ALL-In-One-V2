@@ -1,12 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
+  DialogClose,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,6 +120,35 @@ export function RecordPaymentDialog({
   const isOverpayment = summary ? totalPayment > summary.outstandingAmount + 0.01 : false;
   const isValidPayment = totalPayment > 0 && !isOverpayment;
 
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const { isDirty } = useDirtyForm(rows, open);
+
+  const hasInvalidAmount = useMemo(
+    () =>
+      rows.some((r) => {
+        if (r.amount === "") return false;
+        const v = parseFloat(r.amount);
+        return Number.isNaN(v) || v < 0;
+      }),
+    [rows],
+  );
+  const hasMissingMethod = useMemo(
+    () => rows.some((r) => parseFloat(r.amount) > 0 && !r.method),
+    [rows],
+  );
+
+  const missingIssues = useMemo<string[]>(() => {
+    const issues: string[] = [];
+    if (totalPayment <= 0) issues.push(t("finance.payments.missing.amount"));
+    if (hasInvalidAmount) issues.push(t("finance.payments.missing.invalidAmount"));
+    if (hasMissingMethod) issues.push(t("finance.payments.missing.method"));
+    return issues;
+  }, [totalPayment, hasInvalidAmount, hasMissingMethod, t]);
+
   // Handlers
   const addRow = () => {
     setRows([...rows, { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" }]);
@@ -140,7 +171,10 @@ export function RecordPaymentDialog({
   };
 
   const handleSubmit = async () => {
-    if (!canRecordPayment || !isValidPayment) return;
+    if (!canRecordPayment) return;
+    setAttemptedSubmit(true);
+
+    if (!isValidPayment || missingIssues.length > 0) return;
 
     const payments: PaymentEntry[] = rows
       .filter((r) => parseFloat(r.amount) > 0)
@@ -164,8 +198,13 @@ export function RecordPaymentDialog({
   const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      dir={dir}
+    >
         {/* Sticky Header */}
         <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
@@ -414,34 +453,40 @@ export function RecordPaymentDialog({
         </div>
 
         {/* Sticky Footer */}
-        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isRecording}
-          >
-            {t("common.cancel")}
-          </Button>
+        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row sm:items-center">
           {!summary?.isPaid && (
-            <Button
-              onClick={handleSubmit}
-              disabled={!isValidPayment || isRecording || !canRecordPayment}
-            >
-              {isRecording ? (
-                <>
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                  {t("common.loading")}
-                </>
-              ) : (
-                <>
-                  <DollarSign className="h-4 w-4 me-2" />
-                  {t("finance.payments.recordPayment")}
-                </>
-              )}
-            </Button>
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+              className="flex-1 w-full sm:w-auto"
+            />
           )}
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isRecording}>
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            {!summary?.isPaid && (
+              <Button
+                onClick={handleSubmit}
+                disabled={isRecording || !canRecordPayment}
+              >
+                {isRecording ? (
+                  <>
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    {t("common.loading")}
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="h-4 w-4 me-2" />
+                    {t("finance.payments.recordPayment")}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }

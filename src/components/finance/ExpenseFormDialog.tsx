@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useEffect, useMemo, useState } from "react";
+import { DialogClose, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,16 +42,41 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   });
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Reset attempted flag and form on close.
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  // Serializable snapshot for dirty tracking — never pass raw File to useDirtyForm.
+  const dirtySnapshot = useMemo(
+    () => ({
+      ...formData,
+      hasReceipt: !!receiptFile,
+      receiptName: receiptFile?.name ?? "",
+    }),
+    [formData, receiptFile],
+  );
+  const { isDirty } = useDirtyForm(dirtySnapshot, open);
+
+  const amountValue = parseFloat(formData.amount);
+  const amountValid = formData.amount !== "" && !Number.isNaN(amountValue) && amountValue > 0;
+
+  const missingIssues = useMemo<string[]>(() => {
+    const issues: string[] = [];
+    if (!formData.category) issues.push(t("finance.expenses.missing.category"));
+    if (!amountValid) issues.push(t("finance.expenses.missing.amount"));
+    return issues;
+  }, [formData.category, amountValid, t]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
         toast.error(t("finance.expenses.invalidFileType"));
         return;
       }
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast.error(t("finance.expenses.fileTooLarge"));
         return;
@@ -65,17 +93,14 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
       const ext = receiptFile.name.split(".").pop();
       const path = `${activeTenant.tenant.id}/expenses/${expenseId}/${Date.now()}.${ext}`;
 
-      // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from("horse-media")
         .upload(path, receiptFile);
 
       if (uploadError) throw uploadError;
 
-      // Get current user
       const { data: user } = await supabase.auth.getUser();
 
-      // Create media_asset record
       const { data: asset, error: assetError } = await supabase
         .from("media_assets" as any)
         .insert({
@@ -108,19 +133,19 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTenant?.tenant.id) return;
+    setAttemptedSubmit(true);
+
+    if (missingIssues.length > 0) {
+      toast.error(t("common.validation.attemptedSubmit"));
+      return;
+    }
 
     try {
-      // Validate required fields
-      if (!formData.category || !formData.amount) {
-        toast.error(t("common.required"));
-        return;
-      }
-
       const input: CreateExpenseInput = {
         tenant_id: activeTenant.tenant.id,
         category: formData.category,
         description: formData.description || undefined,
-        amount: parseFloat(formData.amount),
+        amount: amountValue,
         expense_date: formData.expense_date,
         vendor_name: formData.vendor_name || undefined,
         notes: formData.notes || undefined,
@@ -129,11 +154,9 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
 
       const expense = await createExpense(input);
 
-      // Upload receipt if provided
       if (receiptFile && expense) {
         const assetId = await uploadReceipt(expense.id);
         if (assetId) {
-          // Update expense with receipt asset ID
           await supabase
             .from("expenses" as any)
             .update({ receipt_asset_id: assetId })
@@ -161,8 +184,12 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const isLoading = isCreating || uploading;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-lg max-h-[90vh] flex flex-col"
+    >
         <DialogHeader className="sticky top-0 z-10 bg-background pb-4 border-b -mx-6 px-6 -mt-2 pt-2">
           <DialogTitle>{t("finance.expenses.create")}</DialogTitle>
         </DialogHeader>
@@ -209,6 +236,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 placeholder="0.00"
+                aria-invalid={attemptedSubmit && !amountValid}
               />
             </div>
             <div className="space-y-2">
@@ -266,7 +294,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
                 {/* Mobile camera capture */}
                 <label className="sm:hidden flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors">
                   <Camera className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{t("finance.expenses.takePhoto") || "Take Photo"}</span>
+                  <span className="text-sm text-muted-foreground">{t("finance.expenses.takePhoto")}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -290,17 +318,25 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
             />
           </div>
 
-          <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-              {t("common.create")}
-            </Button>
+          <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2 flex-col gap-3 sm:flex-row sm:items-center">
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+              className="flex-1 w-full sm:w-auto"
+            />
+            <div className="flex gap-2 sm:ms-auto">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  {t("common.cancel")}
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                {t("common.create")}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }

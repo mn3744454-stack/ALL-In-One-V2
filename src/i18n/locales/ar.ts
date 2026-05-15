@@ -3559,6 +3559,15 @@ export const ar = {
       cannotDeleteApproved: "لا يمكن حذف فاتورة معتمدة. استخدم الإلغاء بدلاً من ذلك.",
       horse: "الحصان",
       sample: "العينة",
+      missing: {
+        client: "اختر عميلاً",
+        issueDate: "أدخل تاريخ الإصدار",
+        dueDate: "أدخل تاريخ الاستحقاق",
+        lineItems: "أضف بنداً صالحاً واحداً على الأقل",
+        lineItemDescription: "كل بند يحتاج إلى وصف",
+        lineItemQuantity: "يجب أن تكون الكمية أكبر من صفر",
+        lineItemUnitPrice: "لا يمكن أن يكون السعر سالباً",
+      },
     },
     expenses: {
       title: "المصروفات",
@@ -3609,6 +3618,11 @@ export const ar = {
       invalidFileType: "يُسمح فقط بالصور وملفات PDF",
       fileTooLarge: "الملف كبير جداً (الحد الأقصى 10 ميجابايت)",
       uploadFailed: "فشل في رفع الإيصال",
+      takePhoto: "التقاط صورة",
+      missing: {
+        category: "اختر فئة المصروف",
+        amount: "أدخل مبلغاً صحيحاً",
+      },
     },
     ledger: {
       title: "دفتر العملاء",
@@ -3657,6 +3671,11 @@ export const ar = {
       viewPayments: "عرض المدفوعات",
       paymentHistory: "سجل المدفوعات",
       noPayments: "لم يتم تسجيل أي دفعات بعد",
+      missing: {
+        amount: "أدخل مبلغ دفعة واحدة على الأقل أكبر من صفر",
+        method: "اختر طريقة الدفع",
+        invalidAmount: "يجب أن يكون المبلغ رقماً موجباً",
+      },
     },
     paymentMethods: {
       cash: "نقدي",

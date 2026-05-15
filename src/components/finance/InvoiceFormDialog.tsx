@@ -1,5 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DialogClose, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -188,9 +191,48 @@ export function InvoiceFormDialog({
 
   const invalidateAllFinance = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant.id);
 
+  // Build the missing-requirements list. Computed every render; cheap.
+  const missingIssues = useMemo<string[]>(() => {
+    const issues: string[] = [];
+    if (!formData.client_id) issues.push(t("finance.invoices.missing.client"));
+    if (!formData.issue_date) issues.push(t("finance.invoices.missing.issueDate"));
+    if (!formData.due_date) issues.push(t("finance.invoices.missing.dueDate"));
+    const validItems = lineItems.filter(
+      (i) => i.description && i.quantity > 0 && i.unit_price >= 0 && i.total_price > 0
+    );
+    if (validItems.length === 0) {
+      issues.push(t("finance.invoices.missing.lineItems"));
+    } else {
+      if (lineItems.some((i) => !i.description?.trim())) {
+        issues.push(t("finance.invoices.missing.lineItemDescription"));
+      }
+      if (lineItems.some((i) => i.quantity <= 0)) {
+        issues.push(t("finance.invoices.missing.lineItemQuantity"));
+      }
+      if (lineItems.some((i) => i.unit_price < 0)) {
+        issues.push(t("finance.invoices.missing.lineItemUnitPrice"));
+      }
+    }
+    return issues;
+  }, [formData.client_id, formData.issue_date, formData.due_date, lineItems, t]);
+
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const { isDirty } = useDirtyForm({ formData, lineItems }, open);
+  // Reset attempted-submit flag when dialog reopens.
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTenant?.tenant.id) return;
+    setAttemptedSubmit(true);
+
+    if (missingIssues.length > 0) {
+      // In-surface guidance is now shown via MissingRequirementsBar; toast kept as supplemental.
+      toast.error(t("common.validation.attemptedSubmit"));
+      return;
+    }
 
     try {
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
@@ -286,8 +328,12 @@ export function InvoiceFormDialog({
   const isLoading = isCreating || isUpdating;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0"
+    >
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {isEditMode ? t("finance.invoices.edit") : t("finance.invoices.create")}
@@ -412,17 +458,25 @@ export function InvoiceFormDialog({
             </div>
           </div>
 
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-              {isEditMode ? t("common.save") : t("finance.invoices.createDraft")}
-            </Button>
+          <DialogFooter className="px-6 py-4 border-t shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+              className="flex-1 w-full sm:w-auto"
+            />
+            <div className="flex gap-2 sm:ms-auto">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  {t("common.cancel")}
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                {isEditMode ? t("common.save") : t("finance.invoices.createDraft")}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
