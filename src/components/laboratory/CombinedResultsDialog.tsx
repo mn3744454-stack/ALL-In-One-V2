@@ -273,8 +273,28 @@ export function CombinedResultsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Prevent accidental dismissal mid-PDF-generation; allow normal close
+        // paths otherwise. CombinedResultsDialog is read-only (no form input),
+        // so no dirty-state guarding is needed.
+        if (!next && isGeneratingPDF) return;
+        onOpenChange(next);
+      }}
+    >
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
+        onPointerDownOutside={(e) => {
+          if (isGeneratingPDF) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isGeneratingPDF) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (isGeneratingPDF) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FlaskConical className="h-5 w-5" />
