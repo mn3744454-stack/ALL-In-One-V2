@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import {
-  Dialog,
-  DialogContent,
+  DialogClose,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,6 +62,7 @@ export function CreateVetVisitDialog({
   const { t } = useI18n();
   const { horses } = useHorses();
   const [submitting, setSubmitting] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   const {
     register,
@@ -86,8 +89,46 @@ export function CreateVetVisitDialog({
   const selectedTime = watch("scheduled_time");
   const selectedHorses = watch("horse_ids");
   const visitType = watch("visit_type");
+  const watchedTitle = watch("title");
+
+  // Normalize Date to ISO string for dirty-form snapshot (raw Date objects are non-serializable)
+  const dirtySnapshot = {
+    title: watchedTitle || "",
+    visit_type: visitType,
+    scheduled_date: selectedDate?.toISOString?.() ?? null,
+    scheduled_time: selectedTime,
+    vet_name: watch("vet_name") || "",
+    vet_phone: watch("vet_phone") || "",
+    notes: watch("notes") || "",
+    estimated_cost: watch("estimated_cost") || "",
+    horse_ids: selectedHorses || [],
+  };
+
+  const { isDirty } = useDirtyForm(dirtySnapshot, open);
+
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      reset();
+    }
+  }, [open, reset]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!watchedTitle?.trim()) issues.push(t("common.validation.enterTreatmentDetails"));
+    if (!selectedHorses || selectedHorses.length === 0) issues.push(t("common.validation.selectHorsePatient"));
+    if (!selectedDate) issues.push(t("common.validation.selectScheduledDate"));
+    return issues;
+  }, [watchedTitle, selectedHorses, selectedDate, t]);
 
   const handleFormSubmit = async (data: FormData) => {
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) {
+      return;
+    }
     setSubmitting(true);
     try {
       const [hours, minutes] = data.scheduled_time.split(":").map(Number);
@@ -121,169 +162,175 @@ export function CreateVetVisitDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>{t("vetVisits.scheduleVisit")}</DialogTitle>
-        </DialogHeader>
+    <SafeFormDialog open={open} onOpenChange={onOpenChange} isDirty={isDirty}>
+      <DialogHeader>
+        <DialogTitle>{t("vetVisits.scheduleVisit")}</DialogTitle>
+      </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-hidden flex flex-col">
-          <ScrollArea className="flex-1 px-1">
-            <div className="space-y-4 pb-4">
-              {/* Title */}
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-hidden flex flex-col">
+        <ScrollArea className="flex-1 px-1">
+          <div className="space-y-4 pb-4">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">{t("vetVisits.fields.title")} *</Label>
+              <Input
+                id="title"
+                {...register("title", { required: true })}
+                placeholder="e.g., Annual checkup, Emergency call..."
+              />
+              {errors.title && (
+                <p className="text-sm text-destructive">{t("common.required")}</p>
+              )}
+            </div>
+
+            {/* Visit Type */}
+            <div className="space-y-2">
+              <Label>{t("vetVisits.fields.visitType")}</Label>
+              <Select value={visitType} onValueChange={(v) => setValue("visit_type", v as VetVisitType)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {visitTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {t(`vetVisits.types.${type}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date & Time */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="title">{t("vetVisits.fields.title")} *</Label>
+                <Label>{t("vetVisits.fields.scheduledDate")} *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="me-2 h-4 w-4" />
+                      {selectedDate ? formatStandardDate(selectedDate) : t("vetVisits.placeholders.pickDate")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setValue("scheduled_date", date)}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("vetVisits.fields.time")}</Label>
                 <Input
-                  id="title"
-                  {...register("title", { required: true })}
-                  placeholder="e.g., Annual checkup, Emergency call..."
-                />
-                {errors.title && (
-                  <p className="text-sm text-destructive">{t("common.required")}</p>
-                )}
-              </div>
-
-              {/* Visit Type */}
-              <div className="space-y-2">
-                <Label>{t("vetVisits.fields.visitType")}</Label>
-                <Select value={visitType} onValueChange={(v) => setValue("visit_type", v as VetVisitType)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visitTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {t(`vetVisits.types.${type}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>{t("vetVisits.fields.scheduledDate")} *</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="me-2 h-4 w-4" />
-                        {selectedDate ? formatStandardDate(selectedDate) : t("vetVisits.placeholders.pickDate")}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setValue("scheduled_date", date)}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{t("vetVisits.fields.time")}</Label>
-                  <Input
-                    type="time"
-                    value={selectedTime}
-                    onChange={(e) => setValue("scheduled_time", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Vet Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="vet_name">{t("vetVisits.fields.vetName")}</Label>
-                  <Input
-                    id="vet_name"
-                    {...register("vet_name")}
-                    placeholder={t("vetVisits.placeholders.vetName")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vet_phone">{t("vetVisits.fields.vetPhone")}</Label>
-                  <Input
-                    id="vet_phone"
-                    {...register("vet_phone")}
-                    placeholder={t("vetVisits.placeholders.phone")}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>{t("vetVisits.fields.horses")}</Label>
-                <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
-                  {horses.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">{t("vetVisits.noHorsesAvailable")}</p>
-                  ) : (
-                    horses.map((horse) => (
-                      <div key={horse.id} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`horse-${horse.id}`}
-                          checked={selectedHorses?.includes(horse.id)}
-                          onCheckedChange={() => toggleHorse(horse.id)}
-                        />
-                        <label
-                          htmlFor={`horse-${horse.id}`}
-                          className="text-sm cursor-pointer flex-1"
-                        >
-                          {horse.name}
-                        </label>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {selectedHorses?.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedHorses.length} {t("vetVisits.horsesSelected")}
-                  </p>
-                )}
-              </div>
-
-              {/* Estimated Cost */}
-              <div className="space-y-2">
-                <Label htmlFor="estimated_cost">{t("vetVisits.fields.estimatedCost")}</Label>
-                <Input
-                  id="estimated_cost"
-                  type="number"
-                  step="0.01"
-                  {...register("estimated_cost")}
-                  placeholder="0.00"
-                />
-              </div>
-
-              {/* Notes */}
-              <div className="space-y-2">
-                <Label htmlFor="notes">{t("vetVisits.fields.notes")}</Label>
-                <Textarea
-                  id="notes"
-                  {...register("notes")}
-                  placeholder={t("vetVisits.placeholders.notes")}
-                  rows={3}
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setValue("scheduled_time", e.target.value)}
                 />
               </div>
             </div>
-          </ScrollArea>
 
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
+            {/* Vet Info */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="vet_name">{t("vetVisits.fields.vetName")}</Label>
+                <Input
+                  id="vet_name"
+                  {...register("vet_name")}
+                  placeholder={t("vetVisits.placeholders.vetName")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vet_phone">{t("vetVisits.fields.vetPhone")}</Label>
+                <Input
+                  id="vet_phone"
+                  {...register("vet_phone")}
+                  placeholder={t("vetVisits.placeholders.phone")}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>{t("vetVisits.fields.horses")}</Label>
+              <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+                {horses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("vetVisits.noHorsesAvailable")}</p>
+                ) : (
+                  horses.map((horse) => (
+                    <div key={horse.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`horse-${horse.id}`}
+                        checked={selectedHorses?.includes(horse.id)}
+                        onCheckedChange={() => toggleHorse(horse.id)}
+                      />
+                      <label
+                        htmlFor={`horse-${horse.id}`}
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        {horse.name}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+              {selectedHorses?.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {selectedHorses.length} {t("vetVisits.horsesSelected")}
+                </p>
+              )}
+            </div>
+
+            {/* Estimated Cost */}
+            <div className="space-y-2">
+              <Label htmlFor="estimated_cost">{t("vetVisits.fields.estimatedCost")}</Label>
+              <Input
+                id="estimated_cost"
+                type="number"
+                step="0.01"
+                {...register("estimated_cost")}
+                placeholder="0.00"
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes">{t("vetVisits.fields.notes")}</Label>
+              <Textarea
+                id="notes"
+                {...register("notes")}
+                placeholder={t("vetVisits.placeholders.notes")}
+                rows={3}
+              />
+            </div>
+          </div>
+        </ScrollArea>
+
+        <div className="flex flex-col gap-3 pt-4 border-t shrink-0">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+          />
+          <div className="flex justify-end gap-2">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
             <Button type="submit" disabled={submitting}>
               {submitting && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
               {t("vetVisits.scheduleVisit")}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </form>
+    </SafeFormDialog>
   );
 }
