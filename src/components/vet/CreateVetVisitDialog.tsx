@@ -27,11 +27,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useHorses } from "@/hooks/useHorses";
 import { cn } from "@/lib/utils";
+import { BilingualName } from "@/components/ui/BilingualName";
 import type { CreateVetVisitData, VetVisitType } from "@/hooks/vet/useVetVisits";
 
 interface CreateVetVisitDialogProps {
