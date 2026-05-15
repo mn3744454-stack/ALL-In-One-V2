@@ -135,9 +135,23 @@ export function EmployeeFormDialog({
     }
   }, [open, employee]);
 
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const { isDirty } = useDirtyForm({ formData, phones }, open);
+
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.full_name.trim()) issues.push(t('common.validation.enterEmployeeName'));
+    return issues;
+  }, [formData.full_name, t]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.full_name.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     // Build save payload: structured `phones` is canonical; mirror primary
     // into legacy `phone` for compatibility with surfaces still reading it.
