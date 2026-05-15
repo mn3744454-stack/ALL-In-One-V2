@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
+  DialogClose,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +43,7 @@ export function LabHorseFormDialog({
   const { t } = useI18n();
   const { createLabHorse, isCreating } = useLabHorses({});
   const { mutateAsync: createLink, isPending: isLinking } = useCreatePartyHorseLink();
-  
+
   const [formData, setFormData] = useState<CreateLabHorseData>({
     name: "",
     name_ar: "",
@@ -54,9 +56,12 @@ export function LabHorseFormDialog({
     owner_email: "",
     client_id: defaultClientId,
   });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const { isDirty, resetBaseline } = useDirtyForm(formData, open);
 
   const resetForm = () => {
-    setFormData({
+    const next: CreateLabHorseData = {
       name: "",
       name_ar: "",
       passport_number: "",
@@ -67,12 +72,23 @@ export function LabHorseFormDialog({
       owner_phone: "",
       owner_email: "",
       client_id: defaultClientId,
-    });
+    };
+    setFormData(next);
+    setAttemptedSubmit(false);
+    resetBaseline(next);
   };
 
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name?.trim() && !formData.name_ar?.trim()) {
+      issues.push(t("common.validation.enterHorseNameEnOrAr"));
+    }
+    return issues;
+  }, [formData.name, formData.name_ar, t]);
+
   const handleSubmit = async () => {
-    // Require at least one name
-    if (!formData.name?.trim() && !formData.name_ar?.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     // ARCHITECTURE NOTE: Do NOT write client_id to lab_horses table.
     // The party_horse_links junction table is the ONLY source of truth
@@ -124,24 +140,28 @@ export function LabHorseFormDialog({
           color: created.color_text || undefined,
         },
       };
-      
+
       onSuccess?.(newHorse);
       resetForm();
       onOpenChange(false);
     }
   };
 
-  const handleClose = () => {
-    resetForm();
-    onOpenChange(false);
-  };
-
-  const isFormValid = (formData.name?.trim() || formData.name_ar?.trim());
   const isSubmitting = isCreating || isLinking;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) {
+          // Reset on intentional close (after discard confirm or success)
+          resetForm();
+        }
+        onOpenChange(next);
+      }}
+      isDirty={isDirty}
+      className="max-w-lg max-h-[90vh] flex flex-col"
+    >
         <DialogHeader>
           <DialogTitle>
             {t("laboratory.labHorses.registerHorse")}
@@ -285,29 +305,29 @@ export function LabHorseFormDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4 me-2" />
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isFormValid || isSubmitting}
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin me-2" />
-            ) : (
-              <Check className="h-4 w-4 me-2" />
-            )}
-            {t("laboratory.labHorses.registerAndSelect")}
-          </Button>
+        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" disabled={isSubmitting}>
+                <X className="h-4 w-4 me-2" />
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            <Button onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin me-2" />
+              ) : (
+                <Check className="h-4 w-4 me-2" />
+              )}
+              {t("laboratory.labHorses.registerAndSelect")}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
