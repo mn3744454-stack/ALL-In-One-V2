@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,10 +57,11 @@ export const TransferOwnershipDialog = ({
   const [transferPercentage, setTransferPercentage] = useState("");
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   // Get existing owners (excluding the current one)
   const existingOwners = allOwnerships.filter(o => o.id !== fromOwnership.id);
-  
+
   // Get available owners (not already owners)
   const newOwnerOptions = availableOwners.filter(
     o => !allOwnerships.some(own => own.owner_id === o.id)
@@ -64,19 +69,37 @@ export const TransferOwnershipDialog = ({
 
   const maxTransfer = Number(fromOwnership.ownership_percentage);
 
+  const formState = { recipientType, recipientId, transferPercentage, effectiveDate };
+  const { isDirty } = useDirtyForm(formState, open);
+
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!recipientId) issues.push(t('common.validation.selectRecipient'));
+    const pct = parseFloat(transferPercentage);
+    if (!transferPercentage || isNaN(pct) || pct <= 0 || pct > maxTransfer) {
+      issues.push(t('common.validation.validTransferPercentage'));
+    }
+    return issues;
+  }, [recipientId, transferPercentage, maxTransfer, t]);
+
   const handleTransfer = async () => {
+    setAttemptedSubmit(true);
     const percentage = parseFloat(transferPercentage);
-    
+
     if (!recipientId) {
       toast({ title: t('common.error'), description: t('horses.ownership.selectRecipientError'), variant: "destructive" });
       return;
     }
 
     if (isNaN(percentage) || percentage <= 0 || percentage > maxTransfer) {
-      toast({ 
-        title: t('common.error'), 
-        description: t('horses.ownership.invalidPercentageMax').replace('{{max}}', String(maxTransfer)), 
-        variant: "destructive" 
+      toast({
+        title: t('common.error'),
+        description: t('horses.ownership.invalidPercentageMax').replace('{{max}}', String(maxTransfer)),
+        variant: "destructive"
       });
       return;
     }
@@ -224,9 +247,18 @@ export const TransferOwnershipDialog = ({
     setEffectiveDate(new Date().toISOString().split("T")[0]);
   };
 
+  const handleOpenChange = (next: boolean) => {
+    onOpenChange(next);
+    if (!next) resetForm();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
-      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty}
+      className="max-w-md max-h-[85vh] flex flex-col"
+    >
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {t('horses.ownership.transferOwnership')}
@@ -323,15 +355,23 @@ export const TransferOwnershipDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 gap-2 sm:gap-0 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={handleTransfer} disabled={saving || !recipientId || !transferPercentage}>
-            {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
-          </Button>
+        <DialogFooter className="shrink-0 gap-3 pt-4 border-t flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
+            <Button onClick={handleTransfer} disabled={saving}>
+              {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 };

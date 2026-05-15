@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '@/i18n';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
@@ -20,14 +20,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
-  Sheet,
-  SheetContent,
   SheetHeader,
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet';
+import { SafeFormDialog, SafeFormDrawer } from '@/components/ui/safe-form-dialog';
+import { useDirtyForm } from '@/hooks/useDirtyForm';
+import { MissingRequirementsBar } from '@/components/ui/missing-requirements-bar';
 import { User, Briefcase, Phone, Mail, Calendar, DollarSign, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Employee, HrEmployeeType, CreateEmployeeData } from '@/hooks/hr/useEmployees';
@@ -131,9 +133,23 @@ export function EmployeeFormDialog({
     }
   }, [open, employee]);
 
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const { isDirty } = useDirtyForm({ formData, phones }, open);
+
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.full_name.trim()) issues.push(t('common.validation.enterEmployeeName'));
+    return issues;
+  }, [formData.full_name, t]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.full_name.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     // Build save payload: structured `phones` is canonical; mirror primary
     // into legacy `phone` for compatibility with surfaces still reading it.
@@ -392,61 +408,89 @@ export function EmployeeFormDialog({
   );
 
   const footer = (
-    <div className="flex items-center justify-end gap-3">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => onOpenChange(false)}
-        disabled={isSubmitting}
-      >
-        {t('common.cancel')}
-      </Button>
-      <Button
-        onClick={handleSubmit}
-        disabled={!formData.full_name.trim() || isSubmitting}
-      >
-        {isSubmitting ? t('common.loading') : isEditing ? t('common.update') : t('common.create')}
-      </Button>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center w-full">
+      <MissingRequirementsBar
+        issues={attemptedSubmit ? missingIssues : []}
+        attempted={attemptedSubmit}
+        className="flex-1 w-full sm:w-auto"
+      />
+      <div className="flex items-center justify-end gap-3 sm:ms-auto">
+        <DialogClose asChild>
+          <Button type="button" variant="outline" disabled={isSubmitting}>
+            {t('common.cancel')}
+          </Button>
+        </DialogClose>
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? t('common.loading') : isEditing ? t('common.update') : t('common.create')}
+        </Button>
+      </div>
     </div>
   );
 
-  // Mobile: use bottom sheet
+  // Mobile: use safe bottom drawer (prevents swipe/scrim dismissal)
   if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[90vh] flex flex-col">
-          <SheetHeader>
-            <SheetTitle>
-              {isEditing ? t('hr.editEmployee') : t('hr.addEmployee')}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto py-4 px-1">
-            {formContent}
-          </div>
-          <SheetFooter className="pt-4 border-t">
-            {footer}
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  // Desktop: use dialog with wider layout
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[540px] max-h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>
+      <SafeFormDrawer
+        open={open}
+        onOpenChange={onOpenChange}
+        isDirty={isDirty}
+        drawerContentClassName="h-[90vh] flex flex-col"
+      >
+        <SheetHeader>
+          <SheetTitle>
             {isEditing ? t('hr.editEmployee') : t('hr.addEmployee')}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+        </SheetHeader>
         <div className="flex-1 overflow-y-auto py-4 px-1">
           {formContent}
         </div>
-        <DialogFooter>
-          {footer}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <SheetFooter className="pt-4 border-t">
+          <div className="flex flex-col gap-3 w-full">
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+            />
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? t('common.loading') : isEditing ? t('common.update') : t('common.create')}
+              </Button>
+            </div>
+          </div>
+        </SheetFooter>
+      </SafeFormDrawer>
+    );
+  }
+
+  // Desktop: safe dialog with wider layout
+  return (
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[540px] max-h-[90vh] flex flex-col"
+    >
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? t('hr.editEmployee') : t('hr.addEmployee')}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="flex-1 overflow-y-auto py-4 px-1">
+        {formContent}
+      </div>
+      <DialogFooter>
+        {footer}
+      </DialogFooter>
+    </SafeFormDialog>
   );
 }

@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +46,8 @@ export function ClientFormDialog({
 }: ClientFormDialogProps) {
   const { t, dir } = useI18n();
   const [loading, setLoading] = useState(false);
-  
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
   const [formData, setFormData] = useState<CreateClientData>({
     name: "",
     name_ar: "",
@@ -111,15 +116,28 @@ export function ClientFormDialog({
     }
   }, [open, client, initialName]);
 
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const { isDirty } = useDirtyForm({ formData, phones }, open);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name.trim()) issues.push(t("common.validation.enterClientName"));
+    return issues;
+  }, [formData.name, t]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     setLoading(true);
     try {
       // Get primary phone for legacy field
       const primaryPhone = phones.find(p => p.is_primary)?.number || phones[0]?.number || "";
-      
+
       // Build save data with phones array (will be stored as jsonb in DB)
       const saveData: CreateClientData & { phones?: PhoneEntry[] } = {
         ...formData,
@@ -127,7 +145,7 @@ export function ClientFormDialog({
       };
       // Add phones as extra field - hook will handle it
       (saveData as any).phones = phones;
-      
+
       const result = await onSave(saveData as CreateClientData);
       if (result) {
         onOpenChange(false);
@@ -140,8 +158,12 @@ export function ClientFormDialog({
   const isEdit = !!client;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="max-w-lg max-h-[90vh] flex flex-col"
+    >
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("clients.edit") : t("clients.create")}
@@ -319,15 +341,23 @@ export function ClientFormDialog({
           </div>
         </form>
 
-        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || !formData.name.trim()}>
-            {loading ? t("common.loading") : isEdit ? t("common.update") : t("common.create")}
-          </Button>
+        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? t("common.loading") : isEdit ? t("common.update") : t("common.create")}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
