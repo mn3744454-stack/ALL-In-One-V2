@@ -951,5 +951,3 @@ export function CreateResultDialog({
     </SafeFormDialog>
   );
 }
-  );
-}
