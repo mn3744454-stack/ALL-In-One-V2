@@ -3541,6 +3541,15 @@ export const en = {
       cannotDeleteApproved: "Cannot delete an approved invoice. Use Cancel instead.",
       horse: "Horse",
       sample: "Sample",
+      missing: {
+        client: "Select a client",
+        issueDate: "Enter an issue date",
+        dueDate: "Enter a due date",
+        lineItems: "Add at least one valid line item",
+        lineItemDescription: "Each line needs a description",
+        lineItemQuantity: "Quantity must be greater than zero",
+        lineItemUnitPrice: "Unit price cannot be negative",
+      },
     },
     expenses: {
       title: "Expenses",
@@ -3591,6 +3600,11 @@ export const en = {
       invalidFileType: "Only images and PDFs are allowed",
       fileTooLarge: "File is too large (max 10MB)",
       uploadFailed: "Failed to upload receipt",
+      takePhoto: "Take Photo",
+      missing: {
+        category: "Select an expense category",
+        amount: "Enter a valid amount",
+      },
     },
     ledger: {
       title: "Customer Ledger",
@@ -3639,6 +3653,11 @@ export const en = {
       viewPayments: "View Payments",
       paymentHistory: "Payment History",
       noPayments: "No payments recorded yet",
+      missing: {
+        amount: "Enter at least one payment amount greater than zero",
+        method: "Select a payment method",
+        invalidAmount: "Amount must be a positive number",
+      },
     },
     paymentMethods: {
       cash: "Cash",
