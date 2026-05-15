@@ -115,6 +115,8 @@ export const ar = {
       selectTreatmentCategory: "اختر فئة العلاج",
       selectTreatmentDate: "اختر تاريخ العلاج",
       enterTreatmentDetails: "أدخل تفاصيل العلاج",
+      enterHorseNameEnOrAr: "أدخل اسم الحصان بالإنجليزية أو العربية",
+      enterRejectionReason: "أدخل سبب الرفض",
     },
   },
   workspace: {
