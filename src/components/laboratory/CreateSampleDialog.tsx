@@ -2461,9 +2461,16 @@ export function CreateSampleDialog({
                   <User className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryClient")}</p>
-                    <p className="text-sm font-medium truncate">
-                      {selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
-                    </p>
+                    {(selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot) ? (
+                      <BilingualName
+                        name={selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot}
+                        nameAr={selectedClient?.name_ar ?? null}
+                        inline
+                        primaryClassName="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium truncate">{t("laboratory.catalog.summaryNotAvailable")}</p>
+                    )}
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
                     disabled={eagerResolving}
