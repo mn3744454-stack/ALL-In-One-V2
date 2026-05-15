@@ -94,6 +94,9 @@ export const en = {
       enterEmployeeName: "Enter the employee name",
       selectRecipient: "Select a recipient",
       validTransferPercentage: "Enter a valid transfer percentage",
+      enterRequiredName: "Enter the required name",
+      selectOwner: "Select an owner",
+      validOwnershipPercentage: "Enter a valid ownership percentage",
     },
   },
   workspace: {
