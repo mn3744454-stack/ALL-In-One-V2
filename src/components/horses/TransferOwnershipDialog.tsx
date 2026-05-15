@@ -354,15 +354,21 @@ export const TransferOwnershipDialog = ({
           </div>
         </div>
 
-        <DialogFooter className="shrink-0 gap-2 sm:gap-0 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={handleTransfer} disabled={saving || !recipientId || !transferPercentage}>
-            {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
-          </Button>
+        <DialogFooter className="shrink-0 gap-3 pt-4 border-t flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleTransfer} disabled={saving}>
+              {saving ? t('horses.ownership.transferring') : t('horses.ownership.transfer')}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 };
