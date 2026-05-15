@@ -1285,6 +1285,12 @@ export const en = {
       continueNext: "Continue to Next",
       finishLater: "Finish Later",
       allComplete: "All templates completed!",
+      missing: {
+        sample: "Select a sample",
+        template: "Select a result template",
+        requiredFields: "Complete required result fields",
+        stepInfo: "Complete the required information for this step",
+      },
     },
     
     // Bottom Navigation

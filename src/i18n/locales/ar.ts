@@ -1303,6 +1303,12 @@ export const ar = {
       continueNext: "المتابعة للتالي",
       finishLater: "الإنهاء لاحقاً",
       allComplete: "اكتملت جميع القوالب!",
+      missing: {
+        sample: "اختر العينة",
+        template: "اختر قالب النتيجة",
+        requiredFields: "أكمل الحقول المطلوبة في النتيجة",
+        stepInfo: "أكمل المعلومات المطلوبة في هذه الخطوة",
+      },
     },
     
     // Bottom Navigation

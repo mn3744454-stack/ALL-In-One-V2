@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,6 +84,21 @@ export function CreateResultDialog({
   const [editingResultId, setEditingResultId] = useState<string | null>(null);
   const [savedInSession, setSavedInSession] = useState<string[]>([]);
   const [sampleSearch, setSampleSearch] = useState('');
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Dirty-state snapshot — user-editable result entry only (excludes
+  // session/mode flags like savedInSession, editingResultId, step, loading).
+  const dirtySnapshot = useMemo(
+    () => ({
+      sampleId: selectedSample?.id ?? null,
+      templateId: selectedTemplate?.id ?? null,
+      resultData,
+      flags,
+      interpretation,
+    }),
+    [selectedSample?.id, selectedTemplate?.id, resultData, flags, interpretation],
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
 
   // Filter out fully completed samples (results_count >= templates_count)
   const samples = useMemo(() => {
@@ -252,10 +268,13 @@ export function CreateResultDialog({
         );
         
         if (stillRemaining.length > 0) {
+          // Reset baseline so the post-save 'next' step is not flagged dirty.
+          resetBaseline();
           // Move to "next" step to ask user what to do
           setStep(STEPS.findIndex(s => s.key === 'next'));
         } else {
-          // All templates completed
+          // All templates completed — bypass dirty guard for clean close.
+          resetBaseline();
           onOpenChange(false);
           onSuccess?.();
         }
@@ -274,7 +293,17 @@ export function CreateResultDialog({
       setFlags('normal');
       setInterpretation('');
       setEditingResultId(null);
+      setAttemptedSubmit(false);
       setStep(STEPS.findIndex(s => s.key === 'results'));
+      // Re-baseline against the freshly-prepared empty form so the next
+      // template entry starts clean.
+      resetBaseline({
+        sampleId: selectedSample?.id ?? null,
+        templateId: nextTemplate.id,
+        resultData: {},
+        flags: 'normal' as LabResultFlags,
+        interpretation: '',
+      });
     }
   };
 
@@ -803,9 +832,33 @@ export function CreateResultDialog({
   // Determine if we're on the "next" step (which has its own navigation)
   const isNextStep = STEPS[step].key === 'next';
 
+  // Visible validation: compute missing requirements for the current step.
+  const missingIssues = useMemo<string[]>(() => {
+    switch (STEPS[step].key) {
+      case 'sample':
+        return !selectedSample ? [t("laboratory.createResult.missing.sample")] : [];
+      case 'template':
+        return !selectedTemplate ? [t("laboratory.createResult.missing.template")] : [];
+      case 'results': {
+        if (!selectedTemplate) return [t("laboratory.createResult.missing.template")];
+        const requiredFields = selectedTemplate.fields.filter(f => f.required);
+        const anyMissing = requiredFields.some(
+          f => resultData[f.id] === undefined || resultData[f.id] === '',
+        );
+        return anyMissing ? [t("laboratory.createResult.missing.requiredFields")] : [];
+      }
+      default:
+        return [];
+    }
+  }, [step, selectedSample, selectedTemplate, resultData, t]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0"
+    >
         {/* Fixed Header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b">
           <DialogHeader>
@@ -852,7 +905,10 @@ export function CreateResultDialog({
 
         {/* Fixed Footer - hide on "next" step since it has its own buttons */}
         {!isNextStep && (
-          <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
+          <div className="flex-shrink-0 px-6 py-4 border-t bg-background space-y-3">
+            {attemptedSubmit && missingIssues.length > 0 && (
+              <MissingRequirementsBar issues={missingIssues} attempted />
+            )}
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -872,8 +928,14 @@ export function CreateResultDialog({
               
               {step < STEPS.findIndex(s => s.key === 'review') ? (
                 <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
+                  onClick={() => {
+                    if (!canProceed()) {
+                      setAttemptedSubmit(true);
+                      return;
+                    }
+                    setAttemptedSubmit(false);
+                    handleNext();
+                  }}
                   className="flex-1 min-h-11"
                 >
                   التالي
@@ -881,8 +943,15 @@ export function CreateResultDialog({
                 </Button>
               ) : step === STEPS.findIndex(s => s.key === 'review') ? (
                 <Button
-                  onClick={handleSubmit}
-                  disabled={loading || !canProceed()}
+                  onClick={() => {
+                    if (!canProceed()) {
+                      setAttemptedSubmit(true);
+                      return;
+                    }
+                    setAttemptedSubmit(false);
+                    handleSubmit();
+                  }}
+                  disabled={loading}
                   className="flex-1 min-h-11"
                 >
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -892,7 +961,6 @@ export function CreateResultDialog({
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
