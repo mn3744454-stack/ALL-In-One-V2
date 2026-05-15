@@ -477,5 +477,6 @@ export function RequestDetailDialog({
         preselectedTemplateId={createResultState.templateId}
       />
     )}
+    </>
   );
 }
