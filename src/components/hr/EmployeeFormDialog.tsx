@@ -23,8 +23,6 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {
-  Sheet,
-  SheetContent,
   SheetHeader,
   SheetTitle,
   SheetFooter,
