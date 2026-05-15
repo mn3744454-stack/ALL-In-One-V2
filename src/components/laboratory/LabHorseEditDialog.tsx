@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
+  DialogClose,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +30,7 @@ export function LabHorseEditDialog({
 }: LabHorseEditDialogProps) {
   const { t, dir } = useI18n();
   const { updateLabHorse, isUpdating } = useLabHorses({});
-  
+
   const [formData, setFormData] = useState<UpdateLabHorseData>({
     name: "",
     name_ar: "",
@@ -39,11 +41,14 @@ export function LabHorseEditDialog({
     owner_name: "",
     owner_phone: "",
   });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-  // Populate form when horse changes
+  const { isDirty, resetBaseline } = useDirtyForm(formData, open);
+
+  // Populate form when horse changes; rebaseline so seeded data isn't dirty.
   useEffect(() => {
-    if (horse) {
-      setFormData({
+    if (open && horse) {
+      const seeded: UpdateLabHorseData = {
         name: horse.name || "",
         name_ar: horse.name_ar || "",
         passport_number: horse.passport_number || "",
@@ -52,14 +57,26 @@ export function LabHorseEditDialog({
         color_text: horse.color_text || "",
         owner_name: horse.owner_name || "",
         owner_phone: horse.owner_phone || "",
-      });
+      };
+      setFormData(seeded);
+      setAttemptedSubmit(false);
+      resetBaseline(seeded);
     }
-  }, [horse]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [horse, open]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name?.trim() && !formData.name_ar?.trim()) {
+      issues.push(t("common.validation.enterHorseNameEnOrAr"));
+    }
+    return issues;
+  }, [formData.name, formData.name_ar, t]);
 
   const handleSubmit = async () => {
     if (!horse) return;
-    // Require at least one name
-    if (!formData.name?.trim() && !formData.name_ar?.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     const updated = await updateLabHorse(horse.id, {
       name: formData.name?.trim() || formData.name_ar?.trim() || "",
@@ -78,15 +95,16 @@ export function LabHorseEditDialog({
     }
   };
 
-  const handleClose = () => {
-    onOpenChange(false);
-  };
-
-  const isFormValid = (formData.name?.trim() || formData.name_ar?.trim());
+  const isFormValid = !!(formData.name?.trim() || formData.name_ar?.trim());
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col" dir={dir}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="max-w-lg max-h-[90vh] flex flex-col"
+      dir={dir}
+    >
         <DialogHeader>
           <DialogTitle>
             {t("laboratory.labHorses.editHorse")}
@@ -215,30 +233,37 @@ export function LabHorseEditDialog({
         </div>
 
         <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3 sm:flex-row flex-col">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={isUpdating}
-            className="w-full sm:w-auto"
-          >
-            <X className="h-4 w-4 me-2" />
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isFormValid || isUpdating}
-            className="w-full sm:w-auto"
-          >
-            {isUpdating ? (
-              <Loader2 className="h-4 w-4 animate-spin me-2" />
-            ) : (
-              <Check className="h-4 w-4 me-2" />
-            )}
-            {t("common.save")}
-          </Button>
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto w-full sm:w-auto">
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isUpdating}
+                className="w-full sm:w-auto"
+              >
+                <X className="h-4 w-4 me-2" />
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={handleSubmit}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              {isUpdating ? (
+                <Loader2 className="h-4 w-4 animate-spin me-2" />
+              ) : (
+                <Check className="h-4 w-4 me-2" />
+              )}
+              {t("common.save")}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
