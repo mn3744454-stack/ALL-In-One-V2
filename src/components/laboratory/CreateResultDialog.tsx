@@ -268,10 +268,13 @@ export function CreateResultDialog({
         );
         
         if (stillRemaining.length > 0) {
+          // Reset baseline so the post-save 'next' step is not flagged dirty.
+          resetBaseline();
           // Move to "next" step to ask user what to do
           setStep(STEPS.findIndex(s => s.key === 'next'));
         } else {
-          // All templates completed
+          // All templates completed — bypass dirty guard for clean close.
+          resetBaseline();
           onOpenChange(false);
           onSuccess?.();
         }
@@ -290,7 +293,17 @@ export function CreateResultDialog({
       setFlags('normal');
       setInterpretation('');
       setEditingResultId(null);
+      setAttemptedSubmit(false);
       setStep(STEPS.findIndex(s => s.key === 'results'));
+      // Re-baseline against the freshly-prepared empty form so the next
+      // template entry starts clean.
+      resetBaseline({
+        sampleId: selectedSample?.id ?? null,
+        templateId: nextTemplate.id,
+        resultData: {},
+        flags: 'normal' as LabResultFlags,
+        interpretation: '',
+      });
     }
   };
 
