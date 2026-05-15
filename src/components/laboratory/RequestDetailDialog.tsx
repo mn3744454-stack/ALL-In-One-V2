@@ -461,7 +461,8 @@ export function RequestDetailDialog({
 
           <TabsContent value="thread" className="flex-1 min-h-0 mt-0">
             <LabRequestThread requestId={request.id} submissionId={(request as any).submission_id} />
-      </TabsContent>
+          </TabsContent>
+        </Tabs>
     </SafeFormDialog>
 
     {/* Phase 7 — Prefilled Create Result flow launched from ResultsOwedPanel */}
