@@ -340,15 +340,21 @@ export function ClientFormDialog({
           </div>
         </form>
 
-        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            {t("common.cancel")}
-          </Button>
-          <Button onClick={handleSubmit} disabled={loading || !formData.name.trim()}>
-            {loading ? t("common.loading") : isEdit ? t("common.update") : t("common.create")}
-          </Button>
+        <DialogFooter className="flex-shrink-0 border-t pt-4 mt-4 gap-3 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? t("common.loading") : isEdit ? t("common.update") : t("common.create")}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
