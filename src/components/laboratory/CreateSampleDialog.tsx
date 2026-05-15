@@ -4,6 +4,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { Button } from "@/components/ui/button";
