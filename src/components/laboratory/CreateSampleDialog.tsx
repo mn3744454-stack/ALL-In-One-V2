@@ -2318,7 +2318,7 @@ export function CreateSampleDialog({
               {!isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
-                  <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
+                  <BilingualName name={selectedClient.name} nameAr={selectedClient.name_ar} inline />
                 </div>
               )}
               {isRetest && (
