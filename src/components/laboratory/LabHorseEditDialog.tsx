@@ -95,8 +95,6 @@ export function LabHorseEditDialog({
     }
   };
 
-  const isFormValid = !!(formData.name?.trim() || formData.name_ar?.trim());
-
   return (
     <SafeFormDialog
       open={open}
