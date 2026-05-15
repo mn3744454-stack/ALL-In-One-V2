@@ -97,6 +97,12 @@ export const en = {
       enterRequiredName: "Enter the required name",
       selectOwner: "Select an owner",
       validOwnershipPercentage: "Enter a valid ownership percentage",
+      selectHorsePatient: "Select a horse",
+      selectVisitType: "Select visit type",
+      selectScheduledDate: "Select scheduled date",
+      selectTreatmentCategory: "Select treatment category",
+      selectTreatmentDate: "Select treatment date",
+      enterTreatmentDetails: "Enter treatment details",
     },
   },
   workspace: {
