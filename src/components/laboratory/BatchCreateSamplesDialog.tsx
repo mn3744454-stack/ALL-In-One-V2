@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
@@ -56,17 +56,9 @@ interface BatchCreateSamplesDialogProps {
 /**
  * Phase 6C — Batch Create Samples wrapper.
  *
- * This is a deliberate fan-out wrapper over the existing single-sample creation
- * path (`useLabSamples().createSample`). It does NOT fork creation logic.
- *
- * Operator flow:
- *   1. See pre-filtered list of eligible accepted+received horses for one submission.
- *   2. Toggle which horses to include (default: all).
- *   3. Set shared collection date and optional shared notes.
- *   4. Optionally set per-horse physical sample ID (auto-prefilled from short ref).
- *   5. Submit → sequential fan-out, each create reuses same insert path.
- *
- * Single-horse Create Sample wizard remains intact for one-off cases.
+ * L1a-1: Wrapped with SafeFormDialog (outside-click + Escape blocked) and
+ * MissingRequirementsBar in-surface validation. Existing in-flight close guard
+ * (no close while submitting) and batch creation behavior are preserved.
  */
 export function BatchCreateSamplesDialog({
   open,
@@ -86,6 +78,19 @@ export function BatchCreateSamplesDialog({
   const [sampleIds, setSampleIds] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Normalized snapshot for dirty tracking (Date → ISO; excludes session/in-flight state).
+  const dirtySnapshot = useMemo(
+    () => ({
+      selected,
+      collectionDate_iso: collectionDate ? collectionDate.toISOString() : null,
+      sharedNotes,
+      sampleIds,
+    }),
+    [selected, collectionDate, sharedNotes, sampleIds]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
 
   // Reset on open
   useEffect(() => {
@@ -104,13 +109,34 @@ export function BatchCreateSamplesDialog({
       setSharedNotes("");
       setSubmitting(false);
       setProgress(null);
+      setAttemptedSubmit(false);
+      // Recapture baseline for the freshly initialized form so the open
+      // transition does not appear dirty against an empty pre-init snapshot.
+      resetBaseline({
+        selected: initSel,
+        collectionDate_iso: new Date().toISOString(),
+        sharedNotes: "",
+        sampleIds: initIds,
+      } as any);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, eligibleChildren, submissionShortRef]);
 
   const includedCount = useMemo(
     () => Object.values(selected).filter(Boolean).length,
     [selected]
   );
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (includedCount === 0) {
+      issues.push(
+        t("laboratory.batchCreate.errorNoSelection") ||
+          "Select at least one horse to create samples for."
+      );
+    }
+    return issues;
+  }, [includedCount, t]);
 
   const toggleAll = (next: boolean) => {
     const updated: Record<string, boolean> = {};
@@ -121,12 +147,10 @@ export function BatchCreateSamplesDialog({
   };
 
   const handleSubmit = async () => {
+    setAttemptedSubmit(true);
     const toCreate = eligibleChildren.filter((c) => selected[c.request_id]);
     if (toCreate.length === 0) {
-      toast.error(
-        t("laboratory.batchCreate.errorNoSelection") ||
-          "Select at least one horse to create samples for."
-      );
+      // In-surface MissingRequirementsBar handles the visible guidance.
       return;
     }
 
@@ -142,7 +166,6 @@ export function BatchCreateSamplesDialog({
       try {
         const snapshot = child.horse_snapshot || null;
         await createSample({
-          // Reuse same single-create path
           horse_id: child.horse_id || undefined,
           horse_name: child.horse_id ? undefined : child.horse_name,
           horse_metadata: snapshot ? (snapshot as any) : undefined,
@@ -150,7 +173,6 @@ export function BatchCreateSamplesDialog({
           physical_sample_id: sampleIds[child.request_id]?.trim() || undefined,
           notes: sharedNotes.trim() || undefined,
           lab_request_id: child.request_id,
-          // Specimen already received at intake → mark accessioned immediately
           status: "accessioned",
         });
         successes++;
@@ -182,13 +204,25 @@ export function BatchCreateSamplesDialog({
 
     if (successes > 0) {
       onSuccess?.();
+      // Clean close: clear baseline so SafeFormDialog does not prompt discard.
+      resetBaseline(dirtySnapshot);
       onOpenChange(false);
     }
   };
 
+  // Wrap onOpenChange to preserve in-flight submission guard.
+  const guardedOpenChange = (next: boolean) => {
+    if (!next && submitting) return;
+    onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !submitting && onOpenChange(v)}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={guardedOpenChange}
+      isDirty={isDirty && !submitting}
+      className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+    >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5" />
@@ -348,28 +382,34 @@ export function BatchCreateSamplesDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={submitting}
-          >
-            {t("common.cancel") || "Cancel"}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || includedCount === 0}
-          >
-            {submitting && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
-            {submitting && progress
-              ? `${progress.done}/${progress.total}`
-              : (
-                  t("laboratory.batchCreate.submit") ||
-                  "Create {count} samples"
-                ).replace("{count}", String(includedCount))}
-          </Button>
+        <DialogFooter className="gap-3 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <Button
+              variant="outline"
+              onClick={() => guardedOpenChange(false)}
+              disabled={submitting}
+            >
+              {t("common.cancel") || "Cancel"}
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
+              {submitting && progress
+                ? `${progress.done}/${progress.total}`
+                : (
+                    t("laboratory.batchCreate.submit") ||
+                    "Create {count} samples"
+                  ).replace("{count}", String(includedCount))}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
