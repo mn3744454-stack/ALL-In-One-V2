@@ -392,92 +392,122 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
       </Card>
 
       {/* Add Owner Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('horses.ownership.addOwner')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t('horses.ownership.owner')}</Label>
-              <Select value={newOwnerId} onValueChange={setNewOwnerId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('horses.ownership.selectOwner')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {owners
-                    .filter(o => !ownerships.some(own => own.owner_id === o.id))
-                    .map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>
-                        {owner.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>{t('horses.ownership.percentage')}</Label>
-              <Input 
-                type="number" 
-                min={1} 
-                max={remainingPercentage}
-                value={newPercentage} 
-                onChange={(e) => setNewPercentage(e.target.value)}
-                placeholder={t('horses.ownership.maxPlaceholder').replace('{{max}}', String(remainingPercentage))}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
-              <Label>{t('horses.ownership.primaryOwner')}</Label>
-            </div>
+      <SafeFormDialog
+        open={showAddDialog}
+        onOpenChange={(next) => {
+          setShowAddDialog(next);
+          if (!next) resetForm();
+        }}
+        isDirty={addIsDirty}
+        className="max-w-md max-h-[85vh] flex flex-col"
+      >
+        <DialogHeader className="shrink-0">
+          <DialogTitle>{t('horses.ownership.addOwner')}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>{t('horses.ownership.owner')}</Label>
+            <Select value={newOwnerId} onValueChange={setNewOwnerId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('horses.ownership.selectOwner')} />
+              </SelectTrigger>
+              <SelectContent>
+                {owners
+                  .filter(o => !ownerships.some(own => own.owner_id === o.id))
+                  .map((owner) => (
+                    <SelectItem key={owner.id} value={owner.id}>
+                      {owner.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); }}>
-              {t('common.cancel')}
-            </Button>
+          <div className="space-y-2">
+            <Label>{t('horses.ownership.percentage')}</Label>
+            <Input
+              type="number"
+              min={1}
+              max={remainingPercentage}
+              value={newPercentage}
+              onChange={(e) => setNewPercentage(e.target.value)}
+              placeholder={t('horses.ownership.maxPlaceholder').replace('{{max}}', String(remainingPercentage))}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
+            <Label>{t('horses.ownership.primaryOwner')}</Label>
+          </div>
+        </div>
+        <DialogFooter className="shrink-0 gap-3 pt-4 border-t flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedAddSubmit ? addMissingIssues : []}
+            attempted={attemptedAddSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button onClick={handleAddOwner} disabled={saving}>
               {saving ? t('common.loading') : t('horses.ownership.addOwner')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DialogFooter>
+      </SafeFormDialog>
 
       {/* Edit Owner Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t('horses.ownership.editOwnership')}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>{t('horses.ownership.owner')}</Label>
-              <Input value={selectedOwnership?.owner?.name || ""} disabled />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('horses.ownership.percentage')}</Label>
-              <Input 
-                type="number" 
-                min={1} 
-                max={100}
-                value={newPercentage} 
-                onChange={(e) => setNewPercentage(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
-              <Label>{t('horses.ownership.primaryOwner')}</Label>
-            </div>
+      <SafeFormDialog
+        open={showEditDialog}
+        onOpenChange={(next) => {
+          setShowEditDialog(next);
+          if (!next) resetForm();
+        }}
+        isDirty={editIsDirty}
+        className="max-w-md max-h-[85vh] flex flex-col"
+      >
+        <DialogHeader className="shrink-0">
+          <DialogTitle>{t('horses.ownership.editOwnership')}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>{t('horses.ownership.owner')}</Label>
+            <Input value={selectedOwnership?.owner?.name || ""} disabled />
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setShowEditDialog(false); resetForm(); }}>
-              {t('common.cancel')}
-            </Button>
+          <div className="space-y-2">
+            <Label>{t('horses.ownership.percentage')}</Label>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={newPercentage}
+              onChange={(e) => setNewPercentage(e.target.value)}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch checked={newIsPrimary} onCheckedChange={setNewIsPrimary} />
+            <Label>{t('horses.ownership.primaryOwner')}</Label>
+          </div>
+        </div>
+        <DialogFooter className="shrink-0 gap-3 pt-4 border-t flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedEditSubmit ? editMissingIssues : []}
+            attempted={attemptedEditSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button onClick={handleEditOwner} disabled={saving}>
               {saving ? t('common.loading') : t('common.save')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DialogFooter>
+      </SafeFormDialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
