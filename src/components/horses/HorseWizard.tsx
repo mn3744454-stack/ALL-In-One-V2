@@ -324,33 +324,30 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
     setData((prev) => ({ ...prev, ...updates }));
   };
 
-  const canGoNext = () => {
-    const step = STEPS[currentStep];
+  const stepIssues = (stepIndex: number): string[] => {
+    const step = STEPS[stepIndex];
+    if (!step) return [];
+    const issues: string[] = [];
     switch (step.id) {
-      case "registration":
-        return true;
       case "basic":
-        return data.name.trim() !== "" && data.gender;
-      case "details":
-        return true;
-      case "physical":
-        return true;
-      case "pedigree":
-        return true;
+        if (!data.name.trim()) issues.push(t('common.validation.enterHorseName'));
+        if (!data.gender) issues.push(t('common.validation.selectGender'));
+        break;
       case "ownership":
-        // Check ownership rules only if owners are defined
         if (data.owners.length > 0) {
           const totalPercentage = data.owners.reduce((sum, o) => sum + o.percentage, 0);
           const primaryCount = data.owners.filter((o) => o.is_primary).length;
-          return totalPercentage === 100 && primaryCount === 1;
+          if (totalPercentage !== 100 || primaryCount !== 1) {
+            issues.push(t('common.validation.enterHorseStepInfo'));
+          }
         }
-        return true;
-      case "media":
-        return true;
-      default:
-        return true;
+        break;
     }
+    return issues;
   };
+
+  const canGoNext = () => stepIssues(currentStep).length === 0;
+  const currentStepIssues = stepIssues(currentStep);
 
   const saveScrollPosition = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -359,9 +356,14 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   }, [currentStep]);
 
   const goNext = () => {
+    if (currentStepIssues.length > 0) {
+      setAttemptedAdvance(true);
+      return;
+    }
     if (currentStep < STEPS.length - 1) {
       saveScrollPosition();
       setCurrentStep((prev) => prev + 1);
+      setAttemptedAdvance(false);
     }
   };
 
