@@ -1219,6 +1219,18 @@ export const en = {
       receiveStatus: "Receipt Status",
       willReceiveNow: "Will receive & number now",
       willDefer: "Draft (number later)",
+      missing: {
+        selectClient: "Select a client",
+        enterWalkInClientName: "Enter the walk-in client name",
+        enterNoClientReason: "Enter a reason for not linking a client (min 5 characters)",
+        addHorseOrSubject: "Add at least one horse or sample subject",
+        selectAtLeastOneTemplate: "Select at least one test/template",
+        selectTemplatesPerHorse: "Select templates for each selected horse",
+        setCollectionDate: "Set the collection date",
+        selectClientForInvoice: "Select a client before creating an invoice",
+        completeRequiredPrices: "Complete the required prices",
+        insufficientCredits: "Insufficient credits",
+      },
     },
     
     // Client Mode Selector
