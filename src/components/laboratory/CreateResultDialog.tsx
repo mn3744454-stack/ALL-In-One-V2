@@ -819,9 +819,33 @@ export function CreateResultDialog({
   // Determine if we're on the "next" step (which has its own navigation)
   const isNextStep = STEPS[step].key === 'next';
 
+  // Visible validation: compute missing requirements for the current step.
+  const missingIssues = useMemo<string[]>(() => {
+    switch (STEPS[step].key) {
+      case 'sample':
+        return !selectedSample ? [t("laboratory.createResult.missing.sample")] : [];
+      case 'template':
+        return !selectedTemplate ? [t("laboratory.createResult.missing.template")] : [];
+      case 'results': {
+        if (!selectedTemplate) return [t("laboratory.createResult.missing.template")];
+        const requiredFields = selectedTemplate.fields.filter(f => f.required);
+        const anyMissing = requiredFields.some(
+          f => resultData[f.id] === undefined || resultData[f.id] === '',
+        );
+        return anyMissing ? [t("laboratory.createResult.missing.requiredFields")] : [];
+      }
+      default:
+        return [];
+    }
+  }, [step, selectedSample, selectedTemplate, resultData, t]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="w-[95vw] max-w-2xl max-h-[85vh] flex flex-col overflow-hidden p-0"
+    >
         {/* Fixed Header */}
         <div className="flex-shrink-0 px-6 pt-5 pb-3 border-b">
           <DialogHeader>
@@ -868,7 +892,10 @@ export function CreateResultDialog({
 
         {/* Fixed Footer - hide on "next" step since it has its own buttons */}
         {!isNextStep && (
-          <div className="flex-shrink-0 px-6 py-4 border-t bg-background">
+          <div className="flex-shrink-0 px-6 py-4 border-t bg-background space-y-3">
+            {attemptedSubmit && missingIssues.length > 0 && (
+              <MissingRequirementsBar issues={missingIssues} attempted />
+            )}
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -888,8 +915,14 @@ export function CreateResultDialog({
               
               {step < STEPS.findIndex(s => s.key === 'review') ? (
                 <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
+                  onClick={() => {
+                    if (!canProceed()) {
+                      setAttemptedSubmit(true);
+                      return;
+                    }
+                    setAttemptedSubmit(false);
+                    handleNext();
+                  }}
                   className="flex-1 min-h-11"
                 >
                   التالي
@@ -897,8 +930,15 @@ export function CreateResultDialog({
                 </Button>
               ) : step === STEPS.findIndex(s => s.key === 'review') ? (
                 <Button
-                  onClick={handleSubmit}
-                  disabled={loading || !canProceed()}
+                  onClick={() => {
+                    if (!canProceed()) {
+                      setAttemptedSubmit(true);
+                      return;
+                    }
+                    setAttemptedSubmit(false);
+                    handleSubmit();
+                  }}
+                  disabled={loading}
                   className="flex-1 min-h-11"
                 >
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -908,7 +948,8 @@ export function CreateResultDialog({
             </div>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
+  );
+}
   );
 }
