@@ -2554,8 +2554,7 @@ export function CreateSampleDialog({
               )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Client Form Dialog (LAB tenant only) */}
       <ClientFormDialog
