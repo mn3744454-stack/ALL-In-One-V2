@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Plus, Search, Archive, ArchiveRestore, Edit, Eye, MoreHorizontal, FlaskConical, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,13 +25,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
+  DialogClose,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useI18n } from "@/i18n";
@@ -76,6 +78,19 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingHorse, setEditingHorse] = useState<LabHorse | null>(null);
   const [formData, setFormData] = useState<LabHorseFormData>({ name: "" });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const dialogOpen = createDialogOpen || !!editingHorse;
+  const { isDirty, resetBaseline } = useDirtyForm(formData, dialogOpen);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name?.trim() && !formData.name_ar?.trim()) {
+      issues.push(t("common.validation.enterHorseNameEnOrAr"));
+    }
+    return issues;
+  }, [formData.name, formData.name_ar, t]);
+
 
   // View preference
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-horses');
@@ -120,6 +135,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
 
   const handleOpenCreate = () => {
     setFormData({ name: "" });
+    setAttemptedSubmit(false);
     setCreateDialogOpen(true);
   };
 
@@ -134,21 +150,41 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
       owner_phone: horse.owner_phone || undefined,
       notes: horse.notes || undefined,
     });
+    setAttemptedSubmit(false);
     setEditingHorse(horse as LabHorse);
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name.trim()) return;
-
-    if (editingHorse) {
-      await updateLabHorse(editingHorse.id, formData);
-      setEditingHorse(null);
-      onEditComplete?.(); // Notify parent that edit is complete
-    } else {
-      await createLabHorse(formData as CreateLabHorseData);
-      setCreateDialogOpen(false);
-    }
+  const closeDialog = () => {
+    setCreateDialogOpen(false);
+    setEditingHorse(null);
     setFormData({ name: "" });
+    setAttemptedSubmit(false);
+  };
+
+  const handleSubmit = async () => {
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
+
+    const payload: LabHorseFormData = {
+      ...formData,
+      name: formData.name?.trim() || formData.name_ar?.trim() || "",
+    };
+
+    let result: unknown = null;
+    if (editingHorse) {
+      result = await updateLabHorse(editingHorse.id, payload);
+    } else {
+      result = await createLabHorse(payload as CreateLabHorseData);
+    }
+
+    if (result) {
+      // Reset baseline so the controlled close doesn't trigger discard prompt.
+      resetBaseline(payload);
+      if (editingHorse) {
+        onEditComplete?.();
+      }
+      closeDialog();
+    }
   };
 
   const handleArchive = async (horse: LabHorseWithMetrics) => {
@@ -489,136 +525,142 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
         </>
       )}
 
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={createDialogOpen || !!editingHorse} 
+      {/* Create/Edit Dialog — workspace-class Safe Form Dialog */}
+      <SafeFormDialog
+        open={dialogOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            setCreateDialogOpen(false);
-            setEditingHorse(null);
-            setFormData({ name: "" });
-          }
+          if (!open) closeDialog();
         }}
+        isDirty={isDirty}
+        className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0"
+        dir={dir}
       >
-        <DialogContent dir={dir}>
-          <DialogHeader>
-            <DialogTitle>
-              {editingHorse ? t("laboratory.labHorses.editHorse") : t("laboratory.labHorses.addNew")}
-            </DialogTitle>
-            <DialogDescription>
-              {editingHorse 
-                ? t("laboratory.labHorses.editHorseDesc")
-                : t("laboratory.labHorses.addNewDesc")
-              }
-            </DialogDescription>
-          </DialogHeader>
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b">
+          <DialogTitle>
+            {editingHorse ? t("laboratory.labHorses.editHorse") : t("laboratory.labHorses.addNew")}
+          </DialogTitle>
+          <DialogDescription>
+            {editingHorse
+              ? t("laboratory.labHorses.editHorseDesc")
+              : t("laboratory.labHorses.addNewDesc")}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t("common.name")} *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name_ar">{t("common.name")} ({t("language.ar") || "Arabic"})</Label>
-                <Input
-                  id="name_ar"
-                  value={formData.name_ar || ""}
-                  onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                  placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
-                  dir="rtl"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="microchip">{t("laboratory.walkIn.microchip")}</Label>
-                <Input
-                  id="microchip"
-                  value={formData.microchip_number || ""}
-                  onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
-                  placeholder={t("laboratory.walkIn.microchipPlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="passport">{t("laboratory.walkIn.passportNumber")}</Label>
-                <Input
-                  id="passport"
-                  value={formData.passport_number || ""}
-                  onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
-                  placeholder={t("laboratory.walkIn.passportPlaceholder")}
-                />
-              </div>
-            </div>
-
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="ueln">UELN</Label>
+              <Label htmlFor="name">{t("laboratory.labHorses.nameEn")} *</Label>
               <Input
-                id="ueln"
-                value={formData.ueln || ""}
-                onChange={(e) => setFormData({ ...formData, ueln: e.target.value })}
-                placeholder="e.g. 123456789012345"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
+                dir="ltr"
               />
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="owner_name">{t("laboratory.labHorses.ownerName")}</Label>
-                <Input
-                  id="owner_name"
-                  value={formData.owner_name || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="owner_phone">{t("laboratory.labHorses.ownerPhone")}</Label>
-                <Input
-                  id="owner_phone"
-                  value={formData.owner_phone || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerPhonePlaceholder")}
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="notes">{t("common.notes")}</Label>
+              <Label htmlFor="name_ar">{t("laboratory.labHorses.nameAr")}</Label>
               <Input
-                id="notes"
-                value={formData.notes || ""}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder={t("common.notes")}
+                id="name_ar"
+                value={formData.name_ar || ""}
+                onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                placeholder={t("laboratory.labHorses.nameArPlaceholder")}
+                dir="rtl"
               />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateDialogOpen(false);
-                setEditingHorse(null);
-                setFormData({ name: "" });
-              }}
-            >
-              {t("common.cancel")}
-            </Button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="microchip">{t("laboratory.walkIn.microchip")}</Label>
+              <Input
+                id="microchip"
+                value={formData.microchip_number || ""}
+                onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
+                placeholder={t("laboratory.walkIn.microchipPlaceholder")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passport">{t("laboratory.walkIn.passportNumber")}</Label>
+              <Input
+                id="passport"
+                value={formData.passport_number || ""}
+                onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
+                placeholder={t("laboratory.walkIn.passportPlaceholder")}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ueln">UELN</Label>
+            <Input
+              id="ueln"
+              value={formData.ueln || ""}
+              onChange={(e) => setFormData({ ...formData, ueln: e.target.value })}
+              placeholder="e.g. 123456789012345"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="owner_name">{t("laboratory.labHorses.ownerName")}</Label>
+              <Input
+                id="owner_name"
+                value={formData.owner_name || ""}
+                onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                placeholder={t("laboratory.labHorses.ownerNamePlaceholder")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="owner_phone">{t("laboratory.labHorses.ownerPhone")}</Label>
+              <Input
+                id="owner_phone"
+                value={formData.owner_phone || ""}
+                onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
+                placeholder={t("laboratory.labHorses.ownerPhonePlaceholder")}
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t("common.notes")}</Label>
+            <Input
+              id="notes"
+              value={formData.notes || ""}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder={t("common.notes")}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="shrink-0 border-t px-6 py-4 gap-3 sm:flex-row flex-col">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto w-full sm:w-auto">
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCreating || isUpdating}
+                className="w-full sm:w-auto"
+              >
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
             <Button
               onClick={handleSubmit}
-              disabled={!formData.name.trim() || isCreating || isUpdating}
+              disabled={isCreating || isUpdating}
+              className="w-full sm:w-auto"
             >
               {editingHorse ? t("common.save") : t("common.create")}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DialogFooter>
+      </SafeFormDialog>
     </div>
   );
 }
