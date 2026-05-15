@@ -4,6 +4,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { Button } from "@/components/ui/button";
@@ -179,6 +180,7 @@ export function CreateSampleDialog({
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [attemptedAdvance, setAttemptedAdvance] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
@@ -785,15 +787,85 @@ export function CreateSampleDialog({
   };
 
   const handleNext = () => {
+    if (!canProceed()) {
+      setAttemptedAdvance(true);
+      return;
+    }
+    setAttemptedAdvance(false);
     if (step < effectiveSteps.length - 1) {
       setStep(step + 1);
     }
   };
 
+  const handleSubmitClick = () => {
+    if (!canProceed()) {
+      setAttemptedAdvance(true);
+      return;
+    }
+    setAttemptedAdvance(false);
+    handleSubmit();
+  };
+
   const handlePrevious = () => {
+    setAttemptedAdvance(false);
     if (step > 0) {
       setStep(step - 1);
     }
+  };
+
+  // Reset attempted-advance whenever the active step changes or the dialog opens.
+  useEffect(() => {
+    setAttemptedAdvance(false);
+  }, [step, open]);
+
+  // Step-scoped issue messages, derived from the same gates as canProceed().
+  // canProceed remains the single source of truth — this only surfaces *why*.
+  const getStepIssues = (): string[] => {
+    const currentStep = effectiveSteps[step];
+    const issues: string[] = [];
+    switch (currentStep?.key) {
+      case 'client':
+        if (isPrimaryLabTenant) {
+          if (formData.clientMode === 'none' && formData.no_client_reason.trim().length < 5) {
+            issues.push(t('laboratory.createSample.missing.enterNoClientReason'));
+          }
+          if (formData.clientMode === 'registered' && !formData.client_id) {
+            issues.push(t('laboratory.createSample.missing.selectClient'));
+          }
+          if (formData.clientMode === 'new' && !formData.client_id) {
+            issues.push(t('laboratory.createSample.missing.enterWalkInClientName'));
+          }
+        }
+        break;
+      case 'horses':
+        if (formData.selectedHorses.length === 0) {
+          issues.push(t('laboratory.createSample.missing.addHorseOrSubject'));
+        }
+        break;
+      case 'basic':
+        if (!formData.collection_date) {
+          issues.push(t('laboratory.createSample.missing.setCollectionDate'));
+        }
+        break;
+      case 'details':
+        if (!isPrimaryLabTenant && formData.clientMode === 'walkin' && formData.walkInClient.client_name.trim().length === 0) {
+          issues.push(t('laboratory.createSample.missing.enterWalkInClientName'));
+        }
+        break;
+      case 'checkout':
+        if (!skipCheckout && requirePricesForCheckout && hasMissingPrices) {
+          issues.push(t('laboratory.createSample.missing.completeRequiredPrices'));
+        }
+        break;
+      case 'credits':
+        if (creditsEnabled && (wallet?.balance || 0) < formData.selectedHorses.length) {
+          issues.push(t('laboratory.createSample.missing.insufficientCredits'));
+        }
+        break;
+      default:
+        break;
+    }
+    return issues;
   };
 
   // Build client data based on client mode
@@ -2525,47 +2597,53 @@ export function CreateSampleDialog({
 
           {/* Navigation - hide for checkout step (has its own buttons) */}
           {effectiveSteps[step]?.key !== 'checkout' && (
-            <div className="flex-shrink-0 flex gap-2 sm:gap-3 pt-4 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={step === 0 ? () => guardedOpenChange(false) : handlePrevious}
-                className="flex-1"
-                size="sm"
-              >
-                {step === 0 ? (
-                  t("common.cancel")
+            <div className="flex-shrink-0 flex flex-col gap-2 pt-4 border-t">
+              {/* Visible Validation Guidance: surfaces why Next/Submit is blocked */}
+              <MissingRequirementsBar
+                issues={attemptedAdvance ? getStepIssues() : []}
+                attempted={attemptedAdvance}
+              />
+              <div className="flex gap-2 sm:gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={step === 0 ? () => guardedOpenChange(false) : handlePrevious}
+                  className="flex-1"
+                  size="sm"
+                >
+                  {step === 0 ? (
+                    t("common.cancel")
+                  ) : (
+                    <>
+                      <ChevronLeft className="h-4 w-4 me-1" />
+                      {t("common.back")}
+                    </>
+                  )}
+                </Button>
+
+                {step < effectiveSteps.length - 1 ? (
+                  <Button
+                    onClick={handleNext}
+                    className="flex-1"
+                    size="sm"
+                  >
+                    {t("common.next")}
+                    <ChevronRight className="h-4 w-4 ms-1" />
+                  </Button>
                 ) : (
-                  <>
-                    <ChevronLeft className="h-4 w-4 me-1" />
-                    {t("common.back")}
-                  </>
+                  <Button
+                    onClick={handleSubmitClick}
+                    disabled={loading}
+                    className="flex-1"
+                    size="sm"
+                  >
+                    {loading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                    {formData.selectedHorses.length > 1
+                      ? t("laboratory.createSample.createSamples")
+                      : t("laboratory.createSample.createSample")}
+                  </Button>
                 )}
-              </Button>
-              
-              {step < effectiveSteps.length - 1 ? (
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed()}
-                  className="flex-1"
-                  size="sm"
-                >
-                  {t("common.next")}
-                  <ChevronRight className="h-4 w-4 ms-1" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={loading || !canProceed()}
-                  className="flex-1"
-                  size="sm"
-                >
-                  {loading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-                  {formData.selectedHorses.length > 1 
-                    ? t("laboratory.createSample.createSamples") 
-                    : t("laboratory.createSample.createSample")}
-                </Button>
-              )}
+              </div>
             </div>
           )}
       </SafeFormDialog>
