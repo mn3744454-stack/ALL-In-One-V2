@@ -78,6 +78,19 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingHorse, setEditingHorse] = useState<LabHorse | null>(null);
   const [formData, setFormData] = useState<LabHorseFormData>({ name: "" });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const dialogOpen = createDialogOpen || !!editingHorse;
+  const { isDirty, resetBaseline } = useDirtyForm(formData, dialogOpen);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name?.trim() && !formData.name_ar?.trim()) {
+      issues.push(t("common.validation.enterHorseNameEnOrAr"));
+    }
+    return issues;
+  }, [formData.name, formData.name_ar, t]);
+
 
   // View preference
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('lab-horses');
