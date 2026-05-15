@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLabRequests, type LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -156,8 +157,8 @@ export function RequestDetailDialog({
     || request.initiator_tenant?.name;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
+    <>
+    <SafeFormDialog open={open} onOpenChange={onOpenChange} className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             {horseName}
@@ -463,19 +464,19 @@ export function RequestDetailDialog({
             <LabRequestThread requestId={request.id} submissionId={(request as any).submission_id} />
           </TabsContent>
         </Tabs>
-      </DialogContent>
+    </SafeFormDialog>
 
-      {/* Phase 7 — Prefilled Create Result flow launched from ResultsOwedPanel */}
-      {isLabFull && (
-        <CreateResultDialog
-          open={createResultState.open}
-          onOpenChange={(o) =>
-            setCreateResultState((s) => ({ open: o, templateId: o ? s.templateId : undefined }))
-          }
-          preselectedRequestId={request.id}
-          preselectedTemplateId={createResultState.templateId}
-        />
-      )}
-    </Dialog>
+    {/* Phase 7 — Prefilled Create Result flow launched from ResultsOwedPanel */}
+    {isLabFull && (
+      <CreateResultDialog
+        open={createResultState.open}
+        onOpenChange={(o) =>
+          setCreateResultState((s) => ({ open: o, templateId: o ? s.templateId : undefined }))
+        }
+        preselectedRequestId={request.id}
+        preselectedTemplateId={createResultState.templateId}
+      />
+    )}
+    </>
   );
 }
