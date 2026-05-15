@@ -246,9 +246,18 @@ export const TransferOwnershipDialog = ({
     setEffectiveDate(new Date().toISOString().split("T")[0]);
   };
 
+  const handleOpenChange = (next: boolean) => {
+    onOpenChange(next);
+    if (!next) resetForm();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
-      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty}
+      className="max-w-md max-h-[85vh] flex flex-col"
+    >
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2">
             {t('horses.ownership.transferOwnership')}
