@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useI18n } from '@/i18n';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import {
   Sheet,
@@ -28,6 +29,9 @@ import {
   SheetTitle,
   SheetFooter,
 } from '@/components/ui/sheet';
+import { SafeFormDialog, SafeFormDrawer } from '@/components/ui/safe-form-dialog';
+import { useDirtyForm } from '@/hooks/useDirtyForm';
+import { MissingRequirementsBar } from '@/components/ui/missing-requirements-bar';
 import { User, Briefcase, Phone, Mail, Calendar, DollarSign, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Employee, HrEmployeeType, CreateEmployeeData } from '@/hooks/hr/useEmployees';
