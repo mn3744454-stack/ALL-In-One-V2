@@ -157,8 +157,7 @@ export function RequestDetailDialog({
     || request.initiator_tenant?.name;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
+    <SafeFormDialog open={open} onOpenChange={onOpenChange} className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-0" dir={dir}>
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             {horseName}
