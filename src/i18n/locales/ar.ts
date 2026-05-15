@@ -109,6 +109,12 @@ export const ar = {
       enterRequiredName: "أدخل الاسم المطلوب",
       selectOwner: "اختر المالك",
       validOwnershipPercentage: "أدخل نسبة ملكية صحيحة",
+      selectHorsePatient: "اختر الحصان",
+      selectVisitType: "اختر نوع الزيارة",
+      selectScheduledDate: "اختر تاريخ الموعد",
+      selectTreatmentCategory: "اختر فئة العلاج",
+      selectTreatmentDate: "اختر تاريخ العلاج",
+      enterTreatmentDetails: "أدخل تفاصيل العلاج",
     },
   },
   workspace: {
