@@ -99,6 +99,13 @@ export const ar = {
     validation: {
       missing: "مطلوب للمتابعة:",
       attemptedSubmit: "بعض الحقول المطلوبة مفقودة.",
+      enterHorseStepInfo: "أدخل بيانات الحصان المطلوبة لهذه الخطوة",
+      enterHorseName: "أدخل اسم الحصان",
+      selectGender: "اختر الجنس",
+      enterClientName: "أدخل اسم العميل",
+      enterEmployeeName: "أدخل اسم الموظف",
+      selectRecipient: "اختر المستلم",
+      validTransferPercentage: "أدخل نسبة نقل صحيحة",
     },
   },
   workspace: {

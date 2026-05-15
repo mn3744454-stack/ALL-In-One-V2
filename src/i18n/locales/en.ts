@@ -87,6 +87,13 @@ export const en = {
     validation: {
       missing: "Required to continue:",
       attemptedSubmit: "Some required fields are missing.",
+      enterHorseStepInfo: "Enter the required horse information for this step",
+      enterHorseName: "Enter the horse name",
+      selectGender: "Select a gender",
+      enterClientName: "Enter the client name",
+      enterEmployeeName: "Enter the employee name",
+      selectRecipient: "Select a recipient",
+      validTransferPercentage: "Enter a valid transfer percentage",
     },
   },
   workspace: {
