@@ -2395,8 +2395,12 @@ export function CreateSampleDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <SafeFormDialog
+        open={open}
+        onOpenChange={guardedOpenChange}
+        isDirty={effectiveIsDirty}
+        contentClassName="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
           {/* Compact Header: Title + Step Indicator in one row */}
           <DialogHeader className="flex-shrink-0 pb-2">
             <div className="flex items-center justify-between gap-2">
