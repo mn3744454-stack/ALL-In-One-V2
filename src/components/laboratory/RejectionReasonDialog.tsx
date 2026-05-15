@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  DialogClose,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { useI18n } from "@/i18n";
 import { Loader2, XCircle } from "lucide-react";
 
@@ -32,19 +34,41 @@ export function RejectionReasonDialog({
 }: RejectionReasonDialogProps) {
   const { t, dir } = useI18n();
   const [reason, setReason] = useState("");
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const { isDirty, resetBaseline } = useDirtyForm({ reason }, open);
 
   useEffect(() => {
-    if (!open) setReason("");
+    if (!open) {
+      setReason("");
+      setAttemptedSubmit(false);
+    }
   }, [open]);
 
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!reason.trim()) {
+      issues.push(t("common.validation.enterRejectionReason"));
+    }
+    return issues;
+  }, [reason, t]);
+
   const handleConfirm = async () => {
+    setAttemptedSubmit(true);
     if (!reason.trim()) return;
+    // Reset baseline so SafeFormDialog won't prompt discard after a successful submit
+    resetBaseline({ reason: "" });
     await onConfirm(reason.trim());
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent dir={dir} className="sm:max-w-[480px]">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[480px]"
+      dir={dir}
+    >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <XCircle className="h-5 w-5 text-destructive" />
@@ -69,21 +93,29 @@ export function RejectionReasonDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            {t("common.cancel") || "Cancel"}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={!reason.trim() || isPending}
-            className="gap-2"
-          >
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t("laboratory.intake.confirmReject") || "Confirm rejection"}
-          </Button>
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>
+                {t("common.cancel") || "Cancel"}
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleConfirm}
+              disabled={isPending}
+              className="gap-2"
+            >
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t("laboratory.intake.confirmReject") || "Confirm rejection"}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
