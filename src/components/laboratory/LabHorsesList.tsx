@@ -525,136 +525,142 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
         </>
       )}
 
-      {/* Create/Edit Dialog */}
-      <Dialog 
-        open={createDialogOpen || !!editingHorse} 
+      {/* Create/Edit Dialog — workspace-class Safe Form Dialog */}
+      <SafeFormDialog
+        open={dialogOpen}
         onOpenChange={(open) => {
-          if (!open) {
-            setCreateDialogOpen(false);
-            setEditingHorse(null);
-            setFormData({ name: "" });
-          }
+          if (!open) closeDialog();
         }}
+        isDirty={isDirty}
+        className="sm:max-w-2xl max-h-[90vh] flex flex-col p-0"
+        dir={dir}
       >
-        <DialogContent dir={dir}>
-          <DialogHeader>
-            <DialogTitle>
-              {editingHorse ? t("laboratory.labHorses.editHorse") : t("laboratory.labHorses.addNew")}
-            </DialogTitle>
-            <DialogDescription>
-              {editingHorse 
-                ? t("laboratory.labHorses.editHorseDesc")
-                : t("laboratory.labHorses.addNewDesc")
-              }
-            </DialogDescription>
-          </DialogHeader>
+        <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b">
+          <DialogTitle>
+            {editingHorse ? t("laboratory.labHorses.editHorse") : t("laboratory.labHorses.addNew")}
+          </DialogTitle>
+          <DialogDescription>
+            {editingHorse
+              ? t("laboratory.labHorses.editHorseDesc")
+              : t("laboratory.labHorses.addNewDesc")}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t("common.name")} *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name_ar">{t("common.name")} ({t("language.ar") || "Arabic"})</Label>
-                <Input
-                  id="name_ar"
-                  value={formData.name_ar || ""}
-                  onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                  placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
-                  dir="rtl"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="microchip">{t("laboratory.walkIn.microchip")}</Label>
-                <Input
-                  id="microchip"
-                  value={formData.microchip_number || ""}
-                  onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
-                  placeholder={t("laboratory.walkIn.microchipPlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="passport">{t("laboratory.walkIn.passportNumber")}</Label>
-                <Input
-                  id="passport"
-                  value={formData.passport_number || ""}
-                  onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
-                  placeholder={t("laboratory.walkIn.passportPlaceholder")}
-                />
-              </div>
-            </div>
-
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="ueln">UELN</Label>
+              <Label htmlFor="name">{t("laboratory.labHorses.nameEn")} *</Label>
               <Input
-                id="ueln"
-                value={formData.ueln || ""}
-                onChange={(e) => setFormData({ ...formData, ueln: e.target.value })}
-                placeholder="e.g. 123456789012345"
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder={t("laboratory.walkIn.horseNamePlaceholder")}
+                dir="ltr"
               />
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="owner_name">{t("laboratory.labHorses.ownerName")}</Label>
-                <Input
-                  id="owner_name"
-                  value={formData.owner_name || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerNamePlaceholder")}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="owner_phone">{t("laboratory.labHorses.ownerPhone")}</Label>
-                <Input
-                  id="owner_phone"
-                  value={formData.owner_phone || ""}
-                  onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
-                  placeholder={t("laboratory.labHorses.ownerPhonePlaceholder")}
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="notes">{t("common.notes")}</Label>
+              <Label htmlFor="name_ar">{t("laboratory.labHorses.nameAr")}</Label>
               <Input
-                id="notes"
-                value={formData.notes || ""}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder={t("common.notes")}
+                id="name_ar"
+                value={formData.name_ar || ""}
+                onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                placeholder={t("laboratory.labHorses.nameArPlaceholder")}
+                dir="rtl"
               />
             </div>
           </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setCreateDialogOpen(false);
-                setEditingHorse(null);
-                setFormData({ name: "" });
-              }}
-            >
-              {t("common.cancel")}
-            </Button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="microchip">{t("laboratory.walkIn.microchip")}</Label>
+              <Input
+                id="microchip"
+                value={formData.microchip_number || ""}
+                onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
+                placeholder={t("laboratory.walkIn.microchipPlaceholder")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="passport">{t("laboratory.walkIn.passportNumber")}</Label>
+              <Input
+                id="passport"
+                value={formData.passport_number || ""}
+                onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
+                placeholder={t("laboratory.walkIn.passportPlaceholder")}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ueln">UELN</Label>
+            <Input
+              id="ueln"
+              value={formData.ueln || ""}
+              onChange={(e) => setFormData({ ...formData, ueln: e.target.value })}
+              placeholder="e.g. 123456789012345"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="owner_name">{t("laboratory.labHorses.ownerName")}</Label>
+              <Input
+                id="owner_name"
+                value={formData.owner_name || ""}
+                onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                placeholder={t("laboratory.labHorses.ownerNamePlaceholder")}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="owner_phone">{t("laboratory.labHorses.ownerPhone")}</Label>
+              <Input
+                id="owner_phone"
+                value={formData.owner_phone || ""}
+                onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
+                placeholder={t("laboratory.labHorses.ownerPhonePlaceholder")}
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">{t("common.notes")}</Label>
+            <Input
+              id="notes"
+              value={formData.notes || ""}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder={t("common.notes")}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="shrink-0 border-t px-6 py-4 gap-3 sm:flex-row flex-col">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto w-full sm:w-auto">
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isCreating || isUpdating}
+                className="w-full sm:w-auto"
+              >
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
             <Button
               onClick={handleSubmit}
-              disabled={!formData.name.trim() || isCreating || isUpdating}
+              disabled={isCreating || isUpdating}
+              className="w-full sm:w-auto"
             >
               {editingHorse ? t("common.save") : t("common.create")}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </DialogFooter>
+      </SafeFormDialog>
     </div>
   );
 }
