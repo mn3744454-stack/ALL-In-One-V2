@@ -126,6 +126,7 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
   const remainingPercentage = 100 - totalPercentage;
 
   const handleAddOwner = async () => {
+    setAttemptedAddSubmit(true);
     if (!newOwnerId || !newPercentage) {
       toast({ title: t('common.error'), description: t('horses.ownership.fillAllFields'), variant: "destructive" });
       return;
