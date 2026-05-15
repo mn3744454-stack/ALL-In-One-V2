@@ -967,6 +967,10 @@ export function CreateSampleDialog({
 
   const handleCheckoutComplete = (invoiceId: string) => {
     setCheckoutOpen(false);
+    // Track invoice id so post-commit suppression engages.
+    setCreatedInvoiceId(invoiceId);
+    // Re-baseline so subsequent close paths do not show discard prompt.
+    resetBaseline(dirtySnapshot);
     // Show success toast with "View Invoice" that opens in new tab (preserves context)
     toast.success(t("laboratory.checkout.invoiceCreated"), {
       action: {
@@ -989,6 +993,8 @@ export function CreateSampleDialog({
       const sampleIds = await createSamplesForAllHorses();
       
       if (sampleIds.length > 0) {
+        // Re-baseline before close to suppress the discard confirmation.
+        resetBaseline(dirtySnapshot);
         onOpenChange(false);
         onSuccess?.();
       }
@@ -1021,6 +1027,8 @@ export function CreateSampleDialog({
           // Invoice creation will be handled by the calling component or a separate flow
         }
         
+        // Re-baseline before close to suppress the discard confirmation.
+        resetBaseline(dirtySnapshot);
         onOpenChange(false);
         onSuccess?.();
       }
