@@ -135,6 +135,7 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
 
   const handleOpenCreate = () => {
     setFormData({ name: "" });
+    setAttemptedSubmit(false);
     setCreateDialogOpen(true);
   };
 
@@ -149,21 +150,41 @@ export function LabHorsesList({ editHorseId, onEditComplete }: LabHorsesListProp
       owner_phone: horse.owner_phone || undefined,
       notes: horse.notes || undefined,
     });
+    setAttemptedSubmit(false);
     setEditingHorse(horse as LabHorse);
   };
 
-  const handleSubmit = async () => {
-    if (!formData.name.trim()) return;
-
-    if (editingHorse) {
-      await updateLabHorse(editingHorse.id, formData);
-      setEditingHorse(null);
-      onEditComplete?.(); // Notify parent that edit is complete
-    } else {
-      await createLabHorse(formData as CreateLabHorseData);
-      setCreateDialogOpen(false);
-    }
+  const closeDialog = () => {
+    setCreateDialogOpen(false);
+    setEditingHorse(null);
     setFormData({ name: "" });
+    setAttemptedSubmit(false);
+  };
+
+  const handleSubmit = async () => {
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
+
+    const payload: LabHorseFormData = {
+      ...formData,
+      name: formData.name?.trim() || formData.name_ar?.trim() || "",
+    };
+
+    let result: unknown = null;
+    if (editingHorse) {
+      result = await updateLabHorse(editingHorse.id, payload);
+    } else {
+      result = await createLabHorse(payload as CreateLabHorseData);
+    }
+
+    if (result) {
+      // Reset baseline so the controlled close doesn't trigger discard prompt.
+      resetBaseline(payload);
+      if (editingHorse) {
+        onEditComplete?.();
+      }
+      closeDialog();
+    }
   };
 
   const handleArchive = async (horse: LabHorseWithMetrics) => {
