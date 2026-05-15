@@ -115,15 +115,28 @@ export function ClientFormDialog({
     }
   }, [open, client, initialName]);
 
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const { isDirty } = useDirtyForm({ formData, phones }, open);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!formData.name.trim()) issues.push(t("common.validation.enterClientName"));
+    return issues;
+  }, [formData.name, t]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    setAttemptedSubmit(true);
+    if (missingIssues.length > 0) return;
 
     setLoading(true);
     try {
       // Get primary phone for legacy field
       const primaryPhone = phones.find(p => p.is_primary)?.number || phones[0]?.number || "";
-      
+
       // Build save data with phones array (will be stored as jsonb in DB)
       const saveData: CreateClientData & { phones?: PhoneEntry[] } = {
         ...formData,
@@ -131,7 +144,7 @@ export function ClientFormDialog({
       };
       // Add phones as extra field - hook will handle it
       (saveData as any).phones = phones;
-      
+
       const result = await onSave(saveData as CreateClientData);
       if (result) {
         onOpenChange(false);
@@ -144,8 +157,12 @@ export function ClientFormDialog({
   const isEdit = !!client;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="max-w-lg max-h-[90vh] flex flex-col"
+    >
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("clients.edit") : t("clients.create")}
