@@ -166,6 +166,7 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
   };
 
   const handleEditOwner = async () => {
+    setAttemptedEditSubmit(true);
     if (!selectedOwnership || !newPercentage) return;
 
     const percentage = parseFloat(newPercentage);
