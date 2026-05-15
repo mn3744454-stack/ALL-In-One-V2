@@ -320,6 +320,10 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
     loadEditData();
   }, [mode, existingHorse, open]);
 
+  useEffect(() => {
+    if (!open) setAttemptedAdvance(false);
+  }, [open]);
+
   const updateData = (updates: Partial<HorseWizardData>) => {
     setData((prev) => ({ ...prev, ...updates }));
   };
