@@ -103,6 +103,8 @@ export const en = {
       selectTreatmentCategory: "Select treatment category",
       selectTreatmentDate: "Select treatment date",
       enterTreatmentDetails: "Enter treatment details",
+      enterHorseNameEnOrAr: "Enter an English or Arabic horse name",
+      enterRejectionReason: "Enter a rejection reason",
     },
   },
   workspace: {
