@@ -162,14 +162,21 @@ export function CreateVetVisitDialog({
   };
 
   return (
-    <SafeFormDialog open={open} onOpenChange={onOpenChange} isDirty={isDirty}>
-      <DialogHeader>
-        <DialogTitle>{t("vetVisits.scheduleVisit")}</DialogTitle>
-      </DialogHeader>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      contentClassName="!grid-rows-none !grid-cols-none !flex !flex-col sm:max-w-5xl max-h-[90vh] p-0 gap-0"
+    >
+      <div className="shrink-0 border-b px-6 py-4">
+        <DialogHeader>
+          <DialogTitle>{t("vetVisits.scheduleVisit")}</DialogTitle>
+        </DialogHeader>
+      </div>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 overflow-hidden flex flex-col">
-        <ScrollArea className="flex-1 px-1">
-          <div className="space-y-4 pb-4">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+          <div className="space-y-4">
             {/* Title */}
             <div className="space-y-2">
               <Label htmlFor="title">{t("vetVisits.fields.title")} *</Label>
@@ -201,7 +208,7 @@ export function CreateVetVisitDialog({
             </div>
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("vetVisits.fields.scheduledDate")} *</Label>
                 <Popover>
@@ -239,7 +246,7 @@ export function CreateVetVisitDialog({
             </div>
 
             {/* Vet Info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="vet_name">{t("vetVisits.fields.vetName")}</Label>
                 <Input
@@ -260,22 +267,23 @@ export function CreateVetVisitDialog({
 
             <div className="space-y-2">
               <Label>{t("vetVisits.fields.horses")}</Label>
-              <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
+              <div className="border rounded-lg p-3 max-h-56 overflow-y-auto space-y-2">
                 {horses.length === 0 ? (
                   <p className="text-sm text-muted-foreground">{t("vetVisits.noHorsesAvailable")}</p>
                 ) : (
                   horses.map((horse) => (
-                    <div key={horse.id} className="flex items-center gap-2">
+                    <div key={horse.id} className="flex items-start gap-2">
                       <Checkbox
                         id={`horse-${horse.id}`}
                         checked={selectedHorses?.includes(horse.id)}
                         onCheckedChange={() => toggleHorse(horse.id)}
+                        className="mt-1"
                       />
                       <label
                         htmlFor={`horse-${horse.id}`}
-                        className="text-sm cursor-pointer flex-1"
+                        className="text-sm cursor-pointer flex-1 min-w-0"
                       >
-                        {horse.name}
+                        <BilingualName name={horse.name} nameAr={(horse as any).name_ar} />
                       </label>
                     </div>
                   ))
@@ -311,9 +319,9 @@ export function CreateVetVisitDialog({
               />
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <div className="flex flex-col gap-3 pt-4 border-t shrink-0">
+        <div className="shrink-0 border-t px-6 py-3 space-y-3">
           <MissingRequirementsBar
             issues={attemptedSubmit ? missingIssues : []}
             attempted={attemptedSubmit}
