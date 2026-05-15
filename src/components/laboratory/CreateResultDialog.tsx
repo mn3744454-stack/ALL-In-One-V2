@@ -84,6 +84,21 @@ export function CreateResultDialog({
   const [editingResultId, setEditingResultId] = useState<string | null>(null);
   const [savedInSession, setSavedInSession] = useState<string[]>([]);
   const [sampleSearch, setSampleSearch] = useState('');
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  // Dirty-state snapshot — user-editable result entry only (excludes
+  // session/mode flags like savedInSession, editingResultId, step, loading).
+  const dirtySnapshot = useMemo(
+    () => ({
+      sampleId: selectedSample?.id ?? null,
+      templateId: selectedTemplate?.id ?? null,
+      resultData,
+      flags,
+      interpretation,
+    }),
+    [selectedSample?.id, selectedTemplate?.id, resultData, flags, interpretation],
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
 
   // Filter out fully completed samples (results_count >= templates_count)
   const samples = useMemo(() => {
