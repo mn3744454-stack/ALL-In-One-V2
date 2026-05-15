@@ -106,6 +106,9 @@ export const ar = {
       enterEmployeeName: "أدخل اسم الموظف",
       selectRecipient: "اختر المستلم",
       validTransferPercentage: "أدخل نسبة نقل صحيحة",
+      enterRequiredName: "أدخل الاسم المطلوب",
+      selectOwner: "اختر المالك",
+      validOwnershipPercentage: "أدخل نسبة ملكية صحيحة",
     },
   },
   workspace: {
