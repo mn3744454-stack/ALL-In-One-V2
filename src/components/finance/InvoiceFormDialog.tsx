@@ -328,8 +328,12 @@ export function InvoiceFormDialog({
   const isLoading = isCreating || isUpdating;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0"
+    >
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
             {isEditMode ? t("finance.invoices.edit") : t("finance.invoices.create")}
@@ -454,17 +458,25 @@ export function InvoiceFormDialog({
             </div>
           </div>
 
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-              {isEditMode ? t("common.save") : t("finance.invoices.createDraft")}
-            </Button>
+          <DialogFooter className="px-6 py-4 border-t shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+              className="flex-1 w-full sm:w-auto"
+            />
+            <div className="flex gap-2 sm:ms-auto">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  {t("common.cancel")}
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                {isEditMode ? t("common.save") : t("finance.invoices.createDraft")}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
