@@ -217,7 +217,7 @@ export function InvoiceFormDialog({
   }, [formData.client_id, formData.issue_date, formData.due_date, lineItems, t]);
 
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const { isDirty, resetBaseline } = useDirtyForm({ formData, lineItems }, open);
+  const { isDirty } = useDirtyForm({ formData, lineItems }, open);
   // Reset attempted-submit flag when dialog reopens.
   useEffect(() => {
     if (!open) setAttemptedSubmit(false);
