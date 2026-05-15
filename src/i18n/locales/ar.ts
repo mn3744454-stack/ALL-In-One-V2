@@ -1237,6 +1237,18 @@ export const ar = {
       receiveStatus: "حالة الاستلام",
       willReceiveNow: "سيتم الاستلام والترقيم الآن",
       willDefer: "مسودة (ترقيم لاحقاً)",
+      missing: {
+        selectClient: "اختر العميل",
+        enterWalkInClientName: "أدخل اسم العميل الزائر",
+        enterNoClientReason: "أدخل سبب عدم ربط العينة بعميل (5 أحرف على الأقل)",
+        addHorseOrSubject: "أضف خيلاً واحداً على الأقل أو موضوع العينة",
+        selectAtLeastOneTemplate: "اختر فحصاً أو قالباً واحداً على الأقل",
+        selectTemplatesPerHorse: "اختر القوالب لكل خيل محدد",
+        setCollectionDate: "حدّد تاريخ الجمع",
+        selectClientForInvoice: "اختر العميل قبل إنشاء الفاتورة",
+        completeRequiredPrices: "أكمل الأسعار المطلوبة",
+        insufficientCredits: "الرصيد غير كافٍ",
+      },
     },
     
     // Client Mode Selector
