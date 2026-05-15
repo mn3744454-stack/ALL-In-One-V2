@@ -453,34 +453,40 @@ export function RecordPaymentDialog({
         </div>
 
         {/* Sticky Footer */}
-        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isRecording}
-          >
-            {t("common.cancel")}
-          </Button>
+        <DialogFooter className="sticky bottom-0 bg-background z-10 px-6 py-4 border-t gap-3 flex-col sm:flex-row sm:items-center">
           {!summary?.isPaid && (
-            <Button
-              onClick={handleSubmit}
-              disabled={!isValidPayment || isRecording || !canRecordPayment}
-            >
-              {isRecording ? (
-                <>
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                  {t("common.loading")}
-                </>
-              ) : (
-                <>
-                  <DollarSign className="h-4 w-4 me-2" />
-                  {t("finance.payments.recordPayment")}
-                </>
-              )}
-            </Button>
+            <MissingRequirementsBar
+              issues={attemptedSubmit ? missingIssues : []}
+              attempted={attemptedSubmit}
+              className="flex-1 w-full sm:w-auto"
+            />
           )}
+          <div className="flex gap-2 sm:ms-auto">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isRecording}>
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            {!summary?.isPaid && (
+              <Button
+                onClick={handleSubmit}
+                disabled={isRecording || !canRecordPayment}
+              >
+                {isRecording ? (
+                  <>
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                    {t("common.loading")}
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="h-4 w-4 me-2" />
+                    {t("finance.payments.recordPayment")}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
