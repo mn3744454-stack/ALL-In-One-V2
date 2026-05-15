@@ -191,9 +191,48 @@ export function InvoiceFormDialog({
 
   const invalidateAllFinance = () => invalidateFinanceQueries(queryClient, activeTenant?.tenant.id);
 
+  // Build the missing-requirements list. Computed every render; cheap.
+  const missingIssues = useMemo<string[]>(() => {
+    const issues: string[] = [];
+    if (!formData.client_id) issues.push(t("finance.invoices.missing.client"));
+    if (!formData.issue_date) issues.push(t("finance.invoices.missing.issueDate"));
+    if (!formData.due_date) issues.push(t("finance.invoices.missing.dueDate"));
+    const validItems = lineItems.filter(
+      (i) => i.description && i.quantity > 0 && i.unit_price >= 0 && i.total_price > 0
+    );
+    if (validItems.length === 0) {
+      issues.push(t("finance.invoices.missing.lineItems"));
+    } else {
+      if (lineItems.some((i) => !i.description?.trim())) {
+        issues.push(t("finance.invoices.missing.lineItemDescription"));
+      }
+      if (lineItems.some((i) => i.quantity <= 0)) {
+        issues.push(t("finance.invoices.missing.lineItemQuantity"));
+      }
+      if (lineItems.some((i) => i.unit_price < 0)) {
+        issues.push(t("finance.invoices.missing.lineItemUnitPrice"));
+      }
+    }
+    return issues;
+  }, [formData.client_id, formData.issue_date, formData.due_date, lineItems, t]);
+
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const { isDirty, resetBaseline } = useDirtyForm({ formData, lineItems }, open);
+  // Reset attempted-submit flag when dialog reopens.
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTenant?.tenant.id) return;
+    setAttemptedSubmit(true);
+
+    if (missingIssues.length > 0) {
+      // In-surface guidance is now shown via MissingRequirementsBar; toast kept as supplemental.
+      toast.error(t("common.validation.attemptedSubmit"));
+      return;
+    }
 
     try {
       const validItems = lineItems.filter((item) => item.description && item.total_price > 0);
