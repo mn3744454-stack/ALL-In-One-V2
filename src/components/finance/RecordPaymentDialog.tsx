@@ -120,6 +120,35 @@ export function RecordPaymentDialog({
   const isOverpayment = summary ? totalPayment > summary.outstandingAmount + 0.01 : false;
   const isValidPayment = totalPayment > 0 && !isOverpayment;
 
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const { isDirty } = useDirtyForm(rows, open);
+
+  const hasInvalidAmount = useMemo(
+    () =>
+      rows.some((r) => {
+        if (r.amount === "") return false;
+        const v = parseFloat(r.amount);
+        return Number.isNaN(v) || v < 0;
+      }),
+    [rows],
+  );
+  const hasMissingMethod = useMemo(
+    () => rows.some((r) => parseFloat(r.amount) > 0 && !r.method),
+    [rows],
+  );
+
+  const missingIssues = useMemo<string[]>(() => {
+    const issues: string[] = [];
+    if (totalPayment <= 0) issues.push(t("finance.payments.missing.amount"));
+    if (hasInvalidAmount) issues.push(t("finance.payments.missing.invalidAmount"));
+    if (hasMissingMethod) issues.push(t("finance.payments.missing.method"));
+    return issues;
+  }, [totalPayment, hasInvalidAmount, hasMissingMethod, t]);
+
   // Handlers
   const addRow = () => {
     setRows([...rows, { id: crypto.randomUUID(), method: "cash", amount: "", reference: "" }]);
@@ -142,7 +171,10 @@ export function RecordPaymentDialog({
   };
 
   const handleSubmit = async () => {
-    if (!canRecordPayment || !isValidPayment) return;
+    if (!canRecordPayment) return;
+    setAttemptedSubmit(true);
+
+    if (!isValidPayment || missingIssues.length > 0) return;
 
     const payments: PaymentEntry[] = rows
       .filter((r) => parseFloat(r.amount) > 0)
@@ -166,8 +198,13 @@ export function RecordPaymentDialog({
   const formatAmount = (amount: number) => formatCurrency(amount, effectiveCurrency);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[550px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      dir={dir}
+    >
         {/* Sticky Header */}
         <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
