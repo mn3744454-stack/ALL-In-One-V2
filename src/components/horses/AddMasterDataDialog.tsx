@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +41,16 @@ export const AddMasterDataDialog = ({
   const { t } = useI18n();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+
+  const { isDirty } = useDirtyForm(formData, open);
+
+  useEffect(() => {
+    if (!open) {
+      setAttemptedSubmit(false);
+      setFormData({});
+    }
+  }, [open]);
 
   // Config is now inside component to access t() hook
   const typeConfig = useMemo(() => ({
@@ -96,18 +108,21 @@ export const AddMasterDataDialog = ({
 
   const config = typeConfig[type];
 
+  const missingIssues = useMemo(() => {
+    const requiredFields = config.fields.filter((f) => f.required);
+    const missing = requiredFields.filter((f) => !formData[f.key]?.trim());
+    return missing.map((f) =>
+      f.key === "name"
+        ? t('common.validation.enterRequiredName')
+        : f.label,
+    );
+  }, [config.fields, formData, t]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const requiredFields = config.fields.filter((f) => f.required);
-    const missingFields = requiredFields.filter((f) => !formData[f.key]?.trim());
-    
-    if (missingFields.length > 0) {
-      toast({
-        title: t('horses.masterData.missingFields'),
-        description: `${t('horses.masterData.pleaseFillIn')}: ${missingFields.map((f) => f.label).join(", ")}`,
-        variant: "destructive",
-      });
+    setAttemptedSubmit(true);
+
+    if (missingIssues.length > 0) {
       return;
     }
 
@@ -135,46 +150,51 @@ export const AddMasterDataDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{config.title}</DialogTitle>
-        </DialogHeader>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-md"
+    >
+      <DialogHeader>
+        <DialogTitle>{config.title}</DialogTitle>
+      </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {config.fields.map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Label htmlFor={field.key}>
-                {field.label}
-                {field.required && <span className="text-destructive ml-1">*</span>}
-              </Label>
-              <Input
-                id={field.key}
-                value={formData[field.key] || ""}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
-                }
-                placeholder={field.label}
-              />
-            </div>
-          ))}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {config.fields.map((field) => (
+          <div key={field.key} className="space-y-2">
+            <Label htmlFor={field.key}>
+              {field.label}
+              {field.required && <span className="text-destructive ms-1">*</span>}
+            </Label>
+            <Input
+              id={field.key}
+              value={formData[field.key] || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
+              }
+              placeholder={field.label}
+            />
+          </div>
+        ))}
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
+        <MissingRequirementsBar
+          issues={attemptedSubmit ? missingIssues : []}
+          attempted={attemptedSubmit}
+        />
+
+        <div className="flex justify-end gap-2 pt-4">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" disabled={loading}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {t('common.create')}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          </DialogClose>
+          <Button type="submit" disabled={loading}>
+            {loading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+            {t('common.create')}
+          </Button>
+        </div>
+      </form>
+    </SafeFormDialog>
   );
 };
