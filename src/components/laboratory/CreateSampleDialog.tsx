@@ -700,6 +700,83 @@ export function CreateSampleDialog({
     resolve();
   }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id, user?.id]);
 
+  // ── L1a-2a: Safe Dialog dirty tracking ──
+  // Normalized snapshot: only user-editable form fields. Excludes session/UI
+  // state, eager-resolved metadata, refs, createdSampleIds, createdInvoiceId,
+  // skipCheckout, loading, step, and nested-dialog open flags.
+  const dirtySnapshot = useMemo(() => {
+    const horsesNorm = formData.selectedHorses.map(h => ({
+      id: h.horse_id ?? null,
+      type: h.horse_type,
+      name: h.horse_name,
+      passport: h.horse_data?.passport_number ?? null,
+      microchip: h.horse_data?.microchip ?? null,
+      breed: h.horse_data?.breed ?? null,
+      color: h.horse_data?.color ?? null,
+    }));
+    const templatesSorted = [...formData.template_ids].sort();
+    const perHorseTemplatesNorm: Record<string, string[]> = {};
+    Object.keys(formData.per_horse_templates)
+      .sort()
+      .forEach(k => {
+        perHorseTemplatesNorm[k] = [...formData.per_horse_templates[Number(k)]].sort();
+      });
+    const billingPricesNorm: Record<string, number> = {};
+    Object.keys(billingPrices)
+      .sort()
+      .forEach(k => { billingPricesNorm[k] = billingPrices[k]; });
+    return {
+      selectedHorses: horsesNorm,
+      collection_date: formData.collection_date
+        ? formData.collection_date.toISOString()
+        : null,
+      daily_number: formData.daily_number,
+      per_sample_daily_numbers: formData.per_sample_daily_numbers,
+      physical_sample_id: formData.physical_sample_id,
+      client_id: formData.client_id,
+      clientMode: formData.clientMode,
+      walkInClient: formData.walkInClient,
+      no_client_reason: formData.no_client_reason,
+      notes: formData.notes,
+      template_ids: templatesSorted,
+      per_horse_templates: perHorseTemplatesNorm,
+      customize_templates_per_horse: formData.customize_templates_per_horse,
+      create_invoice: formData.create_invoice,
+      receive_now: formData.receive_now,
+      billingPrices: billingPricesNorm,
+    };
+  }, [formData, billingPrices]);
+
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  // After eager prefill settles, re-baseline so prefilled values are not dirty.
+  useEffect(() => {
+    if (!open) return;
+    if (!fromRequest || !isPrimaryLabTenant) return;
+    if (!requestPrefillResolvedRef.current) return;
+    if (eagerResolving) return;
+    resetBaseline(dirtySnapshot);
+    // Intentionally only re-baseline once eager-resolve transitions to false.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, eagerResolving, fromRequest, isPrimaryLabTenant]);
+
+  // Post-commit suppression: once samples or an invoice exist, the wizard is
+  // no longer "discardable" — close paths must not show the generic discard
+  // confirmation.
+  const hasIrreversibleSideEffects =
+    createdSampleIds.length > 0 || !!createdInvoiceId;
+  const effectiveIsDirty = isDirty && !hasIrreversibleSideEffects && !loading;
+
+  // Block accidental close while an in-flight submit is running.
+  const guardedOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next && loading) return;
+      onOpenChange(next);
+    },
+    [loading, onOpenChange],
+  );
+
+
   const generateSampleId = () => {
     const prefix = 'LAB';
     const timestamp = Date.now().toString(36).toUpperCase();
