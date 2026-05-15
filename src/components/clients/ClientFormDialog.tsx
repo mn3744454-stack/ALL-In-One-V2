@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
@@ -347,9 +348,11 @@ export function ClientFormDialog({
             className="flex-1 w-full sm:w-auto"
           />
           <div className="flex gap-2 sm:ms-auto">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("common.cancel")}
-            </Button>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
             <Button onClick={handleSubmit} disabled={loading}>
               {loading ? t("common.loading") : isEdit ? t("common.update") : t("common.create")}
             </Button>
