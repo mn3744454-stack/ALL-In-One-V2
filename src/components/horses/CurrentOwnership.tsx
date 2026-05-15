@@ -67,11 +67,60 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
   const [newPercentage, setNewPercentage] = useState("");
   const [newIsPrimary, setNewIsPrimary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [attemptedAddSubmit, setAttemptedAddSubmit] = useState(false);
+  const [attemptedEditSubmit, setAttemptedEditSubmit] = useState(false);
 
   useEffect(() => {
     fetchOwnerships();
     fetchOwners();
   }, [horseId]);
+
+  // Dirty tracking — Add dialog: any of the form fields touched while open
+  const addFormState = { newOwnerId, newPercentage, newIsPrimary };
+  const { isDirty: addIsDirty } = useDirtyForm(addFormState, showAddDialog);
+
+  // Dirty tracking — Edit dialog: percentage/primary changed vs the loaded ownership
+  const editBaseline = useMemo(() => ({
+    newPercentage: selectedOwnership?.ownership_percentage?.toString() ?? "",
+    newIsPrimary: selectedOwnership?.is_primary ?? false,
+  }), [selectedOwnership]);
+  const editFormState = { newPercentage, newIsPrimary };
+  const editIsDirty =
+    showEditDialog &&
+    (editFormState.newPercentage !== editBaseline.newPercentage ||
+      editFormState.newIsPrimary !== editBaseline.newIsPrimary);
+
+  useEffect(() => {
+    if (!showAddDialog) setAttemptedAddSubmit(false);
+  }, [showAddDialog]);
+  useEffect(() => {
+    if (!showEditDialog) setAttemptedEditSubmit(false);
+  }, [showEditDialog]);
+
+  const addMissingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!newOwnerId) issues.push(t('common.validation.selectOwner'));
+    const pct = parseFloat(newPercentage);
+    if (!newPercentage || isNaN(pct) || pct <= 0 || pct > (100 - getTotalPercentage())) {
+      issues.push(t('common.validation.validOwnershipPercentage'));
+    }
+    return issues;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newOwnerId, newPercentage, ownerships, t]);
+
+  const editMissingIssues = useMemo(() => {
+    const issues: string[] = [];
+    const pct = parseFloat(newPercentage);
+    const otherPercentage = ownerships
+      .filter(o => o.id !== selectedOwnership?.id)
+      .reduce((sum, o) => sum + Number(o.ownership_percentage), 0);
+    const maxAllowed = 100 - otherPercentage;
+    if (!newPercentage || isNaN(pct) || pct <= 0 || pct > maxAllowed) {
+      issues.push(t('common.validation.validOwnershipPercentage'));
+    }
+    return issues;
+  }, [newPercentage, ownerships, selectedOwnership, t]);
+
 
   const totalPercentage = getTotalPercentage();
   const remainingPercentage = 100 - totalPercentage;
