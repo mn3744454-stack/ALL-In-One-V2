@@ -56,10 +56,11 @@ export const TransferOwnershipDialog = ({
   const [transferPercentage, setTransferPercentage] = useState("");
   const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split("T")[0]);
   const [saving, setSaving] = useState(false);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
   // Get existing owners (excluding the current one)
   const existingOwners = allOwnerships.filter(o => o.id !== fromOwnership.id);
-  
+
   // Get available owners (not already owners)
   const newOwnerOptions = availableOwners.filter(
     o => !allOwnerships.some(own => own.owner_id === o.id)
@@ -67,19 +68,37 @@ export const TransferOwnershipDialog = ({
 
   const maxTransfer = Number(fromOwnership.ownership_percentage);
 
+  const formState = { recipientType, recipientId, transferPercentage, effectiveDate };
+  const { isDirty } = useDirtyForm(formState, open);
+
+  useEffect(() => {
+    if (!open) setAttemptedSubmit(false);
+  }, [open]);
+
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!recipientId) issues.push(t('common.validation.selectRecipient'));
+    const pct = parseFloat(transferPercentage);
+    if (!transferPercentage || isNaN(pct) || pct <= 0 || pct > maxTransfer) {
+      issues.push(t('common.validation.validTransferPercentage'));
+    }
+    return issues;
+  }, [recipientId, transferPercentage, maxTransfer, t]);
+
   const handleTransfer = async () => {
+    setAttemptedSubmit(true);
     const percentage = parseFloat(transferPercentage);
-    
+
     if (!recipientId) {
       toast({ title: t('common.error'), description: t('horses.ownership.selectRecipientError'), variant: "destructive" });
       return;
     }
 
     if (isNaN(percentage) || percentage <= 0 || percentage > maxTransfer) {
-      toast({ 
-        title: t('common.error'), 
-        description: t('horses.ownership.invalidPercentageMax').replace('{{max}}', String(maxTransfer)), 
-        variant: "destructive" 
+      toast({
+        title: t('common.error'),
+        description: t('horses.ownership.invalidPercentageMax').replace('{{max}}', String(maxTransfer)),
+        variant: "destructive"
       });
       return;
     }
