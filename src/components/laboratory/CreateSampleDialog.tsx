@@ -180,6 +180,7 @@ export function CreateSampleDialog({
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [attemptedAdvance, setAttemptedAdvance] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [createdSampleIds, setCreatedSampleIds] = useState<string[]>([]);
   const [skipCheckout, setSkipCheckout] = useState(false);
