@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -699,6 +700,83 @@ export function CreateSampleDialog({
     resolve();
   }, [open, fromRequest, isPrimaryLabTenant, activeTenant?.tenant.id, user?.id]);
 
+  // ── L1a-2a: Safe Dialog dirty tracking ──
+  // Normalized snapshot: only user-editable form fields. Excludes session/UI
+  // state, eager-resolved metadata, refs, createdSampleIds, createdInvoiceId,
+  // skipCheckout, loading, step, and nested-dialog open flags.
+  const dirtySnapshot = useMemo(() => {
+    const horsesNorm = formData.selectedHorses.map(h => ({
+      id: h.horse_id ?? null,
+      type: h.horse_type,
+      name: h.horse_name,
+      passport: h.horse_data?.passport_number ?? null,
+      microchip: h.horse_data?.microchip ?? null,
+      breed: h.horse_data?.breed ?? null,
+      color: h.horse_data?.color ?? null,
+    }));
+    const templatesSorted = [...formData.template_ids].sort();
+    const perHorseTemplatesNorm: Record<string, string[]> = {};
+    Object.keys(formData.per_horse_templates)
+      .sort()
+      .forEach(k => {
+        perHorseTemplatesNorm[k] = [...formData.per_horse_templates[Number(k)]].sort();
+      });
+    const billingPricesNorm: Record<string, number> = {};
+    Object.keys(billingPrices)
+      .sort()
+      .forEach(k => { billingPricesNorm[k] = billingPrices[k]; });
+    return {
+      selectedHorses: horsesNorm,
+      collection_date: formData.collection_date
+        ? formData.collection_date.toISOString()
+        : null,
+      daily_number: formData.daily_number,
+      per_sample_daily_numbers: formData.per_sample_daily_numbers,
+      physical_sample_id: formData.physical_sample_id,
+      client_id: formData.client_id,
+      clientMode: formData.clientMode,
+      walkInClient: formData.walkInClient,
+      no_client_reason: formData.no_client_reason,
+      notes: formData.notes,
+      template_ids: templatesSorted,
+      per_horse_templates: perHorseTemplatesNorm,
+      customize_templates_per_horse: formData.customize_templates_per_horse,
+      create_invoice: formData.create_invoice,
+      receive_now: formData.receive_now,
+      billingPrices: billingPricesNorm,
+    };
+  }, [formData, billingPrices]);
+
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  // After eager prefill settles, re-baseline so prefilled values are not dirty.
+  useEffect(() => {
+    if (!open) return;
+    if (!fromRequest || !isPrimaryLabTenant) return;
+    if (!requestPrefillResolvedRef.current) return;
+    if (eagerResolving) return;
+    resetBaseline(dirtySnapshot);
+    // Intentionally only re-baseline once eager-resolve transitions to false.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, eagerResolving, fromRequest, isPrimaryLabTenant]);
+
+  // Post-commit suppression: once samples or an invoice exist, the wizard is
+  // no longer "discardable" — close paths must not show the generic discard
+  // confirmation.
+  const hasIrreversibleSideEffects =
+    createdSampleIds.length > 0 || !!createdInvoiceId;
+  const effectiveIsDirty = isDirty && !hasIrreversibleSideEffects && !loading;
+
+  // Block accidental close while an in-flight submit is running.
+  const guardedOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next && loading) return;
+      onOpenChange(next);
+    },
+    [loading, onOpenChange],
+  );
+
+
   const generateSampleId = () => {
     const prefix = 'LAB';
     const timestamp = Date.now().toString(36).toUpperCase();
@@ -889,6 +967,10 @@ export function CreateSampleDialog({
 
   const handleCheckoutComplete = (invoiceId: string) => {
     setCheckoutOpen(false);
+    // Track invoice id so post-commit suppression engages.
+    setCreatedInvoiceId(invoiceId);
+    // Re-baseline so subsequent close paths do not show discard prompt.
+    resetBaseline(dirtySnapshot);
     // Show success toast with "View Invoice" that opens in new tab (preserves context)
     toast.success(t("laboratory.checkout.invoiceCreated"), {
       action: {
@@ -911,6 +993,8 @@ export function CreateSampleDialog({
       const sampleIds = await createSamplesForAllHorses();
       
       if (sampleIds.length > 0) {
+        // Re-baseline before close to suppress the discard confirmation.
+        resetBaseline(dirtySnapshot);
         onOpenChange(false);
         onSuccess?.();
       }
@@ -943,6 +1027,8 @@ export function CreateSampleDialog({
           // Invoice creation will be handled by the calling component or a separate flow
         }
         
+        // Re-baseline before close to suppress the discard confirmation.
+        resetBaseline(dirtySnapshot);
         onOpenChange(false);
         onSuccess?.();
       }
@@ -2174,7 +2260,7 @@ export function CreateSampleDialog({
               {isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between border-b pb-3">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
-                  <span className="font-medium">{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
+                  <BilingualName name={selectedClient.name} nameAr={selectedClient.name_ar} inline primaryClassName="font-medium" />
                 </div>
               )}
               
@@ -2232,7 +2318,7 @@ export function CreateSampleDialog({
               {!isPrimaryLabTenant && selectedClient && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("laboratory.createSample.client")}</span>
-                  <span>{displayClientName(selectedClient.name, selectedClient.name_ar, lang)}</span>
+                  <BilingualName name={selectedClient.name} nameAr={selectedClient.name_ar} inline />
                 </div>
               )}
               {isRetest && (
@@ -2309,8 +2395,12 @@ export function CreateSampleDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <SafeFormDialog
+        open={open}
+        onOpenChange={guardedOpenChange}
+        isDirty={effectiveIsDirty}
+        contentClassName="w-[95vw] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
           {/* Compact Header: Title + Step Indicator in one row */}
           <DialogHeader className="flex-shrink-0 pb-2">
             <div className="flex items-center justify-between gap-2">
@@ -2371,9 +2461,16 @@ export function CreateSampleDialog({
                   <User className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryClient")}</p>
-                    <p className="text-sm font-medium truncate">
-                      {selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
-                    </p>
+                    {(selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot) ? (
+                      <BilingualName
+                        name={selectedClient?.name || eagerResolvedClient?.name || fromRequest.initiator_tenant_name_snapshot}
+                        nameAr={selectedClient?.name_ar ?? null}
+                        inline
+                        primaryClassName="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium truncate">{t("laboratory.catalog.summaryNotAvailable")}</p>
+                    )}
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
                     disabled={eagerResolving}
@@ -2386,9 +2483,16 @@ export function CreateSampleDialog({
                   <Users className="h-4 w-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground">{t("laboratory.catalog.summaryHorse")}</p>
-                    <p className="text-sm font-medium truncate">
-                      {formData.selectedHorses[0]?.horse_name || eagerResolvedHorse?.name || fromRequest.horse_name_snapshot || t("laboratory.catalog.summaryNotAvailable")}
-                    </p>
+                    {(formData.selectedHorses[0]?.horse_name || eagerResolvedHorse?.name || fromRequest.horse_name_snapshot) ? (
+                      <BilingualName
+                        name={formData.selectedHorses[0]?.horse_name || eagerResolvedHorse?.name || fromRequest.horse_name_snapshot}
+                        nameAr={fromRequest.horse_name_ar_snapshot ?? null}
+                        inline
+                        primaryClassName="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium truncate">{t("laboratory.catalog.summaryNotAvailable")}</p>
+                    )}
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="h-8 px-2 shrink-0 text-xs"
                     disabled={eagerResolving}
@@ -2425,7 +2529,7 @@ export function CreateSampleDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={step === 0 ? () => onOpenChange(false) : handlePrevious}
+                onClick={step === 0 ? () => guardedOpenChange(false) : handlePrevious}
                 className="flex-1"
                 size="sm"
               >
@@ -2464,8 +2568,7 @@ export function CreateSampleDialog({
               )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Client Form Dialog (LAB tenant only) */}
       <ClientFormDialog
