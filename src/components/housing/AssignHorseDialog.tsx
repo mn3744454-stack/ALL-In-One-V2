@@ -100,12 +100,24 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
     return { sameBranchHorses: same, otherBranchHorses: other };
   }, [availableHorses, unitBranchId]);
 
+  const dirtyState = useMemo(() => ({ selectedHorseId }), [selectedHorseId]);
+  const { isDirty, resetBaseline } = useDirtyForm(dirtyState, open);
+
   const handleClose = useCallback(() => {
     setSelectedHorseId(null);
     setMoveConfirm(null);
     setCrossBranchBlock(null);
     onOpenChange(false);
   }, [onOpenChange]);
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    if (checkingAdmission || isMoving) return;
+    handleClose();
+  };
 
   if (!unit) return null;
 
