@@ -1699,6 +1699,15 @@ export const en = {
         sectionsLabel: "Sections",
         jumpTo: "Jump to section",
       },
+      validation: {
+        missingName: "Enter template name",
+        fieldMissingOptions: "select fields need options",
+        invalidRange: "normal ranges are invalid",
+        unknownTokens: "unknown diagnostic tokens",
+        requiredIssues: "Required",
+        warnings: "Warnings",
+        fixInSection: "Go to section",
+      },
     },
   },
   movement: {
