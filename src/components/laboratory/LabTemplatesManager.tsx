@@ -542,10 +542,40 @@ const openCreateDialog = () => {
     setRuleToDelete(null);
   };
 
+  const conditionRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
   const insertFieldIntoCondition = (ruleIndex: number, fieldName: string) => {
     const rule = formData.diagnostic_rules[ruleIndex];
-    const newCondition = rule.condition + `{{${fieldName}}}`;
+    if (!rule) return;
+    const token = `{{${fieldName}}}`;
+    const ta = conditionRefs.current[rule.id];
+    const current = rule.condition || '';
+    let newCondition: string;
+    if (ta && typeof ta.selectionStart === 'number') {
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd ?? start;
+      newCondition = current.slice(0, start) + token + current.slice(end);
+      const caret = start + token.length;
+      requestAnimationFrame(() => {
+        try { ta.focus(); ta.setSelectionRange(caret, caret); } catch { /* noop */ }
+      });
+    } else {
+      newCondition = current ? `${current} ${token}` : token;
+    }
     updateDiagnosticRule(ruleIndex, { condition: newCondition });
+  };
+
+  const getUnknownTokens = (condition: string): string[] => {
+    if (!condition) return [];
+    const known = new Set(formData.fields.map(f => f.name).filter(Boolean));
+    const found = new Set<string>();
+    const re = /\{\{([^}]+)\}\}/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(condition)) !== null) {
+      const tok = m[1].trim();
+      if (tok && !known.has(tok)) found.add(tok);
+    }
+    return Array.from(found);
   };
 
   // ========== SUBMIT ==========
