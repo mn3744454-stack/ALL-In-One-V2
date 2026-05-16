@@ -1829,21 +1829,74 @@ const openCreateDialog = () => {
           </div>
 
           {/* Footer - outside scroll area for sticky positioning */}
-          <div className={`flex gap-3 px-6 py-4 border-t bg-background ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <DialogClose asChild>
-              <Button variant="outline" className="flex-1" disabled={saving}>
-                {t('common.cancel')}
+          <div className="border-t bg-background">
+            {(validationSummary.required.length > 0 || validationSummary.warnings.length > 0) && (
+              <div className="px-6 pt-3 pb-1 space-y-2">
+                {validationSummary.required.length > 0 && (
+                  <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-start">
+                    <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-destructive">
+                        {t('laboratory.templates.validation.requiredIssues')}
+                      </p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {validationSummary.required.map((it) => (
+                          <button
+                            key={it.key}
+                            type="button"
+                            onClick={() => handleNavigateSection(it.section)}
+                            title={t('laboratory.templates.validation.fixInSection')}
+                            className="inline-flex items-center rounded-full border border-destructive/30 bg-background px-2 py-0.5 text-[11px] text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            {it.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {validationSummary.warnings.length > 0 && (
+                  <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-start">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-amber-700 dark:text-amber-500">
+                        {t('laboratory.templates.validation.warnings')}
+                      </p>
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {validationSummary.warnings.map((it) => (
+                          <button
+                            key={it.key}
+                            type="button"
+                            onClick={() => handleNavigateSection(it.section)}
+                            title={t('laboratory.templates.validation.fixInSection')}
+                            className="inline-flex items-center rounded-full border border-amber-500/30 bg-background px-2 py-0.5 text-[11px] text-amber-700 dark:text-amber-500 hover:bg-amber-500/10 transition-colors"
+                          >
+                            {it.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={`flex gap-3 px-6 py-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <DialogClose asChild>
+                <Button variant="outline" className="flex-1" disabled={saving}>
+                  {t('common.cancel')}
+                </Button>
+              </DialogClose>
+              <Button
+                className="flex-1"
+                onClick={handleSubmit}
+                disabled={saving || !formData.name.trim()}
+              >
+                {saving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
+                {editingTemplate ? t('common.update') : t('common.create')}
               </Button>
-            </DialogClose>
-            <Button 
-              className="flex-1" 
-              onClick={handleSubmit}
-              disabled={saving || !formData.name.trim()}
-            >
-              {saving && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-              {editingTemplate ? t('common.update') : t('common.create')}
-            </Button>
+            </div>
           </div>
+
       </SafeFormDialog>
 
       {/* Preview Dialog */}
