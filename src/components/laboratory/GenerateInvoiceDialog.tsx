@@ -488,7 +488,6 @@ export function GenerateInvoiceDialog({
             </DialogFooter>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
