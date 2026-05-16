@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import {
   Form,
   FormControl,
@@ -97,6 +95,9 @@ export const ServiceFormDialog = ({
     }
   }, [service, form, effectiveKind]);
 
+  const isSubmitting = isLoading || form.formState.isSubmitting;
+  const effectiveIsDirty = form.formState.isDirty && !isSubmitting;
+
   const handleSubmit = async (values: ServiceFormValues) => {
     await onSubmit({
       name: values.name,
@@ -110,6 +111,8 @@ export const ServiceFormDialog = ({
       is_public: values.is_public,
       is_taxable: values.is_taxable,
     });
+    // Clear RHF dirty so SafeFormDialog skips discard confirm on close.
+    form.reset(values);
     setOpen(false);
     if (!isEdit) {
       form.reset();
@@ -119,16 +122,21 @@ export const ServiceFormDialog = ({
   const showKindSelector = !defaultServiceKind;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <>
+      <span onClick={() => setOpen(true)} className="inline-flex" role="presentation">
         {trigger || (
           <Button variant="gold" className="gap-2">
             <Plus className="w-4 h-4" />
             {t("services.form.addService")}
           </Button>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-0">
+      </span>
+      <SafeFormDialog
+        open={open}
+        onOpenChange={setOpen}
+        isDirty={effectiveIsDirty}
+        className="sm:max-w-xl max-h-[85vh] flex flex-col p-0"
+      >
         <DialogHeader className="shrink-0 px-6 pt-6 pb-4">
           <DialogTitle className="text-navy">
             {isEdit ? t("services.form.editTitle") : t("services.form.addTitle")}
