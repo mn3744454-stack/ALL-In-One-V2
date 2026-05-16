@@ -569,6 +569,7 @@ const openCreateDialog = () => {
       } else {
         await createTemplate(data);
       }
+      resetFormBaseline(formData);
       setDialogOpen(false);
     } finally {
       setSaving(false);
