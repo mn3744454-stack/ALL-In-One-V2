@@ -582,6 +582,7 @@ const openCreateDialog = () => {
     setSaving(true);
     try {
       await duplicateTemplate(templateToDuplicate.id, duplicateName);
+      resetDuplicateBaseline({ duplicateName: '' });
       setDuplicateDialogOpen(false);
       setTemplateToDuplicate(null);
       setDuplicateName('');
