@@ -204,6 +204,22 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   );
   const [loading, setLoading] = useState(false);
 
+  // Dirty tracking — only user-editable fields, primitives only
+  const dirtySnapshot = useMemo(
+    () => ({ selectedClientId, clientName, periodStart, periodEnd, totalAmount, notes }),
+    [selectedClientId, clientName, periodStart, periodEnd, totalAmount, notes]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    if (loading || isCreating) return;
+    onOpenChange(false);
+  };
+
   // Smart default: set billing start to first unbilled date after billed periods load
   const hasSetSmartDefault = useRef(false);
   useEffect(() => {
