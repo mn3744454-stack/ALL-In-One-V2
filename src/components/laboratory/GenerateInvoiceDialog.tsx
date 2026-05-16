@@ -196,11 +196,15 @@ export function GenerateInvoiceDialog({
 
     const invoiceId = await generateInvoice(input);
     if (invoiceId) {
+      // Silent close after success — bypass dirty discard prompt.
+      resetBaseline(dirtySnapshot);
       onOpenChange(false);
     }
   };
 
   const handleGoToInvoice = (invoiceId: string) => {
+    // Navigating to an existing invoice must not trigger a discard prompt.
+    resetBaseline(dirtySnapshot);
     goToInvoice(invoiceId);
     onOpenChange(false);
   };
