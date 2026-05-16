@@ -1682,6 +1682,10 @@ export const en = {
       updated: "Template updated successfully",
       duplicated: "Template duplicated successfully",
       deleted: "Template deleted successfully",
+      rangeChip: "Range",
+      noRangeChip: "No range",
+      optionsCount: "options",
+      conditionPlaceholder: "Example: {{WBC}} > 12 and {{RBC}} < 5",
       nav: {
         identity: "Identity",
         overview: "Overview",
