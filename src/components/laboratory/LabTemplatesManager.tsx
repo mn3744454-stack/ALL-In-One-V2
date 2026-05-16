@@ -227,6 +227,31 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       return next;
     });
   };
+
+  // L3-a-1: Hybrid IA navigation (desktop rail + mobile jump bar)
+  // Section keys mapped to sectionsOpen toggles (identity has no collapsible)
+  const NAV_SECTIONS = [
+    { key: 'identity', openKey: null as null | keyof typeof sectionsOpen },
+    { key: 'overview', openKey: 'description' as const },
+    { key: 'groups', openKey: 'groups' as const },
+    { key: 'fields', openKey: 'fields' as const },
+    { key: 'pricing', openKey: 'pricing' as const },
+    { key: 'rules', openKey: 'diagnosticRules' as const },
+  ] as const;
+
+  const handleNavigateSection = (key: string) => {
+    const entry = NAV_SECTIONS.find(s => s.key === key);
+    if (entry?.openKey) {
+      setSectionsOpen(prev => ({ ...prev, [entry.openKey as string]: true }));
+    }
+    // Defer scroll one frame so the Collapsible has time to expand
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`section-${key}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  };
   
   // Auto-collapse all except current field during reorder
   const handleReorderStart = (currentFieldId: string) => {
