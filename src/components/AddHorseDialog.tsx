@@ -81,7 +81,7 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
     if (error) {
       toast.error(t("horses.addError"));
     } else {
-      toast.success(t("horses.addSuccess", { name: formData.name }));
+      toast.success(t("horses.addSuccess").replace("{{name}}", formData.name));
       resetBaseline(EMPTY);
       setOpen(false);
       setFormData(EMPTY);
