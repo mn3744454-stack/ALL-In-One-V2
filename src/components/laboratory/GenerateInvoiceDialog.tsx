@@ -216,8 +216,13 @@ export function GenerateInvoiceDialog({
   const clientFromSample = sample?.client_id;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      dir={dir}
+    >
         {/* Sticky Header */}
         <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
