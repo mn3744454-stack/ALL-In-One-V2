@@ -38,7 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Plus, Copy, Pencil, Trash2, FileText, Loader2, X, Sparkles, 
-  ChevronDown, ChevronUp, Search, AlertTriangle,
+  ChevronDown, ChevronUp, Search, AlertTriangle, AlertCircle,
   Percent, DollarSign, Package, Eye
 } from "lucide-react";
 import { 
