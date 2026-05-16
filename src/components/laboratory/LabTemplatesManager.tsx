@@ -192,7 +192,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     fields: [],
     groups: [],
     normal_ranges: {},
-    pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+    pricing: { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
     diagnostic_rules: [],
   });
 
