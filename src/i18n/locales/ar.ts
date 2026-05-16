@@ -1700,6 +1700,9 @@ export const ar = {
       updated: "تم تحديث القالب بنجاح",
       duplicated: "تم تكرار القالب بنجاح",
       deleted: "تم حذف القالب بنجاح",
+      rangeChip: "النطاق",
+      noRangeChip: "بدون نطاق",
+      optionsCount: "خيارات",
       nav: {
         identity: "الهوية",
         overview: "نظرة عامة",

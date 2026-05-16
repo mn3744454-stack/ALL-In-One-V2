@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Select,
   SelectContent,
@@ -141,6 +142,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   const { t, lang } = useI18n();
   const isRTL = lang === 'ar';
   const { templates, loading, canManage, existingCategories, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate, seedDefaultTemplates } = useLabTemplates();
+  const tenantCurrency = useTenantCurrency();
   const [seedingDefaults, setSeedingDefaults] = useState(false);
   
   // Search and filter state
@@ -170,7 +172,6 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     description: false,
     groups: false,
     fields: false,
-    normalRanges: false,
     pricing: false,
     diagnosticRules: false,
   });
@@ -191,7 +192,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     fields: [],
     groups: [],
     normal_ranges: {},
-    pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+    pricing: { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
     diagnostic_rules: [],
   });
 
@@ -304,12 +305,12 @@ const openCreateDialog = () => {
       fields: [],
       groups: [],
       normal_ranges: {},
-      pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+      pricing: { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
       diagnostic_rules: [],
     });
     // Task G: Start all sections collapsed for new template
     setExpandedFields(new Set());
-    setSectionsOpen({ description: false, groups: false, fields: false, normalRanges: false, pricing: false, diagnosticRules: false });
+    setSectionsOpen({ description: false, groups: false, fields: false, pricing: false, diagnosticRules: false });
     setDialogOpen(true);
   };
 
@@ -327,7 +328,7 @@ const openCreateDialog = () => {
       fields: template.fields || [],
       groups: template.groups || [],
       normal_ranges: template.normal_ranges || {},
-      pricing: template.pricing || { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+      pricing: template.pricing || { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
       diagnostic_rules: template.diagnostic_rules || [],
     });
     // If more than 5 fields, collapse all except first
@@ -337,7 +338,7 @@ const openCreateDialog = () => {
     } else {
       setExpandedFields(new Set(fields.map(f => f.id)));
     }
-    setSectionsOpen({ description: true, groups: template.groups?.length > 0, fields: true, normalRanges: Object.keys(template.normal_ranges || {}).length > 0, pricing: true, diagnosticRules: template.diagnostic_rules?.length > 0 });
+    setSectionsOpen({ description: true, groups: template.groups?.length > 0, fields: true, pricing: true, diagnosticRules: template.diagnostic_rules?.length > 0 });
     setDialogOpen(true);
   };
 
@@ -1212,6 +1213,25 @@ const openCreateDialog = () => {
                                 ) : formData.groups.length > 0 && (
                                   <Badge variant="secondary" className="text-xs">{t('laboratory.templates.noGroupBadge')}</Badge>
                                 )}
+                                {field.unit && (
+                                  <Badge variant="outline" className="text-xs">{field.unit}</Badge>
+                                )}
+                                {field.type === 'number' && (
+                                  normalRange.min !== undefined || normalRange.max !== undefined ? (
+                                    <Badge variant="outline" className="text-xs">
+                                      {t('laboratory.templates.rangeChip')}: {normalRange.min ?? '–'}–{normalRange.max ?? '–'}
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="text-xs text-muted-foreground">
+                                      {t('laboratory.templates.noRangeChip')}
+                                    </Badge>
+                                  )
+                                )}
+                                {needsOptions && (
+                                  <Badge variant={hasNoOptions ? "secondary" : "outline"} className="text-xs">
+                                    {(field.options?.length || 0)} {t('laboratory.templates.optionsCount')}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`} onClick={(e) => e.stopPropagation()}>
@@ -1442,7 +1462,7 @@ const openCreateDialog = () => {
                   <div className="space-y-2">
                     <Label>{t('laboratory.templates.currency')}</Label>
                     <Select
-                      value={formData.pricing.currency || 'SAR'}
+                      value={formData.pricing.currency || tenantCurrency}
                       onValueChange={(value) => updatePricing({ currency: value })}
                     >
                       <SelectTrigger className={selectTriggerClass}>
@@ -1540,7 +1560,7 @@ const openCreateDialog = () => {
                           </div>
                           {formData.pricing.base_price && (
                             <div className="text-xs text-muted-foreground">
-                              {t('laboratory.templates.finalPrice')}: <span className="font-medium">{calculateFinalPrice(discount).toFixed(2)} {formData.pricing.currency || 'SAR'}</span>
+                              {t('laboratory.templates.finalPrice')}: <span className="font-medium">{calculateFinalPrice(discount).toFixed(2)} {formData.pricing.currency || tenantCurrency}</span>
                             </div>
                           )}
                         </div>
@@ -1617,7 +1637,7 @@ const openCreateDialog = () => {
                             <Textarea
                               value={rule.condition}
                               onChange={(e) => updateDiagnosticRule(index, { condition: e.target.value })}
-                              placeholder="e.g., {{Hemoglobin}} < 12 && {{Gender}} === 'female'"
+                              placeholder={t('laboratory.templates.conditionPlaceholder')}
                               rows={2}
                             />
                           </div>
@@ -1780,7 +1800,7 @@ const openCreateDialog = () => {
               {formData.pricing.base_price ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="default" className="bg-green-600">
-                    {formData.pricing.base_price} {formData.pricing.currency || 'SAR'}
+                    {formData.pricing.base_price} {formData.pricing.currency || tenantCurrency}
                   </Badge>
                   {formData.pricing.discounts_enabled && formData.pricing.discounts?.length > 0 && (
                     <span className="text-sm text-muted-foreground">

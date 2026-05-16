@@ -1682,6 +1682,9 @@ export const en = {
       updated: "Template updated successfully",
       duplicated: "Template duplicated successfully",
       deleted: "Template deleted successfully",
+      rangeChip: "Range",
+      noRangeChip: "No range",
+      optionsCount: "options",
       nav: {
         identity: "Identity",
         overview: "Overview",
