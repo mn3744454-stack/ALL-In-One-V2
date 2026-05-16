@@ -20,57 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
-import { ChevronRight, Heart, Plus, Users, Building2, Briefcase, Clock, DollarSign, AlertTriangle, TrendingUp, Calendar, ArrowUpRight, Activity, Shield, Stethoscope, FlaskConical, GraduationCap, LucideIcon } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
+import { ChevronRight, Heart, Plus, Users, Building2, Briefcase, Clock, DollarSign, AlertTriangle, TrendingUp, Calendar, ArrowUpRight, Activity, Shield, Stethoscope, FlaskConical, GraduationCap } from "lucide-react";
+import { hasPermission } from "@/lib/validations";
+import { ModuleCard, QuickActionButton } from "@/components/dashboard";
+import { StableServicePlansCard } from "@/components/services/StableServicePlansCard";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-// Local helper: compact quick-action button used in the desktop sidebar
-function QuickActionButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
-  return (
-    <Button
-      variant="outline"
-      onClick={onClick}
-      className="w-full justify-start gap-2 h-auto py-2.5"
-    >
-      <Icon className="w-4 h-4 text-primary" />
-      <span className="text-sm font-medium">{label}</span>
-    </Button>
-  );
-}
-
-// Local helper: tile-style module card used in the mobile launcher grid
-function ModuleCard({
-  icon: Icon,
-  label,
-  onClick,
-  color = "primary",
-}: {
-  icon: LucideIcon;
-  label: string;
-  onClick: () => void;
-  color?: "primary" | "success" | "warning" | "info";
-}) {
-  const colorClasses: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    success: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    info: "bg-info/10 text-info",
-  };
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-card border border-border hover:bg-muted/40 transition-colors"
-    >
-      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colorClasses[color])}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <span className="text-xs font-medium text-center text-foreground">{label}</span>
-    </button>
-  );
-}
 
 function HorseItem({ name, breed, gender, status }: { name: string; breed: string; gender: string; status: string }) {
   return (
@@ -96,47 +52,37 @@ export default function Dashboard() {
   const { activeTenant, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { unreadCount } = useNotifications();
-  const {
-    isStable,
-    isDoctor,
-    isAcademy,
-    vetEnabled,
-    housingEnabled,
-    movementEnabled,
-    breedingEnabled,
-    canViewLabRequests,
-  } = useModuleAccess();
-  const { hasPermission } = usePermissions();
-
+  const { modules } = useModuleAccess();
+  
   useTenantRealtimeSync();
   useFocusRefresh();
 
   // Track which modules are available
-  const hasHorses = !!activeTenant && isStable;
-  const hasClients = !!activeTenant;
-  const hasFinance = !!activeTenant;
-  const hasHousing = !!activeTenant && housingEnabled;
-  const hasVet = !!activeTenant && vetEnabled;
-  const hasLab = !!activeTenant && canViewLabRequests;
-  const hasBreeding = !!activeTenant && breedingEnabled;
-  const hasDoctor = !!activeTenant && isDoctor;
-  const hasMovement = !!activeTenant && movementEnabled;
-  const hasAcademy = !!activeTenant && isAcademy;
-  const hasHR = !!activeTenant;
-  const hasTeam = !!activeTenant;
+  const hasHorses = activeTenant && modules?.stable;
+  const hasClients = activeTenant && modules?.crm;
+  const hasFinance = activeTenant && modules?.finance;
+  const hasHousing = activeTenant && modules?.housing;
+  const hasVet = activeTenant && modules?.vet;
+  const hasLab = activeTenant && modules?.laboratory;
+  const hasBreeding = activeTenant && modules?.breeding;
+  const hasDoctor = activeTenant && modules?.doctor;
+  const hasMovement = activeTenant && modules?.movement;
+  const hasAcademy = activeTenant && modules?.academy;
+  const hasHR = activeTenant && modules?.hr;
+  const hasTeam = activeTenant;
+  
+  // User permissions for quick actions
+  const userPermissions = user?.tenant_permissions || [];
+  const canManageHorses = hasPermission(userPermissions, 'horses.manage');
+  const canManageClients = hasPermission(userPermissions, 'clients.manage');
+  const canCreateInvoice = hasPermission(userPermissions, 'invoices.create');
+  const canManageServices = hasPermission(userPermissions, 'services.manage');
+  const canViewHousing = hasPermission(userPermissions, 'housing.view');
+  const canViewVet = hasPermission(userPermissions, 'vet.view');
+  const canViewLab = hasPermission(userPermissions, 'laboratory.view');
+  const canViewMovement = hasPermission(userPermissions, 'movement.view');
 
-  // Permission-gated quick actions (canonical usePermissions hook)
-  const canManageHorses = hasPermission('horses.manage');
-  const canManageClients = hasPermission('clients.manage');
-  const canCreateInvoice = hasPermission('invoices.create');
-  const canManageServices = hasPermission('services.manage');
-  const canViewHousing = hasPermission('housing.view');
-  const canViewVet = hasPermission('vet.view');
-  const canViewLab = hasPermission('laboratory.view');
-  const canViewMovement = hasPermission('movement.view');
-
-  const tenantType = activeTenant?.tenant?.type as string | undefined;
-  const isHorseOwningTenant = tenantType === 'stable' || tenantType === 'breeding' || tenantType === 'training';
+  const isHorseOwningTenant = activeTenant?.type === 'stable' || activeTenant?.type === 'breeding' || activeTenant?.type === 'training';
 
   return (
     <DashboardShell>
@@ -154,7 +100,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-3xl font-bold text-navy">{t("dashboard.welcome")}</h1>
               <p className="text-muted-foreground mt-1">
-                {activeTenant?.tenant?.name || t("dashboard.noTenant")}
+                {activeTenant?.name || t("dashboard.noTenant")}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -391,6 +337,7 @@ export default function Dashboard() {
               {workspaceMode === "organization" && activeTenant && (
                 <>
                   {hasHousing && <BoardingDashboardWidgets />}
+                  {hasHorses && <StableServicePlansCard />}
                 </>
               )}
             </div>
