@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -82,6 +82,21 @@ export function GenerateInvoiceDialog({
 
   // Fetch the REAL outstanding balance from ledger (v_customer_ledger_balances view)
   const { balance: ledgerBalance, loading: balanceLoading } = useLedgerBalance(selectedClientId || null);
+
+  // Safe Data-Entry Dialog: dirty snapshot of user-editable primitives only.
+  const dirtySnapshot = useMemo(
+    () => ({ selectedClientId, notes, manualPrices }),
+    [selectedClientId, notes, manualPrices]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next && (isGenerating || isChecking || balanceLoading)) {
+      // Block close during in-flight operations.
+      return;
+    }
+    onOpenChange(next);
+  };
 
   // Get source ID
   const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;
@@ -181,11 +196,15 @@ export function GenerateInvoiceDialog({
 
     const invoiceId = await generateInvoice(input);
     if (invoiceId) {
+      // Silent close after success — bypass dirty discard prompt.
+      resetBaseline(dirtySnapshot);
       onOpenChange(false);
     }
   };
 
   const handleGoToInvoice = (invoiceId: string) => {
+    // Navigating to an existing invoice must not trigger a discard prompt.
+    resetBaseline(dirtySnapshot);
     goToInvoice(invoiceId);
     onOpenChange(false);
   };
@@ -197,8 +216,13 @@ export function GenerateInvoiceDialog({
   const clientFromSample = sample?.client_id;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden" dir={dir}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 overflow-hidden"
+      dir={dir}
+    >
         {/* Sticky Header */}
         <DialogHeader className="sticky top-0 bg-background z-10 px-6 pt-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
@@ -464,7 +488,6 @@ export function GenerateInvoiceDialog({
             </DialogFooter>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
