@@ -199,6 +199,20 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   
   // Track if reordering is in progress
   const [isReordering, setIsReordering] = useState(false);
+
+  // Dirty tracking for Safe Data-Entry Dialog (excludes UI-only state)
+  const { isDirty: isFormDirty, resetBaseline: resetFormBaseline } = useDirtyForm(formData, dialogOpen);
+  const { isDirty: isDuplicateDirty, resetBaseline: resetDuplicateBaseline } = useDirtyForm({ duplicateName }, duplicateDialogOpen);
+
+  const handleEditorOpenChange = (next: boolean) => {
+    if (!next && saving) return;
+    setDialogOpen(next);
+  };
+
+  const handleDuplicateOpenChange = (next: boolean) => {
+    if (!next && saving) return;
+    setDuplicateDialogOpen(next);
+  };
   
   // Toggle field expansion
   const toggleFieldExpanded = (fieldId: string) => {
