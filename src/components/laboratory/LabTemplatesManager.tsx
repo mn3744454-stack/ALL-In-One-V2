@@ -1637,7 +1637,7 @@ const openCreateDialog = () => {
                             <Textarea
                               value={rule.condition}
                               onChange={(e) => updateDiagnosticRule(index, { condition: e.target.value })}
-                              placeholder="e.g., {{Hemoglobin}} < 12 && {{Gender}} === 'female'"
+                              placeholder={t('laboratory.templates.conditionPlaceholder')}
                               rows={2}
                             />
                           </div>
