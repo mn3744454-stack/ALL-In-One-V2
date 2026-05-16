@@ -140,6 +140,9 @@ export function PlaceInUnitDialog({
     !isUnitFull &&
     !isMoving;
 
+  const dirtySnapshot = useMemo(() => ({ areaId, unitId }), [areaId, unitId]);
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
   const handleConfirm = async () => {
     if (!horse || !branchId || !admission || !areaId || !unitId) return;
     try {
@@ -152,6 +155,8 @@ export function PlaceInUnitDialog({
         toAreaId: areaId,
         toBranchId: branchId,
       });
+      // Clear baseline so the post-success close does not trigger discard confirm.
+      resetBaseline({ areaId: "", unitId: "" });
       onSuccess?.();
       onOpenChange(false);
     } catch {
@@ -159,13 +164,24 @@ export function PlaceInUnitDialog({
     }
   };
 
+  const handleOpenChange = (next: boolean) => {
+    // Block close paths while a placement mutation is in-flight.
+    if (!next && isMoving) return;
+    onOpenChange(next);
+  };
+
   const branchLabel = branch
     ? displayLocationName(branch.name, (branch as any).name_ar ?? null, branch.city, lang)
     : "—";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty && !isMoving}
+      className="sm:max-w-lg"
+    >
+
         <DialogHeader>
           <DialogTitle>{t("housing.branchScope.placeInUnitDialogTitle")}</DialogTitle>
           <DialogDescription>
