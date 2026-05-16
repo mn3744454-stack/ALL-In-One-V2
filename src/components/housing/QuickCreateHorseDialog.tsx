@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,31 +41,67 @@ interface QuickCreateHorseDialogProps {
   minimal?: boolean;
 }
 
+const emptyForm = (gender: "" | "male" | "female" = "") => ({
+  name: "",
+  name_ar: "",
+  gender,
+  birth_date: "",
+  breed_id: "",
+  color_id: "",
+});
+
 export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults, minimal }: QuickCreateHorseDialogProps) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
   const { colors, breeds } = useHorseMasterData();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    name_ar: "",
-    gender: (defaults?.gender || "") as "" | "male" | "female",
-    birth_date: "",
-    breed_id: "",
-    color_id: "",
-  });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [form, setForm] = useState(() => emptyForm(defaults?.gender || ""));
 
   const genderLocked = !!defaults?.gender;
 
-  const canSubmit = form.name.trim() && form.gender;
+  // Dirty-tracked subset: exclude locked gender from dirty calculation so the
+  // default-provided gender doesn't trigger discard confirmation.
+  const dirtyState = useMemo(
+    () => ({
+      name: form.name,
+      name_ar: form.name_ar,
+      gender: genderLocked ? "" : form.gender,
+      birth_date: form.birth_date,
+      breed_id: form.breed_id,
+      color_id: form.color_id,
+    }),
+    [form, genderLocked],
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtyState, open);
 
-  const handleClose = () => {
+  const missingIssues = useMemo(() => {
+    const issues: string[] = [];
+    if (!form.name.trim()) issues.push(t("common.validation.enterHorseName"));
+    if (!genderLocked && !form.gender) issues.push(t("common.validation.selectGender"));
+    return issues;
+  }, [form.name, form.gender, genderLocked, t]);
+
+  const canSubmit = !!form.name.trim() && !!form.gender;
+
+  const resetForm = () => {
+    setForm(emptyForm(defaults?.gender || ""));
+    setAttemptedSubmit(false);
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
     if (saving) return;
-    setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
     onOpenChange(false);
+    // Defer reset so the discard confirmation flow isn't visually disturbed
+    setTimeout(resetForm, 0);
   };
 
   const handleSubmit = async () => {
+    setAttemptedSubmit(true);
     if (!canSubmit || !activeTenant?.tenant_id) return;
     setSaving(true);
     try {
@@ -88,7 +125,9 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
       if (error) throw error;
 
       toast.success(t('horses.addSuccess').replace('{{name}}', data.name));
-      setForm({ name: "", name_ar: "", gender: defaults?.gender || "", birth_date: "", breed_id: "", color_id: "" });
+      // Reset baseline before closing to bypass discard confirmation
+      resetBaseline(emptyForm(defaults?.gender || ""));
+      resetForm();
       onOpenChange(false);
       onCreated(data);
     } catch (err: any) {
@@ -100,8 +139,13 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className={minimal ? "sm:max-w-lg" : "sm:max-w-2xl"}>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty && !saving}
+      className={minimal ? "sm:max-w-lg" : "sm:max-w-2xl"}
+      dir={dir}
+    >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-primary" />
@@ -221,15 +265,21 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
           </Alert>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={saving}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit || saving}>
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.save')}
-          </Button>
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+            className="flex-1 w-full sm:w-auto"
+          />
+          <div className="flex gap-2 sm:ms-auto">
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={saving}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleSubmit} disabled={saving}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.save')}
+            </Button>
+          </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
