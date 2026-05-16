@@ -1682,6 +1682,16 @@ export const en = {
       updated: "Template updated successfully",
       duplicated: "Template duplicated successfully",
       deleted: "Template deleted successfully",
+      nav: {
+        identity: "Identity",
+        overview: "Overview",
+        groups: "Groups",
+        fields: "Fields",
+        pricing: "Pricing",
+        rules: "Rules",
+        sectionsLabel: "Sections",
+        jumpTo: "Jump to section",
+      },
     },
   },
   movement: {

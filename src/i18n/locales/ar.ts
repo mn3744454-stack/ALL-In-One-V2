@@ -1700,6 +1700,16 @@ export const ar = {
       updated: "تم تحديث القالب بنجاح",
       duplicated: "تم تكرار القالب بنجاح",
       deleted: "تم حذف القالب بنجاح",
+      nav: {
+        identity: "الهوية",
+        overview: "نظرة عامة",
+        groups: "المجموعات",
+        fields: "الحقول",
+        pricing: "التسعير",
+        rules: "القواعد",
+        sectionsLabel: "الأقسام",
+        jumpTo: "الانتقال إلى قسم",
+      },
     },
   },
   movement: {
