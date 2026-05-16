@@ -59,7 +59,7 @@ interface AdmissionInfo {
 }
 
 export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: AssignHorseDialogProps) {
-  const { t, lang: language } = useI18n();
+  const { t, lang: language, dir } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
