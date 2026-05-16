@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import {
   Form,
   FormControl,
@@ -73,7 +73,7 @@ interface Props {
 }
 
 export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, isLoading, lockedTemplateId }: Props) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const isEdit = !!service;
   const { activeTemplates, loading: templatesLoading } = useLabTemplates();
   const { mappings, syncTemplates, isSyncing } = useLabServiceTemplates(service?.id);
@@ -184,6 +184,38 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     );
   };
 
+  // Safe Data-Entry Dialog: dirty snapshot of user-editable values only.
+  const watched = form.watch();
+  const dirtySnapshot = useMemo(
+    () => ({
+      name: watched.name ?? "",
+      name_ar: watched.name_ar ?? "",
+      code: watched.code ?? "",
+      category: watched.category ?? "",
+      description: watched.description ?? "",
+      sample_type: watched.sample_type ?? "",
+      turnaround_hours: watched.turnaround_hours ?? null,
+      pricing_mode: watched.pricing_mode ?? "sum_templates",
+      price: watched.price ?? null,
+      override_price: watched.override_price ?? null,
+      currency: watched.currency ?? "",
+      discount_type: watched.discount_type ?? null,
+      discount_value: watched.discount_value ?? null,
+      is_active: !!watched.is_active,
+      linkedTemplates,
+    }),
+    [watched, linkedTemplates]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next && (isLoading || isSyncing)) {
+      // Block close while service save or template sync is in flight.
+      return;
+    }
+    onOpenChange(next);
+  };
+
   const handleSubmit = async (values: FormValues) => {
     const result = await onSubmit({
       ...(service ? { id: service.id } : {}),
@@ -211,6 +243,8 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
         toast.error(t("laboratory.catalog.templateSyncFailed") || "Failed to link templates to service");
       }
     }
+    // Reset baseline so silent close bypasses discard confirmation.
+    resetBaseline(dirtySnapshot);
     onOpenChange(false);
   };
 
@@ -226,16 +260,25 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? t("laboratory.catalog.editService") : t("laboratory.catalog.addService")}
-          </DialogTitle>
-        </DialogHeader>
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty}
+      className="sm:max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl"
+      dir={dir}
+    >
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex flex-col flex-1 min-h-0"
+        >
+          <DialogHeader className="shrink-0 px-6 pt-6 pb-4 border-b">
+            <DialogTitle>
+              {isEdit ? t("laboratory.catalog.editService") : t("laboratory.catalog.addService")}
+            </DialogTitle>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4">
             {/* Basic fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="name" render={({ field }) => (
@@ -489,25 +532,31 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
                 <Switch checked={field.value} onCheckedChange={field.onChange} />
               </div>
             )} />
+          </div>
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" variant="gold" className="flex-1" disabled={isLoading || isSyncing}>
-                {(isLoading || isSyncing) ? (
-                  <Loader2 className="w-4 h-4 me-2 animate-spin" />
-                ) : isEdit ? (
-                  <Pencil className="w-4 h-4 me-2" />
-                ) : (
-                  <Plus className="w-4 h-4 me-2" />
-                )}
-                {isEdit ? t("common.save") : t("common.create")}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <div className="shrink-0 px-6 py-4 border-t bg-background flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleOpenChange(false)}
+              disabled={isLoading || isSyncing}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" variant="gold" className="flex-1" disabled={isLoading || isSyncing}>
+              {(isLoading || isSyncing) ? (
+                <Loader2 className="w-4 h-4 me-2 animate-spin" />
+              ) : isEdit ? (
+                <Pencil className="w-4 h-4 me-2" />
+              ) : (
+                <Plus className="w-4 h-4 me-2" />
+              )}
+              {isEdit ? t("common.save") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </SafeFormDialog>
   );
 }
