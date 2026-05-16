@@ -10,7 +10,6 @@ import {
   CreateSampleDialog,
   CreateResultDialog,
   ResultsList,
-  LabTestTypesManager,
   LabTemplatesManager,
   LabBottomNavigation,
   ResultsComparison,
@@ -24,7 +23,7 @@ import { useLabHorses, type LabHorse } from "@/hooks/laboratory/useLabHorses";
 import { LabRequestsTab } from "@/components/laboratory/LabRequestsTab";
 import type { LabRequest } from "@/hooks/laboratory/useLabRequests";
 import { DashboardShell } from "@/components/layout/DashboardShell";
-import { FlaskConical, FileText, Settings, Clock, Info, FileStack, GitCompare, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
+import { FlaskConical, FileText, Clock, Info, FileStack, GitCompare, ClipboardList, Heart, ShoppingBag, MessageSquare } from "lucide-react";
 import { StableResultsView } from "@/components/laboratory/StableResultsView";
 import { StableMessagesView } from "@/components/laboratory/StableMessagesView";
 import { MobilePageHeader } from "@/components/navigation";
