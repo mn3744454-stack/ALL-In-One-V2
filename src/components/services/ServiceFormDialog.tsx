@@ -383,7 +383,7 @@ export const ServiceFormDialog = ({
             </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SafeFormDialog>
+    </>
   );
 };
