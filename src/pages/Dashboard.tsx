@@ -20,13 +20,57 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useI18n } from "@/i18n";
-import { ChevronRight, Heart, Plus, Users, Building2, Briefcase, Clock, DollarSign, AlertTriangle, TrendingUp, Calendar, ArrowUpRight, Activity, Shield, Stethoscope, FlaskConical, GraduationCap } from "lucide-react";
-import { hasPermission } from "@/lib/validations";
-import { ModuleCard, QuickActionButton } from "@/components/dashboard";
-import { StableServicePlansCard } from "@/components/services/StableServicePlansCard";
+import { ChevronRight, Heart, Plus, Users, Building2, Briefcase, Clock, DollarSign, AlertTriangle, TrendingUp, Calendar, ArrowUpRight, Activity, Shield, Stethoscope, FlaskConical, GraduationCap, LucideIcon } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useNotifications } from "@/hooks/useNotifications";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+// Local helper: compact quick-action button used in the desktop sidebar
+function QuickActionButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
+  return (
+    <Button
+      variant="outline"
+      onClick={onClick}
+      className="w-full justify-start gap-2 h-auto py-2.5"
+    >
+      <Icon className="w-4 h-4 text-primary" />
+      <span className="text-sm font-medium">{label}</span>
+    </Button>
+  );
+}
+
+// Local helper: tile-style module card used in the mobile launcher grid
+function ModuleCard({
+  icon: Icon,
+  label,
+  onClick,
+  color = "primary",
+}: {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  color?: "primary" | "success" | "warning" | "info";
+}) {
+  const colorClasses: Record<string, string> = {
+    primary: "bg-primary/10 text-primary",
+    success: "bg-success/10 text-success",
+    warning: "bg-warning/10 text-warning",
+    info: "bg-info/10 text-info",
+  };
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-card border border-border hover:bg-muted/40 transition-colors"
+    >
+      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colorClasses[color])}>
+        <Icon className="w-5 h-5" />
+      </div>
+      <span className="text-xs font-medium text-center text-foreground">{label}</span>
+    </button>
+  );
+}
 
 function HorseItem({ name, breed, gender, status }: { name: string; breed: string; gender: string; status: string }) {
   return (
