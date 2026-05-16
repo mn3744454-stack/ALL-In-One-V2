@@ -83,6 +83,21 @@ export function GenerateInvoiceDialog({
   // Fetch the REAL outstanding balance from ledger (v_customer_ledger_balances view)
   const { balance: ledgerBalance, loading: balanceLoading } = useLedgerBalance(selectedClientId || null);
 
+  // Safe Data-Entry Dialog: dirty snapshot of user-editable primitives only.
+  const dirtySnapshot = useMemo(
+    () => ({ selectedClientId, notes, manualPrices }),
+    [selectedClientId, notes, manualPrices]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next && (isGenerating || isChecking || balanceLoading)) {
+      // Block close during in-flight operations.
+      return;
+    }
+    onOpenChange(next);
+  };
+
   // Get source ID
   const sourceId = sourceType === "lab_sample" ? sample?.id : request?.id;
 
