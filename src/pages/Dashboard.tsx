@@ -135,7 +135,7 @@ export default function Dashboard() {
   const canViewLab = hasPermission('laboratory.view');
   const canViewMovement = hasPermission('movement.view');
 
-  const tenantType = activeTenant?.tenant?.type;
+  const tenantType = activeTenant?.tenant?.type as string | undefined;
   const isHorseOwningTenant = tenantType === 'stable' || tenantType === 'breeding' || tenantType === 'training';
 
   return (
