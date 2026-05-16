@@ -454,8 +454,12 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty && !loading && !isCreating}
+      className="sm:max-w-lg max-h-[85vh] flex flex-col"
+    >
         <DialogHeader className="shrink-0">
           <DialogTitle>{t("housing.admissions.billing.createInvoiceTitle")}</DialogTitle>
         </DialogHeader>
@@ -630,12 +634,11 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         </div>
 
         <div className="shrink-0 flex justify-end gap-2 pt-4 border-t border-border">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading || isCreating}>{t("common.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={loading || isCreating || !!overlapWarning}>
             {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
