@@ -1,5 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,6 +203,22 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
     `${t("housing.admissions.billing.boardingInvoice")} - ${admission.horse?.name || ""} (${periodDays} ${t("housing.admissions.detail.days")})`
   );
   const [loading, setLoading] = useState(false);
+
+  // Dirty tracking — only user-editable fields, primitives only
+  const dirtySnapshot = useMemo(
+    () => ({ selectedClientId, clientName, periodStart, periodEnd, totalAmount, notes }),
+    [selectedClientId, clientName, periodStart, periodEnd, totalAmount, notes]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    if (loading || isCreating) return;
+    onOpenChange(false);
+  };
 
   // Smart default: set billing start to first unbilled date after billed periods load
   const hasSetSmartDefault = useRef(false);
@@ -418,6 +436,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       queryClient.invalidateQueries({ queryKey: ["boarding-billed-periods"] });
 
       toast.success(t("housing.admissions.billing.invoiceCreated"));
+      resetBaseline(dirtySnapshot);
       onOpenChange(false);
     } catch (err) {
       console.error("Error creating invoice:", err);
@@ -435,8 +454,12 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
   const fullyBilled = remainingBillable <= 0 && billedPeriods.length > 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      isDirty={isDirty && !loading && !isCreating}
+      className="sm:max-w-lg max-h-[85vh] flex flex-col"
+    >
         <DialogHeader className="shrink-0">
           <DialogTitle>{t("housing.admissions.billing.createInvoiceTitle")}</DialogTitle>
         </DialogHeader>
@@ -611,12 +634,11 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         </div>
 
         <div className="shrink-0 flex justify-end gap-2 pt-4 border-t border-border">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+          <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={loading || isCreating}>{t("common.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={loading || isCreating || !!overlapWarning}>
             {loading ? t("common.loading") : t("housing.admissions.billing.createInvoice")}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
