@@ -532,25 +532,31 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
                 <Switch checked={field.value} onCheckedChange={field.onChange} />
               </div>
             )} />
+          </div>
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-4">
-              <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button type="submit" variant="gold" className="flex-1" disabled={isLoading || isSyncing}>
-                {(isLoading || isSyncing) ? (
-                  <Loader2 className="w-4 h-4 me-2 animate-spin" />
-                ) : isEdit ? (
-                  <Pencil className="w-4 h-4 me-2" />
-                ) : (
-                  <Plus className="w-4 h-4 me-2" />
-                )}
-                {isEdit ? t("common.save") : t("common.create")}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <div className="shrink-0 px-6 py-4 border-t bg-background flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleOpenChange(false)}
+              disabled={isLoading || isSyncing}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" variant="gold" className="flex-1" disabled={isLoading || isSyncing}>
+              {(isLoading || isSyncing) ? (
+                <Loader2 className="w-4 h-4 me-2 animate-spin" />
+              ) : isEdit ? (
+                <Pencil className="w-4 h-4 me-2" />
+              ) : (
+                <Plus className="w-4 h-4 me-2" />
+              )}
+              {isEdit ? t("common.save") : t("common.create")}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </SafeFormDialog>
   );
 }
