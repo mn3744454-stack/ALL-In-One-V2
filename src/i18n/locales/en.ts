@@ -1329,6 +1329,7 @@ export const en = {
       noAccess: "Access Restricted",
       noAccessDesc: "You need a partnership with this lab to view their services",
       servicesFrom: "Services from",
+      nameEn: "Name (English)",
       nameAr: "Name (Arabic)",
       code: "Code",
       category: "Category",
