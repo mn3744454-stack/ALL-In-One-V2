@@ -1685,7 +1685,6 @@ export const en = {
       rangeChip: "Range",
       noRangeChip: "No range",
       optionsCount: "options",
-      conditionPlaceholder: "Example: {{WBC}} > 12 and {{RBC}} < 5",
       nav: {
         identity: "Identity",
         overview: "Overview",
