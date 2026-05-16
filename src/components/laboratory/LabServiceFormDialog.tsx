@@ -73,7 +73,7 @@ interface Props {
 }
 
 export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, isLoading, lockedTemplateId }: Props) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const isEdit = !!service;
   const { activeTemplates, loading: templatesLoading } = useLabTemplates();
   const { mappings, syncTemplates, isSyncing } = useLabServiceTemplates(service?.id);
