@@ -578,6 +578,59 @@ const openCreateDialog = () => {
     return Array.from(found);
   };
 
+  // ========== L3-a-2c: Editor-level validation summary ==========
+  type ValidationItem = { key: string; label: string; section: string };
+  const validationSummary = useMemo(() => {
+    const required: ValidationItem[] = [];
+    const warnings: ValidationItem[] = [];
+
+    if (!formData.name.trim()) {
+      required.push({
+        key: 'name',
+        label: t('laboratory.templates.validation.missingName'),
+        section: 'identity',
+      });
+    }
+
+    const missingOpts = formData.fields.filter(
+      f => (f.type === 'select' || f.type === 'multiselect') && (!f.options || f.options.length === 0)
+    ).length;
+    if (missingOpts > 0) {
+      required.push({
+        key: 'opts',
+        label: `${missingOpts} ${t('laboratory.templates.validation.fieldMissingOptions')}`,
+        section: 'fields',
+      });
+    }
+
+    let invalidRanges = 0;
+    for (const range of Object.values(formData.normal_ranges)) {
+      if (range.min !== undefined && range.max !== undefined && range.min >= range.max) invalidRanges++;
+    }
+    if (invalidRanges > 0) {
+      required.push({
+        key: 'ranges',
+        label: `${invalidRanges} ${t('laboratory.templates.validation.invalidRange')}`,
+        section: 'fields',
+      });
+    }
+
+    let unknownTokenTotal = 0;
+    for (const r of formData.diagnostic_rules || []) {
+      unknownTokenTotal += getUnknownTokens(r.condition).length;
+    }
+    if (unknownTokenTotal > 0) {
+      warnings.push({
+        key: 'tokens',
+        label: `${unknownTokenTotal} ${t('laboratory.templates.validation.unknownTokens')}`,
+        section: 'rules',
+      });
+    }
+
+    return { required, warnings };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData, t]);
+
   // ========== SUBMIT ==========
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
