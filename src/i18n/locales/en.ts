@@ -730,6 +730,28 @@ export const en = {
       noResultsDesc: "Results will appear here when labs publish them",
       labName: "Lab",
       publishedAt: "Published",
+      report: "report",
+      reports: "reports",
+    },
+
+    // L4-a-1 — shared read-only report renderer keys.
+    report: {
+      parameter: "Parameter",
+      value: "Value",
+      unit: "Unit",
+      referenceRange: "Reference Range",
+      status: "Status",
+      interpretation: "Interpretation",
+      templateContextUnavailable: "Template context unavailable — showing raw values.",
+      extraValues: "Additional Values",
+      normal: "Normal",
+      low: "Low",
+      high: "High",
+      notAvailable: "N/A",
+      reportDate: "Report Date",
+      sampleId: "Sample ID",
+      laboratory: "Laboratory",
+      horse: "Horse",
     },
     
     // Messages Inbox
