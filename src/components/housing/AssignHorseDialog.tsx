@@ -356,8 +356,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Scenario B: Internal Move Confirmation */}
       <AlertDialog open={!!moveConfirm} onOpenChange={(open) => { if (!open) setMoveConfirm(null); }}>
