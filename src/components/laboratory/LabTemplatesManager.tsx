@@ -227,6 +227,31 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
       return next;
     });
   };
+
+  // L3-a-1: Hybrid IA navigation (desktop rail + mobile jump bar)
+  // Section keys mapped to sectionsOpen toggles (identity has no collapsible)
+  const NAV_SECTIONS = [
+    { key: 'identity', openKey: null as null | keyof typeof sectionsOpen },
+    { key: 'overview', openKey: 'description' as const },
+    { key: 'groups', openKey: 'groups' as const },
+    { key: 'fields', openKey: 'fields' as const },
+    { key: 'pricing', openKey: 'pricing' as const },
+    { key: 'rules', openKey: 'diagnosticRules' as const },
+  ] as const;
+
+  const handleNavigateSection = (key: string) => {
+    const entry = NAV_SECTIONS.find(s => s.key === key);
+    if (entry?.openKey) {
+      setSectionsOpen(prev => ({ ...prev, [entry.openKey as string]: true }));
+    }
+    // Defer scroll one frame so the Collapsible has time to expand
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`section-${key}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  };
   
   // Auto-collapse all except current field during reorder
   const handleReorderStart = (currentFieldId: string) => {
@@ -903,10 +928,63 @@ const openCreateDialog = () => {
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto px-6 py-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40 scrollbar-track-transparent">
+          <div className="lg:flex lg:items-start lg:gap-6 px-6 py-4">
+            {/* L3-a-1: Desktop persistent left rail (hidden on <lg) */}
+            <nav
+              aria-label={t('laboratory.templates.nav.sectionsLabel')}
+              className="hidden lg:flex lg:flex-col lg:gap-1 lg:sticky lg:top-2 lg:self-start lg:w-44 lg:shrink-0 lg:py-1"
+            >
+              <div className="text-[11px] uppercase tracking-wide text-muted-foreground px-2 pb-1">
+                {t('laboratory.templates.nav.sectionsLabel')}
+              </div>
+              {NAV_SECTIONS.map(({ key, openKey }) => {
+                let count: number | null = null;
+                if (key === 'groups') count = formData.groups.length;
+                else if (key === 'fields') count = formData.fields.length;
+                else if (key === 'rules') count = formData.diagnostic_rules.length;
+                const isOpen = openKey ? sectionsOpen[openKey] : true;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleNavigateSection(key)}
+                    className={`group flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm transition-colors text-start hover:bg-muted ${isOpen ? 'text-foreground font-medium' : 'text-muted-foreground'}`}
+                  >
+                    <span className="truncate">{t(`laboratory.templates.nav.${key}`)}</span>
+                    {count !== null && (
+                      <Badge variant="secondary" className="h-5 px-1.5 text-[10px] tabular-nums">
+                        {count}
+                      </Badge>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex-1 min-w-0">
+              {/* L3-a-1: Mobile/tablet sticky jump bar (hidden on lg+) */}
+              <nav
+                aria-label={t('laboratory.templates.nav.jumpTo')}
+                className="lg:hidden sticky top-0 z-10 -mx-6 px-6 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b mb-4"
+              >
+                <div className="flex gap-1.5 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/20">
+                  {NAV_SECTIONS.map(({ key }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleNavigateSection(key)}
+                      className="shrink-0 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:bg-muted transition-colors"
+                    >
+                      {t(`laboratory.templates.nav.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
           <div className="space-y-5">
             {/* Basic Info - Bilingual labels */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div id="section-identity" className="grid gap-4 sm:grid-cols-2 scroll-mt-4">
               <div className="space-y-2">
                 <Label>{t('laboratory.templates.nameEnRequired')}</Label>
                 <Input
@@ -930,7 +1008,7 @@ const openCreateDialog = () => {
 
             {/* Description Section */}
             <Collapsible open={sectionsOpen.description} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, description: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-overview" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.description')}</span>
@@ -1015,7 +1093,7 @@ const openCreateDialog = () => {
 
             {/* Groups Section */}
             <Collapsible open={sectionsOpen.groups} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, groups: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-groups" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.groups')} ({formData.groups.length})</span>
@@ -1077,7 +1155,7 @@ const openCreateDialog = () => {
 
             {/* Fields Section with per-item collapse */}
             <Collapsible open={sectionsOpen.fields} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, fields: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-fields" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.fields')} ({formData.fields.length})</span>
@@ -1341,7 +1419,7 @@ const openCreateDialog = () => {
 
             {/* Pricing Section */}
             <Collapsible open={sectionsOpen.pricing} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, pricing: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-pricing" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.pricing')}</span>
@@ -1480,7 +1558,7 @@ const openCreateDialog = () => {
 
             {/* Diagnostic Rules Section - Task A: Match style with other sections */}
             <Collapsible open={sectionsOpen.diagnosticRules} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, diagnosticRules: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-rules" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.diagnosticRules')} ({formData.diagnostic_rules.length})</span>
@@ -1605,6 +1683,8 @@ const openCreateDialog = () => {
               </CollapsibleContent>
               </div>
             </Collapsible>
+          </div>
+            </div>
           </div>
           </div>
 
