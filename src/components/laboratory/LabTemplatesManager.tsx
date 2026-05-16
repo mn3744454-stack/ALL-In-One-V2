@@ -1740,8 +1740,13 @@ const openCreateDialog = () => {
       </Dialog>
 
       {/* Duplicate Dialog */}
-      <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
-        <DialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+      <SafeFormDialog
+        open={duplicateDialogOpen}
+        onOpenChange={handleDuplicateOpenChange}
+        isDirty={isDuplicateDirty}
+        className="rounded-2xl"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
           <DialogHeader>
             <DialogTitle>{t('laboratory.templates.duplicateTemplate')}</DialogTitle>
           </DialogHeader>
@@ -1759,9 +1764,11 @@ const openCreateDialog = () => {
             </div>
           </div>
           <div className={`flex gap-3 pt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Button variant="outline" className="flex-1" onClick={() => setDuplicateDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button 
               className="flex-1" 
               onClick={handleDuplicate}
@@ -1771,8 +1778,7 @@ const openCreateDialog = () => {
               {t('laboratory.templates.duplicate')}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Delete Template Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
