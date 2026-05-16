@@ -310,7 +310,7 @@ export function PlaceInUnitDialog({
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isMoving}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isMoving}>
             {t("common.cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={!canConfirm}>
@@ -321,7 +321,7 @@ export function PlaceInUnitDialog({
             )}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </SafeFormDialog>
   );
 }
+
