@@ -1560,7 +1560,7 @@ const openCreateDialog = () => {
                           </div>
                           {formData.pricing.base_price && (
                             <div className="text-xs text-muted-foreground">
-                              {t('laboratory.templates.finalPrice')}: <span className="font-medium">{calculateFinalPrice(discount).toFixed(2)} {formData.pricing.currency || 'SAR'}</span>
+                              {t('laboratory.templates.finalPrice')}: <span className="font-medium">{calculateFinalPrice(discount).toFixed(2)} {formData.pricing.currency || tenantCurrency}</span>
                             </div>
                           )}
                         </div>
