@@ -1229,7 +1229,7 @@ const openCreateDialog = () => {
                                 )}
                                 {needsOptions && (
                                   <Badge variant={hasNoOptions ? "secondary" : "outline"} className="text-xs">
-                                    {t('laboratory.templates.optionsCount', { count: field.options?.length || 0 })}
+                                    {(field.options?.length || 0)} {t('laboratory.templates.optionsCount')}
                                   </Badge>
                                 )}
                               </div>
