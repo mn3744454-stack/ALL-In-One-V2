@@ -391,7 +391,6 @@ export default function Dashboard() {
               {workspaceMode === "organization" && activeTenant && (
                 <>
                   {hasHousing && <BoardingDashboardWidgets />}
-                  {hasHorses && <StableServicePlansCard />}
                 </>
               )}
             </div>
