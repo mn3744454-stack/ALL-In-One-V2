@@ -184,6 +184,38 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
     );
   };
 
+  // Safe Data-Entry Dialog: dirty snapshot of user-editable values only.
+  const watched = form.watch();
+  const dirtySnapshot = useMemo(
+    () => ({
+      name: watched.name ?? "",
+      name_ar: watched.name_ar ?? "",
+      code: watched.code ?? "",
+      category: watched.category ?? "",
+      description: watched.description ?? "",
+      sample_type: watched.sample_type ?? "",
+      turnaround_hours: watched.turnaround_hours ?? null,
+      pricing_mode: watched.pricing_mode ?? "sum_templates",
+      price: watched.price ?? null,
+      override_price: watched.override_price ?? null,
+      currency: watched.currency ?? "",
+      discount_type: watched.discount_type ?? null,
+      discount_value: watched.discount_value ?? null,
+      is_active: !!watched.is_active,
+      linkedTemplates,
+    }),
+    [watched, linkedTemplates]
+  );
+  const { isDirty, resetBaseline } = useDirtyForm(dirtySnapshot, open);
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next && (isLoading || isSyncing)) {
+      // Block close while service save or template sync is in flight.
+      return;
+    }
+    onOpenChange(next);
+  };
+
   const handleSubmit = async (values: FormValues) => {
     const result = await onSubmit({
       ...(service ? { id: service.id } : {}),
@@ -211,6 +243,8 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
         toast.error(t("laboratory.catalog.templateSyncFailed") || "Failed to link templates to service");
       }
     }
+    // Reset baseline so silent close bypasses discard confirmation.
+    resetBaseline(dirtySnapshot);
     onOpenChange(false);
   };
 
