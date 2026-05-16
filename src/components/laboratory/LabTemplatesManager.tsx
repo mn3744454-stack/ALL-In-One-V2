@@ -7,10 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import {
   Select,
   SelectContent,
@@ -197,6 +200,20 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   
   // Track if reordering is in progress
   const [isReordering, setIsReordering] = useState(false);
+
+  // Dirty tracking for Safe Data-Entry Dialog (excludes UI-only state)
+  const { isDirty: isFormDirty, resetBaseline: resetFormBaseline } = useDirtyForm(formData, dialogOpen);
+  const { isDirty: isDuplicateDirty, resetBaseline: resetDuplicateBaseline } = useDirtyForm({ duplicateName }, duplicateDialogOpen);
+
+  const handleEditorOpenChange = (next: boolean) => {
+    if (!next && saving) return;
+    setDialogOpen(next);
+  };
+
+  const handleDuplicateOpenChange = (next: boolean) => {
+    if (!next && saving) return;
+    setDuplicateDialogOpen(next);
+  };
   
   // Toggle field expansion
   const toggleFieldExpanded = (fieldId: string) => {
@@ -553,6 +570,7 @@ const openCreateDialog = () => {
       } else {
         await createTemplate(data);
       }
+      resetFormBaseline(formData);
       setDialogOpen(false);
     } finally {
       setSaving(false);
@@ -565,6 +583,7 @@ const openCreateDialog = () => {
     setSaving(true);
     try {
       await duplicateTemplate(templateToDuplicate.id, duplicateName);
+      resetDuplicateBaseline({ duplicateName: '' });
       setDuplicateDialogOpen(false);
       setTemplateToDuplicate(null);
       setDuplicateName('');
@@ -848,11 +867,13 @@ const openCreateDialog = () => {
       </Card>
 
       {/* Create/Edit Dialog - Task C & D: Sticky header + subtle scrollbar */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent 
-          className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col" 
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
+      <SafeFormDialog
+        open={dialogOpen}
+        onOpenChange={handleEditorOpenChange}
+        isDirty={isFormDirty}
+        className="w-[95vw] max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
           {/* Sticky header with solid background, proper z-index */}
           <div className={`sticky top-0 z-20 bg-background border-b px-6 py-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <div className={`flex items-center justify-between gap-3 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
@@ -1589,9 +1610,11 @@ const openCreateDialog = () => {
 
           {/* Footer - outside scroll area for sticky positioning */}
           <div className={`flex gap-3 px-6 py-4 border-t bg-background ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button 
               className="flex-1" 
               onClick={handleSubmit}
@@ -1601,8 +1624,7 @@ const openCreateDialog = () => {
               {editingTemplate ? t('common.update') : t('common.create')}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -1718,8 +1740,13 @@ const openCreateDialog = () => {
       </Dialog>
 
       {/* Duplicate Dialog */}
-      <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
-        <DialogContent className="rounded-2xl" dir={isRTL ? 'rtl' : 'ltr'}>
+      <SafeFormDialog
+        open={duplicateDialogOpen}
+        onOpenChange={handleDuplicateOpenChange}
+        isDirty={isDuplicateDirty}
+        className="rounded-2xl"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
           <DialogHeader>
             <DialogTitle>{t('laboratory.templates.duplicateTemplate')}</DialogTitle>
           </DialogHeader>
@@ -1737,9 +1764,11 @@ const openCreateDialog = () => {
             </div>
           </div>
           <div className={`flex gap-3 pt-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Button variant="outline" className="flex-1" onClick={() => setDuplicateDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button 
               className="flex-1" 
               onClick={handleDuplicate}
@@ -1749,8 +1778,7 @@ const openCreateDialog = () => {
               {t('laboratory.templates.duplicate')}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Delete Template Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
