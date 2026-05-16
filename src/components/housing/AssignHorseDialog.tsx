@@ -344,7 +344,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={checkingAdmission || isMoving}>
               {t('common.cancel')}
             </Button>
             <Button
