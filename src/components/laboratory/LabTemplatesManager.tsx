@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -542,10 +542,40 @@ const openCreateDialog = () => {
     setRuleToDelete(null);
   };
 
+  const conditionRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+
   const insertFieldIntoCondition = (ruleIndex: number, fieldName: string) => {
     const rule = formData.diagnostic_rules[ruleIndex];
-    const newCondition = rule.condition + `{{${fieldName}}}`;
+    if (!rule) return;
+    const token = `{{${fieldName}}}`;
+    const ta = conditionRefs.current[rule.id];
+    const current = rule.condition || '';
+    let newCondition: string;
+    if (ta && typeof ta.selectionStart === 'number') {
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd ?? start;
+      newCondition = current.slice(0, start) + token + current.slice(end);
+      const caret = start + token.length;
+      requestAnimationFrame(() => {
+        try { ta.focus(); ta.setSelectionRange(caret, caret); } catch { /* noop */ }
+      });
+    } else {
+      newCondition = current ? `${current} ${token}` : token;
+    }
     updateDiagnosticRule(ruleIndex, { condition: newCondition });
+  };
+
+  const getUnknownTokens = (condition: string): string[] => {
+    if (!condition) return [];
+    const known = new Set(formData.fields.map(f => f.name).filter(Boolean));
+    const found = new Set<string>();
+    const re = /\{\{([^}]+)\}\}/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(condition)) !== null) {
+      const tok = m[1].trim();
+      if (tok && !known.has(tok)) found.add(tok);
+    }
+    return Array.from(found);
   };
 
   // ========== SUBMIT ==========
@@ -1634,12 +1664,49 @@ const openCreateDialog = () => {
                                 </SelectContent>
                               </Select>
                             </div>
+                            {formData.fields.length === 0 ? (
+                              <p className="text-xs text-muted-foreground">
+                                {t('laboratory.templates.addFieldsForTokens')}
+                              </p>
+                            ) : (
+                              <div className="space-y-1">
+                                <p className="text-[11px] text-muted-foreground">
+                                  {t('laboratory.templates.availableTokens')}
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {formData.fields.filter(f => f.name).map((f) => (
+                                    <button
+                                      key={f.id}
+                                      type="button"
+                                      onClick={() => insertFieldIntoCondition(index, f.name)}
+                                      title={t('laboratory.templates.insertToken')}
+                                      className="inline-flex items-center rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[11px] font-mono hover:bg-muted transition-colors"
+                                    >
+                                      {`{{${f.name}}}`}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <Textarea
+                              ref={(el) => { conditionRefs.current[rule.id] = el; }}
                               value={rule.condition}
                               onChange={(e) => updateDiagnosticRule(index, { condition: e.target.value })}
                               placeholder={t('laboratory.templates.conditionPlaceholder')}
                               rows={2}
                             />
+                            {(() => {
+                              const unknown = getUnknownTokens(rule.condition);
+                              if (unknown.length === 0) return null;
+                              return (
+                                <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+                                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                  <span className="break-words">
+                                    {t('laboratory.templates.unknownTokens')}: {unknown.map(u => `{{${u}}}`).join(', ')}
+                                  </span>
+                                </div>
+                              );
+                            })()}
                           </div>
                           
                           <div className="grid gap-2 sm:grid-cols-2">
