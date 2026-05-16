@@ -1800,7 +1800,7 @@ const openCreateDialog = () => {
               {formData.pricing.base_price ? (
                 <div className="flex items-center gap-2">
                   <Badge variant="default" className="bg-green-600">
-                    {formData.pricing.base_price} {formData.pricing.currency || 'SAR'}
+                    {formData.pricing.base_price} {formData.pricing.currency || tenantCurrency}
                   </Badge>
                   {formData.pricing.discounts_enabled && formData.pricing.discounts?.length > 0 && (
                     <span className="text-sm text-muted-foreground">
