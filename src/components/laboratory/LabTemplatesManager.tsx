@@ -142,6 +142,7 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
   const { t, lang } = useI18n();
   const isRTL = lang === 'ar';
   const { templates, loading, canManage, existingCategories, createTemplate, updateTemplate, duplicateTemplate, deleteTemplate, seedDefaultTemplates } = useLabTemplates();
+  const tenantCurrency = useTenantCurrency();
   const [seedingDefaults, setSeedingDefaults] = useState(false);
   
   // Search and filter state
