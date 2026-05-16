@@ -1213,6 +1213,25 @@ const openCreateDialog = () => {
                                 ) : formData.groups.length > 0 && (
                                   <Badge variant="secondary" className="text-xs">{t('laboratory.templates.noGroupBadge')}</Badge>
                                 )}
+                                {field.unit && (
+                                  <Badge variant="outline" className="text-xs">{field.unit}</Badge>
+                                )}
+                                {field.type === 'number' && (
+                                  normalRange.min !== undefined || normalRange.max !== undefined ? (
+                                    <Badge variant="outline" className="text-xs">
+                                      {t('laboratory.templates.rangeChip')}: {normalRange.min ?? '–'}–{normalRange.max ?? '–'}
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="secondary" className="text-xs text-muted-foreground">
+                                      {t('laboratory.templates.noRangeChip')}
+                                    </Badge>
+                                  )
+                                )}
+                                {needsOptions && (
+                                  <Badge variant={hasNoOptions ? "secondary" : "outline"} className="text-xs">
+                                    {t('laboratory.templates.optionsCount', { count: field.options?.length || 0 })}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`} onClick={(e) => e.stopPropagation()}>
