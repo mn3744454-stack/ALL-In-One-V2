@@ -1717,6 +1717,15 @@ export const ar = {
         sectionsLabel: "الأقسام",
         jumpTo: "الانتقال إلى قسم",
       },
+      validation: {
+        missingName: "أدخل اسم القالب",
+        fieldMissingOptions: "حقول اختيار تحتاج إلى خيارات",
+        invalidRange: "نطاقات طبيعية غير صالحة",
+        unknownTokens: "رموز تشخيصية غير معروفة",
+        requiredIssues: "مطلوب",
+        warnings: "تنبيهات",
+        fixInSection: "انتقل إلى القسم",
+      },
     },
   },
   movement: {
