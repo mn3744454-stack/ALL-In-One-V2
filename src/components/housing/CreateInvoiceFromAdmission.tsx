@@ -1,5 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
