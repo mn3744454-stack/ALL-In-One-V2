@@ -866,11 +866,13 @@ const openCreateDialog = () => {
       </Card>
 
       {/* Create/Edit Dialog - Task C & D: Sticky header + subtle scrollbar */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent 
-          className="w-[95vw] max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col" 
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
+      <SafeFormDialog
+        open={dialogOpen}
+        onOpenChange={handleEditorOpenChange}
+        isDirty={isFormDirty}
+        className="w-[95vw] max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl p-0 flex flex-col"
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
           {/* Sticky header with solid background, proper z-index */}
           <div className={`sticky top-0 z-20 bg-background border-b px-6 py-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <div className={`flex items-center justify-between gap-3 flex-wrap ${isRTL ? 'flex-row-reverse' : ''}`}>
