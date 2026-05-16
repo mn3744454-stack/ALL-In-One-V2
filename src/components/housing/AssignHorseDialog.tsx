@@ -206,6 +206,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
         toAreaId: unit.area_id,
         toBranchId: unit.branch_id,
       });
+      resetBaseline({ selectedHorseId: null });
       handleClose();
     } catch {
       // Error handled by mutation
