@@ -1008,7 +1008,7 @@ const openCreateDialog = () => {
 
             {/* Description Section */}
             <Collapsible open={sectionsOpen.description} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, description: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-overview" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.description')}</span>
@@ -1093,7 +1093,7 @@ const openCreateDialog = () => {
 
             {/* Groups Section */}
             <Collapsible open={sectionsOpen.groups} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, groups: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-groups" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.groups')} ({formData.groups.length})</span>
@@ -1155,7 +1155,7 @@ const openCreateDialog = () => {
 
             {/* Fields Section with per-item collapse */}
             <Collapsible open={sectionsOpen.fields} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, fields: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-fields" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.fields')} ({formData.fields.length})</span>
@@ -1419,7 +1419,7 @@ const openCreateDialog = () => {
 
             {/* Pricing Section */}
             <Collapsible open={sectionsOpen.pricing} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, pricing: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-pricing" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.pricing')}</span>
@@ -1558,7 +1558,7 @@ const openCreateDialog = () => {
 
             {/* Diagnostic Rules Section - Task A: Match style with other sections */}
             <Collapsible open={sectionsOpen.diagnosticRules} onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, diagnosticRules: open })}>
-              <div className={sectionWrapperClass}>
+              <div id="section-rules" className={`scroll-mt-4 ${sectionWrapperClass}`}>
                 <CollapsibleTrigger asChild>
                   <button type="button" className={collapsibleTriggerClass}>
                     <span className="text-sm font-medium">{t('laboratory.templates.diagnosticRules')} ({formData.diagnostic_rules.length})</span>
