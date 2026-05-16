@@ -305,12 +305,12 @@ const openCreateDialog = () => {
       fields: [],
       groups: [],
       normal_ranges: {},
-      pricing: { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+      pricing: { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
       diagnostic_rules: [],
     });
     // Task G: Start all sections collapsed for new template
     setExpandedFields(new Set());
-    setSectionsOpen({ description: false, groups: false, fields: false, normalRanges: false, pricing: false, diagnosticRules: false });
+    setSectionsOpen({ description: false, groups: false, fields: false, pricing: false, diagnosticRules: false });
     setDialogOpen(true);
   };
 
