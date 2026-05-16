@@ -745,6 +745,28 @@ export const ar = {
       noResultsDesc: "ستظهر النتائج هنا عندما تنشرها المختبرات",
       labName: "المختبر",
       publishedAt: "تاريخ النشر",
+      report: "تقرير",
+      reports: "تقارير",
+    },
+
+    // L4-a-1 — مفاتيح عارض التقرير المشترك للقراءة فقط.
+    report: {
+      parameter: "المعامل",
+      value: "القيمة",
+      unit: "الوحدة",
+      referenceRange: "المرجع",
+      status: "الحالة",
+      interpretation: "التفسير",
+      templateContextUnavailable: "سياق القالب غير متاح — يتم عرض القيم الخام.",
+      extraValues: "قيم إضافية",
+      normal: "طبيعي",
+      low: "منخفض",
+      high: "مرتفع",
+      notAvailable: "غير متوفر",
+      reportDate: "تاريخ التقرير",
+      sampleId: "رقم العينة",
+      laboratory: "المختبر",
+      horse: "الفرس",
     },
     
     // Messages Inbox

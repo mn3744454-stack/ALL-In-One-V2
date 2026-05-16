@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTenant } from "@/contexts/TenantContext";
 import { toast } from "sonner";
 import { tGlobal } from "@/i18n";
+import type { Json } from "@/integrations/supabase/types";
 
 export interface StableLabResult {
   id: string;
@@ -15,6 +16,12 @@ export interface StableLabResult {
   template_id: string | null;
   template_name: string | null;
   template_name_ar: string | null;
+  // L4-a-1: widened template context from get_stable_lab_results RPC.
+  // Returned by the gated SECURITY DEFINER function; null when the originating
+  // template no longer exists. Used by LabResultReportViewer for rich rendering.
+  template_fields?: Json | null;
+  template_normal_ranges?: Json | null;
+  template_groups?: Json | null;
   physical_sample_id: string | null;
   horse_name: string | null;
   request_id: string | null;
