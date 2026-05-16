@@ -2209,6 +2209,9 @@ export const ar = {
       blockAdmissions: "يحتوي هذا الفرع على إيواء نشط. أكمل أو ألغِ السجلات أولاً.",
       resolveFirst: "حل جميع التبعيات قبل حذف هذا الفرع.",
       deleted: "تم تعطيل الفرع بنجاح",
+      missing: {
+        name: "أدخل اسم الفرع",
+      },
     },
     branchWizard: {
       title: "إنشاء فرع",
@@ -2637,6 +2640,12 @@ export const ar = {
       noPackagesYet: "لا توجد باقات متاحة بعد",
       noPackagesDesc: "أنشئ باقة لتحديد الأسعار والخدمات القياسية.",
       packageDesc: "إنشاء سريع لباقة لهذا الإيواء. يمكنك إضافة الخدمات المشمولة لاحقاً من صفحة الخدمات.",
+      missing: {
+        name: "أدخل اسم الباقة",
+        planType: "اختر نوع الباقة",
+        billingCycle: "اختر دورة الفوترة",
+        price: "أدخل سعراً صحيحاً",
+      },
     },
     admissions: {
       title: "إيواء الخيول",
@@ -3832,6 +3841,26 @@ export const ar = {
     loadError: "فشل تحميل تفاصيل الخيل",
     addSuccess: "تمت إضافة {{name}} بنجاح",
     addError: "فشل إضافة الخيل",
+    addLegacy: {
+      title: "إضافة خيل جديد",
+      desc: "أنشئ ملفاً لخيل جديد في إسطبلك",
+      namePlaceholder: "اسم الخيل",
+      selectGender: "اختر الجنس",
+      maleStallion: "ذكر (فحل)",
+      femaleMare: "أنثى (فرس)",
+      breedPlaceholder: "مثال: عربي",
+      colorPlaceholder: "مثال: كميت",
+      registrationNumber: "رقم التسجيل",
+      microchipNumber: "رقم الشريحة الإلكترونية",
+      optional: "اختياري",
+      notes: "ملاحظات",
+      notesPlaceholder: "أي ملاحظات إضافية عن هذا الخيل...",
+      adding: "جارٍ الإضافة...",
+      missing: {
+        name: "أدخل اسم الخيل",
+        gender: "اختر الجنس",
+      },
+    },
     gender: {
       male: "ذكر",
       female: "أنثى",
@@ -5628,6 +5657,10 @@ export const ar = {
       enterPhone: "الرجاء إدخال رقم الهاتف",
       roleHint: "الدور المقترح",
       roleHintDesc: "يمكن تعديل هذا بعد قبول الشخص للدعوة.",
+      missing: {
+        email: "أدخل البريد الإلكتروني",
+        phone: "أدخل رقم الهاتف",
+      },
     },
     setup: {
       title: "إعداد العضو",

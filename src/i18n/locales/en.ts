@@ -2191,6 +2191,9 @@ export const en = {
       blockAdmissions: "This branch has active boarding admissions. Complete or cancel them first.",
       resolveFirst: "Resolve all dependencies before deleting this branch.",
       deleted: "Branch deactivated successfully",
+      missing: {
+        name: "Enter branch name",
+      },
     },
     branchWizard: {
       title: "Create Branch",
@@ -2619,6 +2622,12 @@ export const en = {
       noPackagesYet: "No packages available yet",
       noPackagesDesc: "Create a package to define standard rates and services.",
       packageDesc: "Quickly create a package for this admission. You can add included services later from the Services page.",
+      missing: {
+        name: "Enter package name",
+        planType: "Select a package type",
+        billingCycle: "Select a billing cycle",
+        price: "Enter a valid base price",
+      },
     },
     admissions: {
       title: "Boarding Admissions",
@@ -3814,6 +3823,26 @@ export const en = {
     loadError: "Failed to load horse details",
     addSuccess: "{{name}} has been added successfully",
     addError: "Failed to add horse",
+    addLegacy: {
+      title: "Add New Horse",
+      desc: "Create a profile for a new horse in your stable",
+      namePlaceholder: "Horse name",
+      selectGender: "Select gender",
+      maleStallion: "Male (Stallion)",
+      femaleMare: "Female (Mare)",
+      breedPlaceholder: "e.g., Arabian",
+      colorPlaceholder: "e.g., Bay",
+      registrationNumber: "Registration Number",
+      microchipNumber: "Microchip Number",
+      optional: "Optional",
+      notes: "Notes",
+      notesPlaceholder: "Any additional notes about this horse...",
+      adding: "Adding...",
+      missing: {
+        name: "Enter horse name",
+        gender: "Select gender",
+      },
+    },
     gender: {
       male: "Male",
       female: "Female",
@@ -5631,6 +5660,10 @@ export const en = {
       enterPhone: "Please enter a phone number",
       roleHint: "Suggested Role",
       roleHintDesc: "This can be adjusted after the person accepts.",
+      missing: {
+        email: "Enter an email address",
+        phone: "Enter a phone number",
+      },
     },
     setup: {
       title: "Configure Member",

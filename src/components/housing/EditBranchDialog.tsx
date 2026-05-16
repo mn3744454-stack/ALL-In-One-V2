@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
-} from "@/components/ui/dialog";
+import { useMemo, useState } from "react";
+import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,85 +20,115 @@ export function EditBranchDialog({ branch, open, onOpenChange }: EditBranchDialo
   const { t } = useI18n();
   const { updateLocation, isUpdating } = useLocations();
 
-  const [name, setName] = useState(branch.name);
-  const [nameAr, setNameAr] = useState(branch.name_ar || "");
-  const [city, setCity] = useState(branch.city || "");
-  const [address, setAddress] = useState(branch.address || "");
+  const [form, setForm] = useState({
+    name: branch.name,
+    nameAr: branch.name_ar || "",
+    city: branch.city || "",
+    address: branch.address || "",
+  });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-  useEffect(() => {
+  // Re-seed form when reopened against a different branch.
+  useMemo(() => {
     if (open) {
-      setName(branch.name);
-      setNameAr(branch.name_ar || "");
-      setCity(branch.city || "");
-      setAddress(branch.address || "");
+      setForm({
+        name: branch.name,
+        nameAr: branch.name_ar || "",
+        city: branch.city || "",
+        address: branch.address || "",
+      });
+      setAttemptedSubmit(false);
     }
   }, [open, branch]);
 
+  const { isDirty, resetBaseline } = useDirtyForm(form, open);
+
+  const nameValid = form.name.trim().length > 0;
+  const missingIssues = useMemo<string[]>(() => {
+    const out: string[] = [];
+    if (!nameValid) out.push(t("housing.branchActions.missing.name"));
+    return out;
+  }, [nameValid, t]);
+
   const handleSave = async () => {
+    setAttemptedSubmit(true);
+    if (!nameValid) return;
     await updateLocation({
       id: branch.id,
-      name: name.trim(),
-      name_ar: nameAr.trim() || undefined,
-      city: city.trim() || undefined,
-      address: address.trim() || undefined,
+      name: form.name.trim(),
+      name_ar: form.nameAr.trim() || undefined,
+      city: form.city.trim() || undefined,
+      address: form.address.trim() || undefined,
     });
-    // useLocations already invalidates the canonical branch family via the
-    // shared helper — no extra ad-hoc invalidation needed here.
+    resetBaseline(form);
     onOpenChange(false);
   };
 
+  const effectiveIsDirty = isDirty && !isUpdating;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('housing.branchActions.edit')}</DialogTitle>
-          <DialogDescription>{t('housing.branchActions.editDesc')}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-2">
+    <SafeFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      isDirty={effectiveIsDirty}
+      className="sm:max-w-md"
+    >
+      <DialogHeader>
+        <DialogTitle>{t("housing.branchActions.edit")}</DialogTitle>
+        <DialogDescription>{t("housing.branchActions.editDesc")}</DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-2">
+        <div className="space-y-2">
+          <Label>{t("housing.branchWizard.branchName")} *</Label>
+          <Input
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            placeholder={t("housing.branchWizard.branchNamePlaceholder")}
+            aria-invalid={attemptedSubmit && !nameValid}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t("housing.branchWizard.branchNameAr")}</Label>
+          <Input
+            value={form.nameAr}
+            onChange={(e) => setForm((f) => ({ ...f, nameAr: e.target.value }))}
+            placeholder={t("housing.branchWizard.branchNameArPlaceholder")}
+            dir="rtl"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label>{t('housing.branchWizard.branchName')} *</Label>
+            <Label>{t("housing.branchWizard.city")}</Label>
             <Input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder={t('housing.branchWizard.branchNamePlaceholder')}
+              value={form.city}
+              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+              placeholder={t("housing.branchWizard.cityPlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <Label>{t('housing.branchWizard.branchNameAr')}</Label>
+            <Label>{t("housing.branchWizard.address")}</Label>
             <Input
-              value={nameAr}
-              onChange={e => setNameAr(e.target.value)}
-              placeholder={t('housing.branchWizard.branchNameArPlaceholder')}
-              dir="rtl"
+              value={form.address}
+              onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+              placeholder={t("housing.branchWizard.addressPlaceholder")}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>{t('housing.branchWizard.city')}</Label>
-              <Input
-                value={city}
-                onChange={e => setCity(e.target.value)}
-                placeholder={t('housing.branchWizard.cityPlaceholder')}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('housing.branchWizard.address')}</Label>
-              <Input
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                placeholder={t('housing.branchWizard.addressPlaceholder')}
-              />
-            </div>
-          </div>
         </div>
-        <div className="flex justify-end gap-2 pt-2 border-t">
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>{t('common.cancel')}</Button>
-          <Button size="sm" onClick={handleSave} disabled={!name.trim() || isUpdating}>
-            {isUpdating && <Loader2 className="h-4 w-4 animate-spin me-2" />}
-            {t('common.update')}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+      <MissingRequirementsBar
+        issues={attemptedSubmit ? missingIssues : []}
+        attempted={attemptedSubmit}
+        className="mt-2"
+      />
+      <div className="flex justify-end gap-2 pt-3 border-t mt-3">
+        <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+          {t("common.cancel")}
+        </Button>
+        <Button size="sm" onClick={handleSave} disabled={isUpdating}>
+          {isUpdating && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+          {t("common.update")}
+        </Button>
+      </div>
+    </SafeFormDialog>
   );
 }

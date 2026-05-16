@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useHorses } from "@/hooks/useHorses";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { MissingRequirementsBar } from "@/components/ui/missing-requirements-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,36 +21,51 @@ import {
 } from "@/components/ui/select";
 import { Plus, Heart } from "lucide-react";
 import { toast } from "sonner";
+import { useI18n } from "@/i18n";
 
 interface AddHorseDialogProps {
   trigger?: React.ReactNode;
 }
 
+const EMPTY = {
+  name: "",
+  gender: "" as "male" | "female" | "",
+  breed: "",
+  color: "",
+  birth_date: "",
+  registration_number: "",
+  microchip_number: "",
+  notes: "",
+};
+
 export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
+  const { t } = useI18n();
   const { createHorse } = useHorses();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    gender: "" as "male" | "female" | "",
-    breed: "",
-    color: "",
-    birth_date: "",
-    registration_number: "",
-    microchip_number: "",
-    notes: "",
-  });
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [formData, setFormData] = useState(EMPTY);
+
+  const { isDirty, resetBaseline } = useDirtyForm(formData, open);
+
+  const nameValid = formData.name.trim().length > 0;
+  const genderValid = formData.gender === "male" || formData.gender === "female";
+
+  const missingIssues = useMemo<string[]>(() => {
+    const out: string[] = [];
+    if (!nameValid) out.push(t("horses.addLegacy.missing.name"));
+    if (!genderValid) out.push(t("horses.addLegacy.missing.gender"));
+    return out;
+  }, [nameValid, genderValid, t]);
+
+  const effectiveIsDirty = isDirty && !loading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.gender) {
-      toast.error("Please fill in required fields");
-      return;
-    }
+    setAttemptedSubmit(true);
+    if (!nameValid || !genderValid) return;
 
     setLoading(true);
-    
     const { error } = await createHorse({
       name: formData.name,
       gender: formData.gender as "male" | "female",
@@ -61,73 +76,78 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
       microchip_number: formData.microchip_number || undefined,
       notes: formData.notes || undefined,
     });
-
     setLoading(false);
 
     if (error) {
-      toast.error("Failed to add horse");
+      toast.error(t("horses.addError"));
     } else {
-      toast.success(`${formData.name} has been added!`);
+      toast.success(t("horses.addSuccess").replace("{{name}}", formData.name));
+      resetBaseline(EMPTY);
       setOpen(false);
-      setFormData({
-        name: "",
-        gender: "",
-        breed: "",
-        color: "",
-        birth_date: "",
-        registration_number: "",
-        microchip_number: "",
-        notes: "",
-      });
+      setFormData(EMPTY);
+      setAttemptedSubmit(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+    <>
+      <span
+        onClick={() => setOpen(true)}
+        className="inline-flex"
+        role="presentation"
+      >
         {trigger || (
           <Button variant="gold" size="icon" className="sm:w-auto sm:px-3 sm:gap-2">
             <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Add Horse</span>
+            <span className="hidden sm:inline">{t("horses.addHorse")}</span>
           </Button>
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      </span>
+
+      <SafeFormDialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) setAttemptedSubmit(false);
+        }}
+        isDirty={effectiveIsDirty}
+        className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-gold" />
-            Add New Horse
+            {t("horses.addLegacy.title")}
           </DialogTitle>
-          <DialogDescription>
-            Create a profile for a new horse in your stable
-          </DialogDescription>
+          <DialogDescription>{t("horses.addLegacy.desc")}</DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">{t("horses.wizard.name")} *</Label>
               <Input
                 id="name"
-                placeholder="Horse name"
+                placeholder={t("horses.addLegacy.namePlaceholder")}
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+                aria-invalid={attemptedSubmit && !nameValid}
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label>Gender *</Label>
+              <Label>{t("horses.wizard.gender")} *</Label>
               <Select
                 value={formData.gender}
-                onValueChange={(value) => setFormData({ ...formData, gender: value as "male" | "female" })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, gender: value as "male" | "female" })
+                }
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
+                <SelectTrigger aria-invalid={attemptedSubmit && !genderValid}>
+                  <SelectValue placeholder={t("horses.addLegacy.selectGender")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Male (Stallion)</SelectItem>
-                  <SelectItem value="female">Female (Mare)</SelectItem>
+                  <SelectItem value="male">{t("horses.addLegacy.maleStallion")}</SelectItem>
+                  <SelectItem value="female">{t("horses.addLegacy.femaleMare")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -135,20 +155,20 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="breed">Breed</Label>
+              <Label htmlFor="breed">{t("horses.wizard.breed")}</Label>
               <Input
                 id="breed"
-                placeholder="e.g., Arabian"
+                placeholder={t("horses.addLegacy.breedPlaceholder")}
                 value={formData.breed}
                 onChange={(e) => setFormData({ ...formData, breed: e.target.value })}
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
+              <Label htmlFor="color">{t("horses.wizard.color")}</Label>
               <Input
                 id="color"
-                placeholder="e.g., Bay"
+                placeholder={t("horses.addLegacy.colorPlaceholder")}
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
               />
@@ -156,7 +176,7 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="birth_date">Date of Birth</Label>
+            <Label htmlFor="birth_date">{t("horses.wizard.birthDate")}</Label>
             <Input
               id="birth_date"
               type="date"
@@ -167,47 +187,56 @@ export const AddHorseDialog = ({ trigger }: AddHorseDialogProps) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="registration_number">Registration Number</Label>
+              <Label htmlFor="registration_number">{t("horses.addLegacy.registrationNumber")}</Label>
               <Input
                 id="registration_number"
-                placeholder="Optional"
+                placeholder={t("horses.addLegacy.optional")}
                 value={formData.registration_number}
-                onChange={(e) => setFormData({ ...formData, registration_number: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, registration_number: e.target.value })
+                }
               />
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="microchip_number">Microchip Number</Label>
+              <Label htmlFor="microchip_number">{t("horses.addLegacy.microchipNumber")}</Label>
               <Input
                 id="microchip_number"
-                placeholder="Optional"
+                placeholder={t("horses.addLegacy.optional")}
                 value={formData.microchip_number}
-                onChange={(e) => setFormData({ ...formData, microchip_number: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, microchip_number: e.target.value })
+                }
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">{t("horses.addLegacy.notes")}</Label>
             <Textarea
               id="notes"
-              placeholder="Any additional notes about this horse..."
+              placeholder={t("horses.addLegacy.notesPlaceholder")}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
             />
           </div>
 
+          <MissingRequirementsBar
+            issues={attemptedSubmit ? missingIssues : []}
+            attempted={attemptedSubmit}
+          />
+
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" variant="gold" disabled={loading}>
-              {loading ? "Adding..." : "Add Horse"}
+              {loading ? t("horses.addLegacy.adding") : t("horses.addHorse")}
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SafeFormDialog>
+    </>
   );
 };
