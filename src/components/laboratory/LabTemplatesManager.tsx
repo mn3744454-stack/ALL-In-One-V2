@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
 import { useDirtyForm } from "@/hooks/useDirtyForm";
+import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import {
   Select,
   SelectContent,
