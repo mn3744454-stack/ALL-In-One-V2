@@ -328,7 +328,7 @@ const openCreateDialog = () => {
       fields: template.fields || [],
       groups: template.groups || [],
       normal_ranges: template.normal_ranges || {},
-      pricing: template.pricing || { base_price: undefined, currency: 'SAR', discounts_enabled: false, discounts: [] },
+      pricing: template.pricing || { base_price: undefined, currency: tenantCurrency, discounts_enabled: false, discounts: [] },
       diagnostic_rules: template.diagnostic_rules || [],
     });
     // If more than 5 fields, collapse all except first
@@ -338,7 +338,7 @@ const openCreateDialog = () => {
     } else {
       setExpandedFields(new Set(fields.map(f => f.id)));
     }
-    setSectionsOpen({ description: true, groups: template.groups?.length > 0, fields: true, normalRanges: Object.keys(template.normal_ranges || {}).length > 0, pricing: true, diagnosticRules: template.diagnostic_rules?.length > 0 });
+    setSectionsOpen({ description: true, groups: template.groups?.length > 0, fields: true, pricing: true, diagnosticRules: template.diagnostic_rules?.length > 0 });
     setDialogOpen(true);
   };
 
