@@ -122,6 +122,12 @@ export const en = {
       title: "Notification Settings",
       desc: "Manage device alerts and notification preferences.",
     },
+    roles: {
+      title: "Roles",
+    },
+    permissions: {
+      title: "Permissions",
+    },
   },
   sidebar: {
     dashboard: "Dashboard",

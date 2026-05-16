@@ -134,6 +134,12 @@ export const ar = {
       title: "إعدادات الإشعارات",
       desc: "إدارة تنبيهات الجهاز وتفضيلات الإشعارات.",
     },
+    roles: {
+      title: "الأدوار",
+    },
+    permissions: {
+      title: "الصلاحيات",
+    },
   },
   sidebar: {
     dashboard: "لوحة التحكم",

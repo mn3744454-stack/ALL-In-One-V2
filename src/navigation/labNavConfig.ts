@@ -3,7 +3,6 @@ import {
   FileText, 
   GitCompare, 
   FileStack, 
-  Settings,
   Clock,
   Users,
   Heart,
@@ -80,13 +79,6 @@ export const LAB_NAV_SECTIONS: LabNavSection[] = [
     icon: FileStack, 
     labelKey: "laboratory.nav.templates",
     route: "/dashboard/laboratory?tab=templates",
-  },
-  { 
-    key: "settings", 
-    tab: "settings", 
-    icon: Settings, 
-    labelKey: "laboratory.nav.settings",
-    route: "/dashboard/laboratory?tab=settings",
   },
   { 
     key: "clients", 
