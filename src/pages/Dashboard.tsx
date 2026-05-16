@@ -96,37 +96,47 @@ export default function Dashboard() {
   const { activeTenant, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { unreadCount } = useNotifications();
-  const { modules } = useModuleAccess();
-  
+  const {
+    isStable,
+    isDoctor,
+    isAcademy,
+    vetEnabled,
+    housingEnabled,
+    movementEnabled,
+    breedingEnabled,
+    canViewLabRequests,
+  } = useModuleAccess();
+  const { hasPermission } = usePermissions();
+
   useTenantRealtimeSync();
   useFocusRefresh();
 
   // Track which modules are available
-  const hasHorses = activeTenant && modules?.stable;
-  const hasClients = activeTenant && modules?.crm;
-  const hasFinance = activeTenant && modules?.finance;
-  const hasHousing = activeTenant && modules?.housing;
-  const hasVet = activeTenant && modules?.vet;
-  const hasLab = activeTenant && modules?.laboratory;
-  const hasBreeding = activeTenant && modules?.breeding;
-  const hasDoctor = activeTenant && modules?.doctor;
-  const hasMovement = activeTenant && modules?.movement;
-  const hasAcademy = activeTenant && modules?.academy;
-  const hasHR = activeTenant && modules?.hr;
-  const hasTeam = activeTenant;
-  
-  // User permissions for quick actions
-  const userPermissions = user?.tenant_permissions || [];
-  const canManageHorses = hasPermission(userPermissions, 'horses.manage');
-  const canManageClients = hasPermission(userPermissions, 'clients.manage');
-  const canCreateInvoice = hasPermission(userPermissions, 'invoices.create');
-  const canManageServices = hasPermission(userPermissions, 'services.manage');
-  const canViewHousing = hasPermission(userPermissions, 'housing.view');
-  const canViewVet = hasPermission(userPermissions, 'vet.view');
-  const canViewLab = hasPermission(userPermissions, 'laboratory.view');
-  const canViewMovement = hasPermission(userPermissions, 'movement.view');
+  const hasHorses = !!activeTenant && isStable;
+  const hasClients = !!activeTenant;
+  const hasFinance = !!activeTenant;
+  const hasHousing = !!activeTenant && housingEnabled;
+  const hasVet = !!activeTenant && vetEnabled;
+  const hasLab = !!activeTenant && canViewLabRequests;
+  const hasBreeding = !!activeTenant && breedingEnabled;
+  const hasDoctor = !!activeTenant && isDoctor;
+  const hasMovement = !!activeTenant && movementEnabled;
+  const hasAcademy = !!activeTenant && isAcademy;
+  const hasHR = !!activeTenant;
+  const hasTeam = !!activeTenant;
 
-  const isHorseOwningTenant = activeTenant?.type === 'stable' || activeTenant?.type === 'breeding' || activeTenant?.type === 'training';
+  // Permission-gated quick actions (canonical usePermissions hook)
+  const canManageHorses = hasPermission('horses.manage');
+  const canManageClients = hasPermission('clients.manage');
+  const canCreateInvoice = hasPermission('invoices.create');
+  const canManageServices = hasPermission('services.manage');
+  const canViewHousing = hasPermission('housing.view');
+  const canViewVet = hasPermission('vet.view');
+  const canViewLab = hasPermission('laboratory.view');
+  const canViewMovement = hasPermission('movement.view');
+
+  const tenantType = activeTenant?.tenant?.type;
+  const isHorseOwningTenant = tenantType === 'stable' || tenantType === 'breeding' || tenantType === 'training';
 
   return (
     <DashboardShell>
