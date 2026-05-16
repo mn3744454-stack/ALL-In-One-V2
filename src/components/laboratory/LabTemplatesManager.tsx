@@ -1621,8 +1621,7 @@ const openCreateDialog = () => {
               {editingTemplate ? t('common.update') : t('common.create')}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
