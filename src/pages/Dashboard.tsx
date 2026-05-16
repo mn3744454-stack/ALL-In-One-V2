@@ -418,13 +418,6 @@ const Dashboard = () => {
                       <div className="py-8 text-center">
                         <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                         <p className="text-muted-foreground mb-4">{t("dashboard.noHorsesYet")}</p>
-                        <AddHorseDialog
-                          trigger={
-                            <Button variant="outline" size="sm">
-                              {t("dashboard.addYourFirstHorse")}
-                            </Button>
-                          }
-                        />
                       </div>
                     ) : (
                       <div className="space-y-4">
