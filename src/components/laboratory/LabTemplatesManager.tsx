@@ -1462,7 +1462,7 @@ const openCreateDialog = () => {
                   <div className="space-y-2">
                     <Label>{t('laboratory.templates.currency')}</Label>
                     <Select
-                      value={formData.pricing.currency || 'SAR'}
+                      value={formData.pricing.currency || tenantCurrency}
                       onValueChange={(value) => updatePricing({ currency: value })}
                     >
                       <SelectTrigger className={selectTriggerClass}>
