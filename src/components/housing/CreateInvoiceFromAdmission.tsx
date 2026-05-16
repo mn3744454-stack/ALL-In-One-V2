@@ -420,6 +420,7 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
       queryClient.invalidateQueries({ queryKey: ["boarding-billed-periods"] });
 
       toast.success(t("housing.admissions.billing.invoiceCreated"));
+      resetBaseline(dirtySnapshot);
       onOpenChange(false);
     } catch (err) {
       console.error("Error creating invoice:", err);
