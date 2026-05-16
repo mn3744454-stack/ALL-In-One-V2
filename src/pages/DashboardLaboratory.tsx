@@ -58,8 +58,8 @@ export default function DashboardLaboratory() {
   }, [editHorseId, labHorses]);
 
   const availableTabs = useMemo(() => {
-    if (labMode === 'requests') return ['requests', 'results', 'messages', 'settings'];
-    return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates', 'settings'];
+    if (labMode === 'requests') return ['requests', 'results', 'messages'];
+    return ['samples', 'results', 'requests', 'horses', 'catalog', 'compare', 'timeline', 'templates'];
   }, [labMode]);
 
   const activeTab = useMemo(() => {
@@ -145,7 +145,6 @@ export default function DashboardLaboratory() {
                   <TabsTrigger value="requests" className="gap-2"><ClipboardList className="h-4 w-4" />{t("laboratory.tabs.requests") || "Requests"}</TabsTrigger>
                   <TabsTrigger value="results" className="gap-2"><FileText className="h-4 w-4" />{t("laboratory.stableResults.tabLabel") || "Results"}</TabsTrigger>
                   <TabsTrigger value="messages" className="gap-2"><MessageSquare className="h-4 w-4" />{t("laboratory.messages.tabLabel") || "Messages"}</TabsTrigger>
-                  <TabsTrigger value="settings" className="gap-2"><Settings className="h-4 w-4" />{t("laboratory.tabs.settings")}</TabsTrigger>
                 </>
               ) : (
                 <>
@@ -155,7 +154,6 @@ export default function DashboardLaboratory() {
                   <TabsTrigger value="compare" className="gap-2"><GitCompare className="h-4 w-4" />{t("laboratory.tabs.compare")}</TabsTrigger>
                   <TabsTrigger value="timeline" className="gap-2"><Clock className="h-4 w-4" />{t("laboratory.tabs.timeline")}</TabsTrigger>
                   <TabsTrigger value="templates" className="gap-2"><FileStack className="h-4 w-4" />{t("laboratory.tabs.templates")}</TabsTrigger>
-                  <TabsTrigger value="settings" className="gap-2"><Settings className="h-4 w-4" />{t("laboratory.tabs.settings")}</TabsTrigger>
                 </>
               )}
             </TabsList>
@@ -214,13 +212,6 @@ export default function DashboardLaboratory() {
           <TabsContent value="compare"><ResultsComparison /></TabsContent>
           <TabsContent value="timeline"><LabTimeline /></TabsContent>
           <TabsContent value="templates"><LabTemplatesManager onNavigateToTemplates={() => handleTabChange("templates")} /></TabsContent>
-
-          <TabsContent value="settings">
-            <div className="grid gap-6 lg:grid-cols-2">
-              {labMode === 'full' && <LabCreditsPanel />}
-              <LabTestTypesManager />
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 
