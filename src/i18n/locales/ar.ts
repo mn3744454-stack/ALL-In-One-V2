@@ -1347,6 +1347,7 @@ export const ar = {
       noAccess: "الوصول مقيد",
       noAccessDesc: "تحتاج إلى شراكة مع هذا المختبر لعرض خدماته",
       servicesFrom: "خدمات من",
+      nameEn: "الاسم (إنجليزي)",
       nameAr: "الاسم (عربي)",
       code: "الرمز",
       category: "التصنيف",

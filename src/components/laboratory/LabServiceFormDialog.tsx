@@ -283,7 +283,7 @@ export function LabServiceFormDialog({ open, onOpenChange, service, onSubmit, is
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("common.name")} *</FormLabel>
+                  <FormLabel>{t("laboratory.catalog.nameEn")} *</FormLabel>
                   <FormControl><Input placeholder="e.g., CBC Panel" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
