@@ -172,7 +172,6 @@ export function LabTemplatesManager({ onNavigateToTemplates }: LabTemplatesManag
     description: false,
     groups: false,
     fields: false,
-    normalRanges: false,
     pricing: false,
     diagnosticRules: false,
   });
