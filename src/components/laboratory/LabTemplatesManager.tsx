@@ -1610,9 +1610,11 @@ const openCreateDialog = () => {
 
           {/* Footer - outside scroll area for sticky positioning */}
           <div className={`flex gap-3 px-6 py-4 border-t bg-background ${isRTL ? 'flex-row-reverse' : ''}`}>
-            <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="flex-1" disabled={saving}>
+                {t('common.cancel')}
+              </Button>
+            </DialogClose>
             <Button 
               className="flex-1" 
               onClick={handleSubmit}
