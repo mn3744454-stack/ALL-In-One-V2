@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback } from "react";
 import {
-  Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SafeFormDialog } from "@/components/ui/safe-form-dialog";
+import { useDirtyForm } from "@/hooks/useDirtyForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,7 +59,7 @@ interface AdmissionInfo {
 }
 
 export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: AssignHorseDialogProps) {
-  const { t, lang: language } = useI18n();
+  const { t, lang: language, dir } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
   const [selectedHorseId, setSelectedHorseId] = useState<string | null>(null);
@@ -100,12 +100,24 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
     return { sameBranchHorses: same, otherBranchHorses: other };
   }, [availableHorses, unitBranchId]);
 
+  const dirtyState = useMemo(() => ({ selectedHorseId }), [selectedHorseId]);
+  const { isDirty, resetBaseline } = useDirtyForm(dirtyState, open);
+
   const handleClose = useCallback(() => {
     setSelectedHorseId(null);
     setMoveConfirm(null);
     setCrossBranchBlock(null);
     onOpenChange(false);
   }, [onOpenChange]);
+
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      onOpenChange(true);
+      return;
+    }
+    if (checkingAdmission || isMoving) return;
+    handleClose();
+  };
 
   if (!unit) return null;
 
@@ -147,6 +159,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
 
       if (!admission) {
         // Scenario A: no active admission → launch AdmissionWizard prefilled
+        resetBaseline({ selectedHorseId: null });
         handleClose();
         onAdmitHorse?.(selectedHorseId);
         return;
@@ -193,6 +206,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
         toAreaId: unit.area_id,
         toBranchId: unit.branch_id,
       });
+      resetBaseline({ selectedHorseId: null });
       handleClose();
     } catch {
       // Error handled by mutation
@@ -249,8 +263,13 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
+      <SafeFormDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        isDirty={isDirty && !checkingAdmission && !isMoving}
+        className="sm:max-w-md"
+        dir={dir}
+      >
           <DialogHeader>
             <DialogTitle>{t('housing.occupants.admitHorse')}</DialogTitle>
             <DialogDescription>
@@ -325,7 +344,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleClose}>
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={checkingAdmission || isMoving}>
               {t('common.cancel')}
             </Button>
             <Button
@@ -339,8 +358,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
               )}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </SafeFormDialog>
 
       {/* Scenario B: Internal Move Confirmation */}
       <AlertDialog open={!!moveConfirm} onOpenChange={(open) => { if (!open) setMoveConfirm(null); }}>
