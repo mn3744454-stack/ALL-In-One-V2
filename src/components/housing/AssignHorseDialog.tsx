@@ -261,8 +261,13 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md">
+      <SafeFormDialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        isDirty={isDirty && !checkingAdmission && !isMoving}
+        className="sm:max-w-md"
+        dir={dir}
+      >
           <DialogHeader>
             <DialogTitle>{t('housing.occupants.admitHorse')}</DialogTitle>
             <DialogDescription>
