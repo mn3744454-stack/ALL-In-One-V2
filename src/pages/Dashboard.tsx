@@ -154,7 +154,7 @@ export default function Dashboard() {
             <div>
               <h1 className="text-3xl font-bold text-navy">{t("dashboard.welcome")}</h1>
               <p className="text-muted-foreground mt-1">
-                {activeTenant?.name || t("dashboard.noTenant")}
+                {activeTenant?.tenant?.name || t("dashboard.noTenant")}
               </p>
             </div>
             <div className="flex items-center gap-3">
