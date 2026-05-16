@@ -1684,6 +1684,8 @@ const openCreateDialog = () => {
               </div>
             </Collapsible>
           </div>
+            </div>
+          </div>
           </div>
 
           {/* Footer - outside scroll area for sticky positioning */}
