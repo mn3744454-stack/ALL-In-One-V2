@@ -159,6 +159,7 @@ export function AssignHorseDialog({ unit, open, onOpenChange, onAdmitHorse }: As
 
       if (!admission) {
         // Scenario A: no active admission → launch AdmissionWizard prefilled
+        resetBaseline({ selectedHorseId: null });
         handleClose();
         onAdmitHorse?.(selectedHorseId);
         return;
