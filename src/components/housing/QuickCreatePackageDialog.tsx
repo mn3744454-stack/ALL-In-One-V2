@@ -109,18 +109,7 @@ export function QuickCreatePackageDialog({ open, onOpenChange, onCreated }: Quic
   return (
     <SafeFormDialog
       open={open}
-      onOpenChange={(next) => {
-        if (!next && !isCreating) {
-          // Let SafeFormDialog dirty-guard fire; on actual close clear form.
-          onOpenChange(false);
-          if (!effectiveIsDirty) {
-            resetForm();
-            setAttemptedSubmit(false);
-          }
-          return;
-        }
-        onOpenChange(next);
-      }}
+      onOpenChange={onOpenChange}
       isDirty={effectiveIsDirty}
       className="sm:max-w-lg"
     >
