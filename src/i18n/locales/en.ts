@@ -761,6 +761,8 @@ export const en = {
       notRecorded: "Not recorded yet",
       resultSharingSection: "Result sharing",
       analysisSectionShareLabel: "Share settings for analysis",
+      analysesShort: "{{count}} analyses",
+      close: "Close",
     },
     
     // Messages Inbox

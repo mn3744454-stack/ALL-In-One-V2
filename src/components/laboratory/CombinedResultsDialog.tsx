@@ -3,12 +3,12 @@ import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { ReportChrome } from "./ReportChrome";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -256,6 +256,17 @@ export function CombinedResultsDialog({
     ? "border-blue-600 text-blue-600"
     : "border-yellow-600 text-yellow-600";
 
+  const analysesShort = t("laboratory.report.analysesShort").replace(
+    "{{count}}",
+    String(totalCount)
+  );
+  const collectionDateLabel = sample.collection_date
+    ? formatStandardDate(sample.collection_date)
+    : null;
+  const compactSubtitle = [analysesShort, collectionDateLabel]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <Dialog
       open={open}
@@ -265,33 +276,86 @@ export function CombinedResultsDialog({
       }}
     >
       <DialogContent
-        className="w-[95vw] max-w-5xl max-h-[92vh] overflow-y-auto overflow-x-hidden"
+        className="w-[95vw] max-w-5xl max-h-[92vh] overflow-hidden flex flex-col p-0"
         onPointerDownOutside={(e) => isGeneratingPDF && e.preventDefault()}
         onEscapeKeyDown={(e) => isGeneratingPDF && e.preventDefault()}
         onInteractOutside={(e) => isGeneratingPDF && e.preventDefault()}
       >
-        <DialogHeader>
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <DialogTitle className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5" />
-              {t("laboratory.report.combinedReport")}
-            </DialogTitle>
-            <Select
-              value={designTemplate}
-              onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder={t("laboratory.preview.designTemplate")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
-                <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
-                <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </DialogHeader>
-
+        <DialogTitle className="sr-only">
+          {t("laboratory.report.combinedReport")} — {horseName}
+        </DialogTitle>
+        <ReportChrome
+          compactTitle={
+            <span className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-muted-foreground" aria-hidden />
+              <span className="truncate">{horseName}</span>
+            </span>
+          }
+          compactSubtitle={compactSubtitle}
+          statusBadge={
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className={`text-xs ${footerColor} hidden sm:inline-flex`}>
+                {footerLabel}
+              </Badge>
+              <Select
+                value={designTemplate}
+                onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}
+              >
+                <SelectTrigger className="h-7 w-28 text-xs">
+                  <SelectValue placeholder={t("laboratory.preview.designTemplate")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
+                  <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
+                  <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          }
+          footer={
+            <div className="flex gap-2 justify-end flex-wrap">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="h-4 w-4 me-2" />
+                {t("laboratory.preview.print")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+              >
+                {isGeneratingPDF ? (
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 me-2" />
+                )}
+                {t("laboratory.preview.pdf")}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Share2 className="h-4 w-4 me-2" />
+                    {t("laboratory.preview.share")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
+                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
+                    {t("laboratory.preview.whatsapp")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
+                    <Send className="h-4 w-4 me-2 text-blue-500" />
+                    {t("laboratory.preview.telegram")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare("copy")}>
+                    <Link2 className="h-4 w-4 me-2" />
+                    {t("laboratory.preview.copyLink")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          }
+        >
         {resultsLoading ? (
           <div className="space-y-4">
             <Skeleton className="h-20 w-full" />
@@ -517,50 +581,9 @@ export function CombinedResultsDialog({
               </div>
             )}
 
-            {/* Actions: Print / PDF / Share */}
-            <div className="flex gap-2 justify-end flex-wrap print:hidden">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="h-4 w-4 me-2" />
-                {t("laboratory.preview.print")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-              >
-                {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4 me-2" />
-                )}
-                {t("laboratory.preview.pdf")}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.share")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
-                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
-                    {t("laboratory.preview.whatsapp")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
-                    <Send className="h-4 w-4 me-2 text-blue-500" />
-                    {t("laboratory.preview.telegram")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("copy")}>
-                    <Link2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.copyLink")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </>
         )}
+        </ReportChrome>
       </DialogContent>
     </Dialog>
   );

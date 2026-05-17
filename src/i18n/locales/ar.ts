@@ -776,6 +776,8 @@ export const ar = {
       notRecorded: "لم تُسجّل النتائج بعد",
       resultSharingSection: "مشاركة النتيجة",
       analysisSectionShareLabel: "إعدادات مشاركة التحليل",
+      analysesShort: "{{count}} تحاليل",
+      close: "إغلاق",
     },
     
     // Messages Inbox
