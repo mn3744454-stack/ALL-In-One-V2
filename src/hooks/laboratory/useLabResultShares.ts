@@ -98,15 +98,22 @@ export function useLabResultShares(resultId?: string) {
     }
 
     try {
+      const mode: ShareDisplayNameMode = opts?.displayNameMode ?? (opts?.useAlias ? "alias" : "real");
+      const aliasSnapshot = mode === "alias" ? (opts?.aliasNameSnapshot ?? null) : null;
+
       const { data, error } = await supabase
         .from("lab_result_shares")
         .insert({
           tenant_id: activeTenant.tenant.id,
           result_id: targetResultId,
           created_by: user.id,
-          use_alias: opts?.useAlias ?? false,
+          use_alias: mode === "alias",
+          display_name_mode: mode,
+          alias_name_snapshot: aliasSnapshot,
+          source_horse_kind: opts?.sourceHorseKind ?? null,
+          source_horse_id: opts?.sourceHorseId ?? null,
           expires_at: opts?.expiresAt ?? null,
-        })
+        } as never)
         .select()
         .single();
 
