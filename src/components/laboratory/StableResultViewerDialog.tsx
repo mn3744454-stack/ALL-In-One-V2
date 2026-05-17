@@ -35,10 +35,12 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
     || firstResult?.template_name
     || t("laboratory.results.unknownTest");
 
+  const analysesShort = t("laboratory.report.analysesShort").replace(
+    "{{count}}",
+    String(group.results.length)
+  );
   const compactSubtitle = [
-    isMulti
-      ? t("laboratory.report.analysesShort", { count: group.results.length })
-      : reportTitle,
+    isMulti ? analysesShort : reportTitle,
     group.publishedAt ? formatStandardDate(group.publishedAt) : null,
   ]
     .filter(Boolean)
