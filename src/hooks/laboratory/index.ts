@@ -5,6 +5,7 @@ export * from "./useLabResults";
 export * from "./useLabEvents";
 export * from "./useLabCredits";
 export * from "./useLabResultShares";
+export * from "./useLabReportShares";
 export * from "./useHorseAliases";
 export * from "./useLabFeatures";
 export * from "./useLabInvoiceDraft";
