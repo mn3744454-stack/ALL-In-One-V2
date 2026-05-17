@@ -5650,6 +5650,122 @@ export type Database = {
           },
         ]
       }
+      lab_report_share_results: {
+        Row: {
+          id: string
+          report_share_id: string
+          result_id: string
+          sort_order: number
+        }
+        Insert: {
+          id?: string
+          report_share_id: string
+          result_id: string
+          sort_order?: number
+        }
+        Update: {
+          id?: string
+          report_share_id?: string
+          result_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_report_share_results_report_share_id_fkey"
+            columns: ["report_share_id"]
+            isOneToOne: false
+            referencedRelation: "lab_report_shares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_report_share_results_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "lab_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_report_shares: {
+        Row: {
+          alias_name_snapshot: string | null
+          created_at: string
+          created_by: string | null
+          display_name_mode: string
+          expires_at: string | null
+          id: string
+          preferred_locale: string
+          revoked_at: string | null
+          sample_id: string
+          share_token: string
+          source_horse_id: string | null
+          source_horse_kind: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          alias_name_snapshot?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name_mode?: string
+          expires_at?: string | null
+          id?: string
+          preferred_locale?: string
+          revoked_at?: string | null
+          sample_id: string
+          share_token?: string
+          source_horse_id?: string | null
+          source_horse_kind?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          alias_name_snapshot?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name_mode?: string
+          expires_at?: string | null
+          id?: string
+          preferred_locale?: string
+          revoked_at?: string | null
+          sample_id?: string
+          share_token?: string
+          source_horse_id?: string | null
+          source_horse_kind?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_report_shares_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_report_shares_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "lab_samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_report_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_report_shares_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_request_messages: {
         Row: {
           body: string
@@ -10823,6 +10939,40 @@ export type Database = {
         }
         Returns: Json
       }
+      create_lab_report_share: {
+        Args: {
+          _alias_name_snapshot?: string
+          _display_name_mode?: string
+          _expires_at?: string
+          _preferred_locale?: string
+          _result_ids: string[]
+          _sample_id: string
+          _source_horse_id?: string
+          _source_horse_kind?: string
+        }
+        Returns: {
+          alias_name_snapshot: string | null
+          created_at: string
+          created_by: string | null
+          display_name_mode: string
+          expires_at: string | null
+          id: string
+          preferred_locale: string
+          revoked_at: string | null
+          sample_id: string
+          share_token: string
+          source_horse_id: string | null
+          source_horse_kind: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lab_report_shares"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       dispatch_horse_movement: {
         Args: { p_movement_id: string; p_notes?: string }
         Returns: Json
@@ -10987,6 +11137,7 @@ export type Database = {
           start_utc: string
         }[]
       }
+      get_shared_lab_report: { Args: { _share_token: string }; Returns: Json }
       get_shared_lab_result: {
         Args: { _share_token: string }
         Returns: {
@@ -11162,6 +11313,31 @@ export type Database = {
       revoke_consent_grant: { Args: { _grant_id: string }; Returns: string }
       revoke_horse_share: { Args: { _share_id: string }; Returns: Json }
       revoke_invitation: { Args: { _invitation_id: string }; Returns: Json }
+      revoke_lab_report_share: {
+        Args: { _report_share_id: string }
+        Returns: {
+          alias_name_snapshot: string | null
+          created_at: string
+          created_by: string | null
+          display_name_mode: string
+          expires_at: string | null
+          id: string
+          preferred_locale: string
+          revoked_at: string | null
+          sample_id: string
+          share_token: string
+          source_horse_id: string | null
+          source_horse_kind: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lab_report_shares"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       search_tenants_for_partnership: {
         Args: { _exclude_tenant_id?: string; _search: string }
         Returns: {

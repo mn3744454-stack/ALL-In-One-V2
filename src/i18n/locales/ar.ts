@@ -1188,8 +1188,23 @@ export const ar = {
       pickDate: "اختر تاريخاً",
       clearDate: "مسح",
     },
-    
-    // Shared Result Page (Public)
+
+    reportShare: {
+      title: "مشاركة التقرير",
+      selectedAnalyses: "التحاليل المختارة",
+      selectAll: "تحديد الكل",
+      clear: "مسح",
+      selectAtLeastOne: "يرجى اختيار تحليل واحد على الأقل.",
+      preferredLanguage: "لغة التقرير المفضلة",
+      linkIncludesNAnalyses: "يتضمّن {count} تحاليل",
+      createReportShareLink: "إنشاء رابط مشاركة التقرير",
+      activeLinks: "روابط التقرير النشطة",
+      revokedLinks: "روابط التقرير الملغاة",
+      shareSelectedAnalyses: "مشاركة التحاليل المختارة",
+      linkCreated: "تم إنشاء رابط مشاركة التقرير",
+      linkCopied: "تم نسخ رابط التقرير إلى الحافظة",
+      linkFailed: "فشل إنشاء رابط مشاركة التقرير",
+    },
     sharedResult: {
       labReport: "تقرير المختبر",
       print: "طباعة",
