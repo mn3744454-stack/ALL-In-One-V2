@@ -751,6 +751,7 @@ export const ar = {
 
     // L4-a-1 — مفاتيح عارض التقرير المشترك للقراءة فقط.
     report: {
+      reportStyle: "نمط التقرير",
       parameter: "المعامل",
       value: "القيمة",
       unit: "الوحدة",
