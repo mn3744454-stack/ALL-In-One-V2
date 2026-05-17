@@ -54,12 +54,9 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
 
   const handlePrint = () => {
     printReport(previewRef.current, {
-      title: `Lab Report - ${bilingualHorseNameForTitle()}`,
+      title: `Lab Report - ${displayHorseName(group.horseName, group.horseNameAr, reportLocale)}`,
     });
   };
-  function bilingualHorseNameForTitle() {
-    return displayHorseName(group.horseName, group.horseNameAr, reportLocale);
-  }
 
   const reportTitle =
     group.testDescription
