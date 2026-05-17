@@ -74,6 +74,7 @@ function groupResults(results: StableLabResult[]): StableHorseGroup[] {
         sampleId: r.sample_id,
         requestId: r.request_id,
         horseName: r.horse_name_snapshot || r.horse_name || "—",
+        horseNameAr: r.horse_name_ar_snapshot || null,
         horseId: r.horse_id,
         labName: r.lab_tenant_name || "—",
         publishedAt: r.published_at,
