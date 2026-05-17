@@ -27,7 +27,7 @@ interface StableResultViewerDialogProps {
  * shared `ReportChrome` (compact sticky header + scrollable body).
  */
 export function StableResultViewerDialog({ group, open, onOpenChange }: StableResultViewerDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isMulti = group.results.length > 1;
   const firstResult = group.results[0];
 
@@ -36,10 +36,9 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
     || firstResult?.template_name
     || t("laboratory.results.unknownTest");
 
-  const analysesShort = t("laboratory.report.analysesShort").replace(
-    "{{count}}",
-    String(group.results.length)
-  );
+  const bilingualHorseName = displayHorseName(group.horseName, group.horseNameAr, lang);
+
+  const analysesShort = formatAnalysisCount(group.results.length, lang);
   const compactSubtitle = [
     isMulti ? analysesShort : reportTitle,
     group.publishedAt ? formatStandardDate(group.publishedAt) : null,
