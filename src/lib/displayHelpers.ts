@@ -146,3 +146,13 @@ export function formatStandardTime(date?: Date | string | null): string {
   if (!d) return "—";
   return format(d, "HH:mm");
 }
+
+/**
+ * Format a date-time as DD-MM-YYYY hh:mm AM/PM — 12-hour standard for audit
+ * trails (share links, etc.). Example: `17-05-2026 04:35 PM`.
+ */
+export function formatStandardDateTime12(date?: Date | string | null): string {
+  const d = toValidDate(date);
+  if (!d) return "—";
+  return format(d, "dd-MM-yyyy hh:mm a");
+}
