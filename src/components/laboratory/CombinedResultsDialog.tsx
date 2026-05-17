@@ -256,10 +256,7 @@ export function CombinedResultsDialog({
     ? "border-blue-600 text-blue-600"
     : "border-yellow-600 text-yellow-600";
 
-  const analysesShort = t("laboratory.report.analysesShort").replace(
-    "{{count}}",
-    String(totalCount)
-  );
+  const analysesShort = formatAnalysisCount(totalCount, lang);
   const MAX_NAMES = 3;
   const analysisNames = orderedTemplates.map(({ sampleTemplate }) => {
     const tName = sampleTemplate.template.name;
