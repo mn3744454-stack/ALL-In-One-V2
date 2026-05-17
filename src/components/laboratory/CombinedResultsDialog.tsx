@@ -339,46 +339,68 @@ export function CombinedResultsDialog({
             </div>
           }
           footer={
-            <div className="flex gap-2 justify-end flex-wrap">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="h-4 w-4 me-2" />
-                {t("laboratory.preview.print")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-              >
-                {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4 me-2" />
-                )}
-                {t("laboratory.preview.pdf")}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.share")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
-                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
-                    {t("laboratory.preview.whatsapp")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
-                    <Send className="h-4 w-4 me-2 text-blue-500" />
-                    {t("laboratory.preview.telegram")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("copy")}>
-                    <Link2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.copyLink")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex gap-2 justify-between flex-wrap items-center">
+              <div className="flex items-center gap-1.5">
+                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {t("laboratory.report.reportLanguage")}
+                </span>
+                <Select
+                  value={reportLocale}
+                  onValueChange={(v) => setReportLocale(v as "ar" | "en")}
+                >
+                  <SelectTrigger
+                    className="h-7 w-28 text-xs"
+                    aria-label={t("laboratory.report.reportLanguage")}
+                  >
+                    <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                    <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 me-2" />
+                  {t("laboratory.preview.print")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                >
+                  {isGeneratingPDF ? (
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 me-2" />
+                  )}
+                  {t("laboratory.preview.pdf")}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.share")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background">
+                    <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
+                      <MessageCircle className="h-4 w-4 me-2 text-green-600" />
+                      {t("laboratory.preview.whatsapp")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("telegram")}>
+                      <Send className="h-4 w-4 me-2 text-blue-500" />
+                      {t("laboratory.preview.telegram")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("copy")}>
+                      <Link2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.copyLink")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           }
         >
