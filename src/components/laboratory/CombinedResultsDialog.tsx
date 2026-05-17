@@ -49,6 +49,12 @@ import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
+import { ResultSharePanel } from "./ResultSharePanel";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 type DesignTemplate = "classic" | "modern" | "compact";
@@ -436,14 +442,9 @@ export function CombinedResultsDialog({
                     {/* Result body */}
                     {result ? (
                       <LabResultReportViewer
+                        chrome="section"
                         templateName={templateName}
                         templateNameAr={templateNameAr}
-                        horseName={horseName}
-                        labName={labName}
-                        physicalSampleId={sample.physical_sample_id}
-                        sampleId={sampleId}
-                        resultDate={result.created_at}
-                        collectionDate={sample.collection_date as unknown as string}
                         status={result.status}
                         flags={result.flags}
                         interpretation={result.interpretation}
@@ -473,6 +474,48 @@ export function CombinedResultsDialog({
                 </Badge>
               </div>
             </div>
+
+            {/* Full Result Sharing — restored in L4-a-2.2.
+                One ResultSharePanel per analysis (sharing is per result_id). */}
+            {orderedTemplates.some((s) => s.result) && (
+              <div className="print:hidden border-t pt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <h4 className="font-medium">
+                    {t("laboratory.report.resultSharingSection")}
+                  </h4>
+                </div>
+                <div className="space-y-2">
+                  {orderedTemplates.map((section, idx) => {
+                    const { sampleTemplate, result } = section;
+                    if (!result) return null;
+                    const tName = sampleTemplate.template.name;
+                    const tNameAr =
+                      (sampleTemplate.template as { name_ar?: string | null }).name_ar ?? null;
+                    const label = `#${idx + 1} — ${isRTL ? tNameAr || tName : tName}`;
+                    return (
+                      <Collapsible
+                        key={`share-${result.id}`}
+                        className="rounded-lg border bg-card"
+                      >
+                        <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 p-3 text-start hover:bg-muted/40 transition-colors">
+                          <span className="text-sm font-medium truncate">{label}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {t("laboratory.report.analysisSectionShareLabel")}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="border-t p-3">
+                          <ResultSharePanel
+                            resultId={result.id}
+                            resultStatus={result.status}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Actions: Print / PDF / Share */}
             <div className="flex gap-2 justify-end flex-wrap print:hidden">

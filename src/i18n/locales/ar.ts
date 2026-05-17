@@ -774,6 +774,8 @@ export const ar = {
       pendingApproval: "في انتظار الاعتماد النهائي",
       finalApproved: "تقرير نهائي معتمد",
       notRecorded: "لم تُسجّل النتائج بعد",
+      resultSharingSection: "مشاركة النتيجة",
+      analysisSectionShareLabel: "إعدادات مشاركة التحليل",
     },
     
     // Messages Inbox

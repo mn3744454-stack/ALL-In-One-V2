@@ -759,6 +759,8 @@ export const en = {
       pendingApproval: "Pending Final Approval",
       finalApproved: "Final Approved Report",
       notRecorded: "Not recorded yet",
+      resultSharingSection: "Result sharing",
+      analysisSectionShareLabel: "Share settings for analysis",
     },
     
     // Messages Inbox
