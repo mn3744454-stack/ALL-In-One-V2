@@ -51,11 +51,6 @@ import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { ReportSharePanel, type ReportShareAnalysis } from "./ReportSharePanel";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 type DesignTemplate = "classic" | "modern" | "compact";
