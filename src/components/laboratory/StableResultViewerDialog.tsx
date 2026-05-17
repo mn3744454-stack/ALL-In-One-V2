@@ -147,6 +147,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                 templateName={firstResult.template_name}
                 templateNameAr={firstResult.template_name_ar}
                 horseName={group.horseName}
+                horseNameAr={group.horseNameAr}
                 labName={group.labName}
                 physicalSampleId={group.physicalSampleId}
                 sampleId={group.sampleId}
