@@ -75,7 +75,7 @@ export function ResultPreviewDialog({
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
   const { isRTL } = useRTL();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
   // Reset published state when result changes
@@ -88,11 +88,12 @@ export function ResultPreviewDialog({
   if (!result) return null;
 
   // Cross-tenant safe horse name resolution using snapshot contract
+  const horseNamePair = result.sample
+    ? getLabHorseNamePair(result.sample)
+    : { name: null, name_ar: null };
   const horseName = result.sample
-    ? getLabHorseDisplayName(
-        result.sample,
-        { locale: isRTL ? 'ar' : 'en', fallback: t("laboratory.results.unknownHorse") }
-      )
+    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
+        || getLabHorseDisplayName(result.sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") }))
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || t("laboratory.results.unknownTest");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
