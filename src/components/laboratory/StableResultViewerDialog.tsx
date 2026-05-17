@@ -5,11 +5,12 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Calendar, FlaskConical } from "lucide-react";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 import { ReportChrome } from "./ReportChrome";
+import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 
 interface StableResultViewerDialogProps {
   group: StableResultGroup;
