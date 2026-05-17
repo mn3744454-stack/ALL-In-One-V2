@@ -78,6 +78,12 @@ export function ResultPreviewDialog({
   const { t, lang } = useI18n();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
+  // P3 — report language independent of app UI language
+  const [reportLocale, setReportLocale] = useState<"ar" | "en">(
+    lang === "ar" ? "ar" : "en"
+  );
+  const reportIsRTL = reportLocale === "ar";
+
   // Reset published state when result changes
   const resultId = result?.id;
   const resultPublished = result?.published_to_stable;
@@ -92,8 +98,8 @@ export function ResultPreviewDialog({
     ? getLabHorseNamePair(result.sample)
     : { name: null, name_ar: null };
   const horseName = result.sample
-    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
-        || getLabHorseDisplayName(result.sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") }))
+    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, reportLocale)
+        || getLabHorseDisplayName(result.sample, { locale: reportLocale, fallback: t("laboratory.results.unknownHorse") }))
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || t("laboratory.results.unknownTest");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
