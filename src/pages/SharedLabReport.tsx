@@ -64,6 +64,7 @@ export default function SharedLabReport() {
   const { token } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const printRef = useRef<HTMLElement>(null);
   const [data, setData] = useState<SharedReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
