@@ -78,7 +78,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
           compactSubtitle={compactSubtitle}
           footer={
             <div className="flex items-center gap-1.5">
-              <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+              <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
                 {t("laboratory.report.reportLanguage")}
               </span>
               <Select
@@ -86,7 +86,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                 onValueChange={(v) => setReportLocale(v as "ar" | "en")}
               >
                 <SelectTrigger
-                  className="h-7 w-28 text-xs"
+                  className="h-8 w-32 text-xs"
                   aria-label={t("laboratory.report.reportLanguage")}
                 >
                   <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
