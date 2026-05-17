@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
@@ -122,51 +121,9 @@ export function CombinedResultsDialog({
   const labName = activeTenant?.tenant?.name ?? null;
 
   const handlePrint = () => {
-    if (!previewRef.current) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      toast.error(t("laboratory.preview.allowPopups"));
-      return;
-    }
-    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html dir="${isRTL ? "rtl" : "ltr"}">
-      <head>
-        <title>Lab Report - ${horseName}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body {
-            font-family: system-ui, -apple-system, sans-serif;
-            padding: 20mm;
-            color: #1f2937;
-            direction: ${isRTL ? "rtl" : "ltr"};
-          }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; text-align: ${isRTL ? "right" : "left"}; border: 1px solid #e5e7eb; }
-          th { background-color: #f3f4f6; font-weight: 600; }
-          .text-center { text-align: center; }
-          .font-bold { font-weight: 700; }
-          .font-semibold { font-weight: 600; }
-          .font-medium { font-weight: 500; }
-          .font-mono { font-family: monospace; }
-          .text-sm { font-size: 0.875rem; }
-          .text-xs { font-size: 0.75rem; }
-          .text-2xl { font-size: 1.5rem; }
-          svg { display: none; }
-          .template-section { page-break-inside: avoid; margin-bottom: 24px; }
-          @media print { body { padding: 15mm; } }
-        </style>
-      </head>
-      <body>${content}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    printReport(previewRef.current, {
+      title: `Lab Report - ${horseName}`,
+    });
   };
 
   const handleDownloadPDF = async () => {
