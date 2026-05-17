@@ -414,6 +414,8 @@ export function CombinedResultsDialog({
           <>
             <div
               ref={previewRef}
+              dir={reportIsRTL ? "rtl" : "ltr"}
+              lang={reportLocale}
               className={`border rounded-lg p-3 md:p-6 bg-background space-y-6 overflow-x-hidden ${
                 designTemplate === "compact" ? "text-sm" : ""
               }`}
@@ -507,7 +509,7 @@ export function CombinedResultsDialog({
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <h3 className="font-semibold text-sm md:text-base">
-                          {idx + 1}. {isRTL ? templateNameAr || templateName : templateName}
+                          {idx + 1}. {reportIsRTL ? templateNameAr || templateName : templateName}
                         </h3>
                       </div>
 
@@ -567,6 +569,7 @@ export function CombinedResultsDialog({
                           (fullTemplate as unknown as { groups?: unknown })?.groups
                         }
                         variant={designTemplate as LabReportVariant}
+                        forceLocale={reportLocale}
                       />
                     ) : (
                       <div className="border rounded-lg p-4 md:p-6 text-center text-muted-foreground bg-muted/20">
