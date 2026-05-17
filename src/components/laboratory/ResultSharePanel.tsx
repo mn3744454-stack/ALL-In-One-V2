@@ -391,7 +391,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                     </div>
                     <p className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
                       <span>
-                        {t("laboratory.share.createdOn")}: {formatStandardDate(share.created_at)}
+                        {t("laboratory.share.createdOn")}: {formatStandardDateTime12(share.created_at)}
                       </span>
                       <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
@@ -403,7 +403,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                         </span>
                       )}
                       <span>
-                        {t("laboratory.share.revokedOn")}: {formatStandardDate(share.revoked_at!)}
+                        {t("laboratory.share.revokedOn")}: {formatStandardDateTime12(share.revoked_at!)}
                       </span>
                     </p>
                   </div>
