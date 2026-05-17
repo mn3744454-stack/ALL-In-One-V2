@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
+import { InterpretationBody, hasInterpretationContent } from "./InterpretationBody";
 
 /**
  * L4-a-1 — Shared read-only Lab Result Report Viewer.
