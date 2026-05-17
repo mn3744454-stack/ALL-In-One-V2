@@ -500,6 +500,7 @@ export function ResultPreviewDialog({
               templateNormalRanges={normalRanges}
               templateGroups={templateGroups}
               variant={designTemplate as LabReportVariant}
+              forceLocale={reportLocale}
             />
 
             <Separator />
