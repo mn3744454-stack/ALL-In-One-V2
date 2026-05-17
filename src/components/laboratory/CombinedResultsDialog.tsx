@@ -11,17 +11,30 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Printer,
   Download,
+  Share2,
   FlaskConical,
-  Calendar,
-  User,
-  CheckCircle2,
   AlertTriangle,
-  XCircle,
-  Clock,
   Loader2,
   FileText,
+  CheckCircle2,
+  MessageCircle,
+  Send,
+  Link2,
 } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
@@ -31,7 +44,14 @@ import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import { useLabResults } from "@/hooks/laboratory/useLabResults";
 import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenant } from "@/contexts/TenantContext";
+import { useI18n } from "@/i18n";
+import { useRTL } from "@/hooks/useRTL";
+import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
+import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
+import { PublishToStableAction } from "./PublishToStableAction";
 import { toast } from "sonner";
+
+type DesignTemplate = "classic" | "modern" | "compact";
 
 interface CombinedResultsDialogProps {
   open: boolean;
@@ -39,6 +59,7 @@ interface CombinedResultsDialogProps {
   sample: LabSample | null;
   onReviewResult?: (resultId: string) => Promise<unknown>;
   onFinalizeResult?: (resultId: string) => Promise<unknown>;
+  onPublishToStable?: (resultId: string) => Promise<boolean>;
 }
 
 export function CombinedResultsDialog({
@@ -47,110 +68,75 @@ export function CombinedResultsDialog({
   sample,
   onReviewResult,
   onFinalizeResult,
+  onPublishToStable,
 }: CombinedResultsDialogProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [designTemplate, setDesignTemplate] = useState<DesignTemplate>("modern");
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
-  
-  const { results, loading: resultsLoading } = useLabResults({ 
-    sample_id: sample?.id 
+  const { t } = useI18n();
+  const { isRTL } = useRTL();
+
+  const { results, loading: resultsLoading } = useLabResults({
+    sample_id: sample?.id,
   });
   const { templates } = useLabTemplates();
 
   if (!sample) return null;
 
-  const horseName = sample.horse?.name || "Unknown Horse";
+  const horseName = getLabHorseDisplayName(sample, {
+    locale: isRTL ? "ar" : "en",
+    fallback: t("laboratory.results.unknownHorse"),
+  });
   const sampleId = sample.physical_sample_id || sample.id.slice(0, 8);
-  
+
   // Map results by template_id for quick lookup
   const resultsByTemplate = new Map<string, LabResult>();
-  results.forEach(r => {
+  results.forEach((r) => {
     resultsByTemplate.set(r.template_id, r);
   });
 
-  // Get ordered templates from sample
+  // Ordered template list from the sample's template attachments
   const orderedTemplates = sample.templates
     ?.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
-    .map(st => {
-      const fullTemplate = templates.find(t => t.id === st.template.id);
+    .map((st) => {
+      const fullTemplate = templates.find((t) => t.id === st.template.id);
       return {
-        ...st,
+        sampleTemplate: st,
         fullTemplate,
         result: resultsByTemplate.get(st.template.id),
       };
     }) || [];
 
-  const completedCount = orderedTemplates.filter(t => t.result).length;
+  const completedCount = orderedTemplates.filter((s) => s.result).length;
   const totalCount = orderedTemplates.length;
-  const allFinal = orderedTemplates.every(t => t.result?.status === 'final');
-
-  const getStatusBadge = (status?: string) => {
-    switch (status) {
-      case 'final':
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            معتمد
-          </Badge>
-        );
-      case 'reviewed':
-        return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            تمت المراجعة
-          </Badge>
-        );
-      case 'draft':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-            <Clock className="h-3 w-3 mr-1" />
-            مسودة
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="text-muted-foreground">
-            <Clock className="h-3 w-3 mr-1" />
-            لم تُسجّل
-          </Badge>
-        );
-    }
-  };
-
-  const getFlagIcon = (flag?: string) => {
-    switch (flag) {
-      case 'normal': return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      case 'abnormal': return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-      case 'critical': return <XCircle className="h-4 w-4 text-red-600" />;
-      default: return null;
-    }
-  };
+  const allFinal =
+    totalCount > 0 && orderedTemplates.every((s) => s.result?.status === "final");
+  const labName = activeTenant?.tenant?.name ?? null;
 
   const handlePrint = () => {
     if (!previewRef.current) return;
-    
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      toast.error("يرجى السماح بالنوافذ المنبثقة للطباعة");
+      toast.error(t("laboratory.preview.allowPopups"));
       return;
     }
-    
     const content = DOMPurify.sanitize(previewRef.current.innerHTML);
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html dir="rtl">
+      <html dir="${isRTL ? "rtl" : "ltr"}">
       <head>
-        <title>تقرير المختبر - ${horseName}</title>
+        <title>Lab Report - ${horseName}</title>
         <style>
           * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { 
-            font-family: system-ui, -apple-system, sans-serif; 
+          body {
+            font-family: system-ui, -apple-system, sans-serif;
             padding: 20mm;
             color: #1f2937;
-            direction: rtl;
+            direction: ${isRTL ? "rtl" : "ltr"};
           }
           table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; text-align: right; border: 1px solid #e5e7eb; }
+          th, td { padding: 10px; text-align: ${isRTL ? "right" : "left"}; border: 1px solid #e5e7eb; }
           th { background-color: #f3f4f6; font-weight: 600; }
           .text-center { text-align: center; }
           .font-bold { font-weight: 700; }
@@ -160,44 +146,12 @@ export function CombinedResultsDialog({
           .text-sm { font-size: 0.875rem; }
           .text-xs { font-size: 0.75rem; }
           .text-2xl { font-size: 1.5rem; }
-          .text-muted { color: #6b7280; }
-          .text-green-600 { color: #16a34a; }
-          .text-red-600 { color: #dc2626; }
-          .text-blue-600 { color: #2563eb; }
-          .bg-muted { background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
-          .grid { display: grid; gap: 16px; }
-          .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-          .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-          .flex { display: flex; }
-          .items-center { align-items: center; }
-          .justify-between { justify-content: space-between; }
-          .gap-2 { gap: 8px; }
-          .gap-4 { gap: 16px; }
-          .mb-4 { margin-bottom: 16px; }
-          .mt-6 { margin-top: 24px; }
-          .p-4 { padding: 16px; }
-          .border { border: 1px solid #e5e7eb; }
-          .rounded-lg { border-radius: 8px; }
-          .space-y-6 > * + * { margin-top: 24px; }
-          hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
-          .badge { 
-            display: inline-flex; 
-            align-items: center; 
-            padding: 4px 12px; 
-            border-radius: 9999px; 
-            font-size: 0.75rem;
-            font-weight: 500;
-          }
           svg { display: none; }
           .template-section { page-break-inside: avoid; margin-bottom: 24px; }
-          @media print {
-            body { padding: 15mm; }
-          }
+          @media print { body { padding: 15mm; } }
         </style>
       </head>
-      <body>
-        ${content}
-      </body>
+      <body>${content}</body>
       </html>
     `);
     printWindow.document.close();
@@ -210,96 +164,126 @@ export function CombinedResultsDialog({
 
   const handleDownloadPDF = async () => {
     if (!previewRef.current) return;
-    
     setIsGeneratingPDF(true);
     try {
       const clone = previewRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.width = '800px';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
-      clone.style.backgroundColor = '#ffffff';
-      clone.style.padding = '40px';
+      clone.style.position = "absolute";
+      clone.style.left = "-9999px";
+      clone.style.top = "0";
+      clone.style.width = "800px";
+      clone.style.height = "auto";
+      clone.style.maxHeight = "none";
+      clone.style.overflow = "visible";
+      clone.style.backgroundColor = "#ffffff";
+      clone.style.padding = "40px";
       document.body.appendChild(clone);
-      
+
       const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         width: 800,
         height: clone.scrollHeight,
       });
-      
       document.body.removeChild(clone);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageWidth = 210;
       const pageHeight = 297;
       const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
+      const contentWidth = pageWidth - margin * 2;
       const contentHeight = (canvas.height * contentWidth) / canvas.width;
-      
       let heightLeft = contentHeight;
       let position = margin;
-      
-      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-      heightLeft -= (pageHeight - margin * 2);
-      
+      pdf.addImage(imgData, "PNG", margin, position, contentWidth, contentHeight);
+      heightLeft -= pageHeight - margin * 2;
       while (heightLeft > 0) {
         position = heightLeft - contentHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-        heightLeft -= (pageHeight - margin * 2);
+        pdf.addImage(imgData, "PNG", margin, position, contentWidth, contentHeight);
+        heightLeft -= pageHeight - margin * 2;
       }
-      
       pdf.save(`lab-report-${horseName}-${sample.id.slice(0, 8)}.pdf`);
-      toast.success("تم تحميل PDF بنجاح");
+      toast.success(t("laboratory.preview.pdfDownloaded"));
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast.error("فشل في إنشاء PDF");
+      toast.error(t("laboratory.preview.pdfFailed"));
     } finally {
       setIsGeneratingPDF(false);
     }
   };
 
+  const handleShare = (platform: "whatsapp" | "telegram" | "copy") => {
+    const reportUrl = window.location.href;
+    const message = `Lab Report — ${horseName}`;
+    switch (platform) {
+      case "whatsapp":
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(message + "\n" + reportUrl)}`,
+          "_blank"
+        );
+        break;
+      case "telegram":
+        window.open(
+          `https://t.me/share/url?url=${encodeURIComponent(reportUrl)}&text=${encodeURIComponent(message)}`,
+          "_blank"
+        );
+        break;
+      case "copy":
+        navigator.clipboard.writeText(reportUrl);
+        toast.success(t("laboratory.preview.linkCopied"));
+        break;
+    }
+  };
+
+  const footerLabel = allFinal
+    ? t("laboratory.report.finalApproved")
+    : completedCount === totalCount && totalCount > 0
+    ? t("laboratory.report.pendingApproval")
+    : t("laboratory.report.partialReport");
+
+  const footerColor = allFinal
+    ? "border-green-600 text-green-600"
+    : completedCount === totalCount && totalCount > 0
+    ? "border-blue-600 text-blue-600"
+    : "border-yellow-600 text-yellow-600";
+
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        // Prevent accidental dismissal mid-PDF-generation; allow normal close
-        // paths otherwise. CombinedResultsDialog is read-only (no form input),
-        // so no dirty-state guarding is needed.
         if (!next && isGeneratingPDF) return;
         onOpenChange(next);
       }}
     >
       <DialogContent
-        className="max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
-        onPointerDownOutside={(e) => {
-          if (isGeneratingPDF) e.preventDefault();
-        }}
-        onEscapeKeyDown={(e) => {
-          if (isGeneratingPDF) e.preventDefault();
-        }}
-        onInteractOutside={(e) => {
-          if (isGeneratingPDF) e.preventDefault();
-        }}
+        className="w-[95vw] max-w-5xl max-h-[92vh] overflow-y-auto overflow-x-hidden"
+        onPointerDownOutside={(e) => isGeneratingPDF && e.preventDefault()}
+        onEscapeKeyDown={(e) => isGeneratingPDF && e.preventDefault()}
+        onInteractOutside={(e) => isGeneratingPDF && e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FlaskConical className="h-5 w-5" />
-            تقرير مجمّع للعينة
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <DialogTitle className="flex items-center gap-2">
+              <FlaskConical className="h-5 w-5" />
+              {t("laboratory.report.combinedReport")}
+            </DialogTitle>
+            <Select
+              value={designTemplate}
+              onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder={t("laboratory.preview.designTemplate")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
+                <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
+                <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </DialogHeader>
 
         {resultsLoading ? (
@@ -310,220 +294,227 @@ export function CombinedResultsDialog({
           </div>
         ) : (
           <>
-            {/* Preview Content */}
-            <div ref={previewRef} className="border rounded-lg p-3 md:p-6 bg-background space-y-4 md:space-y-6 overflow-x-hidden" dir="rtl">
-              {/* Header */}
-              <div className="text-center border-b pb-4">
-                <h2 className="font-bold text-xl md:text-2xl">
-                  {activeTenant?.tenant?.name || 'المختبر'}
-                </h2>
-                <p className="text-xs md:text-sm text-muted-foreground">
-                  تقرير نتائج المختبر المجمّع
-                </p>
+            <div
+              ref={previewRef}
+              className={`border rounded-lg p-3 md:p-6 bg-background space-y-6 overflow-x-hidden ${
+                designTemplate === "compact" ? "text-sm" : ""
+              }`}
+            >
+              {/* Lab branding header */}
+              <div
+                className={
+                  designTemplate === "modern"
+                    ? "text-center border-b pb-4"
+                    : "flex justify-between items-start gap-3"
+                }
+              >
+                <div>
+                  <h2
+                    className={`font-bold ${
+                      designTemplate === "modern" ? "text-2xl" : "text-xl"
+                    }`}
+                  >
+                    {labName || t("laboratory.report.laboratory")}
+                  </h2>
+                  {designTemplate !== "compact" && (
+                    <p className="text-sm text-muted-foreground">
+                      {t("laboratory.preview.labReport")}
+                    </p>
+                  )}
+                </div>
+                {designTemplate === "classic" && (
+                  <div className="text-end text-sm text-muted-foreground">
+                    <p>
+                      {t("laboratory.preview.reportDate")}:{" "}
+                      {formatStandardDate(new Date())}
+                    </p>
+                    <p className="font-mono">{sample.id.slice(0, 8)}</p>
+                  </div>
+                )}
               </div>
 
-              {/* Sample Info */}
-              <div className="grid grid-cols-2 gap-2 md:gap-4 bg-muted/50 rounded-lg p-3 md:p-4">
+              {/* Sample-level metadata */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-muted/50 rounded-lg p-3 md:p-4 text-sm">
                 <div>
-                  <p className="text-xs text-muted-foreground">اسم الحصان</p>
-                  <p className="font-semibold text-sm md:text-base truncate">{horseName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("laboratory.preview.horse")}
+                  </p>
+                  <p className="font-semibold truncate">{horseName}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">معرف العينة</p>
-                  <p className="font-mono text-sm md:text-base">{sampleId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("laboratory.preview.sampleId")}
+                  </p>
+                  <p className="font-mono">{sampleId}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">تاريخ الجمع</p>
-                  <p className="text-sm md:text-base">{formatStandardDate(sample.collection_date)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("laboratory.preview.collectionDate")}
+                  </p>
+                  <p>{formatStandardDate(sample.collection_date)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">التحاليل</p>
-                  <p className="text-sm md:text-base">{completedCount}/{totalCount} مكتمل</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("laboratory.results.analyses")}
+                  </p>
+                  <p>
+                    {completedCount}/{totalCount}
+                  </p>
                 </div>
               </div>
 
-              {/* Warning if incomplete */}
+              {/* Incomplete warning */}
               {completedCount < totalCount && (
-                <div className="flex items-center gap-2 p-2 md:p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-200">
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-200">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                   <span className="text-xs md:text-sm">
-                    هذا التقرير غير مكتمل. بعض التحاليل لم تُسجّل بعد.
+                    {t("laboratory.report.incompleteWarning")}
                   </span>
                 </div>
               )}
 
               <Separator />
 
-              {/* Results by Template */}
-              {orderedTemplates.map((templateData, index) => {
-                const { template, fullTemplate, result } = templateData;
-                const templateFields = fullTemplate?.fields || [];
-                const normalRanges = fullTemplate?.normal_ranges || {};
-                const resultData = (result?.result_data as Record<string, unknown>) || {};
+              {/* Stacked per-template sections */}
+              {orderedTemplates.map((section, idx) => {
+                const { sampleTemplate, fullTemplate, result } = section;
+                const templateName = sampleTemplate.template.name;
+                const templateNameAr =
+                  (sampleTemplate.template as { name_ar?: string | null }).name_ar ?? null;
 
                 return (
-                  <div key={template.id} className="template-section">
-                    {/* Template Header */}
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3 md:mb-4">
+                  <div key={sampleTemplate.template.id} className="template-section space-y-3">
+                    {/* Section header with per-result actions */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground hidden md:block" />
+                        <FileText className="h-4 w-4 text-muted-foreground" />
                         <h3 className="font-semibold text-sm md:text-base">
-                          {index + 1}. {template.name_ar || template.name}
+                          {idx + 1}. {isRTL ? templateNameAr || templateName : templateName}
                         </h3>
-                        {result?.flags && getFlagIcon(result.flags)}
                       </div>
-                      <div className="flex items-center gap-1 md:gap-2">
-                        {getStatusBadge(result?.status)}
-                        {/* Action Buttons */}
-                        {result?.status === 'draft' && onReviewResult && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => onReviewResult(result.id)}
-                            className="print:hidden h-7 text-xs"
-                          >
-                            مراجعة
-                          </Button>
-                        )}
-                        {result?.status === 'reviewed' && onFinalizeResult && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => onFinalizeResult(result.id)}
-                            className="print:hidden h-7 text-xs"
-                          >
-                            اعتماد
-                          </Button>
-                        )}
-                      </div>
+
+                      {result && (
+                        <div className="flex items-center gap-2 print:hidden flex-wrap">
+                          {result.status === "draft" && onReviewResult && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => onReviewResult(result.id)}
+                            >
+                              <CheckCircle2 className="h-3 w-3 me-1" />
+                              {t("laboratory.resultActions.review")}
+                            </Button>
+                          )}
+                          {result.status === "reviewed" && onFinalizeResult && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => onFinalizeResult(result.id)}
+                            >
+                              <CheckCircle2 className="h-3 w-3 me-1" />
+                              {t("laboratory.resultActions.finalize")}
+                            </Button>
+                          )}
+                          {onPublishToStable &&
+                            (result.status === "reviewed" || result.status === "final") &&
+                            !!result.sample?.lab_request_id && (
+                              <PublishToStableAction
+                                resultId={result.id}
+                                status={result.status}
+                                published_to_stable={result.published_to_stable}
+                                sample_lab_request_id={result.sample.lab_request_id}
+                                onPublish={onPublishToStable}
+                                compact
+                              />
+                            )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Results Table */}
+                    {/* Result body */}
                     {result ? (
-                      <div className="border rounded-lg overflow-hidden">
-                        <table className="w-full">
-                          <thead className="bg-muted">
-                            <tr>
-                              <th className="text-right p-2 md:p-3 text-xs md:text-sm font-medium">المعامل</th>
-                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">القيمة</th>
-                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">الوحدة</th>
-                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">المرجعي</th>
-                              <th className="text-center p-2 md:p-3 text-xs md:text-sm font-medium">الحالة</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y">
-                            {templateFields.map((field) => {
-                              const value = resultData[field.id];
-                              const range = normalRanges[field.id];
-                              const numValue = typeof value === 'number' ? value : parseFloat(value as string);
-                              
-                              let status: 'normal' | 'low' | 'high' = 'normal';
-                              if (range && !isNaN(numValue)) {
-                                if (range.min !== undefined && numValue < range.min) status = 'low';
-                                else if (range.max !== undefined && numValue > range.max) status = 'high';
-                              }
-
-                              return (
-                                <tr key={field.id} className="hover:bg-muted/50">
-                                  <td className="p-2 md:p-3">
-                                    <span className="font-medium text-xs md:text-sm">{field.name_ar || field.name}</span>
-                                  </td>
-                                  <td className={`p-2 md:p-3 text-center font-mono text-xs md:text-base ${
-                                    status === 'low' ? 'text-blue-600' :
-                                    status === 'high' ? 'text-red-600' : ''
-                                  }`}>
-                                    {value !== undefined ? String(value) : '-'}
-                                  </td>
-                                  <td className="p-2 md:p-3 text-center text-muted-foreground text-xs md:text-sm">
-                                    {field.unit || '-'}
-                                  </td>
-                                  <td className="p-2 md:p-3 text-center text-xs text-muted-foreground">
-                                    {range ? `${range.min ?? '—'} - ${range.max ?? '—'}` : '-'}
-                                  </td>
-                                  <td className="p-2 md:p-3 text-center">
-                                    {status === 'normal' ? (
-                                      <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4 text-green-600 mx-auto" />
-                                    ) : status === 'low' ? (
-                                      <span className="text-xs text-blue-600 font-medium">↓</span>
-                                    ) : (
-                                      <span className="text-xs text-red-600 font-medium">↑</span>
-                                    )}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                        
-                        {/* Creator/Reviewer Info */}
-                        {(result.creator?.full_name || result.reviewer?.full_name) && (
-                          <div className="bg-muted/30 px-3 md:px-4 py-2 text-xs text-muted-foreground flex flex-wrap items-center gap-2 md:gap-4">
-                            {result.creator?.full_name && (
-                              <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
-                                أنشأ: {result.creator.full_name}
-                              </span>
-                            )}
-                            {result.reviewer?.full_name && (
-                              <span className="flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                راجع: {result.reviewer.full_name}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <LabResultReportViewer
+                        templateName={templateName}
+                        templateNameAr={templateNameAr}
+                        horseName={horseName}
+                        labName={labName}
+                        physicalSampleId={sample.physical_sample_id}
+                        sampleId={sampleId}
+                        resultDate={result.created_at}
+                        collectionDate={sample.collection_date as unknown as string}
+                        status={result.status}
+                        flags={result.flags}
+                        interpretation={result.interpretation}
+                        resultData={(result.result_data as Record<string, unknown>) || {}}
+                        templateFields={fullTemplate?.fields}
+                        templateNormalRanges={fullTemplate?.normal_ranges}
+                        templateGroups={
+                          (fullTemplate as unknown as { groups?: unknown })?.groups
+                        }
+                        variant={designTemplate as LabReportVariant}
+                      />
                     ) : (
                       <div className="border rounded-lg p-4 md:p-6 text-center text-muted-foreground bg-muted/20">
-                        <Clock className="h-6 w-6 md:h-8 md:w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">لم تُسجّل النتائج بعد</p>
+                        <p className="text-sm">{t("laboratory.report.notRecorded")}</p>
                       </div>
                     )}
-                    
-                    {index < orderedTemplates.length - 1 && (
-                      <Separator className="mt-4 md:mt-6" />
-                    )}
+
+                    {idx < orderedTemplates.length - 1 && <Separator className="mt-4" />}
                   </div>
                 );
               })}
 
-              {/* Footer Status */}
+              {/* Footer status */}
               <div className="flex justify-center pt-4 border-t">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs md:text-sm ${
-                    allFinal ? 'border-green-600 text-green-600' :
-                    completedCount === totalCount ? 'border-blue-600 text-blue-600' :
-                    'border-yellow-600 text-yellow-600'
-                  }`}
-                >
-                  {allFinal ? 'تقرير نهائي معتمد' : 
-                   completedCount === totalCount ? 'في انتظار الاعتماد' : 
-                   'تقرير جزئي'}
+                <Badge variant="outline" className={`text-xs md:text-sm ${footerColor}`}>
+                  {footerLabel}
                 </Badge>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 justify-end print:hidden">
-              <Button variant="outline" size="sm" onClick={handlePrint} className="h-8 text-xs md:text-sm">
-                <Printer className="h-4 w-4 mr-1 md:mr-2" />
-                طباعة
+            {/* Actions: Print / PDF / Share */}
+            <div className="flex gap-2 justify-end flex-wrap print:hidden">
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="h-4 w-4 me-2" />
+                {t("laboratory.preview.print")}
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleDownloadPDF}
                 disabled={isGeneratingPDF}
-                className="h-8 text-xs md:text-sm"
               >
                 {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 mr-1 md:mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
                 ) : (
-                  <Download className="h-4 w-4 mr-1 md:mr-2" />
+                  <Download className="h-4 w-4 me-2" />
                 )}
-                PDF
+                {t("laboratory.preview.pdf")}
               </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Share2 className="h-4 w-4 me-2" />
+                    {t("laboratory.preview.share")}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background">
+                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
+                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
+                    {t("laboratory.preview.whatsapp")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
+                    <Send className="h-4 w-4 me-2 text-blue-500" />
+                    {t("laboratory.preview.telegram")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleShare("copy")}>
+                    <Link2 className="h-4 w-4 me-2" />
+                    {t("laboratory.preview.copyLink")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </>
         )}
