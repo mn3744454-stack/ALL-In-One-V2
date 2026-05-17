@@ -94,9 +94,8 @@ export function ResultPreviewDialog({
         { locale: isRTL ? 'ar' : 'en', fallback: t("laboratory.results.unknownHorse") }
       )
     : t("laboratory.results.unknownHorse");
-  const templateName = result.template?.name || 'Unknown Template';
+  const templateName = result.template?.name || t("laboratory.results.unknownTest");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
-  const collectionDate = formatStandardDate(result.created_at);
 
   const handlePrint = () => {
     if (!previewRef.current) return;
