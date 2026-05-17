@@ -5,12 +5,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { tGlobal } from "@/i18n";
 
+export type ShareDisplayNameMode = "real" | "alias" | "sender_snapshot";
+export type ShareSourceHorseKind = "platform" | "lab" | "walkin" | "unknown";
+
 export interface LabResultShare {
   id: string;
   tenant_id: string;
   result_id: string;
   share_token: string;
   use_alias: boolean;
+  display_name_mode: ShareDisplayNameMode;
+  alias_name_snapshot: string | null;
+  source_horse_kind: ShareSourceHorseKind | null;
+  source_horse_id: string | null;
   created_by: string;
   created_at: string;
   expires_at: string | null;
@@ -21,6 +28,10 @@ export interface LabResultShare {
 export interface CreateShareOptions {
   useAlias?: boolean;
   expiresAt?: string | null;
+  displayNameMode?: ShareDisplayNameMode;
+  aliasNameSnapshot?: string | null;
+  sourceHorseKind?: ShareSourceHorseKind | null;
+  sourceHorseId?: string | null;
 }
 
 export function useLabResultShares(resultId?: string) {
