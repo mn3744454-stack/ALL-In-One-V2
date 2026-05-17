@@ -752,6 +752,9 @@ export const ar = {
     // L4-a-1 — مفاتيح عارض التقرير المشترك للقراءة فقط.
     report: {
       reportStyle: "نمط التقرير",
+      reportLanguage: "لغة التقرير",
+      languageEnglish: "English",
+      languageArabic: "العربية",
       parameter: "المعامل",
       value: "القيمة",
       unit: "الوحدة",

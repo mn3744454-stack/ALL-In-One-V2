@@ -2,16 +2,21 @@ import { CheckCircle2, AlertTriangle, XCircle, Minus, ArrowDown, ArrowUp, Buildi
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatStandardDate } from "@/lib/displayHelpers";
-import { useI18n } from "@/i18n";
-import { useRTL } from "@/hooks/useRTL";
+import { useI18n, translations } from "@/i18n";
 import { InterpretationBody, hasInterpretationContent } from "./InterpretationBody";
 
 /**
  * L4-a-1 — Shared read-only Lab Result Report Viewer.
  *
  * Pure presentational. Does not fetch, mutate, call Supabase, or trigger
- * publish/share/print/PDF. Consumed first by `StableResultViewerDialog`.
- * Lab-side `ResultPreviewDialog` adoption is deferred to L4-a-2.
+ * publish/share/print/PDF.
+ *
+ * L4-a-3c P3 — Supports `forceLocale` so the report body can be rendered in a
+ * locale independent from the surrounding app UI language. Resolution order:
+ *   effectiveLocale = forceLocale ?? appLang
+ *   effectiveIsRTL  = effectiveLocale === "ar"
+ * All report-content strings are resolved against `translations[effectiveLocale]`
+ * via a local nested-key lookup, not through the app-bound `t()`.
  */
 
 type TemplateField = {
@@ -76,6 +81,13 @@ export interface LabResultReportViewerProps {
 
   /** Optional compact label shown at the top of section-mode body. */
   sectionLabel?: string;
+
+  /**
+   * L4-a-3c P3 — When set, forces the report content language ("ar"|"en")
+   * independent of the app UI language. Surrounding dialog chrome (footer
+   * actions, share panel) continues to follow the app language.
+   */
+  forceLocale?: "ar" | "en";
 }
 
 /** Best-effort bilingual label: AR-first in Arabic UI, EN-first in English UI. */
@@ -123,6 +135,20 @@ function formatRange(range?: NormalRange): string {
   return "—";
 }
 
+/** Resolve a nested i18n key against a specific locale dictionary. */
+function resolveLocaleString(dict: unknown, path: string): string {
+  const keys = path.split(".");
+  let cur: unknown = dict;
+  for (const k of keys) {
+    if (cur && typeof cur === "object" && k in (cur as Record<string, unknown>)) {
+      cur = (cur as Record<string, unknown>)[k];
+    } else {
+      return path;
+    }
+  }
+  return typeof cur === "string" ? cur : path;
+}
+
 function FlagIcon({ flag }: { flag: string | null | undefined }) {
   switch (flag) {
     case "normal":
@@ -150,8 +176,16 @@ function StatusIcon({ status }: { status: "low" | "normal" | "high" | "neutral" 
 }
 
 export function LabResultReportViewer(props: LabResultReportViewerProps) {
-  const { t } = useI18n();
-  const { isRTL } = useRTL();
+  const { lang: appLang } = useI18n();
+
+  // P3 — effective report locale (forced > app)
+  const effectiveLocale: "ar" | "en" =
+    props.forceLocale ?? (appLang === "ar" ? "ar" : "en");
+  const effectiveIsRTL = effectiveLocale === "ar";
+  const dict =
+    (translations as Record<string, unknown>)[effectiveLocale] ??
+    (translations as Record<string, unknown>)["en"];
+  const rt = (path: string) => resolveLocaleString(dict, path);
 
   const fields = asArray<TemplateField>(props.templateFields);
   const groups = asArray<TemplateGroup>(props.templateGroups);
@@ -208,9 +242,9 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
 
   const hasTemplateContext = sortedFields.length > 0;
 
-  const reportTitle = bilingual(props.templateName, props.templateNameAr, isRTL)
-    || t("laboratory.results.unknownTest");
-  const horseLabel = bilingual(props.horseName, props.horseNameAr, isRTL);
+  const reportTitle = bilingual(props.templateName, props.templateNameAr, effectiveIsRTL)
+    || rt("laboratory.results.unknownTest");
+  const horseLabel = bilingual(props.horseName, props.horseNameAr, effectiveIsRTL);
   const showInterpretation = hasInterpretationContent(props.interpretation);
 
   const chrome = props.chrome ?? "full";
@@ -224,7 +258,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
                 <FlaskConical className="h-3.5 w-3.5" />
-                {t("laboratory.preview.testResults")}
+                {rt("laboratory.preview.testResults")}
               </div>
               <h2 className="mt-1 text-lg sm:text-xl font-semibold break-words">{reportTitle}</h2>
             </div>
@@ -248,13 +282,13 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
             {horseLabel && (
               <MetaItem
-                label={t("laboratory.report.horse")}
+                label={rt("laboratory.report.horse")}
                 value={horseLabel}
               />
             )}
             {props.labName && (
               <MetaItem
-                label={t("laboratory.report.laboratory")}
+                label={rt("laboratory.report.laboratory")}
                 value={
                   <span className="inline-flex items-center gap-1">
                     <Building2 className="h-3.5 w-3.5" />
@@ -265,13 +299,13 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
             )}
             {(props.physicalSampleId || props.sampleId) && (
               <MetaItem
-                label={t("laboratory.report.sampleId")}
+                label={rt("laboratory.report.sampleId")}
                 value={<span className="font-mono">{props.physicalSampleId || props.sampleId}</span>}
               />
             )}
             {(props.resultDate || props.collectionDate) && (
               <MetaItem
-                label={t("laboratory.report.reportDate")}
+                label={rt("laboratory.report.reportDate")}
                 value={
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
@@ -317,7 +351,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
             <section key={bucket.group?.id || `g-${idx}`} className="space-y-2">
               {bucket.group && (
                 <h3 className="text-sm font-semibold text-muted-foreground">
-                  {bilingual(bucket.group.name, bucket.group.name_ar, isRTL)}
+                  {bilingual(bucket.group.name, bucket.group.name_ar, effectiveIsRTL)}
                 </h3>
               )}
               <FieldsTable
@@ -325,12 +359,12 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
                 ranges={ranges}
                 resultData={resultData}
                 resolveValue={resolveValue}
-                isRTL={isRTL}
-                tParameter={t("laboratory.report.parameter")}
-                tValue={t("laboratory.report.value")}
-                tUnit={t("laboratory.report.unit")}
-                tReference={t("laboratory.report.referenceRange")}
-                tStatus={t("laboratory.report.status")}
+                isRTL={effectiveIsRTL}
+                tParameter={rt("laboratory.report.parameter")}
+                tValue={rt("laboratory.report.value")}
+                tUnit={rt("laboratory.report.unit")}
+                tReference={rt("laboratory.report.referenceRange")}
+                tStatus={rt("laboratory.report.status")}
               />
             </section>
           ))}
@@ -339,7 +373,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
         <div className="rounded-md border border-dashed bg-muted/30 p-4">
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>{t("laboratory.report.templateContextUnavailable")}</span>
+            <span>{rt("laboratory.report.templateContextUnavailable")}</span>
           </div>
           {Object.keys(resultData).length > 0 && (
             <div className="mt-3 space-y-1.5">
@@ -361,7 +395,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
       {hasTemplateContext && extraEntries.length > 0 && (
         <section className="space-y-2">
           <h3 className="text-sm font-semibold text-muted-foreground">
-            {t("laboratory.report.extraValues")}
+            {rt("laboratory.report.extraValues")}
           </h3>
           <div className="space-y-1.5">
             {extraEntries.map(([key, value]) => (
@@ -382,8 +416,8 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
         <>
           <Separator />
           <section className="space-y-2">
-            <h3 className="text-sm font-semibold">{t("laboratory.report.interpretation")}</h3>
-            <InterpretationBody value={props.interpretation} />
+            <h3 className="text-sm font-semibold">{rt("laboratory.report.interpretation")}</h3>
+            <InterpretationBody value={props.interpretation} forceLocale={effectiveLocale} />
           </section>
         </>
       )}

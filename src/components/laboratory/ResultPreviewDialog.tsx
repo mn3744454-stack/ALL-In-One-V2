@@ -78,6 +78,12 @@ export function ResultPreviewDialog({
   const { t, lang } = useI18n();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
+  // P3 — report language independent of app UI language
+  const [reportLocale, setReportLocale] = useState<"ar" | "en">(
+    lang === "ar" ? "ar" : "en"
+  );
+  const reportIsRTL = reportLocale === "ar";
+
   // Reset published state when result changes
   const resultId = result?.id;
   const resultPublished = result?.published_to_stable;
@@ -92,8 +98,8 @@ export function ResultPreviewDialog({
     ? getLabHorseNamePair(result.sample)
     : { name: null, name_ar: null };
   const horseName = result.sample
-    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
-        || getLabHorseDisplayName(result.sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") }))
+    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, reportLocale)
+        || getLabHorseDisplayName(result.sample, { locale: reportLocale, fallback: t("laboratory.results.unknownHorse") }))
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || t("laboratory.results.unknownTest");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
@@ -340,9 +346,29 @@ export function ResultPreviewDialog({
             </div>
           }
           footer={
-            <div className="flex flex-wrap gap-2 justify-between">
-              {/* Status Change Buttons */}
-              <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2 justify-between items-center">
+              {/* Left cluster: Report language + status change */}
+              <div className="flex gap-2 flex-wrap items-center">
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {t("laboratory.report.reportLanguage")}
+                  </span>
+                  <Select
+                    value={reportLocale}
+                    onValueChange={(v) => setReportLocale(v as "ar" | "en")}
+                  >
+                    <SelectTrigger
+                      className="h-7 w-28 text-xs"
+                      aria-label={t("laboratory.report.reportLanguage")}
+                    >
+                      <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                      <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {result.status === 'draft' && onReview && (
                   <Button
                     size="sm"
@@ -429,6 +455,8 @@ export function ResultPreviewDialog({
           {/* Preview Content */}
           <div
             ref={previewRef}
+            dir={reportIsRTL ? "rtl" : "ltr"}
+            lang={reportLocale}
             className={`print-content border rounded-lg p-4 sm:p-6 bg-background print:border-none space-y-6 ${
               designTemplate === 'compact' ? 'text-sm' : ''
             }`}
@@ -472,6 +500,7 @@ export function ResultPreviewDialog({
               templateNormalRanges={normalRanges}
               templateGroups={templateGroups}
               variant={designTemplate as LabReportVariant}
+              forceLocale={reportLocale}
             />
 
             <Separator />

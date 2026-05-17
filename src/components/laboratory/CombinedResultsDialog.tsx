@@ -84,6 +84,12 @@ export function CombinedResultsDialog({
   const { t, lang } = useI18n();
   const { isRTL } = useRTL();
 
+  // P3 — report language independent of app UI language
+  const [reportLocale, setReportLocale] = useState<"ar" | "en">(
+    lang === "ar" ? "ar" : "en"
+  );
+  const reportIsRTL = reportLocale === "ar";
+
   const { results, loading: resultsLoading } = useLabResults({
     sample_id: sample?.id,
   });
@@ -92,8 +98,8 @@ export function CombinedResultsDialog({
   if (!sample) return null;
 
   const horseNamePair = getLabHorseNamePair(sample);
-  const horseName = displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
-    || getLabHorseDisplayName(sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") });
+  const horseName = displayHorseName(horseNamePair.name, horseNamePair.name_ar, reportLocale)
+    || getLabHorseDisplayName(sample, { locale: reportLocale, fallback: t("laboratory.results.unknownHorse") });
   const sampleId = sample.physical_sample_id || sample.id.slice(0, 8);
 
   // Map results by template_id for quick lookup
@@ -256,15 +262,15 @@ export function CombinedResultsDialog({
     ? "border-blue-600 text-blue-600"
     : "border-yellow-600 text-yellow-600";
 
-  const analysesShort = formatAnalysisCount(totalCount, lang);
+  const analysesShort = formatAnalysisCount(totalCount, reportLocale);
   const MAX_NAMES = 3;
   const analysisNames = orderedTemplates.map(({ sampleTemplate }) => {
     const tName = sampleTemplate.template.name;
     const tNameAr =
       (sampleTemplate.template as { name_ar?: string | null }).name_ar ?? null;
-    return isRTL ? tNameAr || tName : tName || tNameAr || "";
+    return reportIsRTL ? tNameAr || tName : tName || tNameAr || "";
   });
-  const listSep = isRTL ? "، " : ", ";
+  const listSep = reportIsRTL ? "، " : ", ";
   const shownNames = analysisNames.slice(0, MAX_NAMES).join(listSep);
   const overflow = analysisNames.length - MAX_NAMES;
   const namesSummary =
@@ -333,46 +339,68 @@ export function CombinedResultsDialog({
             </div>
           }
           footer={
-            <div className="flex gap-2 justify-end flex-wrap">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="h-4 w-4 me-2" />
-                {t("laboratory.preview.print")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-              >
-                {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4 me-2" />
-                )}
-                {t("laboratory.preview.pdf")}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.share")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
-                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
-                    {t("laboratory.preview.whatsapp")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
-                    <Send className="h-4 w-4 me-2 text-blue-500" />
-                    {t("laboratory.preview.telegram")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("copy")}>
-                    <Link2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.copyLink")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex gap-2 justify-between flex-wrap items-center">
+              <div className="flex items-center gap-1.5">
+                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {t("laboratory.report.reportLanguage")}
+                </span>
+                <Select
+                  value={reportLocale}
+                  onValueChange={(v) => setReportLocale(v as "ar" | "en")}
+                >
+                  <SelectTrigger
+                    className="h-7 w-28 text-xs"
+                    aria-label={t("laboratory.report.reportLanguage")}
+                  >
+                    <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                    <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 me-2" />
+                  {t("laboratory.preview.print")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                >
+                  {isGeneratingPDF ? (
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 me-2" />
+                  )}
+                  {t("laboratory.preview.pdf")}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.share")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background">
+                    <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
+                      <MessageCircle className="h-4 w-4 me-2 text-green-600" />
+                      {t("laboratory.preview.whatsapp")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("telegram")}>
+                      <Send className="h-4 w-4 me-2 text-blue-500" />
+                      {t("laboratory.preview.telegram")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare("copy")}>
+                      <Link2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.copyLink")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           }
         >
@@ -386,6 +414,8 @@ export function CombinedResultsDialog({
           <>
             <div
               ref={previewRef}
+              dir={reportIsRTL ? "rtl" : "ltr"}
+              lang={reportLocale}
               className={`border rounded-lg p-3 md:p-6 bg-background space-y-6 overflow-x-hidden ${
                 designTemplate === "compact" ? "text-sm" : ""
               }`}
@@ -479,7 +509,7 @@ export function CombinedResultsDialog({
                       <div className="flex items-center gap-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
                         <h3 className="font-semibold text-sm md:text-base">
-                          {idx + 1}. {isRTL ? templateNameAr || templateName : templateName}
+                          {idx + 1}. {reportIsRTL ? templateNameAr || templateName : templateName}
                         </h3>
                       </div>
 
@@ -539,6 +569,7 @@ export function CombinedResultsDialog({
                           (fullTemplate as unknown as { groups?: unknown })?.groups
                         }
                         variant={designTemplate as LabReportVariant}
+                        forceLocale={reportLocale}
                       />
                     ) : (
                       <div className="border rounded-lg p-4 md:p-6 text-center text-muted-foreground bg-muted/20">
