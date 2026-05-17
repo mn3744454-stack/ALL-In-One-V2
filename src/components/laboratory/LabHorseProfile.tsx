@@ -844,6 +844,15 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         onOpenChange={(open) => !open && setPaymentInvoiceId(null)}
         invoiceId={paymentInvoiceId}
       />
+
+      <CombinedResultsDialog
+        open={!!selectedGroupSample}
+        onOpenChange={(open) => !open && setSelectedGroupSample(null)}
+        sample={selectedGroupSample}
+        onReviewResult={reviewResult}
+        onFinalizeResult={finalizeResult}
+        onPublishToStable={publishToStable}
+      />
     </div>
   );
 }
