@@ -82,7 +82,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                     <p className="text-xs text-muted-foreground">
                       {t("laboratory.report.horse")}
                     </p>
-                    <p className="font-medium truncate">{group.horseName}</p>
+                    <p className="font-medium truncate">{bilingualHorseName}</p>
                   </div>
                   {group.labName && (
                     <div className="min-w-0">
