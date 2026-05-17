@@ -23,6 +23,8 @@ import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults"
 import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hooks/laboratory/useLabHorseFinancialSummary";
 import { usePrimaryClientForHorse } from "@/hooks/laboratory/usePartyHorseLinks";
 import { SampleStatusBadge } from "./SampleStatusBadge";
+import { CombinedResultsDialog } from "./CombinedResultsDialog";
+import { useLabResults as useLabResultsActions } from "@/hooks/laboratory/useLabResults";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
@@ -48,6 +50,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);
+  const [selectedGroupSample, setSelectedGroupSample] = useState<LabSample | null>(null);
+  const { reviewResult, finalizeResult, publishToStable } = useLabResultsActions();
 
   // Permission checks - deny by default
   const canEditHorse = hasPermission("laboratory.horses.edit");
