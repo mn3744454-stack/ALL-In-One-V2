@@ -317,40 +317,23 @@ export function ResultPreviewDialog({
           }
           compactSubtitle={compactSubtitle}
           statusBadge={
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={`text-xs hidden sm:inline-flex ${
-                  result.status === 'final' ? 'border-green-600 text-green-600' :
-                  result.status === 'reviewed' ? 'border-blue-600 text-blue-600' :
-                  'border-yellow-600 text-yellow-600'
-                }`}
-              >
-                {statusLabel}
-              </Badge>
-              <div className="flex items-center gap-1.5">
-                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {t("laboratory.report.reportStyle")}
-                </span>
-                <Select value={designTemplate} onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}>
-                  <SelectTrigger className="h-7 w-28 text-xs" aria-label={t("laboratory.report.reportStyle")}>
-                    <SelectValue placeholder={t("laboratory.report.reportStyle")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
-                    <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
-                    <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <Badge
+              variant="outline"
+              className={`text-xs hidden sm:inline-flex ${
+                result.status === 'final' ? 'border-green-600 text-green-600' :
+                result.status === 'reviewed' ? 'border-blue-600 text-blue-600' :
+                'border-yellow-600 text-yellow-600'
+              }`}
+            >
+              {statusLabel}
+            </Badge>
           }
           footer={
-            <div className="flex flex-wrap gap-2 justify-between items-center">
-              {/* Left cluster: Report language + status change */}
-              <div className="flex gap-2 flex-wrap items-center">
+            <div className="flex flex-wrap gap-3 justify-between items-center">
+              {/* Left cluster: Report display controls + status change */}
+              <div className="flex gap-3 flex-wrap items-center">
                 <div className="flex items-center gap-1.5">
-                  <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
                     {t("laboratory.report.reportLanguage")}
                   </span>
                   <Select
@@ -358,7 +341,7 @@ export function ResultPreviewDialog({
                     onValueChange={(v) => setReportLocale(v as "ar" | "en")}
                   >
                     <SelectTrigger
-                      className="h-7 w-28 text-xs"
+                      className="h-8 w-32 text-xs"
                       aria-label={t("laboratory.report.reportLanguage")}
                     >
                       <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
@@ -366,6 +349,21 @@ export function ResultPreviewDialog({
                     <SelectContent>
                       <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
                       <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
+                    {t("laboratory.report.reportStyle")}
+                  </span>
+                  <Select value={designTemplate} onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}>
+                    <SelectTrigger className="h-8 w-32 text-xs" aria-label={t("laboratory.report.reportStyle")}>
+                      <SelectValue placeholder={t("laboratory.report.reportStyle")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
+                      <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
+                      <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
