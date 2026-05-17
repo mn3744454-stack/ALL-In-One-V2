@@ -210,12 +210,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
   const reportTitle = bilingual(props.templateName, props.templateNameAr, isRTL)
     || t("laboratory.results.unknownTest");
   const horseLabel = bilingual(props.horseName, props.horseNameAr, isRTL);
-  const interpretationText =
-    typeof props.interpretation === "string"
-      ? props.interpretation
-      : props.interpretation && Object.keys(props.interpretation as object).length > 0
-        ? JSON.stringify(props.interpretation, null, 2)
-        : "";
+  const showInterpretation = hasInterpretationContent(props.interpretation);
 
   const chrome = props.chrome ?? "full";
 
