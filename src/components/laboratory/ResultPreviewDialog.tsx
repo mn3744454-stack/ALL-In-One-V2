@@ -455,6 +455,8 @@ export function ResultPreviewDialog({
           {/* Preview Content */}
           <div
             ref={previewRef}
+            dir={reportIsRTL ? "rtl" : "ltr"}
+            lang={reportLocale}
             className={`print-content border rounded-lg p-4 sm:p-6 bg-background print:border-none space-y-6 ${
               designTemplate === 'compact' ? 'text-sm' : ''
             }`}
