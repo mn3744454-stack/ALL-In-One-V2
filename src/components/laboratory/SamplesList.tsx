@@ -178,7 +178,7 @@ export function SamplesList({ onCreateSample, onSampleClick, onCreateSampleFromR
   };
 
   // Fetch all results to calculate progress per sample
-  const { results, reviewResult, finalizeResult } = useLabResults();
+  const { results, reviewResult, finalizeResult, publishToStable } = useLabResults();
 
   // Fetch invoice map for samples
   const sampleIds = useMemo(() => rawSamples.map(s => s.id), [rawSamples]);
@@ -510,6 +510,7 @@ export function SamplesList({ onCreateSample, onSampleClick, onCreateSampleFromR
         sample={combinedResultsSample}
         onReviewResult={reviewResult}
         onFinalizeResult={finalizeResult}
+        onPublishToStable={publishToStable}
       />
 
       {/* Generate Invoice Dialog */}
