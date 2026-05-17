@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -12,13 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Building2, Calendar, FlaskConical } from "lucide-react";
+import { Building2, Calendar, FlaskConical, Printer } from "lucide-react";
 import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 import { ReportChrome } from "./ReportChrome";
 import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
+import { printReport } from "@/lib/laboratory/printReport";
 
 interface StableResultViewerDialogProps {
   group: StableResultGroup;
@@ -42,12 +44,19 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
   const { t, lang } = useI18n();
   const isMulti = group.results.length > 1;
   const firstResult = group.results[0];
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // P3 — report language independent of app UI language
   const [reportLocale, setReportLocale] = useState<"ar" | "en">(
     lang === "ar" ? "ar" : "en"
   );
   const reportIsRTL = reportLocale === "ar";
+
+  const handlePrint = () => {
+    printReport(previewRef.current, {
+      title: `Lab Report - ${displayHorseName(group.horseName, group.horseNameAr, reportLocale)}`,
+    });
+  };
 
   const reportTitle =
     group.testDescription
@@ -77,29 +86,35 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
           }
           compactSubtitle={compactSubtitle}
           footer={
-            <div className="flex items-center gap-1.5">
-              <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
-                {t("laboratory.report.reportLanguage")}
-              </span>
-              <Select
-                value={reportLocale}
-                onValueChange={(v) => setReportLocale(v as "ar" | "en")}
-              >
-                <SelectTrigger
-                  className="h-8 w-32 text-xs"
-                  aria-label={t("laboratory.report.reportLanguage")}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
+                  {t("laboratory.report.reportLanguage")}
+                </span>
+                <Select
+                  value={reportLocale}
+                  onValueChange={(v) => setReportLocale(v as "ar" | "en")}
                 >
-                  <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
-                  <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    className="h-8 w-32 text-xs"
+                    aria-label={t("laboratory.report.reportLanguage")}
+                  >
+                    <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                    <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="h-4 w-4 me-2" />
+                {t("laboratory.report.print")}
+              </Button>
             </div>
           }
         >
-          <div dir={reportIsRTL ? "rtl" : "ltr"} lang={reportLocale}>
+          <div ref={previewRef} dir={reportIsRTL ? "rtl" : "ltr"} lang={reportLocale}>
           {isMulti ? (
             <div className="space-y-6">
               {/* Outer identity card — single source of report metadata for stacked sections */}

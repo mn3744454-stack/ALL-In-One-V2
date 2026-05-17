@@ -751,6 +751,7 @@ export const ar = {
 
     // L4-a-1 — مفاتيح عارض التقرير المشترك للقراءة فقط.
     report: {
+      print: "طباعة",
       reportStyle: "نمط التقرير",
       reportLanguage: "لغة التقرير",
       languageEnglish: "English",

@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FlaskConical, ShieldAlert } from "lucide-react";
+import { FlaskConical, Printer, ShieldAlert } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabResultReportViewer } from "@/components/laboratory/LabResultReportViewer";
 import { translations, isRTL as isRTLLang, type Language } from "@/i18n";
+import { printReport } from "@/lib/laboratory/printReport";
 
 interface SharedReportResult {
   result_id: string;
@@ -62,6 +64,7 @@ export default function SharedLabReport() {
   const { token } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
+  const printRef = useRef<HTMLElement>(null);
   const [data, setData] = useState<SharedReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -146,9 +149,15 @@ export default function SharedLabReport() {
 
   const reportLocale = lang === "ar" ? "ar" : "en";
 
+  const handlePrint = () => {
+    printReport(printRef.current, {
+      title: `${t("laboratory.sharedResult.labReport")} - ${data.horse_display_name}`,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background" dir={dir}>
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b print:hidden">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
             <FlaskConical className="h-5 w-5 text-primary shrink-0" />
@@ -156,14 +165,20 @@ export default function SharedLabReport() {
               {t("laboratory.sharedResult.labReport")}
             </span>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {data.results.length}{" "}
-            {t("laboratory.results.analyses")}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {data.results.length}{" "}
+              {t("laboratory.results.analyses")}
+            </Badge>
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 md:me-2" />
+              <span className="hidden md:inline">{t("laboratory.report.print")}</span>
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
+      <main ref={printRef} className="max-w-3xl mx-auto p-4 md:p-8 space-y-6">
         {/* Sample-level header */}
         <div className="text-center border-b pb-4">
           <h1 className="text-2xl font-bold">{data.tenant_display_name}</h1>

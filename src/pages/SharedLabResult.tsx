@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import DOMPurify from "dompurify";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
 import type { Language } from "@/i18n";
+import { printReport } from "@/lib/laboratory/printReport";
 
 // Interface matching ACTUAL RPC output (10 fields)
 interface SharedResultData {
@@ -167,79 +167,10 @@ export default function SharedLabResult() {
   };
 
   const handlePrint = () => {
-    if (!previewRef.current || !result) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error(t("laboratory.sharedResult.allowPopups"));
-      return;
-    }
-    
-    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="${lang}" dir="${dir}">
-      <head>
-        <title>${t("laboratory.sharedResult.labReport")} - ${result.horse_display_name}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            padding: 20mm;
-            color: #1f2937;
-            direction: ${dir};
-            text-align: ${dir === 'rtl' ? 'right' : 'left'};
-          }
-          table { width: 100%; border-collapse: collapse; direction: ${dir}; }
-          th, td { padding: 10px; text-align: ${dir === 'rtl' ? 'right' : 'left'}; border: 1px solid #e5e7eb; }
-          th { background-color: #f3f4f6; font-weight: 600; }
-          .text-center { text-align: center; }
-          .font-bold { font-weight: 700; }
-          .font-semibold { font-weight: 600; }
-          .font-medium { font-weight: 500; }
-          .font-mono { font-family: monospace; }
-          .text-sm { font-size: 0.875rem; }
-          .text-xs { font-size: 0.75rem; }
-          .text-2xl { font-size: 1.5rem; }
-          .uppercase { text-transform: uppercase; }
-          .text-muted { color: #6b7280; }
-          .text-green-600 { color: #16a34a; }
-          .text-red-600 { color: #dc2626; }
-          .text-blue-600 { color: #2563eb; }
-          .bg-muted { background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
-          .grid { display: grid; gap: 16px; }
-          .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-          .flex { display: flex; }
-          .items-center { align-items: center; }
-          .justify-between { justify-content: space-between; }
-          .gap-2 { gap: 8px; }
-          .gap-4 { gap: 16px; }
-          .mb-3 { margin-bottom: 12px; }
-          .p-3 { padding: 12px; }
-          .p-4 { padding: 16px; }
-          .border { border: 1px solid #e5e7eb; }
-          .rounded-lg { border-radius: 8px; }
-          .space-y-6 > * + * { margin-top: 24px; }
-          hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
-          svg { display: none; }
-          @media print {
-            body { padding: 15mm; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="space-y-6">
-          ${content}
-        </div>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    if (!result) return;
+    printReport(previewRef.current, {
+      title: `${t("laboratory.sharedResult.labReport")} - ${result.horse_display_name}`,
+    });
   };
 
   const handleDownloadPDF = async () => {

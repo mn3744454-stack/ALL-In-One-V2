@@ -736,6 +736,7 @@ export const en = {
 
     // L4-a-1 — shared read-only report renderer keys.
     report: {
+      print: "Print",
       reportStyle: "Report style",
       reportLanguage: "Report language",
       languageEnglish: "English",
