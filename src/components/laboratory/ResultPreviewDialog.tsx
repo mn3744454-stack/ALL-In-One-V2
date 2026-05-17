@@ -506,7 +506,11 @@ export function ResultPreviewDialog({
           {/* Share Management Panel */}
           <Separator className="my-6 print:hidden" />
           <div className="print:hidden">
-            <ResultSharePanel resultId={result.id} resultStatus={result.status} />
+            <ResultSharePanel
+              resultId={result.id}
+              resultStatus={result.status}
+              horseId={result.sample?.horse?.id ?? null}
+            />
           </div>
         </ReportChrome>
       </DialogContent>
