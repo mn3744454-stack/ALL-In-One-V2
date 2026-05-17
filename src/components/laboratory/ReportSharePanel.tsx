@@ -197,9 +197,10 @@ export function ReportSharePanel({
             {status.label}
           </Badge>
           <Badge variant="outline" className="text-xs">
-            {t("laboratory.reportShare.linkIncludesNAnalyses", {
-              count: String(count),
-            })}
+            {t("laboratory.reportShare.linkIncludesNAnalyses").replace(
+              "{count}",
+              String(count)
+            )}
           </Badge>
           <Badge variant="outline" className="text-xs">
             {isAliasMode ? (
