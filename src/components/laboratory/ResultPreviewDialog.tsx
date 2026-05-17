@@ -408,7 +408,7 @@ export function ResultPreviewDialog({
                 onClick={() => onReview(result.id)}
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                مراجعة
+                {t("laboratory.results.review")}
               </Button>
             )}
             {result.status === 'reviewed' && onFinalize && (
@@ -419,7 +419,7 @@ export function ResultPreviewDialog({
                 onClick={() => onFinalize(result.id)}
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                اعتماد
+                {t("laboratory.results.finalize")}
               </Button>
             )}
           </div>
