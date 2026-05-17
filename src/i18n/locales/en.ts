@@ -1170,8 +1170,23 @@ export const en = {
       pickDate: "Pick a date",
       clearDate: "Clear",
     },
-    
-    // Shared Result Page (Public)
+
+    reportShare: {
+      title: "Share Report",
+      selectedAnalyses: "Selected analyses",
+      selectAll: "Select all",
+      clear: "Clear",
+      selectAtLeastOne: "Select at least one analysis.",
+      preferredLanguage: "Preferred report language",
+      linkIncludesNAnalyses: "Includes {count} analyses",
+      createReportShareLink: "Create report share link",
+      activeLinks: "Active report links",
+      revokedLinks: "Revoked report links",
+      shareSelectedAnalyses: "Share selected analyses",
+      linkCreated: "Report share link created",
+      linkCopied: "Report link copied to clipboard",
+      linkFailed: "Failed to create report share link",
+    },
     sharedResult: {
       labReport: "Lab Report",
       print: "Print",
