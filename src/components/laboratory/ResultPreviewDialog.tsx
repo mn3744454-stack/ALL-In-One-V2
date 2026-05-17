@@ -22,28 +22,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Printer, 
-  Download, 
-  Share2, 
+import {
+  Printer,
+  Download,
+  Share2,
   FlaskConical,
-  Calendar,
   User,
   CheckCircle2,
-  AlertTriangle,
-  XCircle,
   Loader2,
   MessageCircle,
   Send,
-  Link2
+  Link2,
 } from "lucide-react";
-import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { ResultSharePanel } from "./ResultSharePanel";
 import { PublishToStableAction } from "./PublishToStableAction";
+import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { useTenant } from "@/contexts/TenantContext";
 import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
