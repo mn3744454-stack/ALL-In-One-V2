@@ -103,7 +103,7 @@ export function ResultPreviewDialog({
     // Create a new window for printing with full content
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast.error("Please allow popups for printing");
+      toast.error(t("laboratory.preview.allowPopups"));
       return;
     }
     
@@ -248,10 +248,10 @@ export function ResultPreviewDialog({
       
       pdf.save(`lab-result-${horseName}-${result.id.slice(0, 8)}.pdf`);
       
-      toast.success("تم تحميل PDF بنجاح");
+      toast.success(t("laboratory.preview.pdfDownloaded"));
     } catch (error) {
       console.error("Error generating PDF:", error);
-      toast.error("فشل في إنشاء PDF");
+      toast.error(t("laboratory.preview.pdfFailed"));
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -270,7 +270,7 @@ export function ResultPreviewDialog({
         break;
       case 'copy':
         navigator.clipboard.writeText(reportUrl);
-        toast.success("تم نسخ الرابط");
+        toast.success(t("laboratory.preview.linkCopied"));
         break;
     }
   };
