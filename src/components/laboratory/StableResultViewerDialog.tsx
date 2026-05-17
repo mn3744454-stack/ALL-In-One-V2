@@ -1,9 +1,17 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Building2, Calendar, FlaskConical } from "lucide-react";
 import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
@@ -25,20 +33,30 @@ interface StableResultViewerDialogProps {
  * analysis, prefixed by one outer identity card. Single-result reports keep
  * the full chrome to preserve identity context. Layout is wrapped with the
  * shared `ReportChrome` (compact sticky header + scrollable body).
+ *
+ * L4-a-3c P3 — Recipient can switch the report content language via a
+ * minimal footer-mounted "Report language" selector. No Share/Publish/Print
+ * is added in this phase (read-only viewer is preserved).
  */
 export function StableResultViewerDialog({ group, open, onOpenChange }: StableResultViewerDialogProps) {
   const { t, lang } = useI18n();
   const isMulti = group.results.length > 1;
   const firstResult = group.results[0];
 
+  // P3 — report language independent of app UI language
+  const [reportLocale, setReportLocale] = useState<"ar" | "en">(
+    lang === "ar" ? "ar" : "en"
+  );
+  const reportIsRTL = reportLocale === "ar";
+
   const reportTitle =
     group.testDescription
     || firstResult?.template_name
     || t("laboratory.results.unknownTest");
 
-  const bilingualHorseName = displayHorseName(group.horseName, group.horseNameAr, lang);
+  const bilingualHorseName = displayHorseName(group.horseName, group.horseNameAr, reportLocale);
 
-  const analysesShort = formatAnalysisCount(group.results.length, lang);
+  const analysesShort = formatAnalysisCount(group.results.length, reportLocale);
   const compactSubtitle = [
     isMulti ? analysesShort : reportTitle,
     group.publishedAt ? formatStandardDate(group.publishedAt) : null,
@@ -58,7 +76,30 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
             </span>
           }
           compactSubtitle={compactSubtitle}
+          footer={
+            <div className="flex items-center gap-1.5">
+              <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                {t("laboratory.report.reportLanguage")}
+              </span>
+              <Select
+                value={reportLocale}
+                onValueChange={(v) => setReportLocale(v as "ar" | "en")}
+              >
+                <SelectTrigger
+                  className="h-7 w-28 text-xs"
+                  aria-label={t("laboratory.report.reportLanguage")}
+                >
+                  <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                  <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          }
         >
+          <div dir={reportIsRTL ? "rtl" : "ltr"} lang={reportLocale}>
           {isMulti ? (
             <div className="space-y-6">
               {/* Outer identity card — single source of report metadata for stacked sections */}
@@ -136,6 +177,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                       templateNormalRanges={r.template_normal_ranges}
                       templateGroups={r.template_groups}
                       variant="modern"
+                      forceLocale={reportLocale}
                     />
                   </div>
                 ))}
@@ -161,9 +203,11 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                 templateNormalRanges={firstResult.template_normal_ranges}
                 templateGroups={firstResult.template_groups}
                 variant="modern"
+                forceLocale={reportLocale}
               />
             )
           )}
+          </div>
         </ReportChrome>
       </DialogContent>
     </Dialog>
