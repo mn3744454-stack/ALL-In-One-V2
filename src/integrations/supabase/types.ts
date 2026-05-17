@@ -6075,35 +6075,47 @@ export type Database = {
       }
       lab_result_shares: {
         Row: {
+          alias_name_snapshot: string | null
           created_at: string
           created_by: string
+          display_name_mode: string
           expires_at: string | null
           id: string
           result_id: string
           revoked_at: string | null
           share_token: string
+          source_horse_id: string | null
+          source_horse_kind: string | null
           tenant_id: string
           use_alias: boolean
         }
         Insert: {
+          alias_name_snapshot?: string | null
           created_at?: string
           created_by: string
+          display_name_mode?: string
           expires_at?: string | null
           id?: string
           result_id: string
           revoked_at?: string | null
           share_token?: string
+          source_horse_id?: string | null
+          source_horse_kind?: string | null
           tenant_id: string
           use_alias?: boolean
         }
         Update: {
+          alias_name_snapshot?: string | null
           created_at?: string
           created_by?: string
+          display_name_mode?: string
           expires_at?: string | null
           id?: string
           result_id?: string
           revoked_at?: string | null
           share_token?: string
+          source_horse_id?: string | null
+          source_horse_kind?: string | null
           tenant_id?: string
           use_alias?: boolean
         }
