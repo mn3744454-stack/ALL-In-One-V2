@@ -126,6 +126,7 @@ const AppRoutes = () => {
       <Route path="/t/:slug" element={<TenantPublicProfile />} />
       {/* Public shared routes - no auth required */}
       <Route path="/shared/lab-result/:token" element={<SharedLabResult />} />
+      <Route path="/shared/lab-report/:token" element={<SharedLabReport />} />
       <Route path="/shared/media/:token" element={<SharedMedia />} />
       <Route path="/share/horse/:token" element={<SharedHorseReport />} />
       {/* Public invitation landing page - handles both anon preaccept and auth finalize */}
