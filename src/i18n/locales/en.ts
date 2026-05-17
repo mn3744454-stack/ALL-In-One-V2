@@ -752,6 +752,13 @@ export const en = {
       sampleId: "Sample ID",
       laboratory: "Laboratory",
       horse: "Horse",
+      combinedReport: "Combined Sample Report",
+      analysesCount: "{{count}} analyses",
+      incompleteWarning: "This report is incomplete. Some analyses have not been recorded yet.",
+      partialReport: "Partial Report",
+      pendingApproval: "Pending Final Approval",
+      finalApproved: "Final Approved Report",
+      notRecorded: "Not recorded yet",
     },
     
     // Messages Inbox
