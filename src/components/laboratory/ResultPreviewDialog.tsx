@@ -275,23 +275,7 @@ export function ResultPreviewDialog({
     }
   };
 
-  const getFlagIcon = (flag: string) => {
-    switch (flag) {
-      case 'normal': return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      case 'abnormal': return <AlertTriangle className="h-4 w-4 text-orange-600" />;
-      case 'critical': return <XCircle className="h-4 w-4 text-red-600" />;
-      default: return null;
-    }
-  };
 
-  const getFlagColor = (flag: string) => {
-    switch (flag) {
-      case 'normal': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'abnormal': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      case 'critical': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  };
 
   // Parse result_data - use fullTemplate if provided, otherwise empty
   const resultData = (result.result_data as Record<string, unknown>) || {};
