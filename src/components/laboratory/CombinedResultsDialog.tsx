@@ -311,54 +311,54 @@ export function CombinedResultsDialog({
           }
           compactSubtitle={compactSubtitle}
           statusBadge={
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className={`text-xs ${footerColor} hidden sm:inline-flex`}>
-                {footerLabel}
-              </Badge>
-              <div className="flex items-center gap-1.5">
-                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {t("laboratory.report.reportStyle")}
-                </span>
-                <Select
-                  value={designTemplate}
-                  onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}
-                >
-                  <SelectTrigger
-                    className="h-7 w-28 text-xs"
-                    aria-label={t("laboratory.report.reportStyle")}
-                  >
-                    <SelectValue placeholder={t("laboratory.report.reportStyle")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
-                    <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
-                    <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <Badge variant="outline" className={`text-xs ${footerColor} hidden sm:inline-flex`}>
+              {footerLabel}
+            </Badge>
           }
           footer={
-            <div className="flex gap-2 justify-between flex-wrap items-center">
-              <div className="flex items-center gap-1.5">
-                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
-                  {t("laboratory.report.reportLanguage")}
-                </span>
-                <Select
-                  value={reportLocale}
-                  onValueChange={(v) => setReportLocale(v as "ar" | "en")}
-                >
-                  <SelectTrigger
-                    className="h-7 w-28 text-xs"
-                    aria-label={t("laboratory.report.reportLanguage")}
+            <div className="flex gap-3 justify-between flex-wrap items-center">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
+                    {t("laboratory.report.reportLanguage")}
+                  </span>
+                  <Select
+                    value={reportLocale}
+                    onValueChange={(v) => setReportLocale(v as "ar" | "en")}
                   >
-                    <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
-                    <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      className="h-8 w-32 text-xs"
+                      aria-label={t("laboratory.report.reportLanguage")}
+                    >
+                      <SelectValue placeholder={t("laboratory.report.reportLanguage")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">{t("laboratory.report.languageEnglish")}</SelectItem>
+                      <SelectItem value="ar">{t("laboratory.report.languageArabic")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="hidden sm:inline text-xs font-semibold text-muted-foreground">
+                    {t("laboratory.report.reportStyle")}
+                  </span>
+                  <Select
+                    value={designTemplate}
+                    onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}
+                  >
+                    <SelectTrigger
+                      className="h-8 w-32 text-xs"
+                      aria-label={t("laboratory.report.reportStyle")}
+                    >
+                      <SelectValue placeholder={t("laboratory.report.reportStyle")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
+                      <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
+                      <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={handlePrint}>
