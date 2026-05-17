@@ -1152,7 +1152,7 @@ export const en = {
       aliasPlaceholder: "Enter the alias shown in the shared link",
       aliasHelper: "This alias will appear instead of the real horse name on the shared result page.",
       aliasRequired: "Please enter an alias before creating the link.",
-      aliasUnavailable: "Alias is not available for this result.",
+      aliasUnavailable: "Alias sharing is available only for registered platform horses.",
       createdBy: "Created by",
       realName: "Real name",
       nameMode: "Name mode",
