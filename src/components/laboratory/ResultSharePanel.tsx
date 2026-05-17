@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, formatStandardDateTime12 } from "@/lib/displayHelpers";
 import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
 import { useHorseAliases } from "@/hooks/laboratory/useHorseAliases";
 import { toast } from "sonner";
