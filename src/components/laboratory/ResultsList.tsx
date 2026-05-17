@@ -5,7 +5,7 @@ import { useLabSamples, type LabSample, type LabSampleStatus } from "@/hooks/lab
 import { ResultsFilterTabs, type ResultFilterTab } from "./ResultsFilterTabs";
 import { ResultsClientGroupedView } from "./ResultsClientGroupedView";
 import { CombinedResultsDialog } from "./CombinedResultsDialog";
-import { ResultsTable } from "./ResultsTable";
+
 import { AdvancedFilters } from "./AdvancedFilters";
 import { ViewSwitcher, getGridClass, type ViewMode as DisplayMode } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
@@ -544,6 +544,7 @@ export function ResultsList({ onCreateResult, onResultClick }: ResultsListProps)
         sample={selectedSample}
         onReviewResult={reviewResult}
         onFinalizeResult={finalizeResult}
+        onPublishToStable={publishToStable}
       />
     </>
   );
