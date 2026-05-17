@@ -1,14 +1,11 @@
-import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, AlertTriangle, XCircle, FlaskConical } from "lucide-react";
+import { FlaskConical } from "lucide-react";
 import { useI18n } from "@/i18n";
-import { useRTL } from "@/hooks/useRTL";
 import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 
@@ -18,30 +15,16 @@ interface StableResultViewerDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function getFlagIcon(flag: string | null) {
-  switch (flag) {
-    case "normal":
-      return <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />;
-    case "abnormal":
-      return <AlertTriangle className="h-3.5 w-3.5 text-orange-600" />;
-    case "critical":
-      return <XCircle className="h-3.5 w-3.5 text-red-600" />;
-    default:
-      return null;
-  }
-}
-
 /**
- * L4-a-1 — Stable / receiving-tenant read-only Lab Report viewer.
+ * L4-a-1.1 — Stable / receiving-tenant read-only Lab Report viewer.
  *
- * Widened to workspace-class width and now delegates content rendering to the
- * shared `LabResultReportViewer`. Remains a raw `Dialog` (outside-click + Esc
- * close acceptable) — no form state.
+ * Widened to workspace-class width and delegates content rendering to the
+ * shared `LabResultReportViewer`. Multiple results are stacked vertically in
+ * one continuous scrollable report instead of tabs. Remains a raw `Dialog`
+ * (outside-click + Esc close acceptable) — no form state.
  */
 export function StableResultViewerDialog({ group, open, onOpenChange }: StableResultViewerDialogProps) {
   const { t } = useI18n();
-  const { isRTL } = useRTL();
-  const [activeTab, setActiveTab] = useState(group.results[0]?.id || "");
 
   const dialogTitle =
     group.testDescription
@@ -79,21 +62,12 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
               variant="modern"
             />
           ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="w-full flex-wrap h-auto gap-1">
-                {group.results.map((r) => (
-                  <TabsTrigger key={r.id} value={r.id} className="text-xs gap-1">
-                    {r.flags && getFlagIcon(r.flags)}
-                    <span className="truncate max-w-[160px]">
-                      {(isRTL ? r.template_name_ar : r.template_name)
-                        || r.template_name
-                        || t("laboratory.results.unknownTest")}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {group.results.map((r) => (
-                <TabsContent key={r.id} value={r.id} className="m-0">
+            <div className="space-y-8">
+              {group.results.map((r, idx) => (
+                <div
+                  key={r.id}
+                  className={idx < group.results.length - 1 ? "pb-8 border-b" : ""}
+                >
                   <LabResultReportViewer
                     templateName={r.template_name}
                     templateNameAr={r.template_name_ar}
@@ -112,9 +86,9 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                     templateGroups={r.template_groups}
                     variant="modern"
                   />
-                </TabsContent>
+                </div>
               ))}
-            </Tabs>
+            </div>
           )}
         </div>
       </DialogContent>
