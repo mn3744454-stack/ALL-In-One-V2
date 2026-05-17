@@ -50,7 +50,7 @@ import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/ho
 import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
-import { ResultSharePanel } from "./ResultSharePanel";
+import { ReportSharePanel, type ReportShareAnalysis } from "./ReportSharePanel";
 import {
   Collapsible,
   CollapsibleContent,
