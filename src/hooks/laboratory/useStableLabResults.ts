@@ -40,6 +40,7 @@ export interface StableResultGroup {
   sampleId: string | null;
   requestId: string | null;
   horseName: string;
+  horseNameAr: string | null;
   horseId: string | null;
   labName: string;
   publishedAt: string | null;
