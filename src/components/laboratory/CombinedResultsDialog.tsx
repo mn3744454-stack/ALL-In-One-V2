@@ -581,50 +581,9 @@ export function CombinedResultsDialog({
               </div>
             )}
 
-            {/* Actions: Print / PDF / Share */}
-            <div className="flex gap-2 justify-end flex-wrap print:hidden">
-              <Button variant="outline" size="sm" onClick={handlePrint}>
-                <Printer className="h-4 w-4 me-2" />
-                {t("laboratory.preview.print")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDownloadPDF}
-                disabled={isGeneratingPDF}
-              >
-                {isGeneratingPDF ? (
-                  <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4 me-2" />
-                )}
-                {t("laboratory.preview.pdf")}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.share")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background">
-                  <DropdownMenuItem onClick={() => handleShare("whatsapp")}>
-                    <MessageCircle className="h-4 w-4 me-2 text-green-600" />
-                    {t("laboratory.preview.whatsapp")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("telegram")}>
-                    <Send className="h-4 w-4 me-2 text-blue-500" />
-                    {t("laboratory.preview.telegram")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleShare("copy")}>
-                    <Link2 className="h-4 w-4 me-2" />
-                    {t("laboratory.preview.copyLink")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </>
         )}
+        </ReportChrome>
       </DialogContent>
     </Dialog>
   );
