@@ -92,6 +92,7 @@ export function HorseLabSection({ horseId, horseName }: HorseLabSectionProps) {
     sampleId: selectedStableResult.sample_id,
     requestId: selectedStableResult.request_id,
     horseName: selectedStableResult.horse_name_snapshot || selectedStableResult.horse_name || "—",
+    horseNameAr: selectedStableResult.horse_name_ar_snapshot || null,
     horseId: selectedStableResult.horse_id,
     labName: selectedStableResult.lab_tenant_name || "—",
     publishedAt: selectedStableResult.published_at,
