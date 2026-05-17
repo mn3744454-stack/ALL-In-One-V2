@@ -288,18 +288,41 @@ export function ResultPreviewDialog({
     result.status === 'reviewed' ? t("laboratory.preview.reviewedReport") :
     t("laboratory.preview.draftReport");
 
+  const compactSubtitle = [
+    templateName,
+    formatStandardDateTime(result.created_at),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-5xl max-h-[92vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between gap-2">
-            <DialogTitle className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5" />
-              {t("laboratory.preview.title")}
-            </DialogTitle>
+      <DialogContent className="w-[95vw] max-w-5xl max-h-[92vh] overflow-hidden flex flex-col p-0">
+        <DialogTitle className="sr-only">
+          {t("laboratory.preview.title")} — {horseName}
+        </DialogTitle>
+        <ReportChrome
+          compactTitle={
+            <span className="flex items-center gap-2">
+              <FlaskConical className="h-4 w-4 text-muted-foreground" aria-hidden />
+              <span className="truncate">{horseName}</span>
+            </span>
+          }
+          compactSubtitle={compactSubtitle}
+          statusBadge={
             <div className="flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className={`text-xs hidden sm:inline-flex ${
+                  result.status === 'final' ? 'border-green-600 text-green-600' :
+                  result.status === 'reviewed' ? 'border-blue-600 text-blue-600' :
+                  'border-yellow-600 text-yellow-600'
+                }`}
+              >
+                {statusLabel}
+              </Badge>
               <Select value={designTemplate} onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="h-7 w-28 text-xs">
                   <SelectValue placeholder={t("laboratory.preview.designTemplate")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -309,186 +332,183 @@ export function ResultPreviewDialog({
                 </SelectContent>
               </Select>
             </div>
-          </div>
-        </DialogHeader>
-
-        {/* Preview Content */}
-        <div
-          ref={previewRef}
-          className={`print-content border rounded-lg p-4 sm:p-6 bg-background print:border-none space-y-6 ${
-            designTemplate === 'compact' ? 'text-sm' : ''
-          }`}
-        >
-          {/* Lab branding header */}
-          <div className={`${designTemplate === 'modern' ? 'text-center border-b pb-4' : 'flex justify-between items-start gap-3'}`}>
-            <div>
-              <h2 className={`font-bold ${designTemplate === 'modern' ? 'text-2xl' : 'text-xl'}`}>
-                {activeTenant?.tenant?.name || t("laboratory.report.laboratory")}
-              </h2>
-              {designTemplate !== 'compact' && (
-                <p className="text-sm text-muted-foreground">
-                  {t("laboratory.preview.labReport")}
-                </p>
-              )}
-            </div>
-            {designTemplate === 'classic' && (
-              <div className="text-end text-sm text-muted-foreground">
-                <p>{t("laboratory.preview.reportDate")}: {formatStandardDateTime(new Date().toISOString())}</p>
-                <p className="font-mono">{result.id.slice(0, 8)}</p>
+          }
+          footer={
+            <div className="flex flex-wrap gap-2 justify-between">
+              {/* Status Change Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                {result.status === 'draft' && onReview && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    onClick={() => onReview(result.id)}
+                  >
+                    <CheckCircle2 className="h-4 w-4 me-2" />
+                    {t("laboratory.resultActions.review")}
+                  </Button>
+                )}
+                {result.status === 'reviewed' && onFinalize && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
+                    onClick={() => onFinalize(result.id)}
+                  >
+                    <CheckCircle2 className="h-4 w-4 me-2" />
+                    {t("laboratory.resultActions.finalize")}
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Shared rich read-only report renderer (L4-a-1) */}
-          <LabResultReportViewer
-            templateName={result.template?.name ?? templateName}
-            templateNameAr={result.template?.name_ar ?? null}
-            horseName={horseName}
-            labName={activeTenant?.tenant?.name ?? null}
-            physicalSampleId={result.sample?.physical_sample_id ?? null}
-            sampleId={sampleId}
-            resultDate={result.created_at}
-            collectionDate={result.created_at}
-            status={result.status}
-            flags={result.flags}
-            interpretation={result.interpretation}
-            resultData={resultData}
-            templateFields={templateFields}
-            templateNormalRanges={normalRanges}
-            templateGroups={templateGroups}
-            variant={designTemplate as LabReportVariant}
-          />
-
-          <Separator />
-
-          {/* Footer attribution */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-            <div className="flex flex-wrap items-center gap-4">
-              {result.creator?.full_name && (
-                <div className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  <span>{t("laboratory.preview.createdBy")}: {result.creator.full_name}</span>
-                </div>
-              )}
-              {result.reviewer?.full_name && (
-                <div className="flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" />
-                  <span>{t("laboratory.preview.reviewedBy")}: {result.reviewer.full_name}</span>
+              <div className="flex gap-2 flex-wrap">
+                {onPublishToStable && (
+                  <PublishToStableAction
+                    resultId={result.id}
+                    status={result.status}
+                    published_to_stable={published}
+                    sample_lab_request_id={result.sample?.lab_request_id}
+                    onPublish={async (id) => {
+                      setIsPublishing(true);
+                      const ok = await onPublishToStable(id);
+                      if (ok) setPublished(true);
+                      setIsPublishing(false);
+                      return ok;
+                    }}
+                  />
+                )}
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="h-4 w-4 me-2" />
+                  {t("laboratory.preview.print")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                >
+                  {isGeneratingPDF ? (
+                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 me-2" />
+                  )}
+                  {t("laboratory.preview.pdf")}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.share")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background">
+                    <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
+                      <MessageCircle className="h-4 w-4 me-2 text-green-600" />
+                      {t("laboratory.preview.whatsapp")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('telegram')}>
+                      <Send className="h-4 w-4 me-2 text-blue-500" />
+                      {t("laboratory.preview.telegram")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShare('copy')}>
+                      <Link2 className="h-4 w-4 me-2" />
+                      {t("laboratory.preview.copyLink")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          }
+        >
+          {/* Preview Content */}
+          <div
+            ref={previewRef}
+            className={`print-content border rounded-lg p-4 sm:p-6 bg-background print:border-none space-y-6 ${
+              designTemplate === 'compact' ? 'text-sm' : ''
+            }`}
+          >
+            {/* Lab branding header */}
+            <div className={`${designTemplate === 'modern' ? 'text-center border-b pb-4' : 'flex justify-between items-start gap-3'}`}>
+              <div>
+                <h2 className={`font-bold ${designTemplate === 'modern' ? 'text-2xl' : 'text-xl'}`}>
+                  {activeTenant?.tenant?.name || t("laboratory.report.laboratory")}
+                </h2>
+                {designTemplate !== 'compact' && (
+                  <p className="text-sm text-muted-foreground">
+                    {t("laboratory.preview.labReport")}
+                  </p>
+                )}
+              </div>
+              {designTemplate === 'classic' && (
+                <div className="text-end text-sm text-muted-foreground">
+                  <p>{t("laboratory.preview.reportDate")}: {formatStandardDateTime(new Date().toISOString())}</p>
+                  <p className="font-mono">{result.id.slice(0, 8)}</p>
                 </div>
               )}
             </div>
-            <span>{formatStandardDateTime(result.created_at)}</span>
-          </div>
 
-          {/* Status Badge */}
-          <div className="flex justify-center">
-            <Badge
-              variant="outline"
-              className={`text-sm ${
-                result.status === 'final' ? 'border-green-600 text-green-600' :
-                result.status === 'reviewed' ? 'border-blue-600 text-blue-600' :
-                'border-yellow-600 text-yellow-600'
-              }`}
-            >
-              {statusLabel}
-            </Badge>
-          </div>
-        </div>
+            {/* Shared rich read-only report renderer (L4-a-1) */}
+            <LabResultReportViewer
+              templateName={result.template?.name ?? templateName}
+              templateNameAr={result.template?.name_ar ?? null}
+              horseName={horseName}
+              labName={activeTenant?.tenant?.name ?? null}
+              physicalSampleId={result.sample?.physical_sample_id ?? null}
+              sampleId={sampleId}
+              resultDate={result.created_at}
+              collectionDate={result.created_at}
+              status={result.status}
+              flags={result.flags}
+              interpretation={result.interpretation}
+              resultData={resultData}
+              templateFields={templateFields}
+              templateNormalRanges={normalRanges}
+              templateGroups={templateGroups}
+              variant={designTemplate as LabReportVariant}
+            />
 
+            <Separator />
 
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2 justify-between print:hidden">
-          {/* Status Change Buttons */}
-          <div className="flex gap-2">
-            {result.status === 'draft' && onReview && (
-              <Button 
-                size="sm" 
+            {/* Footer attribution */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-4">
+                {result.creator?.full_name && (
+                  <div className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    <span>{t("laboratory.preview.createdBy")}: {result.creator.full_name}</span>
+                  </div>
+                )}
+                {result.reviewer?.full_name && (
+                  <div className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    <span>{t("laboratory.preview.reviewedBy")}: {result.reviewer.full_name}</span>
+                  </div>
+                )}
+              </div>
+              <span>{formatStandardDateTime(result.created_at)}</span>
+            </div>
+
+            {/* Status Badge */}
+            <div className="flex justify-center">
+              <Badge
                 variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
-                onClick={() => onReview(result.id)}
+                className={`text-sm ${
+                  result.status === 'final' ? 'border-green-600 text-green-600' :
+                  result.status === 'reviewed' ? 'border-blue-600 text-blue-600' :
+                  'border-yellow-600 text-yellow-600'
+                }`}
               >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                {t("laboratory.resultActions.review")}
-              </Button>
-            )}
-            {result.status === 'reviewed' && onFinalize && (
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950"
-                onClick={() => onFinalize(result.id)}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                {t("laboratory.resultActions.finalize")}
-              </Button>
-            )}
+                {statusLabel}
+              </Badge>
+            </div>
           </div>
-          
-          {/* Print/PDF/Share + Publish (all together in footer) */}
-          <div className="flex gap-2 flex-wrap">
-            {/* Publish to Stable - next to PDF/Print */}
-            {onPublishToStable && (
-              <PublishToStableAction
-                resultId={result.id}
-                status={result.status}
-                published_to_stable={published}
-                sample_lab_request_id={result.sample?.lab_request_id}
-                onPublish={async (id) => {
-                  setIsPublishing(true);
-                  const ok = await onPublishToStable(id);
-                  if (ok) setPublished(true);
-                  setIsPublishing(false);
-                  return ok;
-                }}
-              />
-            )}
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              {t("laboratory.preview.print")}
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
-            >
-              {isGeneratingPDF ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
-              )}
-              {t("laboratory.preview.pdf")}
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Share2 className="h-4 w-4 mr-2" />
-                  {t("laboratory.preview.share")}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background">
-                <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
-                  <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                  {t("laboratory.preview.whatsapp")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleShare('telegram')}>
-                  <Send className="h-4 w-4 mr-2 text-blue-500" />
-                  {t("laboratory.preview.telegram")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleShare('copy')}>
-                  <Link2 className="h-4 w-4 mr-2" />
-                  {t("laboratory.preview.copyLink")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
 
-        {/* Share Management Panel */}
-        <Separator className="print:hidden" />
-        <div className="print:hidden">
-          <ResultSharePanel resultId={result.id} resultStatus={result.status} />
-        </div>
+          {/* Share Management Panel */}
+          <Separator className="my-6 print:hidden" />
+          <div className="print:hidden">
+            <ResultSharePanel resultId={result.id} resultStatus={result.status} />
+          </div>
+        </ReportChrome>
       </DialogContent>
     </Dialog>
   );
