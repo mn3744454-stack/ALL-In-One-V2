@@ -1132,7 +1132,7 @@ export const en = {
       notFinalWarning: "Only finalized results can be shared. Please finalize this result first.",
       hideHorseName: "Hide horse name (use alias)",
       showRealName: "Show real horse name",
-      expiryDate: "Expiry date (optional)",
+      expiryDate: "Link expiry date",
       createShareLink: "Create Share Link",
       activeLinks: "Active Links",
       revokedLinks: "Revoked Links",
