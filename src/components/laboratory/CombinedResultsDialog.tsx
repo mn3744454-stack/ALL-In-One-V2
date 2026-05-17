@@ -36,7 +36,7 @@ import {
   Send,
   Link2,
 } from "lucide-react";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
@@ -46,7 +46,8 @@ import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
-import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
+import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
+import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { ResultSharePanel } from "./ResultSharePanel";
