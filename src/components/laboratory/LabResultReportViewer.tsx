@@ -62,6 +62,19 @@ export interface LabResultReportViewerProps {
   templateGroups?: unknown;          // Json from RPC
 
   variant?: LabReportVariant;
+
+  /**
+   * Layout chrome.
+   * - "full" (default): renders the full outer report header card (title, flag,
+   *   horse/lab/sample/date metadata) followed by the body.
+   * - "section": suppresses the outer header card and renders body only,
+   *   intended for grouped reports where a single sample-level header already
+   *   exists in the parent (see L4-a-2.2).
+   */
+  chrome?: "full" | "section";
+
+  /** Optional compact label shown at the top of section-mode body. */
+  sectionLabel?: string;
 }
 
 /** Best-effort bilingual label: AR-first in Arabic UI, EN-first in English UI. */
