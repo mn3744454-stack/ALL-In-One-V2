@@ -142,26 +142,33 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
       {isFinal && (
         <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
           {/* Alias toggle */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              {useAlias ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <Eye className="h-4 w-4 text-muted-foreground shrink-0" />
-              )}
-              <Label htmlFor="use-alias" className="text-sm">
-                {t("laboratory.share.aliasToggleLabel")}
-              </Label>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {useAlias ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+                <Label htmlFor="use-alias" className="text-sm">
+                  {t("laboratory.share.aliasToggleLabel")}
+                </Label>
+              </div>
+              <Switch
+                id="use-alias"
+                checked={useAlias}
+                onCheckedChange={(checked) => {
+                  setUseAlias(checked);
+                  if (!checked) setAliasName("");
+                }}
+                disabled={!aliasSupported}
+              />
             </div>
-            <Switch
-              id="use-alias"
-              checked={useAlias}
-              onCheckedChange={(checked) => {
-                setUseAlias(checked);
-                if (!checked) setAliasName("");
-              }}
-              disabled={!aliasSupported}
-            />
+            {!aliasSupported && (
+              <p className="text-xs text-muted-foreground ps-6">
+                {t("laboratory.share.aliasUnavailable")}
+              </p>
+            )}
           </div>
 
           {/* Alias input when toggle on */}
