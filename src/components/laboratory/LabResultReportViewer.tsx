@@ -217,18 +217,85 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
         ? JSON.stringify(props.interpretation, null, 2)
         : "";
 
+  const chrome = props.chrome ?? "full";
+
   return (
     <div className="space-y-6">
-      {/* Report header */}
-      <div className="rounded-lg border bg-card p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
-              <FlaskConical className="h-3.5 w-3.5" />
-              {t("laboratory.preview.testResults")}
+      {/* Report header (full chrome only) */}
+      {chrome === "full" && (
+        <div className="rounded-lg border bg-card p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
+                <FlaskConical className="h-3.5 w-3.5" />
+                {t("laboratory.preview.testResults")}
+              </div>
+              <h2 className="mt-1 text-lg sm:text-xl font-semibold break-words">{reportTitle}</h2>
             </div>
-            <h2 className="mt-1 text-lg sm:text-xl font-semibold break-words">{reportTitle}</h2>
+            {props.flags && (
+              <Badge
+                variant="outline"
+                className={
+                  props.flags === "critical"
+                    ? "border-red-300 text-red-700 dark:text-red-300"
+                    : props.flags === "abnormal"
+                      ? "border-orange-300 text-orange-700 dark:text-orange-300"
+                      : "border-green-300 text-green-700 dark:text-green-300"
+                }
+              >
+                <FlagIcon flag={props.flags} />
+                <span className="ms-1 capitalize">{props.flags}</span>
+              </Badge>
+            )}
           </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+            {horseLabel && (
+              <MetaItem
+                label={t("laboratory.report.horse")}
+                value={horseLabel}
+              />
+            )}
+            {props.labName && (
+              <MetaItem
+                label={t("laboratory.report.laboratory")}
+                value={
+                  <span className="inline-flex items-center gap-1">
+                    <Building2 className="h-3.5 w-3.5" />
+                    {props.labName}
+                  </span>
+                }
+              />
+            )}
+            {(props.physicalSampleId || props.sampleId) && (
+              <MetaItem
+                label={t("laboratory.report.sampleId")}
+                value={<span className="font-mono">{props.physicalSampleId || props.sampleId}</span>}
+              />
+            )}
+            {(props.resultDate || props.collectionDate) && (
+              <MetaItem
+                label={t("laboratory.report.reportDate")}
+                value={
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {formatStandardDate(new Date((props.resultDate || props.collectionDate)!))}
+                  </span>
+                }
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Section-mode compact title row (optional) */}
+      {chrome === "section" && (props.sectionLabel || props.flags) && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {props.sectionLabel && (
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {props.sectionLabel}
+            </p>
+          )}
           {props.flags && (
             <Badge
               variant="outline"
@@ -245,44 +312,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
             </Badge>
           )}
         </div>
-
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-          {horseLabel && (
-            <MetaItem
-              label={t("laboratory.report.horse")}
-              value={horseLabel}
-            />
-          )}
-          {props.labName && (
-            <MetaItem
-              label={t("laboratory.report.laboratory")}
-              value={
-                <span className="inline-flex items-center gap-1">
-                  <Building2 className="h-3.5 w-3.5" />
-                  {props.labName}
-                </span>
-              }
-            />
-          )}
-          {(props.physicalSampleId || props.sampleId) && (
-            <MetaItem
-              label={t("laboratory.report.sampleId")}
-              value={<span className="font-mono">{props.physicalSampleId || props.sampleId}</span>}
-            />
-          )}
-          {(props.resultDate || props.collectionDate) && (
-            <MetaItem
-              label={t("laboratory.report.reportDate")}
-              value={
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatStandardDate(new Date((props.resultDate || props.collectionDate)!))}
-                </span>
-              }
-            />
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Body */}
       {hasTemplateContext ? (
