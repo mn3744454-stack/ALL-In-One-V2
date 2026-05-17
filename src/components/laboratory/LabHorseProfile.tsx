@@ -23,6 +23,8 @@ import { useLabResults, type LabResult } from "@/hooks/laboratory/useLabResults"
 import { useLabHorseFinancialSummary, type LabHorseInvoiceSummary } from "@/hooks/laboratory/useLabHorseFinancialSummary";
 import { usePrimaryClientForHorse } from "@/hooks/laboratory/usePartyHorseLinks";
 import { SampleStatusBadge } from "./SampleStatusBadge";
+import { CombinedResultsDialog } from "./CombinedResultsDialog";
+import { useLabResults as useLabResultsActions } from "@/hooks/laboratory/useLabResults";
 import { InvoiceStatusBadge } from "@/components/finance/InvoiceStatusBadge";
 import { InvoiceDetailsSheet } from "@/components/finance/InvoiceDetailsSheet";
 import { RecordPaymentDialog } from "@/components/finance/RecordPaymentDialog";
@@ -48,6 +50,8 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
   const [activeTab, setActiveTab] = useState("samples");
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [paymentInvoiceId, setPaymentInvoiceId] = useState<string | null>(null);
+  const [selectedGroupSample, setSelectedGroupSample] = useState<LabSample | null>(null);
+  const { reviewResult, finalizeResult, publishToStable } = useLabResultsActions();
 
   // Permission checks - deny by default
   const canEditHorse = hasPermission("laboratory.horses.edit");
@@ -265,75 +269,99 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
       ? (result.template?.name_ar || result.template?.name || t("laboratory.results.unknownTemplate"))
       : (result.template?.name || t("laboratory.results.unknownTemplate"));
 
-  // Result card renderer (used inside grouped view)
-  const renderResultCard = (result: LabResult) => (
-    <Card 
-      key={result.id} 
-      className="cursor-pointer hover:bg-muted/50 transition-colors"
-      onClick={() => handleResultClick(result)}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p className="font-medium truncate">{getTemplateName(result)}</p>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-3 w-3" />
-              {format(new Date(result.created_at), "dd-MM-yyyy")}
+  // Helper: derive a group-level status from sibling results
+  const getGroupStatus = (sampleResults: LabResult[]): LabResult["status"] => {
+    if (sampleResults.length === 0) return "draft";
+    if (sampleResults.every((r) => r.status === "final")) return "final";
+    if (sampleResults.some((r) => r.status === "reviewed")) return "reviewed";
+    return "draft";
+  };
+
+  // Open the grouped report viewer for a sample. Falls back to per-result
+  // preview if the sample record is unavailable (orphan / cross-tenant).
+  const openSampleGroup = (sample: LabSample | null, sampleResults: LabResult[]) => {
+    if (sample) {
+      setSelectedGroupSample(sample);
+    } else if (sampleResults[0]) {
+      handleResultClick(sampleResults[0]);
+    }
+  };
+
+  // Sample group summary (used in list/grid views)
+  const renderSampleGroupCard = (
+    sampleIdKey: string,
+    sample: LabSample | null,
+    sampleResults: LabResult[]
+  ) => {
+    const groupStatus = getGroupStatus(sampleResults);
+    const analyses = sampleResults
+      .map((r) => getTemplateName(r))
+      .join(" · ");
+    return (
+      <Card
+        key={sampleIdKey}
+        className="cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={() => openSampleGroup(sample, sampleResults)}
+      >
+        <CardContent className="p-4 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <FlaskConical className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="font-semibold text-sm truncate">
+                {sample ? (
+                  <>
+                    {sample.daily_number && `#${sample.daily_number} · `}
+                    {sample.physical_sample_id || sample.id.slice(0, 8)}
+                  </>
+                ) : (
+                  sampleIdKey === "unknown"
+                    ? t("laboratory.results.unknownSample")
+                    : sampleIdKey.slice(0, 8)
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant="outline" className="text-xs">
+                {sampleResults.length}
+              </Badge>
+              <Badge
+                variant={groupStatus === "final" ? "default" : "secondary"}
+                className={cn(
+                  "text-xs",
+                  groupStatus === "final" && "bg-primary/10 text-primary border-primary/20",
+                  groupStatus === "reviewed" && "bg-accent text-accent-foreground",
+                  groupStatus === "draft" && "bg-muted text-muted-foreground"
+                )}
+              >
+                {t(`laboratory.resultStatus.${groupStatus}`)}
+              </Badge>
             </div>
           </div>
-          <Badge
-            variant={result.status === 'final' ? 'default' : 'secondary'}
-            className={cn(
-              result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
-              result.status === 'reviewed' && "bg-accent text-accent-foreground",
-              result.status === 'draft' && "bg-muted text-muted-foreground"
-            )}
-          >
-            {t(`laboratory.resultStatus.${result.status}`)}
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
-  );
+          {analyses && (
+            <p className="text-xs text-muted-foreground truncate">{analyses}</p>
+          )}
+          {sample && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3" />
+              {format(new Date(sample.collection_date), "dd-MM-yyyy")}
+              <SampleStatusBadge status={sample.status} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
-  // Grouped results card renderer
+  // Grouped results card list
   const renderGroupedResultsCards = () => (
-    <div className="space-y-6">
-      {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
-        <div key={sampleId} className="space-y-2">
-          {/* Sample header */}
-          <div className="flex items-center gap-2 px-1">
-            <FlaskConical className="h-4 w-4 text-muted-foreground" />
-            <span className="font-semibold text-sm">
-              {sample ? (
-                <>
-                  {sample.daily_number && `#${sample.daily_number} · `}
-                  {sample.physical_sample_id || sample.id.slice(0, 8)}
-                </>
-              ) : (
-                sampleId === "unknown" ? t("laboratory.results.unknownSample") : sampleId.slice(0, 8)
-              )}
-            </span>
-            {sample && (
-              <>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(sample.collection_date), "dd-MM-yyyy")}
-                </span>
-                <SampleStatusBadge status={sample.status} />
-              </>
-            )}
-            <Badge variant="outline" className="ms-auto text-xs">{sampleResults.length}</Badge>
-          </div>
-          {/* Nested result cards */}
-          <div className={cn("ps-6 space-y-2", dir === 'rtl' && "pe-6 ps-0")}>
-            {sampleResults.map(renderResultCard)}
-          </div>
-        </div>
-      ))}
+    <div className="space-y-3">
+      {groupedResults.map(([sampleIdKey, { sample, results: sampleResults }]) =>
+        renderSampleGroupCard(sampleIdKey, sample, sampleResults)
+      )}
     </div>
   );
 
-  // Grouped results table renderer
+  // Grouped results table — one row per sample/report group (L4-a-2.1)
   const renderResultsTable = () => (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -341,43 +369,55 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
           <TableRow>
             <TableHead className="text-center">{t("laboratory.samples.title")}</TableHead>
             <TableHead className="text-center">{t("laboratory.results.analyses")}</TableHead>
+            <TableHead className="text-center">#</TableHead>
             <TableHead className="text-center">{t("common.date")}</TableHead>
             <TableHead className="text-center">{t("common.status")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
-            sampleResults.map((result, idx) => (
+          {groupedResults.map(([sampleIdKey, { sample, results: sampleResults }]) => {
+            const groupStatus = getGroupStatus(sampleResults);
+            const analyses = sampleResults.map((r) => getTemplateName(r)).join(" · ");
+            const groupDate = sample?.collection_date || sampleResults[0]?.created_at;
+            return (
               <TableRow
-                key={result.id}
+                key={sampleIdKey}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleResultClick(result)}
+                onClick={() => openSampleGroup(sample, sampleResults)}
               >
-                {/* Show sample info only on first row of group */}
-                <TableCell className={cn("text-center font-mono text-sm", idx > 0 && "text-transparent")}>
-                  {sample ? (sample.daily_number ? `#${sample.daily_number}` : (sample.physical_sample_id || sample.id.slice(0, 8))) : "-"}
+                <TableCell className="text-center font-mono text-sm">
+                  {sample
+                    ? sample.daily_number
+                      ? `#${sample.daily_number}`
+                      : (sample.physical_sample_id || sample.id.slice(0, 8))
+                    : sampleIdKey === "unknown"
+                      ? t("laboratory.results.unknownSample")
+                      : sampleIdKey.slice(0, 8)}
+                </TableCell>
+                <TableCell className="text-center text-sm truncate max-w-[24rem]">
+                  {analyses || "-"}
                 </TableCell>
                 <TableCell className="text-center font-medium">
-                  {getTemplateName(result)}
+                  {sampleResults.length}
                 </TableCell>
                 <TableCell className="text-center">
-                  {format(new Date(result.created_at), "dd-MM-yyyy")}
+                  {groupDate ? format(new Date(groupDate), "dd-MM-yyyy") : "-"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge
-                    variant={result.status === 'final' ? 'default' : 'secondary'}
+                    variant={groupStatus === "final" ? "default" : "secondary"}
                     className={cn(
-                      result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
-                      result.status === 'reviewed' && "bg-accent text-accent-foreground",
-                      result.status === 'draft' && "bg-muted text-muted-foreground"
+                      groupStatus === "final" && "bg-primary/10 text-primary border-primary/20",
+                      groupStatus === "reviewed" && "bg-accent text-accent-foreground",
+                      groupStatus === "draft" && "bg-muted text-muted-foreground"
                     )}
                   >
-                    {t(`laboratory.resultStatus.${result.status}`)}
+                    {t(`laboratory.resultStatus.${groupStatus}`)}
                   </Badge>
                 </TableCell>
               </TableRow>
-            ))
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -705,56 +745,9 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
                 {resultsView === 'list' && renderGroupedResultsCards()}
                 {resultsView === 'grid' && (
                   <div className={getGridClass(resultsGridCols, resultsView)}>
-                    {groupedResults.map(([sampleId, { sample, results: sampleResults }]) => (
-                      <Card key={sampleId} className="overflow-hidden">
-                        <CardHeader className="p-3 pb-1">
-                          <div className="flex items-center gap-2">
-                            <FlaskConical className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-semibold text-sm">
-                              {sample ? (
-                                <>
-                                  {sample.daily_number && `#${sample.daily_number} · `}
-                                  {sample.physical_sample_id || sample.id.slice(0, 8)}
-                                </>
-                              ) : (
-                                sampleId === "unknown" ? t("laboratory.results.unknownSample") : sampleId.slice(0, 8)
-                              )}
-                            </span>
-                            <Badge variant="outline" className="ms-auto text-xs">{sampleResults.length}</Badge>
-                          </div>
-                          {sample && (
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-muted-foreground">
-                                {format(new Date(sample.collection_date), "dd-MM-yyyy")}
-                              </span>
-                              <SampleStatusBadge status={sample.status} />
-                            </div>
-                          )}
-                        </CardHeader>
-                        <CardContent className="p-3 pt-1 space-y-1">
-                          {sampleResults.map(result => (
-                            <div
-                              key={result.id}
-                              className="flex items-center justify-between gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer"
-                              onClick={() => handleResultClick(result)}
-                            >
-                              <span className="text-sm truncate">{getTemplateName(result)}</span>
-                              <Badge
-                                variant={result.status === 'final' ? 'default' : 'secondary'}
-                                className={cn(
-                                  "text-xs shrink-0",
-                                  result.status === 'final' && "bg-primary/10 text-primary border-primary/20",
-                                  result.status === 'reviewed' && "bg-accent text-accent-foreground",
-                                  result.status === 'draft' && "bg-muted text-muted-foreground"
-                                )}
-                              >
-                                {t(`laboratory.resultStatus.${result.status}`)}
-                              </Badge>
-                            </div>
-                          ))}
-                        </CardContent>
-                      </Card>
-                    ))}
+                    {groupedResults.map(([sampleIdKey, { sample, results: sampleResults }]) =>
+                      renderSampleGroupCard(sampleIdKey, sample, sampleResults)
+                    )}
                   </div>
                 )}
               </>
@@ -850,6 +843,15 @@ export function LabHorseProfile({ horseId, onBack, onSampleClick, onResultClick,
         open={!!paymentInvoiceId}
         onOpenChange={(open) => !open && setPaymentInvoiceId(null)}
         invoiceId={paymentInvoiceId}
+      />
+
+      <CombinedResultsDialog
+        open={!!selectedGroupSample}
+        onOpenChange={(open) => !open && setSelectedGroupSample(null)}
+        sample={selectedGroupSample}
+        onReviewResult={reviewResult}
+        onFinalizeResult={finalizeResult}
+        onPublishToStable={publishToStable}
       />
     </div>
   );
