@@ -444,7 +444,7 @@ export function ResultPreviewDialog({
             )}
             <Button variant="outline" size="sm" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-2" />
-              Print
+              {t("laboratory.preview.print")}
             </Button>
             <Button 
               variant="outline" 
@@ -457,27 +457,27 @@ export function ResultPreviewDialog({
               ) : (
                 <Download className="h-4 w-4 mr-2" />
               )}
-              PDF
+              {t("laboratory.preview.pdf")}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
                   <Share2 className="h-4 w-4 mr-2" />
-                  Share
+                  {t("laboratory.preview.share")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-background">
                 <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
                   <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                  WhatsApp
+                  {t("laboratory.preview.whatsapp")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleShare('telegram')}>
                   <Send className="h-4 w-4 mr-2 text-blue-500" />
-                  Telegram
+                  {t("laboratory.preview.telegram")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleShare('copy')}>
                   <Link2 className="h-4 w-4 mr-2" />
-                  Copy Link
+                  {t("laboratory.preview.copyLink")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
