@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FlaskConical, ShieldAlert } from "lucide-react";
+import { FlaskConical, Printer, ShieldAlert } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabResultReportViewer } from "@/components/laboratory/LabResultReportViewer";
 import { translations, isRTL as isRTLLang, type Language } from "@/i18n";
+import { printReport } from "@/lib/laboratory/printReport";
 
 interface SharedReportResult {
   result_id: string;
