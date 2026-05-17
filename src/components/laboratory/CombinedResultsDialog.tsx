@@ -587,6 +587,7 @@ export function CombinedResultsDialog({
                           <ResultSharePanel
                             resultId={result.id}
                             resultStatus={result.status}
+                            horseId={sample.horse_id}
                           />
                         </CollapsibleContent>
                       </Collapsible>
