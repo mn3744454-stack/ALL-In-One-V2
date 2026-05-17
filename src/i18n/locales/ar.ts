@@ -767,6 +767,13 @@ export const ar = {
       sampleId: "رقم العينة",
       laboratory: "المختبر",
       horse: "الفرس",
+      combinedReport: "تقرير مجمّع للعينة",
+      analysesCount: "{{count}} تحليل",
+      incompleteWarning: "هذا التقرير غير مكتمل. بعض التحاليل لم تُسجّل بعد.",
+      partialReport: "تقرير جزئي",
+      pendingApproval: "في انتظار الاعتماد النهائي",
+      finalApproved: "تقرير نهائي معتمد",
+      notRecorded: "لم تُسجّل النتائج بعد",
     },
     
     // Messages Inbox
