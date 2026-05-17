@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -26,21 +26,30 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatStandardDate, formatStandardDateTime12 } from "@/lib/displayHelpers";
-import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
-import { useHorseAliases } from "@/hooks/laboratory/useHorseAliases";
+import {
+  useLabResultShares,
+  type ShareSourceHorseKind,
+} from "@/hooks/laboratory/useLabResultShares";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n";
 
 interface ResultSharePanelProps {
   resultId: string;
   resultStatus: string;
-  horseId?: string | null;
+  /** Audit-only: which registry the underlying horse came from. */
+  sourceHorseKind?: ShareSourceHorseKind | null;
+  /** Audit-only: the id within that registry, when known. */
+  sourceHorseId?: string | null;
 }
 
-export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultSharePanelProps) {
+export function ResultSharePanel({
+  resultId,
+  resultStatus,
+  sourceHorseKind = null,
+  sourceHorseId = null,
+}: ResultSharePanelProps) {
   const { t } = useI18n();
   const { shares, loading, createShare, revokeShare, getShareUrl } = useLabResultShares(resultId);
-  const { getActiveAlias, setAlias } = useHorseAliases(horseId ?? undefined);
   const [useAlias, setUseAlias] = useState(false);
   const [aliasName, setAliasName] = useState("");
   const [expiresDate, setExpiresDate] = useState<Date | undefined>(undefined);
@@ -48,45 +57,25 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const isFinal = resultStatus === "final";
-  const aliasSupported = !!horseId;
-  const activeAlias = horseId ? getActiveAlias(horseId) : null;
-
-  // Prefill alias input when user enables alias mode
-  useEffect(() => {
-    if (useAlias && !aliasName && activeAlias?.alias) {
-      setAliasName(activeAlias.alias);
-    }
-  }, [useAlias, activeAlias, aliasName]);
 
   const activeShares = shares.filter((s) => !s.revoked_at);
   const revokedShares = shares.filter((s) => s.revoked_at);
 
   const handleCreateShare = async () => {
-    if (useAlias) {
-      if (!aliasSupported) {
-        toast.error(t("laboratory.share.aliasUnavailable"));
-        return;
-      }
-      const trimmed = aliasName.trim();
-      if (!trimmed) {
-        toast.error(t("laboratory.share.aliasRequired"));
-        return;
-      }
-      // Upsert alias if changed
-      if (!activeAlias || activeAlias.alias !== trimmed) {
-        setIsCreating(true);
-        const aliasRow = await setAlias(horseId!, trimmed);
-        if (!aliasRow) {
-          setIsCreating(false);
-          return;
-        }
-      }
+    const trimmed = aliasName.trim();
+    if (useAlias && !trimmed) {
+      toast.error(t("laboratory.share.aliasRequired"));
+      return;
     }
 
     setIsCreating(true);
     try {
       const share = await createShare(resultId, {
         useAlias,
+        displayNameMode: useAlias ? "alias" : "real",
+        aliasNameSnapshot: useAlias ? trimmed : null,
+        sourceHorseKind: sourceHorseKind ?? "unknown",
+        sourceHorseId: sourceHorseId ?? null,
         expiresAt: expiresDate ? expiresDate.toISOString() : null,
         resultStatus,
       });
@@ -95,6 +84,8 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
         const url = `${window.location.origin}${getShareUrl(share.share_token)}`;
         await navigator.clipboard.writeText(url);
         toast.success(t("laboratory.share.linkCreated"));
+        // Reset alias input after successful creation so the next link gets a fresh value.
+        if (useAlias) setAliasName("");
       }
     } finally {
       setIsCreating(false);
@@ -121,8 +112,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
     return { label: t("laboratory.share.active"), variant: "default" as const };
   };
 
-  const createDisabled =
-    isCreating || (useAlias && (!aliasSupported || !aliasName.trim()));
+  const createDisabled = isCreating || (useAlias && !aliasName.trim());
 
   return (
     <div className="space-y-4">
@@ -161,40 +151,26 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                   setUseAlias(checked);
                   if (!checked) setAliasName("");
                 }}
-                disabled={!aliasSupported}
               />
             </div>
-            {!aliasSupported && (
-              <p className="text-xs text-muted-foreground ps-6">
-                {t("laboratory.share.aliasUnavailable")}
-              </p>
-            )}
           </div>
 
           {/* Alias input when toggle on */}
           {useAlias && (
             <div className="space-y-2">
-              {aliasSupported ? (
-                <>
-                  <Label htmlFor="alias-name" className="text-sm">
-                    {t("laboratory.share.aliasInputLabel")}
-                  </Label>
-                  <Input
-                    id="alias-name"
-                    value={aliasName}
-                    onChange={(e) => setAliasName(e.target.value)}
-                    placeholder={t("laboratory.share.aliasPlaceholder")}
-                    maxLength={64}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t("laboratory.share.aliasHelper")}
-                  </p>
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  {t("laboratory.share.aliasUnavailable")}
-                </p>
-              )}
+              <Label htmlFor="alias-name" className="text-sm">
+                {t("laboratory.share.aliasInputLabel")}
+              </Label>
+              <Input
+                id="alias-name"
+                value={aliasName}
+                onChange={(e) => setAliasName(e.target.value)}
+                placeholder={t("laboratory.share.aliasPlaceholder")}
+                maxLength={64}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("laboratory.share.aliasSnapshotHelper")}
+              </p>
             </div>
           )}
 
@@ -269,7 +245,8 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
               const status = getShareStatus(share);
               const isExpired = share.expires_at && new Date(share.expires_at) < new Date();
               const creatorName = share.creator?.full_name || "—";
-              const aliasDisplay = share.use_alias ? activeAlias?.alias || null : null;
+              const isAliasMode = share.display_name_mode === "alias" || share.use_alias;
+              const aliasDisplay = isAliasMode ? share.alias_name_snapshot : null;
 
               return (
                 <div
@@ -282,7 +259,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                         {status.label}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {share.use_alias ? (
+                        {isAliasMode ? (
                           <>
                             <EyeOff className="h-3 w-3 me-1" />
                             {t("laboratory.share.alias")}
@@ -364,7 +341,8 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
             <div className="mt-2 space-y-2">
               {revokedShares.map((share) => {
                 const creatorName = share.creator?.full_name || "—";
-                const aliasDisplay = share.use_alias ? activeAlias?.alias || null : null;
+                const isAliasMode = share.display_name_mode === "alias" || share.use_alias;
+                const aliasDisplay = isAliasMode ? share.alias_name_snapshot : null;
                 return (
                   <div
                     key={share.id}
@@ -375,7 +353,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                         {t("laboratory.share.revoked")}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {share.use_alias ? (
+                        {isAliasMode ? (
                           <>
                             <EyeOff className="h-3 w-3 me-1" />
                             {t("laboratory.share.alias")}

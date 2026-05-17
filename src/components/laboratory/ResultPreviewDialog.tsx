@@ -511,7 +511,20 @@ export function ResultPreviewDialog({
             <ResultSharePanel
               resultId={result.id}
               resultStatus={result.status}
-              horseId={result.sample?.horse?.id ?? null}
+              sourceHorseKind={
+                result.sample?.horse?.id
+                  ? "platform"
+                  : (result.sample as { lab_horse_id?: string | null } | undefined)?.lab_horse_id
+                    ? "lab"
+                    : result.sample?.horse_name
+                      ? "walkin"
+                      : "unknown"
+              }
+              sourceHorseId={
+                result.sample?.horse?.id
+                  ?? (result.sample as { lab_horse_id?: string | null } | undefined)?.lab_horse_id
+                  ?? null
+              }
             />
           </div>
         </ReportChrome>
