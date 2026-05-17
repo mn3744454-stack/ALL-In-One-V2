@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { useI18n } from "@/i18n";
+import { useI18n, translations } from "@/i18n";
 
 /**
  * L4-a-3b E2-A — Safe renderer for free-form interpretation payloads.
@@ -11,6 +11,10 @@ import { useI18n } from "@/i18n";
  *  - { summary, recommendations, status }
  *  - arbitrary primitive-keyed objects
  *
+ * L4-a-3c P3 — Accepts optional `forceLocale` so the section labels and the
+ * AR/EN notes selection follow the requested report locale instead of the
+ * app UI language.
+ *
  * Returns `null` when there is nothing meaningful to render — callers may
  * therefore skip surrounding chrome based on `hasInterpretationContent`.
  */
@@ -21,8 +25,33 @@ export function hasInterpretationContent(value: unknown): boolean {
   return Object.keys(value as object).length > 0;
 }
 
-export function InterpretationBody({ value }: { value: unknown }) {
-  const { t, lang } = useI18n();
+function resolveLocaleString(dict: unknown, path: string): string {
+  const keys = path.split(".");
+  let cur: unknown = dict;
+  for (const k of keys) {
+    if (cur && typeof cur === "object" && k in (cur as Record<string, unknown>)) {
+      cur = (cur as Record<string, unknown>)[k];
+    } else {
+      return path;
+    }
+  }
+  return typeof cur === "string" ? cur : path;
+}
+
+export function InterpretationBody({
+  value,
+  forceLocale,
+}: {
+  value: unknown;
+  forceLocale?: "ar" | "en";
+}) {
+  const { lang: appLang } = useI18n();
+  const effectiveLocale: "ar" | "en" =
+    forceLocale ?? (appLang === "ar" ? "ar" : "en");
+  const dict =
+    (translations as Record<string, unknown>)[effectiveLocale] ??
+    (translations as Record<string, unknown>)["en"];
+  const rt = (path: string) => resolveLocaleString(dict, path);
 
   if (value == null) return null;
 
@@ -53,7 +82,7 @@ export function InterpretationBody({ value }: { value: unknown }) {
     : [];
 
   const localizedNotes =
-    lang === "ar" ? notesAr || notesEn : notesEn || notesAr;
+    effectiveLocale === "ar" ? notesAr || notesEn : notesEn || notesAr;
   const primaryNotes = notes || localizedNotes;
 
   const known = new Set([
@@ -83,7 +112,7 @@ export function InterpretationBody({ value }: { value: unknown }) {
       {summary && (
         <div>
           <p className="text-xs font-medium text-muted-foreground">
-            {t("laboratory.report.interpretationSummary")}
+            {rt("laboratory.report.interpretationSummary")}
           </p>
           <p className="text-foreground whitespace-pre-wrap">{summary}</p>
         </div>
@@ -98,7 +127,7 @@ export function InterpretationBody({ value }: { value: unknown }) {
       {recommendations.length > 0 && (
         <div>
           <p className="text-xs font-medium text-muted-foreground">
-            {t("laboratory.report.interpretationRecommendations")}
+            {rt("laboratory.report.interpretationRecommendations")}
           </p>
           <ul className="list-disc ps-5 space-y-0.5 text-muted-foreground">
             {recommendations.map((r, i) => (
@@ -111,7 +140,7 @@ export function InterpretationBody({ value }: { value: unknown }) {
       {status && (
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
-            {t("laboratory.report.interpretationStatus")}:
+            {rt("laboratory.report.interpretationStatus")}:
           </span>
           <Badge variant="outline" className="text-xs capitalize">
             {status}
