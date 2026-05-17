@@ -1153,7 +1153,7 @@ export const ar = {
       notFinalWarning: "يمكن مشاركة النتائج النهائية فقط. يرجى اعتماد هذه النتيجة أولاً.",
       hideHorseName: "إخفاء اسم الخيل (استخدام اسم بديل)",
       showRealName: "عرض اسم الخيل الحقيقي",
-      expiryDate: "تاريخ انتهاء الصلاحية (اختياري)",
+      expiryDate: "تاريخ انتهاء صلاحية الرابط",
       createShareLink: "إنشاء رابط المشاركة",
       activeLinks: "الروابط النشطة",
       revokedLinks: "الروابط الملغاة",
