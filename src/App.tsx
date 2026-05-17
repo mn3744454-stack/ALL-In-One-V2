@@ -46,6 +46,7 @@ import DashboardFileManager from "./pages/DashboardFileManager";
 import DashboardFinance from "./pages/DashboardFinance";
 import DashboardPermissionsSettings from "./pages/DashboardPermissionsSettings";
 import SharedLabResult from "./pages/SharedLabResult";
+import SharedLabReport from "./pages/SharedLabReport";
 import SharedMedia from "./pages/SharedMedia";
 import SharedHorseReport from "./pages/SharedHorseReport";
 import InviteLandingPage from "./pages/InviteLandingPage";
