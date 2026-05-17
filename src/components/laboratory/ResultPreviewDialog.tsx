@@ -34,7 +34,7 @@ import {
   Send,
   Link2,
 } from "lucide-react";
-import { formatStandardDateTime } from "@/lib/displayHelpers";
+import { formatStandardDateTime, displayHorseName } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
@@ -44,7 +44,7 @@ import { PublishToStableAction } from "./PublishToStableAction";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { useTenant } from "@/contexts/TenantContext";
 import { useRTL } from "@/hooks/useRTL";
-import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
+import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
 import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
@@ -75,7 +75,7 @@ export function ResultPreviewDialog({
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
   const { isRTL } = useRTL();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [published, setPublished] = useState(result?.published_to_stable ?? false);
 
   // Reset published state when result changes
@@ -88,11 +88,12 @@ export function ResultPreviewDialog({
   if (!result) return null;
 
   // Cross-tenant safe horse name resolution using snapshot contract
+  const horseNamePair = result.sample
+    ? getLabHorseNamePair(result.sample)
+    : { name: null, name_ar: null };
   const horseName = result.sample
-    ? getLabHorseDisplayName(
-        result.sample,
-        { locale: isRTL ? 'ar' : 'en', fallback: t("laboratory.results.unknownHorse") }
-      )
+    ? (displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
+        || getLabHorseDisplayName(result.sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") }))
     : t("laboratory.results.unknownHorse");
   const templateName = result.template?.name || t("laboratory.results.unknownTest");
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
@@ -451,7 +452,8 @@ export function ResultPreviewDialog({
             <LabResultReportViewer
               templateName={result.template?.name ?? templateName}
               templateNameAr={result.template?.name_ar ?? null}
-              horseName={horseName}
+              horseName={horseNamePair.name}
+              horseNameAr={horseNamePair.name_ar}
               labName={activeTenant?.tenant?.name ?? null}
               physicalSampleId={result.sample?.physical_sample_id ?? null}
               sampleId={sampleId}

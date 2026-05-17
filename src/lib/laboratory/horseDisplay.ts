@@ -47,3 +47,40 @@ export function getLabHorseDisplayName(
   // Fallback
   return fallback;
 }
+
+/**
+ * Extract the {name, name_ar} pair from a sample for bilingual rendering.
+ * Mirrors the priority order of getLabHorseDisplayName.
+ */
+export function getLabHorseNamePair(
+  sample: HorseNameFields
+): { name: string | null; name_ar: string | null } {
+  if (sample.lab_horse) {
+    return { name: sample.lab_horse.name ?? null, name_ar: sample.lab_horse.name_ar ?? null };
+  }
+  if (sample.horse) {
+    return { name: sample.horse.name ?? null, name_ar: sample.horse.name_ar ?? null };
+  }
+  if (sample.horse_name) {
+    return { name: sample.horse_name, name_ar: null };
+  }
+  return { name: null, name_ar: null };
+}
+
+/**
+ * Bilingual horse name for lab samples — uses `displayHorseName` formatting:
+ *   AR ui → `الاسم العربي (English)`
+ *   EN ui → `English (الاسم العربي)`
+ * Falls back gracefully when only one language is present.
+ */
+import { displayHorseName } from "@/lib/displayHelpers";
+
+export function getLabHorseDisplayBilingual(
+  sample: HorseNameFields,
+  options: { lang?: string; fallback?: string } = {}
+): string {
+  const { lang, fallback = "Unknown Horse" } = options;
+  const pair = getLabHorseNamePair(sample);
+  if (!pair.name && !pair.name_ar) return fallback;
+  return displayHorseName(pair.name, pair.name_ar, lang);
+}

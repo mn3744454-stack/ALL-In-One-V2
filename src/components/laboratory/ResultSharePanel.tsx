@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, formatStandardDateTime12 } from "@/lib/displayHelpers";
 import { useLabResultShares } from "@/hooks/laboratory/useLabResultShares";
 import { useHorseAliases } from "@/hooks/laboratory/useHorseAliases";
 import { toast } from "sonner";
@@ -142,26 +142,33 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
       {isFinal && (
         <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
           {/* Alias toggle */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 min-w-0">
-              {useAlias ? (
-                <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <Eye className="h-4 w-4 text-muted-foreground shrink-0" />
-              )}
-              <Label htmlFor="use-alias" className="text-sm">
-                {t("laboratory.share.aliasToggleLabel")}
-              </Label>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                {useAlias ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground shrink-0" />
+                )}
+                <Label htmlFor="use-alias" className="text-sm">
+                  {t("laboratory.share.aliasToggleLabel")}
+                </Label>
+              </div>
+              <Switch
+                id="use-alias"
+                checked={useAlias}
+                onCheckedChange={(checked) => {
+                  setUseAlias(checked);
+                  if (!checked) setAliasName("");
+                }}
+                disabled={!aliasSupported}
+              />
             </div>
-            <Switch
-              id="use-alias"
-              checked={useAlias}
-              onCheckedChange={(checked) => {
-                setUseAlias(checked);
-                if (!checked) setAliasName("");
-              }}
-              disabled={!aliasSupported}
-            />
+            {!aliasSupported && (
+              <p className="text-xs text-muted-foreground ps-6">
+                {t("laboratory.share.aliasUnavailable")}
+              </p>
+            )}
           </div>
 
           {/* Alias input when toggle on */}
@@ -291,7 +298,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                     </div>
                     <p className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
                       <span>
-                        {t("laboratory.share.createdOn")}: {formatStandardDate(share.created_at)}
+                        {t("laboratory.share.createdOn")}: {formatStandardDateTime12(share.created_at)}
                       </span>
                       <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
@@ -384,7 +391,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                     </div>
                     <p className="text-xs text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
                       <span>
-                        {t("laboratory.share.createdOn")}: {formatStandardDate(share.created_at)}
+                        {t("laboratory.share.createdOn")}: {formatStandardDateTime12(share.created_at)}
                       </span>
                       <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
@@ -396,7 +403,7 @@ export function ResultSharePanel({ resultId, resultStatus, horseId }: ResultShar
                         </span>
                       )}
                       <span>
-                        {t("laboratory.share.revokedOn")}: {formatStandardDate(share.revoked_at!)}
+                        {t("laboratory.share.revokedOn")}: {formatStandardDateTime12(share.revoked_at!)}
                       </span>
                     </p>
                   </div>

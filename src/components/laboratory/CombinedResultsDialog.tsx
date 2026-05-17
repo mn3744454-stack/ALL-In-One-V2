@@ -36,7 +36,7 @@ import {
   Send,
   Link2,
 } from "lucide-react";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { LabSample } from "@/hooks/laboratory/useLabSamples";
@@ -46,7 +46,8 @@ import { useLabTemplates } from "@/hooks/laboratory/useLabTemplates";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
-import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
+import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
+import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { ResultSharePanel } from "./ResultSharePanel";
@@ -80,7 +81,7 @@ export function CombinedResultsDialog({
   const [designTemplate, setDesignTemplate] = useState<DesignTemplate>("modern");
   const previewRef = useRef<HTMLDivElement>(null);
   const { activeTenant } = useTenant();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { isRTL } = useRTL();
 
   const { results, loading: resultsLoading } = useLabResults({
@@ -90,10 +91,9 @@ export function CombinedResultsDialog({
 
   if (!sample) return null;
 
-  const horseName = getLabHorseDisplayName(sample, {
-    locale: isRTL ? "ar" : "en",
-    fallback: t("laboratory.results.unknownHorse"),
-  });
+  const horseNamePair = getLabHorseNamePair(sample);
+  const horseName = displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
+    || getLabHorseDisplayName(sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") });
   const sampleId = sample.physical_sample_id || sample.id.slice(0, 8);
 
   // Map results by template_id for quick lookup
@@ -256,10 +256,7 @@ export function CombinedResultsDialog({
     ? "border-blue-600 text-blue-600"
     : "border-yellow-600 text-yellow-600";
 
-  const analysesShort = t("laboratory.report.analysesShort").replace(
-    "{{count}}",
-    String(totalCount)
-  );
+  const analysesShort = formatAnalysisCount(totalCount, lang);
   const MAX_NAMES = 3;
   const analysisNames = orderedTemplates.map(({ sampleTemplate }) => {
     const tName = sampleTemplate.template.name;

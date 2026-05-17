@@ -5,11 +5,12 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Calendar, FlaskConical } from "lucide-react";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { formatStandardDate, displayHorseName } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 import { ReportChrome } from "./ReportChrome";
+import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 
 interface StableResultViewerDialogProps {
   group: StableResultGroup;
@@ -26,7 +27,7 @@ interface StableResultViewerDialogProps {
  * shared `ReportChrome` (compact sticky header + scrollable body).
  */
 export function StableResultViewerDialog({ group, open, onOpenChange }: StableResultViewerDialogProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isMulti = group.results.length > 1;
   const firstResult = group.results[0];
 
@@ -35,10 +36,9 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
     || firstResult?.template_name
     || t("laboratory.results.unknownTest");
 
-  const analysesShort = t("laboratory.report.analysesShort").replace(
-    "{{count}}",
-    String(group.results.length)
-  );
+  const bilingualHorseName = displayHorseName(group.horseName, group.horseNameAr, lang);
+
+  const analysesShort = formatAnalysisCount(group.results.length, lang);
   const compactSubtitle = [
     isMulti ? analysesShort : reportTitle,
     group.publishedAt ? formatStandardDate(group.publishedAt) : null,
@@ -54,7 +54,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
           compactTitle={
             <span className="flex items-center gap-2">
               <FlaskConical className="h-4 w-4 text-muted-foreground" aria-hidden />
-              <span className="truncate">{group.horseName}</span>
+              <span className="truncate">{bilingualHorseName}</span>
             </span>
           }
           compactSubtitle={compactSubtitle}
@@ -82,7 +82,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                     <p className="text-xs text-muted-foreground">
                       {t("laboratory.report.horse")}
                     </p>
-                    <p className="font-medium truncate">{group.horseName}</p>
+                    <p className="font-medium truncate">{bilingualHorseName}</p>
                   </div>
                   {group.labName && (
                     <div className="min-w-0">
@@ -147,6 +147,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                 templateName={firstResult.template_name}
                 templateNameAr={firstResult.template_name_ar}
                 horseName={group.horseName}
+                horseNameAr={group.horseNameAr}
                 labName={group.labName}
                 physicalSampleId={group.physicalSampleId}
                 sampleId={group.sampleId}

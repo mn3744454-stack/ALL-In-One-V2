@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { useI18n } from "@/i18n";
 import { useRTL } from "@/hooks/useRTL";
+import { InterpretationBody, hasInterpretationContent } from "./InterpretationBody";
 
 /**
  * L4-a-1 — Shared read-only Lab Result Report Viewer.
@@ -210,12 +211,7 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
   const reportTitle = bilingual(props.templateName, props.templateNameAr, isRTL)
     || t("laboratory.results.unknownTest");
   const horseLabel = bilingual(props.horseName, props.horseNameAr, isRTL);
-  const interpretationText =
-    typeof props.interpretation === "string"
-      ? props.interpretation
-      : props.interpretation && Object.keys(props.interpretation as object).length > 0
-        ? JSON.stringify(props.interpretation, null, 2)
-        : "";
+  const showInterpretation = hasInterpretationContent(props.interpretation);
 
   const chrome = props.chrome ?? "full";
 
@@ -382,14 +378,12 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
       )}
 
       {/* Interpretation */}
-      {interpretationText && (
+      {showInterpretation && (
         <>
           <Separator />
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{t("laboratory.report.interpretation")}</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {interpretationText}
-            </p>
+            <InterpretationBody value={props.interpretation} />
           </section>
         </>
       )}
