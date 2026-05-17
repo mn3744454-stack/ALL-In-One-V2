@@ -49,6 +49,12 @@ import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName } from "@/lib/laboratory/horseDisplay";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
+import { ResultSharePanel } from "./ResultSharePanel";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 type DesignTemplate = "classic" | "modern" | "compact";
