@@ -260,10 +260,25 @@ export function CombinedResultsDialog({
     "{{count}}",
     String(totalCount)
   );
+  const MAX_NAMES = 3;
+  const analysisNames = orderedTemplates.map(({ sampleTemplate }) => {
+    const tName = sampleTemplate.template.name;
+    const tNameAr =
+      (sampleTemplate.template as { name_ar?: string | null }).name_ar ?? null;
+    return isRTL ? tNameAr || tName : tName || tNameAr || "";
+  });
+  const listSep = isRTL ? "، " : ", ";
+  const shownNames = analysisNames.slice(0, MAX_NAMES).join(listSep);
+  const overflow = analysisNames.length - MAX_NAMES;
+  const namesSummary =
+    overflow > 0 ? `${shownNames} +${overflow}` : shownNames;
+  const analysesWithNames = namesSummary
+    ? `${analysesShort}: ${namesSummary}`
+    : analysesShort;
   const collectionDateLabel = sample.collection_date
     ? formatStandardDate(sample.collection_date)
     : null;
-  const compactSubtitle = [analysesShort, collectionDateLabel]
+  const compactSubtitle = [analysesWithNames, collectionDateLabel]
     .filter(Boolean)
     .join(" · ");
 
