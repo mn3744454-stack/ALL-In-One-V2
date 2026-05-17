@@ -322,16 +322,21 @@ export function ResultPreviewDialog({
               >
                 {statusLabel}
               </Badge>
-              <Select value={designTemplate} onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}>
-                <SelectTrigger className="h-7 w-28 text-xs">
-                  <SelectValue placeholder={t("laboratory.preview.designTemplate")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
-                  <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
-                  <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1.5">
+                <span className="hidden md:inline text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {t("laboratory.report.reportStyle")}
+                </span>
+                <Select value={designTemplate} onValueChange={(v) => setDesignTemplate(v as DesignTemplate)}>
+                  <SelectTrigger className="h-7 w-28 text-xs" aria-label={t("laboratory.report.reportStyle")}>
+                    <SelectValue placeholder={t("laboratory.report.reportStyle")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="classic">{t("laboratory.preview.classic")}</SelectItem>
+                    <SelectItem value="modern">{t("laboratory.preview.modern")}</SelectItem>
+                    <SelectItem value="compact">{t("laboratory.preview.compact")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           }
           footer={

@@ -45,7 +45,7 @@ export function ReportChrome({
     <div className={cn("flex flex-col min-h-0 h-full w-full", className)}>
       {hasHeader && (
         <div className="shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 print:hidden">
-          <div className="flex items-center gap-3 px-4 sm:px-6 pe-12 sm:pe-14 h-11">
+          <div className="flex items-center gap-3 px-4 sm:px-6 pe-14 sm:pe-16 h-11">
             <div className="flex-1 min-w-0 flex items-baseline gap-2 overflow-hidden">
               {compactTitle && (
                 <span className="text-sm font-semibold truncate">
