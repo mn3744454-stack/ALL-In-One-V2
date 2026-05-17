@@ -436,14 +436,9 @@ export function CombinedResultsDialog({
                     {/* Result body */}
                     {result ? (
                       <LabResultReportViewer
+                        chrome="section"
                         templateName={templateName}
                         templateNameAr={templateNameAr}
-                        horseName={horseName}
-                        labName={labName}
-                        physicalSampleId={sample.physical_sample_id}
-                        sampleId={sampleId}
-                        resultDate={result.created_at}
-                        collectionDate={sample.collection_date as unknown as string}
                         status={result.status}
                         flags={result.flags}
                         interpretation={result.interpretation}
