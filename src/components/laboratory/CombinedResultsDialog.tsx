@@ -84,6 +84,12 @@ export function CombinedResultsDialog({
   const { t, lang } = useI18n();
   const { isRTL } = useRTL();
 
+  // P3 — report language independent of app UI language
+  const [reportLocale, setReportLocale] = useState<"ar" | "en">(
+    lang === "ar" ? "ar" : "en"
+  );
+  const reportIsRTL = reportLocale === "ar";
+
   const { results, loading: resultsLoading } = useLabResults({
     sample_id: sample?.id,
   });
@@ -92,8 +98,8 @@ export function CombinedResultsDialog({
   if (!sample) return null;
 
   const horseNamePair = getLabHorseNamePair(sample);
-  const horseName = displayHorseName(horseNamePair.name, horseNamePair.name_ar, lang)
-    || getLabHorseDisplayName(sample, { locale: isRTL ? "ar" : "en", fallback: t("laboratory.results.unknownHorse") });
+  const horseName = displayHorseName(horseNamePair.name, horseNamePair.name_ar, reportLocale)
+    || getLabHorseDisplayName(sample, { locale: reportLocale, fallback: t("laboratory.results.unknownHorse") });
   const sampleId = sample.physical_sample_id || sample.id.slice(0, 8);
 
   // Map results by template_id for quick lookup
@@ -256,15 +262,15 @@ export function CombinedResultsDialog({
     ? "border-blue-600 text-blue-600"
     : "border-yellow-600 text-yellow-600";
 
-  const analysesShort = formatAnalysisCount(totalCount, lang);
+  const analysesShort = formatAnalysisCount(totalCount, reportLocale);
   const MAX_NAMES = 3;
   const analysisNames = orderedTemplates.map(({ sampleTemplate }) => {
     const tName = sampleTemplate.template.name;
     const tNameAr =
       (sampleTemplate.template as { name_ar?: string | null }).name_ar ?? null;
-    return isRTL ? tNameAr || tName : tName || tNameAr || "";
+    return reportIsRTL ? tNameAr || tName : tName || tNameAr || "";
   });
-  const listSep = isRTL ? "، " : ", ";
+  const listSep = reportIsRTL ? "، " : ", ";
   const shownNames = analysisNames.slice(0, MAX_NAMES).join(listSep);
   const overflow = analysisNames.length - MAX_NAMES;
   const namesSummary =
