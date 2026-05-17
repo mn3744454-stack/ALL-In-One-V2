@@ -69,7 +69,7 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
                       {reportTitle}
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {t("laboratory.report.analysesShort", { count: group.results.length })}
+                      {analysesShort}
                     </p>
                   </div>
                   <Badge variant="outline" className="shrink-0">
