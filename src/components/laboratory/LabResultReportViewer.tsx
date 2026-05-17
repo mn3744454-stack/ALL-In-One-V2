@@ -378,14 +378,12 @@ export function LabResultReportViewer(props: LabResultReportViewerProps) {
       )}
 
       {/* Interpretation */}
-      {interpretationText && (
+      {showInterpretation && (
         <>
           <Separator />
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">{t("laboratory.report.interpretation")}</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {interpretationText}
-            </p>
+            <InterpretationBody value={props.interpretation} />
           </section>
         </>
       )}
