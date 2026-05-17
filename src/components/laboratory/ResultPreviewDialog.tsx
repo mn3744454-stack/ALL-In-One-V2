@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import DOMPurify from "dompurify";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +45,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
 import { useI18n } from "@/i18n";
+import { printReport } from "@/lib/laboratory/printReport";
 import { toast } from "sonner";
 
 type DesignTemplate = 'classic' | 'modern' | 'compact';
@@ -105,96 +105,9 @@ export function ResultPreviewDialog({
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
 
   const handlePrint = () => {
-    if (!previewRef.current) return;
-    
-    // Create a new window for printing with full content
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error(t("laboratory.preview.allowPopups"));
-      return;
-    }
-    
-    const content = DOMPurify.sanitize(previewRef.current.innerHTML);
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Lab Report - ${horseName}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { 
-            font-family: system-ui, -apple-system, sans-serif; 
-            padding: 20mm;
-            color: #1f2937;
-          }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 10px; text-align: left; border: 1px solid #e5e7eb; }
-          th { background-color: #f3f4f6; font-weight: 600; }
-          .text-center { text-align: center; }
-          .font-bold { font-weight: 700; }
-          .font-semibold { font-weight: 600; }
-          .font-medium { font-weight: 500; }
-          .font-mono { font-family: monospace; }
-          .text-sm { font-size: 0.875rem; }
-          .text-xs { font-size: 0.75rem; }
-          .text-2xl { font-size: 1.5rem; }
-          .text-xl { font-size: 1.25rem; }
-          .uppercase { text-transform: uppercase; }
-          .text-muted { color: #6b7280; }
-          .text-green-600 { color: #16a34a; }
-          .text-red-600 { color: #dc2626; }
-          .text-blue-600 { color: #2563eb; }
-          .bg-muted { background-color: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0; }
-          .grid { display: grid; gap: 16px; }
-          .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-          .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-          .flex { display: flex; }
-          .items-center { align-items: center; }
-          .justify-between { justify-content: space-between; }
-          .justify-center { justify-content: center; }
-          .gap-1 { gap: 4px; }
-          .gap-2 { gap: 8px; }
-          .gap-4 { gap: 16px; }
-          .mb-2 { margin-bottom: 8px; }
-          .mb-3 { margin-bottom: 12px; }
-          .p-3 { padding: 12px; }
-          .p-4 { padding: 16px; }
-          .border { border: 1px solid #e5e7eb; }
-          .rounded-lg { border-radius: 8px; }
-          .space-y-4 > * + * { margin-top: 16px; }
-          .space-y-6 > * + * { margin-top: 24px; }
-          hr { border: none; border-top: 1px solid #e5e7eb; margin: 16px 0; }
-          .badge { 
-            display: inline-flex; 
-            align-items: center; 
-            padding: 4px 12px; 
-            border-radius: 9999px; 
-            font-size: 0.75rem;
-            font-weight: 500;
-            border: 1px solid;
-          }
-          .badge-green { border-color: #16a34a; color: #16a34a; }
-          .badge-blue { border-color: #2563eb; color: #2563eb; }
-          .badge-yellow { border-color: #ca8a04; color: #ca8a04; }
-          svg { display: none; }
-          @media print {
-            body { padding: 15mm; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="space-y-6">
-          ${content}
-        </div>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    printReport(previewRef.current, {
+      title: `Lab Report - ${horseName}`,
+    });
   };
 
   const handleDownloadPDF = async () => {
