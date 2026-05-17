@@ -452,7 +452,8 @@ export function ResultPreviewDialog({
             <LabResultReportViewer
               templateName={result.template?.name ?? templateName}
               templateNameAr={result.template?.name_ar ?? null}
-              horseName={horseName}
+              horseName={horseNamePair.name}
+              horseNameAr={horseNamePair.name_ar}
               labName={activeTenant?.tenant?.name ?? null}
               physicalSampleId={result.sample?.physical_sample_id ?? null}
               sampleId={sampleId}
