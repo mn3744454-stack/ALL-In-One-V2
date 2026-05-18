@@ -145,8 +145,8 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
             const formattedAge = formatAgeLocalized(ageParts);
             const typeBadgeProps = getHorseTypeBadgeProps(horseType);
             const typeLabel = isRTL ? typeBadgeProps.labelAr : typeBadgeProps.label;
-            const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
-            const colorName = horse.color_data?.name || horse.color || "-";
+            const hasBreedJoin = !!(horse.breed_data && (horse.breed_data.name || horse.breed_data.name_ar));
+            const hasColorJoin = !!(horse.color_data && (horse.color_data.name || horse.color_data.name_ar));
             const ownerName = horse.primary_owner?.name || "-";
 
             return (
