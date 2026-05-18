@@ -163,7 +163,13 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
                 <TableCell>
                   <BilingualName name={horse.name} nameAr={horse.name_ar} />
                 </TableCell>
-                <TableCell className="text-muted-foreground">{breedName}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {hasBreedJoin ? (
+                    <BilingualName name={horse.breed_data?.name} nameAr={horse.breed_data?.name_ar} primaryClassName="text-sm" />
+                  ) : (
+                    horse.breed || t('horses.unknownBreed')
+                  )}
+                </TableCell>
                 <TableCell className="text-center">
                   <Badge className={cn("text-xs", typeBadgeProps.className)}>
                     {typeLabel}
