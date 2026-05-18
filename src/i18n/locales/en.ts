@@ -95,6 +95,8 @@ export const en = {
       selectRecipient: "Select a recipient",
       validTransferPercentage: "Enter a valid transfer percentage",
       enterRequiredName: "Enter the required name",
+      enterRequiredArabicName: "Enter the Arabic name",
+      enterRequiredEnglishName: "Enter the English name",
       selectOwner: "Select an owner",
       validOwnershipPercentage: "Enter a valid ownership percentage",
       selectHorsePatient: "Select a horse",
@@ -4139,6 +4141,7 @@ export const en = {
       createdSuccess: "Created successfully",
       hasBeenAdded: "Item has been added",
       errorCreating: "Error creating item",
+      bilingualNameHint: "Required for database identity, search, and alphabetical sorting.",
     },
     // Table view column headers
     table: {

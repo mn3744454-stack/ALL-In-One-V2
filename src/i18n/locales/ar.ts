@@ -107,6 +107,8 @@ export const ar = {
       selectRecipient: "اختر المستلم",
       validTransferPercentage: "أدخل نسبة نقل صحيحة",
       enterRequiredName: "أدخل الاسم المطلوب",
+      enterRequiredArabicName: "أدخل الاسم بالعربية",
+      enterRequiredEnglishName: "أدخل الاسم بالإنجليزية",
       selectOwner: "اختر المالك",
       validOwnershipPercentage: "أدخل نسبة ملكية صحيحة",
       selectHorsePatient: "اختر الحصان",
@@ -4157,6 +4159,7 @@ export const ar = {
       createdSuccess: "تم الإنشاء بنجاح",
       hasBeenAdded: "تمت الإضافة",
       errorCreating: "خطأ في الإنشاء",
+      bilingualNameHint: "مطلوب لتعريف السجل في قاعدة البيانات والبحث والترتيب الأبجدي.",
     },
     // Table view column headers
     table: {
