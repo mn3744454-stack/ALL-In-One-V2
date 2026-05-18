@@ -261,8 +261,7 @@ export function InvoiceFormDialog({
     return `${prefix}-${year}${month}-${random}`;
   };
 
-  const handleClientChange = (clientId: string) => {
-    const client = clients.find((c) => c.id === clientId);
+  const handleClientChange = (clientId: string, client: { name?: string; name_ar?: string | null } | null) => {
     setFormData({
       ...formData,
       client_id: clientId,
