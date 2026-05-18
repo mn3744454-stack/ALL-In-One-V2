@@ -8,31 +8,112 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
+import { InvoiceClientPicker } from "./InvoiceClientPicker";
 import { useHorses } from "@/hooks/useHorses";
 import { useServices } from "@/hooks/useServices";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
-import { useClients } from "@/hooks/useClients";
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
-import { addDays, format } from "date-fns";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { addDays, format, parse } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+
+/**
+ * Local date field used inside the Create Invoice dialog.
+ * - Display format: dd-MM-yyyy (e.g. 18-05-2026)
+ * - Internal value: yyyy-MM-dd (unchanged from previous native <input type="date">)
+ * - Footer actions: Today / Clear
+ */
+function InvoiceDateField({
+  value,
+  onChange,
+  todayLabel,
+  clearLabel,
+  placeholder,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  todayLabel: string;
+  clearLabel: string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const parsed = useMemo(() => {
+    if (!value) return undefined;
+    const d = parse(value, "yyyy-MM-dd", new Date());
+    return isNaN(d.getTime()) ? undefined : d;
+  }, [value]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-start font-normal",
+            !parsed && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="me-2 h-4 w-4 opacity-70" />
+          {parsed ? format(parsed, "dd-MM-yyyy") : <span>{placeholder || "dd-MM-yyyy"}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 z-[70]" align="start">
+        <Calendar
+          mode="single"
+          selected={parsed}
+          onSelect={(d) => {
+            if (d) {
+              onChange(format(d, "yyyy-MM-dd"));
+              setOpen(false);
+            }
+          }}
+          captionLayout="dropdown-buttons"
+          fromYear={2000}
+          toYear={2100}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+        <div className="flex items-center justify-between gap-2 border-t p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+          >
+            {clearLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={() => {
+              onChange(format(new Date(), "yyyy-MM-dd"));
+              setOpen(false);
+            }}
+          >
+            {todayLabel}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 interface InvoiceFormDialogProps {
   open: boolean;
