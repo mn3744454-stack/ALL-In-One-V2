@@ -31,6 +31,12 @@ interface Horse {
   current_location_id?: string | null;
   current_area_id?: string | null;
   housing_unit_id?: string | null;
+  mother_id?: string | null;
+  mother_name?: string | null;
+  father_id?: string | null;
+  father_name?: string | null;
+  /** PostgREST embed: horse_ownership(count) — may be number or [{count}] */
+  owners_count?: number | { count: number }[] | { count: number } | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,7 +85,8 @@ export const useHorses = (filters?: HorseFilters) => {
         .select(`
           *,
           breed_data:horse_breeds!breed_id(name, name_ar),
-          color_data:horse_colors!color_id(name, name_ar)
+          color_data:horse_colors!color_id(name, name_ar),
+          owners_count:horse_ownership(count)
         `)
         .eq("tenant_id", tenantId)
         .order("name");

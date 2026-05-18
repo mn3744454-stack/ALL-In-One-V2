@@ -95,7 +95,8 @@ export function useHorseFile(horseId: string | null | undefined) {
           branch_data:branches!branch_id(id, name),
           stable_data:stables(name),
           area_data:facility_areas!current_area_id(id, name, name_ar, facility_type),
-          unit_data:housing_units!housing_unit_id(id, code, name, name_ar)
+          unit_data:housing_units!housing_unit_id(id, code, name, name_ar),
+          owners_count:horse_ownership(count)
         `,
         )
         .eq("id", horseId)
