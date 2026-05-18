@@ -1124,6 +1124,7 @@ export const en = {
       high: "High",
       print: "Print",
       pdf: "PDF",
+      printSavePdf: "Print / Save as PDF",
       share: "Share",
       whatsapp: "WhatsApp",
       telegram: "Telegram",
