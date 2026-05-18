@@ -22,7 +22,7 @@ import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
 import type { Language } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport } from "@/lib/laboratory/printLabReportHtml";
 
 // Interface matching ACTUAL RPC output (10 fields)
 interface SharedResultData {
