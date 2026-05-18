@@ -21,10 +21,13 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { useHorseMasterData } from "@/hooks/useHorseMasterData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Heart, Info, Loader2 } from "lucide-react";
+import { ChevronDown, Heart, Info, Loader2 } from "lucide-react";
+import { BreedPickerSheet } from "@/components/horses/wizard/BreedPickerSheet";
+import { ColorPickerSheet } from "@/components/horses/wizard/ColorPickerSheet";
+import { BilingualName } from "@/components/ui/BilingualName";
+import type { HorseBreed, HorseColor } from "@/hooks/useHorseMasterData";
 
 export interface QuickCreateHorseDefaults {
   gender?: "male" | "female";
@@ -53,15 +56,16 @@ const emptyForm = (gender: "" | "male" | "female" = "") => ({
 export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults, minimal }: QuickCreateHorseDialogProps) {
   const { t, dir } = useI18n();
   const { activeTenant } = useTenant();
-  const { colors, breeds } = useHorseMasterData();
   const [saving, setSaving] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [form, setForm] = useState(() => emptyForm(defaults?.gender || ""));
+  const [breedPickerOpen, setBreedPickerOpen] = useState(false);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [selectedBreed, setSelectedBreed] = useState<HorseBreed | null>(null);
+  const [selectedColor, setSelectedColor] = useState<HorseColor | null>(null);
 
   const genderLocked = !!defaults?.gender;
 
-  // Dirty-tracked subset: exclude locked gender from dirty calculation so the
-  // default-provided gender doesn't trigger discard confirmation.
   const dirtyState = useMemo(
     () => ({
       name: form.name,
@@ -86,6 +90,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
 
   const resetForm = () => {
     setForm(emptyForm(defaults?.gender || ""));
+    setSelectedBreed(null);
+    setSelectedColor(null);
     setAttemptedSubmit(false);
   };
 
@@ -96,8 +102,17 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
     }
     if (saving) return;
     onOpenChange(false);
-    // Defer reset so the discard confirmation flow isn't visually disturbed
     setTimeout(resetForm, 0);
+  };
+
+  const handleBreedSelect = (breedId: string, breed?: HorseBreed) => {
+    setForm((f) => ({ ...f, breed_id: breedId }));
+    if (breed) setSelectedBreed(breed);
+  };
+
+  const handleColorSelect = (colorId: string, color?: HorseColor) => {
+    setForm((f) => ({ ...f, color_id: colorId }));
+    if (color) setSelectedColor(color);
   };
 
   const handleSubmit = async () => {
@@ -125,7 +140,6 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
       if (error) throw error;
 
       toast.success(t('horses.addSuccess').replace('{{name}}', data.name));
-      // Reset baseline before closing to bypass discard confirmation
       resetBaseline(emptyForm(defaults?.gender || ""));
       resetForm();
       onOpenChange(false);
@@ -219,39 +233,37 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t('horses.wizard.breed')}</Label>
-                <Select
-                  value={form.breed_id}
-                  onValueChange={(v) => setForm(f => ({ ...f, breed_id: v }))}
+                <button
+                  type="button"
+                  onClick={() => setBreedPickerOpen(true)}
+                  className="flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('horses.wizard.selectBreed')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {breeds.map((b) => (
-                      <SelectItem key={b.id} value={b.id}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <span className={`min-w-0 truncate text-start ${selectedBreed ? "" : "text-muted-foreground"}`}>
+                    {selectedBreed ? (
+                      <BilingualName name={selectedBreed.name} nameAr={selectedBreed.name_ar} inline />
+                    ) : (
+                      t('horses.wizard.chooseBreed')
+                    )}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                </button>
               </div>
               <div className="space-y-2">
                 <Label>{t('horses.wizard.color')}</Label>
-                <Select
-                  value={form.color_id}
-                  onValueChange={(v) => setForm(f => ({ ...f, color_id: v }))}
+                <button
+                  type="button"
+                  onClick={() => setColorPickerOpen(true)}
+                  className="flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('horses.wizard.selectColor')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {colors.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <span className={`min-w-0 truncate text-start ${selectedColor ? "" : "text-muted-foreground"}`}>
+                    {selectedColor ? (
+                      <BilingualName name={selectedColor.name} nameAr={selectedColor.name_ar} inline />
+                    ) : (
+                      t('horses.wizard.chooseColor')
+                    )}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+                </button>
               </div>
             </div>
           )}
@@ -280,6 +292,23 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
             </Button>
           </div>
         </DialogFooter>
+
+        {!minimal && (
+          <>
+            <BreedPickerSheet
+              open={breedPickerOpen}
+              onOpenChange={setBreedPickerOpen}
+              selectedBreedId={form.breed_id || null}
+              onBreedSelect={handleBreedSelect}
+            />
+            <ColorPickerSheet
+              open={colorPickerOpen}
+              onOpenChange={setColorPickerOpen}
+              selectedColorId={form.color_id || null}
+              onColorSelect={handleColorSelect}
+            />
+          </>
+        )}
     </SafeFormDialog>
   );
 }
