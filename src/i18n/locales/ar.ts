@@ -4222,6 +4222,8 @@ export const ar = {
       mediaGallery: "معرض الوسائط",
       notes: "الملاحظات",
       breed: "السلالة",
+      color: "اللون",
+      owner: "المالك",
       incompleteTitle: "ملف غير مكتمل",
       completeProfile: "إكمال الملف",
     },

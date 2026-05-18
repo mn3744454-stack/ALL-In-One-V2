@@ -4204,6 +4204,8 @@ export const en = {
       mediaGallery: "Media Gallery",
       notes: "Notes",
       breed: "Breed",
+      color: "Color",
+      owner: "Owner",
       incompleteTitle: "Incomplete Profile",
       completeProfile: "Complete Profile",
     },
