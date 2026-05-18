@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,23 +7,17 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Printer, 
-  Download, 
   FlaskConical, 
   Calendar, 
   CheckCircle2, 
   AlertTriangle, 
   XCircle,
-  Loader2,
   ShieldAlert
 } from "lucide-react";
 import { formatStandardDate, formatStandardDateTime } from "@/lib/displayHelpers";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
-import { toast } from "sonner";
 import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
 import type { Language } from "@/i18n";
 import { printLabReport } from "@/lib/laboratory/printLabReportHtml";
-
 // Interface matching ACTUAL RPC output (10 fields)
 interface SharedResultData {
   result_id: string;
@@ -93,9 +87,6 @@ export default function SharedLabResult() {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<SharedResultData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
-
   // Detect language from URL > localStorage > navigator > default
   const lang = useMemo(() => detectLanguage(searchParams), [searchParams]);
   const dir = isRTL(lang) ? 'rtl' : 'ltr';
@@ -195,69 +186,8 @@ export default function SharedLabResult() {
     );
   };
 
-  const handleDownloadPDF = async () => {
-    if (!previewRef.current || !result) return;
-    
-    setIsGeneratingPDF(true);
-    try {
-      const clone = previewRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.width = '800px';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
-      clone.style.backgroundColor = '#ffffff';
-      clone.style.padding = '40px';
-      clone.style.direction = dir;
-      document.body.appendChild(clone);
-      
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: 800,
-        height: clone.scrollHeight,
-      });
-      
-      document.body.removeChild(clone);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
-      const contentHeight = (canvas.height * contentWidth) / canvas.width;
-      
-      let heightLeft = contentHeight;
-      let position = margin;
-      
-      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-      heightLeft -= (pageHeight - margin * 2);
-      
-      while (heightLeft > 0) {
-        position = heightLeft - contentHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-        heightLeft -= (pageHeight - margin * 2);
-      }
-      
-      pdf.save(`lab-result-${result.horse_display_name}-${result.result_id.slice(0, 8)}.pdf`);
-      toast.success(t("laboratory.sharedResult.pdfSuccess"));
-    } catch (err) {
-      console.error("Error generating PDF:", err);
-      toast.error(t("laboratory.sharedResult.pdfFailed"));
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+  const handleDownloadPDF = () => {
+    handlePrint();
   };
 
   const getFlagColor = (flag: string | null) => {
@@ -336,16 +266,9 @@ export default function SharedLabResult() {
               variant="outline" 
               size="sm" 
               onClick={handleDownloadPDF}
-              disabled={isGeneratingPDF}
             >
-              {isGeneratingPDF ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Download className="h-4 w-4 md:me-2" />
-                  <span className="hidden md:inline">{t("laboratory.sharedResult.pdf")}</span>
-                </>
-              )}
+              <Printer className="h-4 w-4 md:me-2" />
+              <span className="hidden md:inline">{t("laboratory.preview.printSavePdf")}</span>
             </Button>
           </div>
         </div>
@@ -353,7 +276,7 @@ export default function SharedLabResult() {
 
       {/* Report Content */}
       <main className="max-w-3xl mx-auto p-4 md:p-8">
-        <div ref={previewRef} className="bg-background space-y-6">
+        <div className="bg-background space-y-6">
           {/* Report Header */}
           <div className="text-center border-b pb-4">
             <h1 className="text-2xl font-bold">{result.tenant_display_name}</h1>
