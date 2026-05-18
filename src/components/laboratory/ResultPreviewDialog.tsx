@@ -28,7 +28,7 @@ import {
   FlaskConical,
   User,
   CheckCircle2,
-  Loader2,
+  
   MessageCircle,
   Send,
   Link2,
