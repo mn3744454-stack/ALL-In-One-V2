@@ -184,12 +184,16 @@ export const AddMasterDataDialog = ({
             </Label>
             <Input
               id={field.key}
+              dir={field.dir}
               value={formData[field.key] || ""}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, [field.key]: e.target.value }))
               }
               placeholder={field.label}
             />
+            {field.hint && (
+              <p className="text-xs text-muted-foreground">{field.hint}</p>
+            )}
           </div>
         ))}
 
