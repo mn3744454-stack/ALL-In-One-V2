@@ -158,15 +158,18 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         </div>
       </div>
 
-      {dialogType && (
-        <AddMasterDataDialog
-          open={!!dialogType}
-          onOpenChange={() => setDialogType(null)}
-          type={dialogType}
-          onCreate={handleCreate}
-          onSuccess={handleSuccess}
-        />
-      )}
+      <BreedPickerSheet
+        open={breedPickerOpen}
+        onOpenChange={setBreedPickerOpen}
+        selectedBreedId={data.breed_id}
+        onBreedSelect={(id) => onChange({ breed_id: id })}
+      />
+      <ColorPickerSheet
+        open={colorPickerOpen}
+        onOpenChange={setColorPickerOpen}
+        selectedColorId={data.color_id}
+        onColorSelect={(id) => onChange({ color_id: id })}
+      />
     </div>
   );
 };
