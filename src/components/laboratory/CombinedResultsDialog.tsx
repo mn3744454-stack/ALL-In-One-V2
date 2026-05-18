@@ -28,7 +28,6 @@ import {
   Share2,
   FlaskConical,
   AlertTriangle,
-  } from "lucide-react";
   FileText,
   CheckCircle2,
   MessageCircle,
