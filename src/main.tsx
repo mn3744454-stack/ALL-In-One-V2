@@ -2,7 +2,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import "./styles/labPrint.css";
 
 // Cache cleanup — skip the push service worker (sw.js)
 (async function cleanupCaches() {
