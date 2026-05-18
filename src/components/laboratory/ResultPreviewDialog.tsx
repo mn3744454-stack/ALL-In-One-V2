@@ -131,71 +131,8 @@ export function ResultPreviewDialog({
     );
   };
 
-  const handleDownloadPDF = async () => {
-    if (!previewRef.current) return;
-    
-    setIsGeneratingPDF(true);
-    try {
-      // Clone the content to capture full height
-      const clone = previewRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '0';
-      clone.style.width = '800px';
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
-      clone.style.backgroundColor = '#ffffff';
-      clone.style.padding = '40px';
-      document.body.appendChild(clone);
-      
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: 800,
-        height: clone.scrollHeight,
-      });
-      
-      document.body.removeChild(clone);
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-      
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
-      const contentHeight = (canvas.height * contentWidth) / canvas.width;
-      
-      // Add image - if content is longer than one page, add multiple pages
-      let heightLeft = contentHeight;
-      let position = margin;
-      
-      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-      heightLeft -= (pageHeight - margin * 2);
-      
-      while (heightLeft > 0) {
-        position = heightLeft - contentHeight + margin;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
-        heightLeft -= (pageHeight - margin * 2);
-      }
-      
-      pdf.save(`lab-result-${horseName}-${result.id.slice(0, 8)}.pdf`);
-      
-      toast.success(t("laboratory.preview.pdfDownloaded"));
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error(t("laboratory.preview.pdfFailed"));
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+  const handleDownloadPDF = () => {
+    handlePrint();
   };
 
   const handleShare = (platform: 'whatsapp' | 'telegram' | 'copy') => {
