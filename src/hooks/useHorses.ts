@@ -76,11 +76,15 @@ export const useHorses = (filters?: HorseFilters) => {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from("horses")
-        .select("*")
+        .select(`
+          *,
+          breed_data:horse_breeds!breed_id(name, name_ar),
+          color_data:horse_colors!color_id(name, name_ar)
+        `)
         .eq("tenant_id", tenantId)
         .order("name");
       if (error) throw error;
-      return (data || []) as Horse[];
+      return (data || []) as unknown as Horse[];
     },
     enabled: !!tenantId,
     staleTime: 30_000,
