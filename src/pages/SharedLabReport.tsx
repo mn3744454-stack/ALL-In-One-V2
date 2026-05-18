@@ -9,7 +9,7 @@ import { FlaskConical, Printer, ShieldAlert } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabResultReportViewer } from "@/components/laboratory/LabResultReportViewer";
 import { translations, isRTL as isRTLLang, type Language } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport, type LabPrintAnalysis } from "@/lib/laboratory/printLabReportHtml";
 
 interface SharedReportResult {
   result_id: string;
