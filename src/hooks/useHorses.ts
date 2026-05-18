@@ -14,6 +14,8 @@ interface Horse {
   color?: string | null;
   breed_id?: string | null;
   color_id?: string | null;
+  breed_data?: { name: string | null; name_ar: string | null } | null;
+  color_data?: { name: string | null; name_ar: string | null } | null;
   birth_date?: string | null;
   birth_at?: string | null;
   registration_number?: string | null;
