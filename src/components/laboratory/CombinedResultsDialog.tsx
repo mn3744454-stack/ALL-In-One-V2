@@ -125,15 +125,15 @@ export function CombinedResultsDialog({
     const analyses: LabPrintAnalysis[] = orderedTemplates
       .filter((s) => s.result)
       .map((s) => ({
-        templateName: s.result?.template_name ?? s.fullTemplate?.name ?? s.sampleTemplate.template.name,
-        templateNameAr: s.result?.template_name_ar ?? s.fullTemplate?.name_ar ?? null,
+        templateName: s.result?.template?.name ?? s.fullTemplate?.name ?? s.sampleTemplate.template.name,
+        templateNameAr: s.result?.template?.name_ar ?? s.fullTemplate?.name_ar ?? null,
         flags: s.result?.flags ?? null,
         status: s.result?.status ?? null,
         interpretation: s.result?.interpretation,
         resultData: (s.result?.result_data as Record<string, unknown>) ?? null,
-        templateFields: s.result?.template_fields ?? s.fullTemplate?.fields,
-        templateNormalRanges: s.result?.template_normal_ranges ?? s.fullTemplate?.normal_ranges,
-        templateGroups: s.result?.template_groups ?? s.fullTemplate?.groups,
+        templateFields: s.fullTemplate?.fields,
+        templateNormalRanges: s.fullTemplate?.normal_ranges,
+        templateGroups: s.fullTemplate?.groups,
       }));
     printLabReport(
       {
