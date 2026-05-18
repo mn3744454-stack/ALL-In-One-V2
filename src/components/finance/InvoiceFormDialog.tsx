@@ -136,7 +136,7 @@ export function InvoiceFormDialog({
   const { activeTenant } = useTenant();
   const tenantCurrency = useTenantCurrency();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
-  const { clients } = useClients();
+  
   const { horses = [] } = useHorses();
   const { data: allServices = [] } = useServices();
   const { plans: allPlans = [] } = useStableServicePlans();
