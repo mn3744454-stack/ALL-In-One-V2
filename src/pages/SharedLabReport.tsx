@@ -195,6 +195,10 @@ export default function SharedLabReport() {
               <Printer className="h-4 w-4 md:me-2" />
               <span className="hidden md:inline">{t("laboratory.report.print")}</span>
             </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+              <Printer className="h-4 w-4 md:me-2" />
+              <span className="hidden md:inline">{t("laboratory.preview.printSavePdf")}</span>
+            </Button>
           </div>
         </div>
       </header>
