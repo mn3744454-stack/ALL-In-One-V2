@@ -4141,7 +4141,45 @@ export const en = {
       createdSuccess: "Created successfully",
       hasBeenAdded: "Item has been added",
       errorCreating: "Error creating item",
+      duplicateName: "This name already exists. Please use a different name or choose the existing value.",
       bilingualNameHint: "Required for database identity, search, and alphabetical sorting.",
+    },
+    errors: {
+      noTenant: "No active workspace selected. Please pick a workspace and try again.",
+      saveFailed: {
+        title: "Could not save horse",
+        description: "Something went wrong while saving. Please try again.",
+      },
+      deleteFailed: {
+        title: "Could not delete horse",
+        description: "Something went wrong while deleting this horse. Please try again.",
+      },
+      passportDuplicate: {
+        title: "Passport number already exists",
+        description: "Another horse is already registered with this passport number. Please enter a different number or review the existing horse record.",
+      },
+      microchipDuplicate: {
+        title: "Microchip number already exists",
+        description: "Another horse is already registered with this microchip number. Please verify the number or review the existing horse record.",
+      },
+      uelnDuplicate: {
+        title: "UELN already exists",
+        description: "Another horse is already registered with this UELN. Please verify the number or review the existing horse record.",
+      },
+    },
+    toast: {
+      created: {
+        title: "Horse created",
+        description: "{{name}} has been added successfully.",
+      },
+      updated: {
+        title: "Horse updated",
+        description: "{{name}} has been updated successfully.",
+      },
+      ownershipWarning: {
+        title: "Horse saved, but ownership was not linked",
+        description: "The horse was saved successfully, but ownership could not be linked. You can update ownership later from the horse profile.",
+      },
     },
     // Table view column headers
     table: {

@@ -18,6 +18,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { mapHorseSaveError } from "@/lib/horseErrorMessages";
 
 // Step components
 import { StepRegistration } from "./wizard/StepRegistration";
@@ -396,8 +397,8 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
   const handleSave = async () => {
     if (!activeTenant) {
       toast({
-        title: "Error",
-        description: "No active tenant selected",
+        title: t('common.error'),
+        description: t('horses.errors.noTenant'),
         variant: "destructive",
       });
       return;
@@ -463,10 +464,7 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         if (horseError) throw horseError;
         horseId = existingHorse.id;
 
-        toast({
-          title: "Horse updated successfully",
-          description: `${data.name} has been updated.`,
-        });
+        // Final success toast fires below after ownership handling.
       } else {
         // Insert new horse
         const { data: horse, error: horseError } = await supabase
@@ -521,17 +519,21 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
           console.error("Ownership error:", ownershipError);
           // Don't throw - horse was saved successfully, just log warning
           toast({
-            title: "Warning",
-            description: "Horse saved but ownership records may not have been saved correctly.",
+            title: t('horses.toast.ownershipWarning.title'),
+            description: t('horses.toast.ownershipWarning.description'),
             variant: "destructive",
           });
         }
       }
 
       toast({
-        title: mode === "edit" ? "Horse updated successfully" : "Horse added successfully",
-        description: `${data.name} has been ${mode === "edit" ? "updated" : "added to your stable"}.`,
+        title: mode === "edit" ? t('horses.toast.updated.title') : t('horses.toast.created.title'),
+        description: (mode === "edit"
+          ? t('horses.toast.updated.description')
+          : t('horses.toast.created.description')
+        ).replace('{{name}}', data.name),
       });
+
 
       // Reset and close
       setData(initialData);
@@ -539,10 +541,10 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
-      console.error("Error saving horse:", error);
+      const friendly = mapHorseSaveError(error, t);
       toast({
-        title: "Error saving horse",
-        description: error.message || "An error occurred while saving.",
+        title: friendly.title,
+        description: friendly.description,
         variant: "destructive",
       });
     } finally {
