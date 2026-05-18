@@ -176,7 +176,13 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">{formattedAge}</TableCell>
-                <TableCell className="text-muted-foreground">{colorName}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {hasColorJoin ? (
+                    <BilingualName name={horse.color_data?.name} nameAr={horse.color_data?.name_ar} primaryClassName="text-sm" />
+                  ) : (
+                    horse.color || "-"
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
                   {(() => {
