@@ -34,8 +34,6 @@ import {
   Link2,
 } from "lucide-react";
 import { formatStandardDateTime, displayHorseName } from "@/lib/displayHelpers";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import type { LabResult } from "@/hooks/laboratory/useLabResults";
 import type { LabTemplate } from "@/hooks/laboratory/useLabTemplates";
 import { ResultSharePanel } from "./ResultSharePanel";
