@@ -286,14 +286,10 @@ export function ResultPreviewDialog({
                   variant="outline"
                   size="sm"
                   onClick={handleDownloadPDF}
-                  disabled={isGeneratingPDF}
+                  aria-label={t("laboratory.preview.printSavePdf")}
                 >
-                  {isGeneratingPDF ? (
-                    <Loader2 className="h-4 w-4 me-2 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4 me-2" />
-                  )}
-                  {t("laboratory.preview.pdf")}
+                  <Download className="h-4 w-4 me-2" />
+                  {t("laboratory.preview.printSavePdf")}
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
