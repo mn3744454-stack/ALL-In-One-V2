@@ -45,7 +45,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
 import { useI18n } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport } from "@/lib/laboratory/printLabReportHtml";
 import { toast } from "sonner";
 
 type DesignTemplate = 'classic' | 'modern' | 'compact';
