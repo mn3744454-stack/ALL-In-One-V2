@@ -34,8 +34,8 @@ interface Horse {
   color?: string | null;
   is_gelded?: boolean;
   breeding_role?: string | null;
-  breed_data?: { name: string } | null;
-  color_data?: { name: string } | null;
+  breed_data?: { name: string | null; name_ar: string | null } | null;
+  color_data?: { name: string | null; name_ar: string | null } | null;
   branch_data?: { name: string } | null;
   primary_owner?: { name: string } | null;
 }
