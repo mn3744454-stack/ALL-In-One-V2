@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { mapHorseDeleteError } from "@/lib/horseErrorMessages";
 import { 
   getCurrentAgeParts, 
   formatCurrentAge, 
@@ -133,10 +134,10 @@ const HorseProfile = () => {
       });
       navigate("/dashboard/horses");
     } catch (error: any) {
-      console.error("Error deleting horse:", error);
+      const friendly = mapHorseDeleteError(error, t);
       toast({
-        title: t('common.error'),
-        description: error.message || t('horses.deleteError'),
+        title: friendly.title,
+        description: friendly.description,
         variant: "destructive",
       });
     } finally {

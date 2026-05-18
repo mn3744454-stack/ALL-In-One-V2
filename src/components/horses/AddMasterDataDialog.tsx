@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
+import { mapMasterDataDuplicate } from "@/lib/horseErrorMessages";
 
 export type MasterDataType =
   | "color"
@@ -146,11 +147,23 @@ export const AddMasterDataDialog = ({
     setLoading(false);
 
     if (error) {
-      toast({
-        title: t('horses.masterData.errorCreating'),
-        description: error.message,
-        variant: "destructive",
-      });
+      const duplicate = (type === "breed" || type === "color")
+        ? mapMasterDataDuplicate(error, t)
+        : null;
+      if (duplicate) {
+        toast({
+          title: duplicate.title,
+          description: duplicate.description,
+          variant: "destructive",
+        });
+      } else {
+        console.error("[horses.masterData] create error", error);
+        toast({
+          title: t('horses.masterData.errorCreating'),
+          description: t('horses.errors.saveFailed.description'),
+          variant: "destructive",
+        });
+      }
       return;
     }
 
