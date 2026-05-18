@@ -412,7 +412,7 @@ export function InvoiceFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       isDirty={isDirty}
-      className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0"
+      className="sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0"
     >
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
@@ -426,38 +426,33 @@ export function InvoiceFormDialog({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t("finance.invoices.client")}</Label>
-                <Select value={formData.client_id} onValueChange={handleClientChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("finance.invoices.selectClient")} />
-                  </SelectTrigger>
-                  <SelectContent className="z-[60]">
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {displayClientName(client.name, client.name_ar, lang)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <InvoiceClientPicker
+                  selectedClientId={formData.client_id}
+                  onSelect={handleClientChange}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.issueDate")}</Label>
-                <Input
-                  type="date"
+                <InvoiceDateField
                   value={formData.issue_date}
-                  onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, issue_date: v })}
+                  todayLabel={t("finance.invoices.dateToday")}
+                  clearLabel={t("finance.invoices.dateClear")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.dueDate")}</Label>
-                <Input
-                  type="date"
+                <InvoiceDateField
                   value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, due_date: v })}
+                  todayLabel={t("finance.invoices.dateToday")}
+                  clearLabel={t("finance.invoices.dateClear")}
                 />
               </div>
             </div>
+
 
             {/* Line Items */}
             <div className="space-y-2">
