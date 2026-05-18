@@ -1142,6 +1142,7 @@ export const ar = {
       high: "مرتفع",
       print: "طباعة",
       pdf: "PDF",
+      printSavePdf: "طباعة / حفظ PDF",
       share: "مشاركة",
       whatsapp: "واتساب",
       telegram: "تيليجرام",
