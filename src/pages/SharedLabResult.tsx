@@ -22,7 +22,7 @@ import jsPDF from "jspdf";
 import { toast } from "sonner";
 import { detectLanguage, isRTL, translations, DEFAULT_LANGUAGE } from "@/i18n";
 import type { Language } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport } from "@/lib/laboratory/printLabReportHtml";
 
 // Interface matching ACTUAL RPC output (10 fields)
 interface SharedResultData {
@@ -168,9 +168,31 @@ export default function SharedLabResult() {
 
   const handlePrint = () => {
     if (!result) return;
-    printReport(previewRef.current, {
-      title: `${t("laboratory.sharedResult.labReport")} - ${result.horse_display_name}`,
-    });
+    printLabReport(
+      {
+        labName: result.tenant_display_name,
+        horseName: result.horse_display_name,
+        horseNameAr: null,
+        sampleId: null,
+        physicalSampleId: null,
+        collectionDate: null,
+        reportDate: result.created_at,
+        analyses: [
+          {
+            templateName: result.template_name,
+            templateNameAr: null,
+            flags: result.flags,
+            status: result.status,
+            interpretation: result.interpretation,
+            resultData: result.result_data ?? null,
+            templateFields: undefined,
+            templateNormalRanges: undefined,
+            templateGroups: undefined,
+          },
+        ],
+      },
+      { lang: (lang === "ar" ? "ar" : "en"), title: `${t("laboratory.sharedResult.labReport")} - ${result.horse_display_name}` }
+    );
   };
 
   const handleDownloadPDF = async () => {

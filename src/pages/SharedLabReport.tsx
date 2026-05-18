@@ -9,7 +9,7 @@ import { FlaskConical, Printer, ShieldAlert } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 import { LabResultReportViewer } from "@/components/laboratory/LabResultReportViewer";
 import { translations, isRTL as isRTLLang, type Language } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport, type LabPrintAnalysis } from "@/lib/laboratory/printLabReportHtml";
 
 interface SharedReportResult {
   result_id: string;
@@ -150,9 +150,30 @@ export default function SharedLabReport() {
   const reportLocale = lang === "ar" ? "ar" : "en";
 
   const handlePrint = () => {
-    printReport(printRef.current, {
-      title: `${t("laboratory.sharedResult.labReport")} - ${data.horse_display_name}`,
-    });
+    const analyses: LabPrintAnalysis[] = data.results.map((r) => ({
+      templateName: r.template_name,
+      templateNameAr: r.template_name_ar,
+      flags: r.flags,
+      status: r.status,
+      interpretation: r.interpretation,
+      resultData: r.result_data ?? null,
+      templateFields: r.template_fields,
+      templateNormalRanges: r.template_normal_ranges,
+      templateGroups: r.template_groups,
+    }));
+    printLabReport(
+      {
+        labName: data.tenant_display_name,
+        horseName: data.horse_display_name,
+        horseNameAr: null,
+        sampleId: data.sample.id,
+        physicalSampleId: data.sample.physical_sample_id,
+        collectionDate: data.sample.collection_date,
+        reportDate: data.share.created_at,
+        analyses,
+      },
+      { lang: reportLocale, title: `${t("laboratory.sharedResult.labReport")} - ${data.horse_display_name}` }
+    );
   };
 
   return (

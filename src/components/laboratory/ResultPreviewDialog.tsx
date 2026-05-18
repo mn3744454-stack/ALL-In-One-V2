@@ -45,7 +45,7 @@ import { useTenant } from "@/contexts/TenantContext";
 import { useRTL } from "@/hooks/useRTL";
 import { getLabHorseDisplayName, getLabHorseNamePair } from "@/lib/laboratory/horseDisplay";
 import { useI18n } from "@/i18n";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport } from "@/lib/laboratory/printLabReportHtml";
 import { toast } from "sonner";
 
 type DesignTemplate = 'classic' | 'modern' | 'compact';
@@ -105,9 +105,32 @@ export function ResultPreviewDialog({
   const sampleId = result.sample?.physical_sample_id || result.sample_id.slice(0, 8);
 
   const handlePrint = () => {
-    printReport(previewRef.current, {
-      title: `Lab Report - ${horseName}`,
-    });
+    if (!result) return;
+    printLabReport(
+      {
+        labName: activeTenant?.tenant?.name ?? null,
+        horseName: horseNamePair.name,
+        horseNameAr: horseNamePair.name_ar,
+        sampleId: result.sample?.id ?? result.sample_id,
+        physicalSampleId: result.sample?.physical_sample_id ?? null,
+        collectionDate: null,
+        reportDate: result.created_at ?? new Date().toISOString(),
+        analyses: [
+          {
+            templateName: result.template?.name ?? fullTemplate?.name ?? templateName,
+            templateNameAr: result.template?.name_ar ?? fullTemplate?.name_ar ?? null,
+            flags: result.flags ?? null,
+            status: result.status ?? null,
+            interpretation: result.interpretation,
+            resultData: (result.result_data as Record<string, unknown>) ?? null,
+            templateFields: fullTemplate?.fields,
+            templateNormalRanges: fullTemplate?.normal_ranges,
+            templateGroups: fullTemplate?.groups,
+          },
+        ],
+      },
+      { lang: reportLocale, title: `Lab Report - ${horseName}` }
+    );
   };
 
   const handleDownloadPDF = async () => {

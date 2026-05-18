@@ -20,7 +20,7 @@ import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 import { ReportChrome } from "./ReportChrome";
 import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport, type LabPrintAnalysis } from "@/lib/laboratory/printLabReportHtml";
 
 interface StableResultViewerDialogProps {
   group: StableResultGroup;
@@ -53,9 +53,30 @@ export function StableResultViewerDialog({ group, open, onOpenChange }: StableRe
   const reportIsRTL = reportLocale === "ar";
 
   const handlePrint = () => {
-    printReport(previewRef.current, {
-      title: `Lab Report - ${displayHorseName(group.horseName, group.horseNameAr, reportLocale)}`,
-    });
+    const analyses: LabPrintAnalysis[] = group.results.map((r) => ({
+      templateName: r.template_name,
+      templateNameAr: r.template_name_ar,
+      flags: r.flags,
+      status: r.status,
+      interpretation: r.interpretation,
+      resultData: (r.result_data as Record<string, unknown>) ?? null,
+      templateFields: r.template_fields,
+      templateNormalRanges: r.template_normal_ranges,
+      templateGroups: r.template_groups,
+    }));
+    printLabReport(
+      {
+        labName: group.labName,
+        horseName: group.horseName,
+        horseNameAr: group.horseNameAr,
+        sampleId: group.sampleId,
+        physicalSampleId: group.physicalSampleId,
+        collectionDate: null,
+        reportDate: group.publishedAt,
+        analyses,
+      },
+      { lang: reportLocale, title: `Lab Report - ${bilingualHorseName}` }
+    );
   };
 
   const reportTitle =

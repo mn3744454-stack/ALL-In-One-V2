@@ -50,7 +50,7 @@ import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
 import { LabResultReportViewer, type LabReportVariant } from "./LabResultReportViewer";
 import { PublishToStableAction } from "./PublishToStableAction";
 import { ReportSharePanel, type ReportShareAnalysis } from "./ReportSharePanel";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport, type LabPrintAnalysis } from "@/lib/laboratory/printLabReportHtml";
 import { toast } from "sonner";
 
 type DesignTemplate = "classic" | "modern" | "compact";
@@ -122,9 +122,32 @@ export function CombinedResultsDialog({
   const labName = activeTenant?.tenant?.name ?? null;
 
   const handlePrint = () => {
-    printReport(previewRef.current, {
-      title: `Lab Report - ${horseName}`,
-    });
+    const analyses: LabPrintAnalysis[] = orderedTemplates
+      .filter((s) => s.result)
+      .map((s) => ({
+        templateName: s.result?.template?.name ?? s.fullTemplate?.name ?? s.sampleTemplate.template.name,
+        templateNameAr: s.result?.template?.name_ar ?? s.fullTemplate?.name_ar ?? null,
+        flags: s.result?.flags ?? null,
+        status: s.result?.status ?? null,
+        interpretation: s.result?.interpretation,
+        resultData: (s.result?.result_data as Record<string, unknown>) ?? null,
+        templateFields: s.fullTemplate?.fields,
+        templateNormalRanges: s.fullTemplate?.normal_ranges,
+        templateGroups: s.fullTemplate?.groups,
+      }));
+    printLabReport(
+      {
+        labName,
+        horseName: horseNamePair.name,
+        horseNameAr: horseNamePair.name_ar,
+        sampleId: sample.id,
+        physicalSampleId: sample.physical_sample_id,
+        collectionDate: sample.collection_date ?? null,
+        reportDate: new Date().toISOString(),
+        analyses,
+      },
+      { lang: reportLocale, title: `Lab Report - ${horseName}` }
+    );
   };
 
   const handleDownloadPDF = async () => {
