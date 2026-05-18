@@ -20,7 +20,7 @@ import type { StableResultGroup } from "@/hooks/laboratory/useStableLabResults";
 import { LabResultReportViewer } from "./LabResultReportViewer";
 import { ReportChrome } from "./ReportChrome";
 import { formatAnalysisCount } from "@/lib/laboratory/analysisCount";
-import { printReport } from "@/lib/laboratory/printReport";
+import { printLabReport, type LabPrintAnalysis } from "@/lib/laboratory/printLabReportHtml";
 
 interface StableResultViewerDialogProps {
   group: StableResultGroup;
