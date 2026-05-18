@@ -113,7 +113,7 @@ export function ResultPreviewDialog({
         horseNameAr: horseNamePair.name_ar,
         sampleId: result.sample?.id ?? result.sample_id,
         physicalSampleId: result.sample?.physical_sample_id ?? null,
-        collectionDate: result.sample?.collection_date ?? null,
+        collectionDate: null,
         reportDate: result.created_at ?? new Date().toISOString(),
         analyses: [
           {
