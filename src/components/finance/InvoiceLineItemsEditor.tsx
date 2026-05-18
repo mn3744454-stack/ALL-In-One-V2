@@ -7,11 +7,12 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText, Layers } from "lucide-react";
+import { Plus, Trash2, Package, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
 import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
+import { HorseLinePicker } from "./HorseLinePicker";
 
 export interface LineItem {
   id: string;
