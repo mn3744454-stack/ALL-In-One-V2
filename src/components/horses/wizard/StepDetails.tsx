@@ -3,12 +3,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useHorseMasterData } from "@/hooks/useHorseMasterData";
-import { AddMasterDataDialog, MasterDataType } from "../AddMasterDataDialog";
+import { BreedPickerSheet } from "./BreedPickerSheet";
+import { ColorPickerSheet } from "./ColorPickerSheet";
+import { BilingualName } from "@/components/ui/BilingualName";
 import type { HorseWizardData } from "../HorseWizard";
 import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 interface StepDetailsProps {
   data: HorseWizardData;
@@ -18,25 +21,12 @@ interface StepDetailsProps {
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
-  const { colors, breeds, branches, stables, housingUnits, createColor, createBreed } = useHorseMasterData();
-  const [dialogType, setDialogType] = useState<MasterDataType | null>(null);
+  const { colors, breeds, branches, stables, housingUnits } = useHorseMasterData();
+  const [breedPickerOpen, setBreedPickerOpen] = useState(false);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
-  const handleCreate = async (formData: Record<string, string>) => {
-    if (dialogType === "color") {
-      return createColor(formData.name, formData.name_ar);
-    } else if (dialogType === "breed") {
-      return createBreed(formData.name, formData.name_ar);
-    }
-    return { data: null, error: new Error("Unknown type") };
-  };
-
-  const handleSuccess = (result: any) => {
-    if (dialogType === "color" && result?.id) {
-      onChange({ color_id: result.id });
-    } else if (dialogType === "breed" && result?.id) {
-      onChange({ breed_id: result.id });
-    }
-  };
+  const selectedBreed = breeds.find((b) => b.id === data.breed_id) || null;
+  const selectedColor = colors.find((c) => c.id === data.color_id) || null;
 
   return (
     <div className="space-y-6">
@@ -49,31 +39,39 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>{t('horses.wizard.breed')}</Label>
-            <div className="flex gap-2">
-              <Select value={data.breed_id} onValueChange={(v) => onChange({ breed_id: v })}>
-                <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectBreed')} /></SelectTrigger>
-                <SelectContent>
-                  {breeds.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button type="button" size="icon" variant="outline" onClick={() => setDialogType("breed")}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setBreedPickerOpen(true)}
+              className={cn(
+                "w-full min-h-10 px-3 py-2 rounded-md border bg-background text-sm flex items-center justify-between gap-2",
+                "hover:bg-muted/40 transition-colors text-start"
+              )}
+            >
+              {selectedBreed ? (
+                <BilingualName name={selectedBreed.name} nameAr={selectedBreed.name_ar} inline primaryClassName="text-sm" />
+              ) : (
+                <span className="text-muted-foreground">{t('horses.wizard.chooseBreed')}</span>
+              )}
+              <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
           </div>
           <div className="space-y-2">
             <Label>{t('horses.wizard.color')}</Label>
-            <div className="flex gap-2">
-              <Select value={data.color_id} onValueChange={(v) => onChange({ color_id: v })}>
-                <SelectTrigger className="flex-1"><SelectValue placeholder={t('horses.wizard.selectColor')} /></SelectTrigger>
-                <SelectContent>
-                  {colors.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Button type="button" size="icon" variant="outline" onClick={() => setDialogType("color")}>
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setColorPickerOpen(true)}
+              className={cn(
+                "w-full min-h-10 px-3 py-2 rounded-md border bg-background text-sm flex items-center justify-between gap-2",
+                "hover:bg-muted/40 transition-colors text-start"
+              )}
+            >
+              {selectedColor ? (
+                <BilingualName name={selectedColor.name} nameAr={selectedColor.name_ar} inline primaryClassName="text-sm" />
+              ) : (
+                <span className="text-muted-foreground">{t('horses.wizard.chooseColor')}</span>
+              )}
+              <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
           </div>
         </div>
       </div>
@@ -160,15 +158,18 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         </div>
       </div>
 
-      {dialogType && (
-        <AddMasterDataDialog
-          open={!!dialogType}
-          onOpenChange={() => setDialogType(null)}
-          type={dialogType}
-          onCreate={handleCreate}
-          onSuccess={handleSuccess}
-        />
-      )}
+      <BreedPickerSheet
+        open={breedPickerOpen}
+        onOpenChange={setBreedPickerOpen}
+        selectedBreedId={data.breed_id}
+        onBreedSelect={(id) => onChange({ breed_id: id })}
+      />
+      <ColorPickerSheet
+        open={colorPickerOpen}
+        onOpenChange={setColorPickerOpen}
+        selectedColorId={data.color_id}
+        onColorSelect={(id) => onChange({ color_id: id })}
+      />
     </div>
   );
 };

@@ -29,8 +29,8 @@ interface Horse {
   color?: string | null;
   is_gelded?: boolean;
   breeding_role?: string | null;
-  breed_data?: { name: string } | null;
-  color_data?: { name: string } | null;
+  breed_data?: { name: string | null; name_ar: string | null } | null;
+  color_data?: { name: string | null; name_ar: string | null } | null;
   branch_data?: { name: string } | null;
   primary_owner?: { name: string } | null;
   _hasOffspring?: boolean;
@@ -87,8 +87,21 @@ export const HorseCard = ({ horse, onClick, compact = false, dense = false, life
   const typeLabel = rtl ? typeBadgeProps.labelAr : typeBadgeProps.label;
   const opStatus = deriveOperationalStatus(lifecycleState);
   const showLifecycleChip = opStatus !== 'unknown';
-  const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
-  const colorName = horse.color_data?.name || horse.color;
+  const pickBilingual = (en?: string | null, ar?: string | null): string | null => {
+    const e = en?.trim() || null;
+    const a = ar?.trim() || null;
+    if (!e && !a) return null;
+    if (rtl) return a || e;
+    return e || a;
+  };
+  const breedName =
+    pickBilingual(horse.breed_data?.name, horse.breed_data?.name_ar) ||
+    horse.breed ||
+    t('horses.unknownBreed');
+  const colorName =
+    pickBilingual(horse.color_data?.name, horse.color_data?.name_ar) ||
+    horse.color ||
+    null;
   const branchName = horse.branch_data?.name;
   const ownerName = horse.primary_owner?.name;
 

@@ -14,6 +14,8 @@ interface Horse {
   color?: string | null;
   breed_id?: string | null;
   color_id?: string | null;
+  breed_data?: { name: string | null; name_ar: string | null } | null;
+  color_data?: { name: string | null; name_ar: string | null } | null;
   birth_date?: string | null;
   birth_at?: string | null;
   registration_number?: string | null;
@@ -74,11 +76,15 @@ export const useHorses = (filters?: HorseFilters) => {
       if (!tenantId) return [];
       const { data, error } = await supabase
         .from("horses")
-        .select("*")
+        .select(`
+          *,
+          breed_data:horse_breeds!breed_id(name, name_ar),
+          color_data:horse_colors!color_id(name, name_ar)
+        `)
         .eq("tenant_id", tenantId)
         .order("name");
       if (error) throw error;
-      return (data || []) as Horse[];
+      return (data || []) as unknown as Horse[];
     },
     enabled: !!tenantId,
     staleTime: 30_000,

@@ -34,8 +34,8 @@ interface Horse {
   color?: string | null;
   is_gelded?: boolean;
   breeding_role?: string | null;
-  breed_data?: { name: string } | null;
-  color_data?: { name: string } | null;
+  breed_data?: { name: string | null; name_ar: string | null } | null;
+  color_data?: { name: string | null; name_ar: string | null } | null;
   branch_data?: { name: string } | null;
   primary_owner?: { name: string } | null;
 }
@@ -145,8 +145,8 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
             const formattedAge = formatAgeLocalized(ageParts);
             const typeBadgeProps = getHorseTypeBadgeProps(horseType);
             const typeLabel = isRTL ? typeBadgeProps.labelAr : typeBadgeProps.label;
-            const breedName = horse.breed_data?.name || horse.breed || t('horses.unknownBreed');
-            const colorName = horse.color_data?.name || horse.color || "-";
+            const hasBreedJoin = !!(horse.breed_data && (horse.breed_data.name || horse.breed_data.name_ar));
+            const hasColorJoin = !!(horse.color_data && (horse.color_data.name || horse.color_data.name_ar));
             const ownerName = horse.primary_owner?.name || "-";
 
             return (
@@ -163,14 +163,26 @@ export const HorsesTable = ({ horses, onHorseClick, lifecycleStates }: HorsesTab
                 <TableCell>
                   <BilingualName name={horse.name} nameAr={horse.name_ar} />
                 </TableCell>
-                <TableCell className="text-muted-foreground">{breedName}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {hasBreedJoin ? (
+                    <BilingualName name={horse.breed_data?.name} nameAr={horse.breed_data?.name_ar} primaryClassName="text-sm" />
+                  ) : (
+                    horse.breed || t('horses.unknownBreed')
+                  )}
+                </TableCell>
                 <TableCell className="text-center">
                   <Badge className={cn("text-xs", typeBadgeProps.className)}>
                     {typeLabel}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center text-muted-foreground">{formattedAge}</TableCell>
-                <TableCell className="text-muted-foreground">{colorName}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {hasColorJoin ? (
+                    <BilingualName name={horse.color_data?.name} nameAr={horse.color_data?.name_ar} primaryClassName="text-sm" />
+                  ) : (
+                    horse.color || "-"
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground">{ownerName}</TableCell>
                 <TableCell className="text-center">
                   {(() => {
