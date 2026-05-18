@@ -63,12 +63,13 @@ export interface HorseWizardData {
   passport_number: string;
   ueln: string;
   
-  // Step 4 (was Details): Location & housing
-  branch_id: string;
-  stable_id: string;
-  housing_unit_id: string;
-  housing_notes: string;
-  status: "active" | "inactive";
+  // NOTE: Operational location/housing fields (branch_id, stable_id,
+  // housing_unit_id, housing_notes) and `status` are intentionally NOT
+  // editable from the Horse Registry wizard. Branch/Stable/Housing are
+  // owned by the Movement/Admissions/Housing modules; status is owned
+  // by the Lifecycle Chip and intake/arrival flows. The Postgres column
+  // default ('active') covers newly created horses, and edits never
+  // submit `status` so existing intake_draft horses are preserved.
   
   // Physical
   height: string;
@@ -122,11 +123,7 @@ const initialData: HorseWizardData = {
   microchip_number: "",
   passport_number: "",
   ueln: "",
-  branch_id: "",
-  stable_id: "",
-  housing_unit_id: "",
-  housing_notes: "",
-  status: "active",
+  // operational fields removed — see HorseWizardData note above
   height: "",
   weight: "",
   mane_marks: "",
@@ -222,11 +219,7 @@ const mapHorseToWizardData = (horse: HorseData): HorseWizardData => ({
   microchip_number: horse.microchip_number || "",
   passport_number: horse.passport_number || "",
   ueln: horse.ueln || "",
-  branch_id: horse.branch_id || "",
-  stable_id: horse.stable_id || "",
-  housing_unit_id: horse.housing_unit_id || "",
-  housing_notes: horse.housing_notes || "",
-  status: (horse.status as "active" | "inactive") || "active",
+  // operational fields not surfaced in wizard — see HorseWizardData note
   height: horse.height?.toString() || "",
   weight: horse.weight?.toString() || "",
   mane_marks: horse.mane_marks || "",
@@ -425,11 +418,12 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
         microchip_number: data.microchip_number || null,
         passport_number: data.passport_number || null,
         ueln: data.ueln || null,
-        branch_id: data.branch_id || null,
-        stable_id: data.stable_id || null,
-        housing_unit_id: data.housing_unit_id || null,
-        housing_notes: data.housing_notes || null,
-        status: data.status,
+        // Operational location/housing + status intentionally omitted:
+        // - branch/stable/housing_unit/housing_notes are owned by
+        //   Movement/Admissions/Housing modules.
+        // - `status` is owned by the Lifecycle Chip and intake/arrival
+        //   flows. Postgres column default 'active' covers create; edits
+        //   leave the existing lifecycle state (incl. intake_draft) intact.
         is_pregnant: data.is_pregnant,
         pregnancy_months: data.is_pregnant ? data.pregnancy_months : null,
         is_gelded: data.is_gelded,

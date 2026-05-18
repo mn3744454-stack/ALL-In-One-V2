@@ -8,15 +8,17 @@ import { BilingualName } from "@/components/ui/BilingualName";
 import { AlertTriangle, Heart } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import {
+  getCompletenessChecks,
+  COMPLETENESS_LABEL_KEYS,
+  type CompletenessHorse,
+} from "@/lib/horseCompleteness";
 
-interface IncompleteHorse {
+interface IncompleteHorse extends CompletenessHorse {
   id: string;
   name: string;
   name_ar?: string | null;
   avatar_url?: string | null;
-  birth_date?: string | null;
-  microchip_number?: string | null;
-  passport_number?: string | null;
 }
 
 interface IncompleteProfileModalProps {
@@ -51,10 +53,9 @@ export function IncompleteProfileModal({
           ) : (
             <div className="space-y-2">
               {horses.map((horse) => {
-                const missingFields: string[] = [];
-                if (!horse.birth_date) missingFields.push(t('horses.wizard.fields.birthDate'));
-                if (!horse.microchip_number) missingFields.push(t('horses.profile.microchip'));
-                if (!horse.passport_number) missingFields.push(t('horses.profile.passport'));
+                const missingFields = getCompletenessChecks(horse)
+                  .filter((c) => !c.filled)
+                  .map((c) => t(COMPLETENESS_LABEL_KEYS[c.key]));
 
                 return (
                   <button

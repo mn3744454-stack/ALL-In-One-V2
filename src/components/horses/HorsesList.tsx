@@ -14,21 +14,18 @@ import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/c
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
 
-interface Horse {
+import { isHorseIncomplete, type CompletenessHorse } from "@/lib/horseCompleteness";
+
+interface Horse extends CompletenessHorse {
   id: string;
   name: string;
   name_ar?: string | null;
   gender: string;
   status?: string | null;
   age_category?: string | null;
-  birth_date?: string | null;
   avatar_url?: string | null;
   breed?: string | null;
   color?: string | null;
-  breed_id?: string | null;
-  color_id?: string | null;
-  microchip_number?: string | null;
-  passport_number?: string | null;
   housing_unit_id?: string | null;
   current_location_id?: string | null;
 }
@@ -59,9 +56,7 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
   // Operational buckets
   const horseBuckets = useMemo(() => {
     const inside = horses.filter(h => h.status === 'active' && h.current_location_id);
-    const incomplete = horses.filter(h => 
-      h.status === 'active' && (!h.birth_date || !h.microchip_number || !h.passport_number)
-    );
+    const incomplete = horses.filter(h => h.status === 'active' && isHorseIncomplete(h));
     const outside = horses.filter(h => h.status === 'active' && !h.current_location_id);
     return { all: horses, inside, incomplete, outside };
   }, [horses]);
