@@ -344,7 +344,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => startEdit('emergency_contact', '')}
+                              onClick={() => setEmergencyContactOpen(true)}
                             >
                               {t('housing.admissions.detail.addContact')}
                             </Button>
@@ -354,7 +354,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => startNumEdit('daily_rate', admission.daily_rate)}
+                              onClick={() => setSetPriceOpen(true)}
                             >
                               {t('housing.admissions.detail.setRate')}
                             </Button>
@@ -364,7 +364,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => setEditingField('client_id')}
+                              onClick={() => setAssignClientOpen(true)}
                             >
                               {t('housing.admissions.detail.assignClient')}
                             </Button>
