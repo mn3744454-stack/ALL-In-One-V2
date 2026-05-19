@@ -4095,6 +4095,10 @@ export const ar = {
       multiplePrimary: "{{count}} ملاك رئيسيين",
       ownerNumber: "مالك {{number}}",
       createNewOwner: "إنشاء مالك جديد",
+      addAnotherOwner: "إضافة مالك إضافي",
+      chooseOwner: "اختر المالك",
+      searchOwnerPlaceholder: "البحث عن مالك...",
+      noOwnersFound: "لا توجد نتائج",
       // Details step additional keys
       isGelded: "هل هو مخصي؟",
       geldedDesc: "الخصي لا يمكن التراجع عنه وسيستبعد الخيل من التربية",
