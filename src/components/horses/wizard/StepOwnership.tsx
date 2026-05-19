@@ -85,25 +85,14 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
     owners.find((o) => o.id === id);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-16">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <h4 className="font-semibold text-navy">{t('horses.wizard.owners')}</h4>
           <p className="text-sm text-muted-foreground">{t('horses.wizard.ownershipDescription')}</p>
         </div>
-        {data.owners.length > 0 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addOwnerRow}
-            className="gap-2 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            {t('horses.wizard.addAnotherOwner')}
-          </Button>
-        )}
       </div>
+
 
       {/* Validation Status */}
       {data.owners.length > 0 && (
@@ -184,6 +173,23 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
           </Button>
         </div>
       )}
+
+      {data.owners.length > 0 && (
+        <div className="sticky bottom-0 -mx-2 px-2 py-2 bg-background/95 backdrop-blur border-t z-10 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addOwnerRow}
+            className="gap-2 shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            {t('horses.wizard.addAnotherOwner')}
+          </Button>
+        </div>
+      )}
+
+
 
       <OwnerPickerSheet
         open={pickerOpenIndex !== null}

@@ -4077,7 +4077,7 @@ export const en = {
       multiplePrimary: "{{count}} primary owners",
       ownerNumber: "Owner {{number}}",
       createNewOwner: "Create new owner",
-      addAnotherOwner: "Add another owner",
+      addAnotherOwner: "+ Additional owner",
       chooseOwner: "Choose owner",
       searchOwnerPlaceholder: "Search owners...",
       noOwnersFound: "No owners found",

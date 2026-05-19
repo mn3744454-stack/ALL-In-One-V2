@@ -4095,7 +4095,7 @@ export const ar = {
       multiplePrimary: "{{count}} ملاك رئيسيين",
       ownerNumber: "مالك {{number}}",
       createNewOwner: "إنشاء مالك جديد",
-      addAnotherOwner: "إضافة مالك إضافي",
+      addAnotherOwner: "+ مالك إضافي",
       chooseOwner: "اختر المالك",
       searchOwnerPlaceholder: "البحث عن مالك...",
       noOwnersFound: "لا توجد نتائج",
