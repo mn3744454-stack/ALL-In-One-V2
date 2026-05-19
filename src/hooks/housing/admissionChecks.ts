@@ -12,15 +12,45 @@ export interface AdmissionCheckResult {
 
 export type AdmissionChecks = Record<string, AdmissionCheckResult>;
 
+export interface EmergencyContactPhoneShape {
+  number?: string | null;
+  label?: string;
+  is_whatsapp?: boolean;
+  is_primary?: boolean;
+}
+
+export interface EmergencyContactShape {
+  id?: string;
+  name?: string | null;
+  name_ar?: string | null;
+  relationship?: string | null;
+  phones?: EmergencyContactPhoneShape[];
+}
+
 export interface AdmissionCheckInput {
   horse_id?: string | null;
   branch_id?: string | null;
   client_id?: string | null;
   unit_id?: string | null;
   emergency_contact?: string | null;
+  emergency_contacts?: EmergencyContactShape[] | null;
   daily_rate?: number | null;
   monthly_rate?: number | null;
   balance_cleared?: boolean;
+}
+
+function hasUsableEmergencyContact(input: AdmissionCheckInput): boolean {
+  const arr = Array.isArray(input.emergency_contacts) ? input.emergency_contacts : [];
+  const fromJsonb = arr.some(
+    (c) =>
+      Array.isArray(c?.phones) &&
+      c.phones!.some(
+        (p) => typeof p?.number === 'string' && (p.number as string).trim().length > 0
+      )
+  );
+  if (fromJsonb) return true;
+  // Legacy fallback for compatibility during transition.
+  return !!(input.emergency_contact && input.emergency_contact.trim().length > 0);
 }
 
 export function computeAdmissionChecks(input: AdmissionCheckInput): AdmissionChecks {
@@ -44,7 +74,7 @@ export function computeAdmissionChecks(input: AdmissionCheckInput): AdmissionChe
     ? { status: 'pass', message: 'Housing unit assigned' }
     : { status: 'warning', message: 'No housing unit assigned' };
 
-  checks.emergency_contact = input.emergency_contact
+  checks.emergency_contact = hasUsableEmergencyContact(input)
     ? { status: 'pass', message: 'Emergency contact provided' }
     : { status: 'warning', message: 'No emergency contact' };
 

@@ -227,6 +227,7 @@ export type Database = {
           created_at: string
           daily_rate: number | null
           emergency_contact: string | null
+          emergency_contacts: Json
           expected_departure: string | null
           horse_id: string
           id: string
@@ -258,6 +259,7 @@ export type Database = {
           created_at?: string
           daily_rate?: number | null
           emergency_contact?: string | null
+          emergency_contacts?: Json
           expected_departure?: string | null
           horse_id: string
           id?: string
@@ -289,6 +291,7 @@ export type Database = {
           created_at?: string
           daily_rate?: number | null
           emergency_contact?: string | null
+          emergency_contacts?: Json
           expected_departure?: string | null
           horse_id?: string
           id?: string

@@ -632,12 +632,17 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Emergency contact — opens EmergencyContactDialog */}
+                  {/* Emergency contacts — opens EmergencyContactDialog */}
                   <div className="space-y-1">
                     <EditableDetailRow
                       icon={User}
                       label={t('housing.admissions.detail.emergencyContact')}
-                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
+                      value={<EmergencyContactSummary
+                        contacts={admission.emergency_contacts}
+                        legacy={admission.emergency_contact}
+                        lang={lang}
+                        t={t}
+                      />}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => setEmergencyContactOpen(true)}
                     />
@@ -645,6 +650,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       {t('housing.admissions.detail.emergencyContactHelp')}
                     </p>
                   </div>
+
                 </CardContent>
               </Card>
 
@@ -900,11 +906,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           open={emergencyContactOpen}
           onOpenChange={setEmergencyContactOpen}
           admissionId={admission.id}
+          currentContacts={admission.emergency_contacts}
           currentValue={admission.emergency_contact}
           horseName={admission.horse?.name}
           horseNameAr={admission.horse?.name_ar}
         />
       )}
+
     </>
   );
 }
@@ -968,3 +976,48 @@ function EditableDetailRow({ icon: Icon, label, value, canEdit, onEdit }: {
     </div>
   );
 }
+
+function EmergencyContactSummary({
+  contacts,
+  legacy,
+  lang,
+  t,
+}: {
+  contacts: any;
+  legacy: string | null;
+  lang: string;
+  t: (key: string) => string;
+}) {
+  const list = Array.isArray(contacts) ? contacts : [];
+  if (list.length === 0) {
+    if (legacy && legacy.trim()) {
+      return <span className="font-medium">{legacy}</span>;
+    }
+    return <span className="font-medium">—</span>;
+  }
+  const first = list[0] || {};
+  const nameEn = (first.name || '').trim();
+  const nameAr = (first.name_ar || '').trim();
+  const name =
+    lang === 'ar'
+      ? nameAr || nameEn || t('housing.admissions.detail.notAssigned')
+      : nameEn || nameAr || t('housing.admissions.detail.notAssigned');
+  const phones = Array.isArray(first.phones) ? first.phones : [];
+  const primary =
+    phones.find((p: any) => p?.is_primary && p?.number) ||
+    phones.find((p: any) => p?.number);
+  const phoneStr = primary?.number?.trim() || '';
+  const more = list.length - 1;
+  return (
+    <span className="font-medium">
+      {name}
+      {phoneStr ? <span className="text-muted-foreground"> · {phoneStr}</span> : null}
+      {more > 0 ? (
+        <span className="text-muted-foreground text-xs ms-1">
+          {t('housing.emergency.moreSuffix').replace('{{n}}', String(more))}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+

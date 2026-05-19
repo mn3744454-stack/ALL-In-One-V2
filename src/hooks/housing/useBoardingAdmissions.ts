@@ -8,6 +8,21 @@ import { useHousingInvalidation } from './useHousingInvalidation';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
+export interface EmergencyContactPhone {
+  number: string;
+  label: 'mobile' | 'work' | 'home' | 'other';
+  is_whatsapp?: boolean;
+  is_primary?: boolean;
+}
+
+export interface BoardingEmergencyContact {
+  id?: string;
+  name: string;
+  name_ar?: string | null;
+  relationship?: string | null;
+  phones: EmergencyContactPhone[];
+}
+
 export interface BoardingAdmission {
   id: string;
   tenant_id: string;
@@ -28,6 +43,7 @@ export interface BoardingAdmission {
   reason: string | null;
   special_instructions: string | null;
   emergency_contact: string | null;
+  emergency_contacts: BoardingEmergencyContact[];
   admitted_by: string | null;
   checked_out_by: string | null;
   checkout_notes: string | null;
@@ -59,11 +75,37 @@ export interface CreateAdmissionData {
   rate_currency?: string;
   reason?: string;
   special_instructions?: string;
-  emergency_contact?: string;
+  emergency_contact?: string | null;
+  emergency_contacts?: BoardingEmergencyContact[] | null;
   expected_departure?: string | null;
   /** ISO string for historical admissions. Defaults to now() if omitted. */
   admitted_at?: string;
 }
+
+/**
+ * Derive a legacy single-line `emergency_contact` summary from the structured
+ * `emergency_contacts` array, so older read paths keep working during the
+ * transition release.
+ */
+export function deriveLegacyEmergencyContact(
+  contacts: BoardingEmergencyContact[] | null | undefined
+): string | null {
+  if (!Array.isArray(contacts) || contacts.length === 0) return null;
+  for (const c of contacts) {
+    if (!c || !Array.isArray(c.phones)) continue;
+    const primary = c.phones.find(
+      (p) => p?.is_primary && p?.number && p.number.trim().length > 0
+    );
+    if (primary) return primary.number.trim();
+  }
+  for (const c of contacts) {
+    if (!c || !Array.isArray(c.phones)) continue;
+    const any = c.phones.find((p) => p?.number && p.number.trim().length > 0);
+    if (any) return any.number.trim();
+  }
+  return null;
+}
+
 
 export interface AdmissionFilters {
   status?: AdmissionStatus | 'all';
@@ -431,20 +473,32 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error('Cannot update a closed admission');
       }
 
-      const merged = { ...current, ...updates };
+      // If caller supplied a new emergency_contacts array, mirror the first
+      // usable phone into the legacy emergency_contact text column so older
+      // reads keep working during the transition release.
+      const writeUpdates: Record<string, any> = { ...updates };
+      if (Object.prototype.hasOwnProperty.call(updates, 'emergency_contacts')) {
+        const mirror = deriveLegacyEmergencyContact(
+          (updates as any).emergency_contacts as BoardingEmergencyContact[] | null
+        );
+        writeUpdates.emergency_contact = mirror;
+      }
+
+      const merged = { ...current, ...writeUpdates };
       const checks = computeAdmissionChecks({
         horse_id: merged.horse_id,
         branch_id: merged.branch_id,
         client_id: merged.client_id,
         unit_id: merged.unit_id,
         emergency_contact: merged.emergency_contact,
+        emergency_contacts: merged.emergency_contacts,
         daily_rate: merged.daily_rate,
         monthly_rate: merged.monthly_rate,
       });
 
       const { error } = await fromTable('boarding_admissions')
         .update({
-          ...updates,
+          ...writeUpdates,
           admission_checks: checks,
           updated_at: new Date().toISOString(),
         })
@@ -453,6 +507,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (error) throw error;
     },
+
     onSuccess: () => {
       toast.success('Admission updated');
       // Field edits may include unit/area changes → admission + occupancy.
