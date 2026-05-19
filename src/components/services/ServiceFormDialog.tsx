@@ -26,20 +26,18 @@ import { Loader2, Plus, Pencil } from "lucide-react";
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 
-const serviceSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  name_ar: z.string().optional(),
-  description: z.string().optional(),
-  service_type: z.string().optional(),
-  service_kind: z.string().optional(),
-  unit_price: z.coerce.number().nullable().optional(),
-  price_display: z.string().optional(),
-  is_active: z.boolean().default(true),
-  is_public: z.boolean().default(true),
-  is_taxable: z.boolean().default(true),
-});
-
-type ServiceFormValues = z.infer<typeof serviceSchema>;
+type ServiceFormValues = {
+  name: string;
+  name_ar?: string;
+  description?: string;
+  service_type?: string;
+  service_kind?: string;
+  unit_price?: number | null;
+  price_display?: string;
+  is_active: boolean;
+  is_public: boolean;
+  is_taxable: boolean;
+};
 
 interface ServiceFormDialogProps {
   service?: TenantService;
