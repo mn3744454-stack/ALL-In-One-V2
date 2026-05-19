@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
-import { useTenant } from "@/contexts/TenantContext";
 import { MultiPhoneInput, PhoneEntry } from "@/components/shared/contact/MultiPhoneInput";
 import type { OwnerType, CreateOwnerPayload } from "@/hooks/useHorseMasterData";
 
