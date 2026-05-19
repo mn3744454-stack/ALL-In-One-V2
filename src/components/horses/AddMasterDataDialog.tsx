@@ -28,7 +28,7 @@ interface AddMasterDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: MasterDataType;
-  onCreate: (data: Record<string, string>) => Promise<{ data: unknown; error: Error | null }>;
+  onCreate: (data: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
   onSuccess?: (data: unknown) => void;
 }
 
