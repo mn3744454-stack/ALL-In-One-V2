@@ -101,10 +101,10 @@ export function useStableServicePlans() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Plan updated');
+      toast.success(t('services.packages.toasts.updated'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
-    onError: () => toast.error('Failed to update plan'),
+    onError: () => toast.error(t('services.packages.toasts.updateFailed')),
   });
 
   const deleteMutation = useMutation({
