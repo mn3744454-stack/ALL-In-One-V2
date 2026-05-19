@@ -278,12 +278,10 @@ export function InvoiceLineItemsEditor({
                 {showAttribution && !item.entity_type ? (
                   <>
                     <div className="col-span-5">
-                      <HorsePicker
+                      <HorseLinePicker
                         horses={horses}
                         selectedId={item.horse_id || null}
                         onSelect={(id) => updateItem(item.id, "horse_id", id)}
-                        getHorseName={getHorseName}
-                        t={t}
                       />
                     </div>
                     <div className="col-span-4">
