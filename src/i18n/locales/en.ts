@@ -1792,6 +1792,12 @@ export const en = {
       locations: "Locations",
       settings: "Settings",
     },
+    direction: {
+      from: "From {{from}}",
+      to: "To {{to}}",
+      fromTo: "From {{from}} to {{to}}",
+      unspecified: "unspecified",
+    },
     types: {
       in: "Arrival",
       out: "Departure",

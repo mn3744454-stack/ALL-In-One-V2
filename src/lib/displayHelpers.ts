@@ -146,29 +146,53 @@ export function formatStandardDate(date?: Date | string | null): string {
 export const formatBreedingDate = formatStandardDate;
 
 /**
- * Format a date-time as DD-MM-YYYY HH:mm — platform-wide standard.
+ * Internal: format a Date as `hh:mm <period>` where the period label is
+ * bilingual — `صباحاً` / `مساءً` in Arabic, `AM` / `PM` otherwise.
+ *
+ * Centralizes the platform-wide 12-hour rule for every time helper below.
+ * Never uses Arabic abbreviations (`ص` / `م`).
+ */
+function formatTime12Bilingual(d: Date, lang: string): string {
+  const base = format(d, "hh:mm");
+  const hours = d.getHours();
+  const period =
+    lang === "ar"
+      ? hours < 12 ? "صباحاً" : "مساءً"
+      : hours < 12 ? "AM" : "PM";
+  return `${base} ${period}`;
+}
+
+/**
+ * Format a date-time as `DD-MM-YYYY hh:mm <period>` — platform-wide
+ * 12-hour bilingual standard. Arabic UI emits `صباحاً` / `مساءً`,
+ * English UI emits `AM` / `PM`.
+ *
+ * NOTE: this helper is consumed by display-only callers across Movement,
+ * Ownership, Admission, Vet, Lab, HR, Academy, Booking, Order, Schedule
+ * and Records timelines. The 12-hour change is intentional and enforces
+ * the global Dayli Horse time-format rule.
  */
 export function formatStandardDateTime(date?: Date | string | null): string {
   const d = toValidDate(date);
   if (!d) return "—";
-  return format(d, "dd-MM-yyyy HH:mm");
+  return `${format(d, "dd-MM-yyyy")} ${formatTime12Bilingual(d, getCurrentLanguage())}`;
 }
 
 /**
- * Format time-only as HH:mm (24h) — platform-wide standard.
+ * Format time-only as `hh:mm <period>` — platform-wide 12-hour bilingual
+ * standard. See {@link formatStandardDateTime}.
  */
 export function formatStandardTime(date?: Date | string | null): string {
   const d = toValidDate(date);
   if (!d) return "—";
-  return format(d, "HH:mm");
+  return formatTime12Bilingual(d, getCurrentLanguage());
 }
 
 /**
- * Format a date-time as DD-MM-YYYY hh:mm AM/PM — 12-hour standard for audit
- * trails (share links, etc.). Example: `17-05-2026 04:35 PM`.
+ * @deprecated Prefer {@link formatStandardDateTime} — it is now 12-hour
+ * bilingual platform-wide. Retained as an alias so existing lab share /
+ * audit callsites keep working without churn.
  */
 export function formatStandardDateTime12(date?: Date | string | null): string {
-  const d = toValidDate(date);
-  if (!d) return "—";
-  return format(d, "dd-MM-yyyy hh:mm a");
+  return formatStandardDateTime(date);
 }

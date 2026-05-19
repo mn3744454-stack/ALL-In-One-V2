@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClipboardCheck, Calendar, DoorOpen, User, Building2, FileText, ChevronRight } from 'lucide-react';
-import { formatStandardDate } from '@/lib/displayHelpers';
-import { displayClientName } from '@/lib/displayHelpers';
+import { formatStandardDate, displayClientName, displayLocationName } from '@/lib/displayHelpers';
 import { Link } from 'react-router-dom';
 import { useHorseCareNotes } from '@/hooks/housing/useHorseCareNotes';
 
@@ -31,9 +30,9 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
         .select(`
           id, status, admitted_at, expected_departure, billing_cycle, rate_currency, monthly_rate, daily_rate,
           client:clients!client_id(id, name, name_ar),
-          branch:branches!branch_id(id, name),
+          branch:branches!branch_id(id, name, name_ar, city),
           area:facility_areas!area_id(id, name, name_ar, facility_type),
-          unit:housing_units!unit_id(id, code, name)
+          unit:housing_units!unit_id(id, code, name, name_ar)
         `)
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
@@ -84,7 +83,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           {admission.area && (
             <Badge variant="outline" className="gap-1 text-xs">
               <Building2 className="h-3 w-3" />
-              {admission.area.name}
+              {displayLocationName(admission.area.name, admission.area.name_ar, null, lang)}
               {admission.area.facility_type && (
                 <span className="opacity-60">({t(`housing.facilityTypes.${admission.area.facility_type}`)})</span>
               )}
@@ -94,6 +93,11 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
             <Badge variant="secondary" className="gap-1">
               <DoorOpen className="h-3 w-3" />
               {admission.unit.code}
+              {(admission.unit.name || admission.unit.name_ar) && (
+                <span className="opacity-75">
+                  — {displayLocationName(admission.unit.name, admission.unit.name_ar, null, lang)}
+                </span>
+              )}
             </Badge>
           )}
         </div>
@@ -108,7 +112,7 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
           {admission.branch && (
             <div className="flex items-center gap-1.5">
               <Building2 className="h-3 w-3 text-muted-foreground" />
-              <span className="truncate">{admission.branch.name}</span>
+              <span className="truncate">{displayLocationName(admission.branch.name, admission.branch.name_ar, admission.branch.city, lang)}</span>
             </div>
           )}
           <div className="flex items-center gap-1.5">

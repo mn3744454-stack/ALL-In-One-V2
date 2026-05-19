@@ -57,7 +57,7 @@ export interface HorseFileRow {
   branch_id?: string | null;
   breed_data?: { name: string } | null;
   color_data?: { name: string } | null;
-  branch_data?: { id: string; name: string } | null;
+  branch_data?: { id: string; name: string; name_ar?: string | null; city?: string | null } | null;
   stable_data?: { name: string } | null;
   area_data?: {
     id: string;
@@ -92,7 +92,7 @@ export function useHorseFile(horseId: string | null | undefined) {
           *,
           breed_data:horse_breeds(name),
           color_data:horse_colors(name),
-          branch_data:branches!branch_id(id, name),
+          branch_data:branches!branch_id(id, name, name_ar, city),
           stable_data:stables(name),
           area_data:facility_areas!current_area_id(id, name, name_ar, facility_type),
           unit_data:housing_units!housing_unit_id(id, code, name, name_ar),

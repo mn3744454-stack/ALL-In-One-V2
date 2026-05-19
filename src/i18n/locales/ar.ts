@@ -1810,6 +1810,12 @@ export const ar = {
       locations: "المواقع",
       settings: "الإعدادات",
     },
+    direction: {
+      from: "من {{from}}",
+      to: "إلى {{to}}",
+      fromTo: "من {{from}} إلى {{to}}",
+      unspecified: "غير محدد",
+    },
     types: {
       in: "وصول",
       out: "مغادرة",

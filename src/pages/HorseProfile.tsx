@@ -55,6 +55,7 @@ import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
+import { displayLocationName } from "@/lib/displayHelpers";
 
 interface Horse {
   id: string;
@@ -287,7 +288,7 @@ const HorseProfile = () => {
                   {horse.branch_data?.name && (
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      {horse.branch_data.name}
+                      {displayLocationName(horse.branch_data.name, (horse.branch_data as any).name_ar, (horse.branch_data as any).city, lang)}
                     </span>
                   )}
                 </div>
@@ -383,14 +384,16 @@ const HorseProfile = () => {
               {horse.branch_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-muted-foreground">{t('horses.profile.branch')}</span>
-                  <span className="font-medium">{horse.branch_data.name}</span>
+                  <span className="font-medium">
+                    {displayLocationName(horse.branch_data.name, (horse.branch_data as any).name_ar, (horse.branch_data as any).city, lang)}
+                  </span>
                 </div>
               )}
               {horse.area_data?.name && (
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-muted-foreground">{t('housing.admissions.detail.facility')}</span>
                   <span className="font-medium">
-                    {horse.area_data.name}
+                    {displayLocationName(horse.area_data.name, horse.area_data.name_ar, null, lang)}
                     {horse.area_data.facility_type && (
                       <span className="text-muted-foreground text-sm ms-1">({t(`housing.facilityTypes.${horse.area_data.facility_type}`)})</span>
                     )}
@@ -400,7 +403,12 @@ const HorseProfile = () => {
               {horse.unit_data && (
                 <div className="flex justify-between text-sm sm:text-base">
                   <span className="text-muted-foreground">{t('housing.admissions.detail.unit')}</span>
-                  <span className="font-medium">{horse.unit_data.code}{horse.unit_data.name ? ` - ${horse.unit_data.name}` : ''}</span>
+                  <span className="font-medium">
+                    {horse.unit_data.code}
+                    {(horse.unit_data.name || horse.unit_data.name_ar) && (
+                      <> — {displayLocationName(horse.unit_data.name, horse.unit_data.name_ar, null, lang)}</>
+                    )}
+                  </span>
                 </div>
               )}
               {!horse.branch_data?.name && !horse.area_data?.name && (
@@ -413,10 +421,10 @@ const HorseProfile = () => {
         {/* Housing & Movement Section */}
         <HorseLocationSection
           horseId={horse.id}
-          currentLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, city: null } : null}
+          currentLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, name_ar: (horse.branch_data as any).name_ar ?? null, city: (horse.branch_data as any).city ?? null } : null}
           currentArea={horse.area_data}
           currentUnit={horse.unit_data}
-          homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name } : null}
+          homeLocation={horse.branch_data ? { id: horse.branch_data.id, name: horse.branch_data.name, name_ar: (horse.branch_data as any).name_ar ?? null, city: (horse.branch_data as any).city ?? null } : null}
         />
 
         {/* Movement Timeline */}

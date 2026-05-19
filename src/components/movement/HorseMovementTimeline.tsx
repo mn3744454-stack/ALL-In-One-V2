@@ -6,8 +6,8 @@ import { classifyMovement } from "./movementClassification";
 import { formatMovementReason } from "./movementReasonDisplay";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
-import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { ArrowRight, MapPin, Clock, Link2, History } from "lucide-react";
+import { formatStandardDateTime, displayLocationName } from "@/lib/displayHelpers";
+import { MapPin, Clock, Link2, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HorseMovementTimelineProps {
@@ -15,7 +15,7 @@ interface HorseMovementTimelineProps {
 }
 
 export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { data: movements = [], isLoading } = useSingleHorseMovements(horseId);
 
   if (isLoading) {
@@ -43,9 +43,29 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
     );
   }
 
-  const formatLocation = (loc: { name: string; city: string | null } | null | undefined) => {
+  const formatLocation = (
+    loc: { name: string; name_ar?: string | null; city?: string | null } | null | undefined,
+  ): string | null => {
     if (!loc) return null;
-    return loc.name;
+    return displayLocationName(loc.name, loc.name_ar ?? null, loc.city ?? null, lang);
+  };
+
+  const formatExternal = (
+    loc: { name: string; name_ar?: string | null } | null | undefined,
+  ): string | null => {
+    if (!loc) return null;
+    return displayLocationName(loc.name, loc.name_ar ?? null, null, lang);
+  };
+
+  const directionText = (from: string | null, to: string | null): string => {
+    if (from && to) {
+      return t("movement.direction.fromTo")
+        .replace("{{from}}", from)
+        .replace("{{to}}", to);
+    }
+    if (to) return t("movement.direction.to").replace("{{to}}", to);
+    if (from) return t("movement.direction.from").replace("{{from}}", from);
+    return t("movement.direction.unspecified");
   };
 
   return (
@@ -68,8 +88,8 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
             {movements.map((m, i) => {
               const fromName = formatLocation(m.from_location);
               const toName = formatLocation(m.to_location);
-              const fromExt = m.from_external_location?.name;
-              const toExt = m.to_external_location?.name;
+              const fromExt = formatExternal(m.from_external_location);
+              const toExt = formatExternal(m.to_external_location);
               const isConnected = m.destination_type === 'connected';
               const movementClass = classifyMovement(m);
               const isAdmission = movementClass === 'admission_checkin' || movementClass === 'checkout_departure';
@@ -104,23 +124,12 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
                       )}
                     </div>
 
-                    {/* Location summary */}
+                    {/* Location summary — bilingual "From X to Y" / "من X إلى Y", no arrows */}
                     <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {(fromName || fromExt) && (
-                        <>
-                          <span className="truncate">{fromName || fromExt}</span>
-                          {(toName || toExt) && (
-                            <>
-                              <ArrowRight className={cn("h-3 w-3 shrink-0", dir === 'rtl' && "rotate-180")} />
-                              <span className="truncate font-medium text-foreground">{toName || toExt}</span>
-                            </>
-                          )}
-                        </>
-                      )}
-                      {!fromName && !fromExt && (toName || toExt) && (
-                        <span className="truncate font-medium text-foreground">{toName || toExt}</span>
-                      )}
+                      <span className="truncate">
+                        {directionText(fromName || fromExt || null, toName || toExt || null)}
+                      </span>
                     </div>
 
                     {(() => {
