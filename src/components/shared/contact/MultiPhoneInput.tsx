@@ -21,7 +21,7 @@ export interface PhoneEntry {
   is_primary: boolean;
 }
 
-export type PhoneLabelNamespace = 'clients' | 'hr';
+export type PhoneLabelNamespace = 'clients' | 'hr' | 'owners';
 
 interface MultiPhoneInputProps {
   phones: PhoneEntry[];
