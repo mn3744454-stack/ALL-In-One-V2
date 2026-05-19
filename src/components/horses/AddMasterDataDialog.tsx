@@ -113,12 +113,19 @@ export const AddMasterDataDialog = ({
       },
       owner: {
         title: t('horses.masterData.owner.title'),
-        fields: [
-          { key: "name", label: t('horses.masterData.owner.name'), required: true },
-          { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: false },
-          { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
-          { key: "email", label: t('horses.masterData.owner.email'), required: false },
-        ],
+        fields: isArabicUI
+          ? [
+              { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: true, dir: "rtl" as const },
+              { key: "name", label: t('horses.masterData.owner.nameEn'), required: true, dir: "ltr" as const, hint: t('horses.masterData.bilingualNameHint') },
+              { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
+              { key: "email", label: t('horses.masterData.owner.email'), required: false },
+            ]
+          : [
+              { key: "name", label: t('horses.masterData.owner.nameEn'), required: true, dir: "ltr" as const },
+              { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: false, dir: "rtl" as const },
+              { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
+              { key: "email", label: t('horses.masterData.owner.email'), required: false },
+            ],
       },
     } as Record<MasterDataType, { title: string; fields: Array<{ key: string; label: string; required?: boolean; dir?: "ltr" | "rtl"; hint?: string }> }>;
   }, [t, isArabicUI]);
