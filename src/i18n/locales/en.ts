@@ -4123,6 +4123,7 @@ export const en = {
       owner: {
         title: "Add New Owner",
         name: "Name",
+        nameEn: "Name (English)",
         nameAr: "Name (Arabic)",
         phone: "Phone",
         email: "Email",
