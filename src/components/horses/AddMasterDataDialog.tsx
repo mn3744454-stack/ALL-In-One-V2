@@ -136,12 +136,12 @@ export const AddMasterDataDialog = ({
     const requiredFields = config.fields.filter((f) => f.required);
     const missing = requiredFields.filter((f) => !formData[f.key]?.trim());
     return missing.map((f) => {
-      if (isBreedOrColor && f.key === "name_ar") return t('common.validation.enterRequiredArabicName');
-      if (isBreedOrColor && f.key === "name") return t('common.validation.enterRequiredEnglishName');
+      if (isBilingualRequired && f.key === "name_ar") return t('common.validation.enterRequiredArabicName');
+      if (isBilingualRequired && f.key === "name") return t('common.validation.enterRequiredEnglishName');
       if (f.key === "name") return t('common.validation.enterRequiredName');
       return f.label;
     });
-  }, [config.fields, formData, t, isBreedOrColor]);
+  }, [config.fields, formData, t, isBilingualRequired]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
