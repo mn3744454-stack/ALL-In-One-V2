@@ -380,7 +380,8 @@ export function InvoiceFormDialog({
         const newInvoice = await createInvoice(input);
 
         if (newInvoice) {
-          for (const item of validItems) {
+          for (let index = 0; index < validItems.length; index++) {
+            const item = validItems[index];
             await supabase.from("invoice_items" as any).insert({
               invoice_id: newInvoice.id,
               description: item.description,
@@ -392,6 +393,7 @@ export function InvoiceFormDialog({
               horse_id: item.horse_id || null,
               domain: item.domain || null,
               service_id: item.service_id || null,
+              position: index,
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
