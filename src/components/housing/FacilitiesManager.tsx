@@ -360,13 +360,16 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               onDelete={deleteArea}
               searchQuery={normalizedQuery}
               activeFilter={activeFilter}
+              showBranchContext={!effectiveBranchId}
             />
           ))}
           {/* No results state for search/filter */}
           {normalizedQuery && lifecycleFilteredAreas.every(area => {
             const fd = facilityUnitsMap[area.id];
             if (!fd) return true;
-            return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery));
+            // Facility-name match alone counts as a hit even if it has 0 units.
+            if (unitMatchesSearch({ id: '', code: '', name: null, name_ar: null }, fd, normalizedQuery, area)) return true;
+            return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery, area));
           }) && (
             <div className="text-center py-8 text-muted-foreground text-sm">
               {t('housing.search.noResults')}
