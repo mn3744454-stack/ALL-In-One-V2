@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,20 +26,18 @@ import { Loader2, Plus, Pencil } from "lucide-react";
 import { TenantService, CreateServiceInput } from "@/hooks/useServices";
 import { useI18n } from "@/i18n";
 
-const serviceSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  name_ar: z.string().optional(),
-  description: z.string().optional(),
-  service_type: z.string().optional(),
-  service_kind: z.string().optional(),
-  unit_price: z.coerce.number().nullable().optional(),
-  price_display: z.string().optional(),
-  is_active: z.boolean().default(true),
-  is_public: z.boolean().default(true),
-  is_taxable: z.boolean().default(true),
-});
-
-type ServiceFormValues = z.infer<typeof serviceSchema>;
+type ServiceFormValues = {
+  name: string;
+  name_ar?: string;
+  description?: string;
+  service_type?: string;
+  service_kind?: string;
+  unit_price?: number | null;
+  price_display?: string;
+  is_active: boolean;
+  is_public: boolean;
+  is_taxable: boolean;
+};
 
 interface ServiceFormDialogProps {
   service?: TenantService;
@@ -58,9 +56,31 @@ export const ServiceFormDialog = ({
   defaultServiceKind,
 }: ServiceFormDialogProps) => {
   const [open, setOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isEdit = !!service;
   const effectiveKind = service?.service_kind || defaultServiceKind || "service";
+
+  const serviceSchema = useMemo(() => {
+    const isArabicUI = lang === "ar";
+    return z.object({
+      name: z.string().min(2, t("services.form.validation.nameMin")),
+      name_ar: isArabicUI
+        ? z.string().min(2, t("services.form.validation.nameArRequired"))
+        : z.string().optional(),
+      description: z.string().optional(),
+      service_type: z.string().optional(),
+      service_kind: z.string().optional(),
+      unit_price: z.coerce
+        .number()
+        .min(0, t("services.form.validation.priceNonNegative"))
+        .nullable()
+        .optional(),
+      price_display: z.string().optional(),
+      is_active: z.boolean().default(true),
+      is_public: z.boolean().default(true),
+      is_taxable: z.boolean().default(true),
+    });
+  }, [t, lang]);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),

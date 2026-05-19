@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
 
 const fromTable = (table: string) => (supabase as any).from(table);
@@ -42,6 +43,7 @@ export interface CreatePlanData {
 export function useStableServicePlans() {
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
 
   const { data: plans = [], isLoading } = useQuery({
@@ -83,10 +85,10 @@ export function useStableServicePlans() {
       return data;
     },
     onSuccess: () => {
-      toast.success('Plan created');
+      toast.success(t('services.packages.toasts.created'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
-    onError: () => toast.error('Failed to create plan'),
+    onError: () => toast.error(t('services.packages.toasts.createFailed')),
   });
 
   const updateMutation = useMutation({
@@ -99,10 +101,10 @@ export function useStableServicePlans() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Plan updated');
+      toast.success(t('services.packages.toasts.updated'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
-    onError: () => toast.error('Failed to update plan'),
+    onError: () => toast.error(t('services.packages.toasts.updateFailed')),
   });
 
   const deleteMutation = useMutation({
@@ -115,9 +117,10 @@ export function useStableServicePlans() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Plan deactivated');
+      toast.success(t('services.packages.toasts.deactivated'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
+    onError: () => toast.error(t('services.packages.toasts.deactivateFailed')),
   });
 
   const activePlans = plans.filter(p => p.is_active);
