@@ -301,12 +301,16 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
               onOpenChange={setBreedPickerOpen}
               selectedBreedId={form.breed_id || null}
               onBreedSelect={handleBreedSelect}
+              breeds={breeds}
+              createBreed={createBreed}
             />
             <ColorPickerSheet
               open={colorPickerOpen}
               onOpenChange={setColorPickerOpen}
               selectedColorId={form.color_id || null}
               onColorSelect={handleColorSelect}
+              colors={colors}
+              createColor={createColor}
             />
           </>
         )}
