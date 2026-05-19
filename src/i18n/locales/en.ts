@@ -3615,7 +3615,6 @@ export const en = {
       tax: "Tax",
       discount: "Discount",
       selectHorse: "Select horse (optional)",
-      searchHorse: "Search horse...",
       noHorse: "No horse (client-level)",
       domain: {
         select: "Category (optional)",
