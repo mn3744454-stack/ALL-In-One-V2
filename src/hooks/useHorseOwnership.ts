@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { OwnerPhoneEntry, OwnerType } from "@/hooks/useHorseMasterData";
 
 export interface HorseOwnership {
   id: string;
@@ -12,6 +13,14 @@ export interface HorseOwnership {
     id: string;
     name: string;
     name_ar: string | null;
+    owner_type?: OwnerType;
+    phone?: string | null;
+    phones?: OwnerPhoneEntry[];
+    representative_name?: string | null;
+    representative_name_ar?: string | null;
+    representative_title?: string | null;
+    representative_email?: string | null;
+    representative_phones?: OwnerPhoneEntry[];
   };
 }
 
