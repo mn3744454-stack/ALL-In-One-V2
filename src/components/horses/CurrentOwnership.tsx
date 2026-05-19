@@ -26,9 +26,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Plus, ArrowRightLeft, Pencil, Trash2, Crown, AlertCircle } from "lucide-react";
+import { Users, Plus, ArrowRightLeft, Pencil, Trash2, Crown, AlertCircle, Phone, UserCheck } from "lucide-react";
+import { useHorseMasterData, getPrimaryPhoneNumber } from "@/hooks/useHorseMasterData";
 import { useHorseOwnership, HorseOwnership } from "@/hooks/useHorseOwnership";
-import { useHorseMasterData } from "@/hooks/useHorseMasterData";
+
 import { TransferOwnershipDialog } from "./TransferOwnershipDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -341,6 +342,13 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium truncate">{ownership.owner?.name || t('common.unknown')}</span>
+                        {ownership.owner?.owner_type && (
+                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
+                            {ownership.owner.owner_type === 'organization'
+                              ? t('horses.owners.typeOrganization')
+                              : t('horses.owners.typeIndividual')}
+                          </Badge>
+                        )}
                         {ownership.is_primary && (
                           <Badge variant="default" className="text-xs shrink-0">{t('horses.ownership.primary')}</Badge>
                         )}
@@ -348,6 +356,34 @@ export const CurrentOwnership = ({ horseId, horseName }: CurrentOwnershipProps) 
                       {ownership.owner?.name_ar && (
                         <p className="text-sm text-muted-foreground truncate" dir="rtl">{ownership.owner.name_ar}</p>
                       )}
+                      {(() => {
+                        const ownerPrimary = getPrimaryPhoneNumber(ownership.owner?.phones) || ownership.owner?.phone || null;
+                        const repName = ownership.owner?.representative_name_ar || ownership.owner?.representative_name;
+                        const repPrimary = getPrimaryPhoneNumber(ownership.owner?.representative_phones);
+                        return (
+                          <>
+                            {ownerPrimary && (
+                              <a href={`tel:${ownerPrimary}`} className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground" dir="ltr">
+                                <Phone className="w-3 h-3" />
+                                <span className="truncate">{ownerPrimary}</span>
+                              </a>
+                            )}
+                            {repName && (
+                              <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <UserCheck className="w-3 h-3 shrink-0" />
+                                <span className="truncate">
+                                  {t('horses.owners.repShort')}: {repName}
+                                </span>
+                                {repPrimary && (
+                                  <a href={`tel:${repPrimary}`} className="hover:text-foreground" dir="ltr">
+                                    • {repPrimary}
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <span className="font-bold text-lg text-gold shrink-0">{ownership.ownership_percentage}%</span>
                   </div>

@@ -3654,7 +3654,14 @@ export type Database = {
           id: string
           name: string
           name_ar: string | null
+          owner_type: string
           phone: string | null
+          phones: Json
+          representative_email: string | null
+          representative_name: string | null
+          representative_name_ar: string | null
+          representative_phones: Json
+          representative_title: string | null
           tenant_id: string
         }
         Insert: {
@@ -3663,7 +3670,14 @@ export type Database = {
           id?: string
           name: string
           name_ar?: string | null
+          owner_type?: string
           phone?: string | null
+          phones?: Json
+          representative_email?: string | null
+          representative_name?: string | null
+          representative_name_ar?: string | null
+          representative_phones?: Json
+          representative_title?: string | null
           tenant_id: string
         }
         Update: {
@@ -3672,7 +3686,14 @@ export type Database = {
           id?: string
           name?: string
           name_ar?: string | null
+          owner_type?: string
           phone?: string | null
+          phones?: Json
+          representative_email?: string | null
+          representative_name?: string | null
+          representative_name_ar?: string | null
+          representative_phones?: Json
+          representative_title?: string | null
           tenant_id?: string
         }
         Relationships: [

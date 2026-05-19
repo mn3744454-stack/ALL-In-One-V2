@@ -57,14 +57,53 @@ export interface Breeder {
   created_at: string;
 }
 
+export interface OwnerPhoneEntry {
+  number: string;
+  label: 'mobile' | 'work' | 'home' | 'other';
+  is_whatsapp: boolean;
+  is_primary: boolean;
+}
+
+export type OwnerType = 'individual' | 'organization';
+
 export interface HorseOwner {
   id: string;
   tenant_id: string;
   name: string;
   name_ar: string | null;
+  /** Compatibility/derived field: mirrors the primary entry of `phones`. */
   phone: string | null;
   email: string | null;
+  owner_type: OwnerType;
+  phones: OwnerPhoneEntry[];
+  representative_name: string | null;
+  representative_name_ar: string | null;
+  representative_title: string | null;
+  representative_email: string | null;
+  representative_phones: OwnerPhoneEntry[];
   created_at: string;
+}
+
+export interface CreateOwnerPayload {
+  name: string;
+  name_ar?: string | null;
+  email?: string | null;
+  owner_type?: OwnerType;
+  phones?: OwnerPhoneEntry[];
+  representative_name?: string | null;
+  representative_name_ar?: string | null;
+  representative_title?: string | null;
+  representative_email?: string | null;
+  representative_phones?: OwnerPhoneEntry[];
+}
+
+/** Returns the primary number from a phones array (or first entry, or null). */
+export function getPrimaryPhoneNumber(phones: OwnerPhoneEntry[] | null | undefined): string | null {
+  if (!phones || phones.length === 0) return null;
+  const primary = phones.find((p) => p.is_primary && p.number?.trim());
+  if (primary) return primary.number.trim();
+  const first = phones.find((p) => p.number?.trim());
+  return first ? first.number.trim() : null;
 }
 
 export const useHorseMasterData = () => {
@@ -261,21 +300,51 @@ export const useHorseMasterData = () => {
     return { data: data as unknown as Breeder | null, error };
   };
 
+  /**
+   * Create an owner. Accepts either a full payload object, or legacy positional
+   * args (name, name_ar, phone, email) for back-compat with older callers.
+   * Note: scalar `phone` is a derived compatibility field, mirrored from the
+   * primary entry of `phones`.
+   */
   const createOwner = async (
-    name: string,
+    nameOrPayload: string | CreateOwnerPayload,
     name_ar?: string,
     phone?: string,
     email?: string
   ) => {
     if (!tenantId) return { data: null, error: new Error("No active tenant") };
+
+    const payload: CreateOwnerPayload =
+      typeof nameOrPayload === "string"
+        ? {
+            name: nameOrPayload,
+            name_ar: name_ar || null,
+            email: email || null,
+            phones: phone && phone.trim()
+              ? [{ number: phone.trim(), label: "mobile", is_whatsapp: false, is_primary: true }]
+              : [],
+          }
+        : nameOrPayload;
+
+    const ownerPhones = (payload.phones || []).filter((p) => p.number?.trim());
+    const repPhones = (payload.representative_phones || []).filter((p) => p.number?.trim());
+    const scalarPhone = getPrimaryPhoneNumber(ownerPhones);
+
     const { data, error } = await supabase
       .from("horse_owners" as any)
       .insert({
         tenant_id: tenantId,
-        name,
-        name_ar: name_ar || null,
-        phone: phone || null,
-        email: email || null,
+        name: payload.name,
+        name_ar: payload.name_ar || null,
+        phone: scalarPhone,
+        email: payload.email || null,
+        owner_type: payload.owner_type || "individual",
+        phones: ownerPhones,
+        representative_name: payload.representative_name || null,
+        representative_name_ar: payload.representative_name_ar || null,
+        representative_title: payload.representative_title || null,
+        representative_email: payload.representative_email || null,
+        representative_phones: repPhones,
       })
       .select()
       .single();

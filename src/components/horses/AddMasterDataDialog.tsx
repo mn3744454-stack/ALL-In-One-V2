@@ -14,6 +14,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
 import { mapMasterDataDuplicate } from "@/lib/horseErrorMessages";
+import { AddOwnerDialog } from "./AddOwnerDialog";
+import type { CreateOwnerPayload } from "@/hooks/useHorseMasterData";
 
 export type MasterDataType =
   | "color"
@@ -28,7 +30,7 @@ interface AddMasterDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: MasterDataType;
-  onCreate: (data: Record<string, string>) => Promise<{ data: unknown; error: Error | null }>;
+  onCreate: (data: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
   onSuccess?: (data: unknown) => void;
 }
 
@@ -41,9 +43,23 @@ export const AddMasterDataDialog = ({
 }: AddMasterDataDialogProps) => {
   const { t, lang } = useI18n();
   const isArabicUI = lang === "ar";
+
+  // Owner type uses a richer custom form (Phase 2: type, multi-phone, representative).
+  if (type === "owner") {
+    return (
+      <AddOwnerDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        onCreate={(payload: CreateOwnerPayload) =>
+          onCreate(payload as unknown as Record<string, unknown>)
+        }
+        onSuccess={onSuccess}
+      />
+    );
+  }
+
   const isBreedOrColor = type === "breed" || type === "color";
-  const isOwner = type === "owner";
-  const isBilingualRequired = isBreedOrColor || isOwner;
+  const isBilingualRequired = isBreedOrColor;
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);

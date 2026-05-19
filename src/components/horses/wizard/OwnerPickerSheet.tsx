@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useHorseMasterData, HorseOwner } from "@/hooks/useHorseMasterData";
+import { useHorseMasterData, HorseOwner, getPrimaryPhoneNumber } from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { Badge } from "@/components/ui/badge";
 
 interface OwnerPickerSheetProps {
   open: boolean;
@@ -48,8 +49,8 @@ export function OwnerPickerSheet({
     setQuickAddOpen(true);
   };
 
-  const handleCreate = (formData: Record<string, string>) =>
-    createOwner(formData.name, formData.name_ar, formData.phone, formData.email);
+  const handleCreate = (formData: Record<string, unknown>) =>
+    createOwner(formData as any);
 
   const handleSuccess = (result: any) => {
     if (result?.id) {
@@ -98,20 +99,44 @@ export function OwnerPickerSheet({
                   {t("horses.wizard.noOwnersFound")}
                 </div>
               ) : (
-                filtered.map((owner) => (
-                  <button
-                    key={owner.id}
-                    onClick={() => handleSelect(owner)}
-                    className={cn(
-                      "w-full flex items-center gap-2 p-3 rounded-lg text-start transition-colors min-h-[56px]",
-                      "hover:bg-muted/50 active:bg-muted",
-                      selectedOwnerId === owner.id && "bg-primary/5 border border-primary/30"
-                    )}
-                  >
-                    {selectedOwnerId === owner.id && <Check className="h-4 w-4 text-primary shrink-0" />}
-                    <BilingualName name={owner.name} nameAr={owner.name_ar} primaryClassName="text-sm" />
-                  </button>
-                ))
+                filtered.map((owner) => {
+                  const ownerPrimary = getPrimaryPhoneNumber(owner.phones) || owner.phone;
+                  const repPrimary = getPrimaryPhoneNumber(owner.representative_phones);
+                  const hasRep = !!(owner.representative_name || owner.representative_name_ar);
+                  const secondaryText = ownerPrimary
+                    ? ownerPrimary
+                    : hasRep
+                      ? `${t("horses.owners.repShort")}: ${owner.representative_name_ar || owner.representative_name || ""}${repPrimary ? ` • ${repPrimary}` : ""}`
+                      : null;
+                  return (
+                    <button
+                      key={owner.id}
+                      onClick={() => handleSelect(owner)}
+                      className={cn(
+                        "w-full flex items-start gap-2 p-3 rounded-lg text-start transition-colors min-h-[56px]",
+                        "hover:bg-muted/50 active:bg-muted",
+                        selectedOwnerId === owner.id && "bg-primary/5 border border-primary/30"
+                      )}
+                    >
+                      {selectedOwnerId === owner.id && <Check className="h-4 w-4 text-primary shrink-0 mt-1" />}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <BilingualName name={owner.name} nameAr={owner.name_ar} primaryClassName="text-sm" />
+                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 shrink-0">
+                            {owner.owner_type === "organization"
+                              ? t("horses.owners.typeOrganization")
+                              : t("horses.owners.typeIndividual")}
+                          </Badge>
+                        </div>
+                        {secondaryText && (
+                          <div className="text-xs text-muted-foreground truncate" dir="ltr">
+                            {secondaryText}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })
               )}
             </div>
           </ScrollArea>
