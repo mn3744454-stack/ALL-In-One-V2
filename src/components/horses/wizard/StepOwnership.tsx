@@ -174,6 +174,23 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
         </div>
       )}
 
+      {data.owners.length > 0 && (
+        <div className="sticky bottom-0 -mx-2 px-2 py-2 bg-background/95 backdrop-blur border-t z-10 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addOwnerRow}
+            className="gap-2 shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            {t('horses.wizard.addAnotherOwner')}
+          </Button>
+        </div>
+      )}
+
+
+
       <OwnerPickerSheet
         open={pickerOpenIndex !== null}
         onOpenChange={(open) => {
