@@ -4189,6 +4189,25 @@ export const ar = {
       duplicateName: "هذا الاسم موجود بالفعل. يرجى استخدام اسم مختلف أو اختيار القيمة الموجودة.",
       bilingualNameHint: "مطلوب لتعريف السجل في قاعدة البيانات والبحث والترتيب الأبجدي.",
     },
+    owners: {
+      typeIndividual: "فرد",
+      typeOrganization: "جهة",
+      repShort: "ممثل",
+      contact: {
+        phones: "أرقام الهاتف",
+        addPhone: "+ إضافة رقم",
+        noPhonesAdded: "لا توجد أرقام مضافة",
+        whatsapp: "واتساب",
+        primaryPhone: "رئيسي",
+        setAsPrimary: "تعيين كرئيسي",
+      },
+      phoneLabels: {
+        mobile: "جوال",
+        work: "عمل",
+        home: "منزل",
+        other: "آخر",
+      },
+    },
     errors: {
       noTenant: "لا توجد مساحة عمل نشطة. يرجى اختيار مساحة عمل والمحاولة مرة أخرى.",
       saveFailed: {
