@@ -322,6 +322,9 @@ export function FacilitySection({
                 </Badge>
               )}
             </div>
+          </div>
+
+
 
           {/* Occupancy + vacancy — only for housing types with units */}
           <div className="flex items-center gap-3 shrink-0">
