@@ -42,6 +42,8 @@ export const AddMasterDataDialog = ({
   const { t, lang } = useI18n();
   const isArabicUI = lang === "ar";
   const isBreedOrColor = type === "breed" || type === "color";
+  const isOwner = type === "owner";
+  const isBilingualRequired = isBreedOrColor || isOwner;
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
