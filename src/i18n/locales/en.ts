@@ -3654,7 +3654,7 @@ export const en = {
       addManualItem: "Add Manual Item",
       manualEntry: "Manual",
       emptyLineItems: "No items added yet",
-      emptyLineItemsHint: "Use the buttons above to add manual items or select from the service catalog",
+      emptyLineItemsHint: "Use the buttons below to add manual items or select from the service catalog",
       addNewClient: "+ Add new client",
       addNewHorse: "+ Add new horse",
       searchClient: "Search clients...",
