@@ -13,6 +13,7 @@ import { LifecycleStateBadge } from "./LifecycleActionMenu";
 import { unitMatchesSearch, type OccupancyFilter } from "./FacilitiesManager";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
+import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
