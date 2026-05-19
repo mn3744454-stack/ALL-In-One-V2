@@ -100,11 +100,18 @@ export function FacilitySection({
   onDelete,
   searchQuery = '',
   activeFilter = 'all',
+  showBranchContext = false,
 }: FacilitySectionProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
+  const { activeLocations } = useLocations();
   const tenantType = activeTenant?.tenant?.type || 'stable';
   const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
+
+  const parentBranch = useMemo(
+    () => activeLocations.find(l => l.id === facility.branch_id),
+    [activeLocations, facility.branch_id]
+  );
 
   const [collapsed, setCollapsed] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
