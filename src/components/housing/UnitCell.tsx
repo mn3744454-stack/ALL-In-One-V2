@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { Wrench, Ban, ShieldAlert } from "lucide-react";
+import { Wrench, Ban, ShieldAlert, Warehouse } from "lucide-react";
 import type { InlineUnit, InlineOccupant } from "@/hooks/housing/useInlineFacilityUnits";
 
 interface UnitCellProps {
@@ -15,7 +15,7 @@ interface UnitCellProps {
 /**
  * Compact visual cell for a single housing unit in the facility grid.
  * Shows unit code, horse name (or vacant), and status color via left border.
- * Supports maintenance / out-of-service / isolation visual states.
+ * Supports maintenance / out-of-service / isolation / storage visual states.
  */
 export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProps) {
   const { t } = useI18n();
@@ -28,6 +28,7 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
   const isOutOfService = unit.status === 'out_of_service';
   const isUnavailable = isMaintenance || isOutOfService;
   const isIsolation = unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
+  const isStorage = unit.unit_type === 'storage';
 
   // Get horse for single-occupancy display
   const horse = currentOccupants[0]?.horse;
