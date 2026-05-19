@@ -473,20 +473,32 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error('Cannot update a closed admission');
       }
 
-      const merged = { ...current, ...updates };
+      // If caller supplied a new emergency_contacts array, mirror the first
+      // usable phone into the legacy emergency_contact text column so older
+      // reads keep working during the transition release.
+      const writeUpdates: Record<string, any> = { ...updates };
+      if (Object.prototype.hasOwnProperty.call(updates, 'emergency_contacts')) {
+        const mirror = deriveLegacyEmergencyContact(
+          (updates as any).emergency_contacts as BoardingEmergencyContact[] | null
+        );
+        writeUpdates.emergency_contact = mirror;
+      }
+
+      const merged = { ...current, ...writeUpdates };
       const checks = computeAdmissionChecks({
         horse_id: merged.horse_id,
         branch_id: merged.branch_id,
         client_id: merged.client_id,
         unit_id: merged.unit_id,
         emergency_contact: merged.emergency_contact,
+        emergency_contacts: merged.emergency_contacts,
         daily_rate: merged.daily_rate,
         monthly_rate: merged.monthly_rate,
       });
 
       const { error } = await fromTable('boarding_admissions')
         .update({
-          ...updates,
+          ...writeUpdates,
           admission_checks: checks,
           updated_at: new Date().toISOString(),
         })
@@ -495,6 +507,7 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
 
       if (error) throw error;
     },
+
     onSuccess: () => {
       toast.success('Admission updated');
       // Field edits may include unit/area changes → admission + occupancy.
