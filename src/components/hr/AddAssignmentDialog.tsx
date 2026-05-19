@@ -44,12 +44,14 @@ import { BilingualName } from '@/components/ui/BilingualName';
 import { Check, ChevronsUpDown, Search, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from '@/components/hr/QuickCreateEmployeeDialog';
+import { formatBilingualName } from '@/lib/displayHelpers';
 
 interface AddAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   horseId: string;
   horseName: string;
+  horseNameAr?: string | null;
   existingEmployeeIds?: string[];
 }
 
@@ -58,9 +60,10 @@ export function AddAssignmentDialog({
   onOpenChange,
   horseId,
   horseName,
+  horseNameAr,
   existingEmployeeIds = [],
 }: AddAssignmentDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { employees } = useEmployees();
   const { createAssignment, isCreating } = useHorseAssignments(horseId);
@@ -253,7 +256,8 @@ export function AddAssignmentDialog({
     </div>
   );
 
-  const title = t('hr.assignments.assignTo').replace('{{name}}', horseName);
+  const bilingualHorseName = formatBilingualName(horseName, horseNameAr, lang);
+  const title = t('hr.assignments.assignTo').replace('{{name}}', bilingualHorseName);
 
   const quickCreateMount = (
     <QuickCreateEmployeeDialog

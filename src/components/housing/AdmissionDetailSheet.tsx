@@ -38,6 +38,9 @@ import {
 import { CheckoutDialog } from "./CheckoutDialog";
 import { CareNotesList } from "./CareNotesList";
 import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
+import { AssignClientDialog } from "./AssignClientDialog";
+import { SetBoardingPriceDialog } from "./SetBoardingPriceDialog";
+import { EmergencyContactDialog } from "./EmergencyContactDialog";
 import { useHorseAssignments } from "@/hooks/hr/useHorseAssignments";
 import { AddAssignmentDialog } from "@/components/hr/AddAssignmentDialog";
 import { Users } from "lucide-react";
@@ -76,6 +79,9 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false);
   const [assignStaffOpen, setAssignStaffOpen] = useState(false);
+  const [assignClientOpen, setAssignClientOpen] = useState(false);
+  const [setPriceOpen, setSetPriceOpen] = useState(false);
+  const [emergencyContactOpen, setEmergencyContactOpen] = useState(false);
 
   // Phase C: assigned team for this admission's horse
   const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
@@ -338,7 +344,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => startEdit('emergency_contact', '')}
+                              onClick={() => setEmergencyContactOpen(true)}
                             >
                               {t('housing.admissions.detail.addContact')}
                             </Button>
@@ -348,7 +354,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => startNumEdit('daily_rate', admission.daily_rate)}
+                              onClick={() => setSetPriceOpen(true)}
                             >
                               {t('housing.admissions.detail.setRate')}
                             </Button>
@@ -358,7 +364,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => setEditingField('client_id')}
+                              onClick={() => setAssignClientOpen(true)}
                             >
                               {t('housing.admissions.detail.assignClient')}
                             </Button>
@@ -451,43 +457,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               {/* Details — with inline editing */}
               <Card>
                 <CardContent className="p-4 space-y-3">
-                  {/* Client — editable */}
-                  {editingField === 'client_id' ? (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <Select
-                        value={admission.client_id || '_none'}
-                        onValueChange={handleClientChange}
-                      >
-                        <SelectTrigger className="h-8 text-sm flex-1">
-                          <SelectValue placeholder={t('housing.admissions.detail.assignClient')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="_none">{t('housing.admissions.wizard.noClient')}</SelectItem>
-                          {activeClients.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}{c.name_ar ? ` / ${c.name_ar}` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <EditableDetailRow
-                      icon={User}
-                      label={t('housing.admissions.detail.client')}
-                      value={
-                        admission.client
-                          ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
-                          : <span>{t('housing.admissions.detail.notAssigned')}</span>
-                      }
-                      canEdit={isEditable && canUpdate}
-                      onEdit={() => setEditingField('client_id')}
-                    />
-                  )}
+                  {/* Client — opens AssignClientDialog */}
+                  <EditableDetailRow
+                    icon={User}
+                    label={t('housing.admissions.detail.client')}
+                    value={
+                      admission.client
+                        ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
+                        : <span>{t('housing.admissions.detail.notAssigned')}</span>
+                    }
+                    canEdit={isEditable && canUpdate}
+                    onEdit={() => setAssignClientOpen(true)}
+                  />
+
 
                   {admission.branch && (
                     <DetailRow
@@ -604,76 +586,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={<span className="font-medium">{formatStandardDateTime(admission.checked_out_at)}</span>} />
                   )}
 
-                  {/* Rate — editable */}
-                  {editingField === 'daily_rate' ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CreditCard className="h-4 w-4 shrink-0" />
-                        <span>{t('housing.admissions.detail.rate')}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.dailyRate')}</label>
-                          <Input
-                            type="number"
-                            value={editNumValue ?? ''}
-                            onChange={e => setEditNumValue(e.target.value ? parseFloat(e.target.value) : null)}
-                            className="h-8 text-sm"
-                            placeholder="0"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.monthlyRate')}</label>
-                          <Input
-                            type="number"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            className="h-8 text-sm"
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-1 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7"
-                          onClick={async () => {
-                            if (!admission) return;
-                            try {
-                              await updateAdmission({
-                                admissionId: admission.id,
-                                daily_rate: editNumValue || null,
-                                monthly_rate: editValue ? parseFloat(editValue) : null,
-                              });
-                              cancelEdit();
-                            } catch { /* handled */ }
-                          }}
-                        >
-                          <Check className="h-3.5 w-3.5 me-1" />{t('common.save')}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7" onClick={cancelEdit}>
-                          {t('common.cancel')}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <EditableDetailRow
-                      icon={CreditCard}
-                      label={t('housing.admissions.detail.rate')}
-                      value={
-                        <span className="font-medium">
-                          {formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang) || t('housing.admissions.detail.notAssigned')}
-                        </span>
-                      }
-                      canEdit={isEditable && canUpdate}
-                      onEdit={() => {
-                        setEditingField('daily_rate');
-                        setEditNumValue(admission.daily_rate);
-                        setEditValue(admission.monthly_rate?.toString() || '');
-                      }}
-                    />
-                  )}
+                  {/* Rate — opens SetBoardingPriceDialog */}
+                  <EditableDetailRow
+                    icon={CreditCard}
+                    label={t('housing.admissions.detail.rate')}
+                    value={
+                      <span className="font-medium">
+                        {formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang) || t('housing.admissions.detail.notAssigned')}
+                      </span>
+                    }
+                    canEdit={isEditable && canUpdate}
+                    onEdit={() => setSetPriceOpen(true)}
+                  />
+
 
                   {/* Special instructions — editable */}
                   {editingField === 'special_instructions' ? (
@@ -707,37 +632,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Emergency contact — editable */}
-                  {editingField === 'emergency_contact' ? (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <Input
-                        value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
-                        placeholder={t('housing.admissions.wizard.emergencyContactPlaceholder')}
-                        className="h-8 text-sm flex-1"
-                      />
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => saveEdit('emergency_contact', editValue)}>
-                        <Check className="h-3.5 w-3.5 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <EditableDetailRow
-                        icon={User}
-                        label={t('housing.admissions.detail.emergencyContact')}
-                        value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
-                        canEdit={isEditable && canUpdate}
-                        onEdit={() => startEdit('emergency_contact', admission.emergency_contact || '')}
-                      />
-                      <p className="text-[11px] text-muted-foreground ps-6">
-                        {t('housing.admissions.detail.emergencyContactHelp')}
-                      </p>
-                    </div>
-                  )}
+                  {/* Emergency contact — opens EmergencyContactDialog */}
+                  <div className="space-y-1">
+                    <EditableDetailRow
+                      icon={User}
+                      label={t('housing.admissions.detail.emergencyContact')}
+                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
+                      canEdit={isEditable && canUpdate}
+                      onEdit={() => setEmergencyContactOpen(true)}
+                    />
+                    <p className="text-[11px] text-muted-foreground ps-6">
+                      {t('housing.admissions.detail.emergencyContactHelp')}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -959,7 +866,43 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           onOpenChange={setAssignStaffOpen}
           horseId={admission.horse_id}
           horseName={admission.horse?.name || ''}
+          horseNameAr={admission.horse?.name_ar || null}
           existingEmployeeIds={existingEmployeeIds}
+        />
+      )}
+
+      {admission && (
+        <AssignClientDialog
+          open={assignClientOpen}
+          onOpenChange={setAssignClientOpen}
+          admissionId={admission.id}
+          currentClientId={admission.client_id}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
+        />
+      )}
+
+      {admission && (
+        <SetBoardingPriceDialog
+          open={setPriceOpen}
+          onOpenChange={setSetPriceOpen}
+          admissionId={admission.id}
+          currentDailyRate={admission.daily_rate}
+          currentMonthlyRate={admission.monthly_rate}
+          currentCurrency={admission.rate_currency}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
+        />
+      )}
+
+      {admission && (
+        <EmergencyContactDialog
+          open={emergencyContactOpen}
+          onOpenChange={setEmergencyContactOpen}
+          admissionId={admission.id}
+          currentValue={admission.emergency_contact}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
         />
       )}
     </>
