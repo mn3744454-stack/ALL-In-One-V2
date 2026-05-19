@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useHorseMasterData, HorseOwner } from "@/hooks/useHorseMasterData";
+import { useHorseMasterData, HorseOwner, getPrimaryPhoneNumber } from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
+import { Badge } from "@/components/ui/badge";
 
 interface OwnerPickerSheetProps {
   open: boolean;
