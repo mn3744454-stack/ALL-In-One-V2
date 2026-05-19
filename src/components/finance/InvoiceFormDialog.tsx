@@ -70,7 +70,7 @@ function InvoiceDateField({
           )}
         >
           <CalendarIcon className="me-2 h-4 w-4 opacity-70" />
-          {parsed ? format(parsed, "dd-MM-yyyy") : <span>{placeholder || "dd-MM-yyyy"}</span>}
+          {parsed ? format(parsed, "dd-MM-yyyy", { locale }) : <span>{placeholder || "dd-MM-yyyy"}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 z-[70]" align="start">
@@ -83,9 +83,7 @@ function InvoiceDateField({
               setOpen(false);
             }
           }}
-          captionLayout="dropdown-buttons"
-          fromYear={2000}
-          toYear={2100}
+          locale={locale}
           initialFocus
           className={cn("p-3 pointer-events-auto")}
         />
