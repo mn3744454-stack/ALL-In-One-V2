@@ -121,7 +121,7 @@ export default function DashboardClients() {
 
         {/* Add Client Button - inside page container, above search */}
         {canManage && (
-          <div className="flex justify-end">
+          <div className="flex justify-start">
             <Button onClick={() => setFormOpen(true)} className="w-full lg:w-auto">
               <Plus className="h-4 w-4 me-2" />
               {t("clients.create")}
