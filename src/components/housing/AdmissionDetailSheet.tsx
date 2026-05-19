@@ -906,11 +906,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           open={emergencyContactOpen}
           onOpenChange={setEmergencyContactOpen}
           admissionId={admission.id}
+          currentContacts={admission.emergency_contacts}
           currentValue={admission.emergency_contact}
           horseName={admission.horse?.name}
           horseNameAr={admission.horse?.name_ar}
         />
       )}
+
     </>
   );
 }
