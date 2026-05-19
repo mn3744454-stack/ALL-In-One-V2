@@ -57,14 +57,53 @@ export interface Breeder {
   created_at: string;
 }
 
+export interface OwnerPhoneEntry {
+  number: string;
+  label: 'mobile' | 'work' | 'home' | 'other';
+  is_whatsapp: boolean;
+  is_primary: boolean;
+}
+
+export type OwnerType = 'individual' | 'organization';
+
 export interface HorseOwner {
   id: string;
   tenant_id: string;
   name: string;
   name_ar: string | null;
+  /** Compatibility/derived field: mirrors the primary entry of `phones`. */
   phone: string | null;
   email: string | null;
+  owner_type: OwnerType;
+  phones: OwnerPhoneEntry[];
+  representative_name: string | null;
+  representative_name_ar: string | null;
+  representative_title: string | null;
+  representative_email: string | null;
+  representative_phones: OwnerPhoneEntry[];
   created_at: string;
+}
+
+export interface CreateOwnerPayload {
+  name: string;
+  name_ar?: string | null;
+  email?: string | null;
+  owner_type?: OwnerType;
+  phones?: OwnerPhoneEntry[];
+  representative_name?: string | null;
+  representative_name_ar?: string | null;
+  representative_title?: string | null;
+  representative_email?: string | null;
+  representative_phones?: OwnerPhoneEntry[];
+}
+
+/** Returns the primary number from a phones array (or first entry, or null). */
+export function getPrimaryPhoneNumber(phones: OwnerPhoneEntry[] | null | undefined): string | null {
+  if (!phones || phones.length === 0) return null;
+  const primary = phones.find((p) => p.is_primary && p.number?.trim());
+  if (primary) return primary.number.trim();
+  const first = phones.find((p) => p.number?.trim());
+  return first ? first.number.trim() : null;
 }
 
 export const useHorseMasterData = () => {
