@@ -4171,7 +4171,24 @@ export const en = {
       duplicateName: "This name already exists. Please use a different name or choose the existing value.",
       bilingualNameHint: "Required for database identity, search, and alphabetical sorting.",
     },
-    errors: {
+    owners: {
+      typeIndividual: "Individual",
+      typeOrganization: "Organization",
+      repShort: "Rep",
+      contact: {
+        phones: "Phone Numbers",
+        addPhone: "+ Add phone",
+        noPhonesAdded: "No phone numbers added",
+        whatsapp: "WhatsApp",
+        primaryPhone: "Primary",
+        setAsPrimary: "Set as primary",
+      },
+      phoneLabels: {
+        mobile: "Mobile",
+        work: "Work",
+        home: "Home",
+        other: "Other",
+      },
       noTenant: "No active workspace selected. Please pick a workspace and try again.",
       saveFailed: {
         title: "Could not save horse",
