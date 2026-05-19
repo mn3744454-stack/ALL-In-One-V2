@@ -94,3 +94,22 @@ export function mapMasterDataDuplicate(error: unknown, t: Translator): FriendlyE
     description: t("horses.masterData.duplicateName"),
   };
 }
+
+/**
+ * Detect browser transport/network errors raised by master-data creation
+ * (e.g. `TypeError: Failed to fetch`, `NetworkError`). Returns null otherwise.
+ */
+export function mapMasterDataNetwork(error: unknown, t: Translator): FriendlyError | null {
+  if (!error) return null;
+  const name = (error as { name?: string })?.name || "";
+  const text = extractText(error);
+  const isNetwork =
+    name === "TypeError" && /failed to fetch/i.test(text) ||
+    /failed to fetch|network ?error|networkerror|fetch failed/i.test(text);
+  if (!isNetwork) return null;
+  return {
+    title: t("horses.masterData.errorNetwork.title"),
+    description: t("horses.masterData.errorNetwork.description"),
+  };
+}
+

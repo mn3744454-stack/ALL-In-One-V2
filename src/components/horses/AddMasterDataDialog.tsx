@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
-import { mapMasterDataDuplicate } from "@/lib/horseErrorMessages";
+import { mapMasterDataDuplicate, mapMasterDataNetwork } from "@/lib/horseErrorMessages";
 import { AddOwnerDialog } from "./AddOwnerDialog";
 import type { CreateOwnerPayload } from "@/hooks/useHorseMasterData";
 
@@ -172,13 +172,15 @@ export const AddMasterDataDialog = ({
     setLoading(false);
 
     if (error) {
-      const duplicate = (type === "breed" || type === "color")
+      const network = mapMasterDataNetwork(error, t);
+      const duplicate = !network && (type === "breed" || type === "color")
         ? mapMasterDataDuplicate(error, t)
         : null;
-      if (duplicate) {
+      const friendly = network || duplicate;
+      if (friendly) {
         toast({
-          title: duplicate.title,
-          description: duplicate.description,
+          title: friendly.title,
+          description: friendly.description,
           variant: "destructive",
         });
       } else {

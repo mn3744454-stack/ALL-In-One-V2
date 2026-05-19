@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useHorseMasterData, HorseBreed } from "@/hooks/useHorseMasterData";
+import type { HorseBreed } from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
@@ -15,6 +15,11 @@ interface BreedPickerSheetProps {
   onOpenChange: (open: boolean) => void;
   selectedBreedId?: string | null;
   onBreedSelect: (breedId: string, breed?: HorseBreed) => void;
+  breeds: HorseBreed[];
+  createBreed: (
+    name: string,
+    name_ar?: string
+  ) => Promise<{ data: HorseBreed | null; error: Error | null }>;
 }
 
 export function BreedPickerSheet({
@@ -22,10 +27,11 @@ export function BreedPickerSheet({
   onOpenChange,
   selectedBreedId,
   onBreedSelect,
+  breeds,
+  createBreed,
 }: BreedPickerSheetProps) {
   const [searchValue, setSearchValue] = useState("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const { breeds, createBreed } = useHorseMasterData();
   const { t } = useI18n();
 
   const filtered = useMemo(() => {

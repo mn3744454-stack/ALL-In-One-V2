@@ -27,7 +27,7 @@ import { ChevronDown, Heart, Info, Loader2 } from "lucide-react";
 import { BreedPickerSheet } from "@/components/horses/wizard/BreedPickerSheet";
 import { ColorPickerSheet } from "@/components/horses/wizard/ColorPickerSheet";
 import { BilingualName } from "@/components/ui/BilingualName";
-import type { HorseBreed, HorseColor } from "@/hooks/useHorseMasterData";
+import { useHorseMasterData, type HorseBreed, type HorseColor } from "@/hooks/useHorseMasterData";
 
 export interface QuickCreateHorseDefaults {
   gender?: "male" | "female";
@@ -63,6 +63,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [selectedBreed, setSelectedBreed] = useState<HorseBreed | null>(null);
   const [selectedColor, setSelectedColor] = useState<HorseColor | null>(null);
+  const { breeds, colors, createBreed, createColor } = useHorseMasterData();
 
   const genderLocked = !!defaults?.gender;
 
@@ -300,12 +301,16 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
               onOpenChange={setBreedPickerOpen}
               selectedBreedId={form.breed_id || null}
               onBreedSelect={handleBreedSelect}
+              breeds={breeds}
+              createBreed={createBreed}
             />
             <ColorPickerSheet
               open={colorPickerOpen}
               onOpenChange={setColorPickerOpen}
               selectedColorId={form.color_id || null}
               onColorSelect={handleColorSelect}
+              colors={colors}
+              createColor={createColor}
             />
           </>
         )}
