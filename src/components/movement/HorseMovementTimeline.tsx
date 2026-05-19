@@ -43,9 +43,29 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
     );
   }
 
-  const formatLocation = (loc: { name: string; city: string | null } | null | undefined) => {
+  const formatLocation = (
+    loc: { name: string; name_ar?: string | null; city?: string | null } | null | undefined,
+  ): string | null => {
     if (!loc) return null;
-    return loc.name;
+    return displayLocationName(loc.name, loc.name_ar ?? null, loc.city ?? null, lang);
+  };
+
+  const formatExternal = (
+    loc: { name: string; name_ar?: string | null } | null | undefined,
+  ): string | null => {
+    if (!loc) return null;
+    return displayLocationName(loc.name, loc.name_ar ?? null, null, lang);
+  };
+
+  const directionText = (from: string | null, to: string | null): string => {
+    if (from && to) {
+      return t("movement.direction.fromTo")
+        .replace("{{from}}", from)
+        .replace("{{to}}", to);
+    }
+    if (to) return t("movement.direction.to").replace("{{to}}", to);
+    if (from) return t("movement.direction.from").replace("{{from}}", from);
+    return t("movement.direction.unspecified");
   };
 
   return (
