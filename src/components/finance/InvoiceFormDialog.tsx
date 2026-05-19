@@ -22,7 +22,7 @@ import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } 
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { addDays, format, parse } from "date-fns";
+import { addDays, format, parse, type Locale } from "date-fns";
 import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
