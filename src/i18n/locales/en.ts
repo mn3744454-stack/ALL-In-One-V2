@@ -2850,7 +2850,9 @@ export const en = {
         noClientsYet: "No clients available. Create one in the Clients section first.",
         setPriceDialogTitle: "Set Boarding Price for {{name}}",
         setPriceHelp: "Set daily and/or monthly rate. Both can be used together.",
-        emergencyContactDialogTitle: "Emergency Contact for {{name}}",
+        emergencyContactDialogTitle: "Emergency Contacts for {{name}}",
+        addNewClient: "Add new client",
+
         movements: "Related Movements",
         checkin: "Check-in",
         checkout: "Checkout",
