@@ -23,18 +23,23 @@ import { BilingualName } from "@/components/ui/BilingualName";
 import { cn } from "@/lib/utils";
 import { Plus, Building2, Loader2, Home, ShieldAlert, Search, X } from "lucide-react";
 
-export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'isolation' | 'maintenance' | 'out_of_service';
+export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'storage' | 'isolation' | 'maintenance' | 'out_of_service';
 
-/** Check if a unit (or its occupants) matches a search query */
+/** Check if a unit (or its occupants) matches a search query.
+ * Optionally accepts the parent facility so a facility-name match shows all its units. */
 export function unitMatchesSearch(
   unit: { id: string; code: string; name: string | null; name_ar: string | null },
   facilityData: { occupants: { unit_id: string; horse: { name: string; name_ar: string | null } | null }[] },
-  query: string
+  query: string,
+  facility?: { name?: string | null; name_ar?: string | null; code?: string | null },
 ): boolean {
   if (!query) return true;
   if (unit.code?.toLowerCase().includes(query)) return true;
   if (unit.name?.toLowerCase().includes(query)) return true;
   if (unit.name_ar?.includes(query)) return true;
+  if (facility?.name?.toLowerCase().includes(query)) return true;
+  if (facility?.name_ar?.includes(query)) return true;
+  if (facility?.code?.toLowerCase().includes(query)) return true;
   const unitOccupants = facilityData.occupants.filter(o => o.unit_id === unit.id);
   return unitOccupants.some(o => {
     if (!o.horse) return false;
