@@ -5199,6 +5199,7 @@ export type Database = {
           invoice_id: string
           period_end: string | null
           period_start: string | null
+          position: number
           quantity: number
           service_id: string | null
           total_price: number
@@ -5215,6 +5216,7 @@ export type Database = {
           invoice_id: string
           period_end?: string | null
           period_start?: string | null
+          position?: number
           quantity?: number
           service_id?: string | null
           total_price: number
@@ -5231,6 +5233,7 @@ export type Database = {
           invoice_id?: string
           period_end?: string | null
           period_start?: string | null
+          position?: number
           quantity?: number
           service_id?: string | null
           total_price?: number
