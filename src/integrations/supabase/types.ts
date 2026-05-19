@@ -11424,6 +11424,14 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      update_horse_breed: {
+        Args: { p_id: string; p_name: string; p_name_ar: string }
+        Returns: Json
+      }
+      update_horse_color: {
+        Args: { p_id: string; p_name: string; p_name_ar: string }
+        Returns: Json
+      }
       validate_boarding_checkout_gate: {
         Args: {
           p_actor_user_id?: string

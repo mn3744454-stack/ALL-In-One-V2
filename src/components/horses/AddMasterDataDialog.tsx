@@ -26,12 +26,24 @@ export type MasterDataType =
   | "breeder"
   | "owner";
 
+export type MasterDataDialogMode = "create" | "edit";
+
 interface AddMasterDataDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: MasterDataType;
   onCreate: (data: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
   onSuccess?: (data: unknown) => void;
+  /** Edit-mode props (breed/color only) */
+  mode?: MasterDataDialogMode;
+  initialValues?: { name?: string; name_ar?: string | null };
+  onUpdate?: (values: { name: string; name_ar?: string | null }) => Promise<{
+    updated: boolean;
+    reason: "updated" | "duplicate_name" | "invalid_name" | "not_found" | "error";
+    error: Error | null;
+  }>;
+  editTitle?: string;
+  editSuccessMessage?: string;
 }
 
 export const AddMasterDataDialog = ({
@@ -40,9 +52,15 @@ export const AddMasterDataDialog = ({
   type,
   onCreate,
   onSuccess,
+  mode = "create",
+  initialValues,
+  onUpdate,
+  editTitle,
+  editSuccessMessage,
 }: AddMasterDataDialogProps) => {
   const { t, lang } = useI18n();
   const isArabicUI = lang === "ar";
+  const isEdit = mode === "edit";
 
   // Owner type uses a richer custom form (Phase 2: type, multi-phone, representative).
   if (type === "owner") {
@@ -70,14 +88,18 @@ export const AddMasterDataDialog = ({
     if (!open) {
       setAttemptedSubmit(false);
       setFormData({});
+      return;
     }
-  }, [open]);
+    if (isEdit && initialValues) {
+      setFormData({
+        name: initialValues.name ?? "",
+        name_ar: initialValues.name_ar ?? "",
+      });
+    }
+  }, [open, isEdit, initialValues]);
 
   // Config is now inside component to access t() hook
   const typeConfig = useMemo(() => {
-    // For breed/color, fields are ordered/required based on UI language.
-    // Both `name` (EN) and `name_ar` (AR) are required in Arabic UI because
-    // the DB column `name` is NOT NULL and the unique index uses lower(name).
     const breedFields = isArabicUI
       ? [
           { key: "name_ar", label: t('horses.masterData.breed.nameAr'), required: true, dir: "rtl" as const },
@@ -147,6 +169,7 @@ export const AddMasterDataDialog = ({
   }, [t, isArabicUI]);
 
   const config = typeConfig[type];
+  const displayTitle = isEdit && editTitle ? editTitle : config.title;
 
   const missingIssues = useMemo(() => {
     const requiredFields = config.fields.filter((f) => f.required);
@@ -168,6 +191,62 @@ export const AddMasterDataDialog = ({
     }
 
     setLoading(true);
+
+    if (isEdit && onUpdate) {
+      const result = await onUpdate({
+        name: (formData.name || "").trim(),
+        name_ar: (formData.name_ar || "").trim() || null,
+      });
+      setLoading(false);
+
+      if (result.updated) {
+        toast({
+          title: editSuccessMessage || t('horses.masterData.edit.breedSuccess'),
+        });
+        setFormData({});
+        onOpenChange(false);
+        return;
+      }
+
+      switch (result.reason) {
+        case "duplicate_name":
+          toast({
+            title: t('horses.masterData.edit.duplicate'),
+            variant: "destructive",
+          });
+          break;
+        case "invalid_name":
+          toast({
+            title: t('horses.masterData.edit.invalidName'),
+            variant: "destructive",
+          });
+          break;
+        case "not_found":
+          toast({
+            title: t('horses.masterData.edit.notFound'),
+            variant: "destructive",
+          });
+          break;
+        default: {
+          const network = result.error ? mapMasterDataNetwork(result.error, t) : null;
+          if (network) {
+            toast({
+              title: network.title,
+              description: network.description,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: t('horses.masterData.edit.error'),
+              variant: "destructive",
+            });
+          }
+          break;
+        }
+      }
+      return;
+    }
+
     const { data, error } = await onCreate(formData);
     setLoading(false);
 
@@ -212,7 +291,7 @@ export const AddMasterDataDialog = ({
       className="sm:max-w-md"
     >
       <DialogHeader>
-        <DialogTitle>{config.title}</DialogTitle>
+        <DialogTitle>{displayTitle}</DialogTitle>
       </DialogHeader>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -250,7 +329,7 @@ export const AddMasterDataDialog = ({
           </DialogClose>
           <Button type="submit" disabled={loading}>
             {loading && <Loader2 className="w-4 h-4 me-2 animate-spin" />}
-            {t('common.create')}
+            {isEdit ? t('common.save') : t('common.create')}
           </Button>
         </div>
       </form>
