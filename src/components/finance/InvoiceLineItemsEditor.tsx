@@ -198,6 +198,38 @@ export function InvoiceLineItemsEditor({
 
   return (
     <div className="space-y-3">
+      {/* Add Item Buttons — ABOVE items list */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addItem}
+          className="gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t("finance.invoices.addManualItem")}
+        </Button>
+
+        {activeServices.length > 0 && (
+          <ServicePicker
+            services={activeServices}
+            onSelect={addItemFromService}
+            getServiceName={getServiceName}
+            t={t}
+          />
+        )}
+
+        {activePlans.length > 0 && (
+          <PackagePicker
+            plans={activePlans}
+            onSelect={addItemsFromPackage}
+            lang={lang}
+            t={t}
+          />
+        )}
+      </div>
+
       {/* Column headers — ABOVE items */}
       {items.length > 0 && (
         <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
@@ -208,6 +240,8 @@ export function InvoiceLineItemsEditor({
           <div className="col-span-1"></div>
         </div>
       )}
+
+
 
       {/* Items */}
       <div className="space-y-3">
