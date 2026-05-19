@@ -43,6 +43,21 @@ export const AddMasterDataDialog = ({
 }: AddMasterDataDialogProps) => {
   const { t, lang } = useI18n();
   const isArabicUI = lang === "ar";
+
+  // Owner type uses a richer custom form (Phase 2: type, multi-phone, representative).
+  if (type === "owner") {
+    return (
+      <AddOwnerDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        onCreate={(payload: CreateOwnerPayload) =>
+          onCreate(payload as unknown as Record<string, unknown>)
+        }
+        onSuccess={onSuccess}
+      />
+    );
+  }
+
   const isBreedOrColor = type === "breed" || type === "color";
   const isOwner = type === "owner";
   const isBilingualRequired = isBreedOrColor || isOwner;
