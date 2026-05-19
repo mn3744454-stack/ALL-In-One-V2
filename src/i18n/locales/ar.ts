@@ -4141,6 +4141,7 @@ export const ar = {
       owner: {
         title: "إضافة مالك جديد",
         name: "الاسم",
+        nameEn: "الاسم (إنجليزي)",
         nameAr: "الاسم (عربي)",
         phone: "الهاتف",
         email: "البريد الإلكتروني",
