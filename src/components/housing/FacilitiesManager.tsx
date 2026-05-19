@@ -111,24 +111,29 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const facilityIds = useMemo(() => lifecycleFilteredAreas.map(a => a.id), [lifecycleFilteredAreas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
 
-  // Aggregate stats across all visible facilities
+  // Aggregate stats across all visible facilities (scoped to current branch + lifecycle).
+  // NOTE: Occupied = has horses but NOT full. Full = at capacity.
   const aggregateStats = useMemo(() => {
-    let total = 0, vacant = 0, occupied = 0, maintenance = 0, outOfService = 0, isolation = 0;
+    let total = 0, vacant = 0, occupied = 0, full = 0, maintenance = 0, outOfService = 0, isolation = 0, storage = 0;
     for (const fid of facilityIds) {
       const fd = facilityUnitsMap[fid];
       if (!fd) continue;
       for (const unit of fd.units) {
         total++;
         const unitOccupants = fd.occupants.filter(o => o.unit_id === unit.id);
-        const isOcc = unitOccupants.length > 0;
+        const occCount = unitOccupants.length;
+        const isOcc = occCount > 0;
+        const isFull = occCount >= unit.capacity;
         if (unit.status === 'maintenance') maintenance++;
         else if (unit.status === 'out_of_service') outOfService++;
         else if (!isOcc) vacant++;
+        else if (isFull) full++;
         else occupied++;
         if (unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay') isolation++;
+        if (unit.unit_type === 'storage') storage++;
       }
     }
-    return { total, vacant, occupied, maintenance, outOfService, isolation };
+    return { total, vacant, occupied, full, maintenance, outOfService, isolation, storage };
   }, [facilityIds, facilityUnitsMap]);
 
   // Normalize search query for matching
