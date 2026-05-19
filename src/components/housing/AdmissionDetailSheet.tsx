@@ -586,76 +586,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     <DetailRow icon={LogOut} label={t('housing.admissions.detail.checkedOutAt')} value={<span className="font-medium">{formatStandardDateTime(admission.checked_out_at)}</span>} />
                   )}
 
-                  {/* Rate — editable */}
-                  {editingField === 'daily_rate' ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CreditCard className="h-4 w-4 shrink-0" />
-                        <span>{t('housing.admissions.detail.rate')}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.dailyRate')}</label>
-                          <Input
-                            type="number"
-                            value={editNumValue ?? ''}
-                            onChange={e => setEditNumValue(e.target.value ? parseFloat(e.target.value) : null)}
-                            className="h-8 text-sm"
-                            placeholder="0"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground">{t('housing.admissions.wizard.monthlyRate')}</label>
-                          <Input
-                            type="number"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            className="h-8 text-sm"
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-1 justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7"
-                          onClick={async () => {
-                            if (!admission) return;
-                            try {
-                              await updateAdmission({
-                                admissionId: admission.id,
-                                daily_rate: editNumValue || null,
-                                monthly_rate: editValue ? parseFloat(editValue) : null,
-                              });
-                              cancelEdit();
-                            } catch { /* handled */ }
-                          }}
-                        >
-                          <Check className="h-3.5 w-3.5 me-1" />{t('common.save')}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="h-7" onClick={cancelEdit}>
-                          {t('common.cancel')}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <EditableDetailRow
-                      icon={CreditCard}
-                      label={t('housing.admissions.detail.rate')}
-                      value={
-                        <span className="font-medium">
-                          {formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang) || t('housing.admissions.detail.notAssigned')}
-                        </span>
-                      }
-                      canEdit={isEditable && canUpdate}
-                      onEdit={() => {
-                        setEditingField('daily_rate');
-                        setEditNumValue(admission.daily_rate);
-                        setEditValue(admission.monthly_rate?.toString() || '');
-                      }}
-                    />
-                  )}
+                  {/* Rate — opens SetBoardingPriceDialog */}
+                  <EditableDetailRow
+                    icon={CreditCard}
+                    label={t('housing.admissions.detail.rate')}
+                    value={
+                      <span className="font-medium">
+                        {formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang) || t('housing.admissions.detail.notAssigned')}
+                      </span>
+                    }
+                    canEdit={isEditable && canUpdate}
+                    onEdit={() => setSetPriceOpen(true)}
+                  />
+
 
                   {/* Special instructions — editable */}
                   {editingField === 'special_instructions' ? (
