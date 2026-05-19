@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n";
-import { MapPin, ArrowRight, Plus, ChevronRight, Building2, DoorOpen, ArrowDownToLine } from "lucide-react";
-import { formatStandardDate } from "@/lib/displayHelpers";
+import { MapPin, Plus, ChevronRight, Building2, DoorOpen, ArrowDownToLine } from "lucide-react";
+import { formatStandardDate, displayLocationName } from "@/lib/displayHelpers";
 import { cn } from "@/lib/utils";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { MovementTypeBadge } from "./MovementTypeBadge";
@@ -18,6 +18,7 @@ interface HorseLocationSectionProps {
   currentLocation?: {
     id: string;
     name: string;
+    name_ar?: string | null;
     city?: string | null;
   } | null;
   currentArea?: {
@@ -35,6 +36,8 @@ interface HorseLocationSectionProps {
   homeLocation?: {
     id: string;
     name: string;
+    name_ar?: string | null;
+    city?: string | null;
   } | null;
   canManage?: boolean;
 }
@@ -47,7 +50,7 @@ export function HorseLocationSection({
   homeLocation,
   canManage = false,
 }: HorseLocationSectionProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [recordDialogOpen, setRecordDialogOpen] = useState(false);
   const [returnPrefillOn, setReturnPrefillOn] = useState(false);
 
@@ -55,11 +58,31 @@ export function HorseLocationSection({
   const { state: lifecycleState } = useHorseLifecycleState(horseId);
   const isTemporarilyOut = !!lifecycleState?.is_temporarily_out;
 
-  const ArrowIcon = dir === 'rtl' ? (
-    <ArrowRight className="h-3 w-3 rotate-180 text-muted-foreground shrink-0" />
-  ) : (
-    <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-  );
+  /**
+   * Pass 1 — bilingual From/To phrasing.
+   * Arrow icons (→ / ←) removed; we render localized text instead so RTL
+   * users read movement direction unambiguously.
+   */
+  const formatDirection = (
+    from: string | null,
+    to: string | null,
+  ): string => {
+    if (from && to) {
+      return t("movement.direction.fromTo")
+        .replace("{{from}}", from)
+        .replace("{{to}}", to);
+    }
+    if (to) return t("movement.direction.to").replace("{{to}}", to);
+    if (from) return t("movement.direction.from").replace("{{from}}", from);
+    return t("movement.direction.unspecified");
+  };
+
+  const locName = (
+    loc?: { name?: string | null; name_ar?: string | null; city?: string | null } | null,
+  ): string | null => {
+    if (!loc) return null;
+    return displayLocationName(loc.name, loc.name_ar, loc.city ?? null, lang);
+  };
 
   return (
     <Card>
@@ -91,12 +114,7 @@ export function HorseLocationSection({
           </p>
           {currentLocation ? (
             <p className="font-semibold text-lg">
-              {currentLocation.name}
-              {currentLocation.city && (
-                <span className="text-muted-foreground text-sm ms-2">
-                  ({currentLocation.city})
-                </span>
-              )}
+              {displayLocationName(currentLocation.name, currentLocation.name_ar, currentLocation.city ?? null, lang)}
             </p>
           ) : (
             <p className="text-muted-foreground italic">
@@ -118,7 +136,7 @@ export function HorseLocationSection({
               {currentArea && (
                 <Badge variant="outline" className="gap-1">
                   <Building2 className="h-3 w-3" />
-                  {dir === 'rtl' && currentArea.name_ar ? currentArea.name_ar : currentArea.name}
+                  {displayLocationName(currentArea.name, currentArea.name_ar, null, lang)}
                   {currentArea.facility_type && (
                     <span className="opacity-60 text-[10px]">({t(`housing.facilityTypes.${currentArea.facility_type}`)})</span>
                   )}
@@ -128,8 +146,10 @@ export function HorseLocationSection({
                 <Badge className="gap-1">
                   <DoorOpen className="h-3 w-3" />
                   {currentUnit.code}
-                  {currentUnit.name && currentUnit.name !== currentUnit.code && (
-                    <span className="opacity-75">- {currentUnit.name}</span>
+                  {(currentUnit.name || currentUnit.name_ar) && (
+                    <span className="opacity-75">
+                      — {displayLocationName(currentUnit.name, currentUnit.name_ar, null, lang)}
+                    </span>
                   )}
                 </Badge>
               )}
@@ -141,7 +161,9 @@ export function HorseLocationSection({
         {homeLocation && homeLocation.id !== currentLocation?.id && (
           <div className="text-sm">
             <span className="text-muted-foreground">{t("movement.horseSection.homeLocation")}: </span>
-            <span className="font-medium">{homeLocation.name}</span>
+            <span className="font-medium">
+              {displayLocationName(homeLocation.name, homeLocation.name_ar, homeLocation.city ?? null, lang)}
+            </span>
           </div>
         )}
 
@@ -177,53 +199,38 @@ export function HorseLocationSection({
             </p>
           ) : (
             <div className="space-y-2">
-              {movements.slice(0, 5).map((movement) => (
-                <div
-                  key={movement.id}
-                  className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30"
-                >
-                  <MovementTypeBadge type={movement.movement_type} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    {movement.movement_type === 'transfer' ? (
-                      <span className="flex items-center gap-1 flex-wrap">
-                        <span className="text-muted-foreground truncate">
-                          {movement.from_location?.name || "—"}
-                        </span>
-                        {ArrowIcon}
-                        <span className="font-medium truncate">
-                          {movement.to_location?.name || "—"}
-                        </span>
-                        {/* Show unit if present */}
+              {movements.slice(0, 5).map((movement) => {
+                const from = locName(movement.from_location);
+                const to = locName(movement.to_location);
+                const directionText =
+                  movement.movement_type === 'in'
+                    ? formatDirection(null, to)
+                    : movement.movement_type === 'out'
+                      ? formatDirection(from, null)
+                      : formatDirection(from, to);
+                return (
+                  <div
+                    key={movement.id}
+                    className="flex items-center gap-3 text-sm p-2 rounded-lg bg-muted/30"
+                  >
+                    <MovementTypeBadge type={movement.movement_type} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <span className="flex items-center gap-2 flex-wrap">
+                        <span className="truncate">{directionText}</span>
                         {movement.to_unit && (
-                          <Badge variant="secondary" className="text-xs gap-1 ms-1">
+                          <Badge variant="secondary" className="text-xs gap-1">
                             <DoorOpen className="h-2.5 w-2.5" />
                             {movement.to_unit.code}
                           </Badge>
                         )}
                       </span>
-                    ) : movement.movement_type === 'in' ? (
-                      <span className="flex items-center gap-1 flex-wrap">
-                        <span className="font-medium truncate">
-                          {movement.to_location?.name || "—"}
-                        </span>
-                        {movement.to_unit && (
-                          <Badge variant="secondary" className="text-xs gap-1 ms-1">
-                            <DoorOpen className="h-2.5 w-2.5" />
-                            {movement.to_unit.code}
-                          </Badge>
-                        )}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground truncate">
-                        {movement.from_location?.name || "—"}
-                      </span>
-                    )}
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {formatStandardDate(movement.movement_at)}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {formatStandardDate(movement.movement_at)}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
