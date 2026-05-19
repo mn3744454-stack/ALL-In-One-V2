@@ -100,12 +100,16 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         onOpenChange={setBreedPickerOpen}
         selectedBreedId={data.breed_id}
         onBreedSelect={(id) => onChange({ breed_id: id })}
+        breeds={breeds}
+        createBreed={createBreed}
       />
       <ColorPickerSheet
         open={colorPickerOpen}
         onOpenChange={setColorPickerOpen}
         selectedColorId={data.color_id}
         onColorSelect={(id) => onChange({ color_id: id })}
+        colors={colors}
+        createColor={createColor}
       />
     </div>
   );
