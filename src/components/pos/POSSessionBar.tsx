@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Store, Clock, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { POSSession } from "@/hooks/pos/usePOSSessions";
-import { format } from "date-fns";
+import { formatStandardTime } from "@/lib/displayHelpers";
 
 interface POSSessionBarProps {
   session: POSSession | null;
@@ -55,7 +55,7 @@ export function POSSessionBar({
             isRTL && "flex-row-reverse"
           )}>
             <Clock className="h-3 w-3" />
-            <span>{format(new Date(session.opened_at), "HH:mm")}</span>
+            <span>{formatStandardTime(session.opened_at)}</span>
           </div>
           
           <div className={cn(
