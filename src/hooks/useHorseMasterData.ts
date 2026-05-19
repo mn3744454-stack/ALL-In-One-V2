@@ -510,6 +510,8 @@ export const useHorseMasterData = () => {
     createBreed,
     deleteBreed,
     deleteColor,
+    updateBreed,
+    updateColor,
     createBranch,
     createStable,
     createHousingUnit,
