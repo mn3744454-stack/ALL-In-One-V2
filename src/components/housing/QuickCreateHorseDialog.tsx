@@ -63,6 +63,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [selectedBreed, setSelectedBreed] = useState<HorseBreed | null>(null);
   const [selectedColor, setSelectedColor] = useState<HorseColor | null>(null);
+  const { breeds, colors, createBreed, createColor } = useHorseMasterData();
 
   const genderLocked = !!defaults?.gender;
 
