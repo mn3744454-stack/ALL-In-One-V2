@@ -2583,6 +2583,8 @@ export const ar = {
       allTypes: "جميع الأنواع",
       allStatuses: "جميع الحالات",
       isolation: "عزل",
+      isolationLabel: "عزل",
+      storageLabel: "مخزن",
     },
     search: {
       placeholder: "ابحث عن خيل أو وحدة…",
