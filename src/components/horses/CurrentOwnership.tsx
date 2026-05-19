@@ -29,7 +29,7 @@ import {
 import { Users, Plus, ArrowRightLeft, Pencil, Trash2, Crown, AlertCircle, Phone, UserCheck } from "lucide-react";
 import { useHorseMasterData, getPrimaryPhoneNumber } from "@/hooks/useHorseMasterData";
 import { useHorseOwnership, HorseOwnership } from "@/hooks/useHorseOwnership";
-import { useHorseMasterData } from "@/hooks/useHorseMasterData";
+
 import { TransferOwnershipDialog } from "./TransferOwnershipDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
