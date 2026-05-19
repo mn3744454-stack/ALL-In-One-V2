@@ -57,6 +57,16 @@ export function MultiPhoneInput({
           setAsPrimary: 'hr.contact.setAsPrimary',
           phoneLabel: (l: string) => `hr.phoneLabels.${l}`,
         }
+      : labelNamespace === 'owners'
+      ? {
+          phones: 'horses.owners.contact.phones',
+          addPhone: 'horses.owners.contact.addPhone',
+          noPhonesAdded: 'horses.owners.contact.noPhonesAdded',
+          whatsapp: 'horses.owners.contact.whatsapp',
+          primaryPhone: 'horses.owners.contact.primaryPhone',
+          setAsPrimary: 'horses.owners.contact.setAsPrimary',
+          phoneLabel: (l: string) => `horses.owners.phoneLabels.${l}`,
+        }
       : {
           phones: 'clients.form.phones',
           addPhone: 'clients.form.addPhone',
