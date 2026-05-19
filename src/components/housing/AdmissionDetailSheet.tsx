@@ -976,3 +976,48 @@ function EditableDetailRow({ icon: Icon, label, value, canEdit, onEdit }: {
     </div>
   );
 }
+
+function EmergencyContactSummary({
+  contacts,
+  legacy,
+  lang,
+  t,
+}: {
+  contacts: any;
+  legacy: string | null;
+  lang: string;
+  t: (key: string) => string;
+}) {
+  const list = Array.isArray(contacts) ? contacts : [];
+  if (list.length === 0) {
+    if (legacy && legacy.trim()) {
+      return <span className="font-medium">{legacy}</span>;
+    }
+    return <span className="font-medium">—</span>;
+  }
+  const first = list[0] || {};
+  const nameEn = (first.name || '').trim();
+  const nameAr = (first.name_ar || '').trim();
+  const name =
+    lang === 'ar'
+      ? nameAr || nameEn || t('housing.admissions.detail.notAssigned')
+      : nameEn || nameAr || t('housing.admissions.detail.notAssigned');
+  const phones = Array.isArray(first.phones) ? first.phones : [];
+  const primary =
+    phones.find((p: any) => p?.is_primary && p?.number) ||
+    phones.find((p: any) => p?.number);
+  const phoneStr = primary?.number?.trim() || '';
+  const more = list.length - 1;
+  return (
+    <span className="font-medium">
+      {name}
+      {phoneStr ? <span className="text-muted-foreground"> · {phoneStr}</span> : null}
+      {more > 0 ? (
+        <span className="text-muted-foreground text-xs ms-1">
+          {t('housing.emergency.moreSuffix').replace('{{n}}', String(more))}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
