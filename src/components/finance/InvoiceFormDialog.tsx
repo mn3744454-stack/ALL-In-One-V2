@@ -341,7 +341,8 @@ export function InvoiceFormDialog({
           .delete()
           .eq("invoice_id", invoice.id);
 
-        for (const item of validItems) {
+        for (let index = 0; index < validItems.length; index++) {
+          const item = validItems[index];
           await supabase.from("invoice_items" as any).insert({
             invoice_id: invoice.id,
             description: item.description,
@@ -353,6 +354,7 @@ export function InvoiceFormDialog({
             horse_id: item.horse_id || null,
             domain: item.domain || null,
             service_id: item.service_id || null,
+            position: index,
           });
         }
 
