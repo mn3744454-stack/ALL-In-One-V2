@@ -114,22 +114,15 @@ export default function DashboardClients() {
   };
 
   return (
-    <DashboardShell
-      headerRight={canManage ? (
-        <Button onClick={() => setFormOpen(true)}>
-          <Plus className="h-4 w-4 me-2" />
-          {t("clients.create")}
-        </Button>
-      ) : undefined}
-    >
+    <DashboardShell>
       <MobilePageHeader title={t("clients.title")} showBack />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 w-full pb-24 lg:pb-6">
 
-        {/* Mobile Add Button */}
+        {/* Add Client Button - inside page container, above search */}
         {canManage && (
-          <div className="lg:hidden">
-            <Button onClick={() => setFormOpen(true)} className="w-full">
+          <div className="flex justify-end">
+            <Button onClick={() => setFormOpen(true)} className="w-full lg:w-auto">
               <Plus className="h-4 w-4 me-2" />
               {t("clients.create")}
             </Button>
@@ -147,6 +140,7 @@ export default function DashboardClients() {
             className="ps-10"
           />
         </div>
+
 
         {/* SMOKE TEST 6.1: Mobile-optimized filter layout */}
         {/* Filters - Mobile optimized: stacks cleanly, no overflow */}
