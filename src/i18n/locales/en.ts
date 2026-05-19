@@ -4189,6 +4189,8 @@ export const en = {
         home: "Home",
         other: "Other",
       },
+    },
+    errors: {
       noTenant: "No active workspace selected. Please pick a workspace and try again.",
       saveFailed: {
         title: "Could not save horse",
