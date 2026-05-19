@@ -4187,6 +4187,10 @@ export const en = {
       hasBeenAdded: "Item has been added",
       errorCreating: "Error creating item",
       duplicateName: "This name already exists. Please use a different name or choose the existing value.",
+      errorNetwork: {
+        title: "Connection error",
+        description: "Could not reach the server. Check your connection and try again.",
+      },
       bilingualNameHint: "Required for database identity, search, and alphabetical sorting.",
     },
     owners: {
