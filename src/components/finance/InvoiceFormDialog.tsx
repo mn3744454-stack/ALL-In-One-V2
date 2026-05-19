@@ -8,31 +8,112 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { InvoiceLineItemsEditor, type LineItem } from "./InvoiceLineItemsEditor";
+import { InvoiceClientPicker } from "./InvoiceClientPicker";
 import { useHorses } from "@/hooks/useHorses";
 import { useServices } from "@/hooks/useServices";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import { useI18n } from "@/i18n";
-import { displayClientName } from "@/lib/displayHelpers";
 import { useTenant } from "@/contexts/TenantContext";
 import { useTenantCurrency } from "@/hooks/useTenantCurrency";
 import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } from "@/hooks/finance/useInvoices";
-import { useClients } from "@/hooks/useClients";
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
-import { addDays, format } from "date-fns";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { addDays, format, parse } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { invalidateFinanceQueries } from "@/hooks/finance/invalidateFinanceQueries";
+
+/**
+ * Local date field used inside the Create Invoice dialog.
+ * - Display format: dd-MM-yyyy (e.g. 18-05-2026)
+ * - Internal value: yyyy-MM-dd (unchanged from previous native <input type="date">)
+ * - Footer actions: Today / Clear
+ */
+function InvoiceDateField({
+  value,
+  onChange,
+  todayLabel,
+  clearLabel,
+  placeholder,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  todayLabel: string;
+  clearLabel: string;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const parsed = useMemo(() => {
+    if (!value) return undefined;
+    const d = parse(value, "yyyy-MM-dd", new Date());
+    return isNaN(d.getTime()) ? undefined : d;
+  }, [value]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-start font-normal",
+            !parsed && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="me-2 h-4 w-4 opacity-70" />
+          {parsed ? format(parsed, "dd-MM-yyyy") : <span>{placeholder || "dd-MM-yyyy"}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 z-[70]" align="start">
+        <Calendar
+          mode="single"
+          selected={parsed}
+          onSelect={(d) => {
+            if (d) {
+              onChange(format(d, "yyyy-MM-dd"));
+              setOpen(false);
+            }
+          }}
+          captionLayout="dropdown-buttons"
+          fromYear={2000}
+          toYear={2100}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+        <div className="flex items-center justify-between gap-2 border-t p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+          >
+            {clearLabel}
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={() => {
+              onChange(format(new Date(), "yyyy-MM-dd"));
+              setOpen(false);
+            }}
+          >
+            {todayLabel}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 interface InvoiceFormDialogProps {
   open: boolean;
@@ -55,7 +136,7 @@ export function InvoiceFormDialog({
   const { activeTenant } = useTenant();
   const tenantCurrency = useTenantCurrency();
   const { createInvoice, updateInvoice, isCreating, isUpdating } = useInvoices(activeTenant?.tenant.id);
-  const { clients } = useClients();
+  
   const { horses = [] } = useHorses();
   const { data: allServices = [] } = useServices();
   const { plans: allPlans = [] } = useStableServicePlans();
@@ -180,8 +261,7 @@ export function InvoiceFormDialog({
     return `${prefix}-${year}${month}-${random}`;
   };
 
-  const handleClientChange = (clientId: string) => {
-    const client = clients.find((c) => c.id === clientId);
+  const handleClientChange = (clientId: string, client: { name?: string; name_ar?: string | null } | null) => {
     setFormData({
       ...formData,
       client_id: clientId,
@@ -332,7 +412,7 @@ export function InvoiceFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       isDirty={isDirty}
-      className="sm:max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0"
+      className="sm:max-w-5xl xl:max-w-6xl w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0"
     >
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle>
@@ -346,38 +426,33 @@ export function InvoiceFormDialog({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>{t("finance.invoices.client")}</Label>
-                <Select value={formData.client_id} onValueChange={handleClientChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("finance.invoices.selectClient")} />
-                  </SelectTrigger>
-                  <SelectContent className="z-[60]">
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {displayClientName(client.name, client.name_ar, lang)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <InvoiceClientPicker
+                  selectedClientId={formData.client_id}
+                  onSelect={handleClientChange}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.issueDate")}</Label>
-                <Input
-                  type="date"
+                <InvoiceDateField
                   value={formData.issue_date}
-                  onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, issue_date: v })}
+                  todayLabel={t("finance.invoices.dateToday")}
+                  clearLabel={t("finance.invoices.dateClear")}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>{t("finance.invoices.dueDate")}</Label>
-                <Input
-                  type="date"
+                <InvoiceDateField
                   value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, due_date: v })}
+                  todayLabel={t("finance.invoices.dateToday")}
+                  clearLabel={t("finance.invoices.dateClear")}
                 />
               </div>
             </div>
+
 
             {/* Line Items */}
             <div className="space-y-2">

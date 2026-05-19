@@ -7,11 +7,12 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Check, ChevronsUpDown, Package, FileText, Layers } from "lucide-react";
+import { Plus, Trash2, Package, FileText, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
 import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
+import { HorseLinePicker } from "./HorseLinePicker";
 
 export interface LineItem {
   id: string;
@@ -197,6 +198,38 @@ export function InvoiceLineItemsEditor({
 
   return (
     <div className="space-y-3">
+      {/* Add Item Buttons — ABOVE items list */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addItem}
+          className="gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t("finance.invoices.addManualItem")}
+        </Button>
+
+        {activeServices.length > 0 && (
+          <ServicePicker
+            services={activeServices}
+            onSelect={addItemFromService}
+            getServiceName={getServiceName}
+            t={t}
+          />
+        )}
+
+        {activePlans.length > 0 && (
+          <PackagePicker
+            plans={activePlans}
+            onSelect={addItemsFromPackage}
+            lang={lang}
+            t={t}
+          />
+        )}
+      </div>
+
       {/* Column headers — ABOVE items */}
       {items.length > 0 && (
         <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
@@ -207,6 +240,8 @@ export function InvoiceLineItemsEditor({
           <div className="col-span-1"></div>
         </div>
       )}
+
+
 
       {/* Items */}
       <div className="space-y-3">
@@ -277,12 +312,10 @@ export function InvoiceLineItemsEditor({
                 {showAttribution && !item.entity_type ? (
                   <>
                     <div className="col-span-5">
-                      <HorsePicker
+                      <HorseLinePicker
                         horses={horses}
                         selectedId={item.horse_id || null}
                         onSelect={(id) => updateItem(item.id, "horse_id", id)}
-                        getHorseName={getHorseName}
-                        t={t}
                       />
                     </div>
                     <div className="col-span-4">
@@ -345,37 +378,6 @@ export function InvoiceLineItemsEditor({
         })}
       </div>
 
-      {/* Add Item Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addItem}
-          className="gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {t("finance.invoices.addManualItem")}
-        </Button>
-
-        {activeServices.length > 0 && (
-          <ServicePicker
-            services={activeServices}
-            onSelect={addItemFromService}
-            getServiceName={getServiceName}
-            t={t}
-          />
-        )}
-
-        {activePlans.length > 0 && (
-          <PackagePicker
-            plans={activePlans}
-            onSelect={addItemsFromPackage}
-            lang={lang}
-            t={t}
-          />
-        )}
-      </div>
 
       {/* Subtotal */}
       {items.length > 0 && (
@@ -389,72 +391,6 @@ export function InvoiceLineItemsEditor({
         </div>
       )}
     </div>
-  );
-}
-
-/** Compact horse picker for inline use in line items */
-function HorsePicker({
-  horses,
-  selectedId,
-  onSelect,
-  getHorseName,
-  t,
-}: {
-  horses: HorseOption[];
-  selectedId: string | null;
-  onSelect: (id: string | null) => void;
-  getHorseName: (h: HorseOption) => string;
-  t: (key: string) => string;
-}) {
-  const [open, setOpen] = useState(false);
-  const selected = horses.find((h) => h.id === selectedId);
-
-  if (horses.length === 0) return null;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          className="w-full h-8 justify-between font-normal text-xs"
-        >
-          <span className="truncate">
-            {selected ? `🐴 ${getHorseName(selected)}` : t("finance.invoices.selectHorse")}
-          </span>
-          <ChevronsUpDown className="ms-1 h-3 w-3 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={t("finance.invoices.searchHorse")} className="h-8 text-xs" />
-          <CommandList>
-            <CommandEmpty>{t("common.noResults")}</CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                value="__none__"
-                onSelect={() => { onSelect(null); setOpen(false); }}
-                className="text-xs text-muted-foreground"
-              >
-                <Check className={cn("me-2 h-3 w-3", !selectedId ? "opacity-100" : "opacity-0")} />
-                {t("finance.invoices.noHorse")}
-              </CommandItem>
-              {horses.map((horse) => (
-                <CommandItem
-                  key={horse.id}
-                  value={horse.name}
-                  onSelect={() => { onSelect(horse.id); setOpen(false); }}
-                  className="text-xs"
-                >
-                  <Check className={cn("me-2 h-3 w-3", selectedId === horse.id ? "opacity-100" : "opacity-0")} />
-                  {getHorseName(horse)}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 }
 
