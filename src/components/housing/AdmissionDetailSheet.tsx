@@ -632,12 +632,17 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Emergency contact — opens EmergencyContactDialog */}
+                  {/* Emergency contacts — opens EmergencyContactDialog */}
                   <div className="space-y-1">
                     <EditableDetailRow
                       icon={User}
                       label={t('housing.admissions.detail.emergencyContact')}
-                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
+                      value={<EmergencyContactSummary
+                        contacts={admission.emergency_contacts}
+                        legacy={admission.emergency_contact}
+                        lang={lang}
+                        t={t}
+                      />}
                       canEdit={isEditable && canUpdate}
                       onEdit={() => setEmergencyContactOpen(true)}
                     />
@@ -645,6 +650,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                       {t('housing.admissions.detail.emergencyContactHelp')}
                     </p>
                   </div>
+
                 </CardContent>
               </Card>
 
