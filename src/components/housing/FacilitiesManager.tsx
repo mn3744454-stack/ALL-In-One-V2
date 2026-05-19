@@ -19,7 +19,7 @@ import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { BilingualName } from "@/components/ui/BilingualName";
+
 import { cn } from "@/lib/utils";
 import { Plus, Building2, Loader2, Home, ShieldAlert, Search, X } from "lucide-react";
 
