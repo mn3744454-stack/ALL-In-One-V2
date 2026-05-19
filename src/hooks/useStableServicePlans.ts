@@ -117,9 +117,10 @@ export function useStableServicePlans() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Plan deactivated');
+      toast.success(t('services.packages.toasts.deactivated'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
+    onError: () => toast.error(t('services.packages.toasts.deactivateFailed')),
   });
 
   const activePlans = plans.filter(p => p.is_active);
