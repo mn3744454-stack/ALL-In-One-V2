@@ -18,7 +18,7 @@ interface StepDetailsProps {
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
-  const { colors, breeds } = useHorseMasterData();
+  const { colors, breeds, createBreed, createColor } = useHorseMasterData();
   const [breedPickerOpen, setBreedPickerOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
