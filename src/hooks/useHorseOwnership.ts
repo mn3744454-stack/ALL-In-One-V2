@@ -35,7 +35,7 @@ export const useHorseOwnership = (horseId?: string) => {
       .from("horse_ownership" as any)
       .select(`
         *,
-        owner:horse_owners(id, name, name_ar)
+        owner:horse_owners(id, name, name_ar, owner_type, phone, phones, representative_name, representative_name_ar, representative_title, representative_email, representative_phones)
       `)
       .eq("horse_id", horseId);
     
