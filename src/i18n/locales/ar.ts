@@ -2868,7 +2868,9 @@ export const ar = {
         noClientsYet: "لا يوجد عملاء متاحون. أنشئ عميلاً أولاً من قسم العملاء.",
         setPriceDialogTitle: "تحديد سعر الإيواء لـ {{name}}",
         setPriceHelp: "حدد السعر اليومي و/أو الشهري. يمكن استخدامهما معاً.",
-        emergencyContactDialogTitle: "جهة اتصال الطوارئ لـ {{name}}",
+        emergencyContactDialogTitle: "جهات اتصال الطوارئ لـ {{name}}",
+        addNewClient: "إضافة عميل جديد",
+
         movements: "الحركات المرتبطة",
         checkin: "تسجيل دخول",
         checkout: "إخراج",
