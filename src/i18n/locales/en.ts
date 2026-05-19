@@ -2565,6 +2565,8 @@ export const en = {
       allTypes: "All types",
       allStatuses: "All statuses",
       isolation: "Isolation",
+      isolationLabel: "Isolation",
+      storageLabel: "Storage",
     },
     search: {
       placeholder: "Search horse or unit…",
