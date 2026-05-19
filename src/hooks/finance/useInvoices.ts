@@ -59,6 +59,7 @@ export interface CreateInvoiceItemInput {
   total_price: number;
   entity_type?: string;
   entity_id?: string;
+  position?: number;
 }
 
 export function useInvoices(tenantId?: string) {
