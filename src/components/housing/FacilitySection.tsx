@@ -133,8 +133,14 @@ export function FacilitySection({
   // Filter units based on search + filter
   const filteredUnits = useMemo(() => {
     if (!isHousingType) return units;
+    // If facility name itself matches the search, all units pass the search filter.
+    const facilityNameMatches = searchQuery && (
+      facility.name?.toLowerCase().includes(searchQuery) ||
+      facility.name_ar?.includes(searchQuery) ||
+      facility.code?.toLowerCase().includes(searchQuery)
+    );
     return units.filter(unit => {
-      if (searchQuery && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery)) return false;
+      if (searchQuery && !facilityNameMatches && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery, facility)) return false;
       if (activeFilter === 'all') return true;
       const unitOccupants = occupants.filter(o => o.unit_id === unit.id);
       const isOcc = unitOccupants.length > 0;
@@ -143,13 +149,14 @@ export function FacilitySection({
         case 'vacant': return !isOcc && unit.status === 'available';
         case 'occupied': return isOcc && !isFull;
         case 'full': return isFull;
+        case 'storage': return unit.unit_type === 'storage';
         case 'isolation': return unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
         case 'maintenance': return unit.status === 'maintenance';
         case 'out_of_service': return unit.status === 'out_of_service';
         default: return true;
       }
     });
-  }, [units, searchQuery, activeFilter, occupants, facilityData, isHousingType]);
+  }, [units, searchQuery, activeFilter, occupants, facilityData, isHousingType, facility]);
 
   // Compute vacancy for header
   const vacantCount = useMemo(() => {
