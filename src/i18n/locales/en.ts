@@ -6171,6 +6171,12 @@ export const en = {
       publicDesc: "Visible on profile",
       taxable: "Taxable",
       taxableDesc: "When off, no tax is calculated for this service on invoices",
+      validation: {
+        nameMin: "Name must be at least 2 characters",
+        nameArRequired: "Arabic service name is required",
+        nameArMin: "Arabic name must be at least 2 characters",
+        priceNonNegative: "Price cannot be negative",
+      },
     },
     packages: {
       title: "Service Packages",
