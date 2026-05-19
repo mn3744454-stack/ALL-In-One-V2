@@ -8,6 +8,21 @@ import { useHousingInvalidation } from './useHousingInvalidation';
 
 export type AdmissionStatus = 'draft' | 'active' | 'checkout_pending' | 'checked_out' | 'cancelled';
 
+export interface EmergencyContactPhone {
+  number: string;
+  label: 'mobile' | 'work' | 'home' | 'other';
+  is_whatsapp?: boolean;
+  is_primary?: boolean;
+}
+
+export interface BoardingEmergencyContact {
+  id?: string;
+  name: string;
+  name_ar?: string | null;
+  relationship?: string | null;
+  phones: EmergencyContactPhone[];
+}
+
 export interface BoardingAdmission {
   id: string;
   tenant_id: string;
@@ -28,6 +43,7 @@ export interface BoardingAdmission {
   reason: string | null;
   special_instructions: string | null;
   emergency_contact: string | null;
+  emergency_contacts: BoardingEmergencyContact[];
   admitted_by: string | null;
   checked_out_by: string | null;
   checkout_notes: string | null;
@@ -59,11 +75,37 @@ export interface CreateAdmissionData {
   rate_currency?: string;
   reason?: string;
   special_instructions?: string;
-  emergency_contact?: string;
+  emergency_contact?: string | null;
+  emergency_contacts?: BoardingEmergencyContact[] | null;
   expected_departure?: string | null;
   /** ISO string for historical admissions. Defaults to now() if omitted. */
   admitted_at?: string;
 }
+
+/**
+ * Derive a legacy single-line `emergency_contact` summary from the structured
+ * `emergency_contacts` array, so older read paths keep working during the
+ * transition release.
+ */
+export function deriveLegacyEmergencyContact(
+  contacts: BoardingEmergencyContact[] | null | undefined
+): string | null {
+  if (!Array.isArray(contacts) || contacts.length === 0) return null;
+  for (const c of contacts) {
+    if (!c || !Array.isArray(c.phones)) continue;
+    const primary = c.phones.find(
+      (p) => p?.is_primary && p?.number && p.number.trim().length > 0
+    );
+    if (primary) return primary.number.trim();
+  }
+  for (const c of contacts) {
+    if (!c || !Array.isArray(c.phones)) continue;
+    const any = c.phones.find((p) => p?.number && p.number.trim().length > 0);
+    if (any) return any.number.trim();
+  }
+  return null;
+}
+
 
 export interface AdmissionFilters {
   status?: AdmissionStatus | 'all';
