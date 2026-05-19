@@ -85,10 +85,10 @@ export function useStableServicePlans() {
       return data;
     },
     onSuccess: () => {
-      toast.success('Plan created');
+      toast.success(t('services.packages.toasts.created'));
       queryClient.invalidateQueries({ queryKey: ['stable-service-plans', tenantId] });
     },
-    onError: () => toast.error('Failed to create plan'),
+    onError: () => toast.error(t('services.packages.toasts.createFailed')),
   });
 
   const updateMutation = useMutation({
