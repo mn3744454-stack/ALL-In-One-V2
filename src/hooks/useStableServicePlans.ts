@@ -43,6 +43,7 @@ export interface CreatePlanData {
 export function useStableServicePlans() {
   const { activeTenant } = useTenant();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const tenantId = activeTenant?.tenant?.id;
 
   const { data: plans = [], isLoading } = useQuery({
