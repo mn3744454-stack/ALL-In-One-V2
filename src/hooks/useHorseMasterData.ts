@@ -28,9 +28,31 @@ export type DeleteMasterDataReason =
   | "not_found"
   | "error";
 
+export interface LinkedHorseRef {
+  id: string;
+  name: string;
+  name_ar?: string | null;
+}
+
 export interface DeleteMasterDataResult {
   deleted: boolean;
   reason: DeleteMasterDataReason;
+  used_count?: number;
+  horses?: LinkedHorseRef[];
+  error: Error | null;
+}
+
+export type UpdateMasterDataReason =
+  | "updated"
+  | "duplicate_name"
+  | "invalid_name"
+  | "not_found"
+  | "error";
+
+export interface UpdateMasterDataResult<T> {
+  updated: boolean;
+  reason: UpdateMasterDataReason;
+  row?: T;
   error: Error | null;
 }
 
@@ -255,13 +277,24 @@ export const useHorseMasterData = () => {
       if (error) {
         return { deleted: false, reason: "error", error: error as unknown as Error };
       }
-      const payload = (data ?? {}) as { deleted?: boolean; reason?: DeleteMasterDataReason };
+      const payload = (data ?? {}) as {
+        deleted?: boolean;
+        reason?: DeleteMasterDataReason;
+        used_count?: number;
+        horses?: LinkedHorseRef[];
+      };
       const reason: DeleteMasterDataReason = payload.reason ?? "error";
       const deleted = !!payload.deleted;
       if (deleted || reason === "not_found") {
         await fetchBreeds();
       }
-      return { deleted, reason, error: null };
+      return {
+        deleted,
+        reason,
+        used_count: payload.used_count,
+        horses: payload.horses,
+        error: null,
+      };
     } catch (err) {
       return { deleted: false, reason: "error", error: err as Error };
     }
@@ -273,15 +306,76 @@ export const useHorseMasterData = () => {
       if (error) {
         return { deleted: false, reason: "error", error: error as unknown as Error };
       }
-      const payload = (data ?? {}) as { deleted?: boolean; reason?: DeleteMasterDataReason };
+      const payload = (data ?? {}) as {
+        deleted?: boolean;
+        reason?: DeleteMasterDataReason;
+        used_count?: number;
+        horses?: LinkedHorseRef[];
+      };
       const reason: DeleteMasterDataReason = payload.reason ?? "error";
       const deleted = !!payload.deleted;
       if (deleted || reason === "not_found") {
         await fetchColors();
       }
-      return { deleted, reason, error: null };
+      return {
+        deleted,
+        reason,
+        used_count: payload.used_count,
+        horses: payload.horses,
+        error: null,
+      };
     } catch (err) {
       return { deleted: false, reason: "error", error: err as Error };
+    }
+  };
+
+  const updateBreed = async (
+    id: string,
+    payload: { name: string; name_ar?: string | null }
+  ): Promise<UpdateMasterDataResult<HorseBreed>> => {
+    try {
+      const { data, error } = await supabase.rpc("update_horse_breed" as any, {
+        p_id: id,
+        p_name: payload.name,
+        p_name_ar: payload.name_ar ?? null,
+      });
+      if (error) {
+        return { updated: false, reason: "error", error: error as unknown as Error };
+      }
+      const r = (data ?? {}) as { updated?: boolean; reason?: UpdateMasterDataReason; row?: HorseBreed };
+      const reason: UpdateMasterDataReason = r.reason ?? "error";
+      const updated = !!r.updated;
+      if (updated || reason === "not_found") {
+        await fetchBreeds();
+      }
+      return { updated, reason, row: r.row, error: null };
+    } catch (err) {
+      return { updated: false, reason: "error", error: err as Error };
+    }
+  };
+
+  const updateColor = async (
+    id: string,
+    payload: { name: string; name_ar?: string | null }
+  ): Promise<UpdateMasterDataResult<HorseColor>> => {
+    try {
+      const { data, error } = await supabase.rpc("update_horse_color" as any, {
+        p_id: id,
+        p_name: payload.name,
+        p_name_ar: payload.name_ar ?? null,
+      });
+      if (error) {
+        return { updated: false, reason: "error", error: error as unknown as Error };
+      }
+      const r = (data ?? {}) as { updated?: boolean; reason?: UpdateMasterDataReason; row?: HorseColor };
+      const reason: UpdateMasterDataReason = r.reason ?? "error";
+      const updated = !!r.updated;
+      if (updated || reason === "not_found") {
+        await fetchColors();
+      }
+      return { updated, reason, row: r.row, error: null };
+    } catch (err) {
+      return { updated: false, reason: "error", error: err as Error };
     }
   };
 
