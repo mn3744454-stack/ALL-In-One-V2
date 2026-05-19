@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { useI18n } from '@/i18n';
 import { toast } from 'sonner';
 
 const fromTable = (table: string) => (supabase as any).from(table);
