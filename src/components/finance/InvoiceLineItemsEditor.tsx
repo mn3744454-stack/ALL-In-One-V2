@@ -378,37 +378,6 @@ export function InvoiceLineItemsEditor({
         })}
       </div>
 
-      {/* Add Item Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addItem}
-          className="gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {t("finance.invoices.addManualItem")}
-        </Button>
-
-        {activeServices.length > 0 && (
-          <ServicePicker
-            services={activeServices}
-            onSelect={addItemFromService}
-            getServiceName={getServiceName}
-            t={t}
-          />
-        )}
-
-        {activePlans.length > 0 && (
-          <PackagePicker
-            plans={activePlans}
-            onSelect={addItemsFromPackage}
-            lang={lang}
-            t={t}
-          />
-        )}
-      </div>
 
       {/* Subtotal */}
       {items.length > 0 && (
