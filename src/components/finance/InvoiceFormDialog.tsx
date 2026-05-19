@@ -440,6 +440,7 @@ export function InvoiceFormDialog({
                   onChange={(v) => setFormData({ ...formData, issue_date: v })}
                   todayLabel={t("finance.invoices.dateToday")}
                   clearLabel={t("finance.invoices.dateClear")}
+                  locale={lang === "ar" ? arLocale : enLocale}
                 />
               </div>
 
@@ -450,6 +451,7 @@ export function InvoiceFormDialog({
                   onChange={(v) => setFormData({ ...formData, due_date: v })}
                   todayLabel={t("finance.invoices.dateToday")}
                   clearLabel={t("finance.invoices.dateClear")}
+                  locale={lang === "ar" ? arLocale : enLocale}
                 />
               </div>
             </div>
