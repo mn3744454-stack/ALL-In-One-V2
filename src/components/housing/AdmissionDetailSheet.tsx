@@ -632,37 +632,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Emergency contact — editable */}
-                  {editingField === 'emergency_contact' ? (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <Input
-                        value={editValue}
-                        onChange={e => setEditValue(e.target.value)}
-                        placeholder={t('housing.admissions.wizard.emergencyContactPlaceholder')}
-                        className="h-8 text-sm flex-1"
-                      />
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => saveEdit('emergency_contact', editValue)}>
-                        <Check className="h-3.5 w-3.5 text-primary" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <EditableDetailRow
-                        icon={User}
-                        label={t('housing.admissions.detail.emergencyContact')}
-                        value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
-                        canEdit={isEditable && canUpdate}
-                        onEdit={() => startEdit('emergency_contact', admission.emergency_contact || '')}
-                      />
-                      <p className="text-[11px] text-muted-foreground ps-6">
-                        {t('housing.admissions.detail.emergencyContactHelp')}
-                      </p>
-                    </div>
-                  )}
+                  {/* Emergency contact — opens EmergencyContactDialog */}
+                  <div className="space-y-1">
+                    <EditableDetailRow
+                      icon={User}
+                      label={t('housing.admissions.detail.emergencyContact')}
+                      value={<span className="font-medium">{admission.emergency_contact || '—'}</span>}
+                      canEdit={isEditable && canUpdate}
+                      onEdit={() => setEmergencyContactOpen(true)}
+                    />
+                    <p className="text-[11px] text-muted-foreground ps-6">
+                      {t('housing.admissions.detail.emergencyContactHelp')}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
