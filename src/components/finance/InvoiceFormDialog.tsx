@@ -42,12 +42,14 @@ function InvoiceDateField({
   todayLabel,
   clearLabel,
   placeholder,
+  locale,
 }: {
   value: string;
   onChange: (next: string) => void;
   todayLabel: string;
   clearLabel: string;
   placeholder?: string;
+  locale?: Locale;
 }) {
   const [open, setOpen] = useState(false);
   const parsed = useMemo(() => {
