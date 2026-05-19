@@ -44,6 +44,8 @@ interface FacilitySectionProps {
   onDelete: (id: string) => Promise<void>;
   searchQuery?: string;
   activeFilter?: OccupancyFilter;
+  /** When true (no specific branch scope), show parent branch context badge on the header. */
+  showBranchContext?: boolean;
 }
 
 /** Icons for facility types */
