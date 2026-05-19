@@ -18,7 +18,7 @@ interface StepDetailsProps {
 export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
   const { t, dir } = useI18n();
   const isRTL = dir === 'rtl';
-  const { colors, breeds, createBreed, createColor, deleteBreed, deleteColor } = useHorseMasterData();
+  const { colors, breeds, createBreed, createColor, deleteBreed, deleteColor, updateBreed, updateColor } = useHorseMasterData();
   const [breedPickerOpen, setBreedPickerOpen] = useState(false);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
@@ -103,6 +103,7 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         breeds={breeds}
         createBreed={createBreed}
         deleteBreed={deleteBreed}
+        updateBreed={updateBreed}
         onBreedDeleted={(id) => { if (data.breed_id === id) onChange({ breed_id: null }); }}
       />
       <ColorPickerSheet
@@ -113,6 +114,7 @@ export const StepDetails = ({ data, onChange }: StepDetailsProps) => {
         colors={colors}
         createColor={createColor}
         deleteColor={deleteColor}
+        updateColor={updateColor}
         onColorDeleted={(id) => { if (data.color_id === id) onChange({ color_id: null }); }}
       />
     </div>
