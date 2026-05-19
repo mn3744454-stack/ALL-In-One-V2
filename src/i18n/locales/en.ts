@@ -4077,6 +4077,10 @@ export const en = {
       multiplePrimary: "{{count}} primary owners",
       ownerNumber: "Owner {{number}}",
       createNewOwner: "Create new owner",
+      addAnotherOwner: "Add another owner",
+      chooseOwner: "Choose owner",
+      searchOwnerPlaceholder: "Search owners...",
+      noOwnersFound: "No owners found",
       // Details step additional keys
       isGelded: "Is Gelded?",
       geldedDesc: "Mark if this horse has been castrated",
@@ -4119,6 +4123,7 @@ export const en = {
       owner: {
         title: "Add New Owner",
         name: "Name",
+        nameEn: "Name (English)",
         nameAr: "Name (Arabic)",
         phone: "Phone",
         email: "Email",

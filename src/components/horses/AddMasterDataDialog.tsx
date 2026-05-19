@@ -42,6 +42,8 @@ export const AddMasterDataDialog = ({
   const { t, lang } = useI18n();
   const isArabicUI = lang === "ar";
   const isBreedOrColor = type === "breed" || type === "color";
+  const isOwner = type === "owner";
+  const isBilingualRequired = isBreedOrColor || isOwner;
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -111,12 +113,19 @@ export const AddMasterDataDialog = ({
       },
       owner: {
         title: t('horses.masterData.owner.title'),
-        fields: [
-          { key: "name", label: t('horses.masterData.owner.name'), required: true },
-          { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: false },
-          { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
-          { key: "email", label: t('horses.masterData.owner.email'), required: false },
-        ],
+        fields: isArabicUI
+          ? [
+              { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: true, dir: "rtl" as const },
+              { key: "name", label: t('horses.masterData.owner.nameEn'), required: true, dir: "ltr" as const, hint: t('horses.masterData.bilingualNameHint') },
+              { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
+              { key: "email", label: t('horses.masterData.owner.email'), required: false },
+            ]
+          : [
+              { key: "name", label: t('horses.masterData.owner.nameEn'), required: true, dir: "ltr" as const },
+              { key: "name_ar", label: t('horses.masterData.owner.nameAr'), required: false, dir: "rtl" as const },
+              { key: "phone", label: t('horses.masterData.owner.phone'), required: false },
+              { key: "email", label: t('horses.masterData.owner.email'), required: false },
+            ],
       },
     } as Record<MasterDataType, { title: string; fields: Array<{ key: string; label: string; required?: boolean; dir?: "ltr" | "rtl"; hint?: string }> }>;
   }, [t, isArabicUI]);
@@ -127,12 +136,12 @@ export const AddMasterDataDialog = ({
     const requiredFields = config.fields.filter((f) => f.required);
     const missing = requiredFields.filter((f) => !formData[f.key]?.trim());
     return missing.map((f) => {
-      if (isBreedOrColor && f.key === "name_ar") return t('common.validation.enterRequiredArabicName');
-      if (isBreedOrColor && f.key === "name") return t('common.validation.enterRequiredEnglishName');
+      if (isBilingualRequired && f.key === "name_ar") return t('common.validation.enterRequiredArabicName');
+      if (isBilingualRequired && f.key === "name") return t('common.validation.enterRequiredEnglishName');
       if (f.key === "name") return t('common.validation.enterRequiredName');
       return f.label;
     });
-  }, [config.fields, formData, t, isBreedOrColor]);
+  }, [config.fields, formData, t, isBilingualRequired]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
