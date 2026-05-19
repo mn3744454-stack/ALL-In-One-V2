@@ -50,6 +50,7 @@ interface AddAssignmentDialogProps {
   onOpenChange: (open: boolean) => void;
   horseId: string;
   horseName: string;
+  horseNameAr?: string | null;
   existingEmployeeIds?: string[];
 }
 
@@ -58,9 +59,10 @@ export function AddAssignmentDialog({
   onOpenChange,
   horseId,
   horseName,
+  horseNameAr,
   existingEmployeeIds = [],
 }: AddAssignmentDialogProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const isMobile = useIsMobile();
   const { employees } = useEmployees();
   const { createAssignment, isCreating } = useHorseAssignments(horseId);
