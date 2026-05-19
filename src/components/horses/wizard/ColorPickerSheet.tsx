@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useHorseMasterData, HorseColor } from "@/hooks/useHorseMasterData";
+import type { HorseColor } from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
@@ -15,6 +15,11 @@ interface ColorPickerSheetProps {
   onOpenChange: (open: boolean) => void;
   selectedColorId?: string | null;
   onColorSelect: (colorId: string, color?: HorseColor) => void;
+  colors: HorseColor[];
+  createColor: (
+    name: string,
+    name_ar?: string
+  ) => Promise<{ data: HorseColor | null; error: Error | null }>;
 }
 
 export function ColorPickerSheet({
@@ -22,10 +27,11 @@ export function ColorPickerSheet({
   onOpenChange,
   selectedColorId,
   onColorSelect,
+  colors,
+  createColor,
 }: ColorPickerSheetProps) {
   const [searchValue, setSearchValue] = useState("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const { colors, createColor } = useHorseMasterData();
   const { t } = useI18n();
 
   const filtered = useMemo(() => {
