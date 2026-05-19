@@ -30,9 +30,9 @@ export function HorseAdmissionCard({ horseId }: HorseAdmissionCardProps) {
         .select(`
           id, status, admitted_at, expected_departure, billing_cycle, rate_currency, monthly_rate, daily_rate,
           client:clients!client_id(id, name, name_ar),
-          branch:branches!branch_id(id, name),
+          branch:branches!branch_id(id, name, name_ar, city),
           area:facility_areas!area_id(id, name, name_ar, facility_type),
-          unit:housing_units!unit_id(id, code, name)
+          unit:housing_units!unit_id(id, code, name, name_ar)
         `)
         .eq('tenant_id', tenantId)
         .eq('horse_id', horseId)
