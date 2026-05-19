@@ -3673,7 +3673,7 @@ export const ar = {
       addManualItem: "إضافة بند يدوي",
       manualEntry: "يدوي",
       emptyLineItems: "لم تُضَف بنود بعد",
-      emptyLineItemsHint: "استخدم الأزرار أعلاه لإضافة بنود يدوية أو اختيار من كتالوج الخدمات",
+      emptyLineItemsHint: "استخدم الأزرار أدناه لإضافة بنود يدوية أو اختيار من كتالوج الخدمات",
       addNewClient: "+ إضافة عميل جديد",
       addNewHorse: "+ إضافة خيل جديد",
       searchClient: "البحث عن عملاء...",
