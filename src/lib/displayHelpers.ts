@@ -30,6 +30,22 @@ export function displayHorseName(
 }
 
 /**
+ * Generic bilingual name helper. Same rule as `displayHorseName` but with
+ * an explicit name to make intent clear at call sites (dialog titles, etc.).
+ *
+ * Arabic UI: `Arabic (English)`
+ * English UI: `English (Arabic)`
+ * Falls back to whichever side exists, or "—" when neither does.
+ */
+export function formatBilingualName(
+  name?: string | null,
+  nameAr?: string | null,
+  lang?: string
+): string {
+  return displayHorseName(name, nameAr, lang);
+}
+
+/**
  * Bilingual service name display helper.
  * Same logic as displayHorseName but for services.
  */
