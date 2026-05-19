@@ -49,8 +49,8 @@ export function OwnerPickerSheet({
     setQuickAddOpen(true);
   };
 
-  const handleCreate = (formData: Record<string, string>) =>
-    const handleCreate = (formData: Record<string, unknown>) => createOwner(formData as any);
+  const handleCreate = (formData: Record<string, unknown>) =>
+    createOwner(formData as any);
 
   const handleSuccess = (result: any) => {
     if (result?.id) {
