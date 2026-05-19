@@ -124,23 +124,12 @@ export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
                       )}
                     </div>
 
-                    {/* Location summary */}
+                    {/* Location summary — bilingual "From X to Y" / "من X إلى Y", no arrows */}
                     <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      {(fromName || fromExt) && (
-                        <>
-                          <span className="truncate">{fromName || fromExt}</span>
-                          {(toName || toExt) && (
-                            <>
-                              <ArrowRight className={cn("h-3 w-3 shrink-0", dir === 'rtl' && "rotate-180")} />
-                              <span className="truncate font-medium text-foreground">{toName || toExt}</span>
-                            </>
-                          )}
-                        </>
-                      )}
-                      {!fromName && !fromExt && (toName || toExt) && (
-                        <span className="truncate font-medium text-foreground">{toName || toExt}</span>
-                      )}
+                      <span className="truncate">
+                        {directionText(fromName || fromExt || null, toName || toExt || null)}
+                      </span>
                     </div>
 
                     {(() => {
