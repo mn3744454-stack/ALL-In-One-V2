@@ -55,6 +55,7 @@ import { PedigreeSection } from "@/components/horses/PedigreeSection";
 import { OffspringSection } from "@/components/horses/OffspringSection";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useHorseFile } from "@/hooks/useHorseFile";
+import { displayLocationName } from "@/lib/displayHelpers";
 
 interface Horse {
   id: string;
