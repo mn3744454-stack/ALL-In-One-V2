@@ -27,7 +27,7 @@ import { ChevronDown, Heart, Info, Loader2 } from "lucide-react";
 import { BreedPickerSheet } from "@/components/horses/wizard/BreedPickerSheet";
 import { ColorPickerSheet } from "@/components/horses/wizard/ColorPickerSheet";
 import { BilingualName } from "@/components/ui/BilingualName";
-import type { HorseBreed, HorseColor } from "@/hooks/useHorseMasterData";
+import { useHorseMasterData, type HorseBreed, type HorseColor } from "@/hooks/useHorseMasterData";
 
 export interface QuickCreateHorseDefaults {
   gender?: "male" | "female";
