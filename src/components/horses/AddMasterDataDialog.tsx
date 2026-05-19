@@ -172,13 +172,15 @@ export const AddMasterDataDialog = ({
     setLoading(false);
 
     if (error) {
-      const duplicate = (type === "breed" || type === "color")
+      const network = mapMasterDataNetwork(error, t);
+      const duplicate = !network && (type === "breed" || type === "color")
         ? mapMasterDataDuplicate(error, t)
         : null;
-      if (duplicate) {
+      const friendly = network || duplicate;
+      if (friendly) {
         toast({
-          title: duplicate.title,
-          description: duplicate.description,
+          title: friendly.title,
+          description: friendly.description,
           variant: "destructive",
         });
       } else {
