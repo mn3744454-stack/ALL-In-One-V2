@@ -2921,6 +2921,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_seed: boolean
           name: string
           name_ar: string | null
           tenant_id: string
@@ -2928,6 +2929,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_seed?: boolean
           name: string
           name_ar?: string | null
           tenant_id: string
@@ -2935,6 +2937,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_seed?: boolean
           name?: string
           name_ar?: string | null
           tenant_id?: string
@@ -3129,6 +3132,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_seed: boolean
           name: string
           name_ar: string | null
           tenant_id: string
@@ -3136,6 +3140,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_seed?: boolean
           name: string
           name_ar?: string | null
           tenant_id: string
@@ -3143,6 +3148,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_seed?: boolean
           name?: string
           name_ar?: string | null
           tenant_id?: string
@@ -10997,6 +11003,8 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_horse_breed: { Args: { p_id: string }; Returns: Json }
+      delete_horse_color: { Args: { p_id: string }; Returns: Json }
       dispatch_horse_movement: {
         Args: { p_movement_id: string; p_notes?: string }
         Returns: Json

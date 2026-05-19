@@ -63,7 +63,7 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [selectedBreed, setSelectedBreed] = useState<HorseBreed | null>(null);
   const [selectedColor, setSelectedColor] = useState<HorseColor | null>(null);
-  const { breeds, colors, createBreed, createColor } = useHorseMasterData();
+  const { breeds, colors, createBreed, createColor, deleteBreed, deleteColor } = useHorseMasterData();
 
   const genderLocked = !!defaults?.gender;
 
@@ -303,6 +303,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
               onBreedSelect={handleBreedSelect}
               breeds={breeds}
               createBreed={createBreed}
+              deleteBreed={deleteBreed}
+              onBreedDeleted={(id) => { if (form.breed_id === id) setForm((f) => ({ ...f, breed_id: "" })); }}
             />
             <ColorPickerSheet
               open={colorPickerOpen}
@@ -311,6 +313,8 @@ export function QuickCreateHorseDialog({ open, onOpenChange, onCreated, defaults
               onColorSelect={handleColorSelect}
               colors={colors}
               createColor={createColor}
+              deleteColor={deleteColor}
+              onColorDeleted={(id) => { if (form.color_id === id) setForm((f) => ({ ...f, color_id: "" })); }}
             />
           </>
         )}

@@ -4192,6 +4192,28 @@ export const en = {
         description: "Could not reach the server. Check your connection and try again.",
       },
       bilingualNameHint: "Required for database identity, search, and alphabetical sorting.",
+      delete: {
+        breed: {
+          title: "Delete breed",
+          description: "Are you sure you want to delete this breed? This action cannot be undone.",
+          confirm: "Delete",
+          success: "Breed deleted successfully",
+          blockedUsed: "This breed cannot be deleted because it is used by horse records.",
+          blockedSeed: "This breed is a protected baseline value and cannot be deleted.",
+          notFound: "Breed could not be found.",
+          error: "Could not delete breed. Please try again.",
+        },
+        color: {
+          title: "Delete color",
+          description: "Are you sure you want to delete this color? This action cannot be undone.",
+          confirm: "Delete",
+          success: "Color deleted successfully",
+          blockedUsed: "This color cannot be deleted because it is used by horse records.",
+          blockedSeed: "This color is a protected baseline value and cannot be deleted.",
+          notFound: "Color could not be found.",
+          error: "Could not delete color. Please try again.",
+        },
+      },
     },
     owners: {
       typeIndividual: "Individual",

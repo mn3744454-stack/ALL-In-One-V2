@@ -8,6 +8,7 @@ export interface HorseColor {
   tenant_id: string;
   name: string;
   name_ar: string | null;
+  is_seed: boolean;
   created_at: string;
 }
 
@@ -16,7 +17,21 @@ export interface HorseBreed {
   tenant_id: string;
   name: string;
   name_ar: string | null;
+  is_seed: boolean;
   created_at: string;
+}
+
+export type DeleteMasterDataReason =
+  | "deleted"
+  | "used_by_horses"
+  | "protected_seed"
+  | "not_found"
+  | "error";
+
+export interface DeleteMasterDataResult {
+  deleted: boolean;
+  reason: DeleteMasterDataReason;
+  error: Error | null;
 }
 
 export interface Branch {
@@ -234,6 +249,42 @@ export const useHorseMasterData = () => {
     return { data: data as unknown as HorseBreed | null, error };
   };
 
+  const deleteBreed = async (id: string): Promise<DeleteMasterDataResult> => {
+    try {
+      const { data, error } = await supabase.rpc("delete_horse_breed" as any, { p_id: id });
+      if (error) {
+        return { deleted: false, reason: "error", error: error as unknown as Error };
+      }
+      const payload = (data ?? {}) as { deleted?: boolean; reason?: DeleteMasterDataReason };
+      const reason: DeleteMasterDataReason = payload.reason ?? "error";
+      const deleted = !!payload.deleted;
+      if (deleted || reason === "not_found") {
+        await fetchBreeds();
+      }
+      return { deleted, reason, error: null };
+    } catch (err) {
+      return { deleted: false, reason: "error", error: err as Error };
+    }
+  };
+
+  const deleteColor = async (id: string): Promise<DeleteMasterDataResult> => {
+    try {
+      const { data, error } = await supabase.rpc("delete_horse_color" as any, { p_id: id });
+      if (error) {
+        return { deleted: false, reason: "error", error: error as unknown as Error };
+      }
+      const payload = (data ?? {}) as { deleted?: boolean; reason?: DeleteMasterDataReason };
+      const reason: DeleteMasterDataReason = payload.reason ?? "error";
+      const deleted = !!payload.deleted;
+      if (deleted || reason === "not_found") {
+        await fetchColors();
+      }
+      return { deleted, reason, error: null };
+    } catch (err) {
+      return { deleted: false, reason: "error", error: err as Error };
+    }
+  };
+
   const createBranch = async (name: string, address?: string) => {
     if (!tenantId) return { data: null, error: new Error("No active tenant") };
     const { data, error } = await supabase
@@ -363,6 +414,8 @@ export const useHorseMasterData = () => {
     loading,
     createColor,
     createBreed,
+    deleteBreed,
+    deleteColor,
     createBranch,
     createStable,
     createHousingUnit,
