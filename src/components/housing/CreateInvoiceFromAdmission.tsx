@@ -413,9 +413,10 @@ export function CreateInvoiceFromAdmission({ open, onOpenChange, admission }: Pr
         });
       }
 
+      const itemsWithPosition = items.map((it, idx) => ({ ...it, position: idx }));
       const { error: itemError } = await supabase
         .from("invoice_items" as any)
-        .insert(items);
+        .insert(itemsWithPosition);
 
       if (itemError) {
         console.error("Error creating invoice items:", itemError);

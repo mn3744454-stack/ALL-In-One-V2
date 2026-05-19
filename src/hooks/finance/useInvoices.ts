@@ -59,6 +59,7 @@ export interface CreateInvoiceItemInput {
   total_price: number;
   entity_type?: string;
   entity_id?: string;
+  position?: number;
 }
 
 export function useInvoices(tenantId?: string) {
@@ -182,7 +183,9 @@ export function useInvoiceItems(invoiceId?: string) {
         .from("invoice_items" as any)
         .select("*")
         .eq("invoice_id", invoiceId)
-        .order("created_at", { ascending: true });
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true });
 
       if (error) {
         if (error.code === "42P01") {

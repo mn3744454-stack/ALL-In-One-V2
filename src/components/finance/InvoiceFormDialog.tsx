@@ -22,7 +22,8 @@ import { useInvoices, type CreateInvoiceInput, type Invoice, type InvoiceItem } 
 import { formatCurrency } from "@/lib/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2 } from "lucide-react";
-import { addDays, format, parse } from "date-fns";
+import { addDays, format, parse, type Locale } from "date-fns";
+import { ar as arLocale, enUS as enLocale } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -41,12 +42,14 @@ function InvoiceDateField({
   todayLabel,
   clearLabel,
   placeholder,
+  locale,
 }: {
   value: string;
   onChange: (next: string) => void;
   todayLabel: string;
   clearLabel: string;
   placeholder?: string;
+  locale?: Locale;
 }) {
   const [open, setOpen] = useState(false);
   const parsed = useMemo(() => {
@@ -67,7 +70,7 @@ function InvoiceDateField({
           )}
         >
           <CalendarIcon className="me-2 h-4 w-4 opacity-70" />
-          {parsed ? format(parsed, "dd-MM-yyyy") : <span>{placeholder || "dd-MM-yyyy"}</span>}
+          {parsed ? format(parsed, "dd-MM-yyyy", { locale }) : <span>{placeholder || "dd-MM-yyyy"}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 z-[70]" align="start">
@@ -80,9 +83,7 @@ function InvoiceDateField({
               setOpen(false);
             }
           }}
-          captionLayout="dropdown-buttons"
-          fromYear={2000}
-          toYear={2100}
+          locale={locale}
           initialFocus
           className={cn("p-3 pointer-events-auto")}
         />
@@ -340,7 +341,8 @@ export function InvoiceFormDialog({
           .delete()
           .eq("invoice_id", invoice.id);
 
-        for (const item of validItems) {
+        for (let index = 0; index < validItems.length; index++) {
+          const item = validItems[index];
           await supabase.from("invoice_items" as any).insert({
             invoice_id: invoice.id,
             description: item.description,
@@ -352,6 +354,7 @@ export function InvoiceFormDialog({
             horse_id: item.horse_id || null,
             domain: item.domain || null,
             service_id: item.service_id || null,
+            position: index,
           });
         }
 
@@ -377,7 +380,8 @@ export function InvoiceFormDialog({
         const newInvoice = await createInvoice(input);
 
         if (newInvoice) {
-          for (const item of validItems) {
+          for (let index = 0; index < validItems.length; index++) {
+            const item = validItems[index];
             await supabase.from("invoice_items" as any).insert({
               invoice_id: newInvoice.id,
               description: item.description,
@@ -389,6 +393,7 @@ export function InvoiceFormDialog({
               horse_id: item.horse_id || null,
               domain: item.domain || null,
               service_id: item.service_id || null,
+              position: index,
             });
           }
           // NOTE: Ledger posting now happens at APPROVAL time (InvoiceDetailsSheet.handleApprove),
@@ -439,6 +444,7 @@ export function InvoiceFormDialog({
                   onChange={(v) => setFormData({ ...formData, issue_date: v })}
                   todayLabel={t("finance.invoices.dateToday")}
                   clearLabel={t("finance.invoices.dateClear")}
+                  locale={lang === "ar" ? arLocale : enLocale}
                 />
               </div>
 
@@ -449,6 +455,7 @@ export function InvoiceFormDialog({
                   onChange={(v) => setFormData({ ...formData, due_date: v })}
                   todayLabel={t("finance.invoices.dateToday")}
                   clearLabel={t("finance.invoices.dateClear")}
+                  locale={lang === "ar" ? arLocale : enLocale}
                 />
               </div>
             </div>

@@ -7,12 +7,29 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useI18n } from "@/i18n";
 import { formatCurrency } from "@/lib/formatters";
-import { Plus, Trash2, Package, FileText, Layers } from "lucide-react";
+import { Plus, Trash2, Package, FileText, Layers, GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TenantService } from "@/hooks/useServices";
 import type { StableServicePlan } from "@/hooks/useStableServicePlans";
 import { normalizeIncludes } from "@/lib/planIncludes";
 import { HorseLinePicker } from "./HorseLinePicker";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  arrayMove,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export interface LineItem {
   id: string;
@@ -196,9 +213,67 @@ export function InvoiceLineItemsEditor({
     return "taxable";
   };
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((i) => i.id === active.id);
+    const newIndex = items.findIndex((i) => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    onChange(arrayMove(items, oldIndex, newIndex));
+  };
+
   return (
     <div className="space-y-3">
-      {/* Add Item Buttons — ABOVE items list */}
+      {/* Column headers — ABOVE items */}
+      {items.length > 0 && (
+        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
+          <div className="col-span-5">{t("finance.invoices.description")}</div>
+          <div className="col-span-2 text-center">{t("finance.invoices.quantity")}</div>
+          <div className="col-span-2 text-center">{t("finance.invoices.unitPrice")}</div>
+          <div className="col-span-2 text-end">{t("finance.invoices.total")}</div>
+          <div className="col-span-1"></div>
+        </div>
+      )}
+
+      {/* Items */}
+      <div className="space-y-3">
+        {items.length === 0 && (
+          <div className="border border-dashed border-border rounded-lg p-6 text-center">
+            <p className="text-sm text-muted-foreground mb-1">
+              {t("finance.invoices.emptyLineItems")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("finance.invoices.emptyLineItemsHint")}
+            </p>
+          </div>
+        )}
+
+        {items.length > 0 && (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+              {items.map((item) => (
+                <SortableLineItemRow
+                  key={item.id}
+                  item={item}
+                  horses={horses}
+                  showAttribution={showAttribution}
+                  getLineTaxStatus={getLineTaxStatus}
+                  updateItem={updateItem}
+                  removeItem={removeItem}
+                  t={t}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
+
+      {/* Add Item Buttons — BELOW items list */}
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
@@ -230,155 +305,6 @@ export function InvoiceLineItemsEditor({
         )}
       </div>
 
-      {/* Column headers — ABOVE items */}
-      {items.length > 0 && (
-        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-          <div className="col-span-5">{t("finance.invoices.description")}</div>
-          <div className="col-span-2 text-center">{t("finance.invoices.quantity")}</div>
-          <div className="col-span-2 text-center">{t("finance.invoices.unitPrice")}</div>
-          <div className="col-span-2 text-end">{t("finance.invoices.total")}</div>
-          <div className="col-span-1"></div>
-        </div>
-      )}
-
-
-
-      {/* Items */}
-      <div className="space-y-3">
-        {items.length === 0 && (
-          <div className="border border-dashed border-border rounded-lg p-6 text-center">
-            <p className="text-sm text-muted-foreground mb-1">
-              {t("finance.invoices.emptyLineItems")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t("finance.invoices.emptyLineItemsHint")}
-            </p>
-          </div>
-        )}
-
-        {items.map((item) => {
-          const taxStatus = getLineTaxStatus(item);
-          const itemSource = item.source || (item.service_id ? 'catalog' : 'manual');
-
-          return (
-            <div key={item.id} className="border border-border/50 rounded-lg p-3 space-y-2">
-              {/* Row 1: Description + Qty + Price + Total + Delete */}
-              <div className="grid grid-cols-12 gap-2 items-center">
-                <div className="col-span-5">
-                  <Input
-                    value={item.description}
-                    onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                    placeholder={t("finance.invoices.itemDescription")}
-                    className="text-sm"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
-                    className="text-center text-sm"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={item.unit_price}
-                    onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
-                    className="text-center text-sm"
-                  />
-                </div>
-                <div className="col-span-2 text-end font-medium text-sm px-2">
-                  {formatCurrency(item.total_price)}
-                </div>
-                <div className="col-span-1 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeItem(item.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Row 2: Attribution + tax badge + source indicator */}
-              <div className="grid grid-cols-12 gap-2 items-center">
-                {showAttribution && !item.entity_type ? (
-                  <>
-                    <div className="col-span-5">
-                      <HorseLinePicker
-                        horses={horses}
-                        selectedId={item.horse_id || null}
-                        onSelect={(id) => updateItem(item.id, "horse_id", id)}
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <Select
-                        value={item.domain || ""}
-                        onValueChange={(v) => updateItem(item.id, "domain", v || null)}
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder={t("finance.invoices.domain.select")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DOMAIN_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                              {t(opt.labelKey)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                ) : (
-                  <div className="col-span-9" />
-                )}
-                <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
-                  {/* Source indicator */}
-                  {itemSource === 'package' ? (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Layers className="w-3 h-3" />
-                      {t("finance.invoices.packageSource")}
-                    </span>
-                  ) : itemSource === 'catalog' ? (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Package className="w-3 h-3" />
-                      {t("finance.invoices.catalogLinked")}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <FileText className="w-3 h-3" />
-                      {t("finance.invoices.manualEntry")}
-                    </span>
-                  )}
-                  {/* Tax badge */}
-                  <Badge
-                    variant={taxStatus === "taxable" ? "default" : "secondary"}
-                    className={cn(
-                      "text-[10px] px-1.5 py-0",
-                      taxStatus === "taxable"
-                        ? "bg-primary/15 text-primary border-primary/30"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {taxStatus === "taxable"
-                      ? t("finance.invoices.taxBadgeTaxable")
-                      : t("finance.invoices.taxBadgeExempt")}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-
       {/* Subtotal */}
       {items.length > 0 && (
         <div className="flex justify-end border-t pt-3">
@@ -390,6 +316,164 @@ export function InvoiceLineItemsEditor({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Sortable invoice line item row — uses dedicated grip handle to drag. */
+function SortableLineItemRow({
+  item,
+  horses,
+  showAttribution,
+  getLineTaxStatus,
+  updateItem,
+  removeItem,
+  t,
+}: {
+  item: LineItem;
+  horses: HorseOption[];
+  showAttribution: boolean;
+  getLineTaxStatus: (i: LineItem) => "taxable" | "exempt";
+  updateItem: (id: string, field: keyof LineItem, value: string | number | null) => void;
+  removeItem: (id: string) => void;
+  t: (key: string) => string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+  });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  const taxStatus = getLineTaxStatus(item);
+  const itemSource = item.source || (item.service_id ? 'catalog' : 'manual');
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border border-border/50 rounded-lg p-3 space-y-2 bg-background"
+    >
+      {/* Row 1: Drag handle + Description + Qty + Price + Total + Delete */}
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <div className="col-span-5 flex items-center gap-2">
+          <button
+            type="button"
+            className="shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none p-1 -ms-1"
+            aria-label="Reorder item"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+          <Input
+            value={item.description}
+            onChange={(e) => updateItem(item.id, "description", e.target.value)}
+            placeholder={t("finance.invoices.itemDescription")}
+            className="text-sm"
+          />
+        </div>
+        <div className="col-span-2">
+          <Input
+            type="number"
+            min="1"
+            value={item.quantity}
+            onChange={(e) => updateItem(item.id, "quantity", parseInt(e.target.value) || 0)}
+            className="text-center text-sm"
+          />
+        </div>
+        <div className="col-span-2">
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={item.unit_price}
+            onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
+            className="text-center text-sm"
+          />
+        </div>
+        <div className="col-span-2 text-end font-medium text-sm px-2">
+          {formatCurrency(item.total_price)}
+        </div>
+        <div className="col-span-1 flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => removeItem(item.id)}
+            className="h-8 w-8 text-destructive hover:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Row 2: Attribution + tax badge + source indicator */}
+      <div className="grid grid-cols-12 gap-2 items-center">
+        {showAttribution && !item.entity_type ? (
+          <>
+            <div className="col-span-5">
+              <HorseLinePicker
+                horses={horses}
+                selectedId={item.horse_id || null}
+                onSelect={(id) => updateItem(item.id, "horse_id", id)}
+              />
+            </div>
+            <div className="col-span-4">
+              <Select
+                value={item.domain || ""}
+                onValueChange={(v) => updateItem(item.id, "domain", v || null)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder={t("finance.invoices.domain.select")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {DOMAIN_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {t(opt.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        ) : (
+          <div className="col-span-9" />
+        )}
+        <div className="col-span-3 flex items-center justify-end gap-1.5 flex-wrap">
+          {itemSource === 'package' ? (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Layers className="w-3 h-3" />
+              {t("finance.invoices.packageSource")}
+            </span>
+          ) : itemSource === 'catalog' ? (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Package className="w-3 h-3" />
+              {t("finance.invoices.catalogLinked")}
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <FileText className="w-3 h-3" />
+              {t("finance.invoices.manualEntry")}
+            </span>
+          )}
+          <Badge
+            variant={taxStatus === "taxable" ? "default" : "secondary"}
+            className={cn(
+              "text-[10px] px-1.5 py-0",
+              taxStatus === "taxable"
+                ? "bg-primary/15 text-primary border-primary/30"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {taxStatus === "taxable"
+              ? t("finance.invoices.taxBadgeTaxable")
+              : t("finance.invoices.taxBadgeExempt")}
+          </Badge>
+        </div>
+      </div>
     </div>
   );
 }

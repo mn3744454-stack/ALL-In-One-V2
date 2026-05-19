@@ -140,7 +140,7 @@ export function usePOSCore() {
       if (invError) throw invError;
 
       // Create invoice items
-      const invoiceItems = cart.map((item) => ({
+      const invoiceItems = cart.map((item, idx) => ({
         invoice_id: invoice.id,
         description: `${item.name}${item.name_ar ? ` / ${item.name_ar}` : ""}`,
         quantity: item.quantity,
@@ -148,6 +148,7 @@ export function usePOSCore() {
         total_price: item.total_price,
         entity_type: item.entity_type || "pos_sale",
         entity_id: item.entity_id || input.pos_session_id,
+        position: idx,
       }));
 
       const { error: itemsError } = await supabase

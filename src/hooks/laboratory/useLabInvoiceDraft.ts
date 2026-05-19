@@ -261,7 +261,8 @@ export function useLabInvoiceDraft() {
       }
 
       // Create line items - use clean descriptions, store technical links in entity_type/entity_id
-      for (const item of input.lineItems) {
+      for (let idx = 0; idx < input.lineItems.length; idx++) {
+        const item = input.lineItems[idx];
         // Clean human-readable description (template name only, can include bilingual)
         const description = item.templateNameAr
           ? `${item.templateName} / ${item.templateNameAr}`
@@ -275,6 +276,7 @@ export function useLabInvoiceDraft() {
           total_price: item.total,
           entity_type: input.sourceType, // Technical link stored here
           entity_id: input.sourceId, // Technical link stored here
+          position: idx,
         });
       }
 

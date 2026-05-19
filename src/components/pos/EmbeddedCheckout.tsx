@@ -136,7 +136,7 @@ export function EmbeddedCheckout({
       if (invError) throw invError;
 
       // Create invoice items
-      const invoiceItems = initialLineItems.map((item) => ({
+      const invoiceItems = initialLineItems.map((item, idx) => ({
         invoice_id: invoice.id,
         description: item.description,
         quantity: item.quantity,
@@ -144,6 +144,7 @@ export function EmbeddedCheckout({
         total_price: item.total_price,
         entity_type: item.entity_type || sourceType,
         entity_id: item.entity_id || sourceId,
+        position: idx,
       }));
 
       const { error: itemsError } = await supabase
