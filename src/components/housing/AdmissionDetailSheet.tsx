@@ -457,43 +457,19 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
               {/* Details — with inline editing */}
               <Card>
                 <CardContent className="p-4 space-y-3">
-                  {/* Client — editable */}
-                  {editingField === 'client_id' ? (
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <Select
-                        value={admission.client_id || '_none'}
-                        onValueChange={handleClientChange}
-                      >
-                        <SelectTrigger className="h-8 text-sm flex-1">
-                          <SelectValue placeholder={t('housing.admissions.detail.assignClient')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="_none">{t('housing.admissions.wizard.noClient')}</SelectItem>
-                          {activeClients.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}{c.name_ar ? ` / ${c.name_ar}` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={cancelEdit}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <EditableDetailRow
-                      icon={User}
-                      label={t('housing.admissions.detail.client')}
-                      value={
-                        admission.client
-                          ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
-                          : <span>{t('housing.admissions.detail.notAssigned')}</span>
-                      }
-                      canEdit={isEditable && canUpdate}
-                      onEdit={() => setEditingField('client_id')}
-                    />
-                  )}
+                  {/* Client — opens AssignClientDialog */}
+                  <EditableDetailRow
+                    icon={User}
+                    label={t('housing.admissions.detail.client')}
+                    value={
+                      admission.client
+                        ? <BilingualName name={admission.client.name} nameAr={admission.client.name_ar} primaryClassName="font-medium text-sm" inline />
+                        : <span>{t('housing.admissions.detail.notAssigned')}</span>
+                    }
+                    canEdit={isEditable && canUpdate}
+                    onEdit={() => setAssignClientOpen(true)}
+                  />
+
 
                   {admission.branch && (
                     <DetailRow
