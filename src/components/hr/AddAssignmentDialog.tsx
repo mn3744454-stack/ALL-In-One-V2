@@ -44,6 +44,7 @@ import { BilingualName } from '@/components/ui/BilingualName';
 import { Check, ChevronsUpDown, Search, UserPlus, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { QuickCreateEmployeeDialog, type QuickCreatedEmployee } from '@/components/hr/QuickCreateEmployeeDialog';
+import { formatBilingualName } from '@/lib/displayHelpers';
 
 interface AddAssignmentDialogProps {
   open: boolean;
