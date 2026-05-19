@@ -15,7 +15,7 @@ interface HorseMovementTimelineProps {
 }
 
 export function HorseMovementTimeline({ horseId }: HorseMovementTimelineProps) {
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const { data: movements = [], isLoading } = useSingleHorseMovements(horseId);
 
   if (isLoading) {
