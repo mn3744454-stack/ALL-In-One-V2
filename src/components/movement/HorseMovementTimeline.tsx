@@ -6,8 +6,8 @@ import { classifyMovement } from "./movementClassification";
 import { formatMovementReason } from "./movementReasonDisplay";
 import { useSingleHorseMovements } from "@/hooks/movement/useHorseMovements";
 import { useI18n } from "@/i18n";
-import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { ArrowRight, MapPin, Clock, Link2, History } from "lucide-react";
+import { formatStandardDateTime, displayLocationName } from "@/lib/displayHelpers";
+import { MapPin, Clock, Link2, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HorseMovementTimelineProps {
