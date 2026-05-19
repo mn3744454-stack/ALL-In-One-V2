@@ -866,7 +866,43 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           onOpenChange={setAssignStaffOpen}
           horseId={admission.horse_id}
           horseName={admission.horse?.name || ''}
+          horseNameAr={admission.horse?.name_ar || null}
           existingEmployeeIds={existingEmployeeIds}
+        />
+      )}
+
+      {admission && (
+        <AssignClientDialog
+          open={assignClientOpen}
+          onOpenChange={setAssignClientOpen}
+          admissionId={admission.id}
+          currentClientId={admission.client_id}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
+        />
+      )}
+
+      {admission && (
+        <SetBoardingPriceDialog
+          open={setPriceOpen}
+          onOpenChange={setSetPriceOpen}
+          admissionId={admission.id}
+          currentDailyRate={admission.daily_rate}
+          currentMonthlyRate={admission.monthly_rate}
+          currentCurrency={admission.rate_currency}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
+        />
+      )}
+
+      {admission && (
+        <EmergencyContactDialog
+          open={emergencyContactOpen}
+          onOpenChange={setEmergencyContactOpen}
+          admissionId={admission.id}
+          currentValue={admission.emergency_contact}
+          horseName={admission.horse?.name}
+          horseNameAr={admission.horse?.name_ar}
         />
       )}
     </>
