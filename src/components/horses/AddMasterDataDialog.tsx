@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useI18n } from "@/i18n";
-import { mapMasterDataDuplicate } from "@/lib/horseErrorMessages";
+import { mapMasterDataDuplicate, mapMasterDataNetwork } from "@/lib/horseErrorMessages";
 import { AddOwnerDialog } from "./AddOwnerDialog";
 import type { CreateOwnerPayload } from "@/hooks/useHorseMasterData";
 
