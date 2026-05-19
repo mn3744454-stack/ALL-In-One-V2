@@ -50,7 +50,7 @@ export function OwnerPickerSheet({
   };
 
   const handleCreate = (formData: Record<string, string>) =>
-    createOwner(formData.name, formData.name_ar, formData.phone, formData.email);
+    const handleCreate = (formData: Record<string, unknown>) => createOwner(formData as any);
 
   const handleSuccess = (result: any) => {
     if (result?.id) {
