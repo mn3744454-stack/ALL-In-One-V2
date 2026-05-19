@@ -255,7 +255,8 @@ export function AddAssignmentDialog({
     </div>
   );
 
-  const title = t('hr.assignments.assignTo').replace('{{name}}', horseName);
+  const bilingualHorseName = formatBilingualName(horseName, horseNameAr, lang);
+  const title = t('hr.assignments.assignTo').replace('{{name}}', bilingualHorseName);
 
   const quickCreateMount = (
     <QuickCreateEmployeeDialog
