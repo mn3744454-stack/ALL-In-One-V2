@@ -288,7 +288,7 @@ const HorseProfile = () => {
                   {horse.branch_data?.name && (
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      {horse.branch_data.name}
+                      {displayLocationName(horse.branch_data.name, (horse.branch_data as any).name_ar, (horse.branch_data as any).city, lang)}
                     </span>
                   )}
                 </div>
