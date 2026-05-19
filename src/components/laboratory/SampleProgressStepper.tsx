@@ -1,6 +1,6 @@
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { formatStandardTime } from "@/lib/displayHelpers";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
 
 interface SampleProgressStepperProps {
@@ -63,7 +63,7 @@ export function SampleProgressStepper({
 
   const formatTime = (timestamp: string) => {
     try {
-      return format(new Date(timestamp), "HH:mm");
+      return formatStandardTime(timestamp);
     } catch {
       return "";
     }

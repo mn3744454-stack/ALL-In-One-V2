@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { formatStandardDateTime, formatStandardTime } from '@/lib/displayHelpers';
 
 /**
  * CENTRALIZED FORMATTERS
@@ -68,54 +69,39 @@ export function formatDate(date: Date | string, formatStr: string = 'dd/MM/yyyy'
 }
 
 /**
- * Format date-time with ALWAYS English digits
+ * @deprecated Use formatStandardDateTime from "@/lib/displayHelpers".
+ * Delegates to the canonical 12-hour bilingual helper. The `formatStr`
+ * argument is ignored to enforce the platform-wide time-format rule.
  */
-export function formatDateTime(date: Date | string, formatStr: string = 'dd/MM/yyyy HH:mm'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '-';
-  return format(d, formatStr);
+export function formatDateTime(date: Date | string, _formatStr?: string): string {
+  return formatStandardDateTime(date);
 }
 
 /**
- * Format date-time with 12-hour clock and locale-aware AM/PM indicator.
- * Arabic UI → ص/م  |  English UI → AM/PM
- * 
- * @param date - Date to format
- * @param lang - Current UI language ('ar' | 'en')
+ * @deprecated Use formatStandardDateTime from "@/lib/displayHelpers".
+ * Delegates to the canonical 12-hour bilingual helper. The `lang`
+ * argument is ignored — the helper reads the current UI language itself
+ * and always emits full labels (`صباحاً` / `مساءً`, `AM` / `PM`).
  */
-export function formatDateTime12h(date: Date | string, lang: string = 'en'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '-';
-  const base = format(d, 'dd-MM-yyyy hh:mm');
-  const hours = d.getHours();
-  if (lang === 'ar') {
-    return `${base} ${hours < 12 ? 'ص' : 'م'}`;
-  }
-  return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
+export function formatDateTime12h(date: Date | string, _lang?: string): string {
+  return formatStandardDateTime(date);
 }
 
 /**
- * Format time-only with locale-aware AM/PM.
- * Arabic UI → ص/م  |  English UI → AM/PM
+ * @deprecated Use formatStandardTime from "@/lib/displayHelpers".
+ * Delegates to the canonical 12-hour bilingual helper.
  */
-export function formatTime12h(date: Date | string, lang: string = 'en'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '-';
-  const base = format(d, 'hh:mm');
-  const hours = d.getHours();
-  if (lang === 'ar') {
-    return `${base} ${hours < 12 ? 'ص' : 'م'}`;
-  }
-  return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
+export function formatTime12h(date: Date | string, _lang?: string): string {
+  return formatStandardTime(date);
 }
 
 /**
- * Format time only with ALWAYS English digits
+ * @deprecated Use formatStandardTime from "@/lib/displayHelpers".
+ * Delegates to the canonical 12-hour bilingual helper. The `formatStr`
+ * argument is ignored to enforce the platform-wide time-format rule.
  */
-export function formatTime(date: Date | string, formatStr: string = 'HH:mm'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  if (isNaN(d.getTime())) return '-';
-  return format(d, formatStr);
+export function formatTime(date: Date | string, _formatStr?: string): string {
+  return formatStandardTime(date);
 }
 
 /**

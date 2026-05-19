@@ -1,5 +1,6 @@
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
+import { formatStandardDateTime } from "@/lib/displayHelpers";
 import type { StatementEntry } from "@/hooks/clients/useClientStatement";
 
 /**
@@ -44,15 +45,8 @@ function formatDateForPrint(dateStr: string): string {
   return format(d, 'dd-MM-yyyy');
 }
 
-function formatTimeForPrint(dateStr: string, lang: string = 'en'): string {
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return '-';
-  const base = format(d, 'dd-MM-yyyy hh:mm');
-  const hours = d.getHours();
-  if (lang === 'ar') {
-    return `${base} ${hours < 12 ? 'ص' : 'م'}`;
-  }
-  return `${base} ${hours < 12 ? 'AM' : 'PM'}`;
+function formatTimeForPrint(dateStr: string, _lang: string = 'en'): string {
+  return formatStandardDateTime(dateStr);
 }
 
 function getLabels(isRTL?: boolean) {
