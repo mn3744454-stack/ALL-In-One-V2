@@ -305,10 +305,23 @@ export function FacilitySection({
               </Badge>
               <LifecycleStateBadge isActive={facility.is_active} isArchived={facility.is_archived} />
             </div>
-            {facility.code && (
-              <span className="text-xs text-muted-foreground">{facility.code}</span>
-            )}
-          </div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {facility.code && (
+                <span className="text-xs text-muted-foreground">{facility.code}</span>
+              )}
+              {showBranchContext && parentBranch && (
+                <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground border-dashed">
+                  <Building2 className="w-3 h-3" />
+                  <BilingualName
+                    name={parentBranch.name}
+                    nameAr={(parentBranch as any).name_ar}
+                    inline
+                    primaryClassName="text-[10px] font-normal"
+                    secondaryClassName="text-[10px]"
+                  />
+                </Badge>
+              )}
+            </div>
 
           {/* Occupancy + vacancy — only for housing types with units */}
           <div className="flex items-center gap-3 shrink-0">
