@@ -175,7 +175,7 @@ export const StepOwnership = ({ data, onChange }: StepOwnershipProps) => {
       )}
 
       {data.owners.length > 0 && (
-        <div className="sticky bottom-0 -mx-2 px-2 py-2 bg-background/95 backdrop-blur border-t z-10 flex justify-end">
+        <div className="sticky bottom-0 py-2 bg-background/95 backdrop-blur border-t z-10 flex justify-end">
           <Button
             type="button"
             variant="outline"
