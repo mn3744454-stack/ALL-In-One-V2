@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
-import { Wrench, Ban, ShieldAlert } from "lucide-react";
+import { Wrench, Ban, ShieldAlert, Warehouse } from "lucide-react";
 import type { InlineUnit, InlineOccupant } from "@/hooks/housing/useInlineFacilityUnits";
 
 interface UnitCellProps {
@@ -15,7 +15,7 @@ interface UnitCellProps {
 /**
  * Compact visual cell for a single housing unit in the facility grid.
  * Shows unit code, horse name (or vacant), and status color via left border.
- * Supports maintenance / out-of-service / isolation visual states.
+ * Supports maintenance / out-of-service / isolation / storage visual states.
  */
 export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProps) {
   const { t } = useI18n();
@@ -28,6 +28,7 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
   const isOutOfService = unit.status === 'out_of_service';
   const isUnavailable = isMaintenance || isOutOfService;
   const isIsolation = unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
+  const isStorage = unit.unit_type === 'storage';
 
   // Get horse for single-occupancy display
   const horse = currentOccupants[0]?.horse;
@@ -66,7 +67,7 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
       )}
     >
       {/* Status icon overlay for special states */}
-      {(isUnavailable || isIsolation) && (
+      {(isUnavailable || isIsolation || isStorage) && (
         <div className="absolute top-1.5 end-1.5">
           {isOutOfService ? (
             <Ban className="w-3 h-3 text-destructive" />
@@ -74,14 +75,28 @@ export function UnitCell({ unit, occupants, onClick, highlighted }: UnitCellProp
             <Wrench className="w-3 h-3 text-muted-foreground" />
           ) : isIsolation ? (
             <ShieldAlert className="w-3 h-3 text-amber-600" />
+          ) : isStorage ? (
+            <Warehouse className="w-3 h-3 text-amber-700" />
           ) : null}
         </div>
       )}
 
-      {/* Unit code */}
-      <span className="text-[11px] font-mono text-muted-foreground leading-tight truncate">
-        {unit.code}
-      </span>
+      {/* Unit code + type label */}
+      <div className="flex items-center gap-1 min-w-0">
+        <span className="text-[11px] font-mono text-muted-foreground leading-tight truncate">
+          {unit.code}
+        </span>
+        {isIsolation && (
+          <span className="text-[9px] font-medium px-1 py-0 rounded bg-amber-100 text-amber-700 border border-amber-200 leading-tight shrink-0">
+            {t('housing.units.isolationLabel')}
+          </span>
+        )}
+        {isStorage && (
+          <span className="text-[9px] font-medium px-1 py-0 rounded bg-amber-100 text-amber-800 border border-amber-200 leading-tight shrink-0">
+            {t('housing.units.storageLabel')}
+          </span>
+        )}
+      </div>
 
       {/* Horse identity, status label, or vacant */}
       {isUnavailable ? (

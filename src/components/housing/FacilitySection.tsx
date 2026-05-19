@@ -13,6 +13,7 @@ import { LifecycleStateBadge } from "./LifecycleActionMenu";
 import { unitMatchesSearch, type OccupancyFilter } from "./FacilitiesManager";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
+import { useLocations } from "@/hooks/movement/useLocations";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -43,6 +44,8 @@ interface FacilitySectionProps {
   onDelete: (id: string) => Promise<void>;
   searchQuery?: string;
   activeFilter?: OccupancyFilter;
+  /** When true (no specific branch scope), show parent branch context badge on the header. */
+  showBranchContext?: boolean;
 }
 
 /** Icons for facility types */
@@ -97,11 +100,18 @@ export function FacilitySection({
   onDelete,
   searchQuery = '',
   activeFilter = 'all',
+  showBranchContext = false,
 }: FacilitySectionProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
+  const { activeLocations } = useLocations();
   const tenantType = activeTenant?.tenant?.type || 'stable';
   const isClinic = tenantType === 'clinic' || tenantType === 'doctor';
+
+  const parentBranch = useMemo(
+    () => activeLocations.find(l => l.id === facility.branch_id),
+    [activeLocations, facility.branch_id]
+  );
 
   const [collapsed, setCollapsed] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<HousingUnit | null>(null);
@@ -123,8 +133,14 @@ export function FacilitySection({
   // Filter units based on search + filter
   const filteredUnits = useMemo(() => {
     if (!isHousingType) return units;
+    // If facility name itself matches the search, all units pass the search filter.
+    const facilityNameMatches = searchQuery && (
+      facility.name?.toLowerCase().includes(searchQuery) ||
+      facility.name_ar?.includes(searchQuery) ||
+      facility.code?.toLowerCase().includes(searchQuery)
+    );
     return units.filter(unit => {
-      if (searchQuery && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery)) return false;
+      if (searchQuery && !facilityNameMatches && facilityData && !unitMatchesSearch(unit, facilityData, searchQuery, facility)) return false;
       if (activeFilter === 'all') return true;
       const unitOccupants = occupants.filter(o => o.unit_id === unit.id);
       const isOcc = unitOccupants.length > 0;
@@ -133,13 +149,14 @@ export function FacilitySection({
         case 'vacant': return !isOcc && unit.status === 'available';
         case 'occupied': return isOcc && !isFull;
         case 'full': return isFull;
+        case 'storage': return unit.unit_type === 'storage';
         case 'isolation': return unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay';
         case 'maintenance': return unit.status === 'maintenance';
         case 'out_of_service': return unit.status === 'out_of_service';
         default: return true;
       }
     });
-  }, [units, searchQuery, activeFilter, occupants, facilityData, isHousingType]);
+  }, [units, searchQuery, activeFilter, occupants, facilityData, isHousingType, facility]);
 
   // Compute vacancy for header
   const vacantCount = useMemo(() => {
@@ -288,10 +305,26 @@ export function FacilitySection({
               </Badge>
               <LifecycleStateBadge isActive={facility.is_active} isArchived={facility.is_archived} />
             </div>
-            {facility.code && (
-              <span className="text-xs text-muted-foreground">{facility.code}</span>
-            )}
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              {facility.code && (
+                <span className="text-xs text-muted-foreground">{facility.code}</span>
+              )}
+              {showBranchContext && parentBranch && (
+                <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground border-dashed">
+                  <Building2 className="w-3 h-3" />
+                  <BilingualName
+                    name={parentBranch.name}
+                    nameAr={(parentBranch as any).name_ar}
+                    inline
+                    primaryClassName="text-[10px] font-normal"
+                    secondaryClassName="text-[10px]"
+                  />
+                </Badge>
+              )}
+            </div>
           </div>
+
+
 
           {/* Occupancy + vacancy — only for housing types with units */}
           <div className="flex items-center gap-3 shrink-0">

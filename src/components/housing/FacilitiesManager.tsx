@@ -19,22 +19,27 @@ import { useInlineFacilityUnits } from "@/hooks/housing/useInlineFacilityUnits";
 import { useLocations } from "@/hooks/movement/useLocations";
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
-import { BilingualName } from "@/components/ui/BilingualName";
+
 import { cn } from "@/lib/utils";
 import { Plus, Building2, Loader2, Home, ShieldAlert, Search, X } from "lucide-react";
 
-export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'isolation' | 'maintenance' | 'out_of_service';
+export type OccupancyFilter = 'all' | 'vacant' | 'occupied' | 'full' | 'storage' | 'isolation' | 'maintenance' | 'out_of_service';
 
-/** Check if a unit (or its occupants) matches a search query */
+/** Check if a unit (or its occupants) matches a search query.
+ * Optionally accepts the parent facility so a facility-name match shows all its units. */
 export function unitMatchesSearch(
   unit: { id: string; code: string; name: string | null; name_ar: string | null },
   facilityData: { occupants: { unit_id: string; horse: { name: string; name_ar: string | null } | null }[] },
-  query: string
+  query: string,
+  facility?: { name?: string | null; name_ar?: string | null; code?: string | null },
 ): boolean {
   if (!query) return true;
   if (unit.code?.toLowerCase().includes(query)) return true;
   if (unit.name?.toLowerCase().includes(query)) return true;
   if (unit.name_ar?.includes(query)) return true;
+  if (facility?.name?.toLowerCase().includes(query)) return true;
+  if (facility?.name_ar?.includes(query)) return true;
+  if (facility?.code?.toLowerCase().includes(query)) return true;
   const unitOccupants = facilityData.occupants.filter(o => o.unit_id === unit.id);
   return unitOccupants.some(o => {
     if (!o.horse) return false;
@@ -106,24 +111,29 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
   const facilityIds = useMemo(() => lifecycleFilteredAreas.map(a => a.id), [lifecycleFilteredAreas]);
   const { facilityUnitsMap, isLoadingUnits } = useInlineFacilityUnits(facilityIds);
 
-  // Aggregate stats across all visible facilities
+  // Aggregate stats across all visible facilities (scoped to current branch + lifecycle).
+  // NOTE: Occupied = has horses but NOT full. Full = at capacity.
   const aggregateStats = useMemo(() => {
-    let total = 0, vacant = 0, occupied = 0, maintenance = 0, outOfService = 0, isolation = 0;
+    let total = 0, vacant = 0, occupied = 0, full = 0, maintenance = 0, outOfService = 0, isolation = 0, storage = 0;
     for (const fid of facilityIds) {
       const fd = facilityUnitsMap[fid];
       if (!fd) continue;
       for (const unit of fd.units) {
         total++;
         const unitOccupants = fd.occupants.filter(o => o.unit_id === unit.id);
-        const isOcc = unitOccupants.length > 0;
+        const occCount = unitOccupants.length;
+        const isOcc = occCount > 0;
+        const isFull = occCount >= unit.capacity;
         if (unit.status === 'maintenance') maintenance++;
         else if (unit.status === 'out_of_service') outOfService++;
         else if (!isOcc) vacant++;
+        else if (isFull) full++;
         else occupied++;
         if (unit.unit_type === 'isolation_room' || unit.unit_type === 'isolation_bay') isolation++;
+        if (unit.unit_type === 'storage') storage++;
       }
     }
-    return { total, vacant, occupied, maintenance, outOfService, isolation };
+    return { total, vacant, occupied, full, maintenance, outOfService, isolation, storage };
   }, [facilityIds, facilityUnitsMap]);
 
   // Normalize search query for matching
@@ -186,38 +196,48 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
     }
   };
 
-  const FILTER_CHIPS: { key: OccupancyFilter; labelKey: string; count?: number }[] = [
+  const FILTER_CHIPS: { key: OccupancyFilter; labelKey: string; helperKey?: string; count?: number }[] = [
     { key: 'all', labelKey: 'housing.filter.all' },
-    { key: 'vacant', labelKey: 'housing.filter.vacant', count: aggregateStats.vacant },
-    { key: 'occupied', labelKey: 'housing.filter.occupied', count: aggregateStats.occupied },
-    { key: 'full', labelKey: 'housing.filter.full' },
-    { key: 'maintenance', labelKey: 'housing.filter.maintenance', count: aggregateStats.maintenance },
-    { key: 'out_of_service', labelKey: 'housing.filter.outOfService', count: aggregateStats.outOfService },
-    { key: 'isolation', labelKey: 'housing.filter.isolation', count: aggregateStats.isolation },
+    { key: 'vacant', labelKey: 'housing.filter.vacant', helperKey: 'housing.filter.helpers.vacant', count: aggregateStats.vacant },
+    { key: 'occupied', labelKey: 'housing.filter.occupied', helperKey: 'housing.filter.helpers.occupied', count: aggregateStats.occupied },
+    { key: 'full', labelKey: 'housing.filter.full', helperKey: 'housing.filter.helpers.full', count: aggregateStats.full },
+    { key: 'storage', labelKey: 'housing.filter.storage', helperKey: 'housing.filter.helpers.storage', count: aggregateStats.storage },
+    { key: 'isolation', labelKey: 'housing.filter.isolation', helperKey: 'housing.filter.helpers.isolation', count: aggregateStats.isolation },
+    { key: 'maintenance', labelKey: 'housing.filter.maintenance', helperKey: 'housing.filter.helpers.maintenance', count: aggregateStats.maintenance },
+    { key: 'out_of_service', labelKey: 'housing.filter.outOfService', helperKey: 'housing.filter.helpers.outOfService', count: aggregateStats.outOfService },
   ];
+
+  // Resolve the currently-scoped branch name for the scope strip.
+  const scopedBranch = effectiveBranchId
+    ? activeLocations.find(l => l.id === effectiveBranchId)
+    : null;
+  const scopedBranchLabel = scopedBranch
+    ? (lang === 'ar' ? (scopedBranch.name_ar || scopedBranch.name) : (scopedBranch.name || scopedBranch.name_ar || ''))
+    : '';
+  const branchesCount = activeLocations.length;
+  const facilitiesCount = lifecycleFilteredAreas.length;
+  const summaryText = t('housing.scope.summary')
+    .replace('{branches}', String(branchesCount))
+    .replace('{facilities}', String(facilitiesCount));
 
   return (
     <div className="space-y-4">
-      {/* Top bar: branch selector + add button */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {!lockedBranchId && (
-          <Select value={selectedBranchId || "__all__"} onValueChange={(v) => setSelectedBranchId(v === "__all__" ? "" : v)}>
-            <SelectTrigger className="w-full sm:w-[280px]">
-              <SelectValue placeholder={t('housing.facilities.selectBranch')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t('common.all')}</SelectItem>
-              {activeLocations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id}>
-                  <BilingualName name={loc.name} nameAr={(loc as any).name_ar} inline primaryClassName="text-sm" secondaryClassName="text-xs" />
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+      {/* Scope strip: clarifies what the user is viewing */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 rounded-lg border bg-muted/30">
+        <div className="text-xs sm:text-sm text-muted-foreground">
+          {effectiveBranchId ? (
+            <span>
+              {t('housing.scope.showingBranch').replace('{branch}', scopedBranchLabel)}
+            </span>
+          ) : (
+            <span>{t('housing.scope.showingAllBranches')}</span>
+          )}
+          <span className="mx-2 opacity-50">·</span>
+          <span className="tabular-nums">{summaryText}</span>
+        </div>
 
         {canManage && (
-          <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
+          <Button size="sm" className="gap-2 sm:ms-auto self-start sm:self-auto" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="w-4 h-4" />
             {t('housing.facilities.addFacility')}
           </Button>
@@ -243,7 +263,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('housing.search.placeholder')}
+              placeholder={t('housing.search.placeholderV2')}
               className="ps-9 pe-9 h-10"
             />
             {searchQuery && (
@@ -266,6 +286,7 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
                 <button
                   key={chip.key}
                   type="button"
+                  title={chip.helperKey ? t(chip.helperKey as any) : undefined}
                   onClick={() => setActiveFilter(isActive && chip.key !== 'all' ? 'all' : chip.key)}
                   className={cn(
                     "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
@@ -339,13 +360,16 @@ export function FacilitiesManager({ lockedBranchId }: FacilitiesManagerProps) {
               onDelete={deleteArea}
               searchQuery={normalizedQuery}
               activeFilter={activeFilter}
+              showBranchContext={!effectiveBranchId}
             />
           ))}
           {/* No results state for search/filter */}
           {normalizedQuery && lifecycleFilteredAreas.every(area => {
             const fd = facilityUnitsMap[area.id];
             if (!fd) return true;
-            return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery));
+            // Facility-name match alone counts as a hit even if it has 0 units.
+            if (unitMatchesSearch({ id: '', code: '', name: null, name_ar: null }, fd, normalizedQuery, area)) return true;
+            return !fd.units.some(u => unitMatchesSearch(u, fd, normalizedQuery, area));
           }) && (
             <div className="text-center py-8 text-muted-foreground text-sm">
               {t('housing.search.noResults')}
