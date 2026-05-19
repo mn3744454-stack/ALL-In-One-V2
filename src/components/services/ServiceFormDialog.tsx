@@ -56,9 +56,31 @@ export const ServiceFormDialog = ({
   defaultServiceKind,
 }: ServiceFormDialogProps) => {
   const [open, setOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const isEdit = !!service;
   const effectiveKind = service?.service_kind || defaultServiceKind || "service";
+
+  const serviceSchema = useMemo(() => {
+    const isArabicUI = lang === "ar";
+    return z.object({
+      name: z.string().min(2, t("services.form.validation.nameMin")),
+      name_ar: isArabicUI
+        ? z.string().min(2, t("services.form.validation.nameArRequired"))
+        : z.string().optional(),
+      description: z.string().optional(),
+      service_type: z.string().optional(),
+      service_kind: z.string().optional(),
+      unit_price: z.coerce
+        .number()
+        .min(0, t("services.form.validation.priceNonNegative"))
+        .nullable()
+        .optional(),
+      price_display: z.string().optional(),
+      is_active: z.boolean().default(true),
+      is_public: z.boolean().default(true),
+      is_taxable: z.boolean().default(true),
+    });
+  }, [t, lang]);
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
