@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, Search, Plus, X, Trash2, Loader2 } from "lucide-react";
+import { Check, Search, Plus, X, Trash2, Pencil, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { HorseColor, DeleteMasterDataResult } from "@/hooks/useHorseMasterData";
+import type {
+  HorseColor,
+  DeleteMasterDataResult,
+  UpdateMasterDataResult,
+} from "@/hooks/useHorseMasterData";
 import { AddMasterDataDialog } from "../AddMasterDataDialog";
 import { useI18n } from "@/i18n";
 import { BilingualName } from "@/components/ui/BilingualName";
@@ -32,7 +36,25 @@ interface ColorPickerSheetProps {
     name_ar?: string
   ) => Promise<{ data: HorseColor | null; error: Error | null }>;
   deleteColor?: (id: string) => Promise<DeleteMasterDataResult>;
+  updateColor?: (
+    id: string,
+    payload: { name: string; name_ar?: string | null }
+  ) => Promise<UpdateMasterDataResult<HorseColor>>;
   onColorDeleted?: (id: string) => void;
+}
+
+function formatLinkedHorseNames(
+  horses: { name: string; name_ar?: string | null }[] | undefined,
+  isArabicUI: boolean,
+): string {
+  if (!horses || horses.length === 0) return "";
+  return horses
+    .map((h) => {
+      const primary = isArabicUI ? h.name_ar || h.name : h.name;
+      const secondary = isArabicUI ? (h.name_ar ? h.name : null) : h.name_ar || null;
+      return secondary ? `${primary} (${secondary})` : primary;
+    })
+    .join("، ");
 }
 
 export function ColorPickerSheet({
@@ -43,13 +65,16 @@ export function ColorPickerSheet({
   colors,
   createColor,
   deleteColor,
+  updateColor,
   onColorDeleted,
 }: ColorPickerSheetProps) {
   const [searchValue, setSearchValue] = useState("");
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<HorseColor | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<HorseColor | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isArabicUI = lang === "ar";
 
   const filtered = useMemo(() => {
     if (!searchValue.trim()) return colors;
@@ -93,12 +118,21 @@ export function ColorPickerSheet({
         toast.success(t("horses.masterData.delete.color.success"));
         onColorDeleted?.(id);
         break;
-      case "used_by_horses":
-        toast.error(t("horses.masterData.delete.color.blockedUsed"));
+      case "used_by_horses": {
+        const names = formatLinkedHorseNames(result.horses, isArabicUI);
+        const totalShown = result.horses?.length ?? 0;
+        const remaining = Math.max(0, (result.used_count ?? totalShown) - totalShown);
+        const moreSuffix = remaining > 0
+          ? t("horses.masterData.delete.moreSuffix").replace("{{count}}", String(remaining))
+          : "";
+        const description = names
+          ? t("horses.masterData.delete.usedByNames")
+              .replace("{{names}}", names)
+              .replace("{{more}}", moreSuffix)
+          : undefined;
+        toast.error(t("horses.masterData.delete.color.blockedUsed"), { description });
         break;
-      case "protected_seed":
-        toast.error(t("horses.masterData.delete.color.blockedSeed"));
-        break;
+      }
       case "not_found":
         toast.error(t("horses.masterData.delete.color.notFound"));
         break;
@@ -106,6 +140,17 @@ export function ColorPickerSheet({
         toast.error(t("horses.masterData.delete.color.error"));
         break;
     }
+  };
+
+  const handleUpdate = async (values: { name: string; name_ar?: string | null }) => {
+    if (!editTarget || !updateColor) {
+      return { updated: false, reason: "error" as const, error: null };
+    }
+    const result = await updateColor(editTarget.id, values);
+    if (result.updated) {
+      setEditTarget(null);
+    }
+    return result;
   };
 
   return (
@@ -153,7 +198,7 @@ export function ColorPickerSheet({
                   <div
                     key={color.id}
                     className={cn(
-                      "w-full flex items-center gap-2 p-3 rounded-lg transition-colors min-h-[56px]",
+                      "w-full flex items-center gap-1 p-3 rounded-lg transition-colors min-h-[56px]",
                       "hover:bg-muted/50",
                       selectedColorId === color.id && "bg-primary/5 border border-primary/30"
                     )}
@@ -166,19 +211,34 @@ export function ColorPickerSheet({
                       {selectedColorId === color.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                       <BilingualName name={color.name} nameAr={color.name_ar} primaryClassName="text-sm" />
                     </button>
-                    {deleteColor && !color.is_seed && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmTarget(color);
-                        }}
-                        className="ms-auto p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
-                        aria-label={t("horses.masterData.delete.color.title")}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-1 ms-auto shrink-0">
+                      {updateColor && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditTarget(color);
+                          }}
+                          className="p-2 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          aria-label={t("horses.masterData.edit.action")}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      )}
+                      {deleteColor && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmTarget(color);
+                          }}
+                          className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          aria-label={t("horses.masterData.delete.color.title")}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -193,6 +253,18 @@ export function ColorPickerSheet({
         type="color"
         onCreate={handleCreate}
         onSuccess={handleSuccess}
+      />
+
+      <AddMasterDataDialog
+        open={!!editTarget}
+        onOpenChange={(o) => { if (!o) setEditTarget(null); }}
+        type="color"
+        mode="edit"
+        initialValues={editTarget ? { name: editTarget.name, name_ar: editTarget.name_ar } : undefined}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
+        editTitle={t("horses.masterData.edit.colorTitle")}
+        editSuccessMessage={t("horses.masterData.edit.colorSuccess")}
       />
 
       <AlertDialog
