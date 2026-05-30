@@ -38,6 +38,8 @@ import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import DashboardHRPayroll from "./pages/DashboardHRPayroll";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
+import DashboardInventory from "./pages/DashboardInventory";
+
 import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
 
 import DashboardSchedule from "./pages/DashboardSchedule";
@@ -460,6 +462,16 @@ const AppRoutes = () => {
               <ModuleGuard module="housing">
                 <DashboardHousing />
               </ModuleGuard>
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/inventory"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="inventory.view">
+              <DashboardInventory />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
