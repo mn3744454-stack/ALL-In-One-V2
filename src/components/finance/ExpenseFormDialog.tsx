@@ -17,6 +17,8 @@ import {
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useExpenses, EXPENSE_CATEGORIES, type CreateExpenseInput } from "@/hooks/finance/useExpenses";
+import { useInventoryItems, useInventoryTransactions } from "@/hooks/inventory";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Camera, X, Loader2 } from "lucide-react";
@@ -31,6 +33,8 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { createExpense, isCreating } = useExpenses(activeTenant?.tenant.id);
+  const { items: inventoryItems } = useInventoryItems();
+  const { createTransaction, isCreating: isCreatingTx } = useInventoryTransactions();
 
   const [formData, setFormData] = useState({
     category: "",
@@ -43,6 +47,9 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [linkInventory, setLinkInventory] = useState(false);
+  const [invItemId, setInvItemId] = useState<string>("");
+  const [invQuantity, setInvQuantity] = useState<string>("");
 
   // Reset attempted flag and form on close.
   useEffect(() => {
@@ -164,6 +171,25 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
         }
       }
 
+      // Optionally record an inventory stock-in transaction linked to this expense
+      if (linkInventory && invItemId && expense) {
+        const qty = parseFloat(invQuantity);
+        if (!Number.isNaN(qty) && qty > 0) {
+          try {
+            await createTransaction({
+              item_id: invItemId,
+              transaction_type: "stock_in",
+              quantity: qty,
+              unit_cost: amountValue / qty,
+              total_cost: amountValue,
+              notes: t("inventory.linkToExpense.title"),
+            });
+          } catch (txErr) {
+            console.error("Failed to record inventory tx:", txErr);
+          }
+        }
+      }
+
       // Reset form
       setFormData({
         category: "",
@@ -174,6 +200,9 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
         notes: "",
       });
       setReceiptFile(null);
+      setLinkInventory(false);
+      setInvItemId("");
+      setInvQuantity("");
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -181,7 +210,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
     }
   };
 
-  const isLoading = isCreating || uploading;
+  const isLoading = isCreating || uploading || isCreatingTx;
 
   return (
     <SafeFormDialog
@@ -307,6 +336,56 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
             )}
           </div>
 
+          {/* Inventory link */}
+          <div className="space-y-2 rounded-lg border p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Label className="block">{t("inventory.linkToExpense.title")}</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("inventory.linkToExpense.description")}
+                </p>
+              </div>
+              <Switch
+                checked={linkInventory}
+                onCheckedChange={setLinkInventory}
+                aria-label={t("inventory.linkToExpense.enable")}
+              />
+            </div>
+            {linkInventory && (
+              <div className="space-y-3 pt-2">
+                {inventoryItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("inventory.linkToExpense.noItems")}
+                  </p>
+                ) : (
+                  <>
+                    <Select value={invItemId} onValueChange={setInvItemId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("inventory.linkToExpense.selectItem")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {inventoryItems.map((it) => (
+                          <SelectItem key={it.id} value={it.id}>
+                            {it.name}
+                            {it.name_ar ? ` — ${it.name_ar}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={invQuantity}
+                      onChange={(e) => setInvQuantity(e.target.value)}
+                      placeholder={t("inventory.linkToExpense.quantity")}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Notes */}
           <div className="space-y-2">
             <Label>{t("finance.expenses.notes")}</Label>
@@ -317,6 +396,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
               rows={3}
             />
           </div>
+
 
           <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2 flex-col gap-3 sm:flex-row sm:items-center">
             <MissingRequirementsBar
