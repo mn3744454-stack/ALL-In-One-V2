@@ -17,6 +17,8 @@ import {
 import { useI18n } from "@/i18n";
 import { useTenant } from "@/contexts/TenantContext";
 import { useExpenses, EXPENSE_CATEGORIES, type CreateExpenseInput } from "@/hooks/finance/useExpenses";
+import { useInventoryItems, useInventoryTransactions } from "@/hooks/inventory";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, Camera, X, Loader2 } from "lucide-react";
