@@ -38,6 +38,7 @@ import DashboardHRAttendance from "./pages/DashboardHRAttendance";
 import DashboardHRPayroll from "./pages/DashboardHRPayroll";
 import DashboardMovement from "./pages/DashboardMovement";
 import DashboardHousing from "./pages/DashboardHousing";
+import DashboardInventory from "./pages/DashboardInventory";
 import DashboardOrganizationSettings from "./pages/DashboardOrganizationSettings";
 
 import DashboardSchedule from "./pages/DashboardSchedule";
@@ -459,6 +460,19 @@ const AppRoutes = () => {
             <WorkspaceRouteGuard requiredMode="organization" requiredPermission="housing.view">
               <ModuleGuard module="housing">
                 <DashboardHousing />
+              </ModuleGuard>
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      {/* Inventory module - shared across org tenant types (stable feed, lab reagents, pharmacy meds, ...) */}
+      <Route
+        path="/dashboard/inventory"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization" requiredPermission="inventory.view">
+              <ModuleGuard module="inventory">
+                <DashboardInventory />
               </ModuleGuard>
             </WorkspaceRouteGuard>
           </ProtectedRoute>

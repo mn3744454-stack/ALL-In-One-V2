@@ -16,7 +16,7 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const { activeRole, activeTenant, workspaceMode } = useTenant();
-  const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled } = useModuleAccess();
+  const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled, inventoryEnabled } = useModuleAccess();
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
@@ -35,6 +35,8 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
         return movementEnabled;
       case "housing":
         return housingEnabled;
+      case "inventory":
+        return inventoryEnabled;
       default:
         return true;
     }

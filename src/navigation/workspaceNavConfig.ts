@@ -1,4 +1,5 @@
 import {
+  Boxes,
   Home,
   MessageSquare,
   Ticket,
@@ -36,7 +37,7 @@ export interface NavModuleChild {
   labelKey: string;
   route: string;
   permissionKey?: string;
-  moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing";
+  moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing" | "inventory";
 }
 
 export interface WorkspaceNavModule {
@@ -49,7 +50,7 @@ export interface WorkspaceNavModule {
   children?: NavModuleChild[];
   badgeKey?: string;
   highlight?: boolean;
-  moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing";
+  moduleKey?: "breeding" | "vet" | "lab" | "movement" | "housing" | "inventory";
   tenantType?: string;
 }
 
@@ -187,6 +188,15 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     route: "/dashboard/housing",
     roles: ["owner", "manager"],
     moduleKey: "housing",
+  },
+  {
+    key: "inventory",
+    icon: Boxes,
+    labelKey: "sidebar.inventory",
+    route: "/dashboard/inventory",
+    roles: ["owner", "manager"],
+    permissionKey: "inventory.view",
+    moduleKey: "inventory",
   },
   {
     key: "services",

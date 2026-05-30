@@ -44,6 +44,7 @@ import {
   FlaskConical,
   ArrowLeftRight,
   Warehouse,
+  Boxes,
   FolderOpen,
   Wallet,
   Activity,
@@ -181,10 +182,11 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const { 
     labMode, 
     isLabTenant,
-    vetEnabled, 
-    housingEnabled, 
-    movementEnabled, 
-    breedingEnabled 
+    vetEnabled,
+    housingEnabled,
+    movementEnabled,
+    breedingEnabled,
+    inventoryEnabled
   } = useModuleAccess();
   const { t, dir } = useI18n();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -307,6 +309,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       case "lab": return labMode !== "none";
       case "movement": return movementEnabled;
       case "housing": return housingEnabled;
+      case "inventory": return inventoryEnabled;
       default: return true;
     }
   };
@@ -532,6 +535,18 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                       { icon: ArrowLeftRight, label: t('housing.tabs.arrivalsAndDepartures'), href: "/dashboard/housing?tab=arrivalsAndDepartures" },
                       { icon: ArrowDownToLine, label: t('housing.tabs.incoming'), href: "/dashboard/housing?tab=incoming" },
                     ]}
+                    onNavigate={onClose}
+                    {...navProps}
+                  />
+                )}
+
+                {/* Inventory - shared module (stable feed, lab reagents, pharmacy meds, ...) */}
+                {inventoryEnabled && hasPermission('inventory.view') && (
+                  <NavItem
+                    icon={Boxes}
+                    label={t('sidebar.inventory')}
+                    href="/dashboard/inventory"
+                    active={isActive("/dashboard/inventory")}
                     onNavigate={onClose}
                     {...navProps}
                   />
