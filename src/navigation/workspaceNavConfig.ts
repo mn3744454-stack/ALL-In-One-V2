@@ -27,8 +27,10 @@ import {
   BarChart3,
   UserCircle,
   Activity,
+  Boxes,
   type LucideIcon,
 } from "lucide-react";
+
 
 export interface NavModuleChild {
   key: string;
@@ -195,6 +197,15 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     route: "/dashboard/services",
     roles: ["owner", "manager"],
   },
+  {
+    key: "inventory",
+    icon: Boxes,
+    labelKey: "inventory.title",
+    route: "/dashboard/inventory",
+    roles: ["owner", "manager"],
+    permissionKey: "inventory.view",
+  },
+
   {
     key: "clients",
     icon: UserCircle,
