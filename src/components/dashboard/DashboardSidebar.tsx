@@ -54,6 +54,7 @@ import {
   LayoutGrid,
   ClipboardCheck,
   ArrowDownToLine,
+  Boxes,
 } from "lucide-react";
 
 interface NavItemProps {
