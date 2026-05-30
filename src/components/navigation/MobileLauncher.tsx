@@ -23,7 +23,7 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   const { activeTenant, activeRole, workspaceMode } = useTenant();
   const { horses } = useHorses();
   const { hasPermission } = usePermissions();
-  const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, isLabTenant } = useModuleAccess();
+  const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, inventoryEnabled, isLabTenant } = useModuleAccess();
   const [selectedModule, setSelectedModule] = useState<WorkspaceNavModule | null>(null);
 
   const isRTL = dir === "rtl";
@@ -73,6 +73,9 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
         case "housing":
           if (!housingEnabled) return false;
           break;
+        case "inventory":
+          if (!inventoryEnabled) return false;
+          break;
       }
     }
 
@@ -99,6 +102,8 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
             return movementEnabled;
           case "housing":
             return housingEnabled;
+          case "inventory":
+            return inventoryEnabled;
         }
       }
       // Permission check for children

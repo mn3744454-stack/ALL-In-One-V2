@@ -181,10 +181,11 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
   const { 
     labMode, 
     isLabTenant,
-    vetEnabled, 
-    housingEnabled, 
-    movementEnabled, 
-    breedingEnabled 
+    vetEnabled,
+    housingEnabled,
+    movementEnabled,
+    breedingEnabled,
+    inventoryEnabled
   } = useModuleAccess();
   const { t, dir } = useI18n();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -307,6 +308,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
       case "lab": return labMode !== "none";
       case "movement": return movementEnabled;
       case "housing": return housingEnabled;
+      case "inventory": return inventoryEnabled;
       default: return true;
     }
   };

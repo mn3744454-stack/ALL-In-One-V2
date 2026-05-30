@@ -16,6 +16,7 @@ export interface ModuleAccess {
   housingEnabled: boolean;
   movementEnabled: boolean;
   breedingEnabled: boolean;
+  inventoryEnabled: boolean;
   
   // Tenant type helpers
   isLabTenant: boolean;
@@ -119,13 +120,27 @@ export function useModuleAccess(): ModuleAccess {
   const breedingEnabled = useMemo((): boolean => {
     const breedingConfig = getCapabilityConfig('breeding');
     const configEnabled = getConfigValue<boolean | null>(breedingConfig, 'enabled', null);
-    
+
     if (configEnabled !== null) return configEnabled;
-    
+
     // Default based on tenant type
     if (isStable) return true;
     return false;
   }, [getCapabilityConfig, isStable]);
+
+  // Compute inventory enabled.
+  // Inventory is a SHARED capability: any organization can store things
+  // (stable → feed/bedding, lab → reagents, pharmacy → medication, etc.).
+  // Enabled by default for every org tenant type unless explicitly disabled.
+  const inventoryEnabled = useMemo((): boolean => {
+    const inventoryConfig = getCapabilityConfig('inventory');
+    const configEnabled = getConfigValue<boolean | null>(inventoryConfig, 'enabled', null);
+
+    if (configEnabled !== null) return configEnabled;
+
+    // Default on for any organization.
+    return !!tenantType;
+  }, [getCapabilityConfig, tenantType]);
   
   // Actions
   const setLabMode = useCallback(async (mode: LabMode) => {
@@ -145,7 +160,8 @@ export function useModuleAccess(): ModuleAccess {
     housingEnabled,
     movementEnabled,
     breedingEnabled,
-    
+    inventoryEnabled,
+
     isLabTenant,
     isStable,
     isClinic,

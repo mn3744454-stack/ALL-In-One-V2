@@ -5,7 +5,7 @@ import { useI18n } from "@/i18n";
 import { toast } from "sonner";
 
 interface ModuleGuardProps {
-  module: 'laboratory' | 'vet' | 'housing' | 'movement' | 'breeding';
+  module: 'laboratory' | 'vet' | 'housing' | 'movement' | 'breeding' | 'inventory';
   children: React.ReactNode;
   redirectTo?: string;
 }
@@ -13,13 +13,14 @@ interface ModuleGuardProps {
 export function ModuleGuard({ module, children, redirectTo = '/dashboard' }: ModuleGuardProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { 
-    labMode, 
-    vetEnabled, 
-    housingEnabled, 
-    movementEnabled, 
-    breedingEnabled, 
-    loading 
+  const {
+    labMode,
+    vetEnabled,
+    housingEnabled,
+    movementEnabled,
+    breedingEnabled,
+    inventoryEnabled,
+    loading
   } = useModuleAccess();
 
   const isEnabled = (() => {
@@ -34,6 +35,8 @@ export function ModuleGuard({ module, children, redirectTo = '/dashboard' }: Mod
         return movementEnabled;
       case 'breeding':
         return breedingEnabled;
+      case 'inventory':
+        return inventoryEnabled;
       default:
         return true;
     }
