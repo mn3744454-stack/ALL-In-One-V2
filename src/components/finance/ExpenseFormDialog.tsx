@@ -171,6 +171,25 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
         }
       }
 
+      // Optionally record an inventory stock-in transaction linked to this expense
+      if (linkInventory && invItemId && expense) {
+        const qty = parseFloat(invQuantity);
+        if (!Number.isNaN(qty) && qty > 0) {
+          try {
+            await createTransaction({
+              item_id: invItemId,
+              transaction_type: "stock_in",
+              quantity: qty,
+              unit_cost: amountValue / qty,
+              total_cost: amountValue,
+              notes: t("inventory.linkToExpense.title"),
+            });
+          } catch (txErr) {
+            console.error("Failed to record inventory tx:", txErr);
+          }
+        }
+      }
+
       // Reset form
       setFormData({
         category: "",
@@ -181,6 +200,9 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
         notes: "",
       });
       setReceiptFile(null);
+      setLinkInventory(false);
+      setInvItemId("");
+      setInvQuantity("");
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -188,7 +210,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
     }
   };
 
-  const isLoading = isCreating || uploading;
+  const isLoading = isCreating || uploading || isCreatingTx;
 
   return (
     <SafeFormDialog
