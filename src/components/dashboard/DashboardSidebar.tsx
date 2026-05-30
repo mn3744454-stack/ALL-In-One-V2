@@ -550,6 +550,18 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   />
                 )}
                 
+                {/* Inventory - requires inventory.view */}
+                {hasPermission('inventory.view') && (
+                  <NavItem
+                    icon={Boxes}
+                    label={t('inventory.title')}
+                    href="/dashboard/inventory"
+                    active={isActive("/dashboard/inventory")}
+                    onNavigate={onClose}
+                    {...navProps}
+                  />
+                )}
+                
                 {/* Clients - requires clients permission */}
                 {hasPermission('clients.view') && (
                   <NavItem
