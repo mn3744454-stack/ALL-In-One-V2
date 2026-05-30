@@ -336,6 +336,56 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
             )}
           </div>
 
+          {/* Inventory link */}
+          <div className="space-y-2 rounded-lg border p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Label className="block">{t("inventory.linkToExpense.title")}</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {t("inventory.linkToExpense.description")}
+                </p>
+              </div>
+              <Switch
+                checked={linkInventory}
+                onCheckedChange={setLinkInventory}
+                aria-label={t("inventory.linkToExpense.enable")}
+              />
+            </div>
+            {linkInventory && (
+              <div className="space-y-3 pt-2">
+                {inventoryItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("inventory.linkToExpense.noItems")}
+                  </p>
+                ) : (
+                  <>
+                    <Select value={invItemId} onValueChange={setInvItemId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("inventory.linkToExpense.selectItem")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {inventoryItems.map((it) => (
+                          <SelectItem key={it.id} value={it.id}>
+                            {it.name}
+                            {it.name_ar ? ` — ${it.name_ar}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={invQuantity}
+                      onChange={(e) => setInvQuantity(e.target.value)}
+                      placeholder={t("inventory.linkToExpense.quantity")}
+                    />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Notes */}
           <div className="space-y-2">
             <Label>{t("finance.expenses.notes")}</Label>
@@ -346,6 +396,7 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
               rows={3}
             />
           </div>
+
 
           <DialogFooter className="sticky bottom-0 z-10 bg-background pt-4 border-t -mx-6 px-6 -mb-2 pb-2 flex-col gap-3 sm:flex-row sm:items-center">
             <MissingRequirementsBar
