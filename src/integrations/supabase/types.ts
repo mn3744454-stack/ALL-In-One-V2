@@ -5038,6 +5038,7 @@ export type Database = {
           default_supplier_id: string | null
           id: string
           is_active: boolean
+          is_archived: boolean
           low_stock_threshold: number
           name: string
           name_ar: string | null
@@ -5055,6 +5056,7 @@ export type Database = {
           default_supplier_id?: string | null
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           low_stock_threshold?: number
           name: string
           name_ar?: string | null
@@ -5072,6 +5074,7 @@ export type Database = {
           default_supplier_id?: string | null
           id?: string
           is_active?: boolean
+          is_archived?: boolean
           low_stock_threshold?: number
           name?: string
           name_ar?: string | null
@@ -11065,6 +11068,10 @@ export type Database = {
         Returns: boolean
       }
       can_view_community: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_inventory: {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
