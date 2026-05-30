@@ -54,6 +54,7 @@ import {
   LayoutGrid,
   ClipboardCheck,
   ArrowDownToLine,
+  Boxes,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -544,6 +545,18 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                     label={t('sidebar.services')}
                     href="/dashboard/services"
                     active={isActive("/dashboard/services")}
+                    onNavigate={onClose}
+                    {...navProps}
+                  />
+                )}
+                
+                {/* Inventory - requires inventory.view */}
+                {hasPermission('inventory.view') && (
+                  <NavItem
+                    icon={Boxes}
+                    label={t('inventory.title')}
+                    href="/dashboard/inventory"
+                    active={isActive("/dashboard/inventory")}
                     onNavigate={onClose}
                     {...navProps}
                   />
