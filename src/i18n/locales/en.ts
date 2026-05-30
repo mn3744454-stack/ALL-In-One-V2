@@ -6491,5 +6491,14 @@ export const en = {
       box: "Box",
       unit: "Unit",
     },
+    linkToExpense: {
+      title: "Add to inventory stock",
+      description: "Optionally record this expense as a stock-in transaction for an inventory item.",
+      enable: "Link to an inventory item",
+      selectItem: "Select inventory item",
+      noItems: "No inventory items — create one from the Inventory page first.",
+      quantity: "Quantity received",
+      unitCost: "Unit cost (auto from amount)",
+    },
   },
 };
