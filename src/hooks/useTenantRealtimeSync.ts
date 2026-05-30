@@ -52,6 +52,10 @@ const TABLE_TO_PREFIXES: Record<string, (tid: string) => string[][]> = {
   boarding_status_history:  (t) => housingPrefixes(t, ['admission']),
   horse_movements:          (t) => housingPrefixes(t, ['movement', 'occupancy']),
   incoming_horse_movements: (t) => housingPrefixes(t, ['movement']),
+
+  // ─── Inventory domain ───
+  inventory_items:         (t) => [['inventory-items', t], ['inventory-item', t], ['inventory-low-stock', t]],
+  inventory_transactions:  (t) => [['inventory-transactions', t], ['inventory-items', t], ['inventory-low-stock', t]],
 };
 
 /** All 20 realtime-enabled tables */
