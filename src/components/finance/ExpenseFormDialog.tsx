@@ -33,6 +33,8 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const { t } = useI18n();
   const { activeTenant } = useTenant();
   const { createExpense, isCreating } = useExpenses(activeTenant?.tenant.id);
+  const { items: inventoryItems } = useInventoryItems();
+  const { createTransaction, isCreating: isCreatingTx } = useInventoryTransactions();
 
   const [formData, setFormData] = useState({
     category: "",
@@ -45,6 +47,9 @@ export function ExpenseFormDialog({ open, onOpenChange, onSuccess }: ExpenseForm
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [linkInventory, setLinkInventory] = useState(false);
+  const [invItemId, setInvItemId] = useState<string>("");
+  const [invQuantity, setInvQuantity] = useState<string>("");
 
   // Reset attempted flag and form on close.
   useEffect(() => {
