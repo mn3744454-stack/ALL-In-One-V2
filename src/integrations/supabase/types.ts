@@ -4120,6 +4120,7 @@ export type Database = {
           name: string
           name_ar: string | null
           notes: string | null
+          owner_tenant_id: string | null
           passport_number: string | null
           paternal_grandfather: string | null
           paternal_grandmother: string | null
@@ -4174,6 +4175,7 @@ export type Database = {
           name: string
           name_ar?: string | null
           notes?: string | null
+          owner_tenant_id?: string | null
           passport_number?: string | null
           paternal_grandfather?: string | null
           paternal_grandmother?: string | null
@@ -4228,6 +4230,7 @@ export type Database = {
           name?: string
           name_ar?: string | null
           notes?: string | null
+          owner_tenant_id?: string | null
           passport_number?: string | null
           paternal_grandfather?: string | null
           paternal_grandmother?: string | null
@@ -4318,6 +4321,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_horse_lifecycle_state"
             referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "horses_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "horses_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "horses_stable_id_fkey"
