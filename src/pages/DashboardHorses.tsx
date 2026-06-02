@@ -45,7 +45,7 @@ const DashboardHorses = () => {
               </p>
               {unhostedCount > 0 && (
                 <p className="text-xs text-navy/70 pt-1">
-                  {t("horseOwner.banner.unhostedCount", { count: unhostedCount })}
+                  {t("horseOwner.banner.unhostedCount").replace("{count}", String(unhostedCount))}
                 </p>
               )}
             </div>
