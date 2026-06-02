@@ -6501,4 +6501,28 @@ export const en = {
       unitCost: "Unit cost (auto from amount)",
     },
   },
+  horseOwner: {
+    myHorsesTitle: "My Horses",
+    comingSoon: "Coming soon",
+    soonBadge: "Soon",
+    requiresBoardingContract: "These sections will unlock with the upcoming Boarding Contract phase.",
+    myHorsesTab: "My Horses",
+    notCurrentlyBoarded: "Not currently boarded",
+    nav: {
+      boardingRequests: "Boarding Requests",
+      invoices: "Invoices",
+      labResults: "Lab Results",
+      providers: "Providers",
+    },
+    banner: {
+      title: "Welcome to your Horse Owner workspace",
+      body: "Add horses you own here. Boarding, invoices and lab results will be linked once the Boarding Contract phase is enabled.",
+      unhostedCount: "{count} horse(s) are not currently boarded at a stable.",
+    },
+    emptyHorse: {
+      notLinked: "This horse is not yet linked to a stable.",
+      boardingLater: "Boarding requests will be added in the Boarding Contract phase.",
+    },
+  },
 };
+
