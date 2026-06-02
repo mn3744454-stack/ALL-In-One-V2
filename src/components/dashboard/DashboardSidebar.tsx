@@ -217,6 +217,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
   
   // Check if a lab tab route is active
@@ -426,8 +427,67 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
               </>
             )}
 
+            {/* HORSE OWNER WORKSPACE — minimal nav (Phase B) */}
+            {workspaceMode === "organization" && activeTenant && isHorseOwnerTenant && (
+              <>
+                <NavItem
+                  icon={Heart}
+                  label={t('sidebar.myHorses')}
+                  href="/dashboard/horses"
+                  active={isActive("/dashboard/horses")}
+                  badge={horses.length}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                <NavItem
+                  icon={UserCircle}
+                  label={t('sidebar.myProfile')}
+                  href="/dashboard/my-profile"
+                  active={isActive("/dashboard/my-profile")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                <NavItem
+                  icon={BellRing}
+                  label={t('sidebar.notificationSettings')}
+                  href="/dashboard/settings/notifications"
+                  active={isActive("/dashboard/settings/notifications")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+
+                {/* Disabled placeholders — truthful "coming in later phase" hints */}
+                <div className={cn("pt-4 mt-4 border-t border-border/50 space-y-1", collapsed && "hidden")}>
+                  <p className="px-3 text-[10px] uppercase tracking-wider text-navy/40 mb-1">
+                    {t('horseOwner.comingSoon')}
+                  </p>
+                  {[
+                    { icon: ClipboardCheck, label: t('horseOwner.nav.boardingRequests') },
+                    { icon: FileText, label: t('horseOwner.nav.invoices') },
+                    { icon: FlaskConical, label: t('horseOwner.nav.labResults') },
+                    { icon: Stethoscope, label: t('horseOwner.nav.providers') },
+                  ].map((it) => (
+                    <div
+                      key={it.label}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-navy/40 cursor-not-allowed select-none"
+                      title={t('horseOwner.requiresBoardingContract')}
+                    >
+                      <it.icon className="w-4 h-4" />
+                      <span className="truncate">{it.label}</span>
+                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-navy/5 text-navy/50">
+                        {t('horseOwner.soonBadge')}
+                      </span>
+                    </div>
+                  ))}
+                  <p className="px-3 pt-2 text-[10px] text-navy/40 leading-relaxed">
+                    {t('horseOwner.requiresBoardingContract')}
+                  </p>
+                </div>
+              </>
+            )}
+
             {/* ORGANIZATION WORKSPACE MODE - show org nav items */}
-            {workspaceMode === "organization" && activeTenant && (
+            {workspaceMode === "organization" && activeTenant && !isHorseOwnerTenant && (
               <>
                 {/* Community - requires permission */}
                 {hasPermission('community.view') && (
