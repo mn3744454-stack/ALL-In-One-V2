@@ -466,10 +466,21 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
 
         // Final success toast fires below after ownership handling.
       } else {
-        // Insert new horse
+        // Insert new horse.
+        // Phase B: stamp owner_tenant_id when the active workspace is a
+        // Horse Owner tenant, so the additive owner-scoped RLS branch + future
+        // cross-tenant visibility can resolve the owner. Stable inserts leave
+        // owner_tenant_id null and behave exactly as before.
+        const insertPayload = {
+          ...horsePayload,
+          owner_tenant_id:
+            activeTenant.tenant?.type === 'horse_owner'
+              ? activeTenant.tenant_id
+              : null,
+        };
         const { data: horse, error: horseError } = await supabase
           .from("horses")
-          .insert(horsePayload)
+          .insert(insertPayload)
           .select()
           .single();
 
