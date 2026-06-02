@@ -408,11 +408,6 @@ export const HorseWizard = ({ open, onOpenChange, onSuccess, mode = "create", ex
     try {
       const horsePayload = {
         tenant_id: activeTenant.tenant_id,
-        // Phase B: Horse Owner identity bridge. When the active tenant is a
-        // Horse Owner workspace, mark the horse as owner-owned so it shows up
-        // via the additive owner_tenant_id RLS branch. Stable-created horses
-        // keep owner_tenant_id null.
-        owner_tenant_id: activeTenant.tenant?.type === 'horse_owner' ? activeTenant.tenant_id : null,
         name: data.name,
         name_ar: data.name_ar || null,
         gender: data.gender,
