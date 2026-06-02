@@ -6479,4 +6479,28 @@ export const ar = {
       unitCost: "تكلفة الوحدة (تُحسب من المبلغ)",
     },
   },
+  horseOwner: {
+    myHorsesTitle: "خيولي",
+    comingSoon: "قريبًا",
+    soonBadge: "قريبًا",
+    requiresBoardingContract: "ستُفعَّل هذه الأقسام مع مرحلة عقد الإيواء القادمة.",
+    myHorsesTab: "خيولي",
+    notCurrentlyBoarded: "غير مستضاف حاليًا",
+    nav: {
+      boardingRequests: "طلبات الإيواء",
+      invoices: "الفواتير",
+      labResults: "نتائج المختبر",
+      providers: "مزودو الخدمة",
+    },
+    banner: {
+      title: "مرحبًا بك في مساحة مالك الخيل",
+      body: "أضف خيولك التي تملكها هنا. سيتم ربط الإيواء والفواتير ونتائج المختبر عند تفعيل مرحلة عقد الإيواء.",
+      unhostedCount: "{count} من الخيول غير مستضافة حاليًا في أي إسطبل.",
+    },
+    emptyHorse: {
+      notLinked: "لم يتم ربط هذا الخيل بإسطبل بعد.",
+      boardingLater: "سيتم طلب الإيواء وربط الإسطبل في مرحلة عقد الإيواء القادمة.",
+    },
+  },
 };
+
