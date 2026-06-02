@@ -217,6 +217,7 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
   
   // Check if a lab tab route is active
