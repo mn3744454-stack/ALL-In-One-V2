@@ -28,6 +28,7 @@ import DashboardAcademyBookings from "./pages/DashboardAcademyBookings";
 import DashboardPayments from "./pages/DashboardPayments";
 import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
+import DashboardBoardingContracts from "./pages/DashboardBoardingContracts";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
@@ -343,6 +344,16 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization" requiredPermission="horses.view">
               <DashboardHorses />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/boarding-contracts"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardBoardingContracts />
             </WorkspaceRouteGuard>
           </ProtectedRoute>
         }
