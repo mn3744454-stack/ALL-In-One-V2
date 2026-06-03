@@ -134,17 +134,21 @@ const Dashboard = () => {
                   : t("dashboard.noTenantMessage")}
               </p>
             </div>
-            {/* Desktop search bar - in greeting row */}
-            <div className="hidden lg:block flex-shrink-0">
-              <div className="relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t("dashboard.searchPlaceholder")}
-                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
-                />
+            {/* Desktop search bar - in greeting row. Hidden for Horse Owner
+                tenants in Phase B to avoid false-success on a non-functional
+                placeholder. */}
+            {!isHorseOwnerTenant && (
+              <div className="hidden lg:block flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder={t("dashboard.searchPlaceholder")}
+                    className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Mobile Home Grid - Quick access to all modules */}
