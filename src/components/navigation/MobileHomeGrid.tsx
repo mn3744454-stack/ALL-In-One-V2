@@ -74,24 +74,32 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
       return false;
     }
 
+    // Phase B: Horse Owner tenants get a minimal mobile grid. Only show modules
+    // that are truthful for owners today (My Horses, profile-style modules).
+    // Hide all stable-operational modules to prevent false-success.
+    if (isHorseOwnerTenant) {
+      const ownerAllowedModules = new Set(["horses", "myProfile"]);
+      if (!ownerAllowedModules.has(module.key)) return false;
+    }
+
     // Hide "horses" module for non-horse-owning tenants (Lab, Clinic, etc.)
     if (module.key === "horses" && !isHorseOwningTenant) return false;
-    
+
     // Check role restriction
     if (module.roles && !module.roles.includes(activeRole || "")) {
       return false;
     }
-    
+
     // Check tenant type restriction
     if (module.tenantType && activeTenant?.tenant.type !== module.tenantType) {
       return false;
     }
-    
+
     // Check module access
     if (module.moduleKey && !isModuleEnabled(module.moduleKey)) {
       return false;
     }
-    
+
     return true;
   });
 
