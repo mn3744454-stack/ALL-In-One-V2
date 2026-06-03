@@ -746,4 +746,31 @@ const ServiceCard = ({
   </div>
 );
 
+const ComingSoonCard = ({
+  icon: Icon,
+  title,
+  description,
+  soonLabel,
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  soonLabel: string;
+}) => (
+  <Card variant="elevated" className="opacity-75 cursor-not-allowed" aria-disabled="true">
+    <CardContent className="p-5">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+          <Icon className="w-5 h-5 text-muted-foreground" />
+        </div>
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+          {soonLabel}
+        </span>
+      </div>
+      <h4 className="font-semibold text-navy mb-1 text-sm">{title}</h4>
+      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+    </CardContent>
+  </Card>
+);
+
 export default Dashboard;
