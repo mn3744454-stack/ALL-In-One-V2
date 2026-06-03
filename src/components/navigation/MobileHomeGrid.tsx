@@ -69,6 +69,21 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
     );
   }
 
+  // Tenant shell loading guard — neutral skeleton tiles, no identity leak.
+  if (tenantNotReady) {
+    return (
+      <div className={cn("lg:hidden", className)} aria-hidden="true">
+        <div className="grid grid-cols-3 gap-3 animate-pulse">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-square rounded-2xl bg-muted/40" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+
+
   // Filter modules based on role, tenant type, and module access
   // Exclude "dashboard" since user is already on dashboard
   const visibleModules = NAV_MODULES.filter((module) => {
