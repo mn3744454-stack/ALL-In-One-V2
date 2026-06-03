@@ -184,6 +184,13 @@ export default function DashboardBoardingContracts() {
           horseName={unhostedHorses.find((h: any) => h.id === requestForHorseId)?.name}
         />
       )}
+      {isStable && (
+        <ReviewAndSetPlanDialog
+          open={!!reviewContract}
+          onOpenChange={(o) => !o && setReviewContract(null)}
+          contract={reviewContract}
+        />
+      )}
     </DashboardShell>
   );
 }
