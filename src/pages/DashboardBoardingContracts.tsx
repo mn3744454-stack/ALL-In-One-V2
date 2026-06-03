@@ -10,6 +10,8 @@ import { useBoardingContracts, type BoardingContractStatus } from "@/hooks/board
 import { useHorses } from "@/hooks/useHorses";
 import { CreateBoardingContractDialog } from "@/components/boarding/CreateBoardingContractDialog";
 import { RequestBoardingDialog } from "@/components/boarding/RequestBoardingDialog";
+import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDialog";
+import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
 import { FileText, Plus } from "lucide-react";
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
