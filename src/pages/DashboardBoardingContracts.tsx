@@ -39,6 +39,7 @@ export default function DashboardBoardingContracts() {
   const { horses } = useHorses();
   const [createOpen, setCreateOpen] = useState(false);
   const [requestForHorseId, setRequestForHorseId] = useState<string | null>(null);
+  const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
