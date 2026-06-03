@@ -374,10 +374,29 @@ const Dashboard = () => {
           )}
 
           {/* ============================================================
+              TENANT SHELL LOADING GUARD (Phase B polish).
+              Neutral, identity-free skeleton shown while the active tenant
+              type is hydrating. Prevents Stable<->Horse Owner flicker on
+              hard refresh and tenant switch. No data, no labels.
+              ============================================================ */}
+          {orgTenantNotReady && (
+            <div aria-hidden="true" className="animate-pulse">
+              <div className="h-24 rounded-2xl bg-muted/40 mb-6" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+              </div>
+              <div className="h-48 rounded-2xl bg-muted/40 mb-6" />
+            </div>
+          )}
+
+          {/* ============================================================
               HORSE OWNER BRANCH (Phase B): minimal, truthful, mobile-first.
               No stable-operational cards, no fake zero metrics, no dead links.
               ============================================================ */}
-          {workspaceMode === "organization" && isHorseOwnerTenant && activeTenant && (
+          {!orgTenantNotReady && workspaceMode === "organization" && isHorseOwnerTenant && activeTenant && (
             <>
               {/* Welcome banner */}
               <Card variant="elevated" className="mb-6 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
