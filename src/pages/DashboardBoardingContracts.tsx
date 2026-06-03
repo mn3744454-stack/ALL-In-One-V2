@@ -10,6 +10,8 @@ import { useBoardingContracts, type BoardingContractStatus } from "@/hooks/board
 import { useHorses } from "@/hooks/useHorses";
 import { CreateBoardingContractDialog } from "@/components/boarding/CreateBoardingContractDialog";
 import { RequestBoardingDialog } from "@/components/boarding/RequestBoardingDialog";
+import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDialog";
+import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
 import { FileText, Plus } from "lucide-react";
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
@@ -37,6 +39,7 @@ export default function DashboardBoardingContracts() {
   const { horses } = useHorses();
   const [createOpen, setCreateOpen] = useState(false);
   const [requestForHorseId, setRequestForHorseId] = useState<string | null>(null);
+  const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
@@ -132,6 +135,11 @@ export default function DashboardBoardingContracts() {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
+                    {isStable && isStableSide && c.status === "pending_stable" && (
+                      <Button size="sm" onClick={() => setReviewContract(c)}>
+                        {t("boardingContracts.reviewAndSetPlan")}
+                      </Button>
+                    )}
                     {isOwnerSide && c.status === "pending_owner" && (
                       <Button size="sm" onClick={() => approveAsOwner.mutate(c.id)}>
                         {t("boardingContracts.approveContract")}
@@ -174,6 +182,13 @@ export default function DashboardBoardingContracts() {
           onOpenChange={(o) => !o && setRequestForHorseId(null)}
           horseId={requestForHorseId}
           horseName={unhostedHorses.find((h: any) => h.id === requestForHorseId)?.name}
+        />
+      )}
+      {isStable && (
+        <ReviewAndSetPlanDialog
+          open={!!reviewContract}
+          onOpenChange={(o) => !o && setReviewContract(null)}
+          contract={reviewContract}
         />
       )}
     </DashboardShell>
