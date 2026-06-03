@@ -20,7 +20,9 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
-  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
+  // Horse Owner is a horse-owning tenant too (owns horses, not a stable).
+  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy' || isHorseOwnerTenant;
 
   // Helper to check if a module is enabled
   const isModuleEnabled = (moduleKey: string): boolean => {
