@@ -15,12 +15,19 @@ interface MobileHomeGridProps {
 export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { activeRole, activeTenant, workspaceMode } = useTenant();
+  const { activeRole, activeTenant, tenants, loading: tenantsLoading, tenantHydrated, workspaceMode } = useTenant();
   const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled } = useModuleAccess();
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwnerTenant = tenantType === 'horse_owner';
+
+  // Phase B polish: mirror Dashboard tenant shell loading guard. Until tenant
+  // type is hydrated, render a neutral tile skeleton so neither Stable nor
+  // Horse Owner module tiles flash on hard refresh / tenant switch.
+  const tenantNotReady =
+    workspaceMode === "organization" &&
+    (!tenantHydrated || tenantsLoading || (!tenantType && tenants.length > 0));
   // Horse Owner is a horse-owning tenant too (owns horses, not a stable).
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy' || isHorseOwnerTenant;
 
