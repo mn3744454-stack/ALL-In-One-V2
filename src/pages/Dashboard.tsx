@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [launcherOpen, setLauncherOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
+  const { activeTenant, activeRole, tenants, loading: tenantsLoading, tenantHydrated, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { t, lang } = useI18n();
 
@@ -72,6 +72,16 @@ const Dashboard = () => {
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
+  // Phase B polish: tenant shell loading guard. Until the active tenant's type
+  // is hydrated, we must NOT render either the Stable or the Horse Owner body,
+  // because both branches key off tenantType and would otherwise flash the wrong
+  // identity on hard refresh / tenant switch. The "no tenants" case is exempt
+  // so the Getting Started card can render normally.
+  const orgTenantNotReady =
+    workspaceMode === "organization" &&
+    !hasNoTenants &&
+    (!tenantHydrated || tenantsLoading || !activeTenant?.tenant?.type);
 
   // Phase B: derive owner-scoped unhosted count (no extra queries, no boarding joins).
   const unhostedCount = isHorseOwnerTenant
