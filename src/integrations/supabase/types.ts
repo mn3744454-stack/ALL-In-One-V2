@@ -224,6 +224,7 @@ export type Database = {
           checkout_movement_id: string | null
           checkout_notes: string | null
           client_id: string | null
+          contract_id: string | null
           created_at: string
           daily_rate: number | null
           emergency_contact: string | null
@@ -256,6 +257,7 @@ export type Database = {
           checkout_movement_id?: string | null
           checkout_notes?: string | null
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string
           daily_rate?: number | null
           emergency_contact?: string | null
@@ -288,6 +290,7 @@ export type Database = {
           checkout_movement_id?: string | null
           checkout_notes?: string | null
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string
           daily_rate?: number | null
           emergency_contact?: string | null
@@ -343,6 +346,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "boarding_admissions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_contracts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "boarding_admissions_horse_id_fkey"
             columns: ["horse_id"]
             isOneToOne: false
@@ -382,6 +392,170 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "housing_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boarding_contracts: {
+        Row: {
+          activated_at: string | null
+          cancelled_at: string | null
+          client_id: string | null
+          connection_horse_access_id: string | null
+          connection_id: string
+          created_at: string
+          created_by: string | null
+          created_by_role: string | null
+          credit_limit: number | null
+          end_date: string | null
+          ended_at: string | null
+          horse_id: string
+          id: string
+          metadata: Json
+          owner_approved_at: string | null
+          owner_tenant_id: string
+          plan_id: string | null
+          plan_snapshot: Json | null
+          prepaid_balance_enabled: boolean
+          provider_rules: Json
+          stable_approved_at: string | null
+          stable_tenant_id: string
+          start_date: string | null
+          status: string
+          substitution_requires_owner_approval: boolean
+          terms_metadata: Json | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          activated_at?: string | null
+          cancelled_at?: string | null
+          client_id?: string | null
+          connection_horse_access_id?: string | null
+          connection_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          credit_limit?: number | null
+          end_date?: string | null
+          ended_at?: string | null
+          horse_id: string
+          id?: string
+          metadata?: Json
+          owner_approved_at?: string | null
+          owner_tenant_id: string
+          plan_id?: string | null
+          plan_snapshot?: Json | null
+          prepaid_balance_enabled?: boolean
+          provider_rules?: Json
+          stable_approved_at?: string | null
+          stable_tenant_id: string
+          start_date?: string | null
+          status?: string
+          substitution_requires_owner_approval?: boolean
+          terms_metadata?: Json | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          activated_at?: string | null
+          cancelled_at?: string | null
+          client_id?: string | null
+          connection_horse_access_id?: string | null
+          connection_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          credit_limit?: number | null
+          end_date?: string | null
+          ended_at?: string | null
+          horse_id?: string
+          id?: string
+          metadata?: Json
+          owner_approved_at?: string | null
+          owner_tenant_id?: string
+          plan_id?: string | null
+          plan_snapshot?: Json | null
+          prepaid_balance_enabled?: boolean
+          provider_rules?: Json
+          stable_approved_at?: string | null
+          stable_tenant_id?: string
+          start_date?: string | null
+          status?: string
+          substitution_requires_owner_approval?: boolean
+          terms_metadata?: Json | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boarding_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_connection_horse_access_id_fkey"
+            columns: ["connection_horse_access_id"]
+            isOneToOne: false
+            referencedRelation: "connection_horse_access"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_owner_tenant_id_fkey"
+            columns: ["owner_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "stable_service_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_stable_tenant_id_fkey"
+            columns: ["stable_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_stable_tenant_id_fkey"
+            columns: ["stable_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -11031,6 +11205,18 @@ export type Database = {
         Args: { _connection_id: string; _preset_name: string }
         Returns: undefined
       }
+      approve_boarding_contract_as_owner: {
+        Args: { _contract_id: string }
+        Returns: Json
+      }
+      approve_boarding_contract_as_stable: {
+        Args: { _contract_id: string; _plan_id: string; _terms_metadata?: Json }
+        Returns: Json
+      }
+      build_boarding_plan_snapshot: {
+        Args: { _plan_id: string }
+        Returns: Json
+      }
       can_access_shared_resource: {
         Args: {
           _actor_user_id: string
@@ -11100,6 +11286,10 @@ export type Database = {
         Args: { _intent_id: string; _user_id: string }
         Returns: boolean
       }
+      cancel_boarding_contract: {
+        Args: { _contract_id: string; _reason?: string }
+        Returns: Json
+      }
       cancel_horse_movement: {
         Args: { p_movement_id: string; p_reason?: string }
         Returns: Json
@@ -11124,6 +11314,18 @@ export type Database = {
       }
       confirm_incoming_movement: {
         Args: { p_incoming_id: string; p_notes?: string }
+        Returns: Json
+      }
+      create_boarding_contract_with_connection: {
+        Args: {
+          _client_id?: string
+          _counterparty_tenant_id: string
+          _horse_id: string
+          _initiator_role: string
+          _initiator_tenant_id: string
+          _plan_id?: string
+          _terms_metadata?: Json
+        }
         Returns: Json
       }
       create_connection_request: {
@@ -11206,6 +11408,7 @@ export type Database = {
         Args: { p_movement_id: string; p_notes?: string }
         Returns: Json
       }
+      end_boarding_contract: { Args: { _contract_id: string }; Returns: Json }
       enforce_rate_limit: {
         Args: {
           _action: string
