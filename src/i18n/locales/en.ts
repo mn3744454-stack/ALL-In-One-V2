@@ -157,6 +157,7 @@ export const en = {
     hr: "HR / Team",
     movement: "Movement",
     housing: "Housing",
+    boardingContracts: "Boarding Contracts",
     notificationSettings: "Notifications",
     favorites: "Favorites",
     myPurchases: "My Purchases",
