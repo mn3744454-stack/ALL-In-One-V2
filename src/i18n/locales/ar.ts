@@ -6501,6 +6501,21 @@ export const ar = {
       notLinked: "لم يتم ربط هذا الخيل بإسطبل بعد.",
       boardingLater: "سيتم طلب الإيواء وربط الإسطبل في مرحلة عقد الإيواء القادمة.",
     },
+    dashboard: {
+      ownedHorses: "الخيول المملوكة",
+      unhostedHorses: "خيول غير مستضافة",
+      addHorse: "إضافة خيل",
+      viewMyHorses: "عرض خيولي",
+      comingSoonTitle: "قريبًا",
+      comingSoonBoarding: "طلبات الإيواء",
+      comingSoonBoardingDesc: "ستُفعَّل مع مرحلة عقد الإيواء.",
+      comingSoonInvoices: "الفواتير",
+      comingSoonInvoicesDesc: "ستظهر فواتير المالك في مرحلة لاحقة.",
+      comingSoonLabs: "نتائج المختبر",
+      comingSoonLabsDesc: "ستظهر نتائج المختبر في مرحلة لاحقة.",
+      comingSoonProviders: "مزودو الخدمة",
+      comingSoonProvidersDesc: "ستظهر تفضيلات المزودين في مرحلة لاحقة.",
+    },
   },
 };
 
