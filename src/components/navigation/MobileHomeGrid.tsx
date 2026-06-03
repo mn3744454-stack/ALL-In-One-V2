@@ -15,12 +15,19 @@ interface MobileHomeGridProps {
 export function MobileHomeGrid({ className }: MobileHomeGridProps) {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const { activeRole, activeTenant, workspaceMode } = useTenant();
+  const { activeRole, activeTenant, tenants, loading: tenantsLoading, tenantHydrated, workspaceMode } = useTenant();
   const { isLabTenant, labMode, breedingEnabled, vetEnabled, canViewLabRequests, movementEnabled, housingEnabled } = useModuleAccess();
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
   const isHorseOwnerTenant = tenantType === 'horse_owner';
+
+  // Phase B polish: mirror Dashboard tenant shell loading guard. Until tenant
+  // type is hydrated, render a neutral tile skeleton so neither Stable nor
+  // Horse Owner module tiles flash on hard refresh / tenant switch.
+  const tenantNotReady =
+    workspaceMode === "organization" &&
+    (!tenantHydrated || tenantsLoading || (!tenantType && tenants.length > 0));
   // Horse Owner is a horse-owning tenant too (owns horses, not a stable).
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy' || isHorseOwnerTenant;
 
@@ -61,6 +68,21 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
       </div>
     );
   }
+
+  // Tenant shell loading guard — neutral skeleton tiles, no identity leak.
+  if (tenantNotReady) {
+    return (
+      <div className={cn("lg:hidden", className)} aria-hidden="true">
+        <div className="grid grid-cols-3 gap-3 animate-pulse">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="aspect-square rounded-2xl bg-muted/40" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+
 
   // Filter modules based on role, tenant type, and module access
   // Exclude "dashboard" since user is already on dashboard

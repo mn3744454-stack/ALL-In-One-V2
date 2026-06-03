@@ -50,7 +50,7 @@ const Dashboard = () => {
   const [launcherOpen, setLauncherOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { activeTenant, activeRole, tenants, loading: tenantsLoading, workspaceMode } = useTenant();
+  const { activeTenant, activeRole, tenants, loading: tenantsLoading, tenantHydrated, workspaceMode } = useTenant();
   const { horses, loading: horsesLoading } = useHorses();
   const { t, lang } = useI18n();
 
@@ -72,6 +72,16 @@ const Dashboard = () => {
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
+  // Phase B polish: tenant shell loading guard. Until the active tenant's type
+  // is hydrated, we must NOT render either the Stable or the Horse Owner body,
+  // because both branches key off tenantType and would otherwise flash the wrong
+  // identity on hard refresh / tenant switch. The "no tenants" case is exempt
+  // so the Getting Started card can render normally.
+  const orgTenantNotReady =
+    workspaceMode === "organization" &&
+    !hasNoTenants &&
+    (!tenantHydrated || tenantsLoading || !activeTenant?.tenant?.type);
 
   // Phase B: derive owner-scoped unhosted count (no extra queries, no boarding joins).
   const unhostedCount = isHorseOwnerTenant
@@ -364,10 +374,29 @@ const Dashboard = () => {
           )}
 
           {/* ============================================================
+              TENANT SHELL LOADING GUARD (Phase B polish).
+              Neutral, identity-free skeleton shown while the active tenant
+              type is hydrating. Prevents Stable<->Horse Owner flicker on
+              hard refresh and tenant switch. No data, no labels.
+              ============================================================ */}
+          {orgTenantNotReady && (
+            <div aria-hidden="true" className="animate-pulse">
+              <div className="h-24 rounded-2xl bg-muted/40 mb-6" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+                <div className="h-24 rounded-2xl bg-muted/40" />
+              </div>
+              <div className="h-48 rounded-2xl bg-muted/40 mb-6" />
+            </div>
+          )}
+
+          {/* ============================================================
               HORSE OWNER BRANCH (Phase B): minimal, truthful, mobile-first.
               No stable-operational cards, no fake zero metrics, no dead links.
               ============================================================ */}
-          {workspaceMode === "organization" && isHorseOwnerTenant && activeTenant && (
+          {!orgTenantNotReady && workspaceMode === "organization" && isHorseOwnerTenant && activeTenant && (
             <>
               {/* Welcome banner */}
               <Card variant="elevated" className="mb-6 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
@@ -492,7 +521,7 @@ const Dashboard = () => {
           {/* ============================================================
               STABLE / ACADEMY / OTHER ORG TENANTS — unchanged behavior.
               ============================================================ */}
-          {workspaceMode === "organization" && !isHorseOwnerTenant && (
+          {!orgTenantNotReady && workspaceMode === "organization" && !isHorseOwnerTenant && (
             <>
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
