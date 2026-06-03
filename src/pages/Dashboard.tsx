@@ -54,9 +54,15 @@ const Dashboard = () => {
   const { horses, loading: horsesLoading } = useHorses();
   const { t, lang } = useI18n();
 
+  // Determine tenant type early so we can gate owner-only behavior.
+  const tenantType = activeTenant?.tenant.type;
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
+
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
-  const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
-  const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
+  // and only for tenants where a public stable profile makes sense. Horse Owner
+  // tenants do not have a public profile concept in Phase B.
+  const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug && !isHorseOwnerTenant;
+  const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public && !isHorseOwnerTenant;
   
   // Check if personal profile needs completion - ONLY in personal mode
   const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !(profile as any).bio && !(profile as any).location;
@@ -65,8 +71,12 @@ const Dashboard = () => {
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
-  const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
+  // Phase B: derive owner-scoped unhosted count (no extra queries, no boarding joins).
+  const unhostedCount = isHorseOwnerTenant
+    ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id).length
+    : 0;
 
   return (
     <DashboardShell>
