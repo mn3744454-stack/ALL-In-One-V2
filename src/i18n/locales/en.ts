@@ -6523,6 +6523,21 @@ export const en = {
       notLinked: "This horse is not yet linked to a stable.",
       boardingLater: "Boarding requests will be added in the Boarding Contract phase.",
     },
+    dashboard: {
+      ownedHorses: "Owned horses",
+      unhostedHorses: "Unhosted horses",
+      addHorse: "Add horse",
+      viewMyHorses: "View my horses",
+      comingSoonTitle: "Coming soon",
+      comingSoonBoarding: "Boarding requests",
+      comingSoonBoardingDesc: "Will unlock with the Boarding Contract phase.",
+      comingSoonInvoices: "Invoices",
+      comingSoonInvoicesDesc: "Owner-visible invoices arrive in a later phase.",
+      comingSoonLabs: "Lab results",
+      comingSoonLabsDesc: "Lab results arrive in a later phase.",
+      comingSoonProviders: "Providers",
+      comingSoonProvidersDesc: "Provider preferences arrive in a later phase.",
+    },
   },
 };
 

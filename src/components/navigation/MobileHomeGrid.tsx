@@ -20,7 +20,9 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
   const tenantType = activeTenant?.tenant.type;
-  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
+  // Horse Owner is a horse-owning tenant too (owns horses, not a stable).
+  const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy' || isHorseOwnerTenant;
 
   // Helper to check if a module is enabled
   const isModuleEnabled = (moduleKey: string): boolean => {
@@ -72,24 +74,32 @@ export function MobileHomeGrid({ className }: MobileHomeGridProps) {
       return false;
     }
 
+    // Phase B: Horse Owner tenants get a minimal mobile grid. Only show modules
+    // that are truthful for owners today (My Horses, profile-style modules).
+    // Hide all stable-operational modules to prevent false-success.
+    if (isHorseOwnerTenant) {
+      const ownerAllowedModules = new Set(["horses", "myProfile"]);
+      if (!ownerAllowedModules.has(module.key)) return false;
+    }
+
     // Hide "horses" module for non-horse-owning tenants (Lab, Clinic, etc.)
     if (module.key === "horses" && !isHorseOwningTenant) return false;
-    
+
     // Check role restriction
     if (module.roles && !module.roles.includes(activeRole || "")) {
       return false;
     }
-    
+
     // Check tenant type restriction
     if (module.tenantType && activeTenant?.tenant.type !== module.tenantType) {
       return false;
     }
-    
+
     // Check module access
     if (module.moduleKey && !isModuleEnabled(module.moduleKey)) {
       return false;
     }
-    
+
     return true;
   });
 

@@ -54,9 +54,15 @@ const Dashboard = () => {
   const { horses, loading: horsesLoading } = useHorses();
   const { t, lang } = useI18n();
 
+  // Determine tenant type early so we can gate owner-only behavior.
+  const tenantType = activeTenant?.tenant.type;
+  const isHorseOwnerTenant = tenantType === 'horse_owner';
+
   // Check if public profile needs setup (owner with no slug) - ONLY in org mode
-  const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug;
-  const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public;
+  // and only for tenants where a public stable profile makes sense. Horse Owner
+  // tenants do not have a public profile concept in Phase B.
+  const needsPublicProfileSetup = workspaceMode === "organization" && activeRole === 'owner' && activeTenant && !activeTenant.tenant.slug && !isHorseOwnerTenant;
+  const hasPublicProfile = workspaceMode === "organization" && activeTenant?.tenant.slug && activeTenant?.tenant.is_public && !isHorseOwnerTenant;
   
   // Check if personal profile needs completion - ONLY in personal mode
   const needsPersonalProfileSetup = workspaceMode === "personal" && profile && !(profile as any).bio && !(profile as any).location;
@@ -65,8 +71,12 @@ const Dashboard = () => {
   const hasNoTenants = !tenantsLoading && tenants.length === 0;
 
   // Determine if this tenant type "owns" horses (stable-centric feature)
-  const tenantType = activeTenant?.tenant.type;
   const isHorseOwningTenant = !tenantType || tenantType === 'stable' || tenantType === 'academy';
+
+  // Phase B: derive owner-scoped unhosted count (no extra queries, no boarding joins).
+  const unhostedCount = isHorseOwnerTenant
+    ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id).length
+    : 0;
 
   return (
     <DashboardShell>
@@ -124,17 +134,21 @@ const Dashboard = () => {
                   : t("dashboard.noTenantMessage")}
               </p>
             </div>
-            {/* Desktop search bar - in greeting row */}
-            <div className="hidden lg:block flex-shrink-0">
-              <div className="relative">
-                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder={t("dashboard.searchPlaceholder")}
-                  className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
-                />
+            {/* Desktop search bar - in greeting row. Hidden for Horse Owner
+                tenants in Phase B to avoid false-success on a non-functional
+                placeholder. */}
+            {!isHorseOwnerTenant && (
+              <div className="hidden lg:block flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder={t("dashboard.searchPlaceholder")}
+                    className="w-64 h-10 ps-10 pe-4 rounded-xl bg-muted border-0 text-sm focus:ring-2 focus:ring-gold/30"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Mobile Home Grid - Quick access to all modules */}
@@ -349,77 +363,73 @@ const Dashboard = () => {
             </Card>
           )}
 
-          {/* Stats Grid - Only show in organization mode */}
-          {workspaceMode === "organization" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {isHorseOwningTenant && (
+          {/* ============================================================
+              HORSE OWNER BRANCH (Phase B): minimal, truthful, mobile-first.
+              No stable-operational cards, no fake zero metrics, no dead links.
+              ============================================================ */}
+          {workspaceMode === "organization" && isHorseOwnerTenant && activeTenant && (
+            <>
+              {/* Welcome banner */}
+              <Card variant="elevated" className="mb-6 border-gold/20 bg-gradient-to-r from-gold/5 to-transparent">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center shrink-0">
+                      <Heart className="w-6 h-6 text-gold" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-semibold text-navy mb-1">
+                        {t("horseOwner.banner.title")}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {t("horseOwner.banner.body")}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Owner stats: only truthful, owner-derivable counts */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <StatCard
                   icon={Heart}
-                  label={t("dashboard.totalHorses")}
+                  label={t("horseOwner.dashboard.ownedHorses")}
                   value={horses.length.toString()}
-                  change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
+                  change={horses.length === 0 ? t("dashboard.addFirstHorse") : t("dashboard.activeRecords")}
                 />
-              )}
-              <StatCard
-                icon={Activity}
-                label={t("dashboard.healthCheckups")}
-                value="0"
-                change={t("dashboard.scheduledThisWeek")}
-              />
-              <StatCard
-                icon={Users}
-                label={t("dashboard.teamMembers")}
-                value="1"
-                change={t("common.active")}
-              />
-              <StatCard
-                icon={TrendingUp}
-                label={t("dashboard.thisMonth")}
-                value="—"
-                change={t("dashboard.statsComingSoon")}
-              />
-            </div>
-          )}
-
-          {/* Dashboard Widgets - Only show for users with a tenant in organization mode */}
-          {activeTenant && workspaceMode === "organization" && (
-            <>
-              {/* Boarding Stats Widgets */}
-              <div className="mb-6">
-                <BoardingDashboardWidgets />
+                <StatCard
+                  icon={AlertCircle}
+                  label={t("horseOwner.dashboard.unhostedHorses")}
+                  value={unhostedCount.toString()}
+                  change={unhostedCount === 0 ? t("common.active") : t("horseOwner.notCurrentlyBoarded")}
+                />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <UpcomingScheduleWidget />
-                <RecentActivityWidget />
-                <FinancialSummaryWidget />
-              </div>
-            </>
-          )}
 
-          {/* Content Grid - Only in organization mode */}
-          {workspaceMode === "organization" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Horses List - Only show for horse-owning tenant types */}
-            {activeTenant && isHorseOwningTenant ? (
-              <div className="lg:col-span-2">
-                <Card variant="elevated">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-navy">{t("dashboard.yourHorses")}</CardTitle>
-                    <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
-                      {t("dashboard.viewAll")} <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </CardHeader>
-                  <CardContent>
-                    {horsesLoading ? (
-                      <div className="py-8 text-center text-muted-foreground">
-                        {t("dashboard.loadingHorses")}
-                      </div>
-                    ) : horses.length === 0 ? (
-                      <div className="py-8 text-center">
-                        <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                        <p className="text-muted-foreground mb-4">{t("dashboard.noHorsesYet")}</p>
-                      </div>
-                    ) : (
+              {/* My Horses preview + Add Horse CTA */}
+              <Card variant="elevated" className="mb-6">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-navy">{t("horseOwner.myHorsesTitle")}</CardTitle>
+                  <Link
+                    to="/dashboard/horses"
+                    className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1"
+                  >
+                    {t("dashboard.viewAll")} <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </CardHeader>
+                <CardContent>
+                  {horsesLoading ? (
+                    <div className="py-8 text-center text-muted-foreground">
+                      {t("dashboard.loadingHorses")}
+                    </div>
+                  ) : horses.length === 0 ? (
+                    <div className="py-8 text-center">
+                      <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                      <p className="text-muted-foreground mb-4">{t("dashboard.noHorsesYet")}</p>
+                      <Button variant="gold" onClick={() => navigate("/dashboard/horses")}>
+                        {t("horseOwner.dashboard.addHorse")}
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
                       <div className="space-y-4">
                         {horses.slice(0, 5).map((horse) => (
                           <HorseItem
@@ -427,86 +437,217 @@ const Dashboard = () => {
                             name={horse.name}
                             breed={horse.breed || t("common.unknown")}
                             gender={horse.gender}
-                            status={t("common.active")}
+                            status={
+                              !horse.current_location_id && !horse.housing_unit_id
+                                ? t("horseOwner.notCurrentlyBoarded")
+                                : t("common.active")
+                            }
+                            warning={!horse.current_location_id && !horse.housing_unit_id}
                           />
                         ))}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            ) : !activeTenant ? (
-              <div className="lg:col-span-2">
-                <Card variant="elevated">
-                  <CardHeader>
-                    <CardTitle className="text-navy">{t("dashboard.availableServices")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-6">
-                      {t("dashboard.exploreServices")}
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <ServiceCard
-                        icon={Building2}
-                        title={t("dashboard.stableManagement")}
-                        description={t("dashboard.stableManagementDesc")}
-                      />
-                      <ServiceCard
-                        icon={Heart}
-                        title={t("dashboard.horseOwner")}
-                        description={t("dashboard.horseOwnerDesc")}
-                      />
-                      <ServiceCard
-                        icon={Activity}
-                        title={t("dashboard.vetClinic")}
-                        description={t("dashboard.vetClinicDesc")}
-                      />
-                      <ServiceCard
-                        icon={Users}
-                        title={t("dashboard.trainingAcademy")}
-                        description={t("dashboard.trainingAcademyDesc")}
-                      />
-                    </div>
-                    <Button
-                      variant="gold"
-                      className="w-full mt-6"
-                      onClick={() => navigate("/select-role")}
-                    >
-                      {t("dashboard.startFreeTrial")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            ) : (
-              <div className="lg:col-span-2">
-                <Card variant="elevated">
-                  <CardHeader>
-                    <CardTitle className="text-navy">{t("dashboard.overview")}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-center py-8">
-                      {t("dashboard.welcomeMessage").replace("{{name}}", activeTenant?.tenant.name || "")}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {/* Upcoming Events */}
-            <div>
-              <Card variant="elevated">
-                <CardHeader>
-                  <CardTitle className="text-navy">{t("dashboard.upcoming")}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="py-8 text-center text-muted-foreground">
-                    <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p>{t("dashboard.noUpcomingEvents")}</p>
-                  </div>
+                      <div className="mt-4 flex justify-end">
+                        <Button variant="outline" onClick={() => navigate("/dashboard/horses")}>
+                          {t("horseOwner.dashboard.addHorse")}
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
-            </div>
-          </div>
+
+              {/* Coming-soon cards: non-operational, no dead links, no fake metrics */}
+              <h2 className="font-display text-base font-semibold text-navy mb-3">
+                {t("horseOwner.dashboard.comingSoonTitle")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <ComingSoonCard
+                  icon={Building2}
+                  title={t("horseOwner.dashboard.comingSoonBoarding")}
+                  description={t("horseOwner.dashboard.comingSoonBoardingDesc")}
+                  soonLabel={t("horseOwner.soonBadge")}
+                />
+                <ComingSoonCard
+                  icon={CreditCard}
+                  title={t("horseOwner.dashboard.comingSoonInvoices")}
+                  description={t("horseOwner.dashboard.comingSoonInvoicesDesc")}
+                  soonLabel={t("horseOwner.soonBadge")}
+                />
+                <ComingSoonCard
+                  icon={Activity}
+                  title={t("horseOwner.dashboard.comingSoonLabs")}
+                  description={t("horseOwner.dashboard.comingSoonLabsDesc")}
+                  soonLabel={t("horseOwner.soonBadge")}
+                />
+                <ComingSoonCard
+                  icon={Users}
+                  title={t("horseOwner.dashboard.comingSoonProviders")}
+                  description={t("horseOwner.dashboard.comingSoonProvidersDesc")}
+                  soonLabel={t("horseOwner.soonBadge")}
+                />
+              </div>
+            </>
+          )}
+
+          {/* ============================================================
+              STABLE / ACADEMY / OTHER ORG TENANTS — unchanged behavior.
+              ============================================================ */}
+          {workspaceMode === "organization" && !isHorseOwnerTenant && (
+            <>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {isHorseOwningTenant && (
+                  <StatCard
+                    icon={Heart}
+                    label={t("dashboard.totalHorses")}
+                    value={horses.length.toString()}
+                    change={horses.length > 0 ? t("dashboard.activeRecords") : t("dashboard.addFirstHorse")}
+                  />
+                )}
+                <StatCard
+                  icon={Activity}
+                  label={t("dashboard.healthCheckups")}
+                  value="0"
+                  change={t("dashboard.scheduledThisWeek")}
+                />
+                <StatCard
+                  icon={Users}
+                  label={t("dashboard.teamMembers")}
+                  value="1"
+                  change={t("common.active")}
+                />
+                <StatCard
+                  icon={TrendingUp}
+                  label={t("dashboard.thisMonth")}
+                  value="—"
+                  change={t("dashboard.statsComingSoon")}
+                />
+              </div>
+
+              {/* Dashboard Widgets */}
+              {activeTenant && (
+                <>
+                  <div className="mb-6">
+                    <BoardingDashboardWidgets />
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <UpcomingScheduleWidget />
+                    <RecentActivityWidget />
+                    <FinancialSummaryWidget />
+                  </div>
+                </>
+              )}
+
+              {/* Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {activeTenant && isHorseOwningTenant ? (
+                  <div className="lg:col-span-2">
+                    <Card variant="elevated">
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="text-navy">{t("dashboard.yourHorses")}</CardTitle>
+                        <Link to="/dashboard/horses" className="text-sm text-gold hover:text-gold-dark font-medium flex items-center gap-1">
+                          {t("dashboard.viewAll")} <ChevronRight className="w-4 h-4" />
+                        </Link>
+                      </CardHeader>
+                      <CardContent>
+                        {horsesLoading ? (
+                          <div className="py-8 text-center text-muted-foreground">
+                            {t("dashboard.loadingHorses")}
+                          </div>
+                        ) : horses.length === 0 ? (
+                          <div className="py-8 text-center">
+                            <Heart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                            <p className="text-muted-foreground mb-4">{t("dashboard.noHorsesYet")}</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {horses.slice(0, 5).map((horse) => (
+                              <HorseItem
+                                key={horse.id}
+                                name={horse.name}
+                                breed={horse.breed || t("common.unknown")}
+                                gender={horse.gender}
+                                status={t("common.active")}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : !activeTenant ? (
+                  <div className="lg:col-span-2">
+                    <Card variant="elevated">
+                      <CardHeader>
+                        <CardTitle className="text-navy">{t("dashboard.availableServices")}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground mb-6">
+                          {t("dashboard.exploreServices")}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <ServiceCard
+                            icon={Building2}
+                            title={t("dashboard.stableManagement")}
+                            description={t("dashboard.stableManagementDesc")}
+                          />
+                          <ServiceCard
+                            icon={Heart}
+                            title={t("dashboard.horseOwner")}
+                            description={t("dashboard.horseOwnerDesc")}
+                          />
+                          <ServiceCard
+                            icon={Activity}
+                            title={t("dashboard.vetClinic")}
+                            description={t("dashboard.vetClinicDesc")}
+                          />
+                          <ServiceCard
+                            icon={Users}
+                            title={t("dashboard.trainingAcademy")}
+                            description={t("dashboard.trainingAcademyDesc")}
+                          />
+                        </div>
+                        <Button
+                          variant="gold"
+                          className="w-full mt-6"
+                          onClick={() => navigate("/select-role")}
+                        >
+                          {t("dashboard.startFreeTrial")}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="lg:col-span-2">
+                    <Card variant="elevated">
+                      <CardHeader>
+                        <CardTitle className="text-navy">{t("dashboard.overview")}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground text-center py-8">
+                          {t("dashboard.welcomeMessage").replace("{{name}}", activeTenant?.tenant.name || "")}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Upcoming Events */}
+                <div>
+                  <Card variant="elevated">
+                    <CardHeader>
+                      <CardTitle className="text-navy">{t("dashboard.upcoming")}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Calendar className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                        <p>{t("dashboard.noUpcomingEvents")}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -603,6 +744,33 @@ const ServiceCard = ({
     <h4 className="font-semibold text-navy mb-1">{title}</h4>
     <p className="text-sm text-muted-foreground">{description}</p>
   </div>
+);
+
+const ComingSoonCard = ({
+  icon: Icon,
+  title,
+  description,
+  soonLabel,
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  soonLabel: string;
+}) => (
+  <Card variant="elevated" className="opacity-75 cursor-not-allowed" aria-disabled="true">
+    <CardContent className="p-5">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+          <Icon className="w-5 h-5 text-muted-foreground" />
+        </div>
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground">
+          {soonLabel}
+        </span>
+      </div>
+      <h4 className="font-semibold text-navy mb-1 text-sm">{title}</h4>
+      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+    </CardContent>
+  </Card>
 );
 
 export default Dashboard;
