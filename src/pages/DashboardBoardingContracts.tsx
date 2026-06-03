@@ -135,6 +135,11 @@ export default function DashboardBoardingContracts() {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
+                    {isStable && isStableSide && c.status === "pending_stable" && (
+                      <Button size="sm" onClick={() => setReviewContract(c)}>
+                        {t("boardingContracts.reviewAndSetPlan")}
+                      </Button>
+                    )}
                     {isOwnerSide && c.status === "pending_owner" && (
                       <Button size="sm" onClick={() => approveAsOwner.mutate(c.id)}>
                         {t("boardingContracts.approveContract")}
