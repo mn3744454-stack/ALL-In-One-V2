@@ -448,6 +448,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   {...navProps}
                 />
                 <NavItem
+                  icon={FileText}
+                  label={t('sidebar.boardingContracts')}
+                  href="/dashboard/boarding-contracts"
+                  active={isActive("/dashboard/boarding-contracts")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                <NavItem
                   icon={UserCircle}
                   label={t('sidebar.myProfile')}
                   href="/dashboard/my-profile"
