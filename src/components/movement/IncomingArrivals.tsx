@@ -20,7 +20,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { formatStandardDateTime } from "@/lib/displayHelpers";
-import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus } from "lucide-react";
+import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function IncomingArrivals() {
