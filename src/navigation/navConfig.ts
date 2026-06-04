@@ -205,7 +205,7 @@ export const NAV_MODULES: NavModule[] = [
     icon: FileText,
     labelKey: "sidebar.boardingContracts",
     route: "/dashboard/boarding-contracts",
-    visibleIn: "organization",
+    visibleIn: "both",
   },
   {
     key: "services",
