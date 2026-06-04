@@ -208,6 +208,17 @@ export default function DashboardBoardingContracts() {
                           {t("boardingContracts.cancelContract")}
                         </Button>
                       )}
+                      {isStable && isStableSide && c.status === "active" &&
+                        (c.operational_phase === "awaiting_arrival" ||
+                          c.operational_phase === "arrival_scheduled" ||
+                          c.operational_phase === "not_started") && (
+                          <Button size="sm" onClick={() => setScheduleContract(c)} className="gap-1">
+                            <CalendarClock className="w-3 h-3" />
+                            {c.operational_phase === "arrival_scheduled"
+                              ? t("boardingContracts.scheduleArrival.reschedule")
+                              : t("boardingContracts.scheduleArrival.cta")}
+                          </Button>
+                        )}
                       {isStableSide && c.status === "active" && (
                         <Button
                           size="sm"
@@ -259,6 +270,11 @@ export default function DashboardBoardingContracts() {
         onOpenChange={(o) => !o && setApproveContract(null)}
         contract={approveContract}
         display={approveContract ? displayMap[approveContract.id] : null}
+      />
+      <ScheduleArrivalSheet
+        open={!!scheduleContract}
+        onOpenChange={(o) => !o && setScheduleContract(null)}
+        contract={scheduleContract}
       />
     </DashboardShell>
   );
