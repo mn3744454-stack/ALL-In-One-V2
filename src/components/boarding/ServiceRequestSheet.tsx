@@ -81,14 +81,14 @@ export function ServiceRequestSheet({
 
   useEffect(() => {
     if (!open) {
-      setRequestType("extra_lab");
+      setRequestType(initialType);
       setNotes("");
       setExternalProvider("");
       setOwnerSupplied(false);
       setCostEstimate("");
       setBilling("__none__");
     }
-  }, [open]);
+  }, [open, initialType]);
 
   const submit = async () => {
     await create.mutateAsync({
@@ -103,6 +103,8 @@ export function ServiceRequestSheet({
     onOpenChange(false);
   };
 
+  const preArrival = phase === "awaiting_arrival" || phase === "arrival_scheduled" || phase === "not_started";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
@@ -116,6 +118,11 @@ export function ServiceRequestSheet({
         </DialogHeader>
 
         <div className="space-y-4">
+          {preArrival && (
+            <p className="text-xs text-muted-foreground rounded-md border border-dashed p-2">
+              {t("serviceRequests.availableAfterArrival")}
+            </p>
+          )}
           <div className="space-y-2">
             <Label>{t("serviceRequests.requestType")}</Label>
             <Select
@@ -124,14 +131,19 @@ export function ServiceRequestSheet({
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {TYPES.map((tp) => (
-                  <SelectItem key={tp} value={tp}>
-                    {t(`serviceRequests.type.${tp}`)}
-                  </SelectItem>
-                ))}
+                {ALL_TYPES.map((tp) => {
+                  const disabled = !isTypeAllowedForPhase(tp, phase);
+                  return (
+                    <SelectItem key={tp} value={tp} disabled={disabled}>
+                      {t(`serviceRequests.type.${tp}`)}
+                      {disabled ? ` — ${t("serviceRequests.availableAfterArrival")}` : ""}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
+
 
           <div className="space-y-2">
             <Label>{t("serviceRequests.notes")}</Label>
