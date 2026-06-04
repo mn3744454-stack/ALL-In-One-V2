@@ -1937,6 +1937,7 @@ export const ar = {
       cancelDesc: "هل أنت متأكد من رفض هذا الحصان القادم؟",
       cancelled: "تم رفض الحركة الواردة",
       cancelFailed: "فشل رفض الحركة",
+      fromContract: "عقد إيواء",
     },
     lifecycle: {
       statusScheduled: "مجدول",
