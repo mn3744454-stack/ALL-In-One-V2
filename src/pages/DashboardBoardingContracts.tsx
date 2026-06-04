@@ -214,9 +214,18 @@ export default function DashboardBoardingContracts() {
                       </Button>
                     )}
                   </div>
+                  {c.status === "active" && (isStableSide || isOwnerSide) && (
+                    <div className="mt-3 pt-3 border-t w-full">
+                      <ServiceRequestsSection
+                        boardingContractId={c.id}
+                        side={isStableSide ? "stable" : "owner"}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
+
           </div>
         </Card>
       </div>
