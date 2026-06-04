@@ -6,11 +6,16 @@ import { useI18n } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useBoardingContracts, type BoardingContractStatus } from "@/hooks/boarding/useBoardingContracts";
+import {
+  useBoardingContracts,
+  useBoardingContractsDisplay,
+  type BoardingContractStatus,
+} from "@/hooks/boarding/useBoardingContracts";
 import { useHorses } from "@/hooks/useHorses";
 import { CreateBoardingContractDialog } from "@/components/boarding/CreateBoardingContractDialog";
 import { RequestBoardingDialog } from "@/components/boarding/RequestBoardingDialog";
 import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDialog";
+import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndApproveContractDialog";
 import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
 import { FileText, Plus } from "lucide-react";
 
