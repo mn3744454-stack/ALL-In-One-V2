@@ -11447,6 +11447,24 @@ export type Database = {
         Returns: string
       }
       generate_unique_slug: { Args: { base_name: string }; Returns: string }
+      get_boarding_contract_display_context: {
+        Args: { _contract_ids: string[] }
+        Returns: {
+          contract_id: string
+          horse_name: string
+          horse_name_ar: string
+          owner_tenant_name: string
+          owner_tenant_name_ar: string
+          plan_base_price: number
+          plan_billing_cycle: string
+          plan_currency: string
+          plan_name: string
+          plan_name_ar: string
+          stable_tenant_name: string
+          stable_tenant_name_ar: string
+          status: string
+        }[]
+      }
       get_connection_party_names: {
         Args: { _connection_ids: string[] }
         Returns: {

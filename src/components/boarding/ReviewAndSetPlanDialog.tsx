@@ -20,6 +20,7 @@ import { useI18n } from "@/i18n";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import {
   useBoardingContracts,
+  useBoardingContractsDisplay,
   type BoardingContract,
 } from "@/hooks/boarding/useBoardingContracts";
 import { toast } from "sonner";
@@ -35,10 +36,15 @@ interface Props {
  * Transitions: pending_stable -> pending_owner (NOT active).
  */
 export function ReviewAndSetPlanDialog({ open, onOpenChange, contract }: Props) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { activePlans } = useStableServicePlans();
   const { approveAsStable } = useBoardingContracts();
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
+
+  const contractIds = contract ? [contract.id] : [];
+  const { displayMap } = useBoardingContractsDisplay(contractIds);
+  const display = contract ? displayMap[contract.id] : undefined;
 
   // Only active boarding-type plans for the current stable.
   const boardingPlans = activePlans.filter((p) => p.plan_type === "boarding");
@@ -65,6 +71,17 @@ export function ReviewAndSetPlanDialog({ open, onOpenChange, contract }: Props) 
     }
   };
 
+  const horseName =
+    (isAr ? display?.horse_name_ar : display?.horse_name) ||
+    display?.horse_name ||
+    display?.horse_name_ar ||
+    null;
+  const ownerName =
+    (isAr ? display?.owner_tenant_name_ar : display?.owner_tenant_name) ||
+    display?.owner_tenant_name ||
+    display?.owner_tenant_name_ar ||
+    null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -76,24 +93,32 @@ export function ReviewAndSetPlanDialog({ open, onOpenChange, contract }: Props) 
         </DialogHeader>
 
         {contract && (
-          <div className="rounded-md border p-3 text-xs space-y-1 bg-muted/30">
-            <div>
+          <div className="rounded-md border p-3 text-sm space-y-1 bg-muted/30">
+            <div className="grid grid-cols-3 gap-2">
               <span className="text-muted-foreground">
-                {t("boardingContracts.contractIdShort")}:
-              </span>{" "}
+                {t("boardingContracts.horse")}
+              </span>
+              <span className="col-span-2 truncate">
+                {horseName ?? (
+                  <span className="text-muted-foreground italic">
+                    {t("boardingContracts.displayContextUnavailable")}
+                  </span>
+                )}
+              </span>
+              <span className="text-muted-foreground">
+                {t("boardingContracts.owner")}
+              </span>
+              <span className="col-span-2 truncate">
+                {ownerName ?? (
+                  <span className="text-muted-foreground italic">
+                    {t("boardingContracts.displayContextUnavailable")}
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="text-[11px] text-muted-foreground pt-1">
+              {t("boardingContracts.technicalId")}:{" "}
               <span className="font-mono">{contract.id.slice(0, 8)}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">
-                {t("boardingContracts.horse")}:
-              </span>{" "}
-              <span className="font-mono">{contract.horse_id.slice(0, 8)}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">
-                {t("boardingContracts.ownerCounterparty")}:
-              </span>{" "}
-              <span className="font-mono">{contract.owner_tenant_id.slice(0, 8)}</span>
             </div>
           </div>
         )}

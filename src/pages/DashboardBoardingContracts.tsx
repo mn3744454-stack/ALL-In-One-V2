@@ -6,11 +6,16 @@ import { useI18n } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useBoardingContracts, type BoardingContractStatus } from "@/hooks/boarding/useBoardingContracts";
+import {
+  useBoardingContracts,
+  useBoardingContractsDisplay,
+  type BoardingContractStatus,
+} from "@/hooks/boarding/useBoardingContracts";
 import { useHorses } from "@/hooks/useHorses";
 import { CreateBoardingContractDialog } from "@/components/boarding/CreateBoardingContractDialog";
 import { RequestBoardingDialog } from "@/components/boarding/RequestBoardingDialog";
 import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDialog";
+import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndApproveContractDialog";
 import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
 import { FileText, Plus } from "lucide-react";
 
@@ -28,18 +33,21 @@ function StatusBadge({ status }: { status: BoardingContractStatus }) {
 }
 
 export default function DashboardBoardingContracts() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { activeTenant } = useTenant();
   const tenantType = activeTenant?.tenant?.type;
   const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
   const isOwner = tenantType === "horse_owner";
   const isStable = tenantType === "stable";
 
-  const { contracts, isLoading, approveAsOwner, cancel, end } = useBoardingContracts();
+  const { contracts, isLoading, cancel, end } = useBoardingContracts();
   const { horses } = useHorses();
+  const { displayMap } = useBoardingContractsDisplay(contracts.map((c) => c.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [requestForHorseId, setRequestForHorseId] = useState<string | null>(null);
   const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
+  const [approveContract, setApproveContract] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
@@ -113,25 +121,63 @@ export default function DashboardBoardingContracts() {
               const isStableSide = c.stable_tenant_id === tenantId;
               const isOwnerSide = c.owner_tenant_id === tenantId;
               const snap = (c.plan_snapshot ?? {}) as Record<string, any>;
+              const d = displayMap[c.id];
+
+              const horseName =
+                (isAr ? d?.horse_name_ar : d?.horse_name) ||
+                d?.horse_name ||
+                d?.horse_name_ar ||
+                null;
+              const counterpartyName = isStableSide
+                ? (isAr ? d?.owner_tenant_name_ar : d?.owner_tenant_name) ||
+                  d?.owner_tenant_name ||
+                  d?.owner_tenant_name_ar
+                : (isAr ? d?.stable_tenant_name_ar : d?.stable_tenant_name) ||
+                  d?.stable_tenant_name ||
+                  d?.stable_tenant_name_ar;
+              const planName =
+                (isAr ? d?.plan_name_ar : d?.plan_name) ||
+                snap.name ||
+                snap.name_ar ||
+                null;
+              const price = d?.plan_base_price ?? snap.base_price ?? null;
+              const currency = d?.plan_currency ?? snap.currency ?? "";
+              const cycle = d?.plan_billing_cycle ?? snap.billing_cycle ?? "";
+
               return (
                 <div
                   key={c.id}
-                  className="rounded-md border p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                  className="rounded-md border p-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
                 >
-                  <div className="min-w-0">
+                  <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <StatusBadge status={c.status} />
-                      {snap.name && (
-                        <span className="text-sm font-medium">{snap.name}</span>
-                      )}
-                      {snap.base_price != null && (
-                        <span className="text-xs text-muted-foreground">
-                          {snap.base_price} {snap.currency}/{snap.billing_cycle}
-                        </span>
-                      )}
+                      <span className="text-sm font-medium truncate">
+                        {horseName ?? (
+                          <span className="text-muted-foreground italic">
+                            {t("boardingContracts.displayContextUnavailable")}
+                          </span>
+                        )}
+                      </span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground mt-1">
-                      {t("boardingContracts.contractIdShort")}: {c.id.slice(0, 8)}
+                    {counterpartyName && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {isStableSide
+                          ? t("boardingContracts.owner")
+                          : t("boardingContracts.stable")}
+                        : {counterpartyName}
+                      </div>
+                    )}
+                    {planName && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {planName}
+                        {price != null
+                          ? ` — ${price} ${currency}/${cycle}`
+                          : ""}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-muted-foreground font-mono">
+                      {t("boardingContracts.technicalId")}: {c.id.slice(0, 8)}
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
@@ -141,8 +187,8 @@ export default function DashboardBoardingContracts() {
                       </Button>
                     )}
                     {isOwnerSide && c.status === "pending_owner" && (
-                      <Button size="sm" onClick={() => approveAsOwner.mutate(c.id)}>
-                        {t("boardingContracts.approveContract")}
+                      <Button size="sm" onClick={() => setApproveContract(c)}>
+                        {t("boardingContracts.reviewAndApprove")}
                       </Button>
                     )}
                     {(["pending_stable", "pending_owner", "active"] as const).includes(
@@ -191,6 +237,12 @@ export default function DashboardBoardingContracts() {
           contract={reviewContract}
         />
       )}
+      <ReviewAndApproveContractDialog
+        open={!!approveContract}
+        onOpenChange={(o) => !o && setApproveContract(null)}
+        contract={approveContract}
+        display={approveContract ? displayMap[approveContract.id] : null}
+      />
     </DashboardShell>
   );
 }
