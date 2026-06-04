@@ -20,6 +20,7 @@ import { useI18n } from "@/i18n";
 import { useStableServicePlans } from "@/hooks/useStableServicePlans";
 import {
   useBoardingContracts,
+  useBoardingContractsDisplay,
   type BoardingContract,
 } from "@/hooks/boarding/useBoardingContracts";
 import { toast } from "sonner";
