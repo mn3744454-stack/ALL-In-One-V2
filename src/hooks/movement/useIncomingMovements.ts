@@ -9,7 +9,9 @@ export interface IncomingMovement {
   id: string;
   tenant_id: string;
   sender_tenant_id: string;
-  sender_movement_id: string;
+  sender_movement_id: string | null;
+  source_type: 'movement' | 'boarding_contract' | null;
+  boarding_contract_id: string | null;
   horse_id: string;
   horse_name: string;
   horse_name_ar: string | null;
@@ -29,6 +31,7 @@ export interface IncomingMovement {
   created_at: string;
   updated_at: string;
 }
+
 
 const fromTable = (table: string) => (supabase as any).from(table);
 

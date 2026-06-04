@@ -1919,6 +1919,7 @@ export const en = {
       cancelDesc: "Are you sure you want to decline this incoming horse?",
       cancelled: "Incoming movement declined",
       cancelFailed: "Failed to decline movement",
+      fromContract: "Boarding Contract",
     },
     lifecycle: {
       statusScheduled: "Scheduled",
