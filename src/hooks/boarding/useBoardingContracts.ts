@@ -185,6 +185,32 @@ export function useBoardingContracts(opts: { horseId?: string } = {}) {
     onError: (e: any) => toast.error(e?.message || t("common.error")),
   });
 
+  const scheduleArrival = useMutation({
+    mutationFn: async (p: {
+      contract_id: string;
+      expected_arrival_at: string;
+      branch_preference?: string | null;
+      preferred_branch_id?: string | null;
+      notes?: string | null;
+    }) => {
+      const { data, error } = await (supabase as any).rpc("schedule_boarding_contract_arrival", {
+        _contract_id: p.contract_id,
+        _expected_arrival_at: p.expected_arrival_at,
+        _branch_preference: p.branch_preference ?? null,
+        _preferred_branch_id: p.preferred_branch_id ?? null,
+        _notes: p.notes ?? null,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["incoming-movements"] });
+      toast.success(t("boardingContracts.scheduleArrival.scheduled"));
+    },
+    onError: (e: any) => toast.error(e?.message || t("common.error")),
+  });
+
   return {
     contracts: query.data ?? [],
     isLoading: query.isLoading,
@@ -194,6 +220,7 @@ export function useBoardingContracts(opts: { horseId?: string } = {}) {
     approveAsOwner,
     cancel,
     end,
+    scheduleArrival,
   };
 }
 
