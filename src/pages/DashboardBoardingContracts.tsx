@@ -17,7 +17,9 @@ import { RequestBoardingDialog } from "@/components/boarding/RequestBoardingDial
 import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDialog";
 import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndApproveContractDialog";
 import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
+import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
 import { FileText, Plus } from "lucide-react";
+
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
   const { t } = useI18n();
