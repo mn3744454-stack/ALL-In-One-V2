@@ -11,6 +11,14 @@ export type BoardingContractStatus =
   | "cancelled"
   | "ended";
 
+export type BoardingOperationalPhase =
+  | "not_started"
+  | "awaiting_arrival"
+  | "arrival_scheduled"
+  | "arrived_pending_placement"
+  | "admitted"
+  | "ended";
+
 export interface BoardingContract {
   id: string;
   stable_tenant_id: string;
@@ -22,6 +30,12 @@ export interface BoardingContract {
   plan_snapshot: Record<string, unknown> | null;
   terms_metadata: Record<string, unknown> | null;
   status: BoardingContractStatus;
+  operational_phase: BoardingOperationalPhase;
+  expected_arrival_at: string | null;
+  arrival_notes: string | null;
+  branch_preference: string | null;
+  preferred_branch_id: string | null;
+  arrival_incoming_id: string | null;
   start_date: string | null;
   end_date: string | null;
   owner_approved_at: string | null;
