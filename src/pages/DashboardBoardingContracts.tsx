@@ -33,18 +33,21 @@ function StatusBadge({ status }: { status: BoardingContractStatus }) {
 }
 
 export default function DashboardBoardingContracts() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const isAr = lang === "ar";
   const { activeTenant } = useTenant();
   const tenantType = activeTenant?.tenant?.type;
   const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
   const isOwner = tenantType === "horse_owner";
   const isStable = tenantType === "stable";
 
-  const { contracts, isLoading, approveAsOwner, cancel, end } = useBoardingContracts();
+  const { contracts, isLoading, cancel, end } = useBoardingContracts();
   const { horses } = useHorses();
+  const { displayMap } = useBoardingContractsDisplay(contracts.map((c) => c.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [requestForHorseId, setRequestForHorseId] = useState<string | null>(null);
   const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
+  const [approveContract, setApproveContract] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
