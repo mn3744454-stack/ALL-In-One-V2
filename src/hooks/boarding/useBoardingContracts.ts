@@ -182,3 +182,50 @@ export function useBoardingContracts(opts: { horseId?: string } = {}) {
     end,
   };
 }
+
+export interface BoardingContractDisplayContext {
+  contract_id: string;
+  horse_name: string | null;
+  horse_name_ar: string | null;
+  owner_tenant_name: string | null;
+  owner_tenant_name_ar: string | null;
+  stable_tenant_name: string | null;
+  stable_tenant_name_ar: string | null;
+  plan_name: string | null;
+  plan_name_ar: string | null;
+  plan_base_price: number | null;
+  plan_currency: string | null;
+  plan_billing_cycle: string | null;
+  status: BoardingContractStatus;
+}
+
+/**
+ * Fetches human-readable display context for a set of boarding contracts.
+ * Membership-gated server-side via SECURITY DEFINER RPC.
+ */
+export function useBoardingContractsDisplay(contractIds: string[]) {
+  const ids = [...new Set(contractIds)].filter(Boolean).sort();
+  const key = ids.join(",");
+
+  const query = useQuery({
+    queryKey: ["boarding-contracts-display", key],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<Record<string, BoardingContractDisplayContext>> => {
+      const { data, error } = await (supabase as any).rpc(
+        "get_boarding_contract_display_context",
+        { _contract_ids: ids },
+      );
+      if (error) throw error;
+      const map: Record<string, BoardingContractDisplayContext> = {};
+      for (const row of (data ?? []) as BoardingContractDisplayContext[]) {
+        map[row.contract_id] = row;
+      }
+      return map;
+    },
+  });
+
+  return {
+    displayMap: query.data ?? {},
+    isLoading: query.isLoading,
+  };
+}
