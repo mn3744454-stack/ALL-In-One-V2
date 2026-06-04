@@ -211,8 +211,17 @@ function IncomingCard({ incoming, canConfirm, onConfirm, onCancel, getStatusBadg
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <h4 className="font-medium truncate">{incoming.horse_name}</h4>
-              {getStatusBadge(incoming.status)}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {incoming.source_type === 'boarding_contract' && (
+                  <Badge variant="outline" className="gap-1 text-indigo-600 border-indigo-300 dark:text-indigo-300 dark:border-indigo-800">
+                    <FileText className="h-3 w-3" />
+                    {t('movement.incoming.fromContract')}
+                  </Badge>
+                )}
+                {getStatusBadge(incoming.status)}
+              </div>
             </div>
+
             {incoming.horse_name_ar && <p className="text-xs text-muted-foreground" dir="rtl">{incoming.horse_name_ar}</p>}
             <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
               <Building2 className="h-3 w-3" />
