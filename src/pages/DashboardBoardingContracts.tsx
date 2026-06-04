@@ -147,75 +147,72 @@ export default function DashboardBoardingContracts() {
               const cycle = d?.plan_billing_cycle ?? snap.billing_cycle ?? "";
 
               return (
-                <div
-                  key={c.id}
-                  className="rounded-md border p-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
-                >
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <StatusBadge status={c.status} />
-                      <span className="text-sm font-medium truncate">
-                        {horseName ?? (
-                          <span className="text-muted-foreground italic">
-                            {t("boardingContracts.displayContextUnavailable")}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    {counterpartyName && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {isStableSide
-                          ? t("boardingContracts.owner")
-                          : t("boardingContracts.stable")}
-                        : {counterpartyName}
+                <div key={c.id} className="rounded-md border p-3 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <StatusBadge status={c.status} />
+                        <span className="text-sm font-medium truncate">
+                          {horseName ?? (
+                            <span className="text-muted-foreground italic">
+                              {t("boardingContracts.displayContextUnavailable")}
+                            </span>
+                          )}
+                        </span>
                       </div>
-                    )}
-                    {planName && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {planName}
-                        {price != null
-                          ? ` — ${price} ${currency}/${cycle}`
-                          : ""}
+                      {counterpartyName && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {isStableSide
+                            ? t("boardingContracts.owner")
+                            : t("boardingContracts.stable")}
+                          : {counterpartyName}
+                        </div>
+                      )}
+                      {planName && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {planName}
+                          {price != null ? ` — ${price} ${currency}/${cycle}` : ""}
+                        </div>
+                      )}
+                      <div className="text-[11px] text-muted-foreground font-mono">
+                        {t("boardingContracts.technicalId")}: {c.id.slice(0, 8)}
                       </div>
-                    )}
-                    <div className="text-[11px] text-muted-foreground font-mono">
-                      {t("boardingContracts.technicalId")}: {c.id.slice(0, 8)}
                     </div>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {isStable && isStableSide && c.status === "pending_stable" && (
-                      <Button size="sm" onClick={() => setReviewContract(c)}>
-                        {t("boardingContracts.reviewAndSetPlan")}
-                      </Button>
-                    )}
-                    {isOwnerSide && c.status === "pending_owner" && (
-                      <Button size="sm" onClick={() => setApproveContract(c)}>
-                        {t("boardingContracts.reviewAndApprove")}
-                      </Button>
-                    )}
-                    {(["pending_stable", "pending_owner", "active"] as const).includes(
-                      c.status as any,
-                    ) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => cancel.mutate({ contract_id: c.id })}
-                      >
-                        {t("boardingContracts.cancelContract")}
-                      </Button>
-                    )}
-                    {isStableSide && c.status === "active" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => end.mutate(c.id)}
-                      >
-                        {t("boardingContracts.endContract")}
-                      </Button>
-                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {isStable && isStableSide && c.status === "pending_stable" && (
+                        <Button size="sm" onClick={() => setReviewContract(c)}>
+                          {t("boardingContracts.reviewAndSetPlan")}
+                        </Button>
+                      )}
+                      {isOwnerSide && c.status === "pending_owner" && (
+                        <Button size="sm" onClick={() => setApproveContract(c)}>
+                          {t("boardingContracts.reviewAndApprove")}
+                        </Button>
+                      )}
+                      {(["pending_stable", "pending_owner", "active"] as const).includes(
+                        c.status as any,
+                      ) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => cancel.mutate({ contract_id: c.id })}
+                        >
+                          {t("boardingContracts.cancelContract")}
+                        </Button>
+                      )}
+                      {isStableSide && c.status === "active" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => end.mutate(c.id)}
+                        >
+                          {t("boardingContracts.endContract")}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   {c.status === "active" && (isStableSide || isOwnerSide) && (
-                    <div className="mt-3 pt-3 border-t w-full">
+                    <div className="pt-3 border-t">
                       <ServiceRequestsSection
                         boardingContractId={c.id}
                         side={isStableSide ? "stable" : "owner"}
@@ -223,6 +220,7 @@ export default function DashboardBoardingContracts() {
                     </div>
                   )}
                 </div>
+
               );
             })}
 
