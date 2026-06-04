@@ -9396,6 +9396,224 @@ export type Database = {
           },
         ]
       }
+      service_request_events: {
+        Row: {
+          actor_tenant_id: string | null
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          from_status: string | null
+          id: string
+          metadata: Json
+          service_request_id: string
+          to_status: string | null
+        }
+        Insert: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json
+          service_request_id: string
+          to_status?: string | null
+        }
+        Update: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json
+          service_request_id?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_request_events_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_request_events_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_request_events_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_requests: {
+        Row: {
+          approved_cost: number | null
+          billing_responsibility: string | null
+          boarding_contract_id: string
+          cost_estimate: number | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          details: Json
+          direction: string
+          external_provider_name: string | null
+          fulfilled_by_horse_order_id: string | null
+          fulfilled_by_lab_request_id: string | null
+          fulfillment_status: string
+          horse_id: string
+          id: string
+          included_in_package: boolean
+          initiator_tenant_id: string
+          metadata: Json
+          owner_supplied_item: boolean
+          provider_tenant_id: string | null
+          rejection_reason: string | null
+          request_type: string
+          requested_at: string
+          responded_at: string | null
+          responded_by: string | null
+          status: string
+          target_tenant_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          approved_cost?: number | null
+          billing_responsibility?: string | null
+          boarding_contract_id: string
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          details?: Json
+          direction: string
+          external_provider_name?: string | null
+          fulfilled_by_horse_order_id?: string | null
+          fulfilled_by_lab_request_id?: string | null
+          fulfillment_status?: string
+          horse_id: string
+          id?: string
+          included_in_package?: boolean
+          initiator_tenant_id: string
+          metadata?: Json
+          owner_supplied_item?: boolean
+          provider_tenant_id?: string | null
+          rejection_reason?: string | null
+          request_type: string
+          requested_at?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          target_tenant_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          approved_cost?: number | null
+          billing_responsibility?: string | null
+          boarding_contract_id?: string
+          cost_estimate?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          details?: Json
+          direction?: string
+          external_provider_name?: string | null
+          fulfilled_by_horse_order_id?: string | null
+          fulfilled_by_lab_request_id?: string | null
+          fulfillment_status?: string
+          horse_id?: string
+          id?: string
+          included_in_package?: boolean
+          initiator_tenant_id?: string
+          metadata?: Json
+          owner_supplied_item?: boolean
+          provider_tenant_id?: string | null
+          rejection_reason?: string | null
+          request_type?: string
+          requested_at?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          status?: string
+          target_tenant_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_requests_boarding_contract_id_fkey"
+            columns: ["boarding_contract_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "horses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_horse_id_fkey"
+            columns: ["horse_id"]
+            isOneToOne: false
+            referencedRelation: "vw_horse_lifecycle_state"
+            referencedColumns: ["horse_id"]
+          },
+          {
+            foreignKeyName: "service_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_initiator_tenant_id_fkey"
+            columns: ["initiator_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_provider_tenant_id_fkey"
+            columns: ["provider_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_target_tenant_id_fkey"
+            columns: ["target_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_requests_target_tenant_id_fkey"
+            columns: ["target_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sharing_audit_log: {
         Row: {
           actor_tenant_id: string | null
@@ -11200,6 +11418,10 @@ export type Database = {
             }
             Returns: undefined
           }
+      _service_request_initial_fulfillment: {
+        Args: { _request_type: string }
+        Returns: string
+      }
       accept_connection: { Args: { _token: string }; Returns: string }
       apply_link_preset: {
         Args: { _connection_id: string; _preset_name: string }
@@ -11296,6 +11518,10 @@ export type Database = {
       }
       cancel_incoming_movement: {
         Args: { p_incoming_id: string; p_reason?: string }
+        Returns: Json
+      }
+      cancel_service_request: {
+        Args: { _reason?: string; _service_request_id: string }
         Returns: Json
       }
       check_tenant_permission: {
@@ -11401,6 +11627,21 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      create_service_request: {
+        Args: {
+          _billing_responsibility?: string
+          _boarding_contract_id: string
+          _cost_estimate?: number
+          _currency?: string
+          _details?: Json
+          _external_provider_name?: string
+          _included_in_package?: boolean
+          _owner_supplied_item?: boolean
+          _provider_tenant_id?: string
+          _request_type: string
+        }
+        Returns: Json
       }
       delete_horse_breed: { Args: { p_id: string }; Returns: Json }
       delete_horse_color: { Args: { p_id: string }; Returns: Json }
@@ -11758,6 +11999,16 @@ export type Database = {
         Args: { _invitation_id: string; _reason?: string }
         Returns: Json
       }
+      respond_to_service_request: {
+        Args: {
+          _approved_cost?: number
+          _decision: string
+          _metadata?: Json
+          _rejection_reason?: string
+          _service_request_id: string
+        }
+        Returns: Json
+      }
       revoke_client_claim_token: { Args: { _token: string }; Returns: string }
       revoke_connection: { Args: { _token: string }; Returns: string }
       revoke_consent_grant: { Args: { _grant_id: string }; Returns: string }
@@ -11848,6 +12099,16 @@ export type Database = {
       }
       update_horse_color: {
         Args: { p_id: string; p_name: string; p_name_ar: string }
+        Returns: Json
+      }
+      update_service_request_fulfillment: {
+        Args: {
+          _fulfilled_by_horse_order_id?: string
+          _fulfilled_by_lab_request_id?: string
+          _fulfillment_status: string
+          _metadata?: Json
+          _service_request_id: string
+        }
         Returns: Json
       }
       validate_boarding_checkout_gate: {
