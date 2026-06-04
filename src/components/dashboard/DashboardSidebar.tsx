@@ -424,6 +424,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   onNavigate={onClose}
                   {...navProps}
                 />
+                <NavItem
+                  icon={FileText}
+                  label={t('sidebar.boardingContracts')}
+                  href="/dashboard/boarding-contracts"
+                  active={isActive("/dashboard/boarding-contracts")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
               </>
             )}
 
@@ -436,6 +444,14 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   href="/dashboard/horses"
                   active={isActive("/dashboard/horses")}
                   badge={horses.length}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                <NavItem
+                  icon={FileText}
+                  label={t('sidebar.boardingContracts')}
+                  href="/dashboard/boarding-contracts"
+                  active={isActive("/dashboard/boarding-contracts")}
                   onNavigate={onClose}
                   {...navProps}
                 />
@@ -569,6 +585,15 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                   onNavigate={onClose}
                   {...navProps}
                 />
+                <NavItem
+                  icon={FileText}
+                  label={t('sidebar.boardingContracts')}
+                  href="/dashboard/boarding-contracts"
+                  active={isActive("/dashboard/boarding-contracts")}
+                  onNavigate={onClose}
+                  {...navProps}
+                />
+                
                 
                 {/* HR / Team NavGroup - requires team or hr permission */}
                 {(hasPermission('team.view') || hasPermission('hr.view')) && (

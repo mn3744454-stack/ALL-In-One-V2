@@ -6562,7 +6562,7 @@ export const ar = {
     },
     review: "مراجعة",
     reviewAndApprove: "مراجعة واعتماد",
-    reviewAndApproveTitle: "مراجعة واعتماد عقد الإيواء",
+    reviewAndApproveTitle: "مراجعة ملخص عقد الإيواء",
     approvalMeaning: "باعتمادك، يصبح عقد الإيواء نشطًا.",
     contractSummary: "ملخص العقد",
     stable: "الإسطبل",
