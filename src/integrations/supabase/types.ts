@@ -399,6 +399,9 @@ export type Database = {
       boarding_contracts: {
         Row: {
           activated_at: string | null
+          arrival_incoming_id: string | null
+          arrival_notes: string | null
+          branch_preference: string | null
           cancelled_at: string | null
           client_id: string | null
           connection_horse_access_id: string | null
@@ -409,13 +412,16 @@ export type Database = {
           credit_limit: number | null
           end_date: string | null
           ended_at: string | null
+          expected_arrival_at: string | null
           horse_id: string
           id: string
           metadata: Json
+          operational_phase: string
           owner_approved_at: string | null
           owner_tenant_id: string
           plan_id: string | null
           plan_snapshot: Json | null
+          preferred_branch_id: string | null
           prepaid_balance_enabled: boolean
           provider_rules: Json
           stable_approved_at: string | null
@@ -429,6 +435,9 @@ export type Database = {
         }
         Insert: {
           activated_at?: string | null
+          arrival_incoming_id?: string | null
+          arrival_notes?: string | null
+          branch_preference?: string | null
           cancelled_at?: string | null
           client_id?: string | null
           connection_horse_access_id?: string | null
@@ -439,13 +448,16 @@ export type Database = {
           credit_limit?: number | null
           end_date?: string | null
           ended_at?: string | null
+          expected_arrival_at?: string | null
           horse_id: string
           id?: string
           metadata?: Json
+          operational_phase?: string
           owner_approved_at?: string | null
           owner_tenant_id: string
           plan_id?: string | null
           plan_snapshot?: Json | null
+          preferred_branch_id?: string | null
           prepaid_balance_enabled?: boolean
           provider_rules?: Json
           stable_approved_at?: string | null
@@ -459,6 +471,9 @@ export type Database = {
         }
         Update: {
           activated_at?: string | null
+          arrival_incoming_id?: string | null
+          arrival_notes?: string | null
+          branch_preference?: string | null
           cancelled_at?: string | null
           client_id?: string | null
           connection_horse_access_id?: string | null
@@ -469,13 +484,16 @@ export type Database = {
           credit_limit?: number | null
           end_date?: string | null
           ended_at?: string | null
+          expected_arrival_at?: string | null
           horse_id?: string
           id?: string
           metadata?: Json
+          operational_phase?: string
           owner_approved_at?: string | null
           owner_tenant_id?: string
           plan_id?: string | null
           plan_snapshot?: Json | null
+          preferred_branch_id?: string | null
           prepaid_balance_enabled?: boolean
           provider_rules?: Json
           stable_approved_at?: string | null
@@ -542,6 +560,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "stable_service_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boarding_contracts_preferred_branch_id_fkey"
+            columns: ["preferred_branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
@@ -5035,6 +5060,7 @@ export type Database = {
       incoming_horse_movements: {
         Row: {
           acknowledged_at: string | null
+          boarding_contract_id: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           completed_at: string | null
@@ -5050,15 +5076,17 @@ export type Database = {
           notes: string | null
           reason: string | null
           scheduled_at: string | null
-          sender_movement_id: string
+          sender_movement_id: string | null
           sender_tenant_id: string
           sender_tenant_name: string | null
+          source_type: string
           status: string
           tenant_id: string
           updated_at: string
         }
         Insert: {
           acknowledged_at?: string | null
+          boarding_contract_id?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           completed_at?: string | null
@@ -5074,15 +5102,17 @@ export type Database = {
           notes?: string | null
           reason?: string | null
           scheduled_at?: string | null
-          sender_movement_id: string
+          sender_movement_id?: string | null
           sender_tenant_id: string
           sender_tenant_name?: string | null
+          source_type?: string
           status?: string
           tenant_id: string
           updated_at?: string
         }
         Update: {
           acknowledged_at?: string | null
+          boarding_contract_id?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           completed_at?: string | null
@@ -5098,14 +5128,22 @@ export type Database = {
           notes?: string | null
           reason?: string | null
           scheduled_at?: string | null
-          sender_movement_id?: string
+          sender_movement_id?: string | null
           sender_tenant_id?: string
           sender_tenant_name?: string | null
+          source_type?: string
           status?: string
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "incoming_horse_movements_boarding_contract_id_fkey"
+            columns: ["boarding_contract_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_contracts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "incoming_horse_movements_horse_id_fkey"
             columns: ["horse_id"]
@@ -12038,6 +12076,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      schedule_boarding_contract_arrival: {
+        Args: {
+          _branch_preference?: string
+          _contract_id: string
+          _expected_arrival_at: string
+          _notes?: string
+          _preferred_branch_id?: string
+        }
+        Returns: Json
       }
       search_tenants_for_partnership: {
         Args: { _exclude_tenant_id?: string; _search: string }
