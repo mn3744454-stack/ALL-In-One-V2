@@ -6580,6 +6580,33 @@ export const ar = {
       cancelled: "تم إلغاء عقد الإيواء.",
       ended: "تم إنهاء عقد الإيواء.",
     },
+    operationalPhase: {
+      label: "حالة التشغيل",
+      not_started: "لم تبدأ",
+      awaiting_arrival: "بانتظار جدولة الوصول",
+      arrival_scheduled: "وصول مجدول",
+      arrived_pending_placement: "وصل بانتظار التسكين",
+      admitted: "تم الإيواء",
+      ended: "منتهٍ",
+    },
+    scheduleArrival: {
+      cta: "جدولة الوصول",
+      title: "جدولة وصول الخيل",
+      description: "حدّد موعد الوصول المتوقع للخيل المُؤوى. هذا الإجراء لا يبدأ الفوترة.",
+      expectedArrival: "الوصول المتوقع",
+      branchPreference: "تفضيل الفرع (اختياري)",
+      branchPreferencePlaceholder: "مثال: الفرع الرئيسي، قرب المضمار…",
+      preferredBranch: "تخصيص فرع (اختياري)",
+      preferredBranchHint: "داخلي فقط. لا يرى المالك الفروع المحددة.",
+      noBranchOption: "بدون تفضيل",
+      notes: "ملاحظات الوصول (اختياري)",
+      submit: "جدولة الوصول",
+      scheduled: "تمت جدولة الوصول.",
+      reschedule: "إعادة جدولة الوصول",
+    },
+    arrivalSource: {
+      fromBoardingContract: "من عقد إيواء",
+    },
   },
   serviceRequests: {
     sectionTitle: "طلبات الخدمات",
@@ -6647,6 +6674,8 @@ export const ar = {
       cancelled: "تم إلغاء الطلب.",
       fulfillmentUpdated: "تم تحديث حالة التنفيذ.",
     },
+    availableAfterArrival: "متاح بعد وصول الخيل.",
+    typeRequiresArrival: "هذا النوع من الطلبات متاح فقط بعد وصول الخيل.",
   },
 };
 

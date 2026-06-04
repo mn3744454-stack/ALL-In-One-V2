@@ -18,7 +18,8 @@ import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDi
 import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndApproveContractDialog";
 import type { BoardingContract } from "@/hooks/boarding/useBoardingContracts";
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
-import { FileText, Plus } from "lucide-react";
+import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet";
+import { FileText, Plus, CalendarClock } from "lucide-react";
 
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
@@ -50,6 +51,7 @@ export default function DashboardBoardingContracts() {
   const [requestForHorseId, setRequestForHorseId] = useState<string | null>(null);
   const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
   const [approveContract, setApproveContract] = useState<BoardingContract | null>(null);
+  const [scheduleContract, setScheduleContract] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
@@ -152,6 +154,12 @@ export default function DashboardBoardingContracts() {
                     <div className="min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <StatusBadge status={c.status} />
+                        {c.status === "active" && c.operational_phase && c.operational_phase !== "not_started" && (
+                          <Badge variant="outline" className="gap-1">
+                            <CalendarClock className="w-3 h-3" />
+                            {t(`boardingContracts.operationalPhase.${c.operational_phase}`)}
+                          </Badge>
+                        )}
                         <span className="text-sm font-medium truncate">
                           {horseName ?? (
                             <span className="text-muted-foreground italic">
@@ -200,6 +208,17 @@ export default function DashboardBoardingContracts() {
                           {t("boardingContracts.cancelContract")}
                         </Button>
                       )}
+                      {isStable && isStableSide && c.status === "active" &&
+                        (c.operational_phase === "awaiting_arrival" ||
+                          c.operational_phase === "arrival_scheduled" ||
+                          c.operational_phase === "not_started") && (
+                          <Button size="sm" onClick={() => setScheduleContract(c)} className="gap-1">
+                            <CalendarClock className="w-3 h-3" />
+                            {c.operational_phase === "arrival_scheduled"
+                              ? t("boardingContracts.scheduleArrival.reschedule")
+                              : t("boardingContracts.scheduleArrival.cta")}
+                          </Button>
+                        )}
                       {isStableSide && c.status === "active" && (
                         <Button
                           size="sm"
@@ -251,6 +270,11 @@ export default function DashboardBoardingContracts() {
         onOpenChange={(o) => !o && setApproveContract(null)}
         contract={approveContract}
         display={approveContract ? displayMap[approveContract.id] : null}
+      />
+      <ScheduleArrivalSheet
+        open={!!scheduleContract}
+        onOpenChange={(o) => !o && setScheduleContract(null)}
+        contract={scheduleContract}
       />
     </DashboardShell>
   );

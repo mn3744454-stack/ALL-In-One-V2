@@ -25,6 +25,7 @@ import {
   type ServiceRequestType,
   type ServiceRequestBilling,
 } from "@/hooks/boarding/useServiceRequests";
+import { useBoardingContracts, type BoardingOperationalPhase } from "@/hooks/boarding/useBoardingContracts";
 
 interface Props {
   open: boolean;
@@ -33,7 +34,7 @@ interface Props {
   side: "owner" | "stable";
 }
 
-const TYPES: ServiceRequestType[] = [
+const ALL_TYPES: ServiceRequestType[] = [
   "extra_lab",
   "extra_vet_visit",
   "extra_supplement",
@@ -44,6 +45,20 @@ const TYPES: ServiceRequestType[] = [
   "other",
 ];
 
+// Types that require the horse to be admitted (operationally arrived).
+const REQUIRES_ADMITTED = new Set<ServiceRequestType>([
+  "extra_lab",
+  "extra_vet_visit",
+  "extra_supplement",
+  "movement",
+]);
+
+function isTypeAllowedForPhase(t: ServiceRequestType, phase: BoardingOperationalPhase | null) {
+  if (!phase) return true;
+  if (phase === "admitted" || phase === "arrived_pending_placement") return true;
+  return !REQUIRES_ADMITTED.has(t);
+}
+
 export function ServiceRequestSheet({
   open,
   onOpenChange,
@@ -52,8 +67,12 @@ export function ServiceRequestSheet({
 }: Props) {
   const { t } = useI18n();
   const { create } = useServiceRequests({ boardingContractId });
-
-  const [requestType, setRequestType] = useState<ServiceRequestType>("extra_lab");
+  const { contracts } = useBoardingContracts();
+  const contract = contracts.find((c) => c.id === boardingContractId);
+  const phase = (contract?.operational_phase ?? null) as BoardingOperationalPhase | null;
+  const allowedTypes = ALL_TYPES.filter((tp) => isTypeAllowedForPhase(tp, phase));
+  const initialType: ServiceRequestType = allowedTypes[0] ?? "package_change";
+  const [requestType, setRequestType] = useState<ServiceRequestType>(initialType);
   const [notes, setNotes] = useState("");
   const [externalProvider, setExternalProvider] = useState("");
   const [ownerSupplied, setOwnerSupplied] = useState(false);
@@ -62,14 +81,14 @@ export function ServiceRequestSheet({
 
   useEffect(() => {
     if (!open) {
-      setRequestType("extra_lab");
+      setRequestType(initialType);
       setNotes("");
       setExternalProvider("");
       setOwnerSupplied(false);
       setCostEstimate("");
       setBilling("__none__");
     }
-  }, [open]);
+  }, [open, initialType]);
 
   const submit = async () => {
     await create.mutateAsync({
@@ -84,6 +103,8 @@ export function ServiceRequestSheet({
     onOpenChange(false);
   };
 
+  const preArrival = phase === "awaiting_arrival" || phase === "arrival_scheduled" || phase === "not_started";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
@@ -97,6 +118,11 @@ export function ServiceRequestSheet({
         </DialogHeader>
 
         <div className="space-y-4">
+          {preArrival && (
+            <p className="text-xs text-muted-foreground rounded-md border border-dashed p-2">
+              {t("serviceRequests.availableAfterArrival")}
+            </p>
+          )}
           <div className="space-y-2">
             <Label>{t("serviceRequests.requestType")}</Label>
             <Select
@@ -105,14 +131,19 @@ export function ServiceRequestSheet({
             >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {TYPES.map((tp) => (
-                  <SelectItem key={tp} value={tp}>
-                    {t(`serviceRequests.type.${tp}`)}
-                  </SelectItem>
-                ))}
+                {ALL_TYPES.map((tp) => {
+                  const disabled = !isTypeAllowedForPhase(tp, phase);
+                  return (
+                    <SelectItem key={tp} value={tp} disabled={disabled}>
+                      {t(`serviceRequests.type.${tp}`)}
+                      {disabled ? ` — ${t("serviceRequests.availableAfterArrival")}` : ""}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
+
 
           <div className="space-y-2">
             <Label>{t("serviceRequests.notes")}</Label>
