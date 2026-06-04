@@ -6660,8 +6660,8 @@ export const en = {
       owner_pays: "Owner pays",
       included_in_package: "Included in package",
       stable_absorbs: "Stable absorbs",
-      deduct_from_prepaid: "Stable absorbs cost",
-      deduct_from_prepaid_label: "Deduct from prepaid",
+      deduct_from_prepaid: "Deduct from prepaid",
+
     },
     toasts: {
       created: "Service request sent.",
