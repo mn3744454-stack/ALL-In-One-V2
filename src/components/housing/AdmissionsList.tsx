@@ -401,7 +401,8 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <TableBody>
               {filteredAdmissions.map((admission) => {
                 const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
-                const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+                const eff = getEffectivePrice(admission);
+                const rateDisplay = formatBoardingRate(eff.daily, eff.monthly, eff.currency, lang);
                 const needsPlace =
                   (admission.status === 'active' || admission.status === 'checkout_pending') &&
                   !admission.unit_id;
