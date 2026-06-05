@@ -2843,7 +2843,7 @@ export const ar = {
         cancelled: "ملغي",
       },
       subFilters: {
-        noInvoice: "بدون فاتورة",
+        noInvoice: "قابل للفوترة بدون فاتورة",
         outstanding: "مستحق",
         needsPlacement: "بحاجة إلى تسكين",
       },
