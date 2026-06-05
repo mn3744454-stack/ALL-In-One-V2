@@ -30,7 +30,49 @@ import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 
 
-type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding' | 'needs_placement';
+type AdmissionSubFilter =
+  | 'all'
+  | 'active'
+  | 'checkout_pending'
+  | 'checked_out'
+  | 'draft'
+  | 'needs_placement'
+  | 'needs_price'
+  | 'accrued_unbilled'
+  | 'outstanding'
+  | 'settled';
+
+/**
+ * B2-F1-DISPLAY-TRUTH — effective price resolver.
+ * Priority: admission daily/monthly rate, then linked plan base_price > 0.
+ * Display-only. Does not mutate admission rates.
+ */
+function getEffectivePrice(admission: BoardingAdmission): {
+  source: 'admission_rate' | 'plan_rate' | 'none';
+  daily: number | null;
+  monthly: number | null;
+  currency: string;
+} {
+  if (admission.daily_rate || admission.monthly_rate) {
+    return {
+      source: 'admission_rate',
+      daily: admission.daily_rate,
+      monthly: admission.monthly_rate,
+      currency: admission.rate_currency,
+    };
+  }
+  const plan = admission.plan;
+  if (plan && Number(plan.base_price) > 0) {
+    const cycle = (plan.billing_cycle || '').toLowerCase();
+    return {
+      source: 'plan_rate',
+      daily: cycle === 'daily' ? Number(plan.base_price) : null,
+      monthly: cycle === 'monthly' || !cycle ? Number(plan.base_price) : null,
+      currency: plan.currency || admission.rate_currency,
+    };
+  }
+  return { source: 'none', daily: null, monthly: null, currency: admission.rate_currency };
+}
 
 function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
