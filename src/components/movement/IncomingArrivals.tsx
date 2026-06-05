@@ -23,6 +23,7 @@ import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMovementReason } from "./movementReasonDisplay";
+import { ConfirmArrivalBranchDialog } from "./ConfirmArrivalBranchDialog";
 
 export function IncomingArrivals() {
   const { t } = useI18n();
