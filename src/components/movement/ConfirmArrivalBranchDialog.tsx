@@ -35,7 +35,7 @@ interface ConfirmArrivalBranchDialogProps {
 export function ConfirmArrivalBranchDialog({
   open, onOpenChange, onConfirm, isProcessing, preferredBranchId,
 }: ConfirmArrivalBranchDialogProps) {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
 
