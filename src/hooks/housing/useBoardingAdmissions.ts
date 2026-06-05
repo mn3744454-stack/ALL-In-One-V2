@@ -131,7 +131,8 @@ const ADMISSION_SELECT = `
   branch:branches!branch_id(id, name, name_ar),
   area:facility_areas!area_id(id, name, name_ar, facility_type),
   unit:housing_units!unit_id(id, code, name, unit_type),
-  admitted_by_profile:profiles!admitted_by(id, full_name)
+  admitted_by_profile:profiles!admitted_by(id, full_name),
+  plan:stable_service_plans!plan_id(id, name, name_ar, base_price, billing_cycle, currency)
 `;
 
 export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
