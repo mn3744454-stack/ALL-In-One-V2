@@ -46,7 +46,7 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
       const { data: placementAdmissions, error: paErr } = await supabase
         .from("boarding_admissions")
         .select(
-          "id, horse_id, branch_id, unit_id, status, horse:horses!boarding_admissions_horse_id_fkey(id, name, name_ar, avatar_url)"
+          "id, horse_id, branch_id, unit_id, status, horse:horses!horse_id(id, name, name_ar, avatar_url)"
         )
         .eq("tenant_id", tenantId)
         .eq("branch_id", branchId)
