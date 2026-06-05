@@ -28,6 +28,8 @@ import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
 import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
+import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
+import { formatBoardingAmount } from "@/lib/boardingUtils";
 
 
 type AdmissionSubFilter =
