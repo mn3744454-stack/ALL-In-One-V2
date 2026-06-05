@@ -2827,7 +2827,9 @@ export const en = {
       subFilters: {
         noInvoice: "No Invoice",
         outstanding: "Outstanding",
+        needsPlacement: "Needs Placement",
       },
+      assignUnit: "Assign Unit",
       table: {
         horse: "Horse",
         client: "Client",
