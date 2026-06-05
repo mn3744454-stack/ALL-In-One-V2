@@ -448,10 +448,18 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                       <span dir="ltr" className="inline-block">{formatStayDuration(stayDays, lang)}</span>
                     </TableCell>
                     <TableCell className="text-start whitespace-nowrap text-sm">
-                      {rateDisplay
-                        ? <span dir="ltr" className="inline-block">{rateDisplay}</span>
-                        : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
-                      }
+                      {rateDisplay ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span dir="ltr" className="inline-block">{rateDisplay}</span>
+                          {eff.source === 'plan_rate' && (
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight text-primary border-primary/30">
+                              {t('housing.admissions.price.fromPlan')}
+                            </Badge>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-amber-500 text-xs italic">{t('housing.admissions.price.notSet')}</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
