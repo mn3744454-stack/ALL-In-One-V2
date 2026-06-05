@@ -227,7 +227,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       {/* Sub-filter tabs – operational lifecycle + financial state */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Operational lifecycle group */}
-        <Tabs value={['all','active','checkout_pending','checked_out','draft'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+        <Tabs value={['all','active','checkout_pending','checked_out','draft','needs_placement'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="all" className="gap-1.5">
               {t('common.all')}
