@@ -2825,7 +2825,7 @@ export const en = {
         cancelled: "Cancelled",
       },
       subFilters: {
-        noInvoice: "No Invoice",
+        noInvoice: "Billable, No Invoice",
         outstanding: "Outstanding",
         needsPlacement: "Needs Placement",
       },
