@@ -97,11 +97,11 @@ export function ConfirmArrivalBranchDialog({
   }, [preferredBranchId, branches, t]);
 
   const displayName = (b: Branch) => {
-    if (language === "ar") return b.name_ar || b.name || "";
+    if (lang === "ar") return b.name_ar || b.name || "";
     return b.name || b.name_ar || "";
   };
   const secondaryName = (b: Branch) => {
-    if (language === "ar") return b.name && b.name_ar ? b.name : "";
+    if (lang === "ar") return b.name && b.name_ar ? b.name : "";
     return b.name && b.name_ar ? b.name_ar : "";
   };
 
