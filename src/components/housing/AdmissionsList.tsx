@@ -26,10 +26,11 @@ import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, MapPin } from "lucide-react";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 
 
-type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
+type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding' | 'needs_placement';
 
 function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
@@ -145,7 +146,12 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       !a.balance_cleared &&
       invoicedAdmissionIds.has(a.id)
     ).length;
-    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding };
+    // B2.3d-UI-S1 — Needs Placement = active/pending admission with no unit_id.
+    // Cross-tenant hosted horses appear here via RLS-safe useBoardingAdmissions.
+    const needsPlacement = branchFiltered.filter(a =>
+      (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
+    ).length;
+    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding, needsPlacement };
   }, [branchFiltered, invoicedAdmissionIds]);
 
   const filteredAdmissions = useMemo(() => {
@@ -164,9 +170,21 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         !a.balance_cleared &&
         invoicedAdmissionIds.has(a.id)
       );
+      case 'needs_placement': return branchFiltered.filter(a =>
+        (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
+      );
       default: return branchFiltered;
     }
   }, [branchFiltered, subFilter, invoicedAdmissionIds]);
+
+  // B2.3d-UI-S1 — Assign Unit dialog wiring. Reuses PlaceInUnitDialog
+  // (SafeFormDialog + useDirtyForm) — no new dialog is introduced.
+  const [placeAdmission, setPlaceAdmission] = useState<BoardingAdmission | null>(null);
+  const canAssignUnit = hasPermission('boarding.admission.create');
+  const openAssignUnit = (admission: BoardingAdmission) => {
+    if (!canAssignUnit) return;
+    setPlaceAdmission(admission);
+  };
 
   return (
     <div className="space-y-4">
@@ -209,7 +227,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       {/* Sub-filter tabs – operational lifecycle + financial state */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Operational lifecycle group */}
-        <Tabs value={['all','active','checkout_pending','checked_out','draft'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+        <Tabs value={['all','active','checkout_pending','checked_out','draft','needs_placement'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
           <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="all" className="gap-1.5">
               {t('common.all')}
@@ -220,6 +238,13 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               {t('housing.admissions.status.active')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
             </TabsTrigger>
+            {counts.needsPlacement > 0 && (
+              <TabsTrigger value="needs_placement" className="gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.needsPlacement')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-orange-600 border-orange-300">{counts.needsPlacement}</Badge>
+              </TabsTrigger>
+            )}
             {counts.checkoutPending > 0 && (
               <TabsTrigger value="checkout_pending" className="gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
@@ -298,6 +323,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               {filteredAdmissions.map((admission) => {
                 const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
                 const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+                const needsPlace =
+                  (admission.status === 'active' || admission.status === 'checkout_pending') &&
+                  !admission.unit_id;
                 return (
                   <TableRow key={admission.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAdmissionId(admission.id)}>
                     <TableCell className="text-start">
@@ -319,7 +347,21 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                         ? <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-sm font-normal" />
                         : '—'}
                     </TableCell>
-                    <TableCell className="text-center text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
+                    <TableCell className="text-center text-muted-foreground text-sm">
+                      {admission.unit?.code ? (
+                        admission.unit.code
+                      ) : needsPlace && canAssignUnit && admission.branch_id ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs gap-1 text-orange-700 border-orange-300 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                          onClick={(e) => { e.stopPropagation(); openAssignUnit(admission); }}
+                        >
+                          <MapPin className="h-3 w-3" />
+                          {t('housing.admissions.assignUnit')}
+                        </Button>
+                      ) : '—'}
+                    </TableCell>
                     <TableCell className="text-center">{getStatusBadge(admission.status, t)}</TableCell>
                     <TableCell className="text-center whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
                     <TableCell className="text-center text-sm whitespace-nowrap">
@@ -344,6 +386,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               key={admission.id}
               admission={admission}
               onClick={() => setSelectedAdmissionId(admission.id)}
+              onAssignUnit={canAssignUnit ? openAssignUnit : undefined}
               t={t}
               lang={lang}
             />
@@ -364,11 +407,22 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         open={!!selectedAdmissionId}
         onOpenChange={(open) => { if (!open) setSelectedAdmissionId(null); }}
       />
+      <PlaceInUnitDialog
+        open={!!placeAdmission}
+        onOpenChange={(open) => { if (!open) setPlaceAdmission(null); }}
+        horse={placeAdmission?.horse ? {
+          id: placeAdmission.horse.id,
+          name: placeAdmission.horse.name,
+          name_ar: placeAdmission.horse.name_ar,
+          avatar_url: placeAdmission.horse.avatar_url ?? null,
+        } : null}
+        branchId={placeAdmission?.branch_id}
+      />
     </div>
   );
 }
 
-function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string; lang: string }) {
+function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
   const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
@@ -425,12 +479,22 @@ function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdm
                   )}
                 </span>
               )}
-              {admission.unit && (
+              {admission.unit ? (
                 <span className="flex items-center gap-1">
                   <DoorOpen className="h-3 w-3" />
                   {admission.unit.code}
                 </span>
-              )}
+              ) : (admission.status === 'active' || admission.status === 'checkout_pending') && onAssignUnit && admission.branch_id ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[11px] gap-1 text-orange-700 border-orange-300 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                  onClick={(e) => { e.stopPropagation(); onAssignUnit(admission); }}
+                >
+                  <MapPin className="h-3 w-3" />
+                  {t('housing.admissions.assignUnit')}
+                </Button>
+              ) : null}
             </div>
             <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="text-muted-foreground flex items-center gap-1">

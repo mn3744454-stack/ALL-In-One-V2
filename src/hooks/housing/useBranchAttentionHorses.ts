@@ -4,13 +4,20 @@ import { useTenant } from "@/contexts/TenantContext";
 import { HORSE_LIFECYCLE_SELECT, type HorseLifecycleState } from "@/hooks/movement/useHorseLifecycleStates";
 
 /**
- * Pass 2-D — Frontend-only hook surfacing branch-level "Needs Attention" horses
- * driven by `vw_horse_lifecycle_state` rather than the legacy unassigned bucket.
+ * B2.3d-UI-S1 — Cross-tenant Needs Placement correction.
  *
- * Needs Placement = lifecycle.needs_placement = true AND horses.current_location_id = branchId
- * Needs Admission = lifecycle.needs_admission = true AND horses.current_location_id = branchId
+ * Needs Placement is now sourced from `boarding_admissions` owned by the
+ * hosting tenant (active or checkout_pending, unit_id IS NULL, branch-scoped)
+ * so that owner-created hosted horses (e.g. Drama hosted by Al Qemmah) appear
+ * here. Horse identity is resolved through the `horses` RLS path via the
+ * embedded join; rows where the horse cannot be read by RLS are dropped.
  *
- * Read-only: this hook does not mutate any data. No backend objects are created.
+ * Needs Admission keeps its prior horses-table sourcing (branch-scoped,
+ * tenant-owned). This avoids regressing the existing Needs Admission surface
+ * while the cross-tenant admission case is handled in a later slice.
+ *
+ * Read-only: this hook does not mutate any data and does not change schema,
+ * RLS, RPCs, or vw_horse_lifecycle_state.
  */
 export interface BranchAttentionHorse {
   id: string;
@@ -31,6 +38,25 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
     queryFn: async () => {
       if (!tenantId || !branchId) return { needsPlacement: [], needsAdmission: [] };
 
+      // ── Needs Placement: cross-tenant safe ──
+      // Source from boarding_admissions (hosting tenant), then resolve horse
+      // identity through the joined `horses` row (RLS-safe). Owner-created
+      // hosted horses are visible because the admission lives in the hosting
+      // tenant and B2.3d-RLS grants the hosting tenant SELECT on the horse.
+      const { data: placementAdmissions, error: paErr } = await supabase
+        .from("boarding_admissions")
+        .select(
+          "id, horse_id, branch_id, unit_id, status, horse:horses!horse_id(id, name, name_ar, avatar_url)"
+        )
+        .eq("tenant_id", tenantId)
+        .eq("branch_id", branchId)
+        .is("unit_id", null)
+        .in("status", ["active", "checkout_pending"]);
+      if (paErr) throw paErr;
+
+      // ── Needs Admission: preserved prior behavior (tenant-owned horses at
+      // this branch with no active admission). Cross-tenant Needs Admission
+      // remains a deferred residual.
       const { data: horses, error: horsesErr } = await supabase
         .from("horses")
         .select("id, name, name_ar, avatar_url, current_location_id")
@@ -38,35 +64,86 @@ export function useBranchAttentionHorses(branchId: string | null | undefined) {
         .eq("current_location_id", branchId);
       if (horsesErr) throw horsesErr;
 
-      const ids = (horses || []).map((h: any) => h.id);
-      if (ids.length === 0) return { needsPlacement: [], needsAdmission: [] };
+      const placementHorseIds = (placementAdmissions || [])
+        .map((a: any) => a.horse?.id)
+        .filter((id: string | undefined): id is string => !!id);
+      const admissionHorseIds = (horses || []).map((h: any) => h.id);
+      const allIds = Array.from(new Set([...placementHorseIds, ...admissionHorseIds]));
 
-      const { data: states, error: stateErr } = await supabase
-        .from("vw_horse_lifecycle_state" as any)
-        .select(HORSE_LIFECYCLE_SELECT)
-        .in("horse_id", ids);
-      if (stateErr) throw stateErr;
+      let stateByHorse = new Map<string, HorseLifecycleState>();
+      if (allIds.length > 0) {
+        const { data: states, error: stateErr } = await supabase
+          .from("vw_horse_lifecycle_state" as any)
+          .select(HORSE_LIFECYCLE_SELECT)
+          .in("horse_id", allIds);
+        if (stateErr) throw stateErr;
+        ((states as unknown as HorseLifecycleState[]) || []).forEach((s) =>
+          stateByHorse.set(s.horse_id, s)
+        );
+      }
 
-      const stateByHorse = new Map<string, HorseLifecycleState>();
-      ((states as unknown as HorseLifecycleState[]) || []).forEach((s) =>
-        stateByHorse.set(s.horse_id, s)
-      );
-
+      // Build Needs Placement rows. Cross-check vw_horse_lifecycle_state when
+      // a row is available; if the view row is missing (rare), trust the
+      // admission predicate (status + unit_id IS NULL) rather than dropping
+      // the horse silently.
       const needsPlacement: BranchAttentionHorse[] = [];
-      const needsAdmission: BranchAttentionHorse[] = [];
+      const seenPlacement = new Set<string>();
+      (placementAdmissions || []).forEach((a: any) => {
+        const h = a.horse;
+        if (!h?.id) return; // horse not readable via RLS — drop safely
+        if (seenPlacement.has(h.id)) return;
+        const lc = stateByHorse.get(h.id);
+        if (lc && lc.needs_placement === false) return; // lifecycle disagrees
+        seenPlacement.add(h.id);
+        needsPlacement.push({
+          id: h.id,
+          name: h.name,
+          name_ar: h.name_ar,
+          avatar_url: h.avatar_url ?? null,
+          lifecycle:
+            lc ?? ({
+              horse_id: h.id,
+              tenant_id: null,
+              open_admission_id: a.id,
+              open_admission_status: a.status,
+              needs_admission: false,
+              needs_placement: true,
+              is_temporarily_out: false,
+              latest_movement_status: null,
+              latest_movement_subtype: null,
+              latest_movement_id: null,
+              is_housed: false,
+              is_in_transit: false,
+              is_departed: false,
+              departed_at: null,
+              active_movement_id: null,
+              active_movement_status: null,
+              active_movement_subtype: null,
+              latest_completed_movement_id: null,
+              latest_completed_movement_status: null,
+              latest_completed_movement_subtype: null,
+              next_scheduled_movement_id: null,
+              next_scheduled_movement_at: null,
+              is_admission_draft: false,
+            } as HorseLifecycleState),
+        });
+      });
 
+      // Needs Admission preserved: lifecycle-driven, branch-scoped, tenant-owned.
+      const needsAdmission: BranchAttentionHorse[] = [];
       (horses || []).forEach((h: any) => {
         const lc = stateByHorse.get(h.id);
         if (!lc) return;
-        const row: BranchAttentionHorse = {
+        if (!lc.needs_admission) return;
+        // Do not duplicate a horse already shown in Needs Placement.
+        if (seenPlacement.has(h.id)) return;
+        needsAdmission.push({
           id: h.id,
           name: h.name,
           name_ar: h.name_ar,
           avatar_url: h.avatar_url ?? null,
           lifecycle: lc,
-        };
-        if (lc.needs_placement) needsPlacement.push(row);
-        else if (lc.needs_admission) needsAdmission.push(row);
+        });
       });
 
       return { needsPlacement, needsAdmission };
