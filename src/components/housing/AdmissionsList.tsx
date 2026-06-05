@@ -407,6 +407,17 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         open={!!selectedAdmissionId}
         onOpenChange={(open) => { if (!open) setSelectedAdmissionId(null); }}
       />
+      <PlaceInUnitDialog
+        open={!!placeAdmission}
+        onOpenChange={(open) => { if (!open) setPlaceAdmission(null); }}
+        horse={placeAdmission?.horse ? {
+          id: placeAdmission.horse.id,
+          name: placeAdmission.horse.name,
+          name_ar: placeAdmission.horse.name_ar,
+          avatar_url: placeAdmission.horse.avatar_url ?? null,
+        } : null}
+        branchId={placeAdmission?.branch_id}
+      />
     </div>
   );
 }
