@@ -12,6 +12,8 @@ const REASON_KEYS: Record<string, string> = {
   "boarding admission check-in": "movement.reason.system.boardingAdmissionCheckin",
   "boarding admission checkout": "movement.reason.system.boardingAdmissionCheckout",
   "internal unit reassignment": "movement.reason.system.internalUnitReassignment",
+  // B2.3b — scheduled arrival originating from a boarding contract
+  "boarding_contract": "movement.reason.system.boardingContractScheduledArrival",
 };
 
 const NOTE_KEYS: Record<string, string> = {

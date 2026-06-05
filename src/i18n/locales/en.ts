@@ -1851,6 +1851,7 @@ export const en = {
         boardingAdmissionCheckin: "Boarding admission check-in",
         boardingAdmissionCheckout: "Boarding admission checkout",
         internalUnitReassignment: "Internal housing unit reassignment",
+        boardingContractScheduledArrival: "Scheduled from Boarding Contract",
       },
     },
     note: {
