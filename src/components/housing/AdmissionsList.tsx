@@ -238,6 +238,13 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               {t('housing.admissions.status.active')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.active}</Badge>
             </TabsTrigger>
+            {counts.needsPlacement > 0 && (
+              <TabsTrigger value="needs_placement" className="gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.needsPlacement')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-orange-600 border-orange-300">{counts.needsPlacement}</Badge>
+              </TabsTrigger>
+            )}
             {counts.checkoutPending > 0 && (
               <TabsTrigger value="checkout_pending" className="gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
