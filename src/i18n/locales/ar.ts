@@ -2845,7 +2845,9 @@ export const ar = {
       subFilters: {
         noInvoice: "بدون فاتورة",
         outstanding: "مستحق",
+        needsPlacement: "بحاجة إلى تسكين",
       },
+      assignUnit: "تسكين الخيل",
       table: {
         horse: "الخيل",
         client: "العميل",
