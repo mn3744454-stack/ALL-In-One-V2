@@ -146,7 +146,12 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       !a.balance_cleared &&
       invoicedAdmissionIds.has(a.id)
     ).length;
-    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding };
+    // B2.3d-UI-S1 — Needs Placement = active/pending admission with no unit_id.
+    // Cross-tenant hosted horses appear here via RLS-safe useBoardingAdmissions.
+    const needsPlacement = branchFiltered.filter(a =>
+      (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
+    ).length;
+    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding, needsPlacement };
   }, [branchFiltered, invoicedAdmissionIds]);
 
   const filteredAdmissions = useMemo(() => {
