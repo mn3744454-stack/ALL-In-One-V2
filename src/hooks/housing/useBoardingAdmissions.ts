@@ -60,6 +60,15 @@ export interface BoardingAdmission {
   area?: { id: string; name: string; name_ar: string | null; facility_type?: string };
   unit?: { id: string; code: string; name: string | null; unit_type?: string };
   admitted_by_profile?: { id: string; full_name: string | null };
+  /** B2-F1-DISPLAY-TRUTH — boarding plan join for price fallback. Display-only. */
+  plan?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    base_price: number;
+    billing_cycle: string;
+    currency: string;
+  } | null;
 }
 
 export interface CreateAdmissionData {
@@ -122,7 +131,8 @@ const ADMISSION_SELECT = `
   branch:branches!branch_id(id, name, name_ar),
   area:facility_areas!area_id(id, name, name_ar, facility_type),
   unit:housing_units!unit_id(id, code, name, unit_type),
-  admitted_by_profile:profiles!admitted_by(id, full_name)
+  admitted_by_profile:profiles!admitted_by(id, full_name),
+  plan:stable_service_plans!plan_id(id, name, name_ar, base_price, billing_cycle, currency)
 `;
 
 export function useBoardingAdmissions(filters: AdmissionFilters = {}) {

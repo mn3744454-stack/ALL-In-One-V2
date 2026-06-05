@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+// (useQuery removed — financial truth lives in useAdmissionFinancialsBatch)
+// (supabase import removed — inline billing-links query replaced by batched hook)
 import { useTenant } from "@/contexts/TenantContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,9 +28,53 @@ import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
 import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
+import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
+// (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
 
-type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding' | 'needs_placement';
+type AdmissionSubFilter =
+  | 'all'
+  | 'active'
+  | 'checkout_pending'
+  | 'checked_out'
+  | 'draft'
+  | 'needs_placement'
+  | 'needs_price'
+  | 'accrued_unbilled'
+  | 'outstanding'
+  | 'settled';
+
+/**
+ * B2-F1-DISPLAY-TRUTH — effective price resolver.
+ * Priority: admission daily/monthly rate, then linked plan base_price > 0.
+ * Display-only. Does not mutate admission rates.
+ */
+function getEffectivePrice(admission: BoardingAdmission): {
+  source: 'admission_rate' | 'plan_rate' | 'none';
+  daily: number | null;
+  monthly: number | null;
+  currency: string;
+} {
+  if (admission.daily_rate || admission.monthly_rate) {
+    return {
+      source: 'admission_rate',
+      daily: admission.daily_rate,
+      monthly: admission.monthly_rate,
+      currency: admission.rate_currency,
+    };
+  }
+  const plan = admission.plan;
+  if (plan && Number(plan.base_price) > 0) {
+    const cycle = (plan.billing_cycle || '').toLowerCase();
+    return {
+      source: 'plan_rate',
+      daily: cycle === 'daily' ? Number(plan.base_price) : null,
+      monthly: cycle === 'monthly' || !cycle ? Number(plan.base_price) : null,
+      currency: plan.currency || admission.rate_currency,
+    };
+  }
+  return { source: 'none', daily: null, monthly: null, currency: admission.rate_currency };
+}
 
 function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
@@ -100,59 +144,76 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     [allAdmissions, branchId]
   );
 
-  // Fetch billing links for all active boarding admissions to determine "no invoice" state
+  // Active/checkout-pending admission ids drive both the financial chips and
+  // the per-row financial truth lookup. B2-F1-DISPLAY-TRUTH.
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
 
   const activeAdmissionIds = useMemo(() =>
-    branchFiltered.filter(a => a.status === 'active' || a.status === 'checkout_pending').map(a => a.id),
+    branchFiltered
+      .filter(a => a.status === 'active' || a.status === 'checkout_pending')
+      .map(a => a.id),
     [branchFiltered]
   );
 
-  const { data: boardingBillingLinks = [] } = useQuery({
-    queryKey: ['billing-links-boarding-bulk', tenantId, activeAdmissionIds],
-    queryFn: async () => {
-      if (!tenantId || activeAdmissionIds.length === 0) return [];
-      const { data } = await supabase
-        .from('billing_links')
-        .select('source_id')
-        .eq('tenant_id', tenantId)
-        .eq('source_type', 'boarding')
-        .in('source_id', activeAdmissionIds);
-      return data || [];
-    },
-    enabled: !!tenantId && activeAdmissionIds.length > 0,
-  });
+  // Batched read-side financial truth: hasBoardingLink + admissionBalance from
+  // invoices + payments. Replaces stale reliance on boarding_admissions.balance_cleared.
+  const { get: getFinancials } = useAdmissionFinancialsBatch(activeAdmissionIds);
 
-  const invoicedAdmissionIds = useMemo(() =>
-    new Set(boardingBillingLinks.map((l: { source_id: string }) => l.source_id)),
-    [boardingBillingLinks]
-  );
+  // Classify each active/checkout_pending admission into one of the financial
+  // display-states. Lifecycle-only admissions (checked_out, draft, etc.) are
+  // intentionally excluded from financial chips.
+  type FinancialState = 'needs_price' | 'accrued_unbilled' | 'outstanding' | 'settled' | null;
+  const financialStateById = useMemo(() => {
+    const map = new Map<string, FinancialState>();
+    for (const a of branchFiltered) {
+      if (a.status !== 'active' && a.status !== 'checkout_pending') {
+        map.set(a.id, null);
+        continue;
+      }
+      const fin = getFinancials(a.id);
+      if (fin.hasBoardingLink) {
+        map.set(a.id, fin.balance > 0.01 ? 'outstanding' : 'settled');
+        continue;
+      }
+      const eff = getEffectivePrice(a);
+      if (eff.source === 'none') {
+        map.set(a.id, 'needs_price');
+      } else {
+        map.set(a.id, 'accrued_unbilled');
+      }
+    }
+    return map;
+  }, [branchFiltered, getFinancials]);
 
   const counts = useMemo(() => {
     const active = branchFiltered.filter(a => a.status === 'active').length;
     const checkoutPending = branchFiltered.filter(a => a.status === 'checkout_pending').length;
     const checkedOut = branchFiltered.filter(a => a.status === 'checked_out').length;
     const draft = branchFiltered.filter(a => a.status === 'draft').length;
-    // "No Invoice" = active admissions with a rate but no billing_link (never invoiced)
-    const noInvoice = branchFiltered.filter(a =>
-      (a.status === 'active' || a.status === 'checkout_pending') &&
-      (a.daily_rate || a.monthly_rate) &&
-      !invoicedAdmissionIds.has(a.id)
-    ).length;
-    // "Outstanding" = active/pending admissions with a rate that are not balance-cleared and have been invoiced
-    const outstanding = branchFiltered.filter(a =>
-      (a.status === 'active' || a.status === 'checkout_pending') &&
-      !a.balance_cleared &&
-      invoicedAdmissionIds.has(a.id)
-    ).length;
-    // B2.3d-UI-S1 — Needs Placement = active/pending admission with no unit_id.
-    // Cross-tenant hosted horses appear here via RLS-safe useBoardingAdmissions.
+    let needsPrice = 0, accruedUnbilled = 0, outstanding = 0, settled = 0;
+    for (const [, s] of financialStateById) {
+      if (s === 'needs_price') needsPrice++;
+      else if (s === 'accrued_unbilled') accruedUnbilled++;
+      else if (s === 'outstanding') outstanding++;
+      else if (s === 'settled') settled++;
+    }
     const needsPlacement = branchFiltered.filter(a =>
       (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
     ).length;
-    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding, needsPlacement };
-  }, [branchFiltered, invoicedAdmissionIds]);
+    return {
+      all: branchFiltered.length,
+      active,
+      checkoutPending,
+      checkedOut,
+      draft,
+      needsPlacement,
+      needsPrice,
+      accruedUnbilled,
+      outstanding,
+      settled,
+    };
+  }, [branchFiltered, financialStateById]);
 
   const filteredAdmissions = useMemo(() => {
     switch (subFilter) {
@@ -160,22 +221,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       case 'checkout_pending': return branchFiltered.filter(a => a.status === 'checkout_pending');
       case 'checked_out': return branchFiltered.filter(a => a.status === 'checked_out');
       case 'draft': return branchFiltered.filter(a => a.status === 'draft');
-      case 'no_invoice': return branchFiltered.filter(a =>
-        (a.status === 'active' || a.status === 'checkout_pending') &&
-        (a.daily_rate || a.monthly_rate) &&
-        !invoicedAdmissionIds.has(a.id)
-      );
-      case 'outstanding': return branchFiltered.filter(a =>
-        (a.status === 'active' || a.status === 'checkout_pending') &&
-        !a.balance_cleared &&
-        invoicedAdmissionIds.has(a.id)
-      );
       case 'needs_placement': return branchFiltered.filter(a =>
         (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
       );
+      case 'needs_price': return branchFiltered.filter(a => financialStateById.get(a.id) === 'needs_price');
+      case 'accrued_unbilled': return branchFiltered.filter(a => financialStateById.get(a.id) === 'accrued_unbilled');
+      case 'outstanding': return branchFiltered.filter(a => financialStateById.get(a.id) === 'outstanding');
+      case 'settled': return branchFiltered.filter(a => financialStateById.get(a.id) === 'settled');
       default: return branchFiltered;
     }
-  }, [branchFiltered, subFilter, invoicedAdmissionIds]);
+  }, [branchFiltered, subFilter, financialStateById]);
 
   // B2.3d-UI-S1 — Assign Unit dialog wiring. Reuses PlaceInUnitDialog
   // (SafeFormDialog + useDirtyForm) — no new dialog is introduced.
@@ -269,22 +324,46 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         {/* Visual separator */}
         <div className="h-6 w-px bg-border hidden sm:block" />
 
-        {/* Financial state group */}
-        <Tabs value={['no_invoice','outstanding'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+        {/* Financial state group — B2-F1-DISPLAY-TRUTH */}
+        <Tabs
+          value={['needs_price','accrued_unbilled','outstanding','settled'].includes(subFilter) ? subFilter : ''}
+          onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}
+        >
           <TabsList className="flex-wrap h-auto gap-1">
-            <TabsTrigger value="no_invoice" className="gap-1.5">
+            {counts.needsPrice > 0 && (
+              <TabsTrigger value="needs_price" className="gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.needsPrice')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.needsPrice}</Badge>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="accrued_unbilled" className="gap-1.5">
               <FileX className="h-3.5 w-3.5" />
-              {t('housing.admissions.subFilters.noInvoice')}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
+              {t('housing.admissions.subFilters.accruedUnbilled')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.accruedUnbilled}</Badge>
             </TabsTrigger>
             <TabsTrigger value="outstanding" className="gap-1.5">
               <Receipt className="h-3.5 w-3.5" />
               {t('housing.admissions.subFilters.outstanding')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
             </TabsTrigger>
+            {counts.settled > 0 && (
+              <TabsTrigger value="settled" className="gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.settled')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.settled}</Badge>
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </div>
+
+      {/* Filter explanation panel — updates per selected filter, RTL-safe, mobile-friendly. */}
+      <FilterExplanationPanel
+        subFilter={subFilter === 'all' || subFilter === '' as any ? 'all' : subFilter}
+        count={filteredAdmissions.length}
+      />
+
 
       {/* List */}
       {isLoading ? (
@@ -322,7 +401,8 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
             <TableBody>
               {filteredAdmissions.map((admission) => {
                 const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
-                const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+                const eff = getEffectivePrice(admission);
+                const rateDisplay = formatBoardingRate(eff.daily, eff.monthly, eff.currency, lang);
                 const needsPlace =
                   (admission.status === 'active' || admission.status === 'checkout_pending') &&
                   !admission.unit_id;
@@ -368,10 +448,18 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                       <span dir="ltr" className="inline-block">{formatStayDuration(stayDays, lang)}</span>
                     </TableCell>
                     <TableCell className="text-start whitespace-nowrap text-sm">
-                      {rateDisplay
-                        ? <span dir="ltr" className="inline-block">{rateDisplay}</span>
-                        : <span className="text-amber-500 text-xs italic">{t('housing.admissions.list.noBilling')}</span>
-                      }
+                      {rateDisplay ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span dir="ltr" className="inline-block">{rateDisplay}</span>
+                          {eff.source === 'plan_rate' && (
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight text-primary border-primary/30">
+                              {t('housing.admissions.price.fromPlan')}
+                            </Badge>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-amber-500 text-xs italic">{t('housing.admissions.price.notSet')}</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -425,7 +513,8 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
 function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
-  const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+  const eff = getEffectivePrice(admission);
+  const rateDisplay = formatBoardingRate(eff.daily, eff.monthly, eff.currency, lang);
 
   return (
     <Card
@@ -507,9 +596,14 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-3 w-3" />
                   {rateDisplay}
+                  {eff.source === 'plan_rate' && (
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight text-primary border-primary/30 ms-1">
+                      {t('housing.admissions.price.fromPlan')}
+                    </Badge>
+                  )}
                 </span>
               ) : (
-                <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.list.noBilling')}</span>
+                <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.price.notSet')}</span>
               )}
             </div>
           </div>
@@ -571,6 +665,46 @@ function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
         preselectedHorseId={admitHorseId ?? undefined}
         preselectedBranchId={branchId}
       />
+    </Card>
+  );
+}
+
+/**
+ * B2-F1-DISPLAY-TRUTH — Filter explanation panel.
+ * Highlighted, RTL-safe, mobile-friendly. Updates per selected filter, including
+ * a secondary clarifier for the Accrued/Unbilled state to prevent invoice-truth
+ * confusion.
+ */
+function FilterExplanationPanel({
+  subFilter,
+  count,
+}: {
+  subFilter: AdmissionSubFilter;
+  count: number;
+}) {
+  const { t } = useI18n();
+  const key = subFilter; // i18n keys match the AdmissionSubFilter values
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-3 space-y-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-foreground">
+            {t(`housing.admissions.filterPanel.titles.${key}`)}
+          </span>
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+            {t('housing.admissions.filterPanel.countLabel')} {count}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground leading-snug">
+          {t(`housing.admissions.filterPanel.descriptions.${key}`)}
+        </p>
+        {key === 'accrued_unbilled' && (
+          <p className="text-[11px] text-primary/80 leading-snug">
+            {t('housing.admissions.filterPanel.secondaryAccrued')}
+          </p>
+        )}
+      </CardContent>
     </Card>
   );
 }
