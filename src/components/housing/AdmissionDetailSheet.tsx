@@ -137,6 +137,12 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
     : baseWarnings;
 
   const isEditable = admission && !['checked_out', 'cancelled'].includes(admission.status);
+  // R1-FE-CLOSE — Active placement (unit/area/branch) MUST go through
+  // PlaceInUnitDialog → useInternalMove → record_horse_movement_with_housing.
+  // Direct field edits are only safe on draft admissions.
+  const isActivePlacement =
+    !!admission && ['active', 'checkout_pending'].includes(admission.status);
+  const isDraftAdmission = !!admission && admission.status === 'draft';
 
   // Related movements query
   const { data: relatedMovements = [] } = useQuery({
