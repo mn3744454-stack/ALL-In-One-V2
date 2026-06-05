@@ -59,6 +59,20 @@ export function ConfirmArrivalBranchDialog({
     },
   });
 
+  const { data: preferredBranchId = null } = useQuery({
+    queryKey: ["confirm-arrival-preferred-branch", boardingContractId],
+    enabled: !!boardingContractId && open,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase
+        .from("boarding_contracts")
+        .select("preferred_branch_id")
+        .eq("id", boardingContractId!)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.preferred_branch_id as string | null) ?? null;
+    },
+  });
+
   // Compute default on open / when branches load.
   useEffect(() => {
     if (!open) return;
