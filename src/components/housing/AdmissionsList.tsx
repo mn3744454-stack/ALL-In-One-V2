@@ -386,6 +386,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               key={admission.id}
               admission={admission}
               onClick={() => setSelectedAdmissionId(admission.id)}
+              onAssignUnit={canAssignUnit ? openAssignUnit : undefined}
               t={t}
               lang={lang}
             />
