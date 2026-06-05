@@ -422,7 +422,7 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
   );
 }
 
-function AdmissionCard({ admission, onClick, t, lang }: { admission: BoardingAdmission; onClick: () => void; t: (key: string) => string; lang: string }) {
+function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admission: BoardingAdmission; onClick: () => void; onAssignUnit?: (admission: BoardingAdmission) => void; t: (key: string) => string; lang: string }) {
   const warnCount = getWarningCount(admission.admission_checks || {});
   const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
   const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
