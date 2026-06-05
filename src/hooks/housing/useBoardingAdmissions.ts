@@ -60,6 +60,15 @@ export interface BoardingAdmission {
   area?: { id: string; name: string; name_ar: string | null; facility_type?: string };
   unit?: { id: string; code: string; name: string | null; unit_type?: string };
   admitted_by_profile?: { id: string; full_name: string | null };
+  /** B2-F1-DISPLAY-TRUTH — boarding plan join for price fallback. Display-only. */
+  plan?: {
+    id: string;
+    name: string;
+    name_ar: string | null;
+    base_price: number;
+    billing_cycle: string;
+    currency: string;
+  } | null;
 }
 
 export interface CreateAdmissionData {
