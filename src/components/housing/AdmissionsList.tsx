@@ -26,10 +26,11 @@ import { useViewPreference } from "@/hooks/useViewPreference";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { useNotificationDeepLink } from "@/hooks/useNotificationDeepLink";
 import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHorses";
-import { PackageOpen } from "lucide-react";
+import { PackageOpen, MapPin } from "lucide-react";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 
 
-type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding';
+type AdmissionSubFilter = 'all' | 'active' | 'checkout_pending' | 'checked_out' | 'draft' | 'no_invoice' | 'outstanding' | 'needs_placement';
 
 function getStatusBadge(status: AdmissionStatus, t: (key: string) => string) {
   switch (status) {
