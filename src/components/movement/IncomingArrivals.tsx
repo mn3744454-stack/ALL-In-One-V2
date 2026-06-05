@@ -142,7 +142,7 @@ export function IncomingArrivals() {
               key={incoming.id}
               incoming={incoming}
               canConfirm={canConfirm && canManage}
-              onConfirm={() => setConfirmId(incoming.id)}
+              onConfirm={() => openConfirm(incoming)}
               onCancel={() => setCancelId(incoming.id)}
               getStatusBadge={getStatusBadge}
             />
