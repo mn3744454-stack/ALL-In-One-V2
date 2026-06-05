@@ -479,12 +479,22 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
                   )}
                 </span>
               )}
-              {admission.unit && (
+              {admission.unit ? (
                 <span className="flex items-center gap-1">
                   <DoorOpen className="h-3 w-3" />
                   {admission.unit.code}
                 </span>
-              )}
+              ) : (admission.status === 'active' || admission.status === 'checkout_pending') && onAssignUnit && admission.branch_id ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[11px] gap-1 text-orange-700 border-orange-300 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                  onClick={(e) => { e.stopPropagation(); onAssignUnit(admission); }}
+                >
+                  <MapPin className="h-3 w-3" />
+                  {t('housing.admissions.assignUnit')}
+                </Button>
+              ) : null}
             </div>
             <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="text-muted-foreground flex items-center gap-1">
