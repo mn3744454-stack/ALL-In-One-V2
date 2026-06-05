@@ -2897,6 +2897,7 @@ export const en = {
         by: "by",
         days: "days",
         assignUnit: "Assign Unit",
+        moveUnit: "Move Unit",
         addContact: "Add Contact",
         notAssigned: "Not assigned",
         addDeparture: "Set Departure",
