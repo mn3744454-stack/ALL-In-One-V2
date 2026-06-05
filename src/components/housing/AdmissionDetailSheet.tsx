@@ -36,6 +36,7 @@ import {
   TrendingUp, FileWarning
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { CareNotesList } from "./CareNotesList";
 import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
 import { AssignClientDialog } from "./AssignClientDialog";
