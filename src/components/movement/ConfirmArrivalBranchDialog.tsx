@@ -29,11 +29,11 @@ interface ConfirmArrivalBranchDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (branchId: string) => Promise<void> | void;
   isProcessing: boolean;
-  preferredBranchId?: string | null;
+  boardingContractId?: string | null;
 }
 
 export function ConfirmArrivalBranchDialog({
-  open, onOpenChange, onConfirm, isProcessing, preferredBranchId,
+  open, onOpenChange, onConfirm, isProcessing, boardingContractId,
 }: ConfirmArrivalBranchDialogProps) {
   const { t, lang } = useI18n();
   const { activeTenant } = useTenant();
