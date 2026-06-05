@@ -347,13 +347,11 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               {t('housing.admissions.subFilters.outstanding')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
             </TabsTrigger>
-            {counts.settled > 0 && (
-              <TabsTrigger value="settled" className="gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {t('housing.admissions.subFilters.settled')}
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.settled}</Badge>
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="settled" className="gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {t('housing.admissions.subFilters.settled')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.settled}</Badge>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
