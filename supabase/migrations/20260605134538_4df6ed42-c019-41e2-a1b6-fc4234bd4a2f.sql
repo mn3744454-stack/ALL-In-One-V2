@@ -1,0 +1,1 @@
+ALTER VIEW public.vw_horse_lifecycle_state SET (security_invoker = on);
