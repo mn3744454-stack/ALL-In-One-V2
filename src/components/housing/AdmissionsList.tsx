@@ -142,59 +142,76 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
     [allAdmissions, branchId]
   );
 
-  // Fetch billing links for all active boarding admissions to determine "no invoice" state
+  // Active/checkout-pending admission ids drive both the financial chips and
+  // the per-row financial truth lookup. B2-F1-DISPLAY-TRUTH.
   const { activeTenant } = useTenant();
   const tenantId = activeTenant?.tenant?.id;
 
   const activeAdmissionIds = useMemo(() =>
-    branchFiltered.filter(a => a.status === 'active' || a.status === 'checkout_pending').map(a => a.id),
+    branchFiltered
+      .filter(a => a.status === 'active' || a.status === 'checkout_pending')
+      .map(a => a.id),
     [branchFiltered]
   );
 
-  const { data: boardingBillingLinks = [] } = useQuery({
-    queryKey: ['billing-links-boarding-bulk', tenantId, activeAdmissionIds],
-    queryFn: async () => {
-      if (!tenantId || activeAdmissionIds.length === 0) return [];
-      const { data } = await supabase
-        .from('billing_links')
-        .select('source_id')
-        .eq('tenant_id', tenantId)
-        .eq('source_type', 'boarding')
-        .in('source_id', activeAdmissionIds);
-      return data || [];
-    },
-    enabled: !!tenantId && activeAdmissionIds.length > 0,
-  });
+  // Batched read-side financial truth: hasBoardingLink + admissionBalance from
+  // invoices + payments. Replaces stale reliance on boarding_admissions.balance_cleared.
+  const { get: getFinancials } = useAdmissionFinancialsBatch(activeAdmissionIds);
 
-  const invoicedAdmissionIds = useMemo(() =>
-    new Set(boardingBillingLinks.map((l: { source_id: string }) => l.source_id)),
-    [boardingBillingLinks]
-  );
+  // Classify each active/checkout_pending admission into one of the financial
+  // display-states. Lifecycle-only admissions (checked_out, draft, etc.) are
+  // intentionally excluded from financial chips.
+  type FinancialState = 'needs_price' | 'accrued_unbilled' | 'outstanding' | 'settled' | null;
+  const financialStateById = useMemo(() => {
+    const map = new Map<string, FinancialState>();
+    for (const a of branchFiltered) {
+      if (a.status !== 'active' && a.status !== 'checkout_pending') {
+        map.set(a.id, null);
+        continue;
+      }
+      const fin = getFinancials(a.id);
+      if (fin.hasBoardingLink) {
+        map.set(a.id, fin.balance > 0.01 ? 'outstanding' : 'settled');
+        continue;
+      }
+      const eff = getEffectivePrice(a);
+      if (eff.source === 'none') {
+        map.set(a.id, 'needs_price');
+      } else {
+        map.set(a.id, 'accrued_unbilled');
+      }
+    }
+    return map;
+  }, [branchFiltered, getFinancials]);
 
   const counts = useMemo(() => {
     const active = branchFiltered.filter(a => a.status === 'active').length;
     const checkoutPending = branchFiltered.filter(a => a.status === 'checkout_pending').length;
     const checkedOut = branchFiltered.filter(a => a.status === 'checked_out').length;
     const draft = branchFiltered.filter(a => a.status === 'draft').length;
-    // "No Invoice" = active admissions with a rate but no billing_link (never invoiced)
-    const noInvoice = branchFiltered.filter(a =>
-      (a.status === 'active' || a.status === 'checkout_pending') &&
-      (a.daily_rate || a.monthly_rate) &&
-      !invoicedAdmissionIds.has(a.id)
-    ).length;
-    // "Outstanding" = active/pending admissions with a rate that are not balance-cleared and have been invoiced
-    const outstanding = branchFiltered.filter(a =>
-      (a.status === 'active' || a.status === 'checkout_pending') &&
-      !a.balance_cleared &&
-      invoicedAdmissionIds.has(a.id)
-    ).length;
-    // B2.3d-UI-S1 — Needs Placement = active/pending admission with no unit_id.
-    // Cross-tenant hosted horses appear here via RLS-safe useBoardingAdmissions.
+    let needsPrice = 0, accruedUnbilled = 0, outstanding = 0, settled = 0;
+    for (const [, s] of financialStateById) {
+      if (s === 'needs_price') needsPrice++;
+      else if (s === 'accrued_unbilled') accruedUnbilled++;
+      else if (s === 'outstanding') outstanding++;
+      else if (s === 'settled') settled++;
+    }
     const needsPlacement = branchFiltered.filter(a =>
       (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
     ).length;
-    return { all: branchFiltered.length, active, checkoutPending, checkedOut, draft, noInvoice, outstanding, needsPlacement };
-  }, [branchFiltered, invoicedAdmissionIds]);
+    return {
+      all: branchFiltered.length,
+      active,
+      checkoutPending,
+      checkedOut,
+      draft,
+      needsPlacement,
+      needsPrice,
+      accruedUnbilled,
+      outstanding,
+      settled,
+    };
+  }, [branchFiltered, financialStateById]);
 
   const filteredAdmissions = useMemo(() => {
     switch (subFilter) {
@@ -202,22 +219,16 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
       case 'checkout_pending': return branchFiltered.filter(a => a.status === 'checkout_pending');
       case 'checked_out': return branchFiltered.filter(a => a.status === 'checked_out');
       case 'draft': return branchFiltered.filter(a => a.status === 'draft');
-      case 'no_invoice': return branchFiltered.filter(a =>
-        (a.status === 'active' || a.status === 'checkout_pending') &&
-        (a.daily_rate || a.monthly_rate) &&
-        !invoicedAdmissionIds.has(a.id)
-      );
-      case 'outstanding': return branchFiltered.filter(a =>
-        (a.status === 'active' || a.status === 'checkout_pending') &&
-        !a.balance_cleared &&
-        invoicedAdmissionIds.has(a.id)
-      );
       case 'needs_placement': return branchFiltered.filter(a =>
         (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
       );
+      case 'needs_price': return branchFiltered.filter(a => financialStateById.get(a.id) === 'needs_price');
+      case 'accrued_unbilled': return branchFiltered.filter(a => financialStateById.get(a.id) === 'accrued_unbilled');
+      case 'outstanding': return branchFiltered.filter(a => financialStateById.get(a.id) === 'outstanding');
+      case 'settled': return branchFiltered.filter(a => financialStateById.get(a.id) === 'settled');
       default: return branchFiltered;
     }
-  }, [branchFiltered, subFilter, invoicedAdmissionIds]);
+  }, [branchFiltered, subFilter, financialStateById]);
 
   // B2.3d-UI-S1 — Assign Unit dialog wiring. Reuses PlaceInUnitDialog
   // (SafeFormDialog + useDirtyForm) — no new dialog is introduced.
