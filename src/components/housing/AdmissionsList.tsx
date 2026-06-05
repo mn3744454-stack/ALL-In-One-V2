@@ -323,6 +323,9 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
               {filteredAdmissions.map((admission) => {
                 const stayDays = computeStayDays(admission.admitted_at, admission.checked_out_at);
                 const rateDisplay = formatBoardingRate(admission.daily_rate, admission.monthly_rate, admission.rate_currency, lang);
+                const needsPlace =
+                  (admission.status === 'active' || admission.status === 'checkout_pending') &&
+                  !admission.unit_id;
                 return (
                   <TableRow key={admission.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedAdmissionId(admission.id)}>
                     <TableCell className="text-start">
@@ -344,7 +347,21 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
                         ? <BilingualName name={admission.branch.name} nameAr={admission.branch.name_ar} primaryClassName="text-sm font-normal" />
                         : '—'}
                     </TableCell>
-                    <TableCell className="text-center text-muted-foreground text-sm">{admission.unit?.code || '—'}</TableCell>
+                    <TableCell className="text-center text-muted-foreground text-sm">
+                      {admission.unit?.code ? (
+                        admission.unit.code
+                      ) : needsPlace && canAssignUnit && admission.branch_id ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs gap-1 text-orange-700 border-orange-300 hover:bg-orange-50 dark:text-orange-300 dark:hover:bg-orange-950/40"
+                          onClick={(e) => { e.stopPropagation(); openAssignUnit(admission); }}
+                        >
+                          <MapPin className="h-3 w-3" />
+                          {t('housing.admissions.assignUnit')}
+                        </Button>
+                      ) : '—'}
+                    </TableCell>
                     <TableCell className="text-center">{getStatusBadge(admission.status, t)}</TableCell>
                     <TableCell className="text-center whitespace-nowrap text-muted-foreground text-sm">{formatStandardDate(admission.admitted_at)}</TableCell>
                     <TableCell className="text-center text-sm whitespace-nowrap">
