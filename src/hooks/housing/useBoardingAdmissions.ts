@@ -473,6 +473,24 @@ export function useBoardingAdmissions(filters: AdmissionFilters = {}) {
         throw new Error('Cannot update a closed admission');
       }
 
+      // R1-FE-CLOSE — Defensive guard: active placement fields
+      // (unit_id / area_id / branch_id) must only be mutated through the
+      // canonical housing placement flow (PlaceInUnitDialog → useInternalMove
+      // → record_horse_movement_with_housing). A direct UPDATE here bypasses
+      // housing_unit_occupants, horse_movements, and the horse location
+      // cache — causing admission truth to diverge from physical occupancy.
+      if (['active', 'checkout_pending'].includes(current.status)) {
+        const placementFields = ['unit_id', 'area_id', 'branch_id'] as const;
+        const attempted = placementFields.filter((f) =>
+          Object.prototype.hasOwnProperty.call(updates, f)
+        );
+        if (attempted.length > 0) {
+          throw new Error(
+            'Unit placement for active admissions must be done through the housing placement flow.'
+          );
+        }
+      }
+
       // If caller supplied a new emergency_contacts array, mirror the first
       // usable phone into the legacy emergency_contact text column so older
       // reads keep working during the transition release.

@@ -36,6 +36,7 @@ import {
   TrendingUp, FileWarning
 } from "lucide-react";
 import { CheckoutDialog } from "./CheckoutDialog";
+import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { CareNotesList } from "./CareNotesList";
 import { CreateInvoiceFromAdmission } from "./CreateInvoiceFromAdmission";
 import { AssignClientDialog } from "./AssignClientDialog";
@@ -82,6 +83,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const [assignClientOpen, setAssignClientOpen] = useState(false);
   const [setPriceOpen, setSetPriceOpen] = useState(false);
   const [emergencyContactOpen, setEmergencyContactOpen] = useState(false);
+  const [placeInUnitOpen, setPlaceInUnitOpen] = useState(false);
 
   // Phase C: assigned team for this admission's horse
   const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
@@ -137,6 +139,12 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
     : baseWarnings;
 
   const isEditable = admission && !['checked_out', 'cancelled'].includes(admission.status);
+  // R1-FE-CLOSE — Active placement (unit/area/branch) MUST go through
+  // PlaceInUnitDialog → useInternalMove → record_horse_movement_with_housing.
+  // Direct field edits are only safe on draft admissions.
+  const isActivePlacement =
+    !!admission && ['active', 'checkout_pending'].includes(admission.status);
+  const isDraftAdmission = !!admission && admission.status === 'draft';
 
   // Related movements query
   const { data: relatedMovements = [] } = useQuery({
@@ -334,7 +342,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => setEditingField('unit_id')}
+                              onClick={() => {
+                                if (isActivePlacement) {
+                                  setPlaceInUnitOpen(true);
+                                } else {
+                                  setEditingField('unit_id');
+                                }
+                              }}
                             >
                               {t('housing.admissions.detail.assignUnit')}
                             </Button>
@@ -493,8 +507,18 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Unit — editable */}
-                  {editingField === 'unit_id' ? (
+                  {/* Unit — R1-FE-CLOSE
+                     * Draft admissions: legacy inline dropdown is retained
+                     *   (no occupancy/movement exists yet for a draft, so the
+                     *   direct field write is safe).
+                     * Active / checkout_pending: read-only row + a canonical
+                     *   placement CTA that opens PlaceInUnitDialog so the
+                     *   move flows through useInternalMove →
+                     *   record_horse_movement_with_housing. Inline pencil/
+                     *   dropdown is suppressed to prevent bypassing
+                     *   housing_unit_occupants + horse cache + movement audit.
+                     */}
+                  {isDraftAdmission && editingField === 'unit_id' ? (
                     <div className="flex items-center gap-2">
                       <DoorOpen className="h-4 w-4 text-muted-foreground shrink-0" />
                       <Select
@@ -519,12 +543,40 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
+                  ) : isActivePlacement ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <DetailRow
+                        icon={DoorOpen}
+                        label={t('housing.admissions.detail.unit')}
+                        value={
+                          <span className="font-medium">
+                            {admission.unit?.code || (
+                              <span className="text-muted-foreground italic">
+                                {t('housing.admissions.detail.notAssigned')}
+                              </span>
+                            )}
+                          </span>
+                        }
+                      />
+                      {canUpdate && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs shrink-0"
+                          onClick={() => setPlaceInUnitOpen(true)}
+                        >
+                          {admission.unit?.code
+                            ? t('housing.admissions.detail.moveUnit')
+                            : t('housing.admissions.detail.assignUnit')}
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <EditableDetailRow
                       icon={DoorOpen}
                       label={t('housing.admissions.detail.unit')}
                       value={<span className="font-medium">{admission.unit?.code || t('housing.admissions.detail.notAssigned')}</span>}
-                      canEdit={isEditable && canUpdate}
+                      canEdit={isDraftAdmission && canUpdate}
                       onEdit={() => setEditingField('unit_id')}
                     />
                   )}
@@ -910,6 +962,21 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
           currentValue={admission.emergency_contact}
           horseName={admission.horse?.name}
           horseNameAr={admission.horse?.name_ar}
+        />
+      )}
+
+      {/* R1-FE-CLOSE — Canonical placement entry point for active admissions */}
+      {admission && (
+        <PlaceInUnitDialog
+          open={placeInUnitOpen}
+          onOpenChange={setPlaceInUnitOpen}
+          horse={admission.horse ? {
+            id: admission.horse.id,
+            name: admission.horse.name,
+            name_ar: admission.horse.name_ar,
+            avatar_url: admission.horse.avatar_url ?? null,
+          } : null}
+          branchId={admission.branch_id}
         />
       )}
 
