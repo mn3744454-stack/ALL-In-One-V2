@@ -686,8 +686,8 @@ function FilterExplanationPanel({
   const key = subFilter; // i18n keys match the AdmissionSubFilter values
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
-      <CardContent className="p-3 space-y-1">
+    <Card className="border-s-4 border-s-primary/60 border-y-0 border-e-0 bg-primary/5 rounded-md">
+      <CardContent className="p-2.5 text-start">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-semibold text-foreground">
             {t(`housing.admissions.filterPanel.titles.${key}`)}
@@ -695,12 +695,12 @@ function FilterExplanationPanel({
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
             {t('housing.admissions.filterPanel.countLabel')} {count}
           </Badge>
+          <span className="text-xs text-muted-foreground leading-snug">
+            {t(`housing.admissions.filterPanel.descriptions.${key}`)}
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground leading-snug">
-          {t(`housing.admissions.filterPanel.descriptions.${key}`)}
-        </p>
         {key === 'accrued_unbilled' && (
-          <p className="text-[11px] text-primary/80 leading-snug">
+          <p className="text-[11px] text-primary/80 leading-snug mt-1">
             {t('housing.admissions.filterPanel.secondaryAccrued')}
           </p>
         )}
@@ -708,3 +708,4 @@ function FilterExplanationPanel({
     </Card>
   );
 }
+
