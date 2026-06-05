@@ -50,9 +50,26 @@ export function IncomingArrivals() {
     const incoming = incomingMovements.find(m => m.id === confirmId);
     await confirmIncoming({ incomingId: confirmId });
     setConfirmId(null);
-    // Show guided next step
     if (incoming) {
       setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
+    }
+  };
+
+  const handleConfirmContract = async (branchId: string) => {
+    if (!confirmContractDialogId) return;
+    const incoming = incomingMovements.find(m => m.id === confirmContractDialogId);
+    await confirmIncoming({ incomingId: confirmContractDialogId, branchId });
+    setConfirmContractDialogId(null);
+    if (incoming) {
+      setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
+    }
+  };
+
+  const openConfirm = (incoming: IncomingMovement) => {
+    if (incoming.source_type === 'boarding_contract') {
+      setConfirmContractDialogId(incoming.id);
+    } else {
+      setConfirmId(incoming.id);
     }
   };
 
