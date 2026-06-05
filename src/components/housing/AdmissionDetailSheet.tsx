@@ -83,6 +83,7 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
   const [assignClientOpen, setAssignClientOpen] = useState(false);
   const [setPriceOpen, setSetPriceOpen] = useState(false);
   const [emergencyContactOpen, setEmergencyContactOpen] = useState(false);
+  const [placeInUnitOpen, setPlaceInUnitOpen] = useState(false);
 
   // Phase C: assigned team for this admission's horse
   const { assignments: horseAssignments } = useHorseAssignments(admission?.horse_id || '');
