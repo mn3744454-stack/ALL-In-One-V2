@@ -507,8 +507,18 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                     />
                   )}
 
-                  {/* Unit — editable */}
-                  {editingField === 'unit_id' ? (
+                  {/* Unit — R1-FE-CLOSE
+                     * Draft admissions: legacy inline dropdown is retained
+                     *   (no occupancy/movement exists yet for a draft, so the
+                     *   direct field write is safe).
+                     * Active / checkout_pending: read-only row + a canonical
+                     *   placement CTA that opens PlaceInUnitDialog so the
+                     *   move flows through useInternalMove →
+                     *   record_horse_movement_with_housing. Inline pencil/
+                     *   dropdown is suppressed to prevent bypassing
+                     *   housing_unit_occupants + horse cache + movement audit.
+                     */}
+                  {isDraftAdmission && editingField === 'unit_id' ? (
                     <div className="flex items-center gap-2">
                       <DoorOpen className="h-4 w-4 text-muted-foreground shrink-0" />
                       <Select
@@ -533,12 +543,40 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
+                  ) : isActivePlacement ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <DetailRow
+                        icon={DoorOpen}
+                        label={t('housing.admissions.detail.unit')}
+                        value={
+                          <span className="font-medium">
+                            {admission.unit?.code || (
+                              <span className="text-muted-foreground italic">
+                                {t('housing.admissions.detail.notAssigned')}
+                              </span>
+                            )}
+                          </span>
+                        }
+                      />
+                      {canUpdate && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs shrink-0"
+                          onClick={() => setPlaceInUnitOpen(true)}
+                        >
+                          {admission.unit?.code
+                            ? t('housing.admissions.detail.moveUnit')
+                            : t('housing.admissions.detail.assignUnit')}
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <EditableDetailRow
                       icon={DoorOpen}
                       label={t('housing.admissions.detail.unit')}
                       value={<span className="font-medium">{admission.unit?.code || t('housing.admissions.detail.notAssigned')}</span>}
-                      canEdit={isEditable && canUpdate}
+                      canEdit={isDraftAdmission && canUpdate}
                       onEdit={() => setEditingField('unit_id')}
                     />
                   )}
