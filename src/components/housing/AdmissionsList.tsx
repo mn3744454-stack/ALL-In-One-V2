@@ -324,22 +324,46 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         {/* Visual separator */}
         <div className="h-6 w-px bg-border hidden sm:block" />
 
-        {/* Financial state group */}
-        <Tabs value={['no_invoice','outstanding'].includes(subFilter) ? subFilter : ''} onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}>
+        {/* Financial state group — B2-F1-DISPLAY-TRUTH */}
+        <Tabs
+          value={['needs_price','accrued_unbilled','outstanding','settled'].includes(subFilter) ? subFilter : ''}
+          onValueChange={(v) => setSubFilter(v as AdmissionSubFilter)}
+        >
           <TabsList className="flex-wrap h-auto gap-1">
-            <TabsTrigger value="no_invoice" className="gap-1.5">
+            {counts.needsPrice > 0 && (
+              <TabsTrigger value="needs_price" className="gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.needsPrice')}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 min-w-4 text-amber-600 border-amber-300">{counts.needsPrice}</Badge>
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="accrued_unbilled" className="gap-1.5">
               <FileX className="h-3.5 w-3.5" />
-              {t('housing.admissions.subFilters.noInvoice')}
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.noInvoice}</Badge>
+              {t('housing.admissions.subFilters.accruedUnbilled')}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.accruedUnbilled}</Badge>
             </TabsTrigger>
             <TabsTrigger value="outstanding" className="gap-1.5">
               <Receipt className="h-3.5 w-3.5" />
               {t('housing.admissions.subFilters.outstanding')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.outstanding}</Badge>
             </TabsTrigger>
+            {counts.settled > 0 && (
+              <TabsTrigger value="settled" className="gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {t('housing.admissions.subFilters.settled')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{counts.settled}</Badge>
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
       </div>
+
+      {/* Filter explanation panel — updates per selected filter, RTL-safe, mobile-friendly. */}
+      <FilterExplanationPanel
+        subFilter={subFilter === 'all' || subFilter === '' as any ? 'all' : subFilter}
+        count={filteredAdmissions.length}
+      />
+
 
       {/* List */}
       {isLoading ? (
