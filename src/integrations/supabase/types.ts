@@ -11576,10 +11576,16 @@ export type Database = {
         }
         Returns: Json
       }
-      confirm_incoming_movement: {
-        Args: { p_incoming_id: string; p_notes?: string }
-        Returns: Json
-      }
+      confirm_incoming_movement:
+        | { Args: { p_incoming_id: string; p_notes?: string }; Returns: Json }
+        | {
+            Args: {
+              p_branch_id?: string
+              p_incoming_id: string
+              p_notes?: string
+            }
+            Returns: Json
+          }
       create_boarding_contract_with_connection: {
         Args: {
           _client_id?: string
