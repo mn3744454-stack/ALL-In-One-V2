@@ -66,10 +66,11 @@ export function useIncomingMovements(statusFilter?: string) {
   const pendingCount = incomingMovements.filter(m => m.status === 'pending').length;
 
   const confirmMutation = useMutation({
-    mutationFn: async ({ incomingId, notes }: { incomingId: string; notes?: string }) => {
+    mutationFn: async ({ incomingId, notes, branchId }: { incomingId: string; notes?: string; branchId?: string | null }) => {
       const { data, error } = await supabase.rpc('confirm_incoming_movement' as any, {
         p_incoming_id: incomingId,
         p_notes: notes || null,
+        p_branch_id: branchId ?? null,
       });
       if (error) throw error;
       return data;
