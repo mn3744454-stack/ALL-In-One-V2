@@ -965,6 +965,21 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
         />
       )}
 
+      {/* R1-FE-CLOSE — Canonical placement entry point for active admissions */}
+      {admission && (
+        <PlaceInUnitDialog
+          open={placeInUnitOpen}
+          onOpenChange={setPlaceInUnitOpen}
+          horse={admission.horse ? {
+            id: admission.horse.id,
+            name: admission.horse.name,
+            name_ar: admission.horse.name_ar,
+            avatar_url: admission.horse.avatar_url ?? null,
+          } : null}
+          branchId={admission.branch_id}
+        />
+      )}
+
     </>
   );
 }
