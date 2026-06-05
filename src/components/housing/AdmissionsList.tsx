@@ -668,3 +668,43 @@ function NeedsAdmissionSection({ branchId }: { branchId?: string }) {
     </Card>
   );
 }
+
+/**
+ * B2-F1-DISPLAY-TRUTH — Filter explanation panel.
+ * Highlighted, RTL-safe, mobile-friendly. Updates per selected filter, including
+ * a secondary clarifier for the Accrued/Unbilled state to prevent invoice-truth
+ * confusion.
+ */
+function FilterExplanationPanel({
+  subFilter,
+  count,
+}: {
+  subFilter: AdmissionSubFilter;
+  count: number;
+}) {
+  const { t } = useI18n();
+  const key = subFilter; // i18n keys match the AdmissionSubFilter values
+
+  return (
+    <Card className="border-primary/20 bg-primary/5">
+      <CardContent className="p-3 space-y-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-semibold text-foreground">
+            {t(`housing.admissions.filterPanel.titles.${key}`)}
+          </span>
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+            {t('housing.admissions.filterPanel.countLabel')} {count}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground leading-snug">
+          {t(`housing.admissions.filterPanel.descriptions.${key}`)}
+        </p>
+        {key === 'accrued_unbilled' && (
+          <p className="text-[11px] text-primary/80 leading-snug">
+            {t('housing.admissions.filterPanel.secondaryAccrued')}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
