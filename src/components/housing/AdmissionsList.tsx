@@ -596,9 +596,14 @@ function AdmissionCard({ admission, onClick, onAssignUnit, t, lang }: { admissio
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <CreditCard className="h-3 w-3" />
                   {rateDisplay}
+                  {eff.source === 'plan_rate' && (
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 leading-tight text-primary border-primary/30 ms-1">
+                      {t('housing.admissions.price.fromPlan')}
+                    </Badge>
+                  )}
                 </span>
               ) : (
-                <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.list.noBilling')}</span>
+                <span className="text-amber-500 text-[10px] italic">{t('housing.admissions.price.notSet')}</span>
               )}
             </div>
           </div>
