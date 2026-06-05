@@ -231,9 +231,12 @@ function IncomingCard({ incoming, canConfirm, onConfirm, onCancel, getStatusBadg
             {incoming.scheduled_at && (
               <p className="text-xs text-muted-foreground mt-0.5">{t('movement.incoming.scheduledAt')}: {formatStandardDateTime(incoming.scheduled_at)}</p>
             )}
-            {incoming.reason && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">{t('movement.detail.reason')}: {incoming.reason}</p>
-            )}
+            {(() => {
+              const reasonDisplay = formatMovementReason(incoming.reason, t);
+              return reasonDisplay ? (
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">{t('movement.detail.reason')}: {reasonDisplay}</p>
+              ) : null;
+            })()}
           </div>
         </div>
         {incoming.status === 'pending' && canConfirm && (
