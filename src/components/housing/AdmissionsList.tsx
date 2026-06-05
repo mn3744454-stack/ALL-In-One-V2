@@ -682,11 +682,14 @@ function FilterExplanationPanel({
   subFilter: AdmissionSubFilter;
   count: number;
 }) {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const key = subFilter; // i18n keys match the AdmissionSubFilter values
 
   return (
-    <Card className="border-s-4 border-s-primary/60 border-y-0 border-e-0 bg-primary/5 rounded-md">
+    <Card
+      dir={dir}
+      className="border-s-4 border-s-primary/60 border-y-0 border-e-0 bg-primary/5 rounded-md"
+    >
       <CardContent className="p-2.5 text-start">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-semibold text-foreground">
@@ -700,7 +703,7 @@ function FilterExplanationPanel({
           </span>
         </div>
         {key === 'accrued_unbilled' && (
-          <p className="text-[11px] text-primary/80 leading-snug mt-1">
+          <p className="text-[11px] text-primary/80 leading-snug mt-1 text-start">
             {t('housing.admissions.filterPanel.secondaryAccrued')}
           </p>
         )}
