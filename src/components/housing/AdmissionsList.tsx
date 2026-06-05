@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 // (useQuery removed — financial truth lives in useAdmissionFinancialsBatch)
-import { supabase } from "@/integrations/supabase/client";
+// (supabase import removed — inline billing-links query replaced by batched hook)
 import { useTenant } from "@/contexts/TenantContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
