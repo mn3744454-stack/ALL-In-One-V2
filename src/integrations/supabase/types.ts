@@ -11978,6 +11978,10 @@ export type Database = {
         }
         Returns: string
       }
+      materialize_owner_as_client: {
+        Args: { p_contract_id: string }
+        Returns: string
+      }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
       record_connected_movement:
         | {
