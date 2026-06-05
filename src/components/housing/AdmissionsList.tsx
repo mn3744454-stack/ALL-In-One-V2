@@ -29,7 +29,7 @@ import { useBranchAttentionHorses } from "@/hooks/housing/useBranchAttentionHors
 import { PackageOpen, MapPin } from "lucide-react";
 import { PlaceInUnitDialog } from "./PlaceInUnitDialog";
 import { useAdmissionFinancialsBatch } from "@/hooks/housing/useAdmissionFinancialsBatch";
-import { formatBoardingAmount } from "@/lib/boardingUtils";
+// (formatBoardingAmount not used here; price formatting handled by formatBoardingRate)
 
 
 type AdmissionSubFilter =
