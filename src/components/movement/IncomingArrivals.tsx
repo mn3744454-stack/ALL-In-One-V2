@@ -23,6 +23,7 @@ import { formatStandardDateTime } from "@/lib/displayHelpers";
 import { Package, CheckCircle2, XCircle, Clock, Building2, ClipboardCheck, CalendarPlus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMovementReason } from "./movementReasonDisplay";
+import { ConfirmArrivalBranchDialog } from "./ConfirmArrivalBranchDialog";
 
 export function IncomingArrivals() {
   const { t } = useI18n();
@@ -30,6 +31,7 @@ export function IncomingArrivals() {
   const { hasPermission, isOwner } = usePermissions();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmContractDialogId, setConfirmContractDialogId] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [nextStepData, setNextStepData] = useState<{ horseId: string; horseName: string } | null>(null);
 
@@ -48,9 +50,26 @@ export function IncomingArrivals() {
     const incoming = incomingMovements.find(m => m.id === confirmId);
     await confirmIncoming({ incomingId: confirmId });
     setConfirmId(null);
-    // Show guided next step
     if (incoming) {
       setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
+    }
+  };
+
+  const handleConfirmContract = async (branchId: string) => {
+    if (!confirmContractDialogId) return;
+    const incoming = incomingMovements.find(m => m.id === confirmContractDialogId);
+    await confirmIncoming({ incomingId: confirmContractDialogId, branchId });
+    setConfirmContractDialogId(null);
+    if (incoming) {
+      setNextStepData({ horseId: incoming.horse_id, horseName: incoming.horse_name });
+    }
+  };
+
+  const openConfirm = (incoming: IncomingMovement) => {
+    if (incoming.source_type === 'boarding_contract') {
+      setConfirmContractDialogId(incoming.id);
+    } else {
+      setConfirmId(incoming.id);
     }
   };
 
@@ -123,7 +142,7 @@ export function IncomingArrivals() {
               key={incoming.id}
               incoming={incoming}
               canConfirm={canConfirm && canManage}
-              onConfirm={() => setConfirmId(incoming.id)}
+              onConfirm={() => openConfirm(incoming)}
               onCancel={() => setCancelId(incoming.id)}
               getStatusBadge={getStatusBadge}
             />
@@ -132,6 +151,14 @@ export function IncomingArrivals() {
       )}
 
       {/* Confirm Dialog */}
+      <ConfirmArrivalBranchDialog
+        open={!!confirmContractDialogId}
+        onOpenChange={(open) => !open && setConfirmContractDialogId(null)}
+        onConfirm={handleConfirmContract}
+        isProcessing={isConfirming}
+        boardingContractId={incomingMovements.find(m => m.id === confirmContractDialogId)?.boarding_contract_id || null}
+      />
+
       <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

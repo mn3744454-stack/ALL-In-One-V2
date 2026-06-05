@@ -11,6 +11,7 @@ export * from './HorseLocationSection';
 export * from './IncomingArrivals';
 export * from './DispatchConfirmDialog';
 export * from './ConfirmArrivalDialog';
+export * from './ConfirmArrivalBranchDialog';
 export * from './ConfirmTransferDialog';
 export * from './HorseMovementTimeline';
 export * from './CancelMovementDialog';
