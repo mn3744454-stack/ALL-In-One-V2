@@ -342,7 +342,13 @@ export function AdmissionDetailSheet({ admissionId, open, onOpenChange }: Admiss
                               variant="outline"
                               size="sm"
                               className="h-7 text-xs shrink-0"
-                              onClick={() => setEditingField('unit_id')}
+                              onClick={() => {
+                                if (isActivePlacement) {
+                                  setPlaceInUnitOpen(true);
+                                } else {
+                                  setEditingField('unit_id');
+                                }
+                              }}
                             >
                               {t('housing.admissions.detail.assignUnit')}
                             </Button>
