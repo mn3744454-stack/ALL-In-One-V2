@@ -170,9 +170,21 @@ export function AdmissionsList({ branchId }: AdmissionsListProps) {
         !a.balance_cleared &&
         invoicedAdmissionIds.has(a.id)
       );
+      case 'needs_placement': return branchFiltered.filter(a =>
+        (a.status === 'active' || a.status === 'checkout_pending') && !a.unit_id
+      );
       default: return branchFiltered;
     }
   }, [branchFiltered, subFilter, invoicedAdmissionIds]);
+
+  // B2.3d-UI-S1 — Assign Unit dialog wiring. Reuses PlaceInUnitDialog
+  // (SafeFormDialog + useDirtyForm) — no new dialog is introduced.
+  const [placeAdmission, setPlaceAdmission] = useState<BoardingAdmission | null>(null);
+  const canAssignUnit = hasPermission('boarding.admission.create');
+  const openAssignUnit = (admission: BoardingAdmission) => {
+    if (!canAssignUnit) return;
+    setPlaceAdmission(admission);
+  };
 
   return (
     <div className="space-y-4">
