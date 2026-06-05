@@ -31,6 +31,7 @@ export function IncomingArrivals() {
   const { hasPermission, isOwner } = usePermissions();
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [confirmContractDialogId, setConfirmContractDialogId] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [nextStepData, setNextStepData] = useState<{ horseId: string; horseName: string } | null>(null);
 
