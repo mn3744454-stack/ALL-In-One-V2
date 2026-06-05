@@ -151,6 +151,14 @@ export function IncomingArrivals() {
       )}
 
       {/* Confirm Dialog */}
+      <ConfirmArrivalBranchDialog
+        open={!!confirmContractDialogId}
+        onOpenChange={(open) => !open && setConfirmContractDialogId(null)}
+        onConfirm={handleConfirmContract}
+        isProcessing={isConfirming}
+        boardingContractId={incomingMovements.find(m => m.id === confirmContractDialogId)?.boarding_contract_id || null}
+      />
+
       <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
