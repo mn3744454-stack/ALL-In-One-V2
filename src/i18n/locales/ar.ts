@@ -1869,6 +1869,7 @@ export const ar = {
         boardingAdmissionCheckin: "تسجيل دخول الإيواء",
         boardingAdmissionCheckout: "تسجيل خروج الإيواء",
         internalUnitReassignment: "إعادة تعيين وحدة سكن داخلية",
+        boardingContractScheduledArrival: "وصول مجدول من عقد إيواء",
       },
     },
     note: {
