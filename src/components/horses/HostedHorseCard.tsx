@@ -76,7 +76,7 @@ export const HostedHorseCard = ({ row, onClick, compact = false }: HostedHorseCa
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t(`horseOwner.hosted.${dateLabelKey}`)}{" "}
-              {new Date(dateToShow).toLocaleDateString(isAr ? "ar" : "en")}
+              {formatStandardDate(dateToShow)}
             </span>
           )}
           {row.open_service_requests_count > 0 && (
