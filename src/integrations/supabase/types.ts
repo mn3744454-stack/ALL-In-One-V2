@@ -1681,6 +1681,312 @@ export type Database = {
           },
         ]
       }
+      contract_document_events: {
+        Row: {
+          actor_tenant_id: string | null
+          actor_user_id: string | null
+          created_at: string
+          document_id: string
+          event_type: Database["public"]["Enums"]["contract_document_event_type"]
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          document_id: string
+          event_type: Database["public"]["Enums"]["contract_document_event_type"]
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          actor_tenant_id?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          document_id?: string
+          event_type?: Database["public"]["Enums"]["contract_document_event_type"]
+          id?: string
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_document_events_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_document_events_actor_tenant_id_fkey"
+            columns: ["actor_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_document_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "contract_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_documents: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          boarding_contract_id: string | null
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at: string
+          created_by: string | null
+          document_json: Json
+          id: string
+          recipient_tenant_id: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          sent_at: string | null
+          sent_by: string | null
+          snapshot_json: Json | null
+          snapshot_taken_at: string | null
+          source_template_id: string | null
+          source_template_version_id: string | null
+          status: Database["public"]["Enums"]["contract_document_status"]
+          tenant_id: string
+          title: string
+          title_ar: string | null
+          updated_at: string
+          variable_values: Json
+          variables_json: Json
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          boarding_contract_id?: string | null
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          document_json?: Json
+          id?: string
+          recipient_tenant_id?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          snapshot_json?: Json | null
+          snapshot_taken_at?: string | null
+          source_template_id?: string | null
+          source_template_version_id?: string | null
+          status?: Database["public"]["Enums"]["contract_document_status"]
+          tenant_id: string
+          title: string
+          title_ar?: string | null
+          updated_at?: string
+          variable_values?: Json
+          variables_json?: Json
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          boarding_contract_id?: string | null
+          contract_type?: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          document_json?: Json
+          id?: string
+          recipient_tenant_id?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          snapshot_json?: Json | null
+          snapshot_taken_at?: string | null
+          source_template_id?: string | null
+          source_template_version_id?: string | null
+          status?: Database["public"]["Enums"]["contract_document_status"]
+          tenant_id?: string
+          title?: string
+          title_ar?: string | null
+          updated_at?: string
+          variable_values?: Json
+          variables_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_boarding_contract_id_fkey"
+            columns: ["boarding_contract_id"]
+            isOneToOne: false
+            referencedRelation: "boarding_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_recipient_tenant_id_fkey"
+            columns: ["recipient_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_recipient_tenant_id_fkey"
+            columns: ["recipient_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_source_template_version_id_fkey"
+            columns: ["source_template_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_template_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_template_versions: {
+        Row: {
+          body_json: Json
+          created_at: string
+          created_by: string | null
+          document_schema_version: number
+          id: string
+          published_at: string | null
+          published_by: string | null
+          status: Database["public"]["Enums"]["contract_template_version_status"]
+          template_id: string
+          updated_at: string
+          variables_json: Json
+          version_no: number
+        }
+        Insert: {
+          body_json?: Json
+          created_at?: string
+          created_by?: string | null
+          document_schema_version?: number
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["contract_template_version_status"]
+          template_id: string
+          updated_at?: string
+          variables_json?: Json
+          version_no: number
+        }
+        Update: {
+          body_json?: Json
+          created_at?: string
+          created_by?: string | null
+          document_schema_version?: number
+          id?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: Database["public"]["Enums"]["contract_template_version_status"]
+          template_id?: string
+          updated_at?: string
+          variables_json?: Json
+          version_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_templates: {
+        Row: {
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          description: string | null
+          description_ar: string | null
+          id: string
+          name: string
+          name_ar: string | null
+          status: Database["public"]["Enums"]["contract_template_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          contract_type: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          name: string
+          name_ar?: string | null
+          status?: Database["public"]["Enums"]["contract_template_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          contract_type?: Database["public"]["Enums"]["contract_type"]
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          description_ar?: string | null
+          id?: string
+          name?: string
+          name_ar?: string | null
+          status?: Database["public"]["Enums"]["contract_template_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_templates_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "contract_template_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "public_tenant_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_financial_categories: {
         Row: {
           account_code: string | null
@@ -11473,6 +11779,18 @@ export type Database = {
         Args: { _contract_id: string; _plan_id: string; _terms_metadata?: Json }
         Returns: Json
       }
+      approve_contract_document: {
+        Args: { _document_id: string }
+        Returns: undefined
+      }
+      archive_contract_document: {
+        Args: { _document_id: string }
+        Returns: undefined
+      }
+      archive_contract_template: {
+        Args: { _template_id: string }
+        Returns: undefined
+      }
       build_boarding_plan_snapshot: {
         Args: { _plan_id: string }
         Returns: Json
@@ -11568,6 +11886,10 @@ export type Database = {
       }
       claim_client_portal: { Args: { _token: string }; Returns: string }
       cleanup_connection_rate_limits: { Args: never; Returns: number }
+      clone_contract_template: {
+        Args: { _new_name: string; _template_id: string }
+        Returns: string
+      }
       complete_horse_movement: {
         Args: {
           p_movement_id: string
@@ -11617,6 +11939,36 @@ export type Database = {
           _metadata?: Json
           _resource_ids?: string[]
           _resource_type: string
+        }
+        Returns: string
+      }
+      create_contract_document_blank: {
+        Args: {
+          _contract_type: Database["public"]["Enums"]["contract_type"]
+          _tenant_id: string
+          _title: string
+          _title_ar?: string
+        }
+        Returns: string
+      }
+      create_contract_document_from_template: {
+        Args: {
+          _boarding_contract_id?: string
+          _template_id: string
+          _tenant_id: string
+          _title: string
+          _title_ar?: string
+        }
+        Returns: string
+      }
+      create_contract_template: {
+        Args: {
+          _contract_type: Database["public"]["Enums"]["contract_type"]
+          _description?: string
+          _description_ar?: string
+          _name: string
+          _name_ar?: string
+          _tenant_id: string
         }
         Returns: string
       }
@@ -12004,6 +12356,10 @@ export type Database = {
         Returns: string
       }
       preaccept_invitation: { Args: { _token: string }; Returns: Json }
+      publish_contract_template_version: {
+        Args: { _version_id: string }
+        Returns: undefined
+      }
       record_connected_movement:
         | {
             Args: {
@@ -12058,6 +12414,10 @@ export type Database = {
         Returns: Json
       }
       reject_connection: { Args: { _token: string }; Returns: string }
+      reject_contract_document: {
+        Args: { _document_id: string; _reason?: string }
+        Returns: undefined
+      }
       reject_invitation: {
         Args: { _invitation_id: string; _reason?: string }
         Returns: Json
@@ -12102,6 +12462,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      save_contract_document_draft: {
+        Args: {
+          _document_id: string
+          _document_json: Json
+          _variable_values: Json
+          _variables_json: Json
+        }
+        Returns: undefined
+      }
+      save_contract_template_draft: {
+        Args: { _body_json: Json; _template_id: string; _variables_json: Json }
+        Returns: string
+      }
       schedule_boarding_contract_arrival: {
         Args: {
           _branch_preference?: string
@@ -12120,6 +12493,10 @@ export type Database = {
           name_ar: string
           type: string
         }[]
+      }
+      send_contract_document_for_review: {
+        Args: { _document_id: string; _recipient_tenant_id?: string }
+        Returns: undefined
       }
       set_primary_party_horse_link: {
         Args: {
@@ -12195,6 +12572,29 @@ export type Database = {
     }
     Enums: {
       connection_type: "b2b" | "b2c" | "employment"
+      contract_document_event_type:
+        | "created"
+        | "edited"
+        | "published_template"
+        | "generated_from_template"
+        | "sent_for_review"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "archived"
+        | "cloned"
+        | "exported_pdf"
+        | "linked_boarding"
+      contract_document_status:
+        | "draft"
+        | "sent_for_review"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "archived"
+      contract_template_status: "draft" | "published" | "archived"
+      contract_template_version_status: "draft" | "published" | "archived"
+      contract_type: "boarding" | "training" | "reproduction" | "custom"
       hr_employee_category: "field" | "office" | "mixed"
       hr_employee_type:
         | "trainer"
@@ -12394,6 +12794,31 @@ export const Constants = {
   public: {
     Enums: {
       connection_type: ["b2b", "b2c", "employment"],
+      contract_document_event_type: [
+        "created",
+        "edited",
+        "published_template",
+        "generated_from_template",
+        "sent_for_review",
+        "approved",
+        "rejected",
+        "cancelled",
+        "archived",
+        "cloned",
+        "exported_pdf",
+        "linked_boarding",
+      ],
+      contract_document_status: [
+        "draft",
+        "sent_for_review",
+        "approved",
+        "rejected",
+        "cancelled",
+        "archived",
+      ],
+      contract_template_status: ["draft", "published", "archived"],
+      contract_template_version_status: ["draft", "published", "archived"],
+      contract_type: ["boarding", "training", "reproduction", "custom"],
       hr_employee_category: ["field", "office", "mixed"],
       hr_employee_type: [
         "trainer",
