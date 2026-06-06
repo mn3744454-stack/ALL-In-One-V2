@@ -14,9 +14,9 @@ const PRESET_CLASS: Record<FontSizePreset, string> = {
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    fontSize: {
-      setFontSize: (preset: FontSizePreset) => ReturnType;
-      unsetFontSize: () => ReturnType;
+    contractFontSize: {
+      setContractFontSize: (preset: FontSizePreset) => ReturnType;
+      unsetContractFontSize: () => ReturnType;
     };
   }
 }
@@ -49,11 +49,11 @@ export const FontSizeMark = Mark.create({
 
   addCommands() {
     return {
-      setFontSize:
+      setContractFontSize:
         (preset) =>
         ({ commands }) =>
           commands.setMark(this.name, { preset }),
-      unsetFontSize:
+      unsetContractFontSize:
         () =>
         ({ commands }) =>
           commands.unsetMark(this.name),

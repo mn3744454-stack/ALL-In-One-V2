@@ -143,8 +143,8 @@ function Toolbar({ editor, variables }: { editor: Editor; variables: VariableDef
         className="text-xs rounded border border-border bg-background px-1 py-1"
         onChange={(e) => {
           const preset = e.target.value as FontSizePreset;
-          if (preset === "base") editor.chain().focus().unsetFontSize().run();
-          else editor.chain().focus().setFontSize(preset).run();
+          if (preset === "base") editor.chain().focus().unsetContractFontSize().run();
+          else editor.chain().focus().setContractFontSize(preset).run();
         }}
         value={(editor.getAttributes("fontSize")?.preset as FontSizePreset) ?? "base"}
         title="Font size"
