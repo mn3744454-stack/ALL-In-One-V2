@@ -6566,6 +6566,25 @@ export const ar = {
       body: "أضف خيولك التي تملكها هنا. سيتم ربط الإيواء والفواتير ونتائج المختبر عند تفعيل مرحلة عقد الإيواء.",
       unhostedCount: "{count} من الخيول غير مستضافة حاليًا في أي إسطبل.",
     },
+    hosted: {
+      title: "الخيول المستضافة",
+      hostedAt: "مستضافة لدى",
+      admittedSince: "مستضافة منذ",
+      expectedArrival: "الوصول المتوقع",
+      openServiceRequests: "طلبات خدمات مفتوحة",
+      placementNotShared: "تفاصيل التسكين غير مشاركة بعد.",
+      phase: {
+        awaitingArrival: "بانتظار الوصول",
+        arrivalScheduled: "وصول مجدول",
+        arrivedPendingPlacement: "وصلت — بانتظار التسكين",
+        currentlyHosted: "مستضافة حالياً",
+        departed: "غادرت",
+      },
+      empty: {
+        title: "لا توجد خيول مستضافة حالياً",
+        body: "عندما يستقبل أحد الإسطبلات خيلاً من خيولك ضمن عقد إيواء فعّال، سيظهر هنا.",
+      },
+    },
     emptyHorse: {
       notLinked: "لم يتم ربط هذا الخيل بإسطبل بعد.",
       boardingLater: "سيتم طلب الإيواء وربط الإسطبل في مرحلة عقد الإيواء القادمة.",

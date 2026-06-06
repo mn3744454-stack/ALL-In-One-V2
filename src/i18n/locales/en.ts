@@ -6588,6 +6588,25 @@ export const en = {
       body: "Add horses you own here. Boarding, invoices and lab results will be linked once the Boarding Contract phase is enabled.",
       unhostedCount: "{count} horse(s) are not currently boarded at a stable.",
     },
+    hosted: {
+      title: "Hosted Horses",
+      hostedAt: "Hosted at",
+      admittedSince: "Admitted since",
+      expectedArrival: "Expected arrival",
+      openServiceRequests: "Open service requests",
+      placementNotShared: "Placement details not shared yet.",
+      phase: {
+        awaitingArrival: "Awaiting Arrival",
+        arrivalScheduled: "Arrival Scheduled",
+        arrivedPendingPlacement: "Arrived, Pending Placement",
+        currentlyHosted: "Currently Hosted",
+        departed: "Departed",
+      },
+      empty: {
+        title: "No hosted horses yet",
+        body: "When a stable admits one of your horses under an active boarding contract, it will appear here.",
+      },
+    },
     emptyHorse: {
       notLinked: "This horse is not yet linked to a stable.",
       boardingLater: "Boarding requests will be added in the Boarding Contract phase.",
