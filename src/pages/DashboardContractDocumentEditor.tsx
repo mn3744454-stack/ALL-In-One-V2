@@ -14,7 +14,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader,
   AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Save, Send, CheckCircle2, XCircle, Printer } from "lucide-react";
+import { ArrowLeft, Save, Send, CheckCircle2, XCircle, Printer, Archive } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { useContractDocument } from "@/contracts/hooks/useContractDocuments";
 import { ContractDocumentEditor } from "@/contracts/docModel/ContractDocumentEditor";
@@ -27,7 +27,7 @@ import { formatStandardDate } from "@/lib/displayHelpers";
 export default function DashboardContractDocumentEditor() {
   const { documentId = "" } = useParams();
   const { dir } = useI18n();
-  const { data, isLoading, saveDraft, send, approve, reject } = useContractDocument(documentId);
+  const { data, isLoading, saveDraft, send, approve, reject, archive } = useContractDocument(documentId);
 
   const [bodyDoc, setBodyDoc] = useState<BodyDoc>(EMPTY_BODY_DOC);
   const [variables, setVariables] = useState<VariableDef[]>(DEFAULT_CONTRACT_VARIABLES);
@@ -52,6 +52,9 @@ export default function DashboardContractDocumentEditor() {
   const isDraft = doc?.status === "draft";
   const isSent = doc?.status === "sent_for_review";
   const isApproved = doc?.status === "approved";
+  const isRejected = doc?.status === "rejected";
+  const isArchived = doc?.status === "archived";
+  const canArchive = !!doc && !isArchived;
   const isFrozen = !!doc?.snapshot_json;
 
   const missingRequired = useMemo(() => {
