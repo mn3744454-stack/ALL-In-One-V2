@@ -169,10 +169,10 @@ export const ORG_NAV_MODULES: WorkspaceNavModule[] = [
     route: "/dashboard/records",
   },
   {
-    key: "boardingContracts",
+    key: "contracts",
     icon: FileText,
-    labelKey: "sidebar.boardingContracts",
-    route: "/dashboard/boarding-contracts",
+    labelKey: "sidebar.contracts",
+    route: "/dashboard/contracts",
   },
   {
     key: "hr",
