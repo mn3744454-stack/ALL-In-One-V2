@@ -23,11 +23,13 @@ interface MobileLauncherProps {
 export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   const { t, dir } = useI18n();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { activeTenant, activeRole, workspaceMode } = useTenant();
   const { horses } = useHorses();
   const { hasPermission } = usePermissions();
   const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, isLabTenant } = useModuleAccess();
   const [selectedModule, setSelectedModule] = useState<WorkspaceNavModule | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const isRTL = dir === "rtl";
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
