@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Clock, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { OwnerHostedHorseRow } from "@/hooks/owner/useOwnerHostedHorses";
 
 interface HostedHorseCardProps {
@@ -75,7 +76,7 @@ export const HostedHorseCard = ({ row, onClick, compact = false }: HostedHorseCa
             <span className="inline-flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {t(`horseOwner.hosted.${dateLabelKey}`)}{" "}
-              {new Date(dateToShow).toLocaleDateString(isAr ? "ar" : "en")}
+              {formatStandardDate(dateToShow)}
             </span>
           )}
           {row.open_service_requests_count > 0 && (

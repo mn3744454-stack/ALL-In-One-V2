@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useI18n } from "@/i18n";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { OwnerHostedHorseRow } from "@/hooks/owner/useOwnerHostedHorses";
 
 interface HostedHorsesTableProps {
@@ -90,7 +91,7 @@ export const HostedHorsesTable = ({ rows, onRowClick }: HostedHorsesTableProps) 
                       <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
                         {t(`horseOwner.hosted.${dateLabelKey}`)}
                       </span>
-                      <span>{new Date(dateToShow).toLocaleDateString(isAr ? "ar" : "en")}</span>
+                      <span>{formatStandardDate(dateToShow)}</span>
                     </span>
                   ) : (
                     <span className="text-muted-foreground/60">—</span>
