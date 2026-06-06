@@ -4063,6 +4063,7 @@ export const en = {
       intakeDraft: "Pending Arrival",
       incomplete: "Incomplete Profile",
       outside: "No Location",
+      hosted: "Hosted",
     },
     notFound: "Horse not found",
     horseDeleted: "Horse deleted",
