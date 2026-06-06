@@ -606,6 +606,14 @@ export function BoardingContractsTab() {
           });
         }}
       />
+
+      <BoardingContractDetailsSheet
+        open={!!detailsRowId}
+        onOpenChange={(o) => !o && setDetailsRowId(null)}
+        row={rows.find((r) => r.c.id === detailsRowId) ?? null}
+        handlers={handlers}
+      />
     </div>
   );
 }
+
