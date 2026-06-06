@@ -350,7 +350,22 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/dashboard/contracts"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContracts />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/dashboard/boarding-contracts"
+        element={<Navigate to="/dashboard/contracts?type=boarding" replace />}
+      />
+      {/* Legacy direct page retained for safety; not linked from nav. */}
+      <Route
+        path="/dashboard/boarding-contracts/legacy"
         element={
           <ProtectedRoute>
             <WorkspaceRouteGuard requiredMode="organization">
