@@ -262,7 +262,7 @@ function CreateRequestDialog({
 
       // Build horse entries for the submission
       const horseEntries = selectedHorses.map(horse => {
-        const horseData = horses.find(h => h.id === horse.id);
+        const horseData = eligibleHorses.find(h => h.id === horse.id);
 
         let horseServiceIds: string[] | undefined;
         let horseDescription: string;
