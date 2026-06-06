@@ -11822,6 +11822,27 @@ export type Database = {
           token: string
         }[]
       }
+      get_owner_hosted_horses: {
+        Args: { p_owner_tenant_id: string }
+        Returns: {
+          admitted_at: string
+          avatar_url: string
+          checked_out_at: string
+          contract_id: string
+          contract_status: string
+          expected_arrival_at: string
+          horse_id: string
+          horse_name: string
+          horse_name_ar: string
+          last_owner_visible_update_at: string
+          open_service_requests_count: number
+          operational_phase: string
+          stable_name: string
+          stable_name_ar: string
+          stable_tenant_id: string
+          visibility_source: string
+        }[]
+      }
       get_public_tenant: {
         Args: { tenant_slug: string }
         Returns: {

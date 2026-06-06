@@ -5,14 +5,16 @@ import { HorseFilters, HorseFiltersState } from "./HorseFilters";
 import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { IncompleteProfileModal } from "./IncompleteProfileModal";
+import { HostedHorseCard } from "./HostedHorseCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Plus, AlertTriangle } from "lucide-react";
+import { Heart, Plus, AlertTriangle, Home } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
+import { useOwnerHostedHorses } from "@/hooks/owner/useOwnerHostedHorses";
 
 import { isHorseIncomplete, type CompletenessHorse } from "@/lib/horseCompleteness";
 
@@ -30,18 +32,21 @@ interface Horse extends CompletenessHorse {
   current_location_id?: string | null;
 }
 
-type OperationalTab = 'all' | 'inside' | 'outside';
+type OperationalTab = 'all' | 'inside' | 'outside' | 'hosted';
 
 interface HorsesListProps {
   horses: Horse[];
   loading: boolean;
   onHorseClick?: (horse: Horse) => void;
   onRefresh?: () => void;
+  /** When true, surface the owner-only Hosted tab backed by get_owner_hosted_horses. */
+  ownerMode?: boolean;
 }
 
-export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesListProps) => {
+export const HorsesList = ({ horses, loading, onHorseClick, onRefresh, ownerMode = false }: HorsesListProps) => {
   const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('horses');
+  const { data: hostedRows = [], isLoading: hostedLoading } = useOwnerHostedHorses();
   const [filters, setFilters] = useState<HorseFiltersState>({
     search: "",
     gender: "",
@@ -160,6 +165,13 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
               {t('horses.tabs.outside')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.outside.length}</Badge>
             </TabsTrigger>
+            {ownerMode && (
+              <TabsTrigger value="hosted" className="gap-1.5">
+                <Home className="w-3.5 h-3.5" />
+                {t('horses.tabs.hosted')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{hostedRows.length}</Badge>
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
@@ -182,7 +194,31 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesL
       <HorseFilters filters={filters} onChange={setFilters} />
 
       {/* Content */}
-      {filteredHorses.length === 0 ? (
+      {operationalTab === 'hosted' && ownerMode ? (
+        hostedLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : hostedRows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Home className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="font-semibold text-foreground mb-2">{t('horseOwner.hosted.empty.title')}</h3>
+            <p className="text-muted-foreground max-w-sm">{t('horseOwner.hosted.empty.body')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {hostedRows.map((row) => (
+              <HostedHorseCard
+                key={row.contract_id}
+                row={row}
+                onClick={() => onHorseClick?.({ id: row.horse_id, name: row.horse_name, name_ar: row.horse_name_ar ?? undefined, gender: '' } as Horse)}
+              />
+            ))}
+          </div>
+        )
+      ) : filteredHorses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Heart className="w-8 h-8 text-muted-foreground/50" />
