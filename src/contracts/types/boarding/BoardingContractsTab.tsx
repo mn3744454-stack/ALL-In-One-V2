@@ -36,7 +36,9 @@ import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndA
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
 import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet";
 import { ContractDestructiveConfirmDialog } from "@/components/boarding/ContractDestructiveConfirmDialog";
+import { BoardingContractDetailsSheet } from "./BoardingContractDetailsSheet";
 import { FileText, Plus, CalendarClock, MoreVertical } from "lucide-react";
+
 import { formatStandardDate } from "@/lib/displayHelpers";
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
@@ -61,7 +63,9 @@ interface RowData {
   counterpartyName: string | null;
   counterpartyNameAr: string | null;
   planName: string | null;
+  planNameAr: string | null;
   priceLine: string | null;
+
   dateLine: string | null;
 }
 
@@ -254,7 +258,8 @@ export function BoardingContractsTab() {
       const counterpartyNameAr = isStableSide
         ? d?.owner_tenant_name_ar ?? null
         : d?.stable_tenant_name_ar ?? null;
-      const planName = d?.plan_name ?? d?.plan_name_ar ?? snap.name ?? snap.name_ar ?? null;
+      const planName = d?.plan_name ?? snap.name ?? null;
+      const planNameAr = d?.plan_name_ar ?? snap.name_ar ?? null;
       const price = d?.plan_base_price ?? snap.base_price ?? null;
       const currency = d?.plan_currency ?? snap.currency ?? "";
       const cycle = d?.plan_billing_cycle ?? snap.billing_cycle ?? "";
@@ -271,11 +276,13 @@ export function BoardingContractsTab() {
         counterpartyName,
         counterpartyNameAr,
         planName,
+        planNameAr,
         priceLine,
         dateLine,
       };
     });
   }, [contracts, displayMap, tenantId]);
+
 
   const handlers: ActionHandlers = {
     isStable,
