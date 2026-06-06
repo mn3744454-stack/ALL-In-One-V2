@@ -4081,6 +4081,7 @@ export const ar = {
       intakeDraft: "في انتظار الوصول",
       incomplete: "ملف غير مكتمل",
       outside: "بدون موقع",
+      hosted: "مستضافة",
     },
     notFound: "الخيل غير موجود",
     horseDeleted: "تم حذف الخيل",
