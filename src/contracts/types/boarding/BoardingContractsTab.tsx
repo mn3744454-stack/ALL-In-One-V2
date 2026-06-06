@@ -36,8 +36,11 @@ import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndA
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
 import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet";
 import { ContractDestructiveConfirmDialog } from "@/components/boarding/ContractDestructiveConfirmDialog";
+import { BoardingContractDetailsSheet } from "./BoardingContractDetailsSheet";
 import { FileText, Plus, CalendarClock, MoreVertical } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
+
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
   const { t } = useI18n();
@@ -61,7 +64,9 @@ interface RowData {
   counterpartyName: string | null;
   counterpartyNameAr: string | null;
   planName: string | null;
+  planNameAr: string | null;
   priceLine: string | null;
+
   dateLine: string | null;
 }
 
@@ -235,6 +240,8 @@ export function BoardingContractsTab() {
   const [scheduleContract, setScheduleContract] = useState<BoardingContract | null>(null);
   const [cancelTarget, setCancelTarget] = useState<BoardingContract | null>(null);
   const [endTarget, setEndTarget] = useState<BoardingContract | null>(null);
+  const [detailsRowId, setDetailsRowId] = useState<string | null>(null);
+
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
@@ -254,7 +261,8 @@ export function BoardingContractsTab() {
       const counterpartyNameAr = isStableSide
         ? d?.owner_tenant_name_ar ?? null
         : d?.stable_tenant_name_ar ?? null;
-      const planName = d?.plan_name ?? d?.plan_name_ar ?? snap.name ?? snap.name_ar ?? null;
+      const planName = d?.plan_name ?? snap.name ?? null;
+      const planNameAr = d?.plan_name_ar ?? snap.name_ar ?? null;
       const price = d?.plan_base_price ?? snap.base_price ?? null;
       const currency = d?.plan_currency ?? snap.currency ?? "";
       const cycle = d?.plan_billing_cycle ?? snap.billing_cycle ?? "";
@@ -271,11 +279,13 @@ export function BoardingContractsTab() {
         counterpartyName,
         counterpartyNameAr,
         planName,
+        planNameAr,
         priceLine,
         dateLine,
       };
     });
   }, [contracts, displayMap, tenantId]);
+
 
   const handlers: ActionHandlers = {
     isStable,
@@ -326,11 +336,13 @@ export function BoardingContractsTab() {
             {renderCounterparty(r)}
           </div>
         )}
-        {r.planName && (
-          <div className="text-xs text-muted-foreground truncate">
-            {r.planName}{r.priceLine ? ` — ${r.priceLine}` : ""}
+        {(r.planName || r.planNameAr) && (
+          <div className="text-xs text-muted-foreground min-w-0">
+            <BilingualName name={r.planName} nameAr={r.planNameAr} />
+            {r.priceLine && <div>{r.priceLine}</div>}
           </div>
         )}
+
         {r.dateLine && (
           <div className="text-xs text-muted-foreground">{r.dateLine}</div>
         )}
@@ -373,14 +385,22 @@ export function BoardingContractsTab() {
               {renderCounterparty(r)}
             </div>
           )}
-          {(r.planName || r.dateLine) && (
-            <div className="text-xs text-muted-foreground truncate">
-              {r.planName}
-              {r.planName && r.priceLine ? ` — ${r.priceLine}` : r.priceLine ?? ""}
-              {r.dateLine ? `${r.planName || r.priceLine ? " · " : ""}${r.dateLine}` : ""}
+          {(r.planName || r.planNameAr || r.dateLine) && (
+            <div className="text-xs text-muted-foreground min-w-0 space-y-0.5">
+              {(r.planName || r.planNameAr) && (
+                <BilingualName name={r.planName} nameAr={r.planNameAr} />
+              )}
+              {(r.priceLine || r.dateLine) && (
+                <div>
+                  {r.priceLine ?? ""}
+                  {r.priceLine && r.dateLine ? " · " : ""}
+                  {r.dateLine ?? ""}
+                </div>
+              )}
             </div>
           )}
         </div>
+
         <RowActions c={r.c} isStableSide={r.isStableSide} isOwnerSide={r.isOwnerSide} h={handlers} />
       </div>
       {r.c.status === "active" && (r.isStableSide || r.isOwnerSide) && (
@@ -394,20 +414,27 @@ export function BoardingContractsTab() {
     </div>
   );
 
-  const renderTable = () => (
+  const renderPlanBilingual = (r: RowData) => {
+    if (!r.planName && !r.planNameAr) return null;
+    return <BilingualName name={r.planName} nameAr={r.planNameAr} />;
+  };
+
+  const renderTable = () => {
+    const headClass = "text-sm font-bold text-foreground";
+    return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>{t("contracts.columns.contract")}</TableHead>
-            <TableHead>{t("contracts.columns.type")}</TableHead>
-            <TableHead>{t("contracts.columns.horse")}</TableHead>
-            <TableHead>{t("contracts.columns.counterparty")}</TableHead>
-            <TableHead>{t("contracts.columns.status")}</TableHead>
-            <TableHead>{t("contracts.columns.operationalPhase")}</TableHead>
-            <TableHead>{t("contracts.columns.plan")}</TableHead>
-            <TableHead>{t("contracts.columns.date")}</TableHead>
-            <TableHead className="text-end">{t("contracts.columns.actions")}</TableHead>
+          <TableRow className="bg-muted/80 hover:bg-muted/80">
+            <TableHead className={headClass}>{t("contracts.columns.contract")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.type")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.horse")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.counterparty")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.status")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.operationalPhase")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.plan")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.date")}</TableHead>
+            <TableHead className={cn(headClass, "text-end")}>{t("contracts.columns.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -428,9 +455,9 @@ export function BoardingContractsTab() {
                   : "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {r.planName ? (
-                  <div className="space-y-0.5">
-                    <div className="truncate">{r.planName}</div>
+                {(r.planName || r.planNameAr) ? (
+                  <div className="space-y-0.5 min-w-0">
+                    {renderPlanBilingual(r)}
                     {r.priceLine && <div className="text-xs">{r.priceLine}</div>}
                   </div>
                 ) : "—"}
@@ -440,12 +467,15 @@ export function BoardingContractsTab() {
               </TableCell>
               <TableCell>
                 <div className="flex justify-end">
-                  <RowActionsMenu
-                    c={r.c}
-                    isStableSide={r.isStableSide}
-                    isOwnerSide={r.isOwnerSide}
-                    h={handlers}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    aria-label={t("contracts.rowActions.menuLabel")}
+                    onClick={() => setDetailsRowId(r.c.id)}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -453,7 +483,9 @@ export function BoardingContractsTab() {
         </TableBody>
       </Table>
     </div>
-  );
+    );
+  };
+
 
   return (
     <div className="space-y-6">
@@ -584,6 +616,14 @@ export function BoardingContractsTab() {
           });
         }}
       />
+
+      <BoardingContractDetailsSheet
+        open={!!detailsRowId}
+        onOpenChange={(o) => !o && setDetailsRowId(null)}
+        row={rows.find((r) => r.c.id === detailsRowId) ?? null}
+        handlers={handlers}
+      />
     </div>
   );
 }
+

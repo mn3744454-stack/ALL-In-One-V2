@@ -6816,6 +6816,15 @@ export const en = {
       actions: "Actions",
     },
     rowActions: { menuLabel: "Actions" },
+    detailsSheet: {
+      title: "Contract details",
+      summaryNote: "Contract summary — operational and reference details only.",
+      summary: "Contract Summary",
+      parties: "Parties & horse",
+      availableActions: "Available actions",
+      destructiveActions: "Destructive actions",
+    },
+
     confirmCancel: {
       title: "Cancel this contract?",
       message: "This will mark the contract as Cancelled. Any pending arrival schedule and service requests on this contract will no longer be actionable. This does not automatically adjust invoices or remove the horse from its current housing. This action cannot be undone.",
