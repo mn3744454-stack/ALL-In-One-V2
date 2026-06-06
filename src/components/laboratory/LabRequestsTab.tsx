@@ -441,7 +441,7 @@ function CreateRequestDialog({
 
   return (
     <>
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { resetForm(); onClearBridge?.(); consumedBridgeIdRef.current = null; } }}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
