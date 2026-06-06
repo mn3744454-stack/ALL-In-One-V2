@@ -239,6 +239,8 @@ export function BoardingContractsTab() {
   const [scheduleContract, setScheduleContract] = useState<BoardingContract | null>(null);
   const [cancelTarget, setCancelTarget] = useState<BoardingContract | null>(null);
   const [endTarget, setEndTarget] = useState<BoardingContract | null>(null);
+  const [detailsRowId, setDetailsRowId] = useState<string | null>(null);
+
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
