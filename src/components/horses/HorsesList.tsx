@@ -6,6 +6,7 @@ import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { IncompleteProfileModal } from "./IncompleteProfileModal";
 import { HostedHorseCard } from "./HostedHorseCard";
+import { HostedHorsesTable } from "./HostedHorsesTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
