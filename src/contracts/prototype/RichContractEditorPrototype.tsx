@@ -4,8 +4,10 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
+import Underline from "@tiptap/extension-underline";
 import { useEffect, useMemo } from "react";
 import { VariableTokenNode } from "./variableNodes";
+import { FontSizeMark, type FontSizePreset } from "./fontSizeMark";
 import type { BodyDoc, VariableDef } from "./contractDocTypes";
 
 interface Props {
@@ -23,6 +25,7 @@ export function RichContractEditorPrototype({
     {
       extensions: [
         StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+        Underline,
         TextAlign.configure({
           types: ["heading", "paragraph"],
           alignments: ["start", "center", "end"],
@@ -30,6 +33,7 @@ export function RichContractEditorPrototype({
         }),
         TextStyle,
         Color,
+        FontSizeMark,
         VariableTokenNode.configure({
           getLabel: (key) => {
             const d = variables.find((v) => v.key === key);
@@ -138,13 +142,12 @@ function Toolbar({ editor, variables }: { editor: Editor; variables: VariableDef
       <select
         className="text-xs rounded border border-border bg-background px-1 py-1"
         onChange={(e) => {
-          // Font-size preset stored as a textStyle inline-style; for prototype we use a CSS class trick:
-          // We re-use Color extension's TextStyle parent to keep the prototype minimal — class via setMark.
-          // To avoid extra extensions, we no-op here and rely on heading levels.
-          e.currentTarget.value = "base";
+          const preset = e.target.value as FontSizePreset;
+          if (preset === "base") editor.chain().focus().unsetContractFontSize().run();
+          else editor.chain().focus().setContractFontSize(preset).run();
         }}
-        defaultValue="base"
-        title="Font size (preset — prototype uses headings for size)"
+        value={(editor.getAttributes("fontSize")?.preset as FontSizePreset) ?? "base"}
+        title="Font size"
       >
         {SIZES.map((s) => <option key={s.preset} value={s.preset}>{s.preset}</option>)}
       </select>

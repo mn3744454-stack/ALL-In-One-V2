@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
+import { BoardingContractDocumentsSection } from "./BoardingContractDocumentsSection";
 import {
   type BoardingContract,
   type BoardingContractStatus,
@@ -175,6 +176,14 @@ export function BoardingContractDetailsSheet({ open, onOpenChange, row, handlers
               </section>
             </>
           )}
+
+          {/* D2. Rich contract documents (optional layer, does not affect approval) */}
+          <Separator />
+          <BoardingContractDocumentsSection
+            boardingContractId={c.id}
+            canManage={isStableSide && h.isStable}
+          />
+
 
           {/* E. Available actions */}
           {(canReview || canApprove || canSchedule) && (
