@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
@@ -43,13 +43,23 @@ export default function DashboardContracts() {
     <DashboardShell>
       <MobilePageHeader title={t("contracts.pageTitle")} />
       <div className="p-4 lg:p-8 space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-navy">
-            {t("contracts.pageTitle")}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("contracts.pageSubtitle")}
-          </p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-navy">
+              {t("contracts.pageTitle")}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t("contracts.pageSubtitle")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/dashboard/contracts/templates">Templates</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/dashboard/contracts/documents">Documents</Link>
+            </Button>
+          </div>
         </div>
 
         {visible.length === 0 ? (

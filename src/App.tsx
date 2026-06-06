@@ -31,6 +31,10 @@ import DashboardHorses from "./pages/DashboardHorses";
 import DashboardBoardingContracts from "./pages/DashboardBoardingContracts";
 import DashboardContracts from "./pages/DashboardContracts";
 import PrototypeRichContractEditor from "./pages/PrototypeRichContractEditor";
+import DashboardContractTemplates from "./pages/DashboardContractTemplates";
+import DashboardContractTemplateEditor from "./pages/DashboardContractTemplateEditor";
+import DashboardContractDocuments from "./pages/DashboardContractDocuments";
+import DashboardContractDocumentEditor from "./pages/DashboardContractDocumentEditor";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
@@ -366,6 +370,46 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <PrototypeRichContractEditor />
+          </ProtectedRoute>
+        }
+      />
+      {/* B2.5e — Contract Templates */}
+      <Route
+        path="/dashboard/contracts/templates"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractTemplates />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/contracts/templates/:templateId"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractTemplateEditor />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      {/* B2.5e — Contract Documents */}
+      <Route
+        path="/dashboard/contracts/documents"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractDocuments />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/contracts/documents/:documentId"
+        element={
+          <ProtectedRoute>
+            <DashboardContractDocumentEditor />
           </ProtectedRoute>
         }
       />
