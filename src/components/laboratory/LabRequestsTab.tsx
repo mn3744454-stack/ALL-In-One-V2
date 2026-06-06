@@ -397,9 +397,25 @@ function CreateRequestDialog({
         toast.success(t('laboratory.requests.created') || 'Lab request created');
       }
 
+      // B3b: link the originating service request to the created lab request
+      const firstChildId = result.children[0]?.id;
+      if (bridgeServiceRequest && firstChildId) {
+        try {
+          await updateFulfillment.mutateAsync({
+            service_request_id: bridgeServiceRequest.id,
+            fulfillment_status: 'fulfilled',
+            fulfilled_by_lab_request_id: firstChildId,
+          });
+        } catch (e) {
+          console.error('Service request fulfillment link failed (non-blocking):', e);
+        }
+      }
+
       resetForm();
       setOpen(false);
+      onClearBridge?.();
       onSuccess?.();
+
     } catch (err) {
       console.error('Submission failed:', err);
       toast.error(t('laboratory.requests.createFailed') || 'Failed to create lab request');
