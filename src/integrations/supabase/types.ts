@@ -11944,6 +11944,7 @@ export type Database = {
       }
       create_contract_document_blank: {
         Args: {
+          _boarding_contract_id?: string
           _contract_type: Database["public"]["Enums"]["contract_type"]
           _tenant_id: string
           _title: string
