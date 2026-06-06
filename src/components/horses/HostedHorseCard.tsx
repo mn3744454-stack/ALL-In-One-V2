@@ -2,20 +2,23 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Clock, Inbox } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
 import type { OwnerHostedHorseRow } from "@/hooks/owner/useOwnerHostedHorses";
 
 interface HostedHorseCardProps {
   row: OwnerHostedHorseRow;
   onClick?: () => void;
+  /** When true, render a compact stacked row suitable for List view mode. */
+  compact?: boolean;
 }
 
 /**
- * B2.4 MVB — Owner-facing hosted horse card.
+ * B2.4 MVB / B2.4a — Owner-facing hosted horse card.
  * Renders only owner-safe fields from `get_owner_hosted_horses`.
  * MUST NOT render unit/branch labels, lab/vet/financial detail.
  */
-export const HostedHorseCard = ({ row, onClick }: HostedHorseCardProps) => {
+export const HostedHorseCard = ({ row, onClick, compact = false }: HostedHorseCardProps) => {
   const { t, lang, dir } = useI18n();
   const isAr = lang === "ar";
 
@@ -44,9 +47,9 @@ export const HostedHorseCard = ({ row, onClick }: HostedHorseCardProps) => {
       onClick={onClick}
       className="cursor-pointer hover:border-primary/40 transition-colors"
     >
-      <CardContent className="p-4 space-y-3">
+      <CardContent className={cn(compact ? "p-3 space-y-2" : "p-4 space-y-3")}>
         <div className="flex items-start gap-3">
-          <Avatar className="w-12 h-12 shrink-0">
+          <Avatar className={cn("shrink-0", compact ? "w-10 h-10" : "w-12 h-12")}>
             <AvatarImage src={row.avatar_url ?? undefined} alt={displayName} />
             <AvatarFallback>{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
@@ -60,7 +63,8 @@ export const HostedHorseCard = ({ row, onClick }: HostedHorseCardProps) => {
             <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
               <Home className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">
-                {t("horseOwner.hosted.hostedAt")} {stableName}
+                {t("horseOwner.hosted.hostedAt")}{" "}
+                <bdi>{stableName}</bdi>
               </span>
             </div>
           </div>
@@ -82,9 +86,11 @@ export const HostedHorseCard = ({ row, onClick }: HostedHorseCardProps) => {
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground/80 italic border-t border-border/40 pt-2">
-          {t("horseOwner.hosted.placementNotShared")}
-        </p>
+        {!compact && (
+          <p className="text-xs text-muted-foreground/80 italic border-t border-border/40 pt-2">
+            {t("horseOwner.hosted.placementNotShared")}
+          </p>
+        )}
       </CardContent>
     </Card>
   );

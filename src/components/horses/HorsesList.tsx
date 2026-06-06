@@ -6,6 +6,7 @@ import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { IncompleteProfileModal } from "./IncompleteProfileModal";
 import { HostedHorseCard } from "./HostedHorseCard";
+import { HostedHorsesTable } from "./HostedHorsesTable";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -208,15 +209,39 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh, ownerMode
             <p className="text-muted-foreground max-w-sm">{t('horseOwner.hosted.empty.body')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {hostedRows.map((row) => (
-              <HostedHorseCard
-                key={row.contract_id}
-                row={row}
-                onClick={() => onHorseClick?.({ id: row.horse_id, name: row.horse_name, name_ar: row.horse_name_ar ?? undefined, gender: '' } as Horse)}
-              />
-            ))}
-          </div>
+          (() => {
+            const handleHostedClick = (row: typeof hostedRows[number]) =>
+              onHorseClick?.({ id: row.horse_id, name: row.horse_name, name_ar: row.horse_name_ar ?? undefined, gender: '' } as Horse);
+
+            if (viewMode === 'table') {
+              return <HostedHorsesTable rows={hostedRows} onRowClick={handleHostedClick} />;
+            }
+            if (viewMode === 'list') {
+              return (
+                <div className="flex flex-col gap-2">
+                  {hostedRows.map((row) => (
+                    <HostedHorseCard
+                      key={row.contract_id}
+                      row={row}
+                      compact
+                      onClick={() => handleHostedClick(row)}
+                    />
+                  ))}
+                </div>
+              );
+            }
+            return (
+              <div className={getGridClass(gridColumns, viewMode)}>
+                {hostedRows.map((row) => (
+                  <HostedHorseCard
+                    key={row.contract_id}
+                    row={row}
+                    onClick={() => handleHostedClick(row)}
+                  />
+                ))}
+              </div>
+            );
+          })()
         )
       ) : filteredHorses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
