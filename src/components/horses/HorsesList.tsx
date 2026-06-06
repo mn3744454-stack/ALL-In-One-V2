@@ -165,6 +165,13 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh, ownerMode
               {t('horses.tabs.outside')}
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{horseBuckets.outside.length}</Badge>
             </TabsTrigger>
+            {ownerMode && (
+              <TabsTrigger value="hosted" className="gap-1.5">
+                <Home className="w-3.5 h-3.5" />
+                {t('horses.tabs.hosted')}
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 min-w-4">{hostedRows.length}</Badge>
+              </TabsTrigger>
+            )}
           </TabsList>
         </Tabs>
 
@@ -187,7 +194,31 @@ export const HorsesList = ({ horses, loading, onHorseClick, onRefresh, ownerMode
       <HorseFilters filters={filters} onChange={setFilters} />
 
       {/* Content */}
-      {filteredHorses.length === 0 ? (
+      {operationalTab === 'hosted' && ownerMode ? (
+        hostedLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : hostedRows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Home className="w-8 h-8 text-muted-foreground/50" />
+            </div>
+            <h3 className="font-semibold text-foreground mb-2">{t('horseOwner.hosted.empty.title')}</h3>
+            <p className="text-muted-foreground max-w-sm">{t('horseOwner.hosted.empty.body')}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {hostedRows.map((row) => (
+              <HostedHorseCard
+                key={row.contract_id}
+                row={row}
+                onClick={() => onHorseClick?.({ id: row.horse_id, name: row.horse_name, name_ar: row.horse_name_ar ?? undefined, gender: '' } as Horse)}
+              />
+            ))}
+          </div>
+        )
+      ) : filteredHorses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
             <Heart className="w-8 h-8 text-muted-foreground/50" />
