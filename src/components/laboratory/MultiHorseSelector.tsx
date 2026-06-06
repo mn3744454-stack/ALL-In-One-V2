@@ -16,6 +16,10 @@ interface Horse {
   avatar_url?: string | null;
   passport_number?: string | null;
   microchip_number?: string | null;
+  /** B3b: optional ownership label rendered as a badge in the row */
+  ownership_label?: string | null;
+  /** B3b: visual variant for the ownership badge */
+  ownership_variant?: "default" | "secondary" | "outline" | "destructive";
 }
 
 interface MultiHorseSelectorProps {
@@ -181,6 +185,14 @@ export function MultiHorseSelector({
                       </div>
                     )}
                   </div>
+                  {horse.ownership_label && (
+                    <Badge
+                      variant={horse.ownership_variant ?? "secondary"}
+                      className="text-[10px] shrink-0"
+                    >
+                      {horse.ownership_label}
+                    </Badge>
+                  )}
                   {horse.gender && (
                     <Badge variant="outline" className="text-xs shrink-0">
                       {t(`horses.gender.${horse.gender}`)}

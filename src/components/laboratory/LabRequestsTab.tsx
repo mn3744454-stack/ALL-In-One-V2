@@ -24,7 +24,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLabRequests, type LabRequest, type CreateLabRequestData, type CreateSubmissionData } from "@/hooks/laboratory/useLabRequests";
+import { useLabEligibleHorses, type LabEligibleHorse } from "@/hooks/laboratory/useLabEligibleHorses";
 import { useHorses } from "@/hooks/useHorses";
+import { useServiceRequests, type ServiceRequest } from "@/hooks/boarding/useServiceRequests";
 import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
 import { AddPartnerDialog } from "@/components/connections";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -54,14 +56,35 @@ interface LabOption {
   name: string;
 }
 
-function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
+interface CreateRequestDialogProps {
+  onSuccess?: () => void;
+  /** B3b: bridge — preselect this horse and surface ownership/SR context */
+  bridgePreselectHorseId?: string | null;
+  /** B3b: bridge — approved service request that originated this lab request */
+  bridgeServiceRequest?: ServiceRequest | null;
+  /** B3b: clear bridge URL params (called on close + after success) */
+  onClearBridge?: () => void;
+}
+
+function CreateRequestDialog({
+  onSuccess,
+  bridgePreselectHorseId,
+  bridgeServiceRequest,
+  onClearBridge,
+}: CreateRequestDialogProps) {
   const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
-  const { horses, refresh: refreshHorses } = useHorses();
+  const { horses: eligibleHorses, loading: eligibleLoading } = useLabEligibleHorses();
+  const { refresh: refreshHorses } = useHorses();
   const { createRequest, createSubmission, isCreating } = useLabRequests();
+  const { updateFulfillment } = useServiceRequests({});
   const { activeTenant } = useTenant();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const queryClient = useQueryClient();
+  // Track which bridge SR id we've already consumed (auto-opened for) to
+  // avoid an infinite reopen loop when the user closes the dialog without
+  // submitting. The parent clears the URL params on close via onClearBridge.
+  const consumedBridgeIdRef = useMemo(() => ({ current: null as string | null }), []);
 
   const { createConnection } = useConnections();
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
@@ -75,6 +98,86 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
   // Multi-horse selection state
   const [selectedHorses, setSelectedHorses] = useState<Array<{ id: string; name: string }>>([]);
   const selectedHorseIds = useMemo(() => selectedHorses.map(h => h.id), [selectedHorses]);
+
+  // B3b: decorate eligible horses with localized ownership badge label
+  const decoratedHorses = useMemo(() => {
+    return eligibleHorses.map(h => {
+      let label: string | null = null;
+      let variant: 'default' | 'secondary' | 'outline' = 'secondary';
+      if (h.ownership_type === 'hosted_owner_horse') {
+        label = t('laboratory.requests.ownership.hosted') || 'Hosted';
+        variant = 'secondary';
+      } else if (h.ownership_type === 'connected_access') {
+        label = t('laboratory.requests.ownership.connected') || 'Connected';
+        variant = 'outline';
+      }
+      return {
+        id: h.id,
+        name: h.name,
+        name_ar: h.name_ar,
+        gender: h.gender,
+        avatar_url: h.avatar_url,
+        passport_number: h.passport_number,
+        microchip_number: h.microchip_number,
+        ownership_label: label,
+        ownership_variant: variant,
+      };
+    });
+  }, [eligibleHorses, t]);
+
+  const selectedHostedContext = useMemo(() => {
+    return selectedHorses
+      .map(sh => {
+        const meta = eligibleHorses.find(e => e.id === sh.id);
+        if (!meta || meta.ownership_type === 'stable_owned') return null;
+        return {
+          id: sh.id,
+          name: sh.name,
+          ownership_label:
+            meta.ownership_type === 'hosted_owner_horse'
+              ? (t('laboratory.requests.ownership.hosted') || 'Hosted')
+              : (t('laboratory.requests.ownership.connected') || 'Connected'),
+          owner_label: meta.owner_label,
+        };
+      })
+      .filter(Boolean) as Array<{ id: string; name: string; ownership_label: string; owner_label: string | null | undefined }>;
+  }, [selectedHorses, eligibleHorses, t]);
+
+  // B3b: auto-open + preselect when bridge context is present
+  useEffect(() => {
+    if (!bridgeServiceRequest && !bridgePreselectHorseId) return;
+    if (eligibleLoading) return;
+    const srId = bridgeServiceRequest?.id ?? `horse:${bridgePreselectHorseId}`;
+    if (consumedBridgeIdRef.current === srId) return;
+    consumedBridgeIdRef.current = srId;
+
+    const horseId = bridgePreselectHorseId || bridgeServiceRequest?.horse_id || null;
+    const match = horseId ? eligibleHorses.find(h => h.id === horseId) : null;
+
+    if (horseId && !match) {
+      // Not eligible for this stable — show error, clear bridge, do not open.
+      toast.error(
+        t('laboratory.requests.bridge.horseNotEligible') ||
+          'Horse is not eligible for lab request creation in this stable.',
+      );
+      onClearBridge?.();
+      return;
+    }
+
+    if (match) {
+      setSelectedHorses([{ id: match.id, name: match.name }]);
+    }
+    setOpen(true);
+  }, [
+    bridgeServiceRequest,
+    bridgePreselectHorseId,
+    eligibleHorses,
+    eligibleLoading,
+    consumedBridgeIdRef,
+    onClearBridge,
+    t,
+  ]);
+
 
   // Derive available lab partners from accepted B2B connections, deduplicated by tenantId
   const labPartners = useMemo<LabOption[]>(() => {
@@ -239,7 +342,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
 
       // Build horse entries for the submission
       const horseEntries = selectedHorses.map(horse => {
-        const horseData = horses.find(h => h.id === horse.id);
+        const horseData = eligibleHorses.find(h => h.id === horse.id);
 
         let horseServiceIds: string[] | undefined;
         let horseDescription: string;
@@ -294,9 +397,25 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         toast.success(t('laboratory.requests.created') || 'Lab request created');
       }
 
+      // B3b: link the originating service request to the created lab request
+      const firstChildId = result.children[0]?.id;
+      if (bridgeServiceRequest && firstChildId) {
+        try {
+          await updateFulfillment.mutateAsync({
+            service_request_id: bridgeServiceRequest.id,
+            fulfillment_status: 'fulfilled',
+            fulfilled_by_lab_request_id: firstChildId,
+          });
+        } catch (e) {
+          console.error('Service request fulfillment link failed (non-blocking):', e);
+        }
+      }
+
       resetForm();
       setOpen(false);
+      onClearBridge?.();
       onSuccess?.();
+
     } catch (err) {
       console.error('Submission failed:', err);
       toast.error(t('laboratory.requests.createFailed') || 'Failed to create lab request');
@@ -322,7 +441,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
 
   return (
     <>
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { resetForm(); onClearBridge?.(); consumedBridgeIdRef.current = null; } }}>
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
@@ -335,11 +454,43 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
         </DialogHeader>
         <div className="flex-1 overflow-y-auto -mx-6 px-6 min-h-0">
           <form onSubmit={handleSubmit} className="space-y-4 pb-4" id="create-request-form">
+            {/* B3b: Bridge banner — visible whenever opened from approved SR */}
+            {bridgeServiceRequest && (
+              <Card className="border-primary/40 bg-primary/5">
+                <CardContent className="py-3 px-4 space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <FlaskConical className="h-4 w-4 text-primary" />
+                    {t('laboratory.requests.bridge.banner') || 'Created from approved service request'}
+                  </div>
+                  {typeof bridgeServiceRequest.approved_cost === 'number' && (
+                    <p className="text-xs text-muted-foreground">
+                      {(t('laboratory.requests.bridge.approvedCost') || 'Approved service-request cost: {amount} {currency}')
+                        .replace('{amount}', String(bridgeServiceRequest.approved_cost))
+                        .replace('{currency}', bridgeServiceRequest.currency || '')}
+                      {' — '}
+                      {t('laboratory.requests.bridge.contextOnly') || 'context only, not a lab invoice.'}
+                    </p>
+                  )}
+                  {((bridgeServiceRequest.details as any)?.notes as string) && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">
+                        {t('laboratory.requests.bridge.ownerNotes') || 'Owner notes:'}
+                      </span>{' '}
+                      {(bridgeServiceRequest.details as any).notes}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('laboratory.requests.bridge.ownerVisibility') || 'The owner will not automatically see lab results until they are shared/published later.'}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Horse Selection — Multi-horse with empty state */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
-                {horses.length > 0 && (
+                {decoratedHorses.length > 0 && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -352,7 +503,7 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                   </Button>
                 )}
               </div>
-              {horses.length === 0 ? (
+              {decoratedHorses.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="py-8 text-center space-y-3">
                     <Heart className="w-10 h-10 text-muted-foreground/30 mx-auto" />
@@ -380,9 +531,35 @@ function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
                     selectedHorseIds={selectedHorseIds}
                     onSelectionChange={setSelectedHorses}
                     hideIds
-                    horses={horses}
-                    loading={false}
+                    horses={decoratedHorses}
+                    loading={eligibleLoading}
                   />
+                  {/* B3b: ownership / authorization context for the selected horses */}
+                  {selectedHorses.length > 0 && selectedHostedContext.length > 0 && (
+                    <Card className="border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/30">
+                      <CardContent className="py-2.5 px-3 space-y-1.5">
+                        {selectedHostedContext.map(ctx => (
+                          <div key={ctx.id} className="text-xs">
+                            <span className="font-medium">{ctx.name}</span>
+                            {' — '}
+                            <Badge variant="secondary" className="text-[10px] me-1">
+                              {ctx.ownership_label}
+                            </Badge>
+                            {ctx.owner_label && (
+                              <span className="text-muted-foreground">
+                                {t('laboratory.requests.bridge.ownerLabel') || 'Owner'}: {ctx.owner_label}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                        {!bridgeServiceRequest && (
+                          <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                            {t('laboratory.requests.bridge.confirmAllowed') || 'Confirm this lab request is allowed by the boarding contract, owner approval, included service, or emergency policy.'}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                   {selectedHorses.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {selectedHorses.length} {t('laboratory.requests.selectedHorses') || 'horses selected'}
