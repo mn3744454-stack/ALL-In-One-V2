@@ -11,6 +11,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
+import { BoardingContractDocumentsSection } from "./BoardingContractDocumentsSection";
 import {
   type BoardingContract,
   type BoardingContractStatus,
