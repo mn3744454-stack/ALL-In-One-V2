@@ -38,8 +38,9 @@ import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet
 import { ContractDestructiveConfirmDialog } from "@/components/boarding/ContractDestructiveConfirmDialog";
 import { BoardingContractDetailsSheet } from "./BoardingContractDetailsSheet";
 import { FileText, Plus, CalendarClock, MoreVertical } from "lucide-react";
-
+import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
+
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
   const { t } = useI18n();
