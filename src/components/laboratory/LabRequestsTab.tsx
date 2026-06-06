@@ -99,6 +99,86 @@ function CreateRequestDialog({
   const [selectedHorses, setSelectedHorses] = useState<Array<{ id: string; name: string }>>([]);
   const selectedHorseIds = useMemo(() => selectedHorses.map(h => h.id), [selectedHorses]);
 
+  // B3b: decorate eligible horses with localized ownership badge label
+  const decoratedHorses = useMemo(() => {
+    return eligibleHorses.map(h => {
+      let label: string | null = null;
+      let variant: 'default' | 'secondary' | 'outline' = 'secondary';
+      if (h.ownership_type === 'hosted_owner_horse') {
+        label = t('laboratory.requests.ownership.hosted') || 'Hosted';
+        variant = 'secondary';
+      } else if (h.ownership_type === 'connected_access') {
+        label = t('laboratory.requests.ownership.connected') || 'Connected';
+        variant = 'outline';
+      }
+      return {
+        id: h.id,
+        name: h.name,
+        name_ar: h.name_ar,
+        gender: h.gender,
+        avatar_url: h.avatar_url,
+        passport_number: h.passport_number,
+        microchip_number: h.microchip_number,
+        ownership_label: label,
+        ownership_variant: variant,
+      };
+    });
+  }, [eligibleHorses, t]);
+
+  const selectedHostedContext = useMemo(() => {
+    return selectedHorses
+      .map(sh => {
+        const meta = eligibleHorses.find(e => e.id === sh.id);
+        if (!meta || meta.ownership_type === 'stable_owned') return null;
+        return {
+          id: sh.id,
+          name: sh.name,
+          ownership_label:
+            meta.ownership_type === 'hosted_owner_horse'
+              ? (t('laboratory.requests.ownership.hosted') || 'Hosted')
+              : (t('laboratory.requests.ownership.connected') || 'Connected'),
+          owner_label: meta.owner_label,
+        };
+      })
+      .filter(Boolean) as Array<{ id: string; name: string; ownership_label: string; owner_label: string | null | undefined }>;
+  }, [selectedHorses, eligibleHorses, t]);
+
+  // B3b: auto-open + preselect when bridge context is present
+  useEffect(() => {
+    if (!bridgeServiceRequest && !bridgePreselectHorseId) return;
+    if (eligibleLoading) return;
+    const srId = bridgeServiceRequest?.id ?? `horse:${bridgePreselectHorseId}`;
+    if (consumedBridgeIdRef.current === srId) return;
+    consumedBridgeIdRef.current = srId;
+
+    const horseId = bridgePreselectHorseId || bridgeServiceRequest?.horse_id || null;
+    const match = horseId ? eligibleHorses.find(h => h.id === horseId) : null;
+
+    if (horseId && !match) {
+      // Not eligible for this stable — show error, clear bridge, do not open.
+      toast.error(
+        t('laboratory.requests.bridge.horseNotEligible') ||
+          'Horse is not eligible for lab request creation in this stable.',
+      );
+      onClearBridge?.();
+      return;
+    }
+
+    if (match) {
+      setSelectedHorses([{ id: match.id, name: match.name }]);
+    }
+    setOpen(true);
+  }, [
+    bridgeServiceRequest,
+    bridgePreselectHorseId,
+    eligibleHorses,
+    eligibleLoading,
+    consumedBridgeIdRef,
+    onClearBridge,
+    t,
+  ]);
+
+
   // Derive available lab partners from accepted B2B connections, deduplicated by tenantId
   const labPartners = useMemo<LabOption[]>(() => {
     if (!activeTenant) return [];
