@@ -56,14 +56,35 @@ interface LabOption {
   name: string;
 }
 
-function CreateRequestDialog({ onSuccess }: { onSuccess?: () => void }) {
+interface CreateRequestDialogProps {
+  onSuccess?: () => void;
+  /** B3b: bridge — preselect this horse and surface ownership/SR context */
+  bridgePreselectHorseId?: string | null;
+  /** B3b: bridge — approved service request that originated this lab request */
+  bridgeServiceRequest?: ServiceRequest | null;
+  /** B3b: clear bridge URL params (called on close + after success) */
+  onClearBridge?: () => void;
+}
+
+function CreateRequestDialog({
+  onSuccess,
+  bridgePreselectHorseId,
+  bridgeServiceRequest,
+  onClearBridge,
+}: CreateRequestDialogProps) {
   const { t, dir } = useI18n();
   const [open, setOpen] = useState(false);
-  const { horses, refresh: refreshHorses } = useHorses();
+  const { horses: eligibleHorses, loading: eligibleLoading } = useLabEligibleHorses();
+  const { refresh: refreshHorses } = useHorses();
   const { createRequest, createSubmission, isCreating } = useLabRequests();
+  const { updateFulfillment } = useServiceRequests({});
   const { activeTenant } = useTenant();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const queryClient = useQueryClient();
+  // Track which bridge SR id we've already consumed (auto-opened for) to
+  // avoid an infinite reopen loop when the user closes the dialog without
+  // submitting. The parent clears the URL params on close via onClearBridge.
+  const consumedBridgeIdRef = useMemo(() => ({ current: null as string | null }), []);
 
   const { createConnection } = useConnections();
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
