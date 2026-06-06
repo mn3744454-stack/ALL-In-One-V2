@@ -373,6 +373,46 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      {/* B2.5e — Contract Templates */}
+      <Route
+        path="/dashboard/contracts/templates"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractTemplates />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/contracts/templates/:templateId"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractTemplateEditor />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      {/* B2.5e — Contract Documents */}
+      <Route
+        path="/dashboard/contracts/documents"
+        element={
+          <ProtectedRoute>
+            <WorkspaceRouteGuard requiredMode="organization">
+              <DashboardContractDocuments />
+            </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/contracts/documents/:documentId"
+        element={
+          <ProtectedRoute>
+            <DashboardContractDocumentEditor />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/dashboard/boarding-contracts"
         element={<Navigate to="/dashboard/contracts?type=boarding" replace />}
