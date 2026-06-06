@@ -259,7 +259,28 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
         <ScrollArea className="flex-1 max-h-[60vh]">
           {selectedModule ? <ChildrenList /> : <ModuleGrid />}
         </ScrollArea>
+        <div className="shrink-0 border-t border-border/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+            onClick={() => setShowLogoutConfirm(true)}
+          >
+            <LogOut className="w-4 h-4" />
+            {t("sidebar.signOut")}
+          </Button>
+        </div>
       </DrawerContent>
+      <LogoutConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          onOpenChange(false);
+          setSelectedModule(null);
+          signOut();
+        }}
+      />
     </Drawer>
   );
 }
