@@ -399,10 +399,8 @@ export function BoardingContractsTab() {
               )}
             </div>
           )}
-
-            </div>
-          )}
         </div>
+
         <RowActions c={r.c} isStableSide={r.isStableSide} isOwnerSide={r.isOwnerSide} h={handlers} />
       </div>
       {r.c.status === "active" && (r.isStableSide || r.isOwnerSide) && (
