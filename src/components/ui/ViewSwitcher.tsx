@@ -49,9 +49,12 @@ export function ViewSwitcher({
             variant="ghost"
             size="sm"
             onClick={() => onViewModeChange('table')}
+            aria-pressed={viewMode === 'table'}
             className={cn(
-              "h-9 px-3 gap-2",
-              viewMode === 'table' && "bg-background shadow-sm"
+              "h-9 px-3 gap-2 transition-colors",
+              viewMode === 'table'
+                ? "bg-background shadow-sm text-primary ring-1 ring-primary/30 font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             )}
             title={t('common.table')}
           >
@@ -63,9 +66,12 @@ export function ViewSwitcher({
           variant="ghost"
           size="sm"
           onClick={() => onViewModeChange('list')}
+          aria-pressed={viewMode === 'list'}
           className={cn(
-            "h-9 px-3 gap-2",
-            viewMode === 'list' && "bg-background shadow-sm"
+            "h-9 px-3 gap-2 transition-colors",
+            viewMode === 'list'
+              ? "bg-background shadow-sm text-primary ring-1 ring-primary/30 font-semibold"
+              : "text-muted-foreground hover:text-foreground"
           )}
           title={t('common.list')}
         >
@@ -79,9 +85,12 @@ export function ViewSwitcher({
             <Button
               variant="ghost"
               size="sm"
+              aria-pressed={viewMode === 'grid'}
               className={cn(
-                "h-9 px-3 gap-2",
-                viewMode === 'grid' && "bg-background shadow-sm"
+                "h-9 px-3 gap-2 transition-colors",
+                viewMode === 'grid'
+                  ? "bg-background shadow-sm text-primary ring-1 ring-primary/30 font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               title={t('common.grid')}
             >
@@ -90,6 +99,7 @@ export function ViewSwitcher({
               <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end" className="min-w-[140px]">
             <DropdownMenuItem
               onClick={() => {
