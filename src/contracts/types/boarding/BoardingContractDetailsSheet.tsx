@@ -177,6 +177,14 @@ export function BoardingContractDetailsSheet({ open, onOpenChange, row, handlers
             </>
           )}
 
+          {/* D2. Rich contract documents (optional layer, does not affect approval) */}
+          <Separator />
+          <BoardingContractDocumentsSection
+            boardingContractId={c.id}
+            canManage={isStableSide && h.isStable}
+          />
+
+
           {/* E. Available actions */}
           {(canReview || canApprove || canSchedule) && (
             <>
