@@ -151,6 +151,30 @@ export default function DashboardContractDocumentEditor() {
                 </AlertDialog>
               </>
             )}
+            {canArchive && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">
+                    <Archive className="w-4 h-4 me-1" /> Archive
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Archive document?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      The document will be marked as archived. Data is preserved; the document is no longer
+                      shown in active lists and cannot be edited. هل تريد أرشفة المستند؟
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => archive.mutate()} disabled={archive.isPending}>
+                      Archive
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </div>
         </div>
 
