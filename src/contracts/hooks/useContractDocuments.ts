@@ -33,12 +33,18 @@ export function useContractDocuments(opts: {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["contract-documents"] });
 
   const createBlank = useMutation({
-    mutationFn: async (p: { contract_type: ContractType; title: string; title_ar?: string }) => {
+    mutationFn: async (p: {
+      contract_type: ContractType;
+      title: string;
+      title_ar?: string;
+      boarding_contract_id?: string;
+    }) => {
       const { data, error } = await sb.rpc("create_contract_document_blank", {
         _tenant_id: tenantId,
         _contract_type: p.contract_type,
         _title: p.title,
         _title_ar: p.title_ar ?? null,
+        _boarding_contract_id: p.boarding_contract_id ?? null,
       });
       if (error) throw error;
       return data as string;
