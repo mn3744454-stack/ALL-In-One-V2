@@ -36,7 +36,7 @@ export interface ContractTypeDefinition {
    * see the Contracts module at all. Future phases may wire capability
    * flags here.
    */
-  enabledForTenant?: (ctx: TenantContextValue) => boolean;
+  enabledForTenant?: (ctx: TenantCtx) => boolean;
 }
 
 export const CONTRACT_TYPE_REGISTRY: ContractTypeDefinition[] = [
@@ -56,7 +56,7 @@ export const CONTRACT_TYPE_REGISTRY: ContractTypeDefinition[] = [
 export const MAX_PRIMARY_TABS = 4;
 
 export function getVisibleContractTypes(
-  ctx: TenantContextValue,
+  ctx: TenantCtx,
 ): ContractTypeDefinition[] {
   return CONTRACT_TYPE_REGISTRY
     .filter((def) => def.implemented)
