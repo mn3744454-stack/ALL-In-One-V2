@@ -58,6 +58,7 @@ export function BoardingContractDocumentsSection({ boardingContractId, canManage
           contract_type: "boarding",
           title: title.trim(),
           title_ar: titleAr.trim() || undefined,
+          boarding_contract_id: boardingContractId,
         });
     setOpen(false);
     setTitle(""); setTitleAr(""); setTplId("__blank__");
