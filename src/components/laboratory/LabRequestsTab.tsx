@@ -358,11 +358,43 @@ function CreateRequestDialog({
         </DialogHeader>
         <div className="flex-1 overflow-y-auto -mx-6 px-6 min-h-0">
           <form onSubmit={handleSubmit} className="space-y-4 pb-4" id="create-request-form">
+            {/* B3b: Bridge banner — visible whenever opened from approved SR */}
+            {bridgeServiceRequest && (
+              <Card className="border-primary/40 bg-primary/5">
+                <CardContent className="py-3 px-4 space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <FlaskConical className="h-4 w-4 text-primary" />
+                    {t('laboratory.requests.bridge.banner') || 'Created from approved service request'}
+                  </div>
+                  {typeof bridgeServiceRequest.approved_cost === 'number' && (
+                    <p className="text-xs text-muted-foreground">
+                      {(t('laboratory.requests.bridge.approvedCost') || 'Approved service-request cost: {amount} {currency}')
+                        .replace('{amount}', String(bridgeServiceRequest.approved_cost))
+                        .replace('{currency}', bridgeServiceRequest.currency || '')}
+                      {' — '}
+                      {t('laboratory.requests.bridge.contextOnly') || 'context only, not a lab invoice.'}
+                    </p>
+                  )}
+                  {((bridgeServiceRequest.details as any)?.notes as string) && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium">
+                        {t('laboratory.requests.bridge.ownerNotes') || 'Owner notes:'}
+                      </span>{' '}
+                      {(bridgeServiceRequest.details as any).notes}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('laboratory.requests.bridge.ownerVisibility') || 'The owner will not automatically see lab results until they are shared/published later.'}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Horse Selection — Multi-horse with empty state */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>{t('laboratory.createSample.horse') || 'Horse'}</Label>
-                {horses.length > 0 && (
+                {decoratedHorses.length > 0 && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -375,7 +407,7 @@ function CreateRequestDialog({
                   </Button>
                 )}
               </div>
-              {horses.length === 0 ? (
+              {decoratedHorses.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="py-8 text-center space-y-3">
                     <Heart className="w-10 h-10 text-muted-foreground/30 mx-auto" />
@@ -403,9 +435,35 @@ function CreateRequestDialog({
                     selectedHorseIds={selectedHorseIds}
                     onSelectionChange={setSelectedHorses}
                     hideIds
-                    horses={horses}
-                    loading={false}
+                    horses={decoratedHorses}
+                    loading={eligibleLoading}
                   />
+                  {/* B3b: ownership / authorization context for the selected horses */}
+                  {selectedHorses.length > 0 && selectedHostedContext.length > 0 && (
+                    <Card className="border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/30">
+                      <CardContent className="py-2.5 px-3 space-y-1.5">
+                        {selectedHostedContext.map(ctx => (
+                          <div key={ctx.id} className="text-xs">
+                            <span className="font-medium">{ctx.name}</span>
+                            {' — '}
+                            <Badge variant="secondary" className="text-[10px] me-1">
+                              {ctx.ownership_label}
+                            </Badge>
+                            {ctx.owner_label && (
+                              <span className="text-muted-foreground">
+                                {t('laboratory.requests.bridge.ownerLabel') || 'Owner'}: {ctx.owner_label}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                        {!bridgeServiceRequest && (
+                          <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                            {t('laboratory.requests.bridge.confirmAllowed') || 'Confirm this lab request is allowed by the boarding contract, owner approval, included service, or emergency policy.'}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                   {selectedHorses.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       {selectedHorses.length} {t('laboratory.requests.selectedHorses') || 'horses selected'}
