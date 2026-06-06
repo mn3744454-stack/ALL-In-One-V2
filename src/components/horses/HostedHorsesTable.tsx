@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BilingualName } from "@/components/ui/BilingualName";
 import { useI18n } from "@/i18n";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { OwnerHostedHorseRow } from "@/hooks/owner/useOwnerHostedHorses";
 
 interface HostedHorsesTableProps {
