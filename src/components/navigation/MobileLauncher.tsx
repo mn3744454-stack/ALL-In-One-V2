@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES, type WorkspaceNavModule, type NavModuleChild } from "@/navigation/workspaceNavConfig";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
+import { LogoutConfirmDialog } from "@/components/LogoutConfirmDialog";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, LogOut } from "lucide-react";
 
 interface MobileLauncherProps {
   open: boolean;
@@ -20,11 +23,13 @@ interface MobileLauncherProps {
 export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
   const { t, dir } = useI18n();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { activeTenant, activeRole, workspaceMode } = useTenant();
   const { horses } = useHorses();
   const { hasPermission } = usePermissions();
   const { breedingEnabled, vetEnabled, labMode, movementEnabled, housingEnabled, isLabTenant } = useModuleAccess();
   const [selectedModule, setSelectedModule] = useState<WorkspaceNavModule | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const isRTL = dir === "rtl";
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
@@ -254,7 +259,28 @@ export function MobileLauncher({ open, onOpenChange }: MobileLauncherProps) {
         <ScrollArea className="flex-1 max-h-[60vh]">
           {selectedModule ? <ChildrenList /> : <ModuleGrid />}
         </ScrollArea>
+        <div className="shrink-0 border-t border-border/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/5"
+            onClick={() => setShowLogoutConfirm(true)}
+          >
+            <LogOut className="w-4 h-4" />
+            {t("sidebar.signOut")}
+          </Button>
+        </div>
       </DrawerContent>
+      <LogoutConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          onOpenChange(false);
+          setSelectedModule(null);
+          signOut();
+        }}
+      />
     </Drawer>
   );
 }
