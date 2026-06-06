@@ -6815,6 +6815,19 @@ export const en = {
       date: "Date",
       actions: "Actions",
     },
+    rowActions: { menuLabel: "Actions" },
+    confirmCancel: {
+      title: "Cancel this contract?",
+      message: "This will mark the contract as Cancelled. Any pending arrival schedule and service requests on this contract will no longer be actionable. This does not automatically adjust invoices or remove the horse from its current housing. This action cannot be undone.",
+      confirm: "Cancel contract",
+      dismiss: "Keep contract",
+    },
+    confirmEnd: {
+      title: "End this contract?",
+      message: "This will mark the contract as Ended. New service requests under this contract will no longer be possible. This does not automatically check the horse out of housing, close open invoices, or settle outstanding balances. This action cannot be undone.",
+      confirm: "End contract",
+      dismiss: "Keep active",
+    },
   },
 };
 

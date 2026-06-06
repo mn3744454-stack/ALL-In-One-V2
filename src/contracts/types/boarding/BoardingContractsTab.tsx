@@ -4,6 +4,22 @@ import { useI18n } from "@/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { BilingualName } from "@/components/ui/BilingualName";
 import { ViewSwitcher, getGridClass } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import {
@@ -19,7 +35,8 @@ import { ReviewAndSetPlanDialog } from "@/components/boarding/ReviewAndSetPlanDi
 import { ReviewAndApproveContractDialog } from "@/components/boarding/ReviewAndApproveContractDialog";
 import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSection";
 import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet";
-import { FileText, Plus, CalendarClock } from "lucide-react";
+import { ContractDestructiveConfirmDialog } from "@/components/boarding/ContractDestructiveConfirmDialog";
+import { FileText, Plus, CalendarClock, MoreVertical } from "lucide-react";
 import { formatStandardDate } from "@/lib/displayHelpers";
 
 function StatusBadge({ status }: { status: BoardingContractStatus }) {
@@ -40,7 +57,9 @@ interface RowData {
   isStableSide: boolean;
   isOwnerSide: boolean;
   horseName: string | null;
+  horseNameAr: string | null;
   counterpartyName: string | null;
+  counterpartyNameAr: string | null;
   planName: string | null;
   priceLine: string | null;
   dateLine: string | null;
@@ -55,7 +74,21 @@ interface ActionHandlers {
   onEnd: (c: BoardingContract) => void;
 }
 
-function RowActions({ c, isStableSide, isOwnerSide, h }: { c: BoardingContract; isStableSide: boolean; isOwnerSide: boolean; h: ActionHandlers }) {
+/**
+ * Inline visible button group — used for List & Grid (where space allows).
+ * Preserves the exact same gating as before.
+ */
+function RowActions({
+  c,
+  isStableSide,
+  isOwnerSide,
+  h,
+}: {
+  c: BoardingContract;
+  isStableSide: boolean;
+  isOwnerSide: boolean;
+  h: ActionHandlers;
+}) {
   const { t } = useI18n();
   return (
     <div className="flex gap-2 flex-wrap">
@@ -86,6 +119,91 @@ function RowActions({ c, isStableSide, isOwnerSide, h }: { c: BoardingContract; 
   );
 }
 
+/**
+ * Three-dot dropdown — used for Table view to reduce row clutter.
+ * Same gating as RowActions, conditionally rendered (not just hidden).
+ */
+function RowActionsMenu({
+  c,
+  isStableSide,
+  isOwnerSide,
+  h,
+}: {
+  c: BoardingContract;
+  isStableSide: boolean;
+  isOwnerSide: boolean;
+  h: ActionHandlers;
+}) {
+  const { t } = useI18n();
+
+  const canReview = h.isStable && isStableSide && c.status === "pending_stable";
+  const canApprove = isOwnerSide && c.status === "pending_owner";
+  const canSchedule =
+    h.isStable && isStableSide && c.status === "active" &&
+    (c.operational_phase === "awaiting_arrival" ||
+      c.operational_phase === "arrival_scheduled" ||
+      c.operational_phase === "not_started");
+  const canCancel = (["pending_stable", "pending_owner", "active"] as const).includes(c.status as any);
+  const canEnd = isStableSide && c.status === "active";
+
+  const hasAny = canReview || canApprove || canSchedule || canCancel || canEnd;
+  if (!hasAny) return <span className="text-muted-foreground text-xs">—</span>;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          aria-label={t("contracts.rowActions.menuLabel")}
+        >
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {canReview && (
+          <DropdownMenuItem onClick={() => h.onReview(c)}>
+            {t("boardingContracts.reviewAndSetPlan")}
+          </DropdownMenuItem>
+        )}
+        {canApprove && (
+          <DropdownMenuItem onClick={() => h.onApprove(c)}>
+            {t("boardingContracts.reviewAndApprove")}
+          </DropdownMenuItem>
+        )}
+        {canSchedule && (
+          <DropdownMenuItem onClick={() => h.onSchedule(c)}>
+            <CalendarClock className="w-3.5 h-3.5 me-2" />
+            {c.operational_phase === "arrival_scheduled"
+              ? t("boardingContracts.scheduleArrival.reschedule")
+              : t("boardingContracts.scheduleArrival.cta")}
+          </DropdownMenuItem>
+        )}
+        {(canReview || canApprove || canSchedule) && (canCancel || canEnd) && (
+          <DropdownMenuSeparator />
+        )}
+        {canCancel && (
+          <DropdownMenuItem
+            onClick={() => h.onCancel(c)}
+            className="text-destructive focus:text-destructive"
+          >
+            {t("boardingContracts.cancelContract")}
+          </DropdownMenuItem>
+        )}
+        {canEnd && (
+          <DropdownMenuItem
+            onClick={() => h.onEnd(c)}
+            className="text-destructive focus:text-destructive"
+          >
+            {t("boardingContracts.endContract")}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function TypeBadge() {
   const { t } = useI18n();
   return (
@@ -97,8 +215,7 @@ function TypeBadge() {
 }
 
 export function BoardingContractsTab() {
-  const { t, lang } = useI18n();
-  const isAr = lang === "ar";
+  const { t } = useI18n();
   const { activeTenant } = useTenant();
   const tenantType = activeTenant?.tenant?.type;
   const tenantId = activeTenant?.tenant?.id ?? activeTenant?.tenant_id ?? null;
@@ -116,6 +233,8 @@ export function BoardingContractsTab() {
   const [reviewContract, setReviewContract] = useState<BoardingContract | null>(null);
   const [approveContract, setApproveContract] = useState<BoardingContract | null>(null);
   const [scheduleContract, setScheduleContract] = useState<BoardingContract | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<BoardingContract | null>(null);
+  const [endTarget, setEndTarget] = useState<BoardingContract | null>(null);
 
   const unhostedHorses = isOwner
     ? horses.filter((h: any) => !h.current_location_id && !h.housing_unit_id)
@@ -127,15 +246,15 @@ export function BoardingContractsTab() {
       const isOwnerSide = c.owner_tenant_id === tenantId;
       const snap = (c.plan_snapshot ?? {}) as Record<string, any>;
       const d = displayMap[c.id];
-      const horseName =
-        (isAr ? d?.horse_name_ar : d?.horse_name) || d?.horse_name || d?.horse_name_ar || null;
+      const horseName = d?.horse_name ?? null;
+      const horseNameAr = d?.horse_name_ar ?? null;
       const counterpartyName = isStableSide
-        ? (isAr ? d?.owner_tenant_name_ar : d?.owner_tenant_name) ||
-          d?.owner_tenant_name || d?.owner_tenant_name_ar || null
-        : (isAr ? d?.stable_tenant_name_ar : d?.stable_tenant_name) ||
-          d?.stable_tenant_name || d?.stable_tenant_name_ar || null;
-      const planName =
-        (isAr ? d?.plan_name_ar : d?.plan_name) || snap.name || snap.name_ar || null;
+        ? d?.owner_tenant_name ?? null
+        : d?.stable_tenant_name ?? null;
+      const counterpartyNameAr = isStableSide
+        ? d?.owner_tenant_name_ar ?? null
+        : d?.stable_tenant_name_ar ?? null;
+      const planName = d?.plan_name ?? d?.plan_name_ar ?? snap.name ?? snap.name_ar ?? null;
       const price = d?.plan_base_price ?? snap.base_price ?? null;
       const currency = d?.plan_currency ?? snap.currency ?? "";
       const cycle = d?.plan_billing_cycle ?? snap.billing_cycle ?? "";
@@ -143,20 +262,47 @@ export function BoardingContractsTab() {
       const dateSource =
         c.start_date || c.activated_at || c.expected_arrival_at || c.created_at;
       const dateLine = dateSource ? formatStandardDate(dateSource) : null;
-      return { c, isStableSide, isOwnerSide, horseName, counterpartyName, planName, priceLine, dateLine };
+      return {
+        c,
+        isStableSide,
+        isOwnerSide,
+        horseName,
+        horseNameAr,
+        counterpartyName,
+        counterpartyNameAr,
+        planName,
+        priceLine,
+        dateLine,
+      };
     });
-  }, [contracts, displayMap, tenantId, isAr]);
+  }, [contracts, displayMap, tenantId]);
 
   const handlers: ActionHandlers = {
     isStable,
     onReview: setReviewContract,
     onApprove: setApproveContract,
     onSchedule: setScheduleContract,
-    onCancel: (c) => cancel.mutate({ contract_id: c.id }),
-    onEnd: (c) => end.mutate(c.id),
+    onCancel: setCancelTarget,
+    onEnd: setEndTarget,
   };
 
   // Renderers ---------------------------------------------------------------
+
+  const renderHorseName = (r: RowData) => {
+    if (!r.horseName && !r.horseNameAr) {
+      return (
+        <span className="text-muted-foreground italic">
+          {t("boardingContracts.displayContextUnavailable")}
+        </span>
+      );
+    }
+    return <BilingualName name={r.horseName} nameAr={r.horseNameAr} />;
+  };
+
+  const renderCounterparty = (r: RowData) => {
+    if (!r.counterpartyName && !r.counterpartyNameAr) return null;
+    return <BilingualName name={r.counterpartyName} nameAr={r.counterpartyNameAr} />;
+  };
 
   const renderCard = (r: RowData) => (
     <div key={r.c.id} className="rounded-md border p-3 space-y-3 bg-card">
@@ -171,16 +317,13 @@ export function BoardingContractsTab() {
             </Badge>
           )}
         </div>
-        <div className="text-sm font-medium truncate">
-          {r.horseName ?? (
-            <span className="text-muted-foreground italic">
-              {t("boardingContracts.displayContextUnavailable")}
+        <div className="text-sm">{renderHorseName(r)}</div>
+        {(r.counterpartyName || r.counterpartyNameAr) && (
+          <div className="text-xs text-muted-foreground">
+            <span className="me-1">
+              {r.isStableSide ? t("boardingContracts.owner") : t("boardingContracts.stable")}:
             </span>
-          )}
-        </div>
-        {r.counterpartyName && (
-          <div className="text-xs text-muted-foreground truncate">
-            {r.isStableSide ? t("boardingContracts.owner") : t("boardingContracts.stable")}: {r.counterpartyName}
+            {renderCounterparty(r)}
           </div>
         )}
         {r.planName && (
@@ -220,17 +363,14 @@ export function BoardingContractsTab() {
                 {t(`boardingContracts.operationalPhase.${r.c.operational_phase}`)}
               </Badge>
             )}
-            <span className="text-sm font-medium truncate">
-              {r.horseName ?? (
-                <span className="text-muted-foreground italic">
-                  {t("boardingContracts.displayContextUnavailable")}
-                </span>
-              )}
-            </span>
           </div>
-          {r.counterpartyName && (
-            <div className="text-xs text-muted-foreground truncate">
-              {r.isStableSide ? t("boardingContracts.owner") : t("boardingContracts.stable")}: {r.counterpartyName}
+          <div className="text-sm">{renderHorseName(r)}</div>
+          {(r.counterpartyName || r.counterpartyNameAr) && (
+            <div className="text-xs text-muted-foreground">
+              <span className="me-1">
+                {r.isStableSide ? t("boardingContracts.owner") : t("boardingContracts.stable")}:
+              </span>
+              {renderCounterparty(r)}
             </div>
           )}
           {(r.planName || r.dateLine) && (
@@ -255,62 +395,63 @@ export function BoardingContractsTab() {
   );
 
   const renderTable = () => (
-    <div className="rounded-md border overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-muted-foreground">
-          <tr className="text-start">
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.contract")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.type")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.horse")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.counterparty")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.status")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.operationalPhase")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.plan")}</th>
-            <th className="px-3 py-2 text-start font-medium">{t("contracts.columns.date")}</th>
-            <th className="px-3 py-2 text-end font-medium">{t("contracts.columns.actions")}</th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("contracts.columns.contract")}</TableHead>
+            <TableHead>{t("contracts.columns.type")}</TableHead>
+            <TableHead>{t("contracts.columns.horse")}</TableHead>
+            <TableHead>{t("contracts.columns.counterparty")}</TableHead>
+            <TableHead>{t("contracts.columns.status")}</TableHead>
+            <TableHead>{t("contracts.columns.operationalPhase")}</TableHead>
+            <TableHead>{t("contracts.columns.plan")}</TableHead>
+            <TableHead>{t("contracts.columns.date")}</TableHead>
+            <TableHead className="text-end">{t("contracts.columns.actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map((r) => (
-            <tr key={r.c.id} className="border-t align-top">
-              <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
+            <TableRow key={r.c.id} className="align-top">
+              <TableCell className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                 {r.c.id.slice(0, 8)}
-              </td>
-              <td className="px-3 py-2"><TypeBadge /></td>
-              <td className="px-3 py-2">
-                {r.horseName ?? (
-                  <span className="text-muted-foreground italic">
-                    {t("boardingContracts.displayContextUnavailable")}
-                  </span>
-                )}
-              </td>
-              <td className="px-3 py-2 text-muted-foreground">
-                {r.counterpartyName ?? "—"}
-              </td>
-              <td className="px-3 py-2"><StatusBadge status={r.c.status} /></td>
-              <td className="px-3 py-2 text-muted-foreground">
+              </TableCell>
+              <TableCell><TypeBadge /></TableCell>
+              <TableCell>{renderHorseName(r)}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {renderCounterparty(r) ?? "—"}
+              </TableCell>
+              <TableCell><StatusBadge status={r.c.status} /></TableCell>
+              <TableCell className="text-muted-foreground">
                 {r.c.status === "active" && r.c.operational_phase && r.c.operational_phase !== "not_started"
                   ? t(`boardingContracts.operationalPhase.${r.c.operational_phase}`)
                   : "—"}
-              </td>
-              <td className="px-3 py-2 text-muted-foreground">
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {r.planName ? (
                   <div className="space-y-0.5">
                     <div className="truncate">{r.planName}</div>
                     {r.priceLine && <div className="text-xs">{r.priceLine}</div>}
                   </div>
                 ) : "—"}
-              </td>
-              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{r.dateLine ?? "—"}</td>
-              <td className="px-3 py-2">
+              </TableCell>
+              <TableCell className="text-muted-foreground whitespace-nowrap">
+                {r.dateLine ?? "—"}
+              </TableCell>
+              <TableCell>
                 <div className="flex justify-end">
-                  <RowActions c={r.c} isStableSide={r.isStableSide} isOwnerSide={r.isOwnerSide} h={handlers} />
+                  <RowActionsMenu
+                    c={r.c}
+                    isStableSide={r.isStableSide}
+                    isOwnerSide={r.isOwnerSide}
+                    h={handlers}
+                  />
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 
@@ -337,10 +478,7 @@ export function BoardingContractsTab() {
             {unhostedHorses.map((h: any) => (
               <div key={h.id} className="flex items-center justify-between gap-3 rounded-md border p-3">
                 <div className="min-w-0">
-                  <div className="font-medium truncate">{h.name}</div>
-                  {h.name_ar && (
-                    <div className="text-xs text-muted-foreground truncate">{h.name_ar}</div>
-                  )}
+                  <BilingualName name={h.name} nameAr={h.name_ar} />
                 </div>
                 <Button size="sm" onClick={() => setRequestForHorseId(h.id)}>
                   {t("boardingContracts.requestBoarding")}
@@ -412,6 +550,39 @@ export function BoardingContractsTab() {
         open={!!scheduleContract}
         onOpenChange={(o) => !o && setScheduleContract(null)}
         contract={scheduleContract}
+      />
+
+      <ContractDestructiveConfirmDialog
+        open={!!cancelTarget}
+        onOpenChange={(o) => !o && setCancelTarget(null)}
+        title={t("contracts.confirmCancel.title")}
+        message={t("contracts.confirmCancel.message")}
+        confirmLabel={t("contracts.confirmCancel.confirm")}
+        dismissLabel={t("contracts.confirmCancel.dismiss")}
+        isPending={cancel.isPending}
+        onConfirm={() => {
+          if (!cancelTarget) return;
+          cancel.mutate(
+            { contract_id: cancelTarget.id },
+            { onSettled: () => setCancelTarget(null) },
+          );
+        }}
+      />
+
+      <ContractDestructiveConfirmDialog
+        open={!!endTarget}
+        onOpenChange={(o) => !o && setEndTarget(null)}
+        title={t("contracts.confirmEnd.title")}
+        message={t("contracts.confirmEnd.message")}
+        confirmLabel={t("contracts.confirmEnd.confirm")}
+        dismissLabel={t("contracts.confirmEnd.dismiss")}
+        isPending={end.isPending}
+        onConfirm={() => {
+          if (!endTarget) return;
+          end.mutate(endTarget.id, {
+            onSettled: () => setEndTarget(null),
+          });
+        }}
       />
     </div>
   );
