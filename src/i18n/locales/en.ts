@@ -6796,6 +6796,26 @@ export const en = {
     availableAfterArrival: "Available after the horse arrives.",
     typeRequiresArrival: "This request type is only available after the horse arrives.",
   },
+  contracts: {
+    pageTitle: "Contracts",
+    pageSubtitle: "Manage agreements between horse owners and stables.",
+    noTypes: "No contract types are available for this workspace yet.",
+    tabs: { more: "More" },
+    types: {
+      boarding: { label: "Boarding", badge: "Boarding Contract" },
+    },
+    columns: {
+      contract: "Contract",
+      type: "Type",
+      horse: "Horse",
+      counterparty: "Owner / Stable",
+      status: "Status",
+      operationalPhase: "Operational phase",
+      plan: "Plan",
+      date: "Date",
+      actions: "Actions",
+    },
+  },
 };
 
 
