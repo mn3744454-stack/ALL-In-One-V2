@@ -30,6 +30,7 @@ import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
 import DashboardBoardingContracts from "./pages/DashboardBoardingContracts";
 import DashboardContracts from "./pages/DashboardContracts";
+import PrototypeRichContractEditor from "./pages/PrototypeRichContractEditor";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
@@ -356,6 +357,15 @@ const AppRoutes = () => {
             <WorkspaceRouteGuard requiredMode="organization">
               <DashboardContracts />
             </WorkspaceRouteGuard>
+          </ProtectedRoute>
+        }
+      />
+      {/* B2.5d.3 prototype — dev-only, not in nav, not in contract registry. */}
+      <Route
+        path="/dashboard/contracts/prototype-rich-editor"
+        element={
+          <ProtectedRoute>
+            <PrototypeRichContractEditor />
           </ProtectedRoute>
         }
       />
