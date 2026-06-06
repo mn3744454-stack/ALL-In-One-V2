@@ -185,6 +185,14 @@ export function MultiHorseSelector({
                       </div>
                     )}
                   </div>
+                  {horse.ownership_label && (
+                    <Badge
+                      variant={horse.ownership_variant ?? "secondary"}
+                      className="text-[10px] shrink-0"
+                    >
+                      {horse.ownership_label}
+                    </Badge>
+                  )}
                   {horse.gender && (
                     <Badge variant="outline" className="text-xs shrink-0">
                       {t(`horses.gender.${horse.gender}`)}
