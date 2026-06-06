@@ -336,11 +336,13 @@ export function BoardingContractsTab() {
             {renderCounterparty(r)}
           </div>
         )}
-        {r.planName && (
-          <div className="text-xs text-muted-foreground truncate">
-            {r.planName}{r.priceLine ? ` — ${r.priceLine}` : ""}
+        {(r.planName || r.planNameAr) && (
+          <div className="text-xs text-muted-foreground min-w-0">
+            <BilingualName name={r.planName} nameAr={r.planNameAr} />
+            {r.priceLine && <div>{r.priceLine}</div>}
           </div>
         )}
+
         {r.dateLine && (
           <div className="text-xs text-muted-foreground">{r.dateLine}</div>
         )}
@@ -383,11 +385,21 @@ export function BoardingContractsTab() {
               {renderCounterparty(r)}
             </div>
           )}
-          {(r.planName || r.dateLine) && (
-            <div className="text-xs text-muted-foreground truncate">
-              {r.planName}
-              {r.planName && r.priceLine ? ` — ${r.priceLine}` : r.priceLine ?? ""}
-              {r.dateLine ? `${r.planName || r.priceLine ? " · " : ""}${r.dateLine}` : ""}
+          {(r.planName || r.planNameAr || r.dateLine) && (
+            <div className="text-xs text-muted-foreground min-w-0 space-y-0.5">
+              {(r.planName || r.planNameAr) && (
+                <BilingualName name={r.planName} nameAr={r.planNameAr} />
+              )}
+              {(r.priceLine || r.dateLine) && (
+                <div>
+                  {r.priceLine ?? ""}
+                  {r.priceLine && r.dateLine ? " · " : ""}
+                  {r.dateLine ?? ""}
+                </div>
+              )}
+            </div>
+          )}
+
             </div>
           )}
         </div>
