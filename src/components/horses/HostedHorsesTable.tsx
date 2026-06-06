@@ -91,7 +91,7 @@ export const HostedHorsesTable = ({ rows, onRowClick }: HostedHorsesTableProps) 
                       <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
                         {t(`horseOwner.hosted.${dateLabelKey}`)}
                       </span>
-                      <span>{new Date(dateToShow).toLocaleDateString(isAr ? "ar" : "en")}</span>
+                      <span>{formatStandardDate(dateToShow)}</span>
                     </span>
                   ) : (
                     <span className="text-muted-foreground/60">—</span>
