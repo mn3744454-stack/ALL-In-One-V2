@@ -29,6 +29,7 @@ import DashboardPayments from "./pages/DashboardPayments";
 import DashboardRevenue from "./pages/DashboardRevenue";
 import DashboardHorses from "./pages/DashboardHorses";
 import DashboardBoardingContracts from "./pages/DashboardBoardingContracts";
+import DashboardContracts from "./pages/DashboardContracts";
 import DashboardHorseOrders from "./pages/DashboardHorseOrders";
 import DashboardBreeding from "./pages/DashboardBreeding";
 import DashboardVet from "./pages/DashboardVet";
