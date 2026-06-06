@@ -1111,9 +1111,26 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
   const { submissions, orphanRequests, loading: submissionsLoading } = useLabSubmissions();
   const { connections, refetch: refetchConnections } = useConnectionsWithDetails();
   const { createConnection } = useConnections();
+  const { requests: serviceRequests } = useServiceRequests({});
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>(() => searchParams.get('statusFilter') || 'all');
+
+  // B3b: bridge — read from_service_request + horse_id URL params and resolve SR
+  const bridgeServiceRequestId = searchParams.get('from_service_request');
+  const bridgeHorseIdParam = searchParams.get('horse_id');
+  const bridgeServiceRequest = useMemo<ServiceRequest | null>(() => {
+    if (!bridgeServiceRequestId) return null;
+    return serviceRequests.find(r => r.id === bridgeServiceRequestId) ?? null;
+  }, [bridgeServiceRequestId, serviceRequests]);
+  const handleClearBridge = useCallback(() => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('from_service_request');
+      next.delete('horse_id');
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   // Persist statusFilter in URL search params
   const handleStatusFilterChange = useCallback((value: string) => {
