@@ -403,20 +403,27 @@ export function BoardingContractsTab() {
     </div>
   );
 
-  const renderTable = () => (
+  const renderPlanBilingual = (r: RowData) => {
+    if (!r.planName && !r.planNameAr) return null;
+    return <BilingualName name={r.planName} nameAr={r.planNameAr} />;
+  };
+
+  const renderTable = () => {
+    const headClass = "text-sm font-bold text-foreground";
+    return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>{t("contracts.columns.contract")}</TableHead>
-            <TableHead>{t("contracts.columns.type")}</TableHead>
-            <TableHead>{t("contracts.columns.horse")}</TableHead>
-            <TableHead>{t("contracts.columns.counterparty")}</TableHead>
-            <TableHead>{t("contracts.columns.status")}</TableHead>
-            <TableHead>{t("contracts.columns.operationalPhase")}</TableHead>
-            <TableHead>{t("contracts.columns.plan")}</TableHead>
-            <TableHead>{t("contracts.columns.date")}</TableHead>
-            <TableHead className="text-end">{t("contracts.columns.actions")}</TableHead>
+          <TableRow className="bg-muted/80 hover:bg-muted/80">
+            <TableHead className={headClass}>{t("contracts.columns.contract")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.type")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.horse")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.counterparty")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.status")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.operationalPhase")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.plan")}</TableHead>
+            <TableHead className={headClass}>{t("contracts.columns.date")}</TableHead>
+            <TableHead className={cn(headClass, "text-end")}>{t("contracts.columns.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -437,9 +444,9 @@ export function BoardingContractsTab() {
                   : "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">
-                {r.planName ? (
-                  <div className="space-y-0.5">
-                    <div className="truncate">{r.planName}</div>
+                {(r.planName || r.planNameAr) ? (
+                  <div className="space-y-0.5 min-w-0">
+                    {renderPlanBilingual(r)}
                     {r.priceLine && <div className="text-xs">{r.priceLine}</div>}
                   </div>
                 ) : "—"}
@@ -449,12 +456,15 @@ export function BoardingContractsTab() {
               </TableCell>
               <TableCell>
                 <div className="flex justify-end">
-                  <RowActionsMenu
-                    c={r.c}
-                    isStableSide={r.isStableSide}
-                    isOwnerSide={r.isOwnerSide}
-                    h={handlers}
-                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    aria-label={t("contracts.rowActions.menuLabel")}
+                    onClick={() => setDetailsRowId(r.c.id)}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -462,7 +472,9 @@ export function BoardingContractsTab() {
         </TableBody>
       </Table>
     </div>
-  );
+    );
+  };
+
 
   return (
     <div className="space-y-6">
