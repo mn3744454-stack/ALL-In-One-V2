@@ -490,6 +490,20 @@ export const en = {
     
     // Lab Requests
     requests: {
+      bridge: {
+        banner: "Created from approved service request",
+        ownerNotes: "Owner notes:",
+        approvedCost: "Approved service-request cost: {amount} {currency}",
+        contextOnly: "context only, not a lab invoice.",
+        ownerVisibility: "The owner will not automatically see lab results until they are shared/published later.",
+        ownerLabel: "Owner",
+        confirmAllowed: "Confirm this lab request is allowed by the boarding contract, owner approval, included service, or emergency policy.",
+        horseNotEligible: "Horse is not eligible for lab request creation in this stable.",
+      },
+      ownership: {
+        hosted: "Hosted",
+        connected: "Connected",
+      },
       title: "Lab Test Requests",
       subtitle: "Request and track lab tests from external laboratories",
       create: "New Request",
