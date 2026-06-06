@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/contexts/AuthContext";
 import { useTenant } from "@/contexts/TenantContext";
 import { useHorses } from "@/hooks/useHorses";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { usePermissions } from "@/hooks/usePermissions";
 import { PERSONAL_NAV_MODULES, ORG_NAV_MODULES, type WorkspaceNavModule, type NavModuleChild } from "@/navigation/workspaceNavConfig";
 import { LAB_NAV_SECTIONS } from "@/navigation/labNavConfig";
+import { LogoutConfirmDialog } from "@/components/LogoutConfirmDialog";
 import { cn } from "@/lib/utils";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, LogOut } from "lucide-react";
 
 interface MobileLauncherProps {
   open: boolean;
