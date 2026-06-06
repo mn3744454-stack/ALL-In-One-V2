@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Clock, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n";
+import { formatStandardDate } from "@/lib/displayHelpers";
 import type { OwnerHostedHorseRow } from "@/hooks/owner/useOwnerHostedHorses";
 
 interface HostedHorseCardProps {
