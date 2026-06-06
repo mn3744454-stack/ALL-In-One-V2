@@ -24,7 +24,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLabRequests, type LabRequest, type CreateLabRequestData, type CreateSubmissionData } from "@/hooks/laboratory/useLabRequests";
+import { useLabEligibleHorses, type LabEligibleHorse } from "@/hooks/laboratory/useLabEligibleHorses";
 import { useHorses } from "@/hooks/useHorses";
+import { useServiceRequests, type ServiceRequest } from "@/hooks/boarding/useServiceRequests";
 import { useConnections, useConnectionsWithDetails } from "@/hooks/connections";
 import { AddPartnerDialog } from "@/components/connections";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
