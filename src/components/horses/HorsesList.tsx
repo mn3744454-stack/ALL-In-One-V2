@@ -5,14 +5,16 @@ import { HorseFilters, HorseFiltersState } from "./HorseFilters";
 import { HorseExport } from "./HorseExport";
 import { HorseWizard } from "./HorseWizard";
 import { IncompleteProfileModal } from "./IncompleteProfileModal";
+import { HostedHorseCard } from "./HostedHorseCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heart, Plus, AlertTriangle } from "lucide-react";
+import { Heart, Plus, AlertTriangle, Home } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { ViewSwitcher, getGridClass, type ViewMode, type GridColumns } from "@/components/ui/ViewSwitcher";
 import { useViewPreference } from "@/hooks/useViewPreference";
 import { useHorseLifecycleStates } from "@/hooks/movement/useHorseLifecycleStates";
+import { useOwnerHostedHorses } from "@/hooks/owner/useOwnerHostedHorses";
 
 import { isHorseIncomplete, type CompletenessHorse } from "@/lib/horseCompleteness";
 
@@ -30,18 +32,21 @@ interface Horse extends CompletenessHorse {
   current_location_id?: string | null;
 }
 
-type OperationalTab = 'all' | 'inside' | 'outside';
+type OperationalTab = 'all' | 'inside' | 'outside' | 'hosted';
 
 interface HorsesListProps {
   horses: Horse[];
   loading: boolean;
   onHorseClick?: (horse: Horse) => void;
   onRefresh?: () => void;
+  /** When true, surface the owner-only Hosted tab backed by get_owner_hosted_horses. */
+  ownerMode?: boolean;
 }
 
-export const HorsesList = ({ horses, loading, onHorseClick, onRefresh }: HorsesListProps) => {
+export const HorsesList = ({ horses, loading, onHorseClick, onRefresh, ownerMode = false }: HorsesListProps) => {
   const { t } = useI18n();
   const { viewMode, gridColumns, setViewMode, setGridColumns } = useViewPreference('horses');
+  const { data: hostedRows = [], isLoading: hostedLoading } = useOwnerHostedHorses();
   const [filters, setFilters] = useState<HorseFiltersState>({
     search: "",
     gender: "",
