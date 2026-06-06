@@ -1311,7 +1311,13 @@ export function LabRequestsTab({ onCreateSampleFromRequest }: LabRequestsTabProp
               : (t('laboratory.requests.subtitle') || 'Request and track lab tests from external laboratories')}
           </p>
         </div>
-        {!isLabFull && <CreateRequestDialog />}
+        {!isLabFull && (
+          <CreateRequestDialog
+            bridgePreselectHorseId={bridgeHorseIdParam}
+            bridgeServiceRequest={bridgeServiceRequest}
+            onClearBridge={handleClearBridge}
+          />
+        )}
       </div>
 
       {/* Partnership Inbox - only for stable tenants */}
