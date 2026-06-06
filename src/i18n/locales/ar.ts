@@ -6773,6 +6773,26 @@ export const ar = {
     availableAfterArrival: "متاح بعد وصول الخيل.",
     typeRequiresArrival: "هذا النوع من الطلبات متاح فقط بعد وصول الخيل.",
   },
+  contracts: {
+    pageTitle: "العقود",
+    pageSubtitle: "إدارة الاتفاقيات بين ملاك الخيل والإسطبلات.",
+    noTypes: "لا تتوفر أنواع عقود لهذه المنشأة حالياً.",
+    tabs: { more: "المزيد" },
+    types: {
+      boarding: { label: "إيواء", badge: "عقد إيواء" },
+    },
+    columns: {
+      contract: "العقد",
+      type: "النوع",
+      horse: "الخيل",
+      counterparty: "المالك / الإسطبل",
+      status: "الحالة",
+      operationalPhase: "المرحلة التشغيلية",
+      plan: "الباقة",
+      date: "التاريخ",
+      actions: "الإجراءات",
+    },
+  },
 };
 
 
