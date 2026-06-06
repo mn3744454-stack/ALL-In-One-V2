@@ -6606,6 +6606,14 @@ export const en = {
         title: "No hosted horses yet",
         body: "When a stable admits one of your horses under an active boarding contract, it will appear here.",
       },
+      columns: {
+        horse: "Horse",
+        stable: "Stable",
+        phase: "Phase",
+        date: "Date",
+        openRequests: "Open requests",
+        placement: "Placement",
+      },
     },
     emptyHorse: {
       notLinked: "This horse is not yet linked to a stable.",
