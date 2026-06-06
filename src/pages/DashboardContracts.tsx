@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
