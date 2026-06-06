@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
-import type { TenantContextValue } from "@/contexts/TenantContext";
+import type { useTenant } from "@/contexts/TenantContext";
 import { BoardingContractsTab } from "./types/boarding/BoardingContractsTab";
+
+type TenantCtx = ReturnType<typeof useTenant>;
 
 /**
  * Frontend static registry for contract types (B2.5).
