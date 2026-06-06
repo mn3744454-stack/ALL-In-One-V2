@@ -16,6 +16,10 @@ interface Horse {
   avatar_url?: string | null;
   passport_number?: string | null;
   microchip_number?: string | null;
+  /** B3b: optional ownership label rendered as a badge in the row */
+  ownership_label?: string | null;
+  /** B3b: visual variant for the ownership badge */
+  ownership_variant?: "default" | "secondary" | "outline" | "destructive";
 }
 
 interface MultiHorseSelectorProps {
