@@ -426,9 +426,9 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 />
                 <NavItem
                   icon={FileText}
-                  label={t('sidebar.boardingContracts')}
-                  href="/dashboard/boarding-contracts"
-                  active={isActive("/dashboard/boarding-contracts")}
+                  label={t('sidebar.contracts')}
+                  href="/dashboard/contracts"
+                  active={isActive("/dashboard/contracts")}
                   onNavigate={onClose}
                   {...navProps}
                 />
@@ -449,9 +449,9 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 />
                 <NavItem
                   icon={FileText}
-                  label={t('sidebar.boardingContracts')}
-                  href="/dashboard/boarding-contracts"
-                  active={isActive("/dashboard/boarding-contracts")}
+                  label={t('sidebar.contracts')}
+                  href="/dashboard/contracts"
+                  active={isActive("/dashboard/contracts")}
                   onNavigate={onClose}
                   {...navProps}
                 />
@@ -587,9 +587,9 @@ export const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => 
                 />
                 <NavItem
                   icon={FileText}
-                  label={t('sidebar.boardingContracts')}
-                  href="/dashboard/boarding-contracts"
-                  active={isActive("/dashboard/boarding-contracts")}
+                  label={t('sidebar.contracts')}
+                  href="/dashboard/contracts"
+                  active={isActive("/dashboard/contracts")}
                   onNavigate={onClose}
                   {...navProps}
                 />

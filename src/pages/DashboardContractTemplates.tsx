@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/select";
 import { Plus, FileText, ArrowLeft } from "lucide-react";
 import { useContractTemplates } from "@/contracts/hooks/useContractTemplates";
+import { useI18n } from "@/i18n";
 import type { ContractType } from "@/contracts/docModel/types";
 import { formatStandardDate } from "@/lib/displayHelpers";
 
 export default function DashboardContractTemplates() {
+  const { t } = useI18n();
   const { templates, isLoading, create } = useContractTemplates();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -41,7 +43,7 @@ export default function DashboardContractTemplates() {
 
   return (
     <DashboardShell>
-      <MobilePageHeader title="Contract Templates" />
+      <MobilePageHeader title={t("contracts.forms.title")} />
       <div className="p-4 lg:p-8 space-y-6">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
@@ -49,24 +51,24 @@ export default function DashboardContractTemplates() {
               to="/dashboard/contracts"
               className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-1"
             >
-              <ArrowLeft className="w-3 h-3" /> Contracts
+              <ArrowLeft className="w-3 h-3" /> {t("contracts.pageTitle")}
             </Link>
             <h1 className="font-display text-2xl font-semibold text-navy">
-              Contract Templates
+              {t("contracts.forms.title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Reusable rich-text contract templates with bilingual variables.
+              {t("contracts.forms.subtitle")}
             </p>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 me-1" /> New template</Button>
+              <Button><Plus className="w-4 h-4 me-1" /> {t("contracts.forms.newForm")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>New contract template</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("contracts.forms.dialogTitle")}</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Contract type</Label>
+                  <Label>{t("contracts.columns.type")}</Label>
                   <Select value={type} onValueChange={(v) => setType(v as ContractType)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -102,9 +104,9 @@ export default function DashboardContractTemplates() {
           <Card>
             <CardContent className="p-8 text-center space-y-3">
               <FileText className="w-10 h-10 mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">No templates yet.</p>
+              <p className="text-sm text-muted-foreground">{t("contracts.forms.empty")}</p>
               <Button onClick={() => setOpen(true)}>
-                <Plus className="w-4 h-4 me-1" /> Create your first template
+                <Plus className="w-4 h-4 me-1" /> {t("contracts.forms.createFirst")}
               </Button>
             </CardContent>
           </Card>
