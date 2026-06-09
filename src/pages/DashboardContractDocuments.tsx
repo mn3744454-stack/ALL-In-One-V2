@@ -1,6 +1,6 @@
-// B2.5e — Contract Documents list & create (blank or from template).
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+// B2.5e — Contract Documents list & create (blank or from template/form).
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,29 +9,28 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FileText, ArrowLeft } from "lucide-react";
+import { useI18n } from "@/i18n";
 import { useContractDocuments } from "@/contracts/hooks/useContractDocuments";
 import { useContractTemplates } from "@/contracts/hooks/useContractTemplates";
 import type { ContractType, ContractDocumentStatus } from "@/contracts/docModel/types";
 import { formatStandardDate } from "@/lib/displayHelpers";
 
-const STATUS_LABEL: Record<ContractDocumentStatus, string> = {
-  draft: "Draft", sent_for_review: "Sent", approved: "Approved",
-  rejected: "Rejected", cancelled: "Cancelled", archived: "Archived",
-};
 const STATUS_VARIANT: Record<ContractDocumentStatus, "default" | "secondary" | "outline" | "destructive"> = {
   draft: "secondary", sent_for_review: "secondary", approved: "default",
   rejected: "destructive", cancelled: "outline", archived: "outline",
 };
 
 export default function DashboardContractDocuments() {
+  const { t } = useI18n();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { documents, isLoading, createBlank, createFromTemplate } = useContractDocuments();
   const { templates } = useContractTemplates();
   const publishedTemplates = templates.filter((t) => t.status === "published");
@@ -42,6 +41,29 @@ export default function DashboardContractDocuments() {
   const [titleAr, setTitleAr] = useState("");
   const [type, setType] = useState<ContractType>("boarding");
   const [tplId, setTplId] = useState<string>("__blank__");
+
+  // Auto-open from hub chooser
+  useEffect(() => {
+    const create = searchParams.get("create");
+    if (create === "blank" || create === "fromForm") {
+      setTplId(create === "fromForm" && publishedTemplates[0]?.id
+        ? publishedTemplates[0].id
+        : "__blank__");
+      setOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete("create");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, publishedTemplates]);
+
+  const STATUS_LABEL: Record<ContractDocumentStatus, string> = {
+    draft: t("contracts.documents.filters.draft"),
+    sent_for_review: t("contracts.documents.filters.sent_for_review"),
+    approved: t("contracts.documents.filters.approved"),
+    rejected: t("contracts.documents.filters.rejected"),
+    cancelled: t("contracts.documents.filters.archived"),
+    archived: t("contracts.documents.filters.archived"),
+  };
 
   const visible = filter === "all" ? documents : documents.filter((d) => d.status === filter);
 
@@ -57,31 +79,33 @@ export default function DashboardContractDocuments() {
 
   return (
     <DashboardShell>
-      <MobilePageHeader title="Contract Documents" />
+      <MobilePageHeader title={t("contracts.documents.title")} />
       <div className="p-4 lg:p-8 space-y-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <Link to="/dashboard/contracts" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 mb-1">
-              <ArrowLeft className="w-3 h-3" /> Contracts
+              <ArrowLeft className="w-3 h-3" /> {t("contracts.pageTitle")}
             </Link>
-            <h1 className="font-display text-2xl font-semibold text-navy">Contract Documents</h1>
+            <h1 className="font-display text-2xl font-semibold text-navy">
+              {t("contracts.documents.title")}
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Drafts and sent contracts. Sent documents are frozen snapshots.
+              {t("contracts.documents.subtitle")}
             </p>
           </div>
+          <Button onClick={() => setOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> {t("contracts.documents.newDocument")}
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="w-4 h-4 me-1" /> New document</Button>
-            </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>New contract document</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("contracts.documents.newDocument")}</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>From template (optional)</Label>
+                  <Label>{t("contracts.cta.fromContractForm")}</Label>
                   <Select value={tplId} onValueChange={setTplId}>
-                    <SelectTrigger><SelectValue placeholder="Blank document" /></SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__blank__">Blank document</SelectItem>
+                      <SelectItem value="__blank__">{t("contracts.cta.contractDocument")}</SelectItem>
                       {publishedTemplates.map((tpl) => (
                         <SelectItem key={tpl.id} value={tpl.id}>{tpl.name}</SelectItem>
                       ))}
@@ -90,11 +114,11 @@ export default function DashboardContractDocuments() {
                 </div>
                 {tplId === "__blank__" && (
                   <div className="space-y-1.5">
-                    <Label>Contract type</Label>
+                    <Label>{t("contracts.columns.type")}</Label>
                     <Select value={type} onValueChange={(v) => setType(v as ContractType)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="boarding">Boarding</SelectItem>
+                        <SelectItem value="boarding">{t("contracts.types.boarding.label")}</SelectItem>
                         <SelectItem value="training">Training</SelectItem>
                         <SelectItem value="reproduction">Reproduction</SelectItem>
                         <SelectItem value="custom">Custom</SelectItem>
@@ -112,9 +136,9 @@ export default function DashboardContractDocuments() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel") || "Cancel"}</Button>
                 <Button onClick={handleCreate} disabled={!title.trim() || createBlank.isPending || createFromTemplate.isPending}>
-                  Create
+                  {t("contracts.documents.newDocument")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -123,11 +147,12 @@ export default function DashboardContractDocuments() {
 
         <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="draft">Drafts</TabsTrigger>
-            <TabsTrigger value="sent_for_review">Sent</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected</TabsTrigger>
+            <TabsTrigger value="all">{t("contracts.documents.filters.all")}</TabsTrigger>
+            <TabsTrigger value="draft">{t("contracts.documents.filters.draft")}</TabsTrigger>
+            <TabsTrigger value="sent_for_review">{t("contracts.documents.filters.sent_for_review")}</TabsTrigger>
+            <TabsTrigger value="approved">{t("contracts.documents.filters.approved")}</TabsTrigger>
+            <TabsTrigger value="rejected">{t("contracts.documents.filters.rejected")}</TabsTrigger>
+            <TabsTrigger value="archived">{t("contracts.documents.filters.archived")}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -137,7 +162,7 @@ export default function DashboardContractDocuments() {
           <Card>
             <CardContent className="p-8 text-center space-y-3">
               <FileText className="w-10 h-10 mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">No documents.</p>
+              <p className="text-sm text-muted-foreground">{t("contracts.documents.empty")}</p>
             </CardContent>
           </Card>
         ) : (
