@@ -38,7 +38,7 @@ import { ServiceRequestsSection } from "@/components/boarding/ServiceRequestsSec
 import { ScheduleArrivalSheet } from "@/components/boarding/ScheduleArrivalSheet";
 import { ContractDestructiveConfirmDialog } from "@/components/boarding/ContractDestructiveConfirmDialog";
 import { BoardingContractDetailsSheet } from "./BoardingContractDetailsSheet";
-import { FileText, Plus, CalendarClock, MoreVertical } from "lucide-react";
+import { FileText, CalendarClock, MoreVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatStandardDate } from "@/lib/displayHelpers";
 
@@ -503,14 +503,7 @@ export function BoardingContractsTab() {
 
   return (
     <div className="space-y-6">
-      {isStable && (
-        <div className="flex items-center justify-end">
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            {t("boardingContracts.createBoardingContract")}
-          </Button>
-        </div>
-      )}
+
 
       {isOwner && unhostedHorses.length > 0 && (
         <Card className="p-4 space-y-3">
