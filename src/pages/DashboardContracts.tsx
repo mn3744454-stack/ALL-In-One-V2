@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 import { MobilePageHeader } from "@/components/navigation";
 import { useTenant } from "@/contexts/TenantContext";
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, Briefcase, FileText, BookOpen } from "lucide-react";
 import {
   getVisibleContractTypes,
   resolveActiveContractType,
@@ -22,6 +22,8 @@ import {
 export default function DashboardContracts() {
   const { t } = useI18n();
   const tenantCtx = useTenant();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const visible = useMemo(() => getVisibleContractTypes(tenantCtx), [tenantCtx]);
@@ -39,6 +41,41 @@ export default function DashboardContracts() {
 
   const ActiveComponent = active?.component ?? null;
 
+  const onPickOperational = () => {
+    const next = new URLSearchParams(searchParams);
+    if (active) next.set("type", active.key);
+    next.set("create", "operational");
+    setSearchParams(next, { replace: true });
+  };
+  const onPickDocument = () => {
+    navigate("/dashboard/contracts/documents?create=blank");
+  };
+  const onPickFromForm = () => {
+    navigate("/dashboard/contracts/documents?create=fromForm");
+  };
+
+  const subNavItems = [
+    {
+      to: "/dashboard/contracts",
+      label: t("contracts.hub.operational"),
+      icon: Briefcase,
+      match: (p: string) =>
+        p === "/dashboard/contracts" || p.startsWith("/dashboard/contracts?"),
+    },
+    {
+      to: "/dashboard/contracts/documents",
+      label: t("contracts.hub.documents"),
+      icon: FileText,
+      match: (p: string) => p.startsWith("/dashboard/contracts/documents"),
+    },
+    {
+      to: "/dashboard/contracts/templates",
+      label: t("contracts.hub.forms"),
+      icon: BookOpen,
+      match: (p: string) => p.startsWith("/dashboard/contracts/templates"),
+    },
+  ];
+
   return (
     <DashboardShell>
       <MobilePageHeader title={t("contracts.pageTitle")} />
@@ -52,69 +89,126 @@ export default function DashboardContracts() {
               {t("contracts.pageSubtitle")}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/dashboard/contracts/templates">Templates</Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/dashboard/contracts/documents">Documents</Link>
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="w-4 h-4" />
+                {t("contracts.cta.newContract")}
+                <ChevronDown className="w-3 h-3 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuItem
+                onClick={onPickOperational}
+                className="flex-col items-start gap-1 py-2"
+              >
+                <span className="font-medium">{t("contracts.cta.operationalContract")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("contracts.cta.operationalContractDesc")}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onPickDocument}
+                className="flex-col items-start gap-1 py-2"
+              >
+                <span className="font-medium">{t("contracts.cta.contractDocument")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("contracts.cta.contractDocumentDesc")}
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onPickFromForm}
+                className="flex-col items-start gap-1 py-2"
+              >
+                <span className="font-medium">{t("contracts.cta.fromContractForm")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("contracts.cta.fromContractFormDesc")}
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Hub sub-nav */}
+        <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
+          {subNavItems.map((item) => {
+            const isActive = item.match(location.pathname);
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/dashboard/contracts"}
+                className={cn(
+                  "inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+                  isActive
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </div>
 
         {visible.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("contracts.noTypes")}</p>
         ) : (
           <>
-            <div className="flex items-center gap-2 border-b border-border overflow-x-auto">
-              {primary.map((def) => {
-                const isActive = active?.key === def.key;
-                return (
-                  <button
-                    key={def.key}
-                    type="button"
-                    onClick={() => setActive(def.key)}
-                    className={cn(
-                      "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
-                      isActive
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {t(def.labelKey)}
-                  </button>
-                );
-              })}
-              {overflow.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+            {/* Operational contract type tabs (only render if more than one type) */}
+            {primary.length > 1 && (
+              <div className="flex items-center gap-2 border-b border-border overflow-x-auto">
+                {primary.map((def) => {
+                  const isActive = active?.key === def.key;
+                  return (
+                    <button
+                      key={def.key}
+                      type="button"
+                      onClick={() => setActive(def.key)}
                       className={cn(
-                        "px-3 py-2 h-auto gap-1 text-sm font-medium border-b-2 -mb-px rounded-none",
-                        active && overflow.some((o) => o.key === active.key)
+                        "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap",
+                        isActive
                           ? "border-primary text-primary"
-                          : "border-transparent text-muted-foreground",
+                          : "border-transparent text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {t("contracts.tabs.more")}
-                      <ChevronDown className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {overflow.map((def) => (
-                      <DropdownMenuItem
-                        key={def.key}
-                        onClick={() => setActive(def.key)}
+                      {t(def.labelKey)}
+                    </button>
+                  );
+                })}
+                {overflow.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          "px-3 py-2 h-auto gap-1 text-sm font-medium border-b-2 -mb-px rounded-none",
+                          active && overflow.some((o) => o.key === active.key)
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground",
+                        )}
                       >
-                        {t(def.labelKey)}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+                        {t("contracts.tabs.more")}
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {overflow.map((def) => (
+                        <DropdownMenuItem
+                          key={def.key}
+                          onClick={() => setActive(def.key)}
+                        >
+                          {t(def.labelKey)}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            )}
 
             {ActiveComponent && <ActiveComponent />}
           </>
