@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useTenant } from "@/contexts/TenantContext";
 import { useI18n } from "@/i18n";
 import { Button } from "@/components/ui/button";
@@ -241,6 +242,19 @@ export function BoardingContractsTab() {
   const [cancelTarget, setCancelTarget] = useState<BoardingContract | null>(null);
   const [endTarget, setEndTarget] = useState<BoardingContract | null>(null);
   const [detailsRowId, setDetailsRowId] = useState<string | null>(null);
+
+  // Allow the Contracts hub "New Contract → Operational" chooser to open the
+  // boarding create dialog via ?create=operational. Consume + strip the param.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("create") === "operational" && isStable) {
+      setCreateOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete("create");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams, isStable]);
+
 
 
   const unhostedHorses = isOwner
