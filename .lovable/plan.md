@@ -1,47 +1,26 @@
-# الحل الجذري النهائي — لماذا كل الحسابات تفتح النسخة القديمة
+## Goal
+Make the table column headers in **Contract Documents** (image 26) and **Contract Forms** (image 27) appear **bold** to match the Operational Contracts table (image 25).
 
-## السبب الجذري (مؤكد بالأدلة من الكود)
+## Root Cause
+In `src/contracts/sections/ContractDocumentsSection.tsx` and `src/contracts/sections/ContractTemplatesSection.tsx`, the `<th>` elements use `font-medium`, which renders thinner than the bold headers used by the Operational Contracts table.
 
-المشكلة ليست في حساباتك ولا في سجل المتصفح. هناك سببان مركّبان:
+## Change
+Update the `<thead>` styling in both files:
+- Replace `font-medium` with `font-bold` on each `<th>`.
+- Change the header row text color from `text-muted-foreground` to `text-foreground` so the bold weight reads clearly (matching image 25).
 
-**السبب 1 — الرابط نفسه يقدّم نسخة قديمة من السيرفر:**
-الرابط الذي تفتحه `preview--horse-verse-link.lovable.app` لا يتحدّث تلقائياً مع كل تعديل. هو يتحدّث فقط عند الضغط على **Publish / Update**. النسخة المنشورة عليه الآن قديمة جداً (الدليل القاطع: العنوان الفرعي "إدارة الاتفاقيات بين ملاك الخيل والإسطبلات" الظاهر في لقطاتك **غير موجود نهائياً في الكود الحالي**). لذلك حتى وضع التخفي يعرض القديم — لأن السيرفر نفسه يرسل بناء قديماً.
+No other changes:
+- No layout, filters, view-switcher, dialogs, hooks, or translations touched.
+- No backend, schema, RPC, RLS, permissions, or editor changes.
+- Operational Contracts table untouched (already correct).
 
-أما رابط المعاينة الحي `id-preview--64c79edd-...lovable.app` فهو الذي يعرض النسخة الجديدة دائماً.
+## Files
+- `src/contracts/sections/ContractDocumentsSection.tsx` — thead styling only.
+- `src/contracts/sections/ContractTemplatesSection.tsx` — thead styling only.
 
-**السبب 2 — تصادم خطير بين عاملَي الخدمة (Service Workers) يجعل القديم "يلتصق" بالأجهزة:**
-- إضافة PWA في `vite.config.ts` تولّد عامل خدمة تخزين مسبق باسم `sw.js` (الاسم الافتراضي).
-- لديك أيضاً ملف `public/sw.js` خاص بإشعارات الدفع — **نفس الاسم، تصادم مباشر**.
-- كود التنظيف في `src/main.tsx` يحتفظ عمداً بأي عامل خدمة اسمه ينتهي بـ `/sw.js` (ظنّاً أنه عامل الإشعارات فقط) — وبالتالي **يحافظ على عامل التخزين المسبق القديم للأبد** على كل جهاز دخلت منه سابقاً، فيستمر بتقديم الواجهة القديمة حتى بعد أي تحديث.
-
-هذه هي الحلقة المفرغة: السيرفر قديم + عامل الخدمة القديم محمي من الحذف على كل أجهزتك وحسابات اسطبل القمة (عربي/إنجليزي) ويوسف الطريف والمختبر المتميز — كلها على نفس الرابط فترى نفس النسخة القديمة.
-
-## خطة الإصلاح النهائي
-
-### 1. فصل عامل إشعارات الدفع عن عامل التطبيق
-- إعادة تسمية `public/sw.js` إلى `public/push-sw.js`.
-- تحديث `src/lib/pushManager.ts` ليسجّل `/push-sw.js` بدلاً من `/sw.js`.
-- الإشعارات تستمر بالعمل كما هي (نفس الكود، اسم ملف فقط).
-
-### 2. تحويل `sw.js` القديم إلى "مفتاح إبادة" (Kill-Switch)
-- في `vite.config.ts`: تفعيل خيار `selfDestroying: true` في إضافة PWA.
-- هذا يجعل البناء الجديد ينشر ملف `sw.js` خاصاً مهمته الوحيدة: **إلغاء تسجيل نفسه ومسح كل الكاش** على أي جهاز ما زال عالقاً بالعامل القديم — تنظيف ذاتي تلقائي لكل المستخدمين دون أي تدخل منهم.
-- يبقى ملف `manifest.json` كما هو (التطبيق يظل قابلاً للتثبيت على الشاشة الرئيسية).
-
-### 3. تصحيح كود التنظيف في `src/main.tsx`
-- الإبقاء فقط على `/push-sw.js` (الإشعارات)، وإلغاء تسجيل أي عامل آخر بما فيه `/sw.js` القديم.
-
-### 4. النشر (الخطوة الإلزامية)
-- بعد التعديلات، **الضغط على Publish / Update** لكي يستلم الرابط `preview--horse-verse-link.lovable.app` البناء الجديد.
-- بدون نشر، الرابط القديم سيظل يعرض القديم مهما عدّلنا — هذه طبيعة المنصة: تعديلات الواجهة لا تصل للرابط المنشور إلا بالنشر.
-
-### 5. التحقق
-- فتح `/dashboard/contracts` على رابط المعاينة الحي والتأكد من ظهور مركز العقود الجديد (زر "إنشاء عقد جديد" + التبويبات الثلاثة).
-- بعد النشر: فتح الرابط القديم والتأكد أن أول تحميل يشغّل التنظيف الذاتي ثم تظهر النسخة الجديدة في التحميل التالي مباشرة — على كل الحسابات (اسطبل القمة، يوسف الطريف، المختبر المتميز) لأن المشكلة بالجهاز/الرابط وليست بالحسابات.
-
-## ما لن يتغيّر
-لا تغيير في قاعدة البيانات، RPCs، RLS، الصلاحيات، محرر/عارض المستندات، دورة حياة العقود، أو أي وحدة تشغيلية أخرى. التعديل محصور في 3 ملفات واجهة: `vite.config.ts`، `src/main.tsx`، `src/lib/pushManager.ts` + إعادة تسمية ملف.
-
-## ملاحظة مهمة للاستخدام اليومي
-- **للاختبار اليومي أثناء التطوير**: استخدم رابط المعاينة الحي `id-preview--64c79edd-...lovable.app` — يعرض آخر تعديل فوراً.
-- **الرابط `preview--...`**: يتحدّث فقط عند النشر. بعد هذا الإصلاح، كل نشر جديد سيصل للأجهزة تلقائياً دون التصاق بالنسخ القديمة نهائياً.
+## QA
+- Documents tab → Table view: headers (الاسم، النوع، الحالة، آخر تحديث، الإجراءات) appear bold.
+- Forms tab → Table view: same headers appear bold.
+- Operational Contracts table unchanged.
+- AR/RTL and EN/LTR both render bold weight.
+- No console/build/type errors.
